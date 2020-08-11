@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.annotations.Api;
 
 @SpringBootApplication
-@ComponentScan(basePackages = { "io.mosip.credentialstore.*" })
+@ComponentScan(basePackages = { "io.mosip.credential.request.generator.*" })
 public class CredentialRequestGeneratorApp 
 {
     public static void main( String[] args )

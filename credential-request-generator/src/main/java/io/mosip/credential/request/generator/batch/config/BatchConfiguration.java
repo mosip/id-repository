@@ -1,5 +1,10 @@
 package io.mosip.credential.request.generator.batch.config;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -11,6 +16,11 @@ import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.domain.Sort.Order;
 
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
@@ -43,18 +53,25 @@ public class BatchConfiguration {
 	@Bean
 	public Step credentialProcessStep() {
 		RepositoryItemReader<CredentialEntity> reader = new RepositoryItemReader<>();
+		List<Object> methodArgs = new ArrayList<Object>();
 		reader.setRepository(crdentialRepo);
-		reader.setMethodName("findByStatusCode");
+		reader.setMethodName("findCredentialByStatusCode");
+		 final Map<String, Sort.Direction> sorts = new HashMap<>();
+		    sorts.put("createDateTime", Direction.ASC);
+		methodArgs.add("NEW");
 		// TODO based on only NEW status code or any other 
+		reader.setArguments(methodArgs);
+		reader.setSort(sorts);
+		reader.setPageSize(10);
+	
 		RepositoryItemWriter<CredentialEntity> writer = new RepositoryItemWriter<>();
-		//update the entity after processing
 		writer.setRepository(crdentialRepo);
 		writer.setMethodName("update");
 		return stepBuilderFactory.get("credentialProcessStep").<CredentialEntity, CredentialEntity>chunk(10)
 				.reader(reader)
 				.processor(processor())
 				.writer(writer).build();
-		// need to set page size
+
 	}
 
 }
