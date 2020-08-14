@@ -1,12 +1,14 @@
 package io.mosip.credential.request.generator.util;
-import io.mosip.credential.request.generator.dto.Metadata;
-import io.mosip.credential.request.generator.dto.PasswordRequest;
-import io.mosip.credential.request.generator.dto.SecretKeyRequest;
-import io.mosip.credential.request.generator.dto.TokenRequestDTO;
-import io.mosip.credential.request.generator.exception.ApiNotAccessibleException;
-import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.core.util.StringUtils;
-import io.mosip.kernel.core.util.TokenHandlerUtil;
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.net.ssl.SSLContext;
+
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -28,52 +30,154 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.google.gson.Gson;
 
-import javax.net.ssl.SSLContext;
-import java.io.IOException;
-import java.net.URI;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
-import java.util.Iterator;
+import io.mosip.credential.request.generator.constants.ApiName;
+import io.mosip.credential.request.generator.dto.Metadata;
+import io.mosip.credential.request.generator.dto.PasswordRequest;
+import io.mosip.credential.request.generator.dto.SecretKeyRequest;
+import io.mosip.credential.request.generator.dto.TokenRequestDTO;
+import io.mosip.credential.request.generator.exception.ApiNotAccessibleException;
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.core.util.TokenHandlerUtil;
 
+
+/**
+ * @author Sowmya The Class RestUtil.
+ */
 public class RestUtil {
 
+	/** The environment. */
     @Autowired
     private Environment environment;
 
+	/** The Constant AUTHORIZATION. */
     private static final String AUTHORIZATION = "Authorization=";
 
-    public <T> T postApi(String uri, MediaType mediaType, Object requestType, Class<?> responseClass) throws ApiNotAccessibleException {
+	/**
+	 * Post api.
+	 *
+	 * @param                 <T> the generic type
+	 * @param apiName         the api name
+	 * @param pathsegments    the pathsegments
+	 * @param queryParamName  the query param name
+	 * @param queryParamValue the query param value
+	 * @param mediaType       the media type
+	 * @param requestType     the request type
+	 * @param responseClass   the response class
+	 * @return the t
+	 * @throws ApiNotAccessibleException the api not accessible exception
+	 */
+	@SuppressWarnings("unchecked")
+	public <T> T postApi(ApiName apiName, List<String> pathsegments, String queryParamName, String queryParamValue,
+			MediaType mediaType, Object requestType, Class<?> responseClass) throws ApiNotAccessibleException {
+		T result = null;
+		String apiHostIpPort = environment.getProperty(apiName.name());
+		UriComponentsBuilder builder = null;
+		if (apiHostIpPort != null)
+			builder = UriComponentsBuilder.fromUriString(apiHostIpPort);
+		if (builder != null) {
+
+			if (!((pathsegments == null) || (pathsegments.isEmpty()))) {
+				for (String segment : pathsegments) {
+					if (!((segment == null) || (("").equals(segment)))) {
+						builder.pathSegment(segment);
+					}
+				}
+
+			}
+			if (!((queryParamName == null) || (("").equals(queryParamName)))) {
+				String[] queryParamNameArr = queryParamName.split(",");
+				String[] queryParamValueArr = queryParamValue.split(",");
+
+				for (int i = 0; i < queryParamNameArr.length; i++) {
+					builder.queryParam(queryParamNameArr[i], queryParamValueArr[i]);
+				}
+			}
 
         RestTemplate restTemplate;
-        T result = null;
+
         try {
             restTemplate = getRestTemplate();
-            result = (T) restTemplate.postForObject(uri, setRequestHeader(requestType, mediaType), responseClass);
+				result = (T) restTemplate.postForObject(builder.toUriString(), setRequestHeader(requestType, mediaType),
+						responseClass);
 
         } catch (Exception e) {
             throw new ApiNotAccessibleException(e);
-        }
+			}
+		}
         return result;
     }
 
-    public <T> T getApi(URI uri, Class<?> responseType) throws ApiNotAccessibleException {
+	/**
+	 * Gets the api.
+	 *
+	 * @param                 <T> the generic type
+	 * @param apiName         the api name
+	 * @param pathsegments    the pathsegments
+	 * @param queryParamName  the query param name
+	 * @param queryParamValue the query param value
+	 * @param responseType    the response type
+	 * @return the api
+	 * @throws ApiNotAccessibleException the api not accessible exception
+	 */
+	@SuppressWarnings("unchecked")
+	public <T> T getApi(ApiName apiName, List<String> pathsegments, String queryParamName, String queryParamValue,
+			Class<?> responseType) throws ApiNotAccessibleException {
+
+		String apiHostIpPort = environment.getProperty(apiName.name());
+		T result = null;
+		UriComponentsBuilder builder = null;
+		UriComponents uriComponents = null;
+		if (apiHostIpPort != null) {
+
+			builder = UriComponentsBuilder.fromUriString(apiHostIpPort);
+			if (!((pathsegments == null) || (pathsegments.isEmpty()))) {
+				for (String segment : pathsegments) {
+					if (!((segment == null) || (("").equals(segment)))) {
+						builder.pathSegment(segment);
+					}
+				}
+
+			}
+
+			if (!((queryParamName == null) || (("").equals(queryParamName)))) {
+
+				String[] queryParamNameArr = queryParamName.split(",");
+				String[] queryParamValueArr = queryParamValue.split(",");
+				for (int i = 0; i < queryParamNameArr.length; i++) {
+					builder.queryParam(queryParamNameArr[i], queryParamValueArr[i]);
+				}
+
+			}
+			uriComponents = builder.build(false).encode();
         RestTemplate restTemplate;
-        T result = null;
+
         try {
             restTemplate = getRestTemplate();
-            result = (T) restTemplate.exchange(uri, HttpMethod.GET, setRequestHeader(null, null), responseType)
+				result = (T) restTemplate
+						.exchange(uriComponents.toUri(), HttpMethod.GET, setRequestHeader(null, null), responseType)
                     .getBody();
         } catch (Exception e) {
             throw new ApiNotAccessibleException(e);
         }
-        return result;
+
+		}
+		return result;
     }
 
+	/**
+	 * Gets the rest template.
+	 *
+	 * @return the rest template
+	 * @throws KeyManagementException   the key management exception
+	 * @throws NoSuchAlgorithmException the no such algorithm exception
+	 * @throws KeyStoreException        the key store exception
+	 */
     public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
         TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
         SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
@@ -87,6 +191,14 @@ public class RestUtil {
 
     }
 
+	/**
+	 * Sets the request header.
+	 *
+	 * @param requestType the request type
+	 * @param mediaType   the media type
+	 * @return the http entity
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
     private HttpEntity<Object> setRequestHeader(Object requestType, MediaType mediaType) throws IOException {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
         headers.add("Cookie", getToken());
@@ -111,26 +223,33 @@ public class RestUtil {
             return new HttpEntity<Object>(headers);
     }
 
+	/**
+	 * Gets the token.
+	 *
+	 * @return the token
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
     public String getToken() throws IOException {
         String token = System.getProperty("token");
         boolean isValid = false;
 
         if (StringUtils.isNotEmpty(token)) {
 
-            isValid = TokenHandlerUtil.isValidBearerToken(token, environment.getProperty("token.request.issuerUrl"),
-                    environment.getProperty("token.request.clientId"));
+			isValid = TokenHandlerUtil.isValidBearerToken(token,
+					environment.getProperty("credential.request.token.request.issuerUrl"),
+					environment.getProperty("credential.request.token.request.clientId"));
 
 
         }
         if (!isValid) {
             TokenRequestDTO<SecretKeyRequest> tokenRequestDTO = new TokenRequestDTO<SecretKeyRequest>();
-            tokenRequestDTO.setId(environment.getProperty("token.request.id"));
+			tokenRequestDTO.setId(environment.getProperty("credential.request.token.request.id"));
             tokenRequestDTO.setMetadata(new Metadata());
 
             tokenRequestDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
             // tokenRequestDTO.setRequest(setPasswordRequestDTO());
             tokenRequestDTO.setRequest(setSecretKeyRequestDTO());
-            tokenRequestDTO.setVersion(environment.getProperty("token.request.version"));
+			tokenRequestDTO.setVersion(environment.getProperty("credential.request.token.request.version"));
 
             Gson gson = new Gson();
             HttpClient httpClient = HttpClientBuilder.create().build();
@@ -157,19 +276,29 @@ public class RestUtil {
         return AUTHORIZATION + token;
     }
 
+	/**
+	 * Sets the secret key request DTO.
+	 *
+	 * @return the secret key request
+	 */
     private SecretKeyRequest setSecretKeyRequestDTO() {
         SecretKeyRequest request = new SecretKeyRequest();
-        request.setAppId(environment.getProperty("token.request.appid"));
-        request.setClientId(environment.getProperty("token.request.clientId"));
-        request.setSecretKey(environment.getProperty("token.request.secretKey"));
+		request.setAppId(environment.getProperty("credential.request.token.request.appid"));
+		request.setClientId(environment.getProperty("credential.request.token.request.clientId"));
+		request.setSecretKey(environment.getProperty("credential.request.token.request.secretKey"));
         return request;
     }
 
+	/**
+	 * Sets the password request DTO.
+	 *
+	 * @return the password request
+	 */
     private PasswordRequest setPasswordRequestDTO() {
         PasswordRequest request = new PasswordRequest();
-        request.setAppId(environment.getProperty("token.request.appid"));
-        request.setPassword(environment.getProperty("token.request.password"));
-        request.setUserName(environment.getProperty("token.request.username"));
+		request.setAppId(environment.getProperty("credential.request.token.request.appid"));
+		request.setPassword(environment.getProperty("credential.request.token.request.password"));
+		request.setUserName(environment.getProperty("credential.request.token.request.username"));
         return request;
     }
 }

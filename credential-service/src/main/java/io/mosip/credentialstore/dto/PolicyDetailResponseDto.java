@@ -1,30 +1,36 @@
 package io.mosip.credentialstore.dto;
 
-import java.util.Date;
-import java.util.List;
+
 
 import lombok.Data;
 
 @Data
 public class PolicyDetailResponseDto {
-     private String policyName;
+	private String id;
 	
-	/** The valid for in minutes. */
-	private int validForInMinutes;
+	private String name;
 	
-	/** The transactions allowed. */
-	private int transactionsAllowed;
 	
-	/** The extension allowed. */
-	private boolean extensionAllowed;
+	private String desc;
 	
-	private boolean isEncryptionNeeded;
+	private String publishDate;
 	
-	private String shareDomain;
+	private String status;
 	
-	private String sha256;
+	private String version;
 	
-	private Date policyPublishDate;
+	private String schema;
 	
-	List<ShareableAttributeDto>  shareableAttributes;
+	private int is_Active;
+	
+	private String cr_by;
+	
+	private String cr_dtimes;
+	
+	private String up_by;
+	
+	private String upd_dtimes;
+	
+
+	private Policies policies;
 }

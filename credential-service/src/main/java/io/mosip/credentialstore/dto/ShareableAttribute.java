@@ -3,7 +3,7 @@ package io.mosip.credentialstore.dto;
 import lombok.Data;
 
 @Data
-public class ShareableAttributeDto {
+public class ShareableAttribute {
 
 	private String attributeName;
 	

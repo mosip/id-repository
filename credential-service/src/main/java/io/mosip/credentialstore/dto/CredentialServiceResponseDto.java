@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class CredentialServiceResponseDto extends BaseRestResponseDTO {
+public class CredentialServiceResponseDto extends BaseRestResponseDto {
 
 	private static final long serialVersionUID = 1L;
 

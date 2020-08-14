@@ -14,6 +14,8 @@ public class CredentialIssueRequestDto {
 	private String issuer;
     private String  recepiant;
 	private String user;
+	private boolean encrypt;
+	private String encryptionKey;
     private List<String> sharableAttributes;
 	
 }

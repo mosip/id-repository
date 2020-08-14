@@ -16,40 +16,61 @@ import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.domain.Sort.Order;
 
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 
 
-
+/**
+ * The Class BatchConfiguration.
+ *
+ * @author Sowmya
+ */
 @Configuration
 @EnableBatchProcessing
 public class BatchConfiguration {
 
+	/** The job builder factory. */
 	@Autowired
 	public JobBuilderFactory jobBuilderFactory;
+
+	/** The step builder factory. */
 	@Autowired
 	public StepBuilderFactory stepBuilderFactory;
 
+	/** The crdential repo. */
 	@Autowired
 	private CredentialRepositary<CredentialEntity, String> crdentialRepo;
 
+	/**
+	 * Processor.
+	 *
+	 * @return the credential item processor
+	 */
 	@Bean
 	public CredentialItemProcessor processor() {
 		return new CredentialItemProcessor();
 	}
 
+	/**
+	 * Credential process job.
+	 *
+	 * @param listener the listener
+	 * @return the job
+	 */
 	@Bean
 	public Job credentialProcessJob(JobCompletionNotificationListener listener) {
 		return jobBuilderFactory.get("credentialProcessJob").incrementer(new RunIdIncrementer()).listener(listener)
 				.flow(credentialProcessStep()).end().build();
 	}
 
+	/**
+	 * Credential process step.
+	 *
+	 * @return the step
+	 */
 	@Bean
 	public Step credentialProcessStep() {
 		RepositoryItemReader<CredentialEntity> reader = new RepositoryItemReader<>();

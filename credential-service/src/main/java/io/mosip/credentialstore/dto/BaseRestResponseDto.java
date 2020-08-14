@@ -6,7 +6,7 @@ import lombok.Data;
 
 
 @Data
-public class BaseRestResponseDTO implements Serializable {
+public class BaseRestResponseDto implements Serializable {
 	
 	private static final long serialVersionUID = 4246582347420843195L;
 
