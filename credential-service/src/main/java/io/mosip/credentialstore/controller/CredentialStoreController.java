@@ -39,7 +39,7 @@ public class CredentialStoreController {
 	 * @param credentialServiceRequestDto the credential service request dto
 	 * @return the response entity
 	 */
-	//@PreAuthorize("hasAnyRole('CREDENTIAL_ISSUANCE')")
+	// @PreAuthorize("hasAnyRole('CREDENTIAL_ISSUANCE')")
 	@PostMapping(path = "/issue", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "get the status of credential", response = CredentialServiceResponseDto.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Get status of credential successfully"),
@@ -54,6 +54,7 @@ public class CredentialStoreController {
 
 	}
 
+	// @PreAuthorize("hasAnyRole('CREDENTIAL_ISSUANCE')")
 	@GetMapping(path = "/types", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "get the credential types", response = CredentialTypeResponse.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "get the credential types successfully"),

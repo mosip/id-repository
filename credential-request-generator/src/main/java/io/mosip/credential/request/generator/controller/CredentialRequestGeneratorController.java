@@ -32,11 +32,6 @@ public class CredentialRequestGeneratorController {
 	/** The credential request service. */
 	@Autowired
 	private CredentialRequestService credentialRequestService;
-	
-	
-
-
-	
 
 	/**
 	 * Credential issue.

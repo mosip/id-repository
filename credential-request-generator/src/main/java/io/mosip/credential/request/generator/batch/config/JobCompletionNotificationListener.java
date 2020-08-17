@@ -5,6 +5,10 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 import org.springframework.stereotype.Component;
 
+import io.mosip.credential.request.generator.constants.LoggerFileConstant;
+import io.mosip.credential.request.generator.logger.CredentialRequestGeneratorLogger;
+import io.mosip.kernel.core.logger.spi.Logger;
+
 
 /**
  * The listener interface for receiving jobCompletionNotification events.
@@ -20,7 +24,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class JobCompletionNotificationListener extends JobExecutionListenerSupport {
 
-
+	private static final Logger LOGGER = CredentialRequestGeneratorLogger
+			.getLogger(JobCompletionNotificationListener.class);
 
 	/* (non-Javadoc)
 	 * @see org.springframework.batch.core.listener.JobExecutionListenerSupport#afterJob(org.springframework.batch.core.JobExecution)
@@ -28,7 +33,8 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 	@Override
 	public void afterJob(JobExecution jobExecution) {
 		  if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
-			// TODO add log
+			LOGGER.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.ID.toString(),
+					LoggerFileConstant.ID.toString(), "Job completed successfully");
 		}
 	}
 

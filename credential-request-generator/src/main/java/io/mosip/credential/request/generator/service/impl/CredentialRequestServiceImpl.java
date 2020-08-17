@@ -12,17 +12,22 @@ import org.springframework.core.env.Environment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.credential.request.generator.batch.config.CredentialItemProcessor;
 import io.mosip.credential.request.generator.constants.CredentialRequestErrorCodes;
 import io.mosip.credential.request.generator.constants.CredentialStatusCode;
+import io.mosip.credential.request.generator.constants.LoggerFileConstant;
 import io.mosip.credential.request.generator.dto.CredentialIssueRequestDto;
 import io.mosip.credential.request.generator.dto.CredentialIssueResponse;
 import io.mosip.credential.request.generator.dto.CredentialIssueResponseDto;
 import io.mosip.credential.request.generator.dto.ErrorDTO;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.CredentialIssueException;
+import io.mosip.credential.request.generator.logger.CredentialRequestGeneratorLogger;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import io.mosip.credential.request.generator.service.CredentialRequestService;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 
 /**
@@ -55,6 +60,8 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 	@Autowired
 	private ObjectMapper mapper;
 
+	/** The Constant LOGGER. */
+	private static final Logger LOGGER = CredentialRequestGeneratorLogger.getLogger(CredentialItemProcessor.class);
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -64,6 +71,9 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 	 */
 	@Override
 	public CredentialIssueResponseDto createCredentialIssuance(CredentialIssueRequestDto credentialIssueRequestDto) {
+		LOGGER.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.ID.toString(),
+				credentialIssueRequestDto.getId(),
+				"CredentialRequestServiceImpl::createCredentialIssuance()::entry");
 		List<ErrorDTO> errorList = new ArrayList<>();
 		CredentialIssueResponseDto credentialIssueResponseDto = new CredentialIssueResponseDto();
 
@@ -79,21 +89,27 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		credential.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		credential.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		credential.setCreatedBy(USER);
-			// TODO whether to add cellname
+
 		credentialRepositary.save(credential);
 			credentialIssueResponse = new CredentialIssueResponse();
 			credentialIssueResponse.setRequestId(requestId);
+			LOGGER.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.ID.toString(),
+					credentialIssueRequestDto.getId(),
+					"CredentialRequestServiceImpl::createCredentialIssuance()::exit");
 	    }catch(DataAccessLayerException e) {
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorMessage());
 			errorList.add(error);
-
+			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.ID.toString(),
+					credentialIssueRequestDto.getId(), ExceptionUtils.getStackTrace(e));
 		} catch (Exception e) {
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
 			errorList.add(error);
+			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.ID.toString(),
+					credentialIssueRequestDto.getId(), ExceptionUtils.getStackTrace(e));
 		} finally {
 			credentialIssueResponseDto.setId(CREDENTIAL_REQUEST_SERVICE_ID);
 			credentialIssueResponseDto
