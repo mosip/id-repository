@@ -31,7 +31,7 @@ public class DataShareUtil {
 	private ObjectMapper mapper;
 
 	public DataShare getDataShare(byte[] data, String policyId, String partnerId)
-			throws ApiNotAccessibleException, IOException {
+			throws ApiNotAccessibleException, IOException, CredentialServiceException {
 		
 		ByteArrayResource contentsAsResource = new ByteArrayResource(data) {
 			

@@ -1,4 +1,4 @@
-package io.mosip.credentialstore.app;
+package io.mosip.credentialstore.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,7 +11,7 @@ import org.springframework.context.annotation.ComponentScan;
  *         The Class CredentialStoreApp.
  */
 @SpringBootApplication
-@ComponentScan(basePackages = { "io.mosip.credentialstore.*" })
+@ComponentScan(basePackages = { "io.mosip.credentialstore.*", "io.mosip.kernel.auth.*" })
 public class CredentialStoreApp 
 {
 

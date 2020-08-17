@@ -188,7 +188,7 @@ public class RestUtil {
         }
         if (!isValid) {
             TokenRequestDTO<SecretKeyRequest> tokenRequestDTO = new TokenRequestDTO<SecretKeyRequest>();
-            tokenRequestDTO.setId(environment.getProperty("token.request.id"));
+			tokenRequestDTO.setId(environment.getProperty("credential.service.token.request.id"));
             tokenRequestDTO.setMetadata(new Metadata());
 
             tokenRequestDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());

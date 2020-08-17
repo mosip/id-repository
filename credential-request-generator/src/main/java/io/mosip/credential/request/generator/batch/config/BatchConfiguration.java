@@ -6,10 +6,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.batch.item.data.RepositoryItemWriter;
@@ -18,9 +21,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
+import io.mosip.credential.request.generator.service.CredentialRequestService;
+import io.mosip.credential.request.generator.service.impl.CredentialRequestServiceImpl;
+import io.mosip.credential.request.generator.util.RestUtil;
 
 
 /**
@@ -31,6 +38,8 @@ import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 @Configuration
 @EnableBatchProcessing
 public class BatchConfiguration {
+	
+
 
 	/** The job builder factory. */
 	@Autowired
@@ -40,9 +49,28 @@ public class BatchConfiguration {
 	@Autowired
 	public StepBuilderFactory stepBuilderFactory;
 
+	@Autowired
+	private JobLauncher jobLauncher;
+
 	/** The crdential repo. */
 	@Autowired
 	private CredentialRepositary<CredentialEntity, String> crdentialRepo;
+
+	@Autowired
+	private Job credentialProcessJob;
+
+
+	@Scheduled(fixedRateString = "${mosip.credential.request.job.timeintervel}")
+	public void printMessage() {
+		try {
+			JobParameters jobParameters = new JobParametersBuilder().addLong("time", System.currentTimeMillis())
+					.toJobParameters();
+			jobLauncher.run(credentialProcessJob, jobParameters);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	/**
 	 * Processor.
@@ -95,4 +123,13 @@ public class BatchConfiguration {
 
 	}
 
+	@Bean
+	public CredentialRequestService getCredentialRequestService() {
+		return new CredentialRequestServiceImpl();
+	}
+
+	@Bean
+	public RestUtil getRestUtil() {
+		return new RestUtil();
+	}
 }

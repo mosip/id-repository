@@ -3,6 +3,7 @@ package io.mosip.credentialstore.service;
 import org.springframework.stereotype.Service;
 
 import io.mosip.credentialstore.dto.CredentialServiceRequestDto;
+import io.mosip.credentialstore.dto.CredentialServiceResponseDto;
 import io.mosip.credentialstore.dto.CredentialTypeResponse;
 
 
@@ -21,7 +22,8 @@ public interface CredentialStoreService {
 	 * @param credentialServiceRequestDto the credential service request dto
 	 * @return the string
 	 */
-	public String createCredentialIssuance(CredentialServiceRequestDto credentialServiceRequestDto);
+	public CredentialServiceResponseDto createCredentialIssuance(
+			CredentialServiceRequestDto credentialServiceRequestDto);
 
 	/**
 	 * Gets the credential types.

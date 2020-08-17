@@ -40,6 +40,7 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 	@Override
 	public CredentialEntity process(CredentialEntity credential) {
         try {
+			System.out.println("entering itemprocessor");
 		CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class);
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
 		credentialServiceRequestDto.setCredentialType(credentialIssueRequestDto.getCredentialType());

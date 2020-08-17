@@ -14,14 +14,17 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import io.mosip.credentialstore.constants.CredentialFormatter;
 import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
 import io.mosip.credentialstore.constants.CredentialType;
 import io.mosip.credentialstore.dto.CredentialServiceRequestDto;
+import io.mosip.credentialstore.dto.CredentialServiceResponseDto;
 import io.mosip.credentialstore.dto.CredentialTypeResponse;
 import io.mosip.credentialstore.dto.DataShare;
+import io.mosip.credentialstore.dto.ErrorDTO;
 import io.mosip.credentialstore.dto.IdResponseDto;
 import io.mosip.credentialstore.dto.JsonValue;
 import io.mosip.credentialstore.dto.PolicyDetailResponseDto;
@@ -29,7 +32,6 @@ import io.mosip.credentialstore.dto.ShareableAttribute;
 import io.mosip.credentialstore.dto.Type;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
-import io.mosip.credentialstore.exception.CredentialServiceException;
 import io.mosip.credentialstore.exception.IdRepoException;
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.service.CredentialStoreService;
@@ -40,6 +42,7 @@ import io.mosip.credentialstore.util.JsonUtil;
 import io.mosip.credentialstore.util.PolicyUtil;
 import io.mosip.credentialstore.util.Utilities;
 import io.mosip.credentialstore.util.WebSubUtil;
+import io.mosip.kernel.core.util.DateUtils;
 
 /**
  * The Class CredentialStoreServiceImpl.
@@ -104,6 +107,20 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 	@Autowired
 	Utilities utilities;
+
+	/** The env. */
+	@Autowired
+	private Environment env;
+
+	/** The Constant DATETIME_PATTERN. */
+	private static final String DATETIME_PATTERN = "mosip.credential.service.datetime.pattern";
+
+	/** The Constant CREDENTIAL_SERVICE_SERVICE_ID. */
+	private static final String CREDENTIAL_SERVICE_SERVICE_ID = "mosip.credential.service.service.id";
+
+	/** The Constant CREDENTIAL_SERVICE_SERVICE_VERSION. */
+	private static final String CREDENTIAL_SERVICE_SERVICE_VERSION = "mosip.credential.service.service.version";
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -111,9 +128,10 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	 * createCredentialIssuance(io.mosip.credentialstore.dto.
 	 * CredentialServiceRequestDto)
 	 */
-	public String createCredentialIssuance(
+	public CredentialServiceResponseDto createCredentialIssuance(
 			CredentialServiceRequestDto credentialServiceRequestDto) {
-
+		List<ErrorDTO> errorList = new ArrayList<>();
+		CredentialServiceResponseDto credentialIssueResponseDto = new CredentialServiceResponseDto();
 		CredentialProvider credentialProvider;
 		String status = null;
 		try{
@@ -142,19 +160,58 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 			
 		} else {
-		    throw new CredentialServiceException(CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorCode(),CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorMessage());
+				ErrorDTO error = new ErrorDTO();
+				error.setErrorCode(CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorCode());
+				error.setMessage(CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorMessage());
+				errorList.add(error);
+				status = "FAILED";
+
 		}
 		
-		} catch (ApiNotAccessibleException | IdRepoException | CredentialFormatterException e) {
-			throw new CredentialServiceException(e.getErrorCode(), e.getMessage());
+		} catch (ApiNotAccessibleException e) {
+			ErrorDTO error = new ErrorDTO();
+			error.setErrorCode(CredentialServiceErrorCodes.API_NOT_ACCESSIBLE_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialServiceErrorCodes.API_NOT_ACCESSIBLE_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			status = "FAILED";
+		} catch (IdRepoException e) {
+			ErrorDTO error = new ErrorDTO();
+			error.setErrorCode(CredentialServiceErrorCodes.IPREPO_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialServiceErrorCodes.IPREPO_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			status = "FAILED";
+		} catch (CredentialFormatterException e) {
+			ErrorDTO error = new ErrorDTO();
+			error.setErrorCode(CredentialServiceErrorCodes.CREDENTIAL_FORMATTER_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialServiceErrorCodes.CREDENTIAL_FORMATTER_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			status = "FAILED";
 		} catch (IOException e) {
-			throw new CredentialServiceException(CredentialServiceErrorCodes.IO_EXCEPTION.getErrorCode(),
-					CredentialServiceErrorCodes.IO_EXCEPTION.getErrorMessage());
-		} catch (Exception e) {
-			throw new CredentialServiceException();
-		}
+			ErrorDTO error = new ErrorDTO();
+			error.setErrorCode(CredentialServiceErrorCodes.IO_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialServiceErrorCodes.IO_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			status = "FAILED";
 
-		return status;
+		} catch (Exception e) {
+			ErrorDTO error = new ErrorDTO();
+			error.setErrorCode(CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			status = "FAILED";
+
+		}finally {
+
+			credentialIssueResponseDto.setId(CREDENTIAL_SERVICE_SERVICE_ID);
+			credentialIssueResponseDto
+					.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+			credentialIssueResponseDto.setVersion(env.getProperty(CREDENTIAL_SERVICE_SERVICE_VERSION));
+			credentialIssueResponseDto.setStatus(status);
+			if (!errorList.isEmpty()) {
+				credentialIssueResponseDto.setErrors(errorList);
+			}
+		}
+		return credentialIssueResponseDto;
 	}
 
 	/**
@@ -228,7 +285,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			}
 		}
 		attributesMap.put("id", credentialServiceRequestDto.getId());
-		return null;
+		return attributesMap;
 	}
 
 	@Override

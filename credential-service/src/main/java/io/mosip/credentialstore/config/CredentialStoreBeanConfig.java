@@ -2,11 +2,14 @@ package io.mosip.credentialstore.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.provider.impl.CredentialDefaultProvider;
 import io.mosip.credentialstore.provider.impl.IdAuthProvider;
 import io.mosip.credentialstore.provider.impl.PinBasedProvider;
+import io.mosip.credentialstore.util.CredentialFormatterMapperUtil;
+import io.mosip.credentialstore.util.RestUtil;
 
 
 /**
@@ -15,7 +18,8 @@ import io.mosip.credentialstore.provider.impl.PinBasedProvider;
  * @author Sowmya
  */
 @Configuration
-public class CredentialStoreConfig {
+@PropertySource("classpath:bootstrap.properties")
+public class CredentialStoreBeanConfig {
 
 	
 	/**
@@ -51,4 +55,15 @@ public class CredentialStoreConfig {
 			return new PinBasedProvider();
 		
 	}
+
+	@Bean
+	public RestUtil getRestUtil() {
+		return new RestUtil();
+	}
+
+	@Bean
+	public CredentialFormatterMapperUtil getCredentialFormatterMapperUtil() {
+		return new CredentialFormatterMapperUtil();
+	}
+
 }
