@@ -10,7 +10,7 @@
 
 * Copy latest database scripts(DDL, DML, .SH ... etc) from git/repository on to the DB deployment server.
 
-* Necessary details to be updated in peoperties file against to the releavnt variables being used (details listed below).
+* Necessary details to be updated in properties file against to the relevant variables being used (details listed below).
 
 * Database objects related to MOSIP modules are placed in "**mosip_base_directory**>>db_scripts>>mosip_<schema_name> folder on git/repository
 

@@ -1,4 +1,4 @@
-## MOSIP Commons module Databases (**mosip_master, mosip_kernel, mosip_idrepo, mosip_idmap, mosip_iam, mosip_audit**) Release scripts inventory and deployment/revoke guidelines on postgresql database. 
+## MOSIP ID Rpository module Databases (**mosip_idrepo, mosip_idmap**) Release scripts inventory and deployment/revoke guidelines on postgresql database. 
 
 ## Prerequisities
 
@@ -8,11 +8,11 @@
 
 * Copy database release scripts(DDL, DML, .SH ... etc) from git/repository on to the DB deployment server.
 
-* Necessary details needs to be updated in peoperties file against to the releavnt variables being used (details are listed below).
+* Necessary details needs to be updated in properties file against to the relevant variables being used (details are listed below).
 
 * Database release objects related to MOSIP modules are placed in "**mosip_base_directory**>>db_release_scripts>>mosip_<schema_name> folder on git/repository
 
-**Example:** For commons module release script folder is /**mosip_base_directory**>>db_release_scripts>>mosip_master where all the database release scripts related to Master/Admin are available.
+**Example:** For id repository module release script folder is /**mosip_base_directory**>>db_release_scripts>>mosip_master where all the database release scripts related to Master/Admin are available.
 
 * Create a log file directory if it doesn't exist on DB deployment server before updating the properties file. Please follow the steps to create the same:
  
