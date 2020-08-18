@@ -137,5 +137,10 @@
       <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
+    	<dependency>
+			<groupId>io.mosip.idrepository</groupId>
+			<artifactId>id-repository-core</artifactId>
+			<version>${id.repository.core.version}</version>
+		</dependency>
   </dependencies>
 </project>

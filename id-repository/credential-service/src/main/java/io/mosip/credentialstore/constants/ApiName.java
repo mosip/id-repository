@@ -10,5 +10,7 @@ public enum ApiName {
 	/** The idrepogetidbyuin. */
 	IDREPOGETIDBYUIN,
 	/** The createdatashare. */
-	CREATEDATASHARE;
+	CREATEDATASHARE,
+	
+	KEYMANAGER_SIGN;
 }

@@ -18,9 +18,14 @@ import io.mosip.credentialstore.constants.ApiName;
 import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
 import io.mosip.credentialstore.dto.DataShare;
 import io.mosip.credentialstore.dto.DataShareResponseDto;
-import io.mosip.credentialstore.dto.ErrorDTO;
+
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialServiceException;
+import io.mosip.idrepository.core.dto.ErrorDTO;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
 
 @Component
 public class DataShareUtil {
@@ -29,10 +34,18 @@ public class DataShareUtil {
 
 	@Autowired
 	private ObjectMapper mapper;
+	
+	
+	private static final Logger LOGGER = IdRepoLogger.getLogger(DataShareUtil.class);
+
+	private static final String GET_DATA = "getDataShare";
+	
+	private static final String DATASHARE = "DataShareUtil";
 
 	public DataShare getDataShare(byte[] data, String policyId, String partnerId)
 			throws ApiNotAccessibleException, IOException, CredentialServiceException {
-		
+		LOGGER.debug(IdRepoSecurityManager.getUser(), DATASHARE, GET_DATA,
+				"entry");
 		ByteArrayResource contentsAsResource = new ByteArrayResource(data) {
 			
 		};
@@ -50,17 +63,23 @@ public class DataShareUtil {
 		DataShareResponseDto responseObject = mapper.readValue(responseString, DataShareResponseDto.class);
 
 		if (responseObject == null) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), DATASHARE, GET_DATA,
+					CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorMessage());
 			throw new CredentialServiceException(CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorCode(),
 					CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorMessage());
 		}
 		if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
 			ErrorDTO error = responseObject.getErrors().get(0);
+			LOGGER.error(IdRepoSecurityManager.getUser(), DATASHARE, GET_DATA,
+					error.getMessage());
 			throw new CredentialServiceException(CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorCode(),
 					error.getMessage());
 		} else {
+			LOGGER.debug(IdRepoSecurityManager.getUser(), DATASHARE, GET_DATA,
+					"exit");
 			return responseObject.getDataShare();
 		}
-
+	
 
 	}
 }

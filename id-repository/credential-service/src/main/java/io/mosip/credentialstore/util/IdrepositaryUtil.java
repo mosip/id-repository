@@ -10,9 +10,10 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.ApiName;
-import io.mosip.credentialstore.dto.IdResponseDto;
+
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.IdRepoException;
+import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.kernel.core.exception.ServiceError;
 
 
@@ -27,7 +28,7 @@ public class IdrepositaryUtil {
 	@Autowired
 	private ObjectMapper mapper;
 
-	public IdResponseDto getData(String id, String formatter)
+	public IdResponseDTO getData(String id, String formatter)
 			throws ApiNotAccessibleException, IOException, IdRepoException {
 		// TODO to call id repo new api by providing id and formatter (list or one
 		// formatter need to decide)to get demo and
@@ -42,7 +43,7 @@ public class IdrepositaryUtil {
 
 			String responseString = restUtil.getApi(ApiName.IDREPOGETIDBYUIN, pathsegments, queryParamName,
 					queryParamValue, String.class);
-			IdResponseDto responseObject = mapper.readValue(responseString, IdResponseDto.class);
+			IdResponseDTO responseObject = mapper.readValue(responseString, IdResponseDTO.class);
 		if (responseObject == null) {
 			throw new IdRepoException();
 		}

@@ -1,8 +1,7 @@
 package io.mosip.credential.request.generator.service;
 
-import io.mosip.credential.request.generator.dto.CredentialIssueRequestDto;
-import io.mosip.credential.request.generator.dto.CredentialIssueResponseDto;
-
+import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
+import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
 
 // TODO: Auto-generated Javadoc
 /**

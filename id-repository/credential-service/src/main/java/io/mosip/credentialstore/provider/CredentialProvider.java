@@ -2,9 +2,11 @@ package io.mosip.credentialstore.provider;
 
 import java.util.Map;
 
-import io.mosip.credentialstore.dto.CredentialServiceRequestDto;
+
+import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.PolicyDetailResponseDto;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
+import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 
 /**
  * The Interface CredentialProvider.
@@ -22,7 +24,7 @@ public interface CredentialProvider {
 	 * @return the formatted credential data
 	 * @throws CredentialFormatterException the credential formatter exception
 	 */
-	public byte[] getFormattedCredentialData(PolicyDetailResponseDto policyDetailResponseDto,
+	public DataProviderResponse getFormattedCredentialData(PolicyDetailResponseDto policyDetailResponseDto,
 			CredentialServiceRequestDto credentialServiceRequestDto, Map<String, Object> sharableAttributeMap)
 			throws CredentialFormatterException;
 

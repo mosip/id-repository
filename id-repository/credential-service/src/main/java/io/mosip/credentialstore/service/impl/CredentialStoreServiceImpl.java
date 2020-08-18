@@ -17,15 +17,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+
 import io.mosip.credentialstore.constants.CredentialFormatter;
 import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
 import io.mosip.credentialstore.constants.CredentialType;
-import io.mosip.credentialstore.dto.CredentialServiceRequestDto;
-import io.mosip.credentialstore.dto.CredentialServiceResponseDto;
+
 import io.mosip.credentialstore.dto.CredentialTypeResponse;
+import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.DataShare;
-import io.mosip.credentialstore.dto.ErrorDTO;
-import io.mosip.credentialstore.dto.IdResponseDto;
+
+
 import io.mosip.credentialstore.dto.JsonValue;
 import io.mosip.credentialstore.dto.PolicyDetailResponseDto;
 import io.mosip.credentialstore.dto.ShareableAttribute;
@@ -42,6 +43,19 @@ import io.mosip.credentialstore.util.JsonUtil;
 import io.mosip.credentialstore.util.PolicyUtil;
 import io.mosip.credentialstore.util.Utilities;
 import io.mosip.credentialstore.util.WebSubUtil;
+import io.mosip.idrepository.core.constant.AuditEvents;
+import io.mosip.idrepository.core.constant.AuditModules;
+import io.mosip.idrepository.core.constant.IdType;
+import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
+import io.mosip.idrepository.core.dto.CredentialServiceResponse;
+import io.mosip.idrepository.core.dto.CredentialServiceResponseDto;
+import io.mosip.idrepository.core.dto.ErrorDTO;
+import io.mosip.idrepository.core.dto.IdResponseDTO;
+import io.mosip.idrepository.core.helper.AuditHelper;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 
 /**
@@ -85,10 +99,6 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	@Qualifier("default")
 	CredentialProvider defaultProvider;
 
-	/** The pin based provider. */
-	@Autowired(required = false)
-	@Qualifier("pin")
-	CredentialProvider pinBasedProvider;
 
 	/** The data share util. */
 	@Autowired
@@ -120,7 +130,17 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 	/** The Constant CREDENTIAL_SERVICE_SERVICE_VERSION. */
 	private static final String CREDENTIAL_SERVICE_SERVICE_VERSION = "mosip.credential.service.service.version";
+	
+	
+	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialStoreServiceImpl.class);
 
+	private static final String CREATE_CRDENTIAL = "createCredentialIssuance";
+	
+	private static final String CREDENTIAL_STORE = "CredentialStoreServiceImpl";
+	
+	
+	@Autowired
+	private AuditHelper auditHelper;
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -130,17 +150,20 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	 */
 	public CredentialServiceResponseDto createCredentialIssuance(
 			CredentialServiceRequestDto credentialServiceRequestDto) {
+		LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
+				"started creating credential");
 		List<ErrorDTO> errorList = new ArrayList<>();
 		CredentialServiceResponseDto credentialIssueResponseDto = new CredentialServiceResponseDto();
+		CredentialServiceResponse credentialServiceResponse=null;
 		CredentialProvider credentialProvider;
-		String status = null;
+
 		try{
 			PolicyDetailResponseDto policyDetailResponseDto = policyUtil.getPolicyDetail(credentialServiceRequestDto.getCredentialType(), credentialServiceRequestDto.getIssuer());
 		
 
 		if (policyDetailResponseDto != null) {
 
-				IdResponseDto idResponseDto = idrepositaryUtil.getData(credentialServiceRequestDto.getId(),
+				IdResponseDTO idResponseDto = idrepositaryUtil.getData(credentialServiceRequestDto.getId(),
 					credentialServiceRequestDto.getFormatter());
 
 				Map<String, Object> sharableAttributeMap = setSharableAttributeValues(idResponseDto,
@@ -148,57 +171,74 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 				credentialProvider = getProvider(credentialServiceRequestDto.getCredentialType());
 
-				byte[] credentialData = credentialProvider.getFormattedCredentialData(policyDetailResponseDto,
+				DataProviderResponse dataProviderResponse = credentialProvider.getFormattedCredentialData(policyDetailResponseDto,
 						credentialServiceRequestDto,
 						sharableAttributeMap);
 
-				DataShare dataShare = dataShareUtil.getDataShare(credentialData, policyDetailResponseDto.getId(),
+				DataShare dataShare = dataShareUtil.getDataShare(dataProviderResponse.getFormattedData(), policyDetailResponseDto.getId(),
 						credentialServiceRequestDto.getIssuer());
 
 				webSubUtil.publishSuccess(dataShare);
-				status = "DONE";
-
+				credentialServiceResponse=new CredentialServiceResponse();
+				credentialServiceResponse.setStatus("DONE");
+				credentialServiceResponse.setCredentialId(dataProviderResponse.getCredentialId());
+				credentialServiceResponse.setDataShareUrl(dataShare.getUrl());
+				credentialServiceResponse.setSignature(dataProviderResponse.getSignature());
+			
+				LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
+						"ended creating credential");
 			
 		} else {
 				ErrorDTO error = new ErrorDTO();
 				error.setErrorCode(CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorCode());
 				error.setMessage(CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorMessage());
 				errorList.add(error);
-				status = "FAILED";
+				LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
+						CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorMessage());
 
 		}
 		
 		} catch (ApiNotAccessibleException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL, credentialServiceRequestDto.getId(), IdType.ID, e);
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialServiceErrorCodes.API_NOT_ACCESSIBLE_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialServiceErrorCodes.API_NOT_ACCESSIBLE_EXCEPTION.getErrorMessage());
 			errorList.add(error);
-			status = "FAILED";
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
+					ExceptionUtils.getStackTrace(e));
 		} catch (IdRepoException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL, credentialServiceRequestDto.getId(), IdType.ID, e);
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialServiceErrorCodes.IPREPO_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialServiceErrorCodes.IPREPO_EXCEPTION.getErrorMessage());
 			errorList.add(error);
-			status = "FAILED";
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
+					ExceptionUtils.getStackTrace(e));
 		} catch (CredentialFormatterException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL, credentialServiceRequestDto.getId(), IdType.ID, e);
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialServiceErrorCodes.CREDENTIAL_FORMATTER_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialServiceErrorCodes.CREDENTIAL_FORMATTER_EXCEPTION.getErrorMessage());
 			errorList.add(error);
-			status = "FAILED";
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
+					ExceptionUtils.getStackTrace(e));
 		} catch (IOException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL, credentialServiceRequestDto.getId(), IdType.ID, e);
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialServiceErrorCodes.IO_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialServiceErrorCodes.IO_EXCEPTION.getErrorMessage());
 			errorList.add(error);
-			status = "FAILED";
-
+			
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
+					ExceptionUtils.getStackTrace(e));
 		} catch (Exception e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL, credentialServiceRequestDto.getId(), IdType.ID, e);
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
 			errorList.add(error);
-			status = "FAILED";
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
+					ExceptionUtils.getStackTrace(e));
 
 		}finally {
 
@@ -206,10 +246,13 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			credentialIssueResponseDto
 					.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 			credentialIssueResponseDto.setVersion(env.getProperty(CREDENTIAL_SERVICE_SERVICE_VERSION));
-			credentialIssueResponseDto.setStatus(status);
+			
 			if (!errorList.isEmpty()) {
 				credentialIssueResponseDto.setErrors(errorList);
+			}else {
+				credentialIssueResponseDto.setResponse(credentialServiceResponse);
 			}
+			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL, credentialServiceRequestDto.getId(), IdType.ID,"create credential requested");
 		}
 		return credentialIssueResponseDto;
 	}
@@ -230,8 +273,6 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		}
 		else if (provider.equalsIgnoreCase(CredentialFormatter.idAuthProvider.name())) {
 			return idAuthProvider;
-		} else if (provider.equalsIgnoreCase(CredentialFormatter.pinBasedProvider.name())) {
-			return pinBasedProvider;
 		} else {
 			return defaultProvider;
 		}
@@ -246,7 +287,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	 * @param policyDetailResponseDto     the policy detail response dto
 	 * @return the map
 	 */
-	private Map<String, Object> setSharableAttributeValues(IdResponseDto idResponseDto,
+	private Map<String, Object> setSharableAttributeValues(IdResponseDTO idResponseDto,
 			CredentialServiceRequestDto credentialServiceRequestDto, PolicyDetailResponseDto policyDetailResponseDto) {
 		// TODO Directly using sharable attributes name from policy AND from input
 		// TODO as of now only demographic details are getting shared

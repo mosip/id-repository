@@ -1,4 +1,4 @@
-package io.mosip.credential.request.generator.dto;
+package io.mosip.idrepository.core.dto;
 
 import java.io.Serializable;
 

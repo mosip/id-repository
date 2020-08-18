@@ -8,30 +8,32 @@ package io.mosip.credentialstore.constants;
 public enum CredentialServiceErrorCodes {
 
 	/** The api not accessible exception. */
-	API_NOT_ACCESSIBLE_EXCEPTION("CRE-SER-001", "API not accessible"),
+	API_NOT_ACCESSIBLE_EXCEPTION("IDR-CRS-001", "API not accessible"),
 
 	/** The iprepo exception. */
-	IPREPO_EXCEPTION("CRE-SER-003", "ID repo response is null"),
+	IPREPO_EXCEPTION("IDR-CRS-003", "ID repo response is null"),
 
 	/** The instantiation exception. */
-	INSTANTIATION_EXCEPTION("CRE-SER-004", "Error while creating object of JsonValue class"),
+	INSTANTIATION_EXCEPTION("IDR-CRS-004", "Error while creating object of JsonValue class"),
 
 	/** The no such field exception. */
-	NO_SUCH_FIELD_EXCEPTION("CRE-SER-005", "Could not find the field"),
+	NO_SUCH_FIELD_EXCEPTION("IDR-CRS-005", "Could not find the field"),
 
 	/** The credential formatter exception. */
-	CREDENTIAL_FORMATTER_EXCEPTION("CRE-SER-006", "exception while formatting"),
+	CREDENTIAL_FORMATTER_EXCEPTION("IDR-CRS-006", "exception while formatting"),
 
 	/** The unknown exception. */
-	UNKNOWN_EXCEPTION("CRE-SER-007", "unknown exception"),
+	UNKNOWN_EXCEPTION("IDR-CRS-007", "unknown exception"),
 
 	/** The policy exception. */
-	POLICY_EXCEPTION("CRE-SER-008", "Policy details not present"),
+	POLICY_EXCEPTION("IDR-CRS-008", "Policy details not present"),
 
 	/** The io exception. */
-	IO_EXCEPTION("CRE-SER-009", "IO exception"),
+	IO_EXCEPTION("IDR-CRS-009", "IO exception"),
 	/** The datashare exception. */
-	DATASHARE_EXCEPTION("CRE-SER-011", "Datashare response is null");
+	DATASHARE_EXCEPTION("IDR-CRS-011", "Datashare response is null"),
+	
+	SIGNATURE_EXCEPTION("IDR-CRS-012", "Failed to generate digital signature");
 
 	/** The error code. */
 	private final String errorCode;

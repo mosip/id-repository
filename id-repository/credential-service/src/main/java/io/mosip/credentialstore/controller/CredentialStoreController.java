@@ -10,10 +10,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.mosip.credentialstore.dto.CredentialServiceRequestDto;
-import io.mosip.credentialstore.dto.CredentialServiceResponseDto;
+
 import io.mosip.credentialstore.dto.CredentialTypeResponse;
 import io.mosip.credentialstore.service.CredentialStoreService;
+import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
+import io.mosip.idrepository.core.dto.CredentialServiceResponseDto;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;

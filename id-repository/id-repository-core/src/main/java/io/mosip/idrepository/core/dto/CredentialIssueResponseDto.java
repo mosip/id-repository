@@ -1,20 +1,16 @@
-package io.mosip.credentialstore.dto;
+package io.mosip.idrepository.core.dto;
 
 import java.util.List;
-
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class CredentialServiceResponseDto extends BaseRestResponseDto {
-
+public class CredentialIssueResponseDto extends BaseRestResponseDTO {
 	private static final long serialVersionUID = 1L;
 
-	private String  status;
+	private CredentialIssueResponse response;
 
 	private List<ErrorDTO> errors;
-
 }

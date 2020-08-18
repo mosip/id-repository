@@ -23,6 +23,9 @@ public class CredentialEntity {
 	@Column(name = "id", nullable = false)
 	private String requestId;
 
+	
+	@Column(name = "credential_id")
+	private String credentialId;
 
 	/** The request. */
 	@Column(name = "request")
@@ -33,6 +36,16 @@ public class CredentialEntity {
 	@Column(name = "status_code", nullable = false)
 	private String statusCode;
 
+	
+	@Column(name = "datashareurl")
+	private String dataShareUrl;
+	
+	@Column(name = "issuance_date")
+	private String issuanceDate;
+	
+	
+	@Column(name = "signature")
+	private String signature;
 
 	/** The retry count. */
 	@Column(name = "trn_retry_count")
@@ -243,6 +256,38 @@ public class CredentialEntity {
 	 */
 	public void setDeletedDateTime(LocalDateTime deletedDateTime) {
 		this.deletedDateTime = deletedDateTime;
+	}
+
+	public String getCredentialId() {
+		return credentialId;
+	}
+
+	public void setCredentialId(String credentialId) {
+		this.credentialId = credentialId;
+	}
+
+	public String getDataShareUrl() {
+		return dataShareUrl;
+	}
+
+	public void setDataShareUrl(String dataShareUrl) {
+		this.dataShareUrl = dataShareUrl;
+	}
+
+	public String getIssuanceDate() {
+		return issuanceDate;
+	}
+
+	public void setIssuanceDate(String issuanceDate) {
+		this.issuanceDate = issuanceDate;
+	}
+
+	public String getSignature() {
+		return signature;
+	}
+
+	public void setSignature(String signature) {
+		this.signature = signature;
 	}
 
 }

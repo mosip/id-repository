@@ -6,7 +6,7 @@ import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 import org.springframework.stereotype.Component;
 
 import io.mosip.credential.request.generator.constants.LoggerFileConstant;
-import io.mosip.credential.request.generator.logger.CredentialRequestGeneratorLogger;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.kernel.core.logger.spi.Logger;
 
 
@@ -24,7 +24,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 @Component
 public class JobCompletionNotificationListener extends JobExecutionListenerSupport {
 
-	private static final Logger LOGGER = CredentialRequestGeneratorLogger
+	private static final Logger LOGGER = IdRepoLogger
 			.getLogger(JobCompletionNotificationListener.class);
 
 	/* (non-Javadoc)

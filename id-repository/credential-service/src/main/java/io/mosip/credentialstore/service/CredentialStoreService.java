@@ -2,9 +2,10 @@ package io.mosip.credentialstore.service;
 
 import org.springframework.stereotype.Service;
 
-import io.mosip.credentialstore.dto.CredentialServiceRequestDto;
-import io.mosip.credentialstore.dto.CredentialServiceResponseDto;
+
 import io.mosip.credentialstore.dto.CredentialTypeResponse;
+import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
+import io.mosip.idrepository.core.dto.CredentialServiceResponseDto;
 
 
 // TODO: Auto-generated Javadoc

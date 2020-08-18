@@ -6,11 +6,11 @@ package io.mosip.credential.request.generator.constants;
  *
  */
 public enum CredentialRequestErrorCodes {
-	DATA_ACCESS_LAYER_EXCEPTION("CRE-REQ-001", "data access layer exception"),
-	API_NOT_ACCESSIBLE_EXCEPTION("CRE-REQ-002", "API not accessible"),
-	REQUEST_ID_ERROR("CRE-REQ-003", "request id is not present"),
+	DATA_ACCESS_LAYER_EXCEPTION("IDR-CRG-001", "data access layer exception"),
+	API_NOT_ACCESSIBLE_EXCEPTION("IDR-CRG-002", "API not accessible"),
+	REQUEST_ID_ERROR("IDR-CRG-003", "request id is not present"),
 
-	UNKNOWN_EXCEPTION("CRE-REQ-004", "unknown exception");
+	UNKNOWN_EXCEPTION("IDR-CRG-004", "unknown exception");
 	
 	private final String errorCode;
 	private final String errorMessage;

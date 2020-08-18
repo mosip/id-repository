@@ -1,4 +1,4 @@
-package io.mosip.credentialstore.dto;
+package io.mosip.idrepository.core.dto;
 
 import java.util.List;
 
@@ -8,7 +8,8 @@ import lombok.Data;
 public class CredentialServiceRequestDto {
 	
 	private String id;
-    private String credentialType;
+	private String idType;
+	private String credentialType;
 	private String issuer;
     private String  recepiant;
 	private String user;

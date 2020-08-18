@@ -27,7 +27,6 @@
         <kernel.logger.logback.version>1.0.6</kernel.logger.logback.version>
         <powermock.module.junit4.version>1.7.4</powermock.module.junit4.version>
 		<powermock.api.mockito.version>1.7.4</powermock.api.mockito.version>
-		<mockito.version>1.10.19</mockito.version>
 		<kernel.dataaccess.hibernate.version>1.0.6</kernel.dataaccess.hibernate.version>
 	    <apache.httpcomponents.version>4.5.6</apache.httpcomponents.version>
 	    <gson.version>2.8.4</gson.version>
@@ -142,5 +141,22 @@
           <version>${junit.version}</version>
            <scope>test</scope>
         </dependency>
+        <dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+			<version>${spring.boot.version}</version>
+			<exclusions>
+		    <exclusion>
+			      <groupId>org.mockito</groupId>
+			      <artifactId>mockito-core</artifactId>
+		    </exclusion>
+		  </exclusions>
+		</dependency>
+			<dependency>
+			<groupId>io.mosip.idrepository</groupId>
+			<artifactId>id-repository-core</artifactId>
+			<version>${id.repository.core.version}</version>
+		</dependency>
        </dependencies>  
 </project>

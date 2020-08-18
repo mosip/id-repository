@@ -24,11 +24,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import io.mosip.credential.request.generator.controller.CredentialRequestGeneratorController;
-import io.mosip.credential.request.generator.dto.CredentialIssueRequestDto;
-import io.mosip.credential.request.generator.dto.CredentialIssueResponseDto;
 import io.mosip.credential.request.generator.service.CredentialRequestService;
 import io.mosip.credential.request.generator.test.TestBootApplication;
 import io.mosip.credential.request.generator.test.config.TestConfig;
+import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
+import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestConfig.class)

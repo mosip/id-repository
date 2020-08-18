@@ -4,8 +4,9 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
-import io.mosip.credentialstore.dto.CredentialServiceRequestDto;
+
 import io.mosip.credentialstore.dto.PolicyDetailResponseDto;
+import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 
 @Component
 public class EncryptionUtil {

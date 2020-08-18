@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -55,5 +56,8 @@ public class Utilities {
 
 
 		return typeList;
+	}
+	public String generateId() {
+		return UUID.randomUUID().toString();
 	}
 }

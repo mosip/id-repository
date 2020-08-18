@@ -16,15 +16,23 @@ import io.mosip.credential.request.generator.batch.config.CredentialItemProcesso
 import io.mosip.credential.request.generator.constants.CredentialRequestErrorCodes;
 import io.mosip.credential.request.generator.constants.CredentialStatusCode;
 import io.mosip.credential.request.generator.constants.LoggerFileConstant;
-import io.mosip.credential.request.generator.dto.CredentialIssueRequestDto;
-import io.mosip.credential.request.generator.dto.CredentialIssueResponse;
-import io.mosip.credential.request.generator.dto.CredentialIssueResponseDto;
-import io.mosip.credential.request.generator.dto.ErrorDTO;
+
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.CredentialIssueException;
-import io.mosip.credential.request.generator.logger.CredentialRequestGeneratorLogger;
+
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import io.mosip.credential.request.generator.service.CredentialRequestService;
+import io.mosip.credential.request.generator.util.Utilities;
+import io.mosip.idrepository.core.constant.AuditEvents;
+import io.mosip.idrepository.core.constant.AuditModules;
+import io.mosip.idrepository.core.constant.IdType;
+import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
+import io.mosip.idrepository.core.dto.CredentialIssueResponse;
+import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
+import io.mosip.idrepository.core.dto.ErrorDTO;
+import io.mosip.idrepository.core.helper.AuditHelper;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -61,7 +69,19 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 	private ObjectMapper mapper;
 
 	/** The Constant LOGGER. */
-	private static final Logger LOGGER = CredentialRequestGeneratorLogger.getLogger(CredentialItemProcessor.class);
+	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialItemProcessor.class);
+	
+	@Autowired
+	private Utilities utilities;
+	
+	/** The Constant BIOMETRICS. */
+	private static final String CREATE_CREDENTIAL = "createCredentialIssuance";
+
+	/** The Constant ID_REPO_SERVICE_IMPL. */
+	private static final String CREDENTIAL_SERVICE = "CredentialRequestServiceImpl";
+	
+	@Autowired
+	private AuditHelper auditHelper;
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -71,15 +91,14 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 	 */
 	@Override
 	public CredentialIssueResponseDto createCredentialIssuance(CredentialIssueRequestDto credentialIssueRequestDto) {
-		LOGGER.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.ID.toString(),
-				credentialIssueRequestDto.getId(),
-				"CredentialRequestServiceImpl::createCredentialIssuance()::entry");
+		LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL,
+				"started creating credential");
 		List<ErrorDTO> errorList = new ArrayList<>();
 		CredentialIssueResponseDto credentialIssueResponseDto = new CredentialIssueResponseDto();
 
 		CredentialIssueResponse credentialIssueResponse = null;
 		try{
-			String requestId = generateId();
+			String requestId = utilities.generateId();
 		
 
 	    CredentialEntity credential=new CredentialEntity();
@@ -91,25 +110,24 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		credential.setCreatedBy(USER);
 
 		credentialRepositary.save(credential);
-			credentialIssueResponse = new CredentialIssueResponse();
-			credentialIssueResponse.setRequestId(requestId);
-			LOGGER.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.ID.toString(),
-					credentialIssueRequestDto.getId(),
-					"CredentialRequestServiceImpl::createCredentialIssuance()::exit");
+		credentialIssueResponse = new CredentialIssueResponse();
+		credentialIssueResponse.setRequestId(requestId);
+		LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL,
+				"ended creating credential");
 	    }catch(DataAccessLayerException e) {
+	    	auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID, e);
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorMessage());
 			errorList.add(error);
-			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.ID.toString(),
-					credentialIssueRequestDto.getId(), ExceptionUtils.getStackTrace(e));
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL, ExceptionUtils.getStackTrace(e));
 		} catch (Exception e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID, e);
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
 			errorList.add(error);
-			LOGGER.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.ID.toString(),
-					credentialIssueRequestDto.getId(), ExceptionUtils.getStackTrace(e));
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL, ExceptionUtils.getStackTrace(e));
 		} finally {
 			credentialIssueResponseDto.setId(CREDENTIAL_REQUEST_SERVICE_ID);
 			credentialIssueResponseDto
@@ -120,20 +138,12 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			} else {
 				credentialIssueResponseDto.setResponse(credentialIssueResponse);
 			}
-
+			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID,"create credential request requested");
 		}
 		return credentialIssueResponseDto;
 	}
 
-	/**
-	 * Generate id.
-	 *
-	 * @return the string
-	 */
-	private String generateId() {
-		return UUID.randomUUID().toString();
-	}
-
+	
 	@Override
 	public CredentialIssueResponseDto cancelCredentialRequest(String requestId) {
 		List<ErrorDTO> errorList = new ArrayList<>();
@@ -155,12 +165,14 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 						CredentialRequestErrorCodes.REQUEST_ID_ERROR.getErrorMessage());
 			}
 		} catch (DataAccessLayerException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CANCEL_CREDENTIAL_REQUEST, requestId, IdType.ID,e);
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorMessage());
 			errorList.add(error);
 
 		} catch (Exception e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CANCEL_CREDENTIAL_REQUEST, requestId, IdType.ID,e);
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
@@ -175,7 +187,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			} else {
 				credentialIssueResponseDto.setResponse(credentialIssueResponse);
 			}
-
+			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CANCEL_CREDENTIAL_REQUEST, requestId, IdType.ID,"Cancel the request");
 		}
 		return credentialIssueResponseDto;
 	}

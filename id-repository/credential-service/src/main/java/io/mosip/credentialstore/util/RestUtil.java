@@ -37,11 +37,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.google.gson.Gson;
 
 import io.mosip.credentialstore.constants.ApiName;
-import io.mosip.credentialstore.dto.Metadata;
-import io.mosip.credentialstore.dto.PasswordRequest;
-import io.mosip.credentialstore.dto.SecretKeyRequest;
-import io.mosip.credentialstore.dto.TokenRequestDTO;
+
+
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
+import io.mosip.idrepository.core.dto.Metadata;
+import io.mosip.idrepository.core.dto.PasswordRequest;
+import io.mosip.idrepository.core.dto.SecretKeyRequest;
+import io.mosip.idrepository.core.dto.TokenRequestDTO;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.TokenHandlerUtil;

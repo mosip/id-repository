@@ -1,4 +1,4 @@
-package io.mosip.credentialstore.dto;
+package io.mosip.idrepository.core.dto;
 
 import lombok.Data;
 import lombok.Getter;
