@@ -7,7 +7,7 @@ Following are the pre-requisites for storing or retrieving Identity authenticati
 1. ID Repository accepts ID JSON in the format as provided by the country in ID Schema
 2. ID JSON present in ID Repository APIs gets validated against IdObjectValidator.
 
-[ID Repository Documentation](https://mosipdocs.gitbook.io/platform/quick-links/modules/id-repository)
+[ID Repository Documentation](https://docs.mosip.io/platform/modules/id-repository)
 
 # Dependencies
 ID Repository dependencies are mentioned below.  For all Kernel services refer to [commons repo](https://github.com/mosip/commons)
@@ -63,11 +63,11 @@ docker run -it -d -p 8091:8091 -e active_profile_env={profile}  -e spring_config
 Automated functional tests are available in [Functional Tests repo](https://github.com/mosip/mosip-functional-tests)
 
 # Documentation
-MOSIP documentation is available on [Wiki](https://mosipdocs.gitbook.io/platform)
+MOSIP documentation is available on [Wiki](https://docs.mosip.io/platform)
 
-ID Repository documentation is available on : [ID Repository Documentation](https://mosipdocs.gitbook.io/platform/quick-links/modules/id-repository)
+ID Repository documentation is available on : [ID Repository Documentation](https://docs.mosip.io/platform/modules/id-repository)
 
-ID Repository API documentation available on Wiki: [ID Repository APIs](https://mosipdocs.gitbook.io/platform/quick-links/apis/id-repository-apis)
+ID Repository API documentation available on Wiki: [ID Repository APIs](https://docs.mosip.io/platform/apis/id-repository-apis)
 
 # License
 This project is licensed under the terms of [Mozilla Public License 2.0](https://github.com/mosip/commons/blob/master/LICENSE)
