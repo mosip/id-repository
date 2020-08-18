@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.PolicyDetailResponseDto;
+import io.mosip.credentialstore.dto.VerifiableCredential;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
 import io.mosip.credentialstore.exception.SignatureException;

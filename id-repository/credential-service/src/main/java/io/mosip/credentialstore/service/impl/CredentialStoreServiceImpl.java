@@ -297,7 +297,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		List<ShareableAttribute> sharableAttributeList=policyDetailResponseDto.getPolicies().getShareableAttributes();
 		Set<String> sharableAttributeKeySet=new HashSet<>();
 
-		if(credentialServiceRequestDto.getSharableAttributes()!=null)
+		if(credentialServiceRequestDto.getSharableAttributes()!=null && !credentialServiceRequestDto.getSharableAttributes().isEmpty())
 			sharableAttributeKeySet.addAll(credentialServiceRequestDto.getSharableAttributes());
 
 		sharableAttributeList.forEach(dto -> {
@@ -308,15 +308,6 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			if (object instanceof ArrayList) {
 				JSONArray node = JsonUtil.getJSONArray(identity, key);
 				JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
-				// TODO is this ok to add example name_eng name_ara as key
-				/*for (JsonValue jsonValue : jsonValues) {
-					
-					if (jsonValue.getLanguage().equals(primaryLang))
-						attributesMap.put(key + "_" + primaryLang, jsonValue.getValue());
-					if (jsonValue.getLanguage().equals(secondaryLang))
-						attributesMap.put(key + "_" + secondaryLang, jsonValue.getValue());
-
-				}*/
 				attributesMap.put(key, jsonValues);
 			} else if (object instanceof LinkedHashMap) {
 				JSONObject json = JsonUtil.getJSONObject(identity, key);

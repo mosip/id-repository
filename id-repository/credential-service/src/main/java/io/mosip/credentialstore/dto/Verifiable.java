@@ -1,4 +1,4 @@
-package io.mosip.credentialstore.provider.impl;
+package io.mosip.credentialstore.dto;
 
 import java.net.URI;
 import java.util.ArrayList;

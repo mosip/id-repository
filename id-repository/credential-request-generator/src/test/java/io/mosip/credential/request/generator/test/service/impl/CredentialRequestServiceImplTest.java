@@ -1,6 +1,9 @@
 package io.mosip.credential.request.generator.test.service.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.IOException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -28,6 +31,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Optional;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest
@@ -80,4 +84,37 @@ public class CredentialRequestServiceImplTest {
 		assertEquals("123456", credentialIssueResponseDto.getResponse().getRequestId());
 	}
 	
+	@Test
+	public void testDataAccessLayerExceptionForCreateCredential() throws JsonProcessingException {
+		Mockito.when(credentialRepositary.save(Mockito.any())).thenThrow(new DataAccessLayerException("", "", new Throwable()));
+		CredentialIssueRequestDto credentialIssueRequestDto=new CredentialIssueRequestDto();
+		credentialIssueRequestDto.setCredentialType("MOSIP");
+		credentialIssueRequestDto.setId("123");
+		credentialIssueRequestDto.setEncrypt(true);
+		Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenReturn(credentialIssueRequestDto.toString());
+		CredentialIssueResponseDto credentialIssueResponseDto=credentialRequestServiceImpl.createCredentialIssuance(credentialIssueRequestDto);
+		assertNotNull(credentialIssueResponseDto.getErrors().get(0));
+	}
+	@Test
+	public void testCancelCredentialIssuanceSuccess() throws JsonProcessingException {
+		CredentialEntity credentialEntity=new CredentialEntity();
+		credentialEntity.setRequestId("1234");
+		Optional<CredentialEntity> entity = Optional.of(credentialEntity);
+		Mockito.when(credentialRepositary.update(Mockito.any())).thenReturn(credentialEntity);
+		Mockito.when(credentialRepositary.findById(Mockito.any())).thenReturn(entity);
+	
+		CredentialIssueResponseDto credentialIssueResponseDto=credentialRequestServiceImpl.cancelCredentialRequest("1234");
+				assertEquals("1234", credentialIssueResponseDto.getResponse().getRequestId());
+	}
+	@Test
+	public void testDataAccessLayerExceptionForCancelCredentialIssuance() throws JsonProcessingException {
+		CredentialEntity credentialEntity=new CredentialEntity();
+		credentialEntity.setRequestId("1234");
+		Optional<CredentialEntity> entity = Optional.of(credentialEntity);
+		Mockito.when(credentialRepositary.update(Mockito.any())).thenThrow(new DataAccessLayerException("", "", new Throwable()));
+		Mockito.when(credentialRepositary.findById(Mockito.any())).thenReturn(entity);
+	
+		CredentialIssueResponseDto credentialIssueResponseDto=credentialRequestServiceImpl.cancelCredentialRequest("1234");
+		assertNotNull(credentialIssueResponseDto.getErrors().get(0));
+	}
 }
