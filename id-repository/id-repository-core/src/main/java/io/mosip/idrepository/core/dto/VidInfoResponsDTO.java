@@ -1,0 +1,16 @@
+package io.mosip.idrepository.core.dto;
+
+import java.util.List;
+
+import io.mosip.kernel.core.http.ResponseWrapper;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+/**
+ * @author Manoj SP
+ *
+ */    
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class VidInfoResponsDTO extends ResponseWrapper<List<VidInfoDTO>> {
+}
