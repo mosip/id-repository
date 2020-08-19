@@ -41,12 +41,13 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
-import io.mosip.idrepository.core.constant.EventType;
+import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.EventDTO;
 import io.mosip.idrepository.core.dto.EventsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
+import io.mosip.idrepository.core.dto.VidInfoDTO;
 import io.mosip.idrepository.core.dto.VidPolicy;
 import io.mosip.idrepository.core.dto.VidRequestDTO;
 import io.mosip.idrepository.core.dto.VidResponseDTO;
@@ -80,7 +81,7 @@ import io.mosip.kernel.core.util.UUIDUtils;
  */
 @Component
 @Transactional
-public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper<VidResponseDTO>, ResponseWrapper<EventsDTO>> {
+public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper<VidResponseDTO>, ResponseWrapper<List<VidInfoDTO>>> {
 
 	/** The Constant VID. */
 	private static final String VID = "vid";
@@ -206,7 +207,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 							: LocalDateTime.MAX.withYear(9999),
 					env.getProperty(VID_ACTIVE_STATUS), IdRepoSecurityManager.getUser(), currentTime, null, null, false,
 					null);
-			notify(EventType.CREATE_VID, Collections.singletonList(vidEntity), uinToEncrypt, false);
+			notify(IDAEventType.CREATE_VID, Collections.singletonList(vidEntity), uinToEncrypt, false);
 			return vidRepo.save(vidEntity);
 		} else if (vidDetails.size() == policy.getAllowedInstances() && policy.getAutoRestoreAllowed()) {
 			Vid vidObject = vidDetails.get(0);
@@ -215,7 +216,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			vidObject.setUpdatedDTimes(DateUtils.getUTCCurrentDateTime());
 			vidObject.setUin(uinToEncrypt);
 			vidRepo.saveAndFlush(vidObject);
-			notify(EventType.UPDATE_VID, Collections.singletonList(vidObject), uinToEncrypt, true);
+			notify(IDAEventType.UPDATE_VID, Collections.singletonList(vidObject), uinToEncrypt, true);
 			return generateVid(uin, vidType);
 		} else {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID,
@@ -332,7 +333,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	 * io.mosip.idrepository.core.spi.VidService#retrieveUinByVid(java.lang.String)
 	 */
 	@Override
-	public ResponseWrapper<EventsDTO> retrieveVidsByUin(String uin) throws IdRepoAppException {
+	public ResponseWrapper<List<VidInfoDTO>> retrieveVidsByUin(String uin) throws IdRepoAppException {
 		try {
 			Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
 			int modResult = (int) (Long.parseLong(uin) % moduloValue);
@@ -341,13 +342,12 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 					+ securityManager.hashwithSalt(uin.getBytes(), CryptoUtil.decodeBase64(hashSalt));
 			List<Vid> vidList = vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(uinHash,
 					env.getProperty(VID_ACTIVE_STATUS), DateUtils.getUTCCurrentDateTime());
-			EventsDTO events = new EventsDTO();
-			events.setEvents(vidList.stream()
-					.map(vid -> new EventDTO(EventType.RETREIVE_VID, uin, vid.getVid(), vid.getExpiryDTimes(),
+			List<VidInfoDTO> vidInfos = vidList.stream()
+					.map(vid -> new VidInfoDTO(vid.getVid(), vid.getExpiryDTimes(),
 							policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions()))
-					.collect(Collectors.toList()));
-			ResponseWrapper<EventsDTO> response = new ResponseWrapper<>();
-			response.setResponse(events);
+					.collect(Collectors.toList());
+			ResponseWrapper<List<VidInfoDTO>> response = new ResponseWrapper<>();
+			response.setResponse(vidInfos);
 			return response;
 		} catch (IdRepoAppUncheckedException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
@@ -418,7 +418,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			vidObject.setUpdatedDTimes(DateUtils.getUTCCurrentDateTime());
 			vidObject.setUin(decryptedUin);
 			vidRepo.saveAndFlush(vidObject);
-			notify(EventType.UPDATE_VID, Collections.singletonList(vidObject), decryptedUin, true);
+			notify(IDAEventType.UPDATE_VID, Collections.singletonList(vidObject), decryptedUin, true);
 		}
 		VidResponseDTO response = new VidResponseDTO();
 		response.setVidStatus(vidObject.getStatusCode());
@@ -529,9 +529,9 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			});
 			vidRepo.saveAll(vidList);
 			if (idType.contentEquals(DEACTIVATE)) {
-				notify(EventType.UPDATE_VID, vidList, decryptedUin, true);
+				notify(IDAEventType.UPDATE_VID, vidList, decryptedUin, true);
 			} else {
-				notify(EventType.UPDATE_VID, vidList, decryptedUin, false);
+				notify(IDAEventType.UPDATE_VID, vidList, decryptedUin, false);
 			}
 			VidResponseDTO response = new VidResponseDTO();
 			response.setVidStatus(status);
@@ -651,7 +651,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		return responseDto;
 	}
 
-	private void notify(EventType eventType, List<Vid> vids, String decryptedUin, boolean isUpdated) {
+	private void notify(IDAEventType eventType, List<Vid> vids, String decryptedUin, boolean isUpdated) {
 		try {
 			EventsDTO events = new EventsDTO();
 			events.setEvents(vids.stream()
