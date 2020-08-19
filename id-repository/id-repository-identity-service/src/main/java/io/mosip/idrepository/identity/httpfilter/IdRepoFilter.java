@@ -22,7 +22,6 @@ import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.httpfilter.BaseIdRepoFilter;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
 
@@ -80,7 +79,8 @@ public final class IdRepoFilter extends BaseIdRepoFilter {
 				idResponse.setErrors(Collections.singletonList(errors));
 				return mapper.writeValueAsString(idResponse);
 			} catch (IOException e) {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_FILTER, "\n" + ExceptionUtils.getStackTrace(e));
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_FILTER,
+						"\n" + e.getMessage());
 				throw new IdRepoAppUncheckedException(UNKNOWN_ERROR);
 			}
 		} else {
