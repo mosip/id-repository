@@ -59,7 +59,6 @@ import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.repository.UinHashSaltRepo;
 import io.mosip.idrepository.identity.repository.UinHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinRepo;
-import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.fsadapter.spi.FileSystemAdapter;
 import io.mosip.kernel.core.http.RequestWrapper;
@@ -531,7 +530,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			restHelper.requestSync(restBuilder.buildRequest(RestServicesConstants.ID_AUTH_SERVICE, request, Void.class));
 			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", "notified IDA for event" + eventType.name());
 		} catch (IdRepoDataValidationException | RestServiceException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", ExceptionUtils.getStackTrace(e));
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", e.getMessage());
 		}
 	}
 }
