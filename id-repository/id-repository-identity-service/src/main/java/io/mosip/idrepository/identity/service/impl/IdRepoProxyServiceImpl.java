@@ -38,15 +38,17 @@ import org.springframework.transaction.TransactionException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
-import io.mosip.idrepository.core.constant.EventType;
+import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
+import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.EventDTO;
-import io.mosip.idrepository.core.dto.EventsDTO;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
+import io.mosip.idrepository.core.dto.VidInfoDTO;
+import io.mosip.idrepository.core.dto.VidInfoResponsDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
@@ -61,7 +63,6 @@ import io.mosip.idrepository.identity.repository.UinHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinRepo;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.fsadapter.spi.FileSystemAdapter;
-import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -186,7 +187,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				throw new IdRepoAppException(RECORD_EXISTS);
 			} else {
 				Uin uinEntity = service.addIdentity(request, uin);
-				notify(EventType.CREATE_UIN, uin, null);
+				notify(IDAEventType.CREATE_UIN, uin, null);
 				return constructIdResponse(this.id.get(CREATE), uinEntity, null);
 			}
 		} catch (IdRepoAppException e) {
@@ -444,9 +445,9 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				Uin uinObject = service.updateIdentity(request, uin);
 				if (Objects.nonNull(request.getRequest().getStatus())
 						&& !env.getProperty(ACTIVE_STATUS).equalsIgnoreCase(request.getRequest().getStatus())) {
-					notify(EventType.UPDATE_UIN, uin, uinObject.getUpdatedDateTime());
+					notify(IDAEventType.UPDATE_UIN, uin, uinObject.getUpdatedDateTime());
 				} else {
-					notify(EventType.UPDATE_UIN, uin, null);
+					notify(IDAEventType.UPDATE_UIN, uin, null);
 				}
 				return constructIdResponse(MOSIP_ID_UPDATE, service.retrieveIdentityByUin(uinHash, null), null);
 			} else {
@@ -503,25 +504,26 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		}
 	}
 
-	private void notify(EventType eventType, String uin, LocalDateTime expiryTimestamp) {
+	private void notify(String uin, LocalDateTime expiryTimestamp, boolean isUpdate) {
 		try {
-			EventsDTO events = new EventsDTO();
-			List<EventDTO> eventsList = new ArrayList<>();
-			eventsList.add(new EventDTO(eventType, uin, null, expiryTimestamp, null));
-			if (eventType == EventType.UPDATE_UIN) {
+			List<CredentialIssueRequestDto> eventRequestsList = new ArrayList<>();
+			eventRequestsList.add();
+			if (isUpdate) {
 				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.VID_SERVICE, null,
 						ResponseWrapper.class);
 				restRequest.setUri(restRequest.getUri().replace("{uin}", uin));
-				ResponseWrapper<EventsDTO> response = restHelper.requestSync(restRequest);
-				EventsDTO eventsDto = mapper.convertValue(response.getResponse(), EventsDTO.class);response.getResponse();
-				eventsList.addAll(eventsDto.getEvents().stream()
-						.map(event -> new EventDTO(EventType.UPDATE_VID, uin, event.getVid(),
-								Objects.isNull(expiryTimestamp) ? event.getExpiryTimestamp() : expiryTimestamp,
-								event.getTransactionLimit()))
+				VidInfoResponsDTO response = restHelper.requestSync(restRequest);
+				List<VidInfoDTO> vidInfoDtos = mapper.convertValue(response.getResponse(), List.class);response.getResponse();
+				eventRequestsList.addAll(vidInfoDtos.stream()
+						.map(VidInfoDTO -> {
+							new EventDTO(IDAEventType.UPDATE_VID, uin, event.getVid(),
+									Objects.isNull(expiryTimestamp) ? event.getExpiryTimestamp() : expiryTimestamp,
+									event.getTransactionLimit());
+							new CredentialIssueRequestDto(VidInfoDTO.getVid(), "AUTH", issuer, recepiant, user, encrypt, encryptionKey, sharableAttributes);
+						})
 						.collect(Collectors.toList()));
 			}
-			RequestWrapper<EventsDTO> request = new RequestWrapper<>();
-			events.setEvents(eventsList);
+			events.setEvents(eventRequestsList);
 			request.setId(env.getProperty(IDA_NOTIFY_REQ_ID));
 			request.setRequesttime(DateUtils.getUTCCurrentDateTime());
 			request.setVersion(env.getProperty(IDA_NOTIFY_REQ_VER));
