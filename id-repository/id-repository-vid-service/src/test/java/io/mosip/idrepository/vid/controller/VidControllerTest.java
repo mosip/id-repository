@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
-import io.mosip.idrepository.core.dto.EventsDTO;
+import io.mosip.idrepository.core.dto.IDAEventsDTO;
 import io.mosip.idrepository.core.dto.VidRequestDTO;
 import io.mosip.idrepository.core.dto.VidResponseDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
@@ -71,7 +71,7 @@ public class VidControllerTest {
 	private VidController controller;
 
 	@Mock
-	private VidService<Object, ResponseWrapper<VidResponseDTO>, ResponseWrapper<EventsDTO>> vidService;
+	private VidService<Object, ResponseWrapper<VidResponseDTO>, ResponseWrapper<IDAEventsDTO>> vidService;
 
 	@Mock
 	private VidRequestValidator vidValidator;
