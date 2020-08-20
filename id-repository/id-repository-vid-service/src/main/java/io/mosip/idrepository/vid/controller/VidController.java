@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.mosip.idrepository.core.constant.AuditEvents;
 import io.mosip.idrepository.core.constant.AuditModules;
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.EventsDTO;
+import io.mosip.idrepository.core.dto.IDAEventsDTO;
 import io.mosip.idrepository.core.dto.VidInfoDTO;
 import io.mosip.idrepository.core.dto.VidRequestDTO;
 import io.mosip.idrepository.core.dto.VidResponseDTO;

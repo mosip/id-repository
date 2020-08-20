@@ -43,8 +43,8 @@ import org.springframework.transaction.annotation.Transactional;
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
-import io.mosip.idrepository.core.dto.EventDTO;
-import io.mosip.idrepository.core.dto.EventsDTO;
+import io.mosip.idrepository.core.dto.IDAEventDTO;
+import io.mosip.idrepository.core.dto.IDAEventsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.dto.VidInfoDTO;
@@ -653,14 +653,14 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 
 	private void notify(IDAEventType eventType, List<Vid> vids, String decryptedUin, boolean isUpdated) {
 		try {
-			EventsDTO events = new EventsDTO();
+			IDAEventsDTO events = new IDAEventsDTO();
 			events.setEvents(vids.stream()
-					.map(vid -> new EventDTO(eventType, Arrays.asList(decryptedUin.split(SPLITTER)).get(1),
+					.map(vid -> new IDAEventDTO(eventType, Arrays.asList(decryptedUin.split(SPLITTER)).get(1),
 							vid.getVid(),
 							isUpdated ? vid.getUpdatedDTimes() : vid.getExpiryDTimes(),
 							policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions()))
 					.collect(Collectors.toList()));
-			RequestWrapper<EventsDTO> request = new RequestWrapper<>();
+			RequestWrapper<IDAEventsDTO> request = new RequestWrapper<>();
 			request.setId(env.getProperty(IDA_NOTIFY_REQ_ID));
 			request.setRequesttime(DateUtils.getUTCCurrentDateTime());
 			request.setVersion(env.getProperty(IDA_NOTIFY_REQ_VER));

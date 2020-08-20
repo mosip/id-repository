@@ -9,6 +9,6 @@ import lombok.Data;
  *
  */
 @Data
-public class EventsDTO {
-	private List<EventDTO> events;
+public class IDAEventsDTO {
+	private List<IDAEventDTO> events;
 }
