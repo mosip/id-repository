@@ -14,11 +14,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class EventDTO {
+public class IDAEventDTO {
 
 	private EventType eventType;
-	private String uin;
-	private String vid;
+	private String saltedIdHash;
 	private LocalDateTime expiryTimestamp;
 	private Integer transactionLimit;
 }

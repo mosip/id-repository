@@ -38,11 +38,13 @@ import org.springframework.transaction.TransactionException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
+import io.mosip.idrepository.core.constant.EventType;
 import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
+import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
-import io.mosip.idrepository.core.dto.EventDTO;
+import io.mosip.idrepository.core.dto.IDAEventDTO;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.ResponseDTO;
@@ -76,6 +78,8 @@ import io.mosip.kernel.fsadapter.hdfs.constant.HDFSAdapterErrorCode;
  */
 @Service
 public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdResponseDTO> {
+
+	private static final String BLOCKED = "BLOCKED";
 
 	/** The Constant GET_FILES. */
 	private static final String GET_FILES = "getFiles";
@@ -187,7 +191,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				throw new IdRepoAppException(RECORD_EXISTS);
 			} else {
 				Uin uinEntity = service.addIdentity(request, uin);
-				notify(IDAEventType.CREATE_UIN, uin, null);
+				notify(uin, null, null, false);
 				return constructIdResponse(this.id.get(CREATE), uinEntity, null);
 			}
 		} catch (IdRepoAppException e) {
@@ -445,9 +449,9 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				Uin uinObject = service.updateIdentity(request, uin);
 				if (Objects.nonNull(request.getRequest().getStatus())
 						&& !env.getProperty(ACTIVE_STATUS).equalsIgnoreCase(request.getRequest().getStatus())) {
-					notify(IDAEventType.UPDATE_UIN, uin, uinObject.getUpdatedDateTime());
+					notify(uin, uinObject.getUpdatedDateTime(), request.getRequest().getStatus(), true);
 				} else {
-					notify(IDAEventType.UPDATE_UIN, uin, null);
+					notify(uin, null, null, true);
 				}
 				return constructIdResponse(MOSIP_ID_UPDATE, service.retrieveIdentityByUin(uinHash, null), null);
 			} else {
@@ -504,35 +508,95 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		}
 	}
 
-	private void notify(String uin, LocalDateTime expiryTimestamp, boolean isUpdate) {
+	private void notify(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate) {
 		try {
-			List<CredentialIssueRequestDto> eventRequestsList = new ArrayList<>();
-			eventRequestsList.add();
+			List<VidInfoDTO> vidInfoDtos = null;
 			if (isUpdate) {
 				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.VID_SERVICE, null,
 						ResponseWrapper.class);
 				restRequest.setUri(restRequest.getUri().replace("{uin}", uin));
 				VidInfoResponsDTO response = restHelper.requestSync(restRequest);
-				List<VidInfoDTO> vidInfoDtos = mapper.convertValue(response.getResponse(), List.class);response.getResponse();
-				eventRequestsList.addAll(vidInfoDtos.stream()
-						.map(VidInfoDTO -> {
-							new EventDTO(IDAEventType.UPDATE_VID, uin, event.getVid(),
-									Objects.isNull(expiryTimestamp) ? event.getExpiryTimestamp() : expiryTimestamp,
-									event.getTransactionLimit());
-							new CredentialIssueRequestDto(VidInfoDTO.getVid(), "AUTH", issuer, recepiant, user, encrypt, encryptionKey, sharableAttributes);
-						})
-						.collect(Collectors.toList()));
+				vidInfoDtos = mapper.convertValue(response.getResponse(), List.class);
 			}
-			events.setEvents(eventRequestsList);
-			request.setId(env.getProperty(IDA_NOTIFY_REQ_ID));
-			request.setRequesttime(DateUtils.getUTCCurrentDateTime());
-			request.setVersion(env.getProperty(IDA_NOTIFY_REQ_VER));
-			request.setRequest(events);
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", "notifying IDA for event" + eventType.name());
-			restHelper.requestSync(restBuilder.buildRequest(RestServicesConstants.ID_AUTH_SERVICE, request, Void.class));
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", "notified IDA for event" + eventType.name());
+			
+			if(isUpdate && expiryTimestamp != null) {
+				//Event to be sent to IDA for deactivation/blocked uin state
+				sendEventToIDA(uin, expiryTimestamp, status, vidInfoDtos);
+			} else {
+				//For create uin, or update uin with null expiry (active status), send event to credential service.
+				sendEventsToCredService(uin, expiryTimestamp, isUpdate, vidInfoDtos);
+			}
+			
+			//restHelper.requestSync(restBuilder.buildRequest(RestServicesConstants.ID_AUTH_SERVICE, request, Void.class));
 		} catch (IdRepoDataValidationException | RestServiceException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", e.getMessage());
 		}
+	}
+
+	private void sendEventToIDA(String uin, LocalDateTime expiryTimestamp, String status, List<VidInfoDTO> vidInfoDtos) {
+		List<IDAEventDTO> eventList = new ArrayList<>();
+		EventType eventType = BLOCKED.equals(status) ? IDAEventType.REMOVE_ID : IDAEventType.DEACTIVATE_ID;
+		eventList.add(new IDAEventDTO(eventType, retrieveUinHash(uin), expiryTimestamp, null));
+		
+		if(vidInfoDtos != null) {
+			List<IDAEventDTO> idaEvents = vidInfoDtos.stream()
+					.map(vidInfoDTO -> new IDAEventDTO(eventType, 
+							retrieveUinHash(vidInfoDTO.getVid()), 
+							expiryTimestamp,
+							vidInfoDTO.getTransactionLimit()))
+					.collect(Collectors.toList());
+			eventList.addAll(idaEvents);
+		}
+		
+		eventList.forEach(eventDto -> {
+//					IDAEventsDTO eventsDto = new IDAEventsDTO();
+//					eventsDto.setRequest(eventDto);
+//					eventsDto.setRequesttime(DateUtils.getUTCCurrentDateTime());
+//					eventsDto.setId(env.getProperty(IDA_NOTIFY_REQ_ID));
+//					eventsDto.setVersion(env.getProperty(IDA_NOTIFY_REQ_VER));
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", "notifying IDA for event" + eventType.toString());
+			sendEventToIDA(eventDto);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", "notified IDA for event" + eventType.toString());
+		});
+	}
+
+	private void sendEventToIDA(IDAEventDTO eventDto) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void sendEventsToCredService(String uin, LocalDateTime expiryTimestamp, boolean isUpdate, List<VidInfoDTO> vidInfoDtos) {
+		List<CredentialIssueRequestDto> eventRequestsList = new ArrayList<>();
+		eventRequestsList.add(createCredReqDto(uin,expiryTimestamp, null));
+		
+		if(vidInfoDtos != null) {
+			List<CredentialIssueRequestDto> vidRequests = vidInfoDtos.stream()
+					.map(vidInfoDTO -> createCredReqDto(vidInfoDTO.getVid(), 
+							Objects.isNull(expiryTimestamp) ? vidInfoDTO.getExpiryTimestamp() : expiryTimestamp,
+							vidInfoDTO.getTransactionLimit()))
+					.collect(Collectors.toList());
+			eventRequestsList.addAll(vidRequests);
+		}
+		
+		eventRequestsList.forEach(reqDto -> {
+			CredentialIssueRequestWrapperDto requestWrapper = new CredentialIssueRequestWrapperDto();
+			requestWrapper.setRequest(reqDto);
+			requestWrapper.setRequesttime(DateUtils.getUTCCurrentDateTime());
+			requestWrapper.setId(env.getProperty(IDA_NOTIFY_REQ_ID));
+			requestWrapper.setVersion(env.getProperty(IDA_NOTIFY_REQ_VER));
+			String eventTypeDisplayName = isUpdate? "Update ID" : "Create ID";
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", "notifying Credential Service for event " + eventTypeDisplayName);
+			sendEventToCredService(requestWrapper);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", "notified Credential Service for event" + eventTypeDisplayName);
+		});
+	}
+
+	private void sendEventToCredService(CredentialIssueRequestWrapperDto requestWrapper) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private CredentialIssueRequestDto createCredReqDto(String uin, LocalDateTime expiryTimestamp, Integer transactionLimit) {
+		return new CredentialIssueRequestDto(uin, "AUTH", "partner", "", "ID_REPO", false, null, null);
 	}
 }
