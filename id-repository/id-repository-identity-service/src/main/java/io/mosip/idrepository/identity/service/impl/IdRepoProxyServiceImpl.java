@@ -79,6 +79,8 @@ import io.mosip.kernel.fsadapter.hdfs.constant.HDFSAdapterErrorCode;
 @Service
 public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdResponseDTO> {
 
+	private static final String ACTIVE = "ACTIVE";
+
 	private static final String BLOCKED = "BLOCKED";
 
 	/** The Constant GET_FILES. */
@@ -519,7 +521,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				vidInfoDtos = mapper.convertValue(response.getResponse(), List.class);
 			}
 			
-			if(isUpdate && expiryTimestamp != null) {
+			if(isUpdate && (!ACTIVE.equals(status) || expiryTimestamp != null)) {
 				//Event to be sent to IDA for deactivation/blocked uin state
 				sendEventToIDA(uin, expiryTimestamp, status, vidInfoDtos);
 			} else {

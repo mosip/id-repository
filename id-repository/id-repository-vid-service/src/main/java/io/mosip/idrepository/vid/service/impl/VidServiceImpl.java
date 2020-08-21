@@ -23,6 +23,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.VID_POLIC
 
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -41,8 +42,11 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
+import io.mosip.idrepository.core.constant.EventType;
 import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
+import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
+import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
 import io.mosip.idrepository.core.dto.IDAEventDTO;
 import io.mosip.idrepository.core.dto.IDAEventsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
@@ -66,7 +70,6 @@ import io.mosip.idrepository.vid.repository.UinHashSaltRepo;
 import io.mosip.idrepository.vid.repository.VidRepo;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
-import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -82,6 +85,12 @@ import io.mosip.kernel.core.util.UUIDUtils;
 @Component
 @Transactional
 public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper<VidResponseDTO>, ResponseWrapper<List<VidInfoDTO>>> {
+
+	private static final String ACTIVATE_STATUS = "ACTIVATE";
+	
+	private static final String DEACTIVATE_STATUS = "DEACTIVATE";
+
+	private static final String REVOKED = "REVOKED";
 
 	/** The Constant VID. */
 	private static final String VID = "vid";
@@ -207,7 +216,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 							: LocalDateTime.MAX.withYear(9999),
 					env.getProperty(VID_ACTIVE_STATUS), IdRepoSecurityManager.getUser(), currentTime, null, null, false,
 					null);
-			notify(IDAEventType.CREATE_VID, Collections.singletonList(vidEntity), uinToEncrypt, false);
+			notify(env.getProperty(VID_ACTIVE_STATUS), Collections.singletonList(vidEntity), false);
 			return vidRepo.save(vidEntity);
 		} else if (vidDetails.size() == policy.getAllowedInstances() && policy.getAutoRestoreAllowed()) {
 			Vid vidObject = vidDetails.get(0);
@@ -216,7 +225,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			vidObject.setUpdatedDTimes(DateUtils.getUTCCurrentDateTime());
 			vidObject.setUin(uinToEncrypt);
 			vidRepo.saveAndFlush(vidObject);
-			notify(IDAEventType.UPDATE_VID, Collections.singletonList(vidObject), uinToEncrypt, true);
+			notify(DEACTIVATE_STATUS, Collections.singletonList(vidObject), true);
 			return generateVid(uin, vidType);
 		} else {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID,
@@ -418,7 +427,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			vidObject.setUpdatedDTimes(DateUtils.getUTCCurrentDateTime());
 			vidObject.setUin(decryptedUin);
 			vidRepo.saveAndFlush(vidObject);
-			notify(IDAEventType.UPDATE_VID, Collections.singletonList(vidObject), decryptedUin, true);
+			notify(vidStatus, Collections.singletonList(vidObject), true);
 		}
 		VidResponseDTO response = new VidResponseDTO();
 		response.setVidStatus(vidObject.getStatusCode());
@@ -529,9 +538,9 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			});
 			vidRepo.saveAll(vidList);
 			if (idType.contentEquals(DEACTIVATE)) {
-				notify(IDAEventType.UPDATE_VID, vidList, decryptedUin, true);
+				notify(status, vidList, true);
 			} else {
-				notify(IDAEventType.UPDATE_VID, vidList, decryptedUin, false);
+				notify(status, vidList, true);
 			}
 			VidResponseDTO response = new VidResponseDTO();
 			response.setVidStatus(status);
@@ -651,24 +660,86 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		return responseDto;
 	}
 
-	private void notify(IDAEventType eventType, List<Vid> vids, String decryptedUin, boolean isUpdated) {
-		try {
-			IDAEventsDTO events = new IDAEventsDTO();
-			events.setEvents(vids.stream()
-					.map(vid -> new IDAEventDTO(eventType, Arrays.asList(decryptedUin.split(SPLITTER)).get(1),
-							vid.getVid(),
-							isUpdated ? vid.getUpdatedDTimes() : vid.getExpiryDTimes(),
-							policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions()))
-					.collect(Collectors.toList()));
-			RequestWrapper<IDAEventsDTO> request = new RequestWrapper<>();
-			request.setId(env.getProperty(IDA_NOTIFY_REQ_ID));
-			request.setRequesttime(DateUtils.getUTCCurrentDateTime());
-			request.setVersion(env.getProperty(IDA_NOTIFY_REQ_VER));
-			request.setRequest(events);
-			restHelper
-					.requestAsync(restBuilder.buildRequest(RestServicesConstants.ID_AUTH_SERVICE, request, Void.class));
-		} catch (IdRepoDataValidationException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, "notify", e.getMessage());
+	private void notify(String status, List<Vid> vids, boolean isUpdated) {
+		if(isUpdated) {
+			sendEventsToIDA(status, vids);
+		} else {
+			sendEventsToCredService(status, vids, isUpdated);
 		}
+	}
+
+	private void sendEventsToCredService(String status, List<Vid> vids, boolean isUpdated) {
+		List<CredentialIssueRequestDto> eventRequestsList = vids.stream()
+					.map(vid -> createCredReqDto(vid.getId(), 
+							status.equals(ACTIVATE_STATUS) ? vid.getExpiryDTimes() : vid.getUpdatedDTimes(),
+									policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions()))
+					.collect(Collectors.toList());
+		
+		eventRequestsList.forEach(reqDto -> {
+			CredentialIssueRequestWrapperDto requestWrapper = new CredentialIssueRequestWrapperDto();
+			requestWrapper.setRequest(reqDto);
+			requestWrapper.setRequesttime(DateUtils.getUTCCurrentDateTime());
+			requestWrapper.setId(env.getProperty(IDA_NOTIFY_REQ_ID));
+			requestWrapper.setVersion(env.getProperty(IDA_NOTIFY_REQ_VER));
+			String eventTypeDisplayName = isUpdated? "Update ID" : "Create ID";
+			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "notify", "notifying Credential Service for event " + eventTypeDisplayName);
+			sendEventToCredService(requestWrapper);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "notify", "notified Credential Service for event" + eventTypeDisplayName);
+		});
+	}
+	
+	private void sendEventToCredService(CredentialIssueRequestWrapperDto requestWrapper) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	private CredentialIssueRequestDto createCredReqDto(String uin, LocalDateTime expiryTimestamp, Integer transactionLimit) {
+		return new CredentialIssueRequestDto(uin, "AUTH", "partner", "", "ID_REPO", false, null, null);
+	}
+
+	private void sendEventsToIDA(String status, List<Vid> vids) {
+		IDAEventsDTO events = new IDAEventsDTO();
+		EventType eventType;
+		switch (status) {
+		case ACTIVATE_STATUS:
+			eventType = IDAEventType.ACTIVATE_ID;
+			break;
+		case REVOKED:
+			eventType = IDAEventType.REMOVE_ID;
+			break;
+		default:
+			eventType = IDAEventType.DEACTIVATE_ID;
+		}
+		List<IDAEventDTO> eventDtos = vids.stream()
+				.map(vid -> new IDAEventDTO(eventType, 
+						retrieveIdHash(vid.getVid()),
+						eventType.equals(IDAEventType.ACTIVATE_ID) ? vid.getExpiryDTimes() : vid.getUpdatedDTimes(),
+						policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions()))
+				.collect(Collectors.toList());
+		events.setEvents(eventDtos);
+//		RequestWrapper<IDAEventsDTO> request = new RequestWrapper<>();
+//		request.setId(env.getProperty(IDA_NOTIFY_REQ_ID));
+//		request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+//		request.setVersion(env.getProperty(IDA_NOTIFY_REQ_VER));
+//		request.setRequest(events);
+		
+		eventDtos.forEach(eventDto -> sentEventToIDA(eventDto));
+	}
+
+	private void sentEventToIDA(IDAEventDTO eventDto) {
+		//restHelper.requestAsync(restBuilder.buildRequest(RestServicesConstants.ID_AUTH_SERVICE, request, Void.class));
+	}
+	
+	/**
+	 * Retrieve uin hash.
+	 *
+	 * @param id the uin
+	 * @return the string
+	 */
+	private String retrieveIdHash(String id) {
+		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
+		int modResult = (int) (Long.parseLong(id) % moduloValue);
+		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
+		return modResult + SPLITTER + securityManager.hashwithSalt(id.getBytes(), hashSalt.getBytes());
 	}
 }
