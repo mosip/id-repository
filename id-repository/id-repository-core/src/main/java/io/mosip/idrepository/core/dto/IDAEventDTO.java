@@ -15,7 +15,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class IDAEventDTO {
-
 	private EventType eventType;
 	private String saltedIdHash;
 	private LocalDateTime expiryTimestamp;
