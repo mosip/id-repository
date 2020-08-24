@@ -15,14 +15,13 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_I
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -51,6 +50,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 
+import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.RequestDTO;
@@ -74,7 +74,6 @@ import io.mosip.idrepository.identity.repository.UinHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinRepo;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
-import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.fsadapter.spi.FileSystemAdapter;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -306,13 +305,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			data = CryptoUtil.decodeBase64(doc.getValue());
 		}
 
-		LocalDateTime startTime = DateUtils.getUTCCurrentDateTime();
 		fsAdapter.storeFile(uinHash, BIOMETRICS + SLASH + fileRefId,
 				new ByteArrayInputStream(securityManager.encrypt(data)));
-		mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "storeFiles",
-				"time taken to store file in millis: " + fileRefId + "  - "
-						+ Duration.between(startTime, DateUtils.getUTCCurrentDateTime()).toMillis() + "  "
-						+ "Start time : " + startTime + "  " + "end time : " + DateUtils.getUTCCurrentDateTime());
 
 		bioList.add(new UinBiometric(uinRefId, fileRefId, doc.getCategory(), docType.get(FILE_NAME_ATTRIBUTE).asText(),
 				securityManager.hash(data), env.getProperty(MOSIP_PRIMARY_LANGUAGE), IdRepoSecurityManager.getUser(),
@@ -347,14 +341,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						docType.get(FILE_NAME_ATTRIBUTE).asText() + SPLITTER + DateUtils.getUTCCurrentDateTime())
 				.toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
 
-		LocalDateTime startTime = DateUtils.getUTCCurrentDateTime();
 		byte[] data = CryptoUtil.decodeBase64(doc.getValue());
 		fsAdapter.storeFile(uinHash, DEMOGRAPHICS + SLASH + fileRefId,
 				new ByteArrayInputStream(securityManager.encrypt(data)));
-		mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "storeFiles",
-				"time taken to store file in millis: " + fileRefId + "  - "
-						+ Duration.between(startTime, DateUtils.getUTCCurrentDateTime()).toMillis() + "  "
-						+ "Start time : " + startTime + "  " + "end time : " + DateUtils.getUTCCurrentDateTime());
 
 		docList.add(new UinDocument(uinRefId, doc.getCategory(), docType.get(TYPE).asText(), fileRefId,
 				docType.get(FILE_NAME_ATTRIBUTE).asText(), docType.get(FILE_FORMAT_ATTRIBUTE).asText(),
@@ -401,33 +390,14 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), DOCUMENTS + " - " + category));
 		}
 	}
-
-	/**
-	 * Retrieve identity by uin from DB.
-	 *
-	 * @param uinHash
-	 *            the uin hash
-	 * @param type
-	 *            the type
-	 * @return the uin
-	 * @throws IdRepoAppException
-	 *             the id repo app exception
+	
+	/* (non-Javadoc)
+	 * @see io.mosip.idrepository.core.spi.IdRepoService#retrieveIdentity(java.lang.String, io.mosip.idrepository.core.constant.IdType, java.lang.String)
 	 */
 	@Override
-	public Uin retrieveIdentityByUin(String uinHash, String type) throws IdRepoAppException {
-		return uinRepo.findByUinHash(uinHash);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * io.mosip.idrepository.core.spi.IdRepoService#retrieveIdentityByRid(java.lang.
-	 * String, java.lang.String)
-	 */
-	@Override
-	public Uin retrieveIdentityByRid(String rid, String filter) throws IdRepoAppException {
-		return null;
+	public Uin retrieveIdentity(String id, IdType idType, String type, Set<String> extractionFormats)
+			throws IdRepoAppException {
+		return uinRepo.findByUinHash(id);
 	}
 
 	/*
@@ -443,7 +413,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
 		String uinHash = modResult + SPLITTER + securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
 		try {
-			Uin uinObject = retrieveIdentityByUin(uinHash, null);
+			Uin uinObject = retrieveIdentity(uinHash, IdType.UIN, null, null);
 			uinObject.setRegId(request.getRequest().getRegistrationId());
 			if (Objects.nonNull(request.getRequest().getStatus())
 					&& !StringUtils.equals(uinObject.getStatusCode(), request.getRequest().getStatus())) {

@@ -1,7 +1,7 @@
 package io.mosip.kernel.bioextractor.validator;
 
-import static io.mosip.kernel.bioextractor.constant.BiometricExtractionErrorConstants.INVALID_INPUT_PARAMETER;
-import static io.mosip.kernel.bioextractor.constant.BiometricExtractionErrorConstants.MISSING_INPUT_PARAMETER;
+import static io.mosip.idrepository.bioextractor.constant.BiometricExtractionErrorConstants.INVALID_INPUT_PARAMETER;
+import static io.mosip.idrepository.bioextractor.constant.BiometricExtractionErrorConstants.MISSING_INPUT_PARAMETER;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
@@ -17,7 +17,8 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.web.context.WebApplicationContext;
 
-import io.mosip.kernel.bioextractor.dto.BioExtractRequestDTO;
+import io.mosip.idrepository.bioextractor.dto.BioExtractRequestDTO;
+import io.mosip.idrepository.bioextractor.validator.BiometricExtractionRequestValidator;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.util.CryptoUtil;
