@@ -1,5 +1,7 @@
 package io.mosip.credential.request.generator.service;
 
+import org.springframework.stereotype.Service;
+
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
 
@@ -9,6 +11,7 @@ import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
  *
  * @author Sowmya
  */
+@Service
 public interface CredentialRequestService {
 	
 	/**

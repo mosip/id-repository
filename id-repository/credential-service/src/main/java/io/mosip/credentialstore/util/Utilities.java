@@ -1,5 +1,7 @@
 package io.mosip.credentialstore.util;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,11 +10,18 @@ import java.util.UUID;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+
 import io.mosip.credentialstore.dto.Issuer;
 import io.mosip.credentialstore.dto.Type;
+import io.mosip.credentialstore.entity.UinHashSalt;
+import io.mosip.credentialstore.repositary.UinHashSaltRepo;
+import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 
 @Component
 public class Utilities {
@@ -23,6 +32,7 @@ public class Utilities {
 	private static final String ISSUERS = "issuers";
 	private static final String CODE = "code";
 
+	
 	public List<Type> getTypes(String configServerFileStorageURL, String uri) {
 		List<Type> typeList = new ArrayList<>();
 		RestTemplate restTemplate = new RestTemplate();
@@ -60,4 +70,6 @@ public class Utilities {
 	public String generateId() {
 		return UUID.randomUUID().toString();
 	}
+	
+
 }

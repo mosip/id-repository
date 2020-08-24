@@ -4,7 +4,9 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.client.RestTemplate;
 
 
 /**
@@ -13,7 +15,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * @author Sowmya
  */
 @SpringBootApplication
-@ComponentScan(basePackages = { "io.mosip.credential.request.generator.*", "io.mosip.kernel.auth.*" })
+@Import(value = { java.lang.String.class })
+@ComponentScan(basePackages = { "io.mosip.*" })
 @EnableBatchProcessing
 @EnableScheduling
 public class CredentialRequestGeneratorApp 

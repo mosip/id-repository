@@ -33,7 +33,9 @@ public enum CredentialServiceErrorCodes {
 	/** The datashare exception. */
 	DATASHARE_EXCEPTION("IDR-CRS-011", "Datashare response is null"),
 	
-	SIGNATURE_EXCEPTION("IDR-CRS-012", "Failed to generate digital signature");
+	SIGNATURE_EXCEPTION("IDR-CRS-012", "Failed to generate digital signature"),
+	
+	DATA_ENCRYPTION_FAILURE_EXCEPTION("IDR-CRS-013", "Data Encryption failed");
 
 	/** The error code. */
 	private final String errorCode;

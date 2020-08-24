@@ -1,0 +1,20 @@
+{
+  "$schema": "http://schemas.mosip.io/event/1.0/#",
+  "publisher" : "",
+  "topic" : "id-created",
+  "published-on" : "", //ISO timestamp including time zone
+  "event" : {
+    "id" : "", // Unique identifier of the event. Specific to the publisher
+    "transaction-id" : "", // Reference that provides audit and integration linkage
+    "type" : {
+      "namespace" : "mosip", //could be country specific program domain
+      "name" : ""
+    },
+    "timestamp" : "", // ISO timestamp of the event occurrence with time zone
+    "data-share-uri" : "", // Optional canonical uri of the event to refer
+    "data" : { // Optional custom data block
+      "key" : "value",
+      ...
+    }
+  }
+}

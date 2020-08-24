@@ -15,7 +15,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "credential")
-// TODO need to specify schema later
+// TODO need to specify schema later schema = "credentials",
 public class CredentialEntity {
 
 	/** The request id. */

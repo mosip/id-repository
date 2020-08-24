@@ -73,8 +73,9 @@ public class DigitalSignatureUtil {
 	 * @param packet the packet
 	 * @return the byte[]
 	 * @throws ApiNotAccessibleException 
+	 * @throws SignatureException 
 	 */
-	public String sign(byte[] packet) throws ApiNotAccessibleException {
+	public String sign(byte[] packet) throws ApiNotAccessibleException, SignatureException {
 		try {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), DIGITALSIGNATURE, SIGN,
 					"entry");

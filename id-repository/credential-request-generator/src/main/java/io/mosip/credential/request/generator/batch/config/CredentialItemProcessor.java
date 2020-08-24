@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -15,7 +16,7 @@ import io.mosip.credential.request.generator.constants.LoggerFileConstant;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.ApiNotAccessibleException;
 
-import io.mosip.credential.request.generator.util.PartnerManageUtil;
+
 import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
@@ -32,6 +33,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
  * @author Sowmya
  *
  */
+@Component
 public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, CredentialEntity> {
 
 	
@@ -41,10 +43,6 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 	@Autowired
 	private RestUtil restUtil;
 	
-
-	
-	@Autowired
-	private PartnerManageUtil partnerManageUtil;
 	
 	/** The Constant BIOMETRICS. */
 	private static final String PROCESS = "process";
@@ -68,9 +66,7 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 		credentialServiceRequestDto.setRecepiant(credentialIssueRequestDto.getIssuer());
 		credentialServiceRequestDto.setSharableAttributes(credentialIssueRequestDto.getSharableAttributes());
 		credentialServiceRequestDto.setUser(credentialIssueRequestDto.getUser());
-
-			credentialServiceRequestDto
-					.setFormatter(partnerManageUtil.getFormatter(credentialIssueRequestDto.getIssuer()));
+		credentialServiceRequestDto.setRequestId(credential.getRequestId());
 
 			String responseString = restUtil.postApi(ApiName.CRDENTIALSERVICE, null, "", "",
 					MediaType.APPLICATION_JSON, credentialServiceRequestDto, String.class);

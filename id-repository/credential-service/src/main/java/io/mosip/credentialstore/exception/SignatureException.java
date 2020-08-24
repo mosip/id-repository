@@ -2,9 +2,10 @@ package io.mosip.credentialstore.exception;
 
 
 import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
+import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 
-public class SignatureException extends BaseUncheckedException {
+public class SignatureException extends BaseCheckedException {
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
@@ -23,7 +24,7 @@ public class SignatureException extends BaseUncheckedException {
 
 
 	public SignatureException(String message, Throwable cause) {
-		super(CredentialServiceErrorCodes.SIGNATURE_EXCEPTION.getErrorCode() + EMPTY_SPACE, message, cause);
+		super(CredentialServiceErrorCodes.SIGNATURE_EXCEPTION.getErrorCode(),message, cause);
 
 	}
 

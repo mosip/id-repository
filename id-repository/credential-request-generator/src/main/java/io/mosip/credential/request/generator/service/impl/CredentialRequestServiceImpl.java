@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -44,6 +45,7 @@ import io.mosip.kernel.core.util.DateUtils;
  *
  * The Class CredentialRequestServiceImpl.
  */
+@Component
 public class CredentialRequestServiceImpl implements CredentialRequestService {
 	
 	/** The credential repositary. */

@@ -3,6 +3,7 @@ package io.mosip.credentialstore.api;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 
 
 /**
@@ -11,7 +12,8 @@ import org.springframework.context.annotation.ComponentScan;
  *         The Class CredentialStoreApp.
  */
 @SpringBootApplication
-@ComponentScan(basePackages = { "io.mosip.credentialstore.*", "io.mosip.kernel.auth.*" })
+@Import(value = { java.lang.String.class })
+@ComponentScan(basePackages = { "io.mosip.*", "io.mosip.kernel.auth.*" })
 public class CredentialStoreApp 
 {
 

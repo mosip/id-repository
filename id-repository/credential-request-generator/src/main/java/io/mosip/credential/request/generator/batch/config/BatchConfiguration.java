@@ -28,6 +28,7 @@ import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import io.mosip.credential.request.generator.service.CredentialRequestService;
 import io.mosip.credential.request.generator.service.impl.CredentialRequestServiceImpl;
 import io.mosip.credential.request.generator.util.RestUtil;
+import io.mosip.idrepository.core.helper.AuditHelper;
 
 
 /**
@@ -124,12 +125,9 @@ public class BatchConfiguration {
 	}
 
 	@Bean
-	public CredentialRequestService getCredentialRequestService() {
-		return new CredentialRequestServiceImpl();
-	}
-
-	@Bean
 	public RestUtil getRestUtil() {
 		return new RestUtil();
 	}
+	
+
 }

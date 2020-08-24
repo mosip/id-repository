@@ -1,6 +1,7 @@
 package io.mosip.idrepository.core.dto;
 
 import java.util.List;
+import java.util.Map;
 
 import lombok.Data;
 
@@ -17,5 +18,6 @@ public class CredentialIssueRequestDto {
 	private boolean encrypt;
 	private String encryptionKey;
     private List<String> sharableAttributes;
+    private Map<String,Object> additionalData;
 	
 }
