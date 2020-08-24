@@ -17,8 +17,8 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.web.context.WebApplicationContext;
 
-import io.mosip.idrepository.bioextractor.dto.BioExtractRequestDTO;
 import io.mosip.idrepository.bioextractor.validator.BiometricExtractionRequestValidator;
+import io.mosip.idrepository.core.dto.BioExtractRequestDTO;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.util.CryptoUtil;

@@ -13,11 +13,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.mosip.idrepository.bioextractor.api.BiometricExtractionService;
-import io.mosip.idrepository.bioextractor.dto.BioExtractRequestDTO;
-import io.mosip.idrepository.bioextractor.dto.BioExtractResponseDTO;
 import io.mosip.idrepository.bioextractor.exception.BiometricExtractionException;
 import io.mosip.idrepository.bioextractor.util.DataValidationUtil;
 import io.mosip.idrepository.bioextractor.validator.BiometricExtractionRequestValidator;
+import io.mosip.idrepository.core.dto.BioExtractRequestDTO;
+import io.mosip.idrepository.core.dto.BioExtractResponseDTO;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import springfox.documentation.annotations.ApiIgnore;

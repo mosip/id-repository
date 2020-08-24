@@ -49,6 +49,7 @@ import io.mosip.idrepository.core.constant.EventType;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
+import io.mosip.idrepository.core.dto.BioExtractRequestDTO;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.EventDTO;
 import io.mosip.idrepository.core.dto.EventsDTO;
@@ -505,7 +506,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 					String fileName = BIOMETRICS + SLASH + bio.getBioFileId();
 					byte[] data = null;
 					if (!extractionFormats.isEmpty()) {
-						extractTemplates(uinObject.getUinHash(), fileName, extractionFormats);
+						data = extractTemplates(uinObject.getUinHash(), fileName, extractionFormats);
 					} else {
 						data = securityManager
 								.decrypt(IOUtils.toByteArray(fsAdapter.getFile(uinObject.getUinHash(), fileName)));
@@ -553,9 +554,12 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 					throw new IdRepoAppUncheckedException(UNKNOWN_ERROR, e);
 				}
 			}).peek(System.out::println).collect(Collectors.toList());
+			extractedTemplates.remove(null);
 			List<BIRType> birTypeList = new ArrayList<>();
-			for (byte[] template : extractedTemplates) {
-				birTypeList.addAll(cbeffUtil.getBIRDataFromXML(template));
+			if (!extractedTemplates.isEmpty()) {
+				for (byte[] template : extractedTemplates) {
+					birTypeList.addAll(cbeffUtil.getBIRDataFromXML(template));
+				}
 			}
 			return cbeffUtil.createXML(cbeffUtil.convertBIRTypeToBIR(birTypeList));
 		} catch (InterruptedException e) {
@@ -572,20 +576,27 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	private byte[] extractTemplate(String uinHash, String fileName, String extractionFormat) throws IdRepoAppException {
 		try {
-			fileName = fileName.split(".")[0] + DOT + extractionFormat;
-			if (fsAdapter.checkFileExistence(uinHash, fileName)) {
+			String extractionFileName = fileName.split(".")[0] + DOT + extractionFormat;
+			if (fsAdapter.checkFileExistence(uinHash, extractionFileName)) {
 				return securityManager.decrypt(IOUtils.toByteArray(fsAdapter.getFile(uinHash, fileName)));
 			}
-			// RequestWrapper<BioExtractRequestDTO> bioExtractReqDTO = new
-			// RequestWrapper<>();
-			RestRequestDTO request = restBuilder.buildRequest(RestServicesConstants.BIO_EXTRACTOR_SERVICE, null,
-					ResponseWrapper.class);
-			request.setUri(request.getUri().replace("{extractionFormat}", extractionFormat));
-			ResponseWrapper<Map<String, String>> response = restHelper.requestSync(request);
-			byte[] extractedBiometrics = CryptoUtil.decodeBase64(response.getResponse().get("extractedBiometrics"));
-			fsAdapter.storeFile(uinHash, fileName,
-					new ByteArrayInputStream(securityManager.encrypt(extractedBiometrics)));
-			return extractedBiometrics;
+			if (fsAdapter.checkFileExistence(uinHash, fileName)) {
+				RequestWrapper<BioExtractRequestDTO> request = new RequestWrapper<>();
+				BioExtractRequestDTO bioExtractReq = new BioExtractRequestDTO();
+				bioExtractReq.setBiometrics(CryptoUtil.encodeBase64(
+						securityManager.decrypt(IOUtils.toByteArray(fsAdapter.getFile(uinHash, fileName)))));
+				request.setRequest(bioExtractReq);
+				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.BIO_EXTRACTOR_SERVICE, null,
+						ResponseWrapper.class);
+				restRequest.setUri(restRequest.getUri().replace("{extractionFormat}", extractionFormat));
+				ResponseWrapper<Map<String, String>> response = restHelper.requestSync(restRequest);
+				byte[] extractedBiometrics = CryptoUtil.decodeBase64(response.getResponse().get("extractedBiometrics"));
+				fsAdapter.storeFile(uinHash, fileName,
+						new ByteArrayInputStream(securityManager.encrypt(extractedBiometrics)));
+				return extractedBiometrics;
+			} else {
+				return null;
+			}
 		} catch (IdRepoDataValidationException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);

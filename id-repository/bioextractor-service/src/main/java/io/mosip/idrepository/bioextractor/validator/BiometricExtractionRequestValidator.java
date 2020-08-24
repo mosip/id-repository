@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
-import io.mosip.idrepository.bioextractor.dto.BioExtractRequestDTO;
 import io.mosip.idrepository.bioextractor.exception.BiometricExtractionExceptionHandler;
 import io.mosip.idrepository.bioextractor.logger.BioExtractorLogger;
+import io.mosip.idrepository.core.dto.BioExtractRequestDTO;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
