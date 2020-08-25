@@ -505,7 +505,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				try {
 					String fileName = BIOMETRICS + SLASH + bio.getBioFileId();
 					byte[] data = null;
-					if (!extractionFormats.isEmpty()) {
+					if (Objects.nonNull(extractionFormats) && !extractionFormats.isEmpty()) {
 						data = extractTemplates(uinObject.getUinHash(), fileName, extractionFormats);
 					} else {
 						data = securityManager
@@ -551,7 +551,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				} catch (InterruptedException | ExecutionException e) {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
 							e.getMessage());
-					throw new IdRepoAppUncheckedException(UNKNOWN_ERROR, e);
+					throw new IdRepoAppUncheckedException(BIO_EXTRACTION_ERROR, e);
 				}
 			}).peek(System.out::println).collect(Collectors.toList());
 			extractedTemplates.remove(null);
@@ -562,15 +562,12 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				}
 			}
 			return cbeffUtil.createXML(cbeffUtil.convertBIRTypeToBIR(birTypeList));
-		} catch (InterruptedException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
-			throw new IdRepoAppException(UNKNOWN_ERROR, e);
 		} catch (IdRepoAppUncheckedException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
-			throw new IdRepoAppException(UNKNOWN_ERROR, e);
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
-			throw new IdRepoAppException(UNKNOWN_ERROR, e);
+			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
 		}
 	}
 

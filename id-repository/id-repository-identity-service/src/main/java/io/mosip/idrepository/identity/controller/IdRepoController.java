@@ -99,7 +99,7 @@ public class IdRepoController {
 	private static final String UPDATE_IDENTITY = "updateIdentity";
 
 	/** The Constant UIN. */
-	private static final String UIN = "uin";
+	private static final String UIN = "UIN";
 
 	/** The id. */
 	@Resource

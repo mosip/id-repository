@@ -1561,8 +1561,8 @@ public class IdRepoServiceTest {
 		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(uinObj);
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-		IdResponseDTO idResponseDTO = ReflectionTestUtils.invokeMethod(proxyService, "retrieveIdentityByRid", ridValue,
-				"demo");
+		IdResponseDTO idResponseDTO = ReflectionTestUtils.invokeMethod(proxyService, "retrieveIdentity", ridValue,
+				IdType.REG_ID, "demo", null);
 		assertEquals(identity, mapper.writeValueAsString(idResponseDTO.getResponse().getIdentity()));
 	}
 
@@ -1570,8 +1570,8 @@ public class IdRepoServiceTest {
 	public void testRetrieveIdentityByRid_Invalid() throws Throwable {
 		try {
 			Mockito.when(uinRepo.getUinHashByRid(Mockito.anyString())).thenReturn(null);
-			ReflectionTestUtils.invokeMethod(proxyService, "retrieveIdentityByRid", "27847657360002520190320095029",
-					"demo");
+			ReflectionTestUtils.invokeMethod(proxyService, "retrieveIdentity", "27847657360002520190320095029",
+					IdType.REG_ID, "demo", null);
 		} catch (UndeclaredThrowableException e) {
 			throw e.getCause();
 		}

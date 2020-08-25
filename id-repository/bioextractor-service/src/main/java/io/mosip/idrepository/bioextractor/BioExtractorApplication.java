@@ -3,11 +3,10 @@ package io.mosip.idrepository.bioextractor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.ComponentScan.Filter;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.client.RestTemplate;
-
-import io.mosip.kernel.auth.adapter.handler.AuthHandler;
 
 /**
  * Spring-boot class for Biometric Extractor Application.
@@ -16,9 +15,10 @@ import io.mosip.kernel.auth.adapter.handler.AuthHandler;
  */
 @SpringBootApplication()
 @Import(value = { RestTemplate.class })
-@ComponentScan(basePackages={ "io.mosip.*" })
+@ComponentScan(excludeFilters = @Filter(type = FilterType.REGEX, pattern = "io.mosip.idrepository.core.*"), basePackages = {
+		"io.mosip.*" })
 public class BioExtractorApplication {
-	
+
 	/**
 	 * The main method.
 	 *
@@ -28,6 +28,5 @@ public class BioExtractorApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(BioExtractorApplication.class, args);
 	}
-	
 
 }
