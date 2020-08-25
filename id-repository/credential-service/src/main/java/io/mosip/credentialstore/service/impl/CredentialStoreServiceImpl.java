@@ -280,18 +280,18 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 		LocalDateTime localdatetime = LocalDateTime
 				.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
-		eventModel.setPublished_on(DateUtils.toISOString(localdatetime));
+		eventModel.setPublishedOn(DateUtils.toISOString(localdatetime));
 		eventModel.setPublisher("CREDENTIAL_SERVICE");
 		eventModel.setTopic(issuer+"/"+CredentialConstants.CREDENTIAL_ISSUED);
 		Event event=new Event();
 		event.setData(additionalData);
 		event.setTimestamp(DateUtils.toISOString(localdatetime));
-		event.setData_share_uri(url);
+		event.setDataShareUri(url);
 		String eventId=utilities.generateId();
 		LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
 				"event id"+eventId);
 		event.setId(eventId);
-		event.setTransaction_id(id);
+		event.setTransactionId(id);
 		Type type=new Type();
 		type.setName(env.getProperty(CREDENTIAL_SERVICE_TYPE_NAME));
 		type.setNamespace(env.getProperty(CREDENTIAL_SERVICE_TYPE_NAMESPACE));

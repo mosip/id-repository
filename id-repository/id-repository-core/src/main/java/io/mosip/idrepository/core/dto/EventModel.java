@@ -7,6 +7,6 @@ public class EventModel {
 
 	private String publisher;
 	private String topic;
-	private String published_on;
+	private String publishedOn;
 	private Event event;
 }

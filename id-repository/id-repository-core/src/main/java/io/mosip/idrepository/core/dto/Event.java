@@ -10,13 +10,13 @@ public class Event {
 	private String id;
 	
 	//request id
-	private String transaction_id;
+	private String transactionId;
 	
 	private Type type;
 	
 	private String timestamp;
 	
-	private String data_share_uri;
+	private String dataShareUri;
 	
 	private Map<String,Object> data;
 	

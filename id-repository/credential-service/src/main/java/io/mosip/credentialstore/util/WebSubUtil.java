@@ -19,21 +19,19 @@ public class WebSubUtil {
 	   
 
 	/** The config server file storage URL. */
-	@Value("${config.server.file.storage.uri}")
+	@Value("${mosip.partnerhuburl}")
 	private String partnerhuburl;
 
 	
-	public void publishSuccess(String issuer,EventModel eventModel) {
+	public void publishSuccess(String issuer,EventModel eventModel) throws WebSubClientException{
 
-		try{
-			pb.registerTopic(issuer+"/"+CredentialConstants.CREDENTIAL_ISSUED, partnerhuburl);
+
+	   pb.registerTopic(issuer+"/"+CredentialConstants.CREDENTIAL_ISSUED, partnerhuburl);
 	
 		HttpHeaders httpHeaders=new HttpHeaders();
 		pb.publishUpdate(issuer+"/"+CredentialConstants.CREDENTIAL_ISSUED, eventModel, MediaType.APPLICATION_JSON_UTF8_VALUE, httpHeaders,  partnerhuburl); 
-		//pb.unregisterTopic(issuer+"/"+CredentialConstants.CREDENTIAL_ISSUED, partnerhuburl);}
-		}catch(WebSubClientException e) {
-			
-		}
+		pb.unregisterTopic(issuer+"/"+CredentialConstants.CREDENTIAL_ISSUED, partnerhuburl);
+		
 	}
 
 
