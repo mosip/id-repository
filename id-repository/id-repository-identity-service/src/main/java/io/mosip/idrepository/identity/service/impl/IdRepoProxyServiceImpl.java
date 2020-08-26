@@ -90,6 +90,10 @@ import io.mosip.kernel.fsadapter.hdfs.constant.HDFSAdapterErrorCode;
 @Service
 public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdResponseDTO> {
 
+	private static final String SALT = "SALT";
+
+	private static final String MODULO = "MODULO";
+
 	private static final String ID_HASH = "id_hash";
 
 	private static final String EXPIRY_TIMESTAMP = "expiry_timestamp";
@@ -286,6 +290,18 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		int modResult = (int) (Long.parseLong(uin) % moduloValue);
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
 		return modResult + SPLITTER + securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
+	}
+	
+	private Map<String, String> retrieveIdHashWithAttributes(String id) {
+		Map<String, String> hashWithAttributes = new HashMap<>();
+		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
+		int modResult = (int) (Long.parseLong(id) % moduloValue);
+		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
+		String hash =  modResult + SPLITTER + securityManager.hashwithSalt(id.getBytes(), hashSalt.getBytes());
+		hashWithAttributes.put(ID_HASH, hash);
+		hashWithAttributes.put(MODULO, String.valueOf(modResult));
+		hashWithAttributes.put(SALT, hashSalt);
+		return hashWithAttributes;
 	}
 
 	/**
@@ -691,6 +707,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp, Integer transactionLimit) {
 		Map<String, String> data = new HashMap<>();
+		data.putAll(retrieveIdHashWithAttributes(id));
 		data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
 		data.put(TRANSACTION_LIMIT, Optional.ofNullable(transactionLimit).map(String::valueOf).orElse(null));
 		return new CredentialIssueRequestDto(id, AUTH, partnerId, IDA, IdRepoSecurityManager.getUser(), false, null, null,data);
