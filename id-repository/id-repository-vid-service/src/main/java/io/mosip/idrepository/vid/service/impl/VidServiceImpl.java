@@ -94,6 +94,10 @@ import io.mosip.kernel.core.websub.spi.PublisherClient;
 @Transactional
 public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper<VidResponseDTO>, ResponseWrapper<List<VidInfoDTO>>> {
 
+	private static final String SALT = "SALT";
+
+	private static final String MODULO = "MODULO";
+	
 	private static final String ID_HASH = "id_hash";
 
 	private static final String EXPIRY_TIMESTAMP = "expiry_timestamp";
@@ -727,8 +731,8 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		List<CredentialIssueRequestDto> eventRequestsList = vids.stream()
 					.flatMap(vid -> {
 						LocalDateTime expiryTimestamp = status.equals(ACTIVATE_STATUS) ? vid.getExpiryDTimes() : vid.getUpdatedDTimes();
-						return partnerIds.stream().map(partnerId -> createCredReqDto(vid.getId(), 
-								expiryTimestamp,policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(), partnerId));
+						return partnerIds.stream().map(partnerId -> createCredReqDto(vid.getId(), partnerId,
+								expiryTimestamp,policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions()));
 					})
 					.collect(Collectors.toList());
 		
@@ -750,11 +754,24 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		
 	}
 	
-	private CredentialIssueRequestDto createCredReqDto(String id, LocalDateTime expiryTimestamp, Integer transactionLimit, String partnerId) {
+	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp, Integer transactionLimit) {
 		Map<String, String> data = new HashMap<>();
+		data.putAll(retrieveIdHashWithAttributes(id));
 		data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
 		data.put(TRANSACTION_LIMIT, Optional.ofNullable(transactionLimit).map(String::valueOf).orElse(null));
-		return new CredentialIssueRequestDto(id, AUTH, partnerId, IDA, IdRepoSecurityManager.getUser(), false, null, null, data);
+		return new CredentialIssueRequestDto(id, AUTH, partnerId, IDA, IdRepoSecurityManager.getUser(), false, null, null,data);
+	}
+	
+	private Map<String, String> retrieveIdHashWithAttributes(String id) {
+		Map<String, String> hashWithAttributes = new HashMap<>();
+		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
+		int modResult = (int) (Long.parseLong(id) % moduloValue);
+		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
+		String hash =  modResult + SPLITTER + securityManager.hashwithSalt(id.getBytes(), hashSalt.getBytes());
+		hashWithAttributes.put(ID_HASH, hash);
+		hashWithAttributes.put(MODULO, String.valueOf(modResult));
+		hashWithAttributes.put(SALT, hashSalt);
+		return hashWithAttributes;
 	}
 
 	private void sendEventsToIDA(String status, List<Vid> vids, List<String> partnerIds) {
