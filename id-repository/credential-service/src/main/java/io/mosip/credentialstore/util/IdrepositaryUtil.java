@@ -44,7 +44,7 @@ public class IdrepositaryUtil {
 		String queryParamName = "TYPE,ID_TYPE,FINGER_EXTRACTION_FORMAT,IRIS_EXTRACTION_FORMAT,FACE_EXTRACTION_FORMAT";
 		String queryParamValue = "all"+","+idType+","+fingerExtractionFormat+","+irisExtractionFormat +","+ faceExtractionFormat;
 
-			String responseString = restUtil.getApi(ApiName.IDREPOGETIDBYUIN, pathsegments, queryParamName,
+			String responseString = restUtil.getApi(ApiName.IDREPOGETIDBYID, pathsegments, queryParamName,
 					queryParamValue, String.class);
 			IdResponseDTO responseObject = mapper.readValue(responseString, IdResponseDTO.class);
 		if (responseObject == null) {

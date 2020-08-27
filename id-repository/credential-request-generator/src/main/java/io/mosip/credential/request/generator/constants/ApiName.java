@@ -7,6 +7,6 @@ package io.mosip.credential.request.generator.constants;
  */
 public enum ApiName {
 
-	CRDENTIALSERVICE, PARTNERMANAGEMENT;
+	CRDENTIALSERVICE;
 
 }

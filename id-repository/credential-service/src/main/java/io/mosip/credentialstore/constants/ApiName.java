@@ -8,7 +8,7 @@ package io.mosip.credentialstore.constants;
 public enum ApiName {
 
 	/** The idrepogetidbyuin. */
-	IDREPOGETIDBYUIN,
+	IDREPOGETIDBYID,
 	/** The createdatashare. */
 	CREATEDATASHARE,
 	
