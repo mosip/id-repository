@@ -29,7 +29,13 @@ public enum AuditEvents {
 	
 	REACTIVATE_VID("IDR-011", "System Event"),
 	
-	RETRIEVE_UIN_VID("IDR-012", "System Event"),;
+	RETRIEVE_UIN_VID("IDR-012", "System Event"),
+	
+	CREATING_CREDENTIAL_REQUEST("IDR-013", "System Event"),
+	
+	CANCEL_CREDENTIAL_REQUEST("IDR-014", "System Event"),
+	
+	CREATE_CREDENTIAL("IDR-015", "System Event");
 	
 	
 

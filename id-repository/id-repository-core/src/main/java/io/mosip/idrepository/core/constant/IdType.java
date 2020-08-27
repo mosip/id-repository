@@ -14,7 +14,9 @@ public enum IdType {
 	VID("VID"),
 	
 	/** The uin. */
-	UIN("UIN");
+	UIN("UIN"),
+	
+	ID("ID");
 	
 	/** The id Type. */
 	private final String idType;
