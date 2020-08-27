@@ -10,6 +10,6 @@ find $search_directory/*/ -type f -name "pom.xml" | while read -r F
 do
     xmllint xmllint --nowarning --xpath '/*[local-name()="project"]/*[local-name()="version"]' $F | grep $version
     if [ $? -eq 0 ] ; then
-        cd id-repository && mvn deploy -DskipTests -s $settings_file -f $F
+        mvn deploy -DskipTests -s $settings_file -f $F
     fi
 done
