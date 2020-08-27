@@ -14,8 +14,7 @@ import javax.persistence.Table;
  * The Class CredentialEntity.
  */
 @Entity
-@Table(name = "credential")
-// TODO need to specify schema later schema = "credentials",
+@Table(name = "credential_transaction")
 public class CredentialEntity {
 
 	/** The request id. */
@@ -40,8 +39,8 @@ public class CredentialEntity {
 	@Column(name = "datashareurl")
 	private String dataShareUrl;
 	
-	@Column(name = "issuance_date")
-	private String issuanceDate;
+	@Column(name = "issuancedate")
+	private LocalDateTime issuanceDate;
 	
 	
 	@Column(name = "signature")
@@ -274,11 +273,13 @@ public class CredentialEntity {
 		this.dataShareUrl = dataShareUrl;
 	}
 
-	public String getIssuanceDate() {
+
+
+	public LocalDateTime getIssuanceDate() {
 		return issuanceDate;
 	}
 
-	public void setIssuanceDate(String issuanceDate) {
+	public void setIssuanceDate(LocalDateTime issuanceDate) {
 		this.issuanceDate = issuanceDate;
 	}
 

@@ -2,18 +2,19 @@ package io.mosip.credentialstore.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
 import org.springframework.context.annotation.PropertySource;
+
 
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.provider.impl.CredentialDefaultProvider;
 import io.mosip.credentialstore.provider.impl.IdAuthProvider;
-import io.mosip.credentialstore.repositary.UinHashSaltRepo;
-import io.mosip.credentialstore.util.CredentialFormatterMapperUtil;
+import io.mosip.credentialstore.provider.impl.QrCodeProvider;
+
+
 import io.mosip.credentialstore.util.RestUtil;
 import io.mosip.idrepository.core.helper.AuditHelper;
-import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
-import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+
 
 
 /**
@@ -47,7 +48,16 @@ public class CredentialStoreBeanConfig {
 
 		return new CredentialDefaultProvider();
 	}
+	/**
+	 * Gets the qrCode provider.
+	 *
+	 * @return the default provider
+	 */
+	@Bean("qrcode")
+	public CredentialProvider getQrCodeProvider() {
 
+		return new QrCodeProvider();
+	}
 	
 
 	@Bean
@@ -55,10 +65,6 @@ public class CredentialStoreBeanConfig {
 		return new RestUtil();
 	}
 
-	@Bean
-	public CredentialFormatterMapperUtil getCredentialFormatterMapperUtil() {
-		return new CredentialFormatterMapperUtil();
-	}
 
 	@Bean
 	public AuditHelper getAuditHelper() {

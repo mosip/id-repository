@@ -2,6 +2,7 @@ package io.mosip.credential.request.generator.service.impl;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +37,8 @@ import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.exception.ServiceError;
+import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 
@@ -92,11 +95,11 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 	 * CredentialIssueRequestDto)
 	 */
 	@Override
-	public CredentialIssueResponseDto createCredentialIssuance(CredentialIssueRequestDto credentialIssueRequestDto) {
+	public ResponseWrapper<CredentialIssueResponse> createCredentialIssuance(CredentialIssueRequestDto credentialIssueRequestDto) {
 		LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL,
 				"started creating credential");
-		List<ErrorDTO> errorList = new ArrayList<>();
-		CredentialIssueResponseDto credentialIssueResponseDto = new CredentialIssueResponseDto();
+		List<ServiceError> errorList = new ArrayList<>();
+		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = new ResponseWrapper<CredentialIssueResponse>();
 
 		CredentialIssueResponse credentialIssueResponse = null;
 		try{
@@ -118,38 +121,42 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 				"ended creating credential");
 	    }catch(DataAccessLayerException e) {
 	    	auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID, e);
-			ErrorDTO error = new ErrorDTO();
+			ServiceError error = new ServiceError();
 			error.setErrorCode(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorMessage());
 			errorList.add(error);
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL, ExceptionUtils.getStackTrace(e));
 		} catch (Exception e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID, e);
-			ErrorDTO error = new ErrorDTO();
+			ServiceError error = new ServiceError();
 			error.setErrorCode(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
 			errorList.add(error);
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL, ExceptionUtils.getStackTrace(e));
 		} finally {
-			credentialIssueResponseDto.setId(CREDENTIAL_REQUEST_SERVICE_ID);
-			credentialIssueResponseDto
-					.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
-			credentialIssueResponseDto.setVersion(env.getProperty(CREDENTIAL_REQUEST_SERVICE_VERSION));
+			credentialIssueResponseWrapper.setId(CREDENTIAL_REQUEST_SERVICE_ID);
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			LocalDateTime localdatetime = LocalDateTime
+					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+
+			credentialIssueResponseWrapper
+					.setResponsetime(localdatetime);
+			credentialIssueResponseWrapper.setVersion(env.getProperty(CREDENTIAL_REQUEST_SERVICE_VERSION));
 			if (!errorList.isEmpty()) {
-				credentialIssueResponseDto.setErrors(errorList);
+				credentialIssueResponseWrapper.setErrors(errorList);
 			} else {
-				credentialIssueResponseDto.setResponse(credentialIssueResponse);
+				credentialIssueResponseWrapper.setResponse(credentialIssueResponse);
 			}
 			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID,"create credential request requested");
 		}
-		return credentialIssueResponseDto;
+		return credentialIssueResponseWrapper;
 	}
 
 	
 	@Override
-	public CredentialIssueResponseDto cancelCredentialRequest(String requestId) {
-		List<ErrorDTO> errorList = new ArrayList<>();
-		CredentialIssueResponseDto credentialIssueResponseDto = new CredentialIssueResponseDto();
+	public ResponseWrapper<CredentialIssueResponse> cancelCredentialRequest(String requestId) {
+		List<ServiceError> errorList = new ArrayList<>();
+		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = new ResponseWrapper<CredentialIssueResponse>();
 
 		CredentialIssueResponse credentialIssueResponse = null;
 		try {
@@ -168,30 +175,34 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			}
 		} catch (DataAccessLayerException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CANCEL_CREDENTIAL_REQUEST, requestId, IdType.ID,e);
-			ErrorDTO error = new ErrorDTO();
+			ServiceError error = new ServiceError();
 			error.setErrorCode(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorMessage());
 			errorList.add(error);
 
 		} catch (Exception e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CANCEL_CREDENTIAL_REQUEST, requestId, IdType.ID,e);
-			ErrorDTO error = new ErrorDTO();
+			ServiceError error = new ServiceError();
 			error.setErrorCode(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
 			errorList.add(error);
 		} finally {
-			credentialIssueResponseDto.setId(CREDENTIAL_REQUEST_SERVICE_ID);
-			credentialIssueResponseDto
-					.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
-			credentialIssueResponseDto.setVersion(env.getProperty(CREDENTIAL_REQUEST_SERVICE_VERSION));
+			credentialIssueResponseWrapper.setId(CREDENTIAL_REQUEST_SERVICE_ID);
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			LocalDateTime localdatetime = LocalDateTime
+					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+
+			credentialIssueResponseWrapper
+					.setResponsetime(localdatetime);
+			credentialIssueResponseWrapper.setVersion(env.getProperty(CREDENTIAL_REQUEST_SERVICE_VERSION));
 			if (!errorList.isEmpty()) {
-				credentialIssueResponseDto.setErrors(errorList);
+				credentialIssueResponseWrapper.setErrors(errorList);
 			} else {
-				credentialIssueResponseDto.setResponse(credentialIssueResponse);
+				credentialIssueResponseWrapper.setResponse(credentialIssueResponse);
 			}
 			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CANCEL_CREDENTIAL_REQUEST, requestId, IdType.ID,"Cancel the request");
 		}
-		return credentialIssueResponseDto;
+		return credentialIssueResponseWrapper;
 	}
 	;
 }

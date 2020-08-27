@@ -15,7 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.mosip.credential.request.generator.service.CredentialRequestService;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
+import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
+import io.mosip.kernel.core.http.RequestWrapper;
+import io.mosip.kernel.core.http.ResponseWrapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -47,11 +50,11 @@ public class CredentialRequestGeneratorController {
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Get request id successfully"),
 			@ApiResponse(code = 400, message = "Unable to get request id") })
 	public ResponseEntity<Object> credentialIssue(
-			@RequestBody(required = true) CredentialIssueRequestDto credentialIssueRequestDto) {
+			@RequestBody  RequestWrapper<CredentialIssueRequestDto>  credentialIssueRequestDto) {
 
-		CredentialIssueResponseDto credentialIssueResponseDto = credentialRequestService
-				.createCredentialIssuance(credentialIssueRequestDto);
-		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseDto);
+		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = credentialRequestService
+				.createCredentialIssuance(credentialIssueRequestDto.getRequest());
+		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseWrapper);
 	}
 	
 	@GetMapping(path = "/cancel/{requestId}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -62,9 +65,9 @@ public class CredentialRequestGeneratorController {
 	@ResponseBody
 	public ResponseEntity<Object> cancelCredentialRequest(@PathVariable("requestId") String requestId) {
 
-		CredentialIssueResponseDto credentialIssueResponseDto = credentialRequestService
+		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = credentialRequestService
 				.cancelCredentialRequest(requestId);
-		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseDto);
+		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseWrapper);
 	}
 
 }

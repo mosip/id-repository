@@ -3,6 +3,9 @@ package io.mosip.credentialstore.provider.impl;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,24 +13,28 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
+
 
 import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.dto.DataProviderResponse;
+import io.mosip.credentialstore.dto.EncryptZkResponseDto;
 import io.mosip.credentialstore.dto.PolicyDetailResponseDto;
 import io.mosip.credentialstore.dto.ShareableAttribute;
-import io.mosip.credentialstore.entity.UinHashSalt;
+import io.mosip.credentialstore.dto.ZkDataAttribute;
+import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
+import io.mosip.credentialstore.exception.DataEncryptionFailureException;
 import io.mosip.credentialstore.provider.CredentialProvider;
-import io.mosip.credentialstore.repositary.UinHashSaltRepo;
+import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.JsonUtil;
 import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
-import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.DateUtils;
 
 
 
+
+// TODO: Auto-generated Javadoc
 /**
  * The Class IdAuthProvider.
  * 
@@ -37,76 +44,116 @@ import io.mosip.kernel.core.util.HMACUtils;
 public class IdAuthProvider implements CredentialProvider {
 	
 	
+	/** The utilities. */
 	@Autowired
-    Utilities utilities;
+    Utilities utilities;	
 	
-	
-	@Autowired
-	private UinHashSaltRepo<UinHashSalt, Integer> uinHashSaltRepo;
-	
-	
+	/** The env. */
 	@Autowired
 	Environment env;
 
 	
+	/** The Constant MODULO_VALUE. */
 	public static final String MODULO_VALUE = "mosip.credential.service.modulo-value";
 	
+	/** The Constant DEMO_ENCRYPTED_RANDOM_KEY. */
+	public static final String DEMO_ENCRYPTED_RANDOM_KEY = "demoEncryptedRandomKey";
+	
+	/** The Constant DEMO_ENCRYPTED_RANDOM_INDEX. */
+	public static final String DEMO_ENCRYPTED_RANDOM_INDEX = "demoRankomKeyIndex";
+	
+	/** The Constant BIO_ENCRYPTED_RANDOM_KEY. */
+	public static final String BIO_ENCRYPTED_RANDOM_KEY = "bioEncryptedRandomKey";
+	
+	/** The Constant BIO_ENCRYPTED_RANDOM_INDEX. */
+	public static final String BIO_ENCRYPTED_RANDOM_INDEX = "bioRankomKeyIndex";
+	
+	/** The Constant DATETIME_PATTERN. */
+	public static final String DATETIME_PATTERN = "mosip.credential.service.datetime.pattern";
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see io.mosip.credentialstore.provider.CredentialProvider#
-	 * getFormattedCredentialData(io.mosip.credentialstore.dto.
-	 * PolicyDetailResponseDto,
-	 * io.mosip.credentialstore.dto.CredentialServiceRequestDto, java.util.Map)
+	/** The encryption util. */
+	@Autowired
+	EncryptionUtil encryptionUtil;
+
+	/* (non-Javadoc)
+	 * @see io.mosip.credentialstore.provider.CredentialProvider#getFormattedCredentialData(java.util.Map, io.mosip.idrepository.core.dto.CredentialServiceRequestDto, java.util.Map)
 	 */
 	@Override
-	public DataProviderResponse getFormattedCredentialData(PolicyDetailResponseDto policyDetailResponseDto,
+	public DataProviderResponse getFormattedCredentialData(	Map<String,Boolean> encryptMap,
 			CredentialServiceRequestDto credentialServiceRequestDto, Map<String, Object> sharableAttributeMap)
 			throws CredentialFormatterException {
-
+		DataProviderResponse dataProviderResponse=new DataProviderResponse();
 		try {
-			List<ShareableAttribute> shareableAttributes = policyDetailResponseDto.getPolicies()
-					.getShareableAttributes();
-		Map<String, Object> formattedMap=new HashMap<>();
-		for (ShareableAttribute attribute : shareableAttributes) {
-				Object value = sharableAttributeMap.get(attribute.getAttributeName());
-				if (attribute.isEncrypted()) {
-					// TODO use zero knowledge encryption to encrypt the value then put in map
-					if(attribute.getAttributeName().equalsIgnoreCase(CredentialConstants.FACE) ||attribute.getAttributeName().equalsIgnoreCase(CredentialConstants.IRIS) ||attribute.getAttributeName().equalsIgnoreCase(CredentialConstants.FINGER)) {
-					     //Call bio zero knowledge encryption
+			
+			List<ZkDataAttribute> bioZkDataAttributes=new ArrayList<>();
+			
+			List<ZkDataAttribute> demoZkDataAttributes=new ArrayList<>();
+            Map<String, Object> formattedMap=new HashMap<>();
+             
+		 for (Map.Entry<String,Object> entry : sharableAttributeMap.entrySet()) {
+			    String key=entry.getKey();
+				Object value = entry.getValue();
+				if (encryptMap.get(key)) {
+					ZkDataAttribute zkDataAttribute=new ZkDataAttribute();
+					zkDataAttribute.setIdentifier(key);
+					zkDataAttribute.setValue(value.toString());
+					if(key.equalsIgnoreCase(CredentialConstants.FACE) ||key.equalsIgnoreCase(CredentialConstants.IRIS) ||key.equalsIgnoreCase(CredentialConstants.FINGER)) {
+						bioZkDataAttributes.add(zkDataAttribute);
 					}else {
-						//Call demo zero knowledge encryption
+                      demoZkDataAttributes.add(zkDataAttribute);
 					}
-						formattedMap.put(attribute.getAttributeName(), value);
+						
 				} else {
-					formattedMap.put(attribute.getAttributeName(), value);
+					formattedMap.put(key, value);
 				}
+				
 
 		}
-			String data = JsonUtil.objectMapperObjectToJson(formattedMap);
-			DataProviderResponse dataProviderResponse=new DataProviderResponse();
+		    EncryptZkResponseDto demoEncryptZkResponseDto=  encryptionUtil.encryptDataWithZK(credentialServiceRequestDto.getId(), demoZkDataAttributes);
+		    EncryptZkResponseDto bioEncryptZkResponseDto=  encryptionUtil.encryptDataWithZK(credentialServiceRequestDto.getId(), bioZkDataAttributes);
+			Map<String,Object> additionalData=credentialServiceRequestDto.getAdditionalData();
+		    addToFormatter(demoEncryptZkResponseDto,formattedMap);
+		    addToFormatter(bioEncryptZkResponseDto,formattedMap);
+		    String credentialId = utilities.generateId();
+		    additionalData.put(DEMO_ENCRYPTED_RANDOM_KEY, demoEncryptZkResponseDto.getEncryptedRandomKey());
+		    additionalData.put(DEMO_ENCRYPTED_RANDOM_INDEX, demoEncryptZkResponseDto.getRankomKeyIndex());
+		    additionalData.put(BIO_ENCRYPTED_RANDOM_KEY, demoEncryptZkResponseDto.getEncryptedRandomKey());
+		    additionalData.put(BIO_ENCRYPTED_RANDOM_INDEX, demoEncryptZkResponseDto.getRankomKeyIndex());
+		    additionalData.put("CREDENTIALID", credentialId);
+		    credentialServiceRequestDto.setAdditionalData(additionalData);
+		    String data = JsonUtil.objectMapperObjectToJson(formattedMap);
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			LocalDateTime localdatetime = LocalDateTime
+					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+			dataProviderResponse.setIssuanceDate(localdatetime);
 			dataProviderResponse.setFormattedData(data.getBytes());
-			String credentialId = utilities.generateId();
-			Map<String,Object> map=retrieveUinHash(credentialServiceRequestDto);
-			credentialServiceRequestDto.getAdditionalData().putAll(map);
 			dataProviderResponse.setCredentialId(credentialId);
 			return dataProviderResponse;
 		} catch (IOException e) {
 			throw new CredentialFormatterException(e);
+		} catch (DataEncryptionFailureException e) {
+			throw new CredentialFormatterException(e);
+		} catch (ApiNotAccessibleException e) {
+			throw new CredentialFormatterException(e);
+		}
+		
+
+
+	}
+	
+	/**
+	 * Adds the to formatter.
+	 *
+	 * @param demoEncryptZkResponseDto the demo encrypt zk response dto
+	 * @param formattedMap the formatted map
+	 */
+	private void addToFormatter(EncryptZkResponseDto demoEncryptZkResponseDto, Map<String, Object> formattedMap) {
+		List<ZkDataAttribute> zkDataAttributes= demoEncryptZkResponseDto.getZkDataAttributes();
+		for(ZkDataAttribute attribute:zkDataAttributes) {
+			formattedMap.put(attribute.getIdentifier(), attribute.getValue());
 		}
 
+		
+	}
 
-	}
-	public  Map<String,Object>  retrieveUinHash(CredentialServiceRequestDto credentialServiceRequestDto) {
-		Map<String,Object> additionalMap=credentialServiceRequestDto.getAdditionalData();
-		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
-		int modResult = (int) (Long.parseLong(credentialServiceRequestDto.getId()) % moduloValue);
-		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
-		String saltedIdHash= modResult + SPLITTER + HMACUtils.digestAsPlainTextWithSalt(credentialServiceRequestDto.getId().getBytes(), hashSalt.getBytes());
-		additionalMap.put("SaltedIdHash", saltedIdHash);
-		additionalMap.put("module", moduloValue);
-		additionalMap.put("moduleSalt", hashSalt);
-		return additionalMap;
-	}
 }

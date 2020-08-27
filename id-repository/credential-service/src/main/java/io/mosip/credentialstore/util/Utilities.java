@@ -8,20 +8,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 
 import io.mosip.credentialstore.dto.Issuer;
 import io.mosip.credentialstore.dto.Type;
-import io.mosip.credentialstore.entity.UinHashSalt;
-import io.mosip.credentialstore.repositary.UinHashSaltRepo;
-import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
-import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 
 @Component
 public class Utilities {
@@ -71,5 +67,8 @@ public class Utilities {
 		return UUID.randomUUID().toString();
 	}
 	
+	public String generatePin() {
+	return  RandomStringUtils.randomAlphabetic(5);
+	}
 
 }

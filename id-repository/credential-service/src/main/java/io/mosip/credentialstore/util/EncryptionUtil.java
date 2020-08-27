@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.credentialstore.constants.ApiName;
 import io.mosip.credentialstore.dto.CryptoWithPinRequestDto;
 import io.mosip.credentialstore.dto.CryptoWithPinResponseDto;
+import io.mosip.credentialstore.dto.CryptoZkResponseDto;
+import io.mosip.credentialstore.dto.EncryptZkRequestDto;
+import io.mosip.credentialstore.dto.EncryptZkResponseDto;
 import io.mosip.credentialstore.dto.PolicyDetailResponseDto;
+import io.mosip.credentialstore.dto.ZkDataAttribute;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.DataEncryptionFailureException;
 import io.mosip.credentialstore.service.impl.CredentialStoreServiceImpl;
@@ -120,5 +125,62 @@ public class EncryptionUtil {
 		return encryptedData;
     	
     }
+	public EncryptZkResponseDto encryptDataWithZK(String id, List<ZkDataAttribute> zkDataAttributes) throws DataEncryptionFailureException, ApiNotAccessibleException {
+		LOGGER.debug(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
+				"started encrypting data");
 
+		EncryptZkResponseDto encryptedData = null;
+		try {
+		
+			EncryptZkRequestDto encryptZkRequestDto = new EncryptZkRequestDto();
+			RequestWrapper<EncryptZkRequestDto> request = new RequestWrapper<>();
+			encryptZkRequestDto.setZkDataAttributes(zkDataAttributes);
+			encryptZkRequestDto.setId(id);
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			LocalDateTime localdatetime = LocalDateTime
+					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+			request.setRequesttime(localdatetime);
+
+			request.setRequest(encryptZkRequestDto);
+		
+			String response= restUtil.postApi(ApiName.KEYMANAGER_ENCRYPT_ZK, null, "", "",
+					MediaType.APPLICATION_JSON, request, String.class);
+
+			CryptoZkResponseDto responseObject= mapper.readValue(response,
+					CryptoZkResponseDto.class);
+
+			if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
+				ServiceError error = responseObject.getErrors().get(0);
+				throw new DataEncryptionFailureException(error.getMessage());
+			}
+			encryptedData = responseObject.getResponse();
+			LOGGER.info(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
+					"Encryption done successfully");
+			LOGGER.debug(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA, "EncryptionUtil::encryptData()::exit");
+		} catch (IOException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
+					"EncryptionUtil::encryptData():: error with error message" + ExceptionUtils.getStackTrace(e));
+			throw new DataEncryptionFailureException(IO_EXCEPTION, e);
+		} catch (DateTimeParseException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
+					"EncryptionUtil::encryptData():: error with error message" + ExceptionUtils.getStackTrace(e));
+			throw new DataEncryptionFailureException(DATE_TIME_EXCEPTION);
+		} catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
+					"EncryptionUtil::encryptData():: error with error message" + ExceptionUtils.getStackTrace(e));
+			if (e instanceof HttpClientErrorException) {
+				HttpClientErrorException httpClientException = (HttpClientErrorException) e;
+				throw new ApiNotAccessibleException(httpClientException.getResponseBodyAsString());
+			} else if (e instanceof HttpServerErrorException) {
+				HttpServerErrorException httpServerException = (HttpServerErrorException) e;
+				throw new ApiNotAccessibleException(httpServerException.getResponseBodyAsString());
+			} else {
+				throw new DataEncryptionFailureException(e);
+			}
+
+		}
+		return encryptedData;
+		
+	}
+	
 }

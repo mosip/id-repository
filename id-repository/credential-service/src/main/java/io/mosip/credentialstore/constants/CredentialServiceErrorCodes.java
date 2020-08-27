@@ -35,7 +35,9 @@ public enum CredentialServiceErrorCodes {
 	
 	SIGNATURE_EXCEPTION("IDR-CRS-012", "Failed to generate digital signature"),
 	
-	DATA_ENCRYPTION_FAILURE_EXCEPTION("IDR-CRS-013", "Data Encryption failed");
+	DATA_ENCRYPTION_FAILURE_EXCEPTION("IDR-CRS-013", "Data Encryption failed"),
+	
+	WEBSUB_FAIL_EXCEPTION("IDR-CRS-014", "Websub event failed");
 
 	/** The error code. */
 	private final String errorCode;

@@ -22,9 +22,11 @@ import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import io.mosip.credential.request.generator.service.impl.CredentialRequestServiceImpl;
 import io.mosip.credential.request.generator.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
+import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
+import io.mosip.kernel.core.http.ResponseWrapper;
 
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.context.WebApplicationContext;
@@ -80,7 +82,7 @@ public class CredentialRequestServiceImplTest {
 		credentialIssueRequestDto.setId("123");
 		credentialIssueRequestDto.setEncrypt(true);
 		Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenReturn(credentialIssueRequestDto.toString());
-		CredentialIssueResponseDto credentialIssueResponseDto=credentialRequestServiceImpl.createCredentialIssuance(credentialIssueRequestDto);
+		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto=credentialRequestServiceImpl.createCredentialIssuance(credentialIssueRequestDto);
 		assertEquals("123456", credentialIssueResponseDto.getResponse().getRequestId());
 	}
 	
@@ -92,7 +94,7 @@ public class CredentialRequestServiceImplTest {
 		credentialIssueRequestDto.setId("123");
 		credentialIssueRequestDto.setEncrypt(true);
 		Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenReturn(credentialIssueRequestDto.toString());
-		CredentialIssueResponseDto credentialIssueResponseDto=credentialRequestServiceImpl.createCredentialIssuance(credentialIssueRequestDto);
+		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto=credentialRequestServiceImpl.createCredentialIssuance(credentialIssueRequestDto);
 		assertNotNull(credentialIssueResponseDto.getErrors().get(0));
 	}
 	@Test
@@ -103,7 +105,7 @@ public class CredentialRequestServiceImplTest {
 		Mockito.when(credentialRepositary.update(Mockito.any())).thenReturn(credentialEntity);
 		Mockito.when(credentialRepositary.findById(Mockito.any())).thenReturn(entity);
 	
-		CredentialIssueResponseDto credentialIssueResponseDto=credentialRequestServiceImpl.cancelCredentialRequest("1234");
+		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto=credentialRequestServiceImpl.cancelCredentialRequest("1234");
 				assertEquals("1234", credentialIssueResponseDto.getResponse().getRequestId());
 	}
 	@Test
@@ -114,7 +116,7 @@ public class CredentialRequestServiceImplTest {
 		Mockito.when(credentialRepositary.update(Mockito.any())).thenThrow(new DataAccessLayerException("", "", new Throwable()));
 		Mockito.when(credentialRepositary.findById(Mockito.any())).thenReturn(entity);
 	
-		CredentialIssueResponseDto credentialIssueResponseDto=credentialRequestServiceImpl.cancelCredentialRequest("1234");
+		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto=credentialRequestServiceImpl.cancelCredentialRequest("1234");
 		assertNotNull(credentialIssueResponseDto.getErrors().get(0));
 	}
 }

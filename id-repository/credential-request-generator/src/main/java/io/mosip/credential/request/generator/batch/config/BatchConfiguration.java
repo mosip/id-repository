@@ -19,8 +19,10 @@ import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import io.mosip.credential.request.generator.entity.CredentialEntity;
@@ -29,6 +31,8 @@ import io.mosip.credential.request.generator.service.CredentialRequestService;
 import io.mosip.credential.request.generator.service.impl.CredentialRequestServiceImpl;
 import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.idrepository.core.helper.AuditHelper;
+import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
+import io.mosip.kernel.dataaccess.hibernate.repository.impl.HibernateRepositoryImpl;
 
 
 /**
@@ -38,6 +42,8 @@ import io.mosip.idrepository.core.helper.AuditHelper;
  */
 @Configuration
 @EnableBatchProcessing
+@Import({ HibernateDaoConfig.class })
+@EnableJpaRepositories(basePackages = "io.mosip.*", repositoryBaseClass = HibernateRepositoryImpl.class)
 public class BatchConfiguration {
 	
 

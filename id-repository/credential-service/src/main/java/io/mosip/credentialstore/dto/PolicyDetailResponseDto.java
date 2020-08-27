@@ -6,22 +6,41 @@ import lombok.Data;
 
 @Data
 public class PolicyDetailResponseDto {
-	private String id;
 	
-	private String name;
+	private String policyGroupId;
 	
+	private String policyGroupName;
 	
-	private String desc;
+	private String policyGroupDesc;
+	
+	private String policyGroupStatus;
+	
+	private String policyGroup_cr_by;
+	
+	private String policyGroup_cr_dtimes;
+
+	
+	private String policyGroup_up_by;
+	
+	private String policyGroup_upd_dtimes;
+	
+	private String policyId;
+	
+	private String policyName;
+	
+	private String policyDesc;
 	
 	private String publishDate;
 	
-	private String status;
+	private String validTill;
 	
 	private String version;
 	
+	private String status;
+	
 	private String schema;
 	
-	private int is_Active;
+	private boolean is_Active;
 	
 	private String cr_by;
 	
@@ -31,6 +50,8 @@ public class PolicyDetailResponseDto {
 	
 	private String upd_dtimes;
 	
+	private String authTokenType;
+
 
 	private Policies policies;
 }

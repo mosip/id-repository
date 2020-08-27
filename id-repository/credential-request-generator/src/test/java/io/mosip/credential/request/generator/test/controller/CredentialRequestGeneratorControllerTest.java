@@ -28,7 +28,9 @@ import io.mosip.credential.request.generator.service.CredentialRequestService;
 import io.mosip.credential.request.generator.test.TestBootApplication;
 import io.mosip.credential.request.generator.test.config.TestConfig;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
+import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
+import io.mosip.kernel.core.http.ResponseWrapper;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestConfig.class)
@@ -48,7 +50,7 @@ public class CredentialRequestGeneratorControllerTest {
 	
 	String reqJson;
 
-	CredentialIssueResponseDto credentialIssueResponseDto;
+	ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper;
 
 
 
@@ -56,7 +58,7 @@ public class CredentialRequestGeneratorControllerTest {
 	@Before
 	public void setup() throws Exception {
 
-		credentialIssueResponseDto = new CredentialIssueResponseDto();
+		credentialIssueResponseWrapper = new ResponseWrapper<CredentialIssueResponse>();
 		MockitoAnnotations.initMocks(this);
 		this.mockMvc = MockMvcBuilders.standaloneSetup(credentialRequestGeneratorController).build();
 		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
@@ -70,7 +72,7 @@ public class CredentialRequestGeneratorControllerTest {
 
 
 		Mockito.when(credentialRequestService.createCredentialIssuance(Mockito.any()))
-				.thenReturn(credentialIssueResponseDto);
+				.thenReturn(credentialIssueResponseWrapper);
 
 		mockMvc.perform(
 				MockMvcRequestBuilders.post("/requestgenerator")
@@ -84,7 +86,7 @@ public class CredentialRequestGeneratorControllerTest {
 	public void testCancelRequestSuccess() throws Exception {
 
 		Mockito.when(credentialRequestService.cancelCredentialRequest(Mockito.any()))
-				.thenReturn(credentialIssueResponseDto);
+				.thenReturn(credentialIssueResponseWrapper);
 
 		mockMvc.perform(MockMvcRequestBuilders.get("/cancel/requestId").contentType(MediaType.APPLICATION_JSON_VALUE))
 				.andExpect(status().isOk());

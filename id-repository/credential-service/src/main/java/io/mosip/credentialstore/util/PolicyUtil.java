@@ -16,15 +16,15 @@ public class PolicyUtil {
 
 	public PolicyDetailResponseDto getPolicyDetail(String policyId, String issuer) {
 
-		// partner id issuer
+
 		// TODO call REST api of policy manager
 		// PolicyResponse contains errors and PolicyDetailResponseDto
 		// Now its Mocked to give PolicyDetailResponseDto
 		PolicyDetailResponseDto policyDetailResponseDto = new PolicyDetailResponseDto();
-		policyDetailResponseDto.setId("45678451034176");
+		policyDetailResponseDto.setPolicyId("45678451034176");
 		policyDetailResponseDto.setVersion("1.1");
-		policyDetailResponseDto.setName("Digital QR Code Policy");
-		policyDetailResponseDto.setDesc("");
+		policyDetailResponseDto.setPolicyName("Digital QR Code Policy");
+		policyDetailResponseDto.setPolicyDesc("");
 		DataSharePolicies dataSharePolicies = new DataSharePolicies();
 		dataSharePolicies.setEncryptionType("partnerBased");
 		dataSharePolicies.setShareDomain("mosip.io");

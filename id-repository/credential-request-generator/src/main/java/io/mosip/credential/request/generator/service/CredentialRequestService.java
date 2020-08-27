@@ -3,7 +3,9 @@ package io.mosip.credential.request.generator.service;
 import org.springframework.stereotype.Service;
 
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
+import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
+import io.mosip.kernel.core.http.ResponseWrapper;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -20,7 +22,7 @@ public interface CredentialRequestService {
 	 * @param credentialIssueRequestDto the credential issue request dto
 	 * @return the credential issue response
 	 */
-	public CredentialIssueResponseDto createCredentialIssuance(CredentialIssueRequestDto credentialIssueRequestDto);
+	public ResponseWrapper<CredentialIssueResponse> createCredentialIssuance(CredentialIssueRequestDto credentialIssueRequestDto);
 
 	/**
 	 * Cancel credential request.
@@ -28,6 +30,6 @@ public interface CredentialRequestService {
 	 * @param requestId the request id
 	 * @return the credential issue response dto
 	 */
-	public CredentialIssueResponseDto cancelCredentialRequest(String requestId);
+	public ResponseWrapper<CredentialIssueResponse> cancelCredentialRequest(String requestId);
 
 }

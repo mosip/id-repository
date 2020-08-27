@@ -8,9 +8,10 @@ package io.mosip.credentialstore.constants;
 public enum CredentialFormatter {
 
 	/** The id auth provider. */
-	idAuthProvider,
+	IdAuthProvider,
 	/** The credential default provider. */
-	credentialDefaultProvider,
-	/** The pin based provider. */
-	pinBasedProvider;
+	CredentialDefaultProvider,
+	
+	QrCodeProvider
+
 }

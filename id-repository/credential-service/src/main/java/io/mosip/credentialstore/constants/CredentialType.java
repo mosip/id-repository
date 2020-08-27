@@ -13,6 +13,5 @@ public enum CredentialType {
 	QRCODE,
 	/** The mosip. */
 	MOSIP,
-	/** The pin. */
-	PIN
+
 }
