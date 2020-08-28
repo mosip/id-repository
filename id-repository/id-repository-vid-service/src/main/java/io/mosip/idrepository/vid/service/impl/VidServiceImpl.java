@@ -70,6 +70,7 @@ import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.VidService;
+import io.mosip.idrepository.core.util.TokenIDGenerator;
 import io.mosip.idrepository.vid.entity.Vid;
 import io.mosip.idrepository.vid.provider.VidPolicyProvider;
 import io.mosip.idrepository.vid.repository.UinEncryptSaltRepo;
@@ -93,6 +94,10 @@ import io.mosip.kernel.core.websub.spi.PublisherClient;
 @Component
 @Transactional
 public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper<VidResponseDTO>, ResponseWrapper<List<VidInfoDTO>>> {
+	
+	private static final String TOKEN = "TOKEN";
+
+	private static final String PARTNER = "PARTNER";
 
 	private static final String SALT = "SALT";
 
@@ -192,7 +197,10 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	private String webSubHubUrl;
 	
 	@Autowired
-	private PublisherClient<String, EventModel, HttpHeaders> pb; 
+	private PublisherClient<String, EventModel, HttpHeaders> pb;
+	
+	@Autowired
+	private TokenIDGenerator tokenIDGenerator;
 
 	/*
 	 * (non-Javadoc)
@@ -252,7 +260,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 							: LocalDateTime.MAX.withYear(9999),
 					env.getProperty(VID_ACTIVE_STATUS), IdRepoSecurityManager.getUser(), currentTime, null, null, false,
 					null);
-			notify(env.getProperty(VID_ACTIVE_STATUS), Collections.singletonList(vidEntity), false);
+			notify(uin, env.getProperty(VID_ACTIVE_STATUS), Collections.singletonList(vidEntity), false);
 			return vidRepo.save(vidEntity);
 		} else if (vidDetails.size() == policy.getAllowedInstances() && policy.getAutoRestoreAllowed()) {
 			Vid vidObject = vidDetails.get(0);
@@ -261,7 +269,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			vidObject.setUpdatedDTimes(DateUtils.getUTCCurrentDateTime());
 			vidObject.setUin(uinToEncrypt);
 			vidRepo.saveAndFlush(vidObject);
-			notify(DEACTIVATE_STATUS, Collections.singletonList(vidObject), true);
+			notify(uin, DEACTIVATE_STATUS, Collections.singletonList(vidObject), true);
 			return generateVid(uin, vidType);
 		} else {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID,
@@ -463,7 +471,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			vidObject.setUpdatedDTimes(DateUtils.getUTCCurrentDateTime());
 			vidObject.setUin(decryptedUin);
 			vidRepo.saveAndFlush(vidObject);
-			notify(vidStatus, Collections.singletonList(vidObject), true);
+			notify(decryptedUin, vidStatus, Collections.singletonList(vidObject), true);
 		}
 		VidResponseDTO response = new VidResponseDTO();
 		response.setVidStatus(vidObject.getStatusCode());
@@ -574,9 +582,9 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			});
 			vidRepo.saveAll(vidList);
 			if (idType.contentEquals(DEACTIVATE)) {
-				notify(status, vidList, true);
+				notify(uin, status, vidList, true);
 			} else {
-				notify(status, vidList, true);
+				notify(uin, status, vidList, true);
 			}
 			VidResponseDTO response = new VidResponseDTO();
 			response.setVidStatus(status);
@@ -696,12 +704,12 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		return responseDto;
 	}
 
-	private void notify(String status, List<Vid> vids, boolean isUpdated) {
+	private void notify(String uin, String status, List<Vid> vids, boolean isUpdated) {
 		List<String> partnerIds = getPartnerIds();
 		if(isUpdated) {
 			sendEventsToIDA(status, vids, partnerIds);
 		} else {
-			sendEventsToCredService(status, vids, isUpdated, partnerIds);
+			sendEventsToCredService(uin, status, vids, isUpdated, partnerIds);
 		}
 	}
 	
@@ -727,12 +735,13 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		return Collections.emptyList();
 	}
 
-	private void sendEventsToCredService(String status, List<Vid> vids, boolean isUpdated, List<String> partnerIds) {
+	private void sendEventsToCredService(String uin, String status, List<Vid> vids, boolean isUpdated, List<String> partnerIds) {
+		String token = tokenIDGenerator.generateTokenID(uin, PARTNER);
 		List<CredentialIssueRequestDto> eventRequestsList = vids.stream()
 					.flatMap(vid -> {
 						LocalDateTime expiryTimestamp = status.equals(ACTIVATE_STATUS) ? vid.getExpiryDTimes() : vid.getUpdatedDTimes();
 						return partnerIds.stream().map(partnerId -> createCredReqDto(vid.getId(), partnerId,
-								expiryTimestamp,policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions()));
+								expiryTimestamp,policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(), token));
 					})
 					.collect(Collectors.toList());
 		
@@ -750,15 +759,19 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	}
 	
 	private void sendEventToCredService(CredentialIssueRequestWrapperDto requestWrapper) {
-		// TODO Auto-generated method stub
-		
+		try {
+			restHelper.requestSync(restBuilder.buildRequest(RestServicesConstants.CREDENTIAL_REQUEST_SERVICE, requestWrapper, Map.class));
+		} catch (RestServiceException | IdRepoDataValidationException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "sendRequestToCredService", e.getMessage());
+		}		
 	}
 	
-	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp, Integer transactionLimit) {
+	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp, Integer transactionLimit, String token) {
 		Map<String, Object> data = new HashMap<>();
 		data.putAll(retrieveIdHashWithAttributes(id));
 		data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
 		data.put(TRANSACTION_LIMIT, Optional.ofNullable(transactionLimit).map(String::valueOf).orElse(null));
+		data.put(TOKEN, token);
 
 		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
 		credentialIssueRequestDto.setId(id);
