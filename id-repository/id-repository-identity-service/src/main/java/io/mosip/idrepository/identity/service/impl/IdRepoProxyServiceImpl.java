@@ -2,8 +2,6 @@ package io.mosip.idrepository.identity.service.impl;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.IDA_NOTIFY_REQ_ID;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.IDA_NOTIFY_REQ_VER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
@@ -69,6 +67,7 @@ import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.IdRepoService;
+import io.mosip.idrepository.core.util.TokenIDGenerator;
 import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.repository.UinHashSaltRepo;
 import io.mosip.idrepository.identity.repository.UinHistoryRepo;
@@ -89,6 +88,10 @@ import io.mosip.kernel.fsadapter.hdfs.constant.HDFSAdapterErrorCode;
  */
 @Service
 public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdResponseDTO> {
+
+	private static final String TOKEN = "TOKEN";
+
+	private static final String PARTNER = "PARTNER";
 
 	private static final String SALT = "SALT";
 
@@ -217,6 +220,9 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	
 	@Autowired
 	private PublisherClient<String, EventModel, HttpHeaders> pb; 
+	
+	@Autowired
+	private TokenIDGenerator tokenIDGenerator;
 	   
 	/*
 	 * (non-Javadoc)
@@ -670,7 +676,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	private void sendEventsToCredService(String uin, LocalDateTime expiryTimestamp, boolean isUpdate, List<VidInfoDTO> vidInfoDtos, List<String> partnerIds) {
 		List<CredentialIssueRequestDto> eventRequestsList = new ArrayList<>();
-		eventRequestsList.addAll(partnerIds.stream().map(partnerId -> createCredReqDto(uin, partnerId, expiryTimestamp, null)).collect(Collectors.toList()));
+		String token = tokenIDGenerator.generateTokenID(uin, PARTNER);
+		eventRequestsList.addAll(partnerIds.stream().map(partnerId -> createCredReqDto(uin, partnerId, expiryTimestamp, null, token)).collect(Collectors.toList()));
 		
 		if(vidInfoDtos != null) {
 			List<CredentialIssueRequestDto> vidRequests = vidInfoDtos.stream()
@@ -679,7 +686,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 						return partnerIds.stream()
 								.map(partnerId -> createCredReqDto(vidInfoDTO.getVid(), partnerId, 
 														vidExpiryTime,
-														vidInfoDTO.getTransactionLimit()));
+														vidInfoDTO.getTransactionLimit(), token));
 					}).collect(Collectors.toList());
 			eventRequestsList.addAll(vidRequests);
 		}
@@ -688,8 +695,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			CredentialIssueRequestWrapperDto requestWrapper = new CredentialIssueRequestWrapperDto();
 			requestWrapper.setRequest(reqDto);
 			requestWrapper.setRequesttime(DateUtils.getUTCCurrentDateTime());
-			requestWrapper.setId(env.getProperty(IDA_NOTIFY_REQ_ID));
-			requestWrapper.setVersion(env.getProperty(IDA_NOTIFY_REQ_VER));
 			String eventTypeDisplayName = isUpdate? "Update ID" : "Create ID";
 			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", "notifying Credential Service for event " + eventTypeDisplayName);
 			sendRequestToCredService(requestWrapper);
@@ -705,11 +710,12 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		}
 	}
 
-	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp, Integer transactionLimit) {
+	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp, Integer transactionLimit, String token) {
 		Map<String, Object> data = new HashMap<>();
 		data.putAll(retrieveIdHashWithAttributes(id));
 		data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
 		data.put(TRANSACTION_LIMIT, Optional.ofNullable(transactionLimit).map(String::valueOf).orElse(null));
+		data.put(TOKEN, token);
 
 		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
 		credentialIssueRequestDto.setId(id);
