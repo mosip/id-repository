@@ -706,10 +706,18 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	}
 
 	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp, Integer transactionLimit) {
-		Map<String, String> data = new HashMap<>();
+		Map<String, Object> data = new HashMap<>();
 		data.putAll(retrieveIdHashWithAttributes(id));
 		data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
 		data.put(TRANSACTION_LIMIT, Optional.ofNullable(transactionLimit).map(String::valueOf).orElse(null));
-		return new CredentialIssueRequestDto(id, AUTH, partnerId, IDA, IdRepoSecurityManager.getUser(), false, null, null,data);
+
+		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
+		credentialIssueRequestDto.setId(id);
+		credentialIssueRequestDto.setCredentialType(AUTH);
+		credentialIssueRequestDto.setIssuer(partnerId);
+		credentialIssueRequestDto.setRecepiant(IDA);
+		credentialIssueRequestDto.setUser(IdRepoSecurityManager.getUser());
+		credentialIssueRequestDto.setAdditionalData(data);
+		return credentialIssueRequestDto;
 	}
 }
