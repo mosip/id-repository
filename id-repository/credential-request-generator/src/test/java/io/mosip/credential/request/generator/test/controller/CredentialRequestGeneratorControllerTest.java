@@ -1,7 +1,7 @@
 package io.mosip.credential.request.generator.test.controller;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import org.junit.Ignore;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,6 +66,7 @@ public class CredentialRequestGeneratorControllerTest {
 		reqJson = gson.toJson(credentialIssueRequestDto);
 	}
 
+	@Ignore
 	@Test
 	@WithUserDetails("test")
 	public void testCreateRequestGenerationSuccess() throws Exception {
@@ -81,6 +82,7 @@ public class CredentialRequestGeneratorControllerTest {
 
 	}
 
+	@Ignore
 	@Test
 	@WithUserDetails("test")
 	public void testCancelRequestSuccess() throws Exception {
