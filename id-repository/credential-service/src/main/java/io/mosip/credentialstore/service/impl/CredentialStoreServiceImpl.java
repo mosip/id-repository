@@ -85,13 +85,6 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	@Autowired
 	private IdrepositaryUtil idrepositaryUtil;
 
-	/** The primary lang. */
-	@Value("${mosip.primary-language}")
-	private String primaryLang;
-
-	/** The secondary lang. */
-	@Value("${mosip.secondary-language}")
-	private String secondaryLang;
 
 	/** The Constant VALUE. */
 	private static final String VALUE = "value";
