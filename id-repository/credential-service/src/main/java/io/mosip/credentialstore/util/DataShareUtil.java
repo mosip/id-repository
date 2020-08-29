@@ -11,6 +11,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -20,7 +22,8 @@ import io.mosip.credentialstore.dto.DataShare;
 import io.mosip.credentialstore.dto.DataShareResponseDto;
 
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
-import io.mosip.credentialstore.exception.CredentialServiceException;
+import io.mosip.credentialstore.exception.DataShareException;
+import io.mosip.credentialstore.exception.SignatureException;
 import io.mosip.idrepository.core.dto.ErrorDTO;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
@@ -43,8 +46,10 @@ public class DataShareUtil {
 	private static final String DATASHARE = "DataShareUtil";
 
 	public DataShare getDataShare(byte[] data, String policyId, String partnerId)
-			throws ApiNotAccessibleException, IOException, CredentialServiceException {
-		LOGGER.debug(IdRepoSecurityManager.getUser(), DATASHARE, GET_DATA,
+			throws ApiNotAccessibleException, IOException, DataShareException {
+		try {
+			LOGGER.debug(IdRepoSecurityManager.getUser(), DATASHARE, GET_DATA, 
+		
 				"entry");
 		ByteArrayResource contentsAsResource = new ByteArrayResource(data) {
 			
@@ -65,21 +70,33 @@ public class DataShareUtil {
 		if (responseObject == null) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), DATASHARE, GET_DATA,
 					CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorMessage());
-			throw new CredentialServiceException(CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorCode(),
-					CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorMessage());
+			throw new DataShareException();
 		}
 		if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
 			ErrorDTO error = responseObject.getErrors().get(0);
 			LOGGER.error(IdRepoSecurityManager.getUser(), DATASHARE, GET_DATA,
 					error.getMessage());
-			throw new CredentialServiceException(CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorCode(),
-					error.getMessage());
+			throw new DataShareException();
 		} else {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), DATASHARE, GET_DATA,
 					"exit");
 			return responseObject.getDataShare();
 		}
-	
+		} catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), DATASHARE, GET_DATA,
+					ExceptionUtils.getStackTrace(e));
+			if (e instanceof HttpClientErrorException) {
+				HttpClientErrorException httpClientException = (HttpClientErrorException) e;
+				throw new io.mosip.credentialstore.exception.ApiNotAccessibleException(httpClientException.getResponseBodyAsString());
+			} else if (e instanceof HttpServerErrorException) {
+				HttpServerErrorException httpServerException = (HttpServerErrorException) e;
+				throw new ApiNotAccessibleException(httpServerException.getResponseBodyAsString());
+			} else {
+				throw new DataShareException(e);
+			}
+
+		}
+
 
 	}
 }

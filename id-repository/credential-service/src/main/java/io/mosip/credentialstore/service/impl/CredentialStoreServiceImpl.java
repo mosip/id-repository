@@ -37,6 +37,7 @@ import io.mosip.credentialstore.dto.ShareableAttribute;
 
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
+import io.mosip.credentialstore.exception.DataShareException;
 import io.mosip.credentialstore.exception.IdRepoException;
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.service.CredentialStoreService;
@@ -253,6 +254,16 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialServiceErrorCodes.WEBSUB_FAIL_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialServiceErrorCodes.WEBSUB_FAIL_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
+					ExceptionUtils.getStackTrace(e));
+		}
+		catch(DataShareException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL, credentialServiceRequestDto.getId(), IdType.ID, e);
+			ErrorDTO error = new ErrorDTO();
+			error.setErrorCode(CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorMessage());
 			errorList.add(error);
 			
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,

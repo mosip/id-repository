@@ -56,9 +56,6 @@ public class DigitalSignatureUtil {
 	/** The Constant DATETIME_PATTERN. */
 	private static final String DATETIME_PATTERN = "mosip.credential.service.datetime.pattern";
 
-	/** The keymanager sign url. */
-	@Value("${KEYMANAGER_SIGN}")
-	private String keymanagerSignUrl;
 	
 	private static final Logger LOGGER = IdRepoLogger.getLogger(DigitalSignatureUtil.class);
 
@@ -89,7 +86,7 @@ public class DigitalSignatureUtil {
 			LocalDateTime localdatetime = LocalDateTime
 					.parse(DateUtils.getUTCCurrentDateTimeString(environment.getProperty(DATETIME_PATTERN)), format);
 			request.setRequesttime(localdatetime);
-			String responseString = restUtil.postApi(ApiName.CREATEDATASHARE, null, "", "",
+			String responseString = restUtil.postApi(ApiName.KEYMANAGER_SIGN, null, "", "",
 					MediaType.APPLICATION_JSON, request, String.class);
 
 			SignResponseDto responseObject = mapper.readValue(responseString, SignResponseDto.class);

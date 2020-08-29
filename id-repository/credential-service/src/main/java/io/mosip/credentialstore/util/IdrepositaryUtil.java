@@ -7,17 +7,27 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.ApiName;
 import io.mosip.credentialstore.constants.CredentialConstants;
+import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
+import io.mosip.credentialstore.exception.DataShareException;
 import io.mosip.credentialstore.exception.IdRepoException;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
+import io.mosip.kernel.core.logger.spi.Logger;
 
 
 
@@ -30,12 +40,26 @@ public class IdrepositaryUtil {
 
 	@Autowired
 	private ObjectMapper mapper;
+	
+	
+	private static final Logger LOGGER = IdRepoLogger.getLogger(DataShareUtil.class);
 
-	public IdResponseDTO getData(CredentialServiceRequestDto credentialServiceRequestDto,Map<String,String> bioAttributeFormatterMap)
-			throws ApiNotAccessibleException, IOException, IdRepoException {
-		
+	private static final String GET_DATA = "getData";
+	
+	private static final String IDREPOSITARYUTIL = "IdrepositaryUtil";
+
+	public IdResponseDTO getData(CredentialServiceRequestDto credentialServiceRequestDto,Map<String,String> bioAttributeFormatterMap) throws ApiNotAccessibleException, IdRepoException, JsonParseException, JsonMappingException, IOException
+		{
+		try {
+			LOGGER.debug(IdRepoSecurityManager.getUser(), IDREPOSITARYUTIL, GET_DATA, 
+					
+					"entry");
 		Map<String,Object> map=credentialServiceRequestDto.getAdditionalData();
-		String idType=(String) map.get("idType");
+		String idType=null;
+	   if(map!=null) {
+		 idType=(String) map.get("idType");
+	    }
+		
 		String fingerExtractionFormat=bioAttributeFormatterMap.get(CredentialConstants.FINGER);
 		String faceExtractionFormat=bioAttributeFormatterMap.get(CredentialConstants.FACE);
 		String irisExtractionFormat=bioAttributeFormatterMap.get(CredentialConstants.IRIS);
@@ -48,16 +72,36 @@ public class IdrepositaryUtil {
 					queryParamValue, String.class);
 			IdResponseDTO responseObject = mapper.readValue(responseString, IdResponseDTO.class);
 		if (responseObject == null) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), IDREPOSITARYUTIL, GET_DATA,
+					CredentialServiceErrorCodes.IPREPO_EXCEPTION.getErrorMessage());
 			throw new IdRepoException();
 		}
 		if (responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
+
 			ServiceError error = responseObject.getErrors().get(0);
+			LOGGER.error(IdRepoSecurityManager.getUser(), IDREPOSITARYUTIL, GET_DATA,
+					error.getMessage());
 			throw new IdRepoException(
 					error.getMessage());
-			} else {
+		} else {
+				LOGGER.debug(IdRepoSecurityManager.getUser(), IDREPOSITARYUTIL, GET_DATA,
+						"exit");
 				return responseObject;
 			}
+		}catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), IDREPOSITARYUTIL, GET_DATA,
+					ExceptionUtils.getStackTrace(e));
+			if (e instanceof HttpClientErrorException) {
+				HttpClientErrorException httpClientException = (HttpClientErrorException) e;
+				throw new io.mosip.credentialstore.exception.ApiNotAccessibleException(httpClientException.getResponseBodyAsString());
+			} else if (e instanceof HttpServerErrorException) {
+				HttpServerErrorException httpServerException = (HttpServerErrorException) e;
+				throw new ApiNotAccessibleException(httpServerException.getResponseBodyAsString());
+			} else {
+				throw new IdRepoException(e);
+			}
 
+		}
 	}
 
 
