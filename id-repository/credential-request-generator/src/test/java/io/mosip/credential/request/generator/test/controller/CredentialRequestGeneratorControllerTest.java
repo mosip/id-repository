@@ -66,7 +66,7 @@ public class CredentialRequestGeneratorControllerTest {
 		reqJson = gson.toJson(credentialIssueRequestDto);
 	}
 
-	@Ignore
+
 	@Test
 	@WithUserDetails("test")
 	public void testCreateRequestGenerationSuccess() throws Exception {
@@ -82,7 +82,7 @@ public class CredentialRequestGeneratorControllerTest {
 
 	}
 
-	@Ignore
+
 	@Test
 	@WithUserDetails("test")
 	public void testCancelRequestSuccess() throws Exception {
