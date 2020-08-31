@@ -44,7 +44,7 @@ public class PolicyUtil {
 		ShareableAttribute shareableAttribute3 = new ShareableAttribute();
 		shareableAttribute3.setAttributeName("face");
 		shareableAttribute3.setEncrypted(true);
-		shareableAttribute3.setFormat("extraction");
+		shareableAttribute3.setFormat("mock");
 		sharableAttributesList.add(shareableAttribute3);
 		policies.setShareableAttributes(sharableAttributesList);
 		policyDetailResponseDto.setPolicies(policies);
