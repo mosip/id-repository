@@ -41,7 +41,7 @@ import io.mosip.kernel.core.util.DateUtils;
 public class EncryptionUtil {
 
 	
-	private static final Logger LOGGER = IdRepoLogger.getLogger(EncryptionUtil.class);
+	private static final Logger LOGGER = IdRepoLogger.getLogger(EncryptionUtil.class); 
 	
 	private static final String ENCRYPTDATA = "encryptData";
 	
