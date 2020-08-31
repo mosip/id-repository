@@ -37,6 +37,7 @@ import io.mosip.credentialstore.dto.ShareableAttribute;
 import io.mosip.credentialstore.dto.Type;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
+import io.mosip.credentialstore.exception.DataShareException;
 import io.mosip.credentialstore.exception.IdRepoException;
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.service.CredentialStoreService;
@@ -339,5 +340,19 @@ public class CredentialStoreServiceImplTest {
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getResponse().getStatus(),"DONE");
+	}
+
+	@Test
+	public void testDataShareException() throws ApiNotAccessibleException, IdRepoException, IOException, DataShareException {
+		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
+		credentialServiceRequestDto.setCredentialType("mosip");
+		credentialServiceRequestDto.setId("4238135072");
+		Map<String,Object> additionalData=new HashMap<>();
+		credentialServiceRequestDto.setAdditionalData(additionalData);
+		DataShareException e = new DataShareException();
+		Mockito.when(dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
+
+		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
+	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorMessage());
 	}
 }

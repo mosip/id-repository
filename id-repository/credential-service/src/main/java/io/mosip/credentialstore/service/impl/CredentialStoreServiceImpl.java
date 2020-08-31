@@ -180,7 +180,11 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		
 
 		if (policyDetailResponseDto != null) {
-                 Map<String,String> bioAttributeFormatterMap= getFormatters(policyDetailResponseDto);    
+			     if(credentialServiceRequestDto.getAdditionalData()==null) {
+			    	 Map<String,Object> additionalData=new HashMap<>();
+			    	 credentialServiceRequestDto.setAdditionalData(additionalData);
+			     }
+                Map<String,String> bioAttributeFormatterMap= getFormatters(policyDetailResponseDto);    
 				IdResponseDTO idResponseDto = idrepositaryUtil.getData(credentialServiceRequestDto,bioAttributeFormatterMap);
 				Map<String,Boolean> encryptMap=new HashMap<>();
 				Map<String, Object> sharableAttributeMap = setSharableAttributeValues(idResponseDto,

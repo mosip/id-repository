@@ -54,8 +54,7 @@ public class EncryptionUtil {
 	/** The Constant IO_EXCEPTION. */
 	private static final String IO_EXCEPTION = "Exception while reading packet inputStream";
 
-	/** The Constant DATE_TIME_EXCEPTION. */
-	private static final String DATE_TIME_EXCEPTION = "Error while parsing packet timestamp";
+	
 
 
 	/** The env. */
@@ -104,10 +103,6 @@ public class EncryptionUtil {
 			LOGGER.error(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
 					"EncryptionUtil::encryptData():: error with error message" + ExceptionUtils.getStackTrace(e));
 			throw new DataEncryptionFailureException(IO_EXCEPTION, e);
-		} catch (DateTimeParseException e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
-					"EncryptionUtil::encryptData():: error with error message" + ExceptionUtils.getStackTrace(e));
-			throw new DataEncryptionFailureException(DATE_TIME_EXCEPTION);
 		} catch (Exception e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
 					"EncryptionUtil::encryptData():: error with error message" + ExceptionUtils.getStackTrace(e));
@@ -161,11 +156,7 @@ public class EncryptionUtil {
 			LOGGER.error(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
 					"EncryptionUtil::encryptData():: error with error message" + ExceptionUtils.getStackTrace(e));
 			throw new DataEncryptionFailureException(IO_EXCEPTION, e);
-		} catch (DateTimeParseException e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
-					"EncryptionUtil::encryptData():: error with error message" + ExceptionUtils.getStackTrace(e));
-			throw new DataEncryptionFailureException(DATE_TIME_EXCEPTION);
-		} catch (Exception e) {
+		}  catch (Exception e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
 					"EncryptionUtil::encryptData():: error with error message" + ExceptionUtils.getStackTrace(e));
 			if (e instanceof HttpClientErrorException) {
