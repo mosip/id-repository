@@ -341,7 +341,7 @@ public class CredentialStoreServiceImplTest {
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getResponse().getStatus(),"DONE");
 	}
-	
+
 	@Test
 	public void testDataShareException() throws ApiNotAccessibleException, IdRepoException, IOException, DataShareException {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();

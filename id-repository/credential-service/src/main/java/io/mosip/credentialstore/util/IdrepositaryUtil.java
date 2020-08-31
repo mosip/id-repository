@@ -40,25 +40,25 @@ public class IdrepositaryUtil {
 
 	@Autowired
 	private ObjectMapper mapper;
-	
-	
+
+
 	private static final Logger LOGGER = IdRepoLogger.getLogger(DataShareUtil.class);
 
 	private static final String GET_DATA = "getData";
-	
+
 	private static final String IDREPOSITARYUTIL = "IdrepositaryUtil";
 
 	public IdResponseDTO getData(CredentialServiceRequestDto credentialServiceRequestDto,Map<String,String> bioAttributeFormatterMap) throws ApiNotAccessibleException, IdRepoException, JsonParseException, JsonMappingException, IOException
 		{
 		try {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), IDREPOSITARYUTIL, GET_DATA, 
-					
+			LOGGER.debug(IdRepoSecurityManager.getUser(), IDREPOSITARYUTIL, GET_DATA,
+
 					"entry");
 		Map<String,Object> map=credentialServiceRequestDto.getAdditionalData();
 		String idType=null;
         idType=(String) map.get("idType");
 
-		
+
 		String fingerExtractionFormat=bioAttributeFormatterMap.get(CredentialConstants.FINGER);
 		String faceExtractionFormat=bioAttributeFormatterMap.get(CredentialConstants.FACE);
 		String irisExtractionFormat=bioAttributeFormatterMap.get(CredentialConstants.IRIS);
