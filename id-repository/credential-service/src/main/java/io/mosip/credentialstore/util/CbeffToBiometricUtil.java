@@ -155,19 +155,6 @@ public class CbeffToBiometricUtil {
 	}
 
 
-	
-
-	/**
-	 * Convert BIRTYP eto BIR.
-	 *
-	 * @param listOfBIR
-	 *            the list of BIR
-	 * @return the list
-	 */
-	public List<BIR> convertBIRTYPEtoBIR(List<BIRType> listOfBIR) {
-		
-		return cbeffutil.convertBIRTypeToBIR(listOfBIR);
-	}
 
 	/**
 	 * Gets the BIR type list.
@@ -181,16 +168,6 @@ public class CbeffToBiometricUtil {
 	public List<BIRType> getBIRTypeList(String cbeffFileString) throws Exception {
 		return cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(cbeffFileString));
 	}
-	/**
-	 * Gets the BIR type list.
-	 * @param xmlBytes byte array of XML data
-	 * @return the BIR type list
-	 * @throws Exception
-	 *             the exception
-	 */
-	public List<BIRType> getBIRDataFromXML(byte[] xmlBytes) throws Exception {
-		return cbeffutil.getBIRDataFromXML(xmlBytes);
-	}
-
+	
 
 }

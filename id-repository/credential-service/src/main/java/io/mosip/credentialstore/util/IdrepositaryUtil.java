@@ -56,9 +56,8 @@ public class IdrepositaryUtil {
 					"entry");
 		Map<String,Object> map=credentialServiceRequestDto.getAdditionalData();
 		String idType=null;
-	   if(map!=null) {
-		 idType=(String) map.get("idType");
-	    }
+        idType=(String) map.get("idType");
+
 		
 		String fingerExtractionFormat=bioAttributeFormatterMap.get(CredentialConstants.FINGER);
 		String faceExtractionFormat=bioAttributeFormatterMap.get(CredentialConstants.FACE);
