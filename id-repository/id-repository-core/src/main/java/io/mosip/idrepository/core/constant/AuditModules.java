@@ -10,7 +10,9 @@ public enum AuditModules {
 	
 	ID_REPO_CORE_SERVICE("IDR-IDS"),
 	
-	ID_REPO_VID_SERVICE("IDR-VID");
+	ID_REPO_VID_SERVICE("IDR-VID"),
+	
+	AUTH_TYPE_STATUS("IDR-ATS");
 	
 
 	/** The module id. */

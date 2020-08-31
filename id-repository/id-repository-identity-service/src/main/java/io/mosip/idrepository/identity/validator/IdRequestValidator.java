@@ -543,4 +543,24 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 		}
 	}
 
+	public void validateIdvId(String individualId, IdType idType) throws IdRepoAppException {
+		if ((idType == IdType.UIN && !this.validateUin(individualId))
+				|| (idType == IdType.VID && !this.validateVid(individualId))
+				|| (idType == IdType.REG_ID && this.validateRid(individualId))) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "getIdType", "Invalid ID");
+			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "id"));
+		}
+	}
+
+	public IdType validateIdTypeForAuthTypeStatus(String type) throws IdRepoAppException {
+		IdType idType = this.validateIdType(type);
+		if (idType == IdType.REG_ID) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateIdTypeForAuthTypeStatus",
+					"REG ID NOT SUPPORTED");
+			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "idType"));
+		}
+		return idType;
+	}
 }

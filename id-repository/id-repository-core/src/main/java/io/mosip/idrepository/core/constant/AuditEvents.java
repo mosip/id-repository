@@ -29,7 +29,9 @@ public enum AuditEvents {
 	
 	REACTIVATE_VID("IDR-011", "System Event"),
 	
-	RETRIEVE_UIN_VID("IDR-012", "System Event"),;
+	RETRIEVE_UIN_VID("IDR-012", "System Event"),
+	
+	UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE("IDR-013", "System Event");
 	
 	
 
