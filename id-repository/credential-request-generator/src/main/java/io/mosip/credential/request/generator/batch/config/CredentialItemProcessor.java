@@ -67,7 +67,9 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 		credentialServiceRequestDto.setSharableAttributes(credentialIssueRequestDto.getSharableAttributes());
 		credentialServiceRequestDto.setUser(credentialIssueRequestDto.getUser());
 		credentialServiceRequestDto.setRequestId(credential.getRequestId());
-
+		credentialServiceRequestDto.setEncrypt(credentialIssueRequestDto.isEncrypt());
+		credentialServiceRequestDto.setEncryptionKey(credentialIssueRequestDto.getEncryptionKey());
+		credentialServiceRequestDto.setAdditionalData(credentialIssueRequestDto.getAdditionalData());
 			String responseString = restUtil.postApi(ApiName.CRDENTIALSERVICE, null, "", "",
 					MediaType.APPLICATION_JSON, credentialServiceRequestDto, String.class);
 
