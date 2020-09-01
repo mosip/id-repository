@@ -25,10 +25,14 @@ import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
 import io.mosip.credentialstore.exception.DataEncryptionFailureException;
 import io.mosip.credentialstore.provider.CredentialProvider;
+import io.mosip.credentialstore.service.impl.CredentialStoreServiceImpl;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.JsonUtil;
 import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 
 
@@ -74,6 +78,12 @@ public class IdAuthProvider implements CredentialProvider {
 	/** The encryption util. */
 	@Autowired
 	EncryptionUtil encryptionUtil;
+	
+	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialStoreServiceImpl.class);
+
+	private static final String GET_FORAMTTED_DATA = "getFormattedCredentialData";
+	
+	private static final String IDAUTHPROVIDER = "IdAuthProvider";
 
 	/* (non-Javadoc)
 	 * @see io.mosip.credentialstore.provider.CredentialProvider#getFormattedCredentialData(java.util.Map, io.mosip.idrepository.core.dto.CredentialServiceRequestDto, java.util.Map)
@@ -82,6 +92,9 @@ public class IdAuthProvider implements CredentialProvider {
 	public DataProviderResponse getFormattedCredentialData(	Map<String,Boolean> encryptMap,
 			CredentialServiceRequestDto credentialServiceRequestDto, Map<String, Object> sharableAttributeMap)
 			throws CredentialFormatterException {
+		
+		LOGGER.debug(IdRepoSecurityManager.getUser(), IDAUTHPROVIDER, GET_FORAMTTED_DATA,
+				"formatting the data start");
 		DataProviderResponse dataProviderResponse=new DataProviderResponse();
 		try {
 			
@@ -128,6 +141,8 @@ public class IdAuthProvider implements CredentialProvider {
 			dataProviderResponse.setIssuanceDate(localdatetime);
 			dataProviderResponse.setFormattedData(data.getBytes());
 			dataProviderResponse.setCredentialId(credentialId);
+			LOGGER.debug(IdRepoSecurityManager.getUser(), IDAUTHPROVIDER, GET_FORAMTTED_DATA,
+					"formatting the data end");
 			return dataProviderResponse;
 		} catch (IOException e) {
 			throw new CredentialFormatterException(e);
