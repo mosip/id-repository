@@ -4,4 +4,5 @@ install: true
 cache:
   directories:
   - $HOME/.m2
-script: mvn install -DskipTests=false -Dgpg.skip=true -Dmaven.javadoc.skip=true -DargLine="-Dlogging.level.root=ERROR" -B -V
+script: cd id-repository && mvn install -DskipTests=false -Dgpg.skip=true -Dmaven.javadoc.skip=true -DargLine="-Dlogging.level.root=ERROR" -B -V
+
