@@ -721,11 +721,10 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 				Object partners = responseWrapperMap.get("partners");
 				if(partners instanceof List) {
 					List<Map<String, Object>> partnersList = (List<Map<String, Object>>) partners;
-					List<String> partnerIds = partnersList.stream()
+					return partnersList.stream()
 								.filter(partner -> PARNER_ACTIVE_STATUS.equalsIgnoreCase((String)partner.get("status")))
 								.map(partner -> (String)partner.get("partnerID"))
 								.collect(Collectors.toList());
-					return partnerIds;
 				}
 			}
 		} catch (RestServiceException | IdRepoDataValidationException e) {
