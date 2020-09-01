@@ -10,7 +10,9 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -41,7 +43,6 @@ import io.mosip.credentialstore.exception.DataShareException;
 import io.mosip.credentialstore.exception.IdRepoException;
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.service.CredentialStoreService;
-import io.mosip.credentialstore.util.CbeffToBiometricUtil;
 import io.mosip.credentialstore.util.DataShareUtil;
 import io.mosip.credentialstore.util.IdrepositaryUtil;
 import io.mosip.credentialstore.util.JsonUtil;
@@ -63,6 +64,8 @@ import io.mosip.idrepository.core.dto.Type;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.kernel.core.cbeffutil.entity.BIR;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -374,9 +377,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	 */
 	private Map<String, Object> setSharableAttributeValues(IdResponseDTO idResponseDto,
 			CredentialServiceRequestDto credentialServiceRequestDto, PolicyDetailResponseDto policyDetailResponseDto,Map<String,Boolean> encryptionMap) throws Exception {
-		// TODO Directly using sharable attributes name from policy AND from input
-		// TODO as of now only demographic details are getting shared
-		Map<String, Object> attributesMap = new HashMap<>();
+
+		Map<String, Object> attributesMap = new HashMap<>(); 
 		JSONObject identity = new JSONObject((Map) idResponseDto.getResponse().getIdentity());
 
 		List<ShareableAttribute> sharableAttributeList=policyDetailResponseDto.getPolicies().getShareableAttributes();
@@ -431,29 +433,24 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 				break;
 			}
 		}
-		CbeffToBiometricUtil util = new CbeffToBiometricUtil(cbeffutil);
-		for (String key : sharableAttributeBiometricKeySet) {
-			if(key.equalsIgnoreCase(SingleType.FACE.value())) {
-				
-				List<String> subtype = new ArrayList<>();
-				byte[] faceBytes = util.getImageBytes(value, SingleType.FACE.value(), subtype);
-				String face = new String(faceBytes, StandardCharsets. UTF_8);
-				attributesMap.put(key, face);
-			}else if(key.equalsIgnoreCase(SingleType.IRIS.value())) {
 		
-				List<String> subtype = new ArrayList<>();
-				byte[] irisBytes = util.getImageBytes(value, SingleType.IRIS.value(), subtype);
-				String iris = new String(irisBytes, StandardCharsets. UTF_8);
-				attributesMap.put(key, iris);
-			}else if(key.equalsIgnoreCase(SingleType.FINGER.value())) {
-
-				List<String> subtype = new ArrayList<>();
-				byte[] fingerType = util.getImageBytes(value, SingleType.FINGER.value(), subtype);
-				String finger = new String(fingerType, StandardCharsets. UTF_8);
-				attributesMap.put(key, finger);
-			}
-		}
-
+		List<BIRType>  typeList= cbeffutil.getBIRDataFromXML(value.getBytes());
+		List<BIR> birList=cbeffutil.convertBIRTypeToBIR(typeList);
+		Map<String, Map<String, byte[]>> biometrics = birList.stream().collect(Collectors.groupingBy(bir -> bir.getBdbInfo().getType().get(0).value(), 
+				Collectors.toMap(bir -> {
+					List<String> subtype = bir.getBdbInfo().getSubtype();
+					String type = bir.getBdbInfo().getType().get(0).value();
+					return subtype.isEmpty() ? type : (type + " " + subtype.get(0));
+				},
+		  				bir -> (byte[])bir.getBdb())
+				));
+		 for (Entry<String, Map<String, byte[]>> entry : biometrics.entrySet()) {
+			  String key=entry.getKey().toLowerCase();
+			  if(sharableAttributeBiometricKeySet.contains(key)) {
+				  attributesMap.put(key, entry.getValue());
+			  }
+		 }
+		
 		return attributesMap;
 	}
 
