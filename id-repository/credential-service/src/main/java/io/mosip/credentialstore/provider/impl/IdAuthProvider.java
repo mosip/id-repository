@@ -10,10 +10,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.catalina.mapper.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.dto.DataProviderResponse;
@@ -78,12 +80,15 @@ public class IdAuthProvider implements CredentialProvider {
 	/** The encryption util. */
 	@Autowired
 	EncryptionUtil encryptionUtil;
-	
+
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialStoreServiceImpl.class);
 
 	private static final String GET_FORAMTTED_DATA = "getFormattedCredentialData";
-	
+
 	private static final String IDAUTHPROVIDER = "IdAuthProvider";
+
+	private ObjectMapper mapper;
+
 
 	/* (non-Javadoc)
 	 * @see io.mosip.credentialstore.provider.CredentialProvider#getFormattedCredentialData(java.util.Map, io.mosip.idrepository.core.dto.CredentialServiceRequestDto, java.util.Map)
@@ -92,7 +97,7 @@ public class IdAuthProvider implements CredentialProvider {
 	public DataProviderResponse getFormattedCredentialData(	Map<String,Boolean> encryptMap,
 			CredentialServiceRequestDto credentialServiceRequestDto, Map<String, Object> sharableAttributeMap)
 			throws CredentialFormatterException {
-		
+
 		LOGGER.debug(IdRepoSecurityManager.getUser(), IDAUTHPROVIDER, GET_FORAMTTED_DATA,
 				"formatting the data start");
 		DataProviderResponse dataProviderResponse=new DataProviderResponse();
@@ -106,10 +111,16 @@ public class IdAuthProvider implements CredentialProvider {
 		 for (Map.Entry<String,Object> entry : sharableAttributeMap.entrySet()) {
 			    String key=entry.getKey();
 				Object value = entry.getValue();
+				String valueStr=null;
+				if (value instanceof String) {
+					valueStr=value.toString();
+				}else {
+					valueStr=mapper.writeValueAsString(value);
+				}
 				if (encryptMap.get(key)) {
 					ZkDataAttribute zkDataAttribute=new ZkDataAttribute();
 					zkDataAttribute.setIdentifier(key);
-					zkDataAttribute.setValue(value.toString());
+					zkDataAttribute.setValue(valueStr);
 					if(key.equalsIgnoreCase(CredentialConstants.FACE) ||key.equalsIgnoreCase(CredentialConstants.IRIS) ||key.equalsIgnoreCase(CredentialConstants.FINGER)) {
 						bioZkDataAttributes.add(zkDataAttribute);
 					}else {
