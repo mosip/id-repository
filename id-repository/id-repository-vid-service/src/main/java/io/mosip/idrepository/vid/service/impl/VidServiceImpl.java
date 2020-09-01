@@ -80,7 +80,8 @@ import io.mosip.kernel.core.util.UUIDUtils;
  */
 @Component
 @Transactional
-public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper<VidResponseDTO>, ResponseWrapper<EventsDTO>> {
+public class VidServiceImpl
+		implements VidService<VidRequestDTO, ResponseWrapper<VidResponseDTO>, ResponseWrapper<EventsDTO>> {
 
 	/** The Constant VID. */
 	private static final String VID = "vid";
@@ -163,8 +164,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			responseDTO.setVidStatus(vid.getStatusCode());
 			return buildResponse(responseDTO, id.get("create"));
 		} catch (IdRepoAppUncheckedException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID,
-					"\n" + e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, "\n" + e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID, e.getMessage());
@@ -343,7 +343,8 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 					env.getProperty(VID_ACTIVE_STATUS), DateUtils.getUTCCurrentDateTime());
 			EventsDTO events = new EventsDTO();
 			events.setEvents(vidList.stream()
-					.map(vid -> new EventDTO(EventType.RETREIVE_VID, uin, vid.getVid(), vid.getExpiryDTimes(),
+					.map(vid -> new EventDTO(EventType.RETREIVE_VID, uin, vid.getVid(), null, null,
+							vid.getExpiryDTimes(),
 							policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions()))
 					.collect(Collectors.toList()));
 			ResponseWrapper<EventsDTO> response = new ResponseWrapper<>();
@@ -383,8 +384,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			VidResponseDTO response = updateVidStatus(vidStatus, vidObject, decryptedUin, policy);
 			return buildResponse(response, id.get("update"));
 		} catch (IdRepoAppUncheckedException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, UPDATE_VID,
-					"\n" + e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, UPDATE_VID, "\n" + e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, UPDATE_VID, e.getMessage());
@@ -656,8 +656,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			EventsDTO events = new EventsDTO();
 			events.setEvents(vids.stream()
 					.map(vid -> new EventDTO(eventType, Arrays.asList(decryptedUin.split(SPLITTER)).get(1),
-							vid.getVid(),
-							isUpdated ? vid.getUpdatedDTimes() : vid.getExpiryDTimes(),
+							vid.getVid(), null, null, isUpdated ? vid.getUpdatedDTimes() : vid.getExpiryDTimes(),
 							policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions()))
 					.collect(Collectors.toList()));
 			RequestWrapper<EventsDTO> request = new RequestWrapper<>();

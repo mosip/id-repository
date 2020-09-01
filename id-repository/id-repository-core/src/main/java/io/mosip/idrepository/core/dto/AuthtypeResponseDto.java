@@ -3,8 +3,7 @@ package io.mosip.idrepository.core.dto;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.kernel.core.exception.ServiceError;
-import lombok.Data;
+import io.mosip.kernel.core.http.ResponseWrapper;
 
 /**
  * 
@@ -12,23 +11,6 @@ import lombok.Data;
  *
  */
 
-@Data
-public class AuthtypeResponseDto {
-	
-	/** Variable To hold id */
-	private String id;
-
-	/** Variable To hold version */
-	private String version;
-
-	/** The error List */
-	private List<ServiceError> errors;
-
-	/** List to hold AutnTxnDto */
-	private Map<String, List<AuthtypeStatus>> response;
-	/** The id. */
-
-	/** The resTime value */
-	private String responseTime;
+public class AuthtypeResponseDto extends ResponseWrapper<Map<String, List<AuthtypeStatus>>> {
 
 }

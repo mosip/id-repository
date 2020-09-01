@@ -43,12 +43,10 @@ import com.jayway.jsonpath.JsonPathException;
 import io.mosip.idrepository.core.constant.AuditEvents;
 import io.mosip.idrepository.core.constant.AuditModules;
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.AuthTypeStatusDto;
 import io.mosip.idrepository.core.dto.AuthtypeResponseDto;
 import io.mosip.idrepository.core.dto.AuthtypeStatus;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
-import io.mosip.idrepository.core.dto.UpdateAuthtypeStatusResponseDto;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.helper.AuditHelper;
@@ -58,6 +56,7 @@ import io.mosip.idrepository.core.spi.AuthtypeStatusService;
 import io.mosip.idrepository.core.spi.IdRepoService;
 import io.mosip.idrepository.core.util.DataValidationUtil;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
+import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.swagger.annotations.ApiOperation;
@@ -304,8 +303,8 @@ public class IdRepoController {
 	@GetMapping(path = "/authtypes/status/individualIdType/{IDType}/individualId/{ID}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Request authenticated successfully"),
 			@ApiResponse(code = 400, message = "No Records Found") })
-	public ResponseEntity<AuthtypeResponseDto> getAuthTypeStatus(@PathVariable("IDType") String individualIdType,
-			@PathVariable("ID") String individualId) throws IdRepoAppException {
+	public ResponseEntity<AuthtypeResponseDto> getAuthTypeStatus(@PathVariable("ID") String individualId,
+			@PathVariable("IDType") String individualIdType) throws IdRepoAppException {
 		AuthtypeResponseDto authtypeResponseDto = new AuthtypeResponseDto();
 		boolean isIdTypeValid = false;
 		try {
@@ -316,7 +315,7 @@ public class IdRepoController {
 			Map<String, List<AuthtypeStatus>> authtypestatusmap = new HashMap<>();
 			authtypestatusmap.put("authTypes", authtypeStatusList);
 			authtypeResponseDto.setResponse(authtypestatusmap);
-			authtypeResponseDto.setResponseTime(DateUtils.getCurrentDateTimeString());
+			authtypeResponseDto.setResponsetime(DateUtils.getUTCCurrentDateTime());
 
 			auditHelper.audit(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
 					individualId, IdType.valueOf(individualIdType), "auth type status update status : " + true);
@@ -347,29 +346,26 @@ public class IdRepoController {
 	@ApiOperation(value = "Authenticate Internal Request", response = IdRepoAppException.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Request authenticated successfully"),
 			@ApiResponse(code = 400, message = "Request authenticated failed") })
-	public ResponseEntity<UpdateAuthtypeStatusResponseDto> updateAuthtypeStatus(
-			@Validated @RequestBody AuthTypeStatusDto authTypeStatusDto, @ApiIgnore Errors errors)
-			throws IdRepoAppException {
+	public ResponseEntity<IdResponseDTO> updateAuthtypeStatus(@PathVariable("ID") String individualId,
+			@PathVariable("IDType") String individualIdType,
+			@Validated @RequestBody RequestWrapper<List<AuthtypeStatus>> authTypeStatus) throws IdRepoAppException {
 		boolean isIdTypeValid = false;
 		try {
-			IdType idType = validator.validateIdTypeForAuthTypeStatus(authTypeStatusDto.getIndividualIdType());
+			IdType idType = validator.validateIdTypeForAuthTypeStatus(individualIdType);
 			isIdTypeValid = true;
-			validator.validateIdvId(authTypeStatusDto.getIndividualId(), idType);
-			UpdateAuthtypeStatusResponseDto updateAuthtypeStatus = authTypeStatusService
-					.updateAuthTypeStatus(authTypeStatusDto, idType);
+			validator.validateIdvId(individualId, idType);
+			IdResponseDTO updateAuthtypeStatus = authTypeStatusService.updateAuthTypeStatus(individualId, idType,
+					authTypeStatus.getRequest());
 			auditHelper.audit(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
-					authTypeStatusDto.getIndividualId(), IdType.valueOf(authTypeStatusDto.getIndividualIdType()),
-					"auth type status update status : " + true);
+					individualId, IdType.valueOf(individualIdType), "auth type status update status : " + true);
 			return new ResponseEntity<>(updateAuthtypeStatus, HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "updateAuthtypeStatus",
 					e.getMessage());
 			auditHelper.auditError(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
-					authTypeStatusDto.getIndividualId(),
-					isIdTypeValid ? IdType.valueOf(authTypeStatusDto.getIndividualIdType()) : IdType.UIN, e);
+					individualId, isIdTypeValid ? IdType.valueOf(individualIdType) : IdType.UIN, e);
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		}
-
 	}
 
 	/**

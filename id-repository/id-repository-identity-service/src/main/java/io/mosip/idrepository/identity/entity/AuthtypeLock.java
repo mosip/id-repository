@@ -26,10 +26,6 @@ import lombok.NoArgsConstructor;
 @IdClass(AuthtypeLock.Compositeclass.class)
 public class AuthtypeLock {
 
-	@Id
-	@NotNull
-	private String uin;
-
 	@NotNull
 	@Column(name = "uin_hash")
 	private String hashedUin;
@@ -87,8 +83,6 @@ public class AuthtypeLock {
 	static class Compositeclass implements Serializable {
 		
 		private static final long serialVersionUID = 1L;
-		
-		private String uin;
 		
 		private String authtypecode;
 		

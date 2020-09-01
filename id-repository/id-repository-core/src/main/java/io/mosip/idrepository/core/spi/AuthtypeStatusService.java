@@ -5,9 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.AuthTypeStatusDto;
 import io.mosip.idrepository.core.dto.AuthtypeStatus;
-import io.mosip.idrepository.core.dto.UpdateAuthtypeStatusResponseDto;
+import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 
 /**
@@ -29,7 +28,7 @@ public interface AuthtypeStatusService {
 	 */
 	public List<AuthtypeStatus> fetchAuthTypeStatus(String individualId, IdType idType) throws IdRepoAppException;
 
-	public UpdateAuthtypeStatusResponseDto updateAuthTypeStatus(AuthTypeStatusDto updateAuthtypeStatusRequestDto, IdType idType)
+	public IdResponseDTO updateAuthTypeStatus(String individualId, IdType idType, List<AuthtypeStatus> authTypeStatus)
 			throws IdRepoAppException;
 	
 }

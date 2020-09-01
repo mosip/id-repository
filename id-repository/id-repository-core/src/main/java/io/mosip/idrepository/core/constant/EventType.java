@@ -6,5 +6,5 @@ package io.mosip.idrepository.core.constant;
  */
 public enum EventType {
 
-	CREATE_UIN, UPDATE_UIN, CREATE_VID, UPDATE_VID, RETREIVE_VID;
+	CREATE_UIN, UPDATE_UIN, CREATE_VID, UPDATE_VID, RETREIVE_VID, AUTH_TYPE_STATUS_UPDATE;
 }

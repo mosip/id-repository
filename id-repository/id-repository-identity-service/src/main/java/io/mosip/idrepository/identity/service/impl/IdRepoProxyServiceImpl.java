@@ -709,16 +709,15 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		try {
 			EventsDTO events = new EventsDTO();
 			List<EventDTO> eventsList = new ArrayList<>();
-			eventsList.add(new EventDTO(eventType, uin, null, expiryTimestamp, null));
+			eventsList.add(new EventDTO(eventType, uin, null, null, null, expiryTimestamp, null));
 			if (eventType == EventType.UPDATE_UIN) {
-				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.VID_SERVICE, null,
+				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_VIDS_BY_UIN, null,
 						ResponseWrapper.class);
 				restRequest.setUri(restRequest.getUri().replace("{uin}", uin));
 				ResponseWrapper<EventsDTO> response = restHelper.requestSync(restRequest);
 				EventsDTO eventsDto = mapper.convertValue(response.getResponse(), EventsDTO.class);
-				response.getResponse();
 				eventsList.addAll(eventsDto.getEvents().stream()
-						.map(event -> new EventDTO(EventType.UPDATE_VID, uin, event.getVid(),
+						.map(event -> new EventDTO(EventType.UPDATE_VID, uin, event.getVid(), null, null,
 								Objects.isNull(expiryTimestamp) ? event.getExpiryTimestamp() : expiryTimestamp,
 								event.getTransactionLimit()))
 						.collect(Collectors.toList()));

@@ -23,7 +23,7 @@ public enum RestServicesConstants {
 	
 	ID_AUTH_SERVICE("mosip.idrepo.ida"), 
 	
-	VID_SERVICE("mosip.idrepo.vid-service"),
+	RETRIEVE_VIDS_BY_UIN("mosip.idrepo.vid-service"),
 	
 	RETRIEVE_UIN_BY_VID("mosip.idrepo.retrieve-uin-by-vid"),
 	

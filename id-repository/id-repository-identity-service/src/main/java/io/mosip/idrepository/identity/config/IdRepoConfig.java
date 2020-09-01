@@ -14,11 +14,13 @@ import javax.sql.DataSource;
 
 import org.hibernate.Interceptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -30,6 +32,9 @@ import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import io.mosip.idrepository.core.constant.EventType;
+import io.mosip.idrepository.core.constant.IdRepoConstants;
+import io.mosip.idrepository.core.dto.EventsDTO;
 import io.mosip.idrepository.core.exception.AuthenticationException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
@@ -37,6 +42,7 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.websub.spi.PublisherClient;
 
 /**
  * The Class IdRepoConfig.
@@ -47,6 +53,9 @@ import io.mosip.kernel.core.logger.spi.Logger;
 @ConfigurationProperties("mosip.idrepo.identity")
 @EnableTransactionManagement
 public class IdRepoConfig implements WebMvcConfigurer {
+	
+	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISHER_URL + "}")
+	public String publisherHubURL;
 
 	/** The mosip logger. */
 	Logger mosipLogger = IdRepoLogger.getLogger(IdRepoConfig.class);
@@ -76,9 +85,13 @@ public class IdRepoConfig implements WebMvcConfigurer {
 
 	/** The id. */
 	private Map<String, String> id;
+	
+	@Autowired
+	private PublisherClient<String, EventsDTO, HttpHeaders> publisher; 
 
 	@PostConstruct
 	public void init() {
+		publisher.registerTopic(EventType.AUTH_TYPE_STATUS_UPDATE.name(), publisherHubURL);
 		restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
 
 			@Override
