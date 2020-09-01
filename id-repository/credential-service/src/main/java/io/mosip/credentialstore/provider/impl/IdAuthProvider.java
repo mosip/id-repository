@@ -80,15 +80,15 @@ public class IdAuthProvider implements CredentialProvider {
 	/** The encryption util. */
 	@Autowired
 	EncryptionUtil encryptionUtil;
-	
+
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialStoreServiceImpl.class);
 
 	private static final String GET_FORAMTTED_DATA = "getFormattedCredentialData";
-	
+
 	private static final String IDAUTHPROVIDER = "IdAuthProvider";
-	
+
 	private ObjectMapper mapper;
-	
+
 
 	/* (non-Javadoc)
 	 * @see io.mosip.credentialstore.provider.CredentialProvider#getFormattedCredentialData(java.util.Map, io.mosip.idrepository.core.dto.CredentialServiceRequestDto, java.util.Map)
@@ -97,7 +97,7 @@ public class IdAuthProvider implements CredentialProvider {
 	public DataProviderResponse getFormattedCredentialData(	Map<String,Boolean> encryptMap,
 			CredentialServiceRequestDto credentialServiceRequestDto, Map<String, Object> sharableAttributeMap)
 			throws CredentialFormatterException {
-		
+
 		LOGGER.debug(IdRepoSecurityManager.getUser(), IDAUTHPROVIDER, GET_FORAMTTED_DATA,
 				"formatting the data start");
 		DataProviderResponse dataProviderResponse=new DataProviderResponse();
@@ -113,8 +113,8 @@ public class IdAuthProvider implements CredentialProvider {
 				Object value = entry.getValue();
 				String valueStr=null;
 				if (value instanceof String) {
-					valueStr=value.toString();   
-				}else { 
+					valueStr=value.toString();
+				}else {
 					valueStr=mapper.writeValueAsString(value);
 				}
 				if (encryptMap.get(key)) {
