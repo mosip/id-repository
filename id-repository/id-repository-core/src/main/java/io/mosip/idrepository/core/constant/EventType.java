@@ -1,5 +1,10 @@
 package io.mosip.idrepository.core.constant;
 
-public interface EventType {
+/**
+ * @author Manoj SP
+ *
+ */
+public enum EventType {
 
+	CREATE_UIN, UPDATE_UIN, CREATE_VID, UPDATE_VID, RETREIVE_VID;
 }

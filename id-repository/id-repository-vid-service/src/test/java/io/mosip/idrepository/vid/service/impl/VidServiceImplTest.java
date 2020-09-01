@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -65,7 +64,6 @@ import io.mosip.kernel.core.util.DateUtils;
  * @author Prem Kumar
  *
  */
-@Ignore
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
 @WebMvcTest
