@@ -23,11 +23,7 @@ public enum RestServicesConstants {
 	
 	ID_AUTH_SERVICE("mosip.idrepo.ida"), 
 	
-	VID_SERVICE("mosip.idrepo.vid-service"),
-	
-	PARTNER_SERVICE("mosip.idrepo.pmp.partner"),
-
-	CREDENTIAL_REQUEST_SERVICE("mosip.idrepo.credential.request");
+	VID_SERVICE("mosip.idrepo.vid-service");
 
 	/** The service name. */
 	private final String serviceName;
