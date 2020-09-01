@@ -48,6 +48,7 @@
 		<!-- Test & Logging -->
 		<junit.version>4.12</junit.version>
 		<mockito.version>2.22.0</mockito.version>
+		<kernel-websubclient-api.version>1.2.0-SNAPSHOT</kernel-websubclient-api.version>
 	</properties>
     <dependencies>
     	<!-- JUnit -->
