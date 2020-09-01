@@ -83,7 +83,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.UUIDUtils;
-import io.mosip.kernel.core.websub.spi.PublisherClient;
+import io.mosip.kernel.websub.api.client.PublisherClientImpl;
 
 /**
  * The Class VidServiceImpl - service implementation for {@code VidService}.
@@ -196,8 +196,9 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	@Value("${id-repo-websub-hub-url}")
 	private String webSubHubUrl;
 	
+	//TODO inject with interface not implementation
 	@Autowired
-	private PublisherClient<String, EventModel, HttpHeaders> pb;
+	private PublisherClientImpl<EventModel> pb;
 	
 	@Autowired
 	private TokenIDGenerator tokenIDGenerator;
