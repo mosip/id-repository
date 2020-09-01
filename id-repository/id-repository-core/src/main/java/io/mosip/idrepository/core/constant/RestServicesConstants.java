@@ -23,6 +23,10 @@ public enum RestServicesConstants {
 	
 	ID_AUTH_SERVICE("mosip.idrepo.ida"), 
 	
+	PARTNER_SERVICE("mosip.idrepo.pmp.partner"),
+
+	CREDENTIAL_REQUEST_SERVICE("mosip.idrepo.credential.request"),
+	
 	RETRIEVE_VIDS_BY_UIN("mosip.idrepo.vid-service"),
 	
 	RETRIEVE_UIN_BY_VID("mosip.idrepo.retrieve-uin-by-vid"),

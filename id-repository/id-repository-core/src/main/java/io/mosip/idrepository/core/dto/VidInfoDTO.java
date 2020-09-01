@@ -1,7 +1,6 @@
 package io.mosip.idrepository.core.dto;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import io.mosip.idrepository.core.constant.EventType;
 import lombok.AllArgsConstructor;
@@ -15,13 +14,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class EventDTO {
+public class VidInfoDTO {
 
-	private EventType eventType;
-	private String uin;
 	private String vid;
-	private String tokenId;
-	private List<AuthtypeStatus> authTypeStatusList;
 	private LocalDateTime expiryTimestamp;
 	private Integer transactionLimit;
 }

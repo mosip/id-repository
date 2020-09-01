@@ -13,14 +13,14 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
-import io.mosip.idrepository.core.constant.EventType;
+import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.AuthtypeStatus;
-import io.mosip.idrepository.core.dto.EventDTO;
-import io.mosip.idrepository.core.dto.EventsDTO;
+import io.mosip.idrepository.core.dto.IDAEventDTO;
+import io.mosip.idrepository.core.dto.IDAEventsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
@@ -56,7 +56,7 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 
 	/** The Constant HYPHEN. */
 	private static final String HYPHEN = "-";
-	
+
 	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISHER_URL + "}")
 	public String publisherHubURL;
 
@@ -78,12 +78,13 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	/** The rest builder. */
 	@Autowired
 	private RestRequestBuilder restBuilder;
-	
+
 	@Autowired
-	private PublisherClient<String, EventsDTO, HttpHeaders> publisher; 
-	
+	private PublisherClient<String, IDAEventsDTO, HttpHeaders> publisher;
+
 	@Autowired
 	private TokenIDGenerator tokenIdGenerator;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -123,17 +124,17 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	}
 
 	private void publishEvent(String individualId, List<AuthtypeStatus> authTypeStatusList) {
-		EventsDTO eventsDTO = new EventsDTO();
-		List<EventDTO> events = new ArrayList<>();
-		EventDTO event = new EventDTO();
+		IDAEventsDTO eventsDTO = new IDAEventsDTO();
+		List<IDAEventDTO> events = new ArrayList<>();
+		IDAEventDTO event = new IDAEventDTO();
 		event.setTokenId(tokenIdGenerator.generateTokenID(individualId, IdRepoConstants.PARTNER_ID));
 		event.setAuthTypeStatusList(authTypeStatusList);
 		events.add(event);
 		eventsDTO.setEvents(events);
-		publisher.publishUpdate(EventType.AUTH_TYPE_STATUS_UPDATE.name(), eventsDTO,
+		publisher.publishUpdate(IDAEventType.AUTH_TYPE_STATUS_UPDATE.name(), eventsDTO,
 				MediaType.APPLICATION_JSON_UTF8_VALUE, HttpHeaders.EMPTY, publisherHubURL);
 	}
-	
+
 	private String getUin(String vid) throws IdRepoAppException {
 		try {
 			RestRequestDTO request = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_UIN_BY_VID, null,

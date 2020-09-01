@@ -32,9 +32,9 @@ import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import io.mosip.idrepository.core.constant.EventType;
+import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
-import io.mosip.idrepository.core.dto.EventsDTO;
+import io.mosip.idrepository.core.dto.IDAEventsDTO;
 import io.mosip.idrepository.core.exception.AuthenticationException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
@@ -87,11 +87,11 @@ public class IdRepoConfig implements WebMvcConfigurer {
 	private Map<String, String> id;
 	
 	@Autowired
-	private PublisherClient<String, EventsDTO, HttpHeaders> publisher; 
+	private PublisherClient<String, IDAEventsDTO, HttpHeaders> publisher; 
 
 	@PostConstruct
 	public void init() {
-		publisher.registerTopic(EventType.AUTH_TYPE_STATUS_UPDATE.name(), publisherHubURL);
+		publisher.registerTopic(IDAEventType.AUTH_TYPE_STATUS_UPDATE.name(), publisherHubURL);
 		restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
 
 			@Override

@@ -1,4 +1,5 @@
 package io.mosip.idrepository.core.util;
+
 import java.math.BigInteger;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -6,10 +7,6 @@ import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.util.HMACUtils;
 
-/**
- * @author Manoj SP
- *
- */
 @Component
 public class TokenIDGenerator {
 

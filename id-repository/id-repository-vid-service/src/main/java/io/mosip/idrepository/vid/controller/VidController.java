@@ -3,6 +3,7 @@ package io.mosip.idrepository.vid.controller;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATA_VALIDATION_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.mosip.idrepository.core.constant.AuditEvents;
 import io.mosip.idrepository.core.constant.AuditModules;
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.EventsDTO;
+import io.mosip.idrepository.core.dto.VidInfoDTO;
 import io.mosip.idrepository.core.dto.VidRequestDTO;
 import io.mosip.idrepository.core.dto.VidResponseDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
@@ -93,7 +94,7 @@ public class VidController {
 
 	/** The Vid Service. */
 	@Autowired
-	private VidService<VidRequestDTO, ResponseWrapper<VidResponseDTO>, ResponseWrapper<EventsDTO>> vidService;
+	private VidService<VidRequestDTO, ResponseWrapper<VidResponseDTO>, ResponseWrapper<List<VidInfoDTO>>> vidService;
 
 	/** The Vid Request Validator. */
 	@Autowired
@@ -187,7 +188,7 @@ public class VidController {
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
 	@GetMapping(path = "/vid/uin/{UIN}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<ResponseWrapper<EventsDTO>> retrieveVidsByUin(@PathVariable("UIN") String uin)
+	public ResponseEntity<ResponseWrapper<List<VidInfoDTO>>> retrieveVidsByUin(@PathVariable("UIN") String uin)
 			throws IdRepoAppException {
 		try {
 			return new ResponseEntity<>(vidService.retrieveVidsByUin(uin), HttpStatus.OK);
