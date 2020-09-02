@@ -105,21 +105,21 @@ jobs:
         
     - name: Publish the maven package
       run: |
-        chmod +x ./deploy.sh
-        ./deploy.sh id-repository $GITHUB_WORKSPACE/settings.xml SNAPSHOT 
+        #chmod +x ./deploy.sh
+        cd id-repository && mvn deploy -DskipTests -s $GITHUB_WORKSPACE/settings.xml -f pom.xml
       env:
         GPG_TTY: $(tty)
     - name: Analyze with SonarCloud
-      run: cd id-repository && mvn -B verify sonar:sonar -Dsonar.projectKey=${{ secrets.PROJECT_KEY }} -Dsonar.organization=${{ secrets.ORG_KEY }} -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+      run: cd id-repository && mvn -B verify sonar:sonar -Dsonar.projectKey=${{secrets.PROJECT_KEY}} -Dsonar.organization=${{secrets.ORG_KEY}} -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{secrets.SONAR_TOKEN}}
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}     
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        SONAR_TOKEN: ${{secrets.SONAR_TOKEN }}     
   docker-id-repository-vid-service:
     needs: build
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: ${{ secrets. dev_namespace_docker_hub }}
+      NAMESPACE: ${{secrets.dev_namespace_docker_hub}}
       SERVICE_NAME: id-repository-vid-service
       SERVICE_LOCATION: id-repository/id-repository-vid-service
 
@@ -152,7 +152,7 @@ jobs:
           docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
 
       - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        run: echo "${{secrets.release_docker_hub}}" | docker login -u ${{secrets.actor_docker_hub}} --password-stdin
         
       - name: Push image
         run: |
@@ -172,7 +172,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: ${{ secrets. dev_namespace_docker_hub }}
+      NAMESPACE: ${{secrets. dev_namespace_docker_hub}}
       SERVICE_NAME: id-repository-identity-service
       SERVICE_LOCATION: id-repository/id-repository-identity-service
 
@@ -205,7 +205,7 @@ jobs:
           docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
 
       - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        run: echo "${{secrets.release_docker_hub}}" | docker login -u ${{secrets.actor_docker_hub}} --password-stdin
         
       - name: Push image
         run: |
@@ -225,7 +225,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: ${{ secrets. dev_namespace_docker_hub }}
+      NAMESPACE: ${{secrets.dev_namespace_docker_hub}}
       SERVICE_NAME: bioextractor-service
       SERVICE_LOCATION: id-repository/bioextractor-service
 
@@ -258,7 +258,7 @@ jobs:
           docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
 
       - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        run: echo "${{secrets.release_docker_hub}}" | docker login -u ${{secrets.actor_docker_hub}} --password-stdin
         
       - name: Push image
         run: |
@@ -279,7 +279,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: ${{ secrets. dev_namespace_docker_hub }}
+      NAMESPACE: ${{secrets.dev_namespace_docker_hub}}
       SERVICE_NAME: credential-request-generator
       SERVICE_LOCATION: id-repository/credential-request-generator
 
@@ -312,7 +312,7 @@ jobs:
           docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
 
       - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        run: echo "${{secrets.release_docker_hub}}" | docker login -u ${{secrets.actor_docker_hub}} --password-stdin
         
       - name: Push image
         run: |
@@ -332,7 +332,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: ${{ secrets. dev_namespace_docker_hub }}
+      NAMESPACE: ${{secrets.dev_namespace_docker_hub}}
       SERVICE_NAME: credential-service
       SERVICE_LOCATION: id-repository/credential-service
 
@@ -365,7 +365,7 @@ jobs:
           docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
 
       - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        run: echo "${{secrets.release_docker_hub}}" | docker login -u ${{secrets.actor_docker_hub}} --password-stdin
         
       - name: Push image
         run: |
