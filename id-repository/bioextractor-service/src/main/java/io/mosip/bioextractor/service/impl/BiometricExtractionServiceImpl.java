@@ -4,10 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import io.mosip.bioextractor.api.BiometricExtractionService;
-import io.mosip.bioextractor.dto.BioExtractRequestDTO;
-import io.mosip.bioextractor.dto.BioExtractResponseDTO;
 import io.mosip.bioextractor.exception.BiometricExtractionException;
 import io.mosip.bioextractor.service.helper.BioExtractionHelper;
+import io.mosip.idrepository.core.dto.BioExtractRequestDTO;
+import io.mosip.idrepository.core.dto.BioExtractResponseDTO;
 import io.mosip.kernel.core.util.CryptoUtil;
 
 @Service

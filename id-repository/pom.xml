@@ -8,6 +8,54 @@
 
 	<name>ID-Repository</name>
 	<description>MOSIP ID-Repository</description>
+	<url>https://github.com/mosip/id-repository</url>
+	
+	<licenses>
+		<license>
+			<name>MPL 2.0</name>
+			<url>https://www.mozilla.org/en-US/MPL/2.0/</url>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:git:git://github.com/mosip/id-repository.git</connection>
+		<developerConnection>scm:git:ssh://github.com:mosip/id-repository.git</developerConnection>
+		<url>https://github.com/mosip/id-repository</url>
+		<tag>HEAD</tag>
+	</scm>
+
+	<developers>
+		<developer>
+			<name>Mosip</name>
+			<email>mosip.emailnotifier@gmail.com</email>
+			<organization>io.mosip</organization>
+			<organizationUrl>https://github.com/mosip/id-repository</organizationUrl>
+		</developer>
+	</developers>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
+
+	<repositories>
+		<repository>
+		  <id>ossrh</id>
+		  <name>Central Repository</name>
+		  <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		  <layout>default</layout>
+		  <snapshots>
+			<enabled>true</enabled>
+		  </snapshots>
+		</repository>
+	</repositories>
+	
 	<modules>
 		<module>id-repository-core</module>
 		<module>id-repository-vid-service</module>
@@ -48,8 +96,6 @@
 		<!-- Test & Logging -->
 		<junit.version>4.12</junit.version>
 		<mockito.version>2.22.0</mockito.version>
-		<kernel-websubclient-api.version>1.2.0-SNAPSHOT</kernel-websubclient-api.version>
-		<kernel-core.version>1.2.0-SNAPSHOT</kernel-core.version>
 	</properties>
     <dependencies>
     	<!-- JUnit -->

@@ -35,7 +35,9 @@ public enum AuditEvents {
 	
 	CANCEL_CREDENTIAL_REQUEST("IDR-014", "System Event"),
 	
-	CREATE_CREDENTIAL("IDR-015", "System Event");
+	CREATE_CREDENTIAL("IDR-015", "System Event"),
+	
+	UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE("IDR-016", "System Event");
 	
 	
 

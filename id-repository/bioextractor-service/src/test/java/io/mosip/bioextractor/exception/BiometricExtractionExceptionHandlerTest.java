@@ -17,10 +17,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.WebRequest;
 
-import io.mosip.bioextractor.constant.BiometricExtractionErrorConstants;
-import io.mosip.bioextractor.exception.BiometricExtractionException;
-import io.mosip.bioextractor.exception.BiometricExtractionExceptionHandler;
-import io.mosip.bioextractor.exception.DataValidationException;
 import io.mosip.kernel.core.exception.ServiceError;
 
 @RunWith(SpringRunner.class)
