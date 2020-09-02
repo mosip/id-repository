@@ -20,8 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.EncryptZkResponseDto;
-import io.mosip.credentialstore.dto.PolicyDetailResponseDto;
-import io.mosip.credentialstore.dto.ShareableAttribute;
+
 import io.mosip.credentialstore.dto.ZkDataAttribute;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;

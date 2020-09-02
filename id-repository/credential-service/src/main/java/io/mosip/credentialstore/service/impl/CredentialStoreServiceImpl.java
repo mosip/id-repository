@@ -27,20 +27,19 @@ import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.constants.CredentialFormatter;
 import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
 import io.mosip.credentialstore.constants.CredentialType;
-
+import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.CredentialTypeResponse;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.DataShare;
 
 
 import io.mosip.credentialstore.dto.JsonValue;
-import io.mosip.credentialstore.dto.PolicyDetailResponseDto;
-import io.mosip.credentialstore.dto.ShareableAttribute;
-
+import io.mosip.credentialstore.dto.PolicyResponseDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
 import io.mosip.credentialstore.exception.DataShareException;
 import io.mosip.credentialstore.exception.IdRepoException;
+import io.mosip.credentialstore.exception.PolicyException;
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.service.CredentialStoreService;
 import io.mosip.credentialstore.util.DataShareUtil;
@@ -179,10 +178,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 		try{
 			String policyId=getPolicyId(credentialServiceRequestDto.getCredentialType());
-			PolicyDetailResponseDto policyDetailResponseDto = policyUtil.getPolicyDetail(policyId, credentialServiceRequestDto.getIssuer());
-		
+			PolicyResponseDto policyDetailResponseDto = policyUtil.getPolicyDetail(policyId, credentialServiceRequestDto.getIssuer());
 
-		if (policyDetailResponseDto != null) {
 			     if(credentialServiceRequestDto.getAdditionalData()==null) {
 			    	 Map<String,Object> additionalData=new HashMap<>();
 			    	 credentialServiceRequestDto.setAdditionalData(additionalData);
@@ -212,16 +209,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 				credentialServiceResponse.setIssuanceDate(dataProviderResponse.getIssuanceDate());
 				LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
 						"ended creating credential");
-			
-		} else {
-				ErrorDTO error = new ErrorDTO();
-				error.setErrorCode(CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorCode());
-				error.setMessage(CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorMessage());
-				errorList.add(error);
-				LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
-						CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorMessage());
 
-		}
 		
 		} catch (ApiNotAccessibleException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL, credentialServiceRequestDto.getId(), IdType.ID, e);
@@ -271,6 +259,15 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
+					ExceptionUtils.getStackTrace(e));
+		}catch(PolicyException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL, credentialServiceRequestDto.getId(), IdType.ID, e);
+			ErrorDTO error = new ErrorDTO();
+			error.setErrorCode(CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorMessage());
 			errorList.add(error);
 			
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
@@ -330,9 +327,9 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		return eventModel;
 	}
 
-	private Map<String, String> getFormatters(PolicyDetailResponseDto policyDetailResponseDto) {
+	private Map<String, String> getFormatters(PolicyResponseDto policyResponseDto) {
 		Map<String, String> formatterMap = new HashMap<>();
-		List<ShareableAttribute> sharableAttributeList=policyDetailResponseDto.getPolicies().getShareableAttributes();
+		List<AllowedKycDto> sharableAttributeList=policyResponseDto.getPolicies().getShareableAttributes();
 		sharableAttributeList.forEach(dto -> {
 			if(dto.getAttributeName().equalsIgnoreCase(CredentialConstants.FACE) ||dto.getAttributeName().equalsIgnoreCase(CredentialConstants.IRIS) ||dto.getAttributeName().equalsIgnoreCase(CredentialConstants.FINGER)) {
 				formatterMap.put(dto.getAttributeName(), dto.getFormat());
@@ -376,12 +373,12 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	 * @throws Exception 
 	 */
 	private Map<String, Object> setSharableAttributeValues(IdResponseDTO idResponseDto,
-			CredentialServiceRequestDto credentialServiceRequestDto, PolicyDetailResponseDto policyDetailResponseDto,Map<String,Boolean> encryptionMap) throws Exception {
+			CredentialServiceRequestDto credentialServiceRequestDto, PolicyResponseDto policyResponseDto,Map<String,Boolean> encryptionMap) throws Exception {
 
 		Map<String, Object> attributesMap = new HashMap<>(); 
 		JSONObject identity = new JSONObject((Map) idResponseDto.getResponse().getIdentity());
 
-		List<ShareableAttribute> sharableAttributeList=policyDetailResponseDto.getPolicies().getShareableAttributes();
+		List<AllowedKycDto> sharableAttributeList=policyResponseDto.getPolicies().getShareableAttributes();
 		Set<String> sharableAttributeDemographicKeySet=new HashSet<>();
 		Set<String> sharableAttributeBiometricKeySet=new HashSet<>();
 		
@@ -440,7 +437,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 				Collectors.toMap(bir -> {
 					List<String> subtype = bir.getBdbInfo().getSubtype();
 					String type = bir.getBdbInfo().getType().get(0).value();
-					return subtype.isEmpty() ? type : (type + " " + subtype.get(0));
+					return subtype.isEmpty() ? type : (type + "_" + subtype.get(0));
 				},
 		  				bir -> (byte[])bir.getBdb())
 				));

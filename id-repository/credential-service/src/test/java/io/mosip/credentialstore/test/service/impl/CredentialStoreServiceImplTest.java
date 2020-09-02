@@ -27,18 +27,20 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.context.WebApplicationContext;
 
 import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
+import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.CredentialTypeResponse;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.DataShare;
-import io.mosip.credentialstore.dto.DataSharePolicies;
-import io.mosip.credentialstore.dto.Policies;
-import io.mosip.credentialstore.dto.PolicyDetailResponseDto;
-import io.mosip.credentialstore.dto.ShareableAttribute;
+import io.mosip.credentialstore.dto.DataShareDto;
+
+import io.mosip.credentialstore.dto.PolicyAttributesDto;
+import io.mosip.credentialstore.dto.PolicyResponseDto;
 import io.mosip.credentialstore.dto.Type;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
 import io.mosip.credentialstore.exception.DataShareException;
 import io.mosip.credentialstore.exception.IdRepoException;
+import io.mosip.credentialstore.exception.PolicyException;
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.service.CredentialStoreService;
 import io.mosip.credentialstore.service.impl.CredentialStoreServiceImpl;
@@ -123,28 +125,28 @@ public class CredentialStoreServiceImplTest {
 		
 		Mockito.when(env.getProperty("credentialType.formatter.MOSIP"))
 		.thenReturn("CredentialDefaultProvider");
-		PolicyDetailResponseDto policyDetailResponseDto = new PolicyDetailResponseDto();
+		PolicyResponseDto policyDetailResponseDto = new PolicyResponseDto();
 		policyDetailResponseDto.setPolicyId("45678451034176");
 		policyDetailResponseDto.setVersion("1.1");
 		policyDetailResponseDto.setPolicyName("Digital QR Code Policy");
 		policyDetailResponseDto.setPolicyDesc("");
-		DataSharePolicies dataSharePolicies = new DataSharePolicies();
+		DataShareDto dataSharePolicies = new DataShareDto();
 		dataSharePolicies.setEncryptionType("partnerBased");
 		dataSharePolicies.setShareDomain("mosip.io");
-		dataSharePolicies.setTransactionsAllowed(2);
-		dataSharePolicies.setValidForInMinutes(30);
-		Policies policies = new Policies();
+		dataSharePolicies.setTransactionsAllowed("2");
+		dataSharePolicies.setValidForInMinutes("30");
+		PolicyAttributesDto policies = new PolicyAttributesDto();
 		policies.setDataSharePolicies(dataSharePolicies);
-		List<ShareableAttribute> sharableAttributesList = new ArrayList<ShareableAttribute>();
-		ShareableAttribute shareableAttribute1 = new ShareableAttribute();
+		List<AllowedKycDto> sharableAttributesList = new ArrayList<AllowedKycDto>();
+		AllowedKycDto shareableAttribute1 = new AllowedKycDto();
 		shareableAttribute1.setAttributeName("fullName");
 		shareableAttribute1.setEncrypted(true);
 		sharableAttributesList.add(shareableAttribute1);
-		ShareableAttribute shareableAttribute2 = new ShareableAttribute();
+		AllowedKycDto shareableAttribute2 = new AllowedKycDto();
 		shareableAttribute2.setAttributeName("dateOfBirth");
 		shareableAttribute2.setEncrypted(true);
 		sharableAttributesList.add(shareableAttribute2);
-		ShareableAttribute shareableAttribute3 = new ShareableAttribute();
+		AllowedKycDto shareableAttribute3 = new AllowedKycDto();
 		shareableAttribute3.setAttributeName("face");
 		shareableAttribute3.setEncrypted(true);
 		shareableAttribute3.setFormat("extraction");
@@ -227,13 +229,14 @@ public class CredentialStoreServiceImplTest {
 	    assertEquals(credentialServiceResponseDto.getResponse().getStatus(),"DONE");
 	}
 	@Test
-	public void testCreateCredentialIssuePolicyFailure() {
+	public void testCreateCredentialIssuePolicyFailure() throws PolicyException, ApiNotAccessibleException {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
 		credentialServiceRequestDto.setCredentialType("mosip");
 		credentialServiceRequestDto.setId("4238135072");
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
-	 	Mockito.when(policyUtil.getPolicyDetail(Mockito.anyString(), Mockito.anyString())).thenReturn(null);
+		PolicyException e = new PolicyException();
+	 	Mockito.when(policyUtil.getPolicyDetail(Mockito.anyString(), Mockito.anyString())).thenThrow(e);
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorMessage());
 	}
