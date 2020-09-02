@@ -30,7 +30,7 @@ import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.util.CryptoUtil;
-@Ignore
+
 @RunWith(SpringRunner.class)
 @WebMvcTest
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class})
