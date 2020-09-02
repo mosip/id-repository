@@ -436,8 +436,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			VidResponseDTO response = updateVidStatus(vidStatus, vidObject, decryptedUin, policy);
 			return buildResponse(response, id.get("update"));
 		} catch (IdRepoAppUncheckedException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, UPDATE_VID,
-					"\n" + e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, UPDATE_VID, "\n" + e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, UPDATE_VID, e.getMessage());
@@ -713,20 +712,19 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	private List<String> getPartnerIds() {
 		try {
 			Map<String, Object> responseWrapperMap = restHelper.requestSync(restBuilder.buildRequest(RestServicesConstants.PARTNER_SERVICE, null, Map.class));
 			Object response = responseWrapperMap.get("response");
 			if(response instanceof Map) {
-				Map<String, Object> responseMap = (Map<String, Object>) response;
 				Object partners = responseWrapperMap.get("partners");
 				if(partners instanceof List) {
 					List<Map<String, Object>> partnersList = (List<Map<String, Object>>) partners;
-					List<String> partnerIds = partnersList.stream()
+					return partnersList.stream()
 								.filter(partner -> PARNER_ACTIVE_STATUS.equalsIgnoreCase((String)partner.get("status")))
 								.map(partner -> (String)partner.get("partnerID"))
 								.collect(Collectors.toList());
-					return partnerIds;
 				}
 			}
 		} catch (RestServiceException | IdRepoDataValidationException e) {

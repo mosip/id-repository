@@ -1,8 +1,8 @@
 package io.mosip.bioextractor.api;
 
-import io.mosip.bioextractor.dto.BioExtractRequestDTO;
-import io.mosip.bioextractor.dto.BioExtractResponseDTO;
 import io.mosip.bioextractor.exception.BiometricExtractionException;
+import io.mosip.idrepository.core.dto.BioExtractRequestDTO;
+import io.mosip.idrepository.core.dto.BioExtractResponseDTO;
 
 public interface BiometricExtractionService {
 

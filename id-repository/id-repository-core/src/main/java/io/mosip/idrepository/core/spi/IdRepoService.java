@@ -1,5 +1,8 @@
 package io.mosip.idrepository.core.spi;
 
+import java.util.Set;
+
+import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 
 /**
@@ -38,34 +41,14 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 * 4. If no identity type is provided, stored Identity details of the
 	 * Individual will be returned as a default response.
 	 *
-	 * @param uin the uin
-	 * @param filter the filter
+	 * @param id uin/vid/rid
+	 * @param idType 
+	 * @param type the type
+	 * @param extractionFormat 
 	 * @return the response
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	RESPONSE retrieveIdentityByUin(String uin, String filter) throws IdRepoAppException;
-	
-	/**
-	 * This service will retrieve an ID record from ID repository for a given RID
-	 * (Registration ID) and identity type as bio/demo/all.
-	 * 
-	 * 1. When type=bio is selected, individualBiometrics along with Identity
-	 * details of the Individual are returned 
-	 * 2. When type=demo is selected,
-	 * Demographic documents along with Identity details of the Individual are
-	 * returned 
-	 * 3. When type=all is selected, both individualBiometrics and
-	 * demographic documents are returned along with Identity details of the
-	 * Individual 
-	 * 4. If no identity type is provided, stored Identity details of the
-	 * Individual will be returned as a default response.
-	 * *
-	 * @param rid the rid
-	 * @param filter the filter
-	 * @return the response
-	 * @throws IdRepoAppException  the id repo app exception
-	 */ 
-	RESPONSE retrieveIdentityByRid(String rid, String filter) throws IdRepoAppException;
+	RESPONSE retrieveIdentity(String id, IdType idType, String type, Set<String> extractionFormats) throws IdRepoAppException;
 
 	/**
 	 * This operation will update an existing ID record in the ID repository for a 

@@ -1,6 +1,7 @@
 package io.mosip.bioextractor.service.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Before;
@@ -16,10 +17,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.WebApplicationContext;
 
-import io.mosip.bioextractor.dto.BioExtractRequestDTO;
-import io.mosip.bioextractor.dto.BioExtractResponseDTO;
 import io.mosip.bioextractor.service.helper.BioExtractionHelper;
-import io.mosip.bioextractor.service.impl.BiometricExtractionServiceImpl;
+import io.mosip.idrepository.core.dto.BioExtractRequestDTO;
+import io.mosip.idrepository.core.dto.BioExtractResponseDTO;
 import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
 import io.mosip.kernel.biosdk.provider.spi.iBioProviderApi;
 import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
@@ -61,7 +61,7 @@ public class BiometricExtractionServiceImplTest {
 		
 		Mockito.when(cbeffUtil.getBIRDataFromXML(Mockito.any())).thenReturn((List<BIRType>) Mockito.mock(List.class));
 		List<BIR> listBir = new ArrayList<>();
-		BIR bir= new BIR.BIRBuilder().withBdbInfo(new BDBInfo.BDBInfoBuilder().withType(List.of(SingleType.FINGER)).build()).build();
+		BIR bir= new BIR.BIRBuilder().withBdbInfo(new BDBInfo.BDBInfoBuilder().withType(Collections.singletonList(SingleType.FINGER)).build()).build();
 		listBir.add(bir);
 		Mockito.when(cbeffUtil.convertBIRTypeToBIR(Mockito.any())).thenReturn(listBir);
 		

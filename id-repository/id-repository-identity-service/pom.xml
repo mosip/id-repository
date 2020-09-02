@@ -24,13 +24,15 @@
 		<kernel.fsadapter.hdfs.version>1.0.6</kernel.fsadapter.hdfs.version>
 		<kernel.idobjectvalidator.version>1.0.9</kernel.idobjectvalidator.version>
 		<kernel.bioapi.provider.version>1.0.9</kernel.bioapi.provider.version>
+		<kernel-websubclient-api.version>1.2.0-SNAPSHOT</kernel-websubclient-api.version>
+		<kernel-idvalidator-vid.version>1.0.6</kernel-idvalidator-vid.version>
 	</properties>
 
 	<dependencies>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-core</artifactId>
-			<version>${kernel-core.version}</version>
+			<version>${kernel.core.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
@@ -74,9 +76,14 @@
 			<version>${kernel.bioapi.provider.version}</version>
 		</dependency>
 		<dependency>
-		  <groupId>io.mosip.kernel</groupId>
-		  <artifactId>kernel-websubclient-api</artifactId>
-		  <version>${kernel-websubclient-api.version}</version>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-websubclient-api</artifactId>
+			<version>${kernel-websubclient-api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idvalidator-vid</artifactId>
+			<version>${kernel-idvalidator-vid.version}</version>
 		</dependency>
 	</dependencies>
 	<build>

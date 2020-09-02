@@ -436,7 +436,7 @@ public class IdRequestValidatorTest {
 			when(uinValidator.validateId(anyString()))
 					.thenThrow(new InvalidIDException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
 							String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), UIN)));
-			validator.validateUin("1234", "read");
+			validator.validateUin("1234");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
 			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), UIN),
@@ -454,7 +454,7 @@ public class IdRequestValidatorTest {
 	public void testValidateNullId() throws IdRepoAppException {
 		try {
 			when(uinValidator.validateId(null)).thenThrow(new InvalidIDException(null, null));
-			validator.validateUin(null, "create");
+			validator.validateUin(null);
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
 			assertEquals(
