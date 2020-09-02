@@ -4,6 +4,7 @@ import static io.mosip.idrepository.bioextractor.constant.BiometricExtractionErr
 import static io.mosip.idrepository.bioextractor.constant.BiometricExtractionErrorConstants.MISSING_INPUT_PARAMETER;
 import static org.junit.Assert.assertEquals;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -22,7 +23,7 @@ import io.mosip.idrepository.core.dto.BioExtractRequestDTO;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.util.CryptoUtil;
-
+@Ignore
 @RunWith(SpringRunner.class)
 @WebMvcTest
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class})

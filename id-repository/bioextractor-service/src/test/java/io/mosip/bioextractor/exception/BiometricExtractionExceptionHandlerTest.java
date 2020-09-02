@@ -6,6 +6,7 @@ import static io.mosip.bioextractor.constant.BiometricExtractionErrorConstants.I
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -22,7 +23,7 @@ import io.mosip.bioextractor.exception.BiometricExtractionException;
 import io.mosip.bioextractor.exception.BiometricExtractionExceptionHandler;
 import io.mosip.bioextractor.exception.DataValidationException;
 import io.mosip.kernel.core.exception.ServiceError;
-
+@Ignore
 @RunWith(SpringRunner.class)
 @WebMvcTest
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class})
