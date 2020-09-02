@@ -20,11 +20,11 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.context.WebApplicationContext;
 
-import io.mosip.bioextractor.dto.BioExtractRequestDTO;
-import io.mosip.bioextractor.dto.BioExtractResponseDTO;
 import io.mosip.bioextractor.service.helper.BioExtractionHelper;
 import io.mosip.bioextractor.service.impl.BiometricExtractionServiceImpl;
 import io.mosip.bioextractor.validator.BiometricExtractionRequestValidator;
+import io.mosip.idrepository.core.dto.BioExtractRequestDTO;
+import io.mosip.idrepository.core.dto.BioExtractResponseDTO;
 import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
 import io.mosip.kernel.biosdk.provider.spi.iBioProviderApi;
 import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
