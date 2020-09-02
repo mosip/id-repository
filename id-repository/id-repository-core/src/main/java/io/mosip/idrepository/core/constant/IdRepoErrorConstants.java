@@ -77,9 +77,9 @@ public enum IdRepoErrorConstants {
 	/** The masterdata retrieve error. */
 	SCHEMA_RETRIEVE_ERROR("IDR-IDS-008", "Failed to retrieve Identity Schema from kernel Syncdata service"),
 	
-	BIO_EXTRACTION_ERROR("IDR-IDS-007", "Failed to extract template from bio extractor service"),
+	BIO_EXTRACTION_ERROR("IDR-IDS-009", "Failed to extract template from bio extractor service"),
 	
-	VID_SERVICE_RETRIEVAL_ERROR("IDR-IDS-007", "Failed to retrieve data from vid service"),
+	VID_SERVICE_RETRIEVAL_ERROR("IDR-IDS-010", "Failed to retrieve data from vid service"),
 	
 	// VID Service
 	
