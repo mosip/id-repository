@@ -100,6 +100,8 @@ public class IdRepoConstants {
 	
 	public static final String PARTNER_ID = "PARTNER";
 	
+	public static final String OBJECT_STORE_ACCOUNT_NAME = "mosip.idrepo.objectstore.account-name";
+	
 	/** The value. */
 	private final String value;
 
