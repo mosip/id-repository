@@ -3,6 +3,7 @@ package io.mosip.idrepository.identity.service.impl;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.OBJECT_STORE_ACCOUNT_NAME;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
@@ -50,6 +51,7 @@ import org.springframework.transaction.TransactionException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.EventType;
 import io.mosip.idrepository.core.constant.IDAEventType;
@@ -86,15 +88,12 @@ import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
-import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
-import io.mosip.kernel.core.fsadapter.spi.FileSystemAdapter;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.spi.PublisherClient;
-import io.mosip.kernel.fsadapter.hdfs.constant.HDFSAdapterErrorCode;
 
 /**
  * The Class IdRepoServiceImpl - Service implementation for Identity service.
@@ -180,6 +179,12 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	/** The Constant DOT. */
 	private static final String DOT = ".";
+	
+	@Value("${" + OBJECT_STORE_ACCOUNT_NAME + "}")
+	private String objectStoreAccountName;
+	
+	@Autowired
+	private ObjectStoreAdapter objectStore;
 
 	/** The env. */
 	@Autowired
@@ -204,10 +209,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	/** The uin history repo. */
 	@Autowired
 	private UinHistoryRepo uinHistoryRepo;
-
-	/** The dfs provider. */
-	@Autowired
-	private FileSystemAdapter fsAdapter;
 
 	/** The service. */
 	@Autowired
@@ -502,8 +503,13 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		uinObject.getDocuments().stream().forEach(demo -> {
 			try {
 				String fileName = DEMOGRAPHICS + SLASH + demo.getDocId();
-				byte[] data = securityManager
-						.decrypt(IOUtils.toByteArray(fsAdapter.getFile(uinObject.getUinHash(), fileName)));
+				if (!objectStore.exists(objectStoreAccountName, uinObject.getUinHash(), fileName)) {
+					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getDemographicFiles",
+							"FILE NOT FOUND IN OBJECT STORE");
+					throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
+				}
+				byte[] data = securityManager.decrypt(IOUtils
+						.toByteArray(objectStore.getObject(objectStoreAccountName, uinObject.getUinHash(), fileName)));
 				if (demo.getDocHash().equals(securityManager.hash(data))) {
 					documents.add(new DocumentsDTO(demo.getDoccatCode(), CryptoUtil.encodeBase64(data)));
 				} else {
@@ -515,14 +521,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
 						"\n" + e.getMessage());
 				throw new IdRepoAppUncheckedException(e.getErrorCode(), e.getErrorText(), e);
-			} catch (FSAdapterException e) {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
-						"\n" + e.getMessage());
-				throw new IdRepoAppUncheckedException(
-						e.getErrorCode().equals(HDFSAdapterErrorCode.FILE_NOT_FOUND_EXCEPTION.getErrorCode())
-								? FILE_NOT_FOUND
-								: FILE_STORAGE_ACCESS_ERROR,
-						e);
 			} catch (IOException e) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
 						"\n" + e.getMessage());
@@ -546,12 +544,17 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			if (allowedBioAttributes.contains(bio.getBiometricFileType())) {
 				try {
 					String fileName = BIOMETRICS + SLASH + bio.getBioFileId();
+					if (!objectStore.exists(objectStoreAccountName, uinObject.getUinHash(), fileName)) {
+						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricFiles",
+								"FILE NOT FOUND IN OBJECT STORE");
+						throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
+					}
 					byte[] data = null;
 					if (Objects.nonNull(extractionFormats) && !extractionFormats.isEmpty()) {
 						data = extractTemplates(uinObject.getUinHash(), fileName, extractionFormats);
 					} else {
-						data = securityManager
-								.decrypt(IOUtils.toByteArray(fsAdapter.getFile(uinObject.getUinHash(), fileName)));
+						data = securityManager.decrypt(IOUtils.toByteArray(
+								objectStore.getObject(objectStoreAccountName, uinObject.getUinHash(), fileName)));
 					}
 					if (Objects.nonNull(data)) {
 						if (StringUtils.equals(bio.getBiometricFileHash(), securityManager.hash(data))) {
@@ -565,13 +568,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				} catch (IdRepoAppException e) {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES, e.getMessage());
 					throw new IdRepoAppUncheckedException(e.getErrorCode(), e.getErrorText(), e);
-				} catch (FSAdapterException e) {
-					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES, e.getMessage());
-					throw new IdRepoAppUncheckedException(
-							e.getErrorCode().equals(HDFSAdapterErrorCode.FILE_NOT_FOUND_EXCEPTION.getErrorCode())
-									? FILE_NOT_FOUND
-									: FILE_STORAGE_ACCESS_ERROR,
-							e);
 				} catch (IOException e) {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES, e.getMessage());
 					throw new IdRepoAppUncheckedException(FILE_STORAGE_ACCESS_ERROR, e);
@@ -616,21 +612,22 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	private byte[] extractTemplate(String uinHash, String fileName, String extractionFormat) throws IdRepoAppException {
 		try {
 			String extractionFileName = fileName.split(".")[0] + DOT + extractionFormat;
-			if (fsAdapter.checkFileExistence(uinHash, extractionFileName)) {
-				return securityManager.decrypt(IOUtils.toByteArray(fsAdapter.getFile(uinHash, fileName)));
+			if (objectStore.exists(objectStoreAccountName, uinHash, extractionFileName)) {
+				return securityManager.decrypt(IOUtils
+						.toByteArray(objectStore.getObject(objectStoreAccountName, uinHash, extractionFileName)));
 			}
-			if (fsAdapter.checkFileExistence(uinHash, fileName)) {
+			if (objectStore.exists(objectStoreAccountName, uinHash, fileName)) {
 				RequestWrapper<BioExtractRequestDTO> request = new RequestWrapper<>();
 				BioExtractRequestDTO bioExtractReq = new BioExtractRequestDTO();
-				bioExtractReq.setBiometrics(CryptoUtil.encodeBase64(
-						securityManager.decrypt(IOUtils.toByteArray(fsAdapter.getFile(uinHash, fileName)))));
+				bioExtractReq.setBiometrics(CryptoUtil.encodeBase64(securityManager.decrypt(
+						IOUtils.toByteArray(objectStore.getObject(objectStoreAccountName, uinHash, fileName)))));
 				request.setRequest(bioExtractReq);
 				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.BIO_EXTRACTOR_SERVICE, null,
 						ResponseWrapper.class);
 				restRequest.setUri(restRequest.getUri().replace("{extractionFormat}", extractionFormat));
 				ResponseWrapper<Map<String, String>> response = restHelper.requestSync(restRequest);
 				byte[] extractedBiometrics = CryptoUtil.decodeBase64(response.getResponse().get("extractedBiometrics"));
-				fsAdapter.storeFile(uinHash, fileName,
+				objectStore.putObject(objectStoreAccountName, uinHash, fileName,
 						new ByteArrayInputStream(securityManager.encrypt(extractedBiometrics)));
 				return extractedBiometrics;
 			} else {

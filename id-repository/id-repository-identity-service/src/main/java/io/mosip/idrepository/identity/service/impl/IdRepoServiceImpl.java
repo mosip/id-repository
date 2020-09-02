@@ -7,6 +7,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_NAME_ATTR
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FMR_ENABLED;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MOSIP_PRIMARY_LANGUAGE;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.OBJECT_STORE_ACCOUNT_NAME;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_NOT_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR;
@@ -35,6 +36,7 @@ import org.skyscreamer.jsonassert.JSONCompare;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.skyscreamer.jsonassert.JSONCompareResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +52,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 
+import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
@@ -75,12 +78,10 @@ import io.mosip.idrepository.identity.repository.UinRepo;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
-import io.mosip.kernel.core.fsadapter.spi.FileSystemAdapter;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.UUIDUtils;
-import io.mosip.kernel.fsadapter.hdfs.constant.HDFSAdapterErrorCode;
 
 /**
  * The Class IdRepoServiceImpl - Service implementation for Identity service.
@@ -88,9 +89,6 @@ import io.mosip.kernel.fsadapter.hdfs.constant.HDFSAdapterErrorCode;
 @Component
 @Transactional(rollbackFor = { IdRepoAppException.class, IdRepoAppUncheckedException.class })
 public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
-
-	/** The Constant GET_FILES. */
-	private static final String GET_FILES = "getFiles";
 
 	/** The Constant UPDATE_IDENTITY. */
 	private static final String UPDATE_IDENTITY = "updateIdentity";
@@ -130,6 +128,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	/** The Constant DEMOGRAPHICS. */
 	private static final String DEMOGRAPHICS = "Demographics";
+	
+	@Value("${" + OBJECT_STORE_ACCOUNT_NAME + "}")
+	private String objectStoreAccountName;
+	
+	@Autowired
+	private ObjectStoreAdapter objectStore;
 
 	/** The env. */
 	@Autowired
@@ -162,10 +166,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	/** The cbeff util. */
 	@Autowired
 	private CbeffUtil cbeffUtil;
-
-	/** The dfs provider. */
-	@Autowired
-	private FileSystemAdapter fsAdapter;
 
 	/** The security manager. */
 	@Autowired
@@ -305,7 +305,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			data = CryptoUtil.decodeBase64(doc.getValue());
 		}
 
-		fsAdapter.storeFile(uinHash, BIOMETRICS + SLASH + fileRefId,
+		objectStore.putObject(objectStoreAccountName, uinHash, BIOMETRICS + SLASH + fileRefId,
 				new ByteArrayInputStream(securityManager.encrypt(data)));
 
 		bioList.add(new UinBiometric(uinRefId, fileRefId, doc.getCategory(), docType.get(FILE_NAME_ATTRIBUTE).asText(),
@@ -342,7 +342,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				.toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
 
 		byte[] data = CryptoUtil.decodeBase64(doc.getValue());
-		fsAdapter.storeFile(uinHash, DEMOGRAPHICS + SLASH + fileRefId,
+		
+		objectStore.putObject(objectStoreAccountName, uinHash, DEMOGRAPHICS + SLASH + fileRefId,
 				new ByteArrayInputStream(securityManager.encrypt(data)));
 
 		docList.add(new UinDocument(uinRefId, doc.getCategory(), docType.get(TYPE).asText(), fileRefId,
@@ -693,8 +694,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				.filter(doc -> StringUtils.equals(bio.getBiometricFileType(), doc.getCategory())).forEach(doc -> {
 					try {
 						String fileName = BIOMETRICS + SLASH + bio.getBioFileId();
-						byte[] data = securityManager
-								.decrypt(IOUtils.toByteArray(fsAdapter.getFile(uinObject.getUinHash(), fileName)));
+						if (!objectStore.exists(objectStoreAccountName, uinObject.getUinHash(), fileName)) {
+							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateCbeff",
+									"FILE NOT FOUND IN OBJECT STORE");
+							throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
+						}
+						byte[] data = securityManager.decrypt(IOUtils.toByteArray(
+								objectStore.getObject(objectStoreAccountName, uinObject.getUinHash(), fileName)));
 						if (StringUtils.equalsIgnoreCase(
 								identityMap.get(bio.getBiometricFileType()).get(FILE_FORMAT_ATTRIBUTE).asText(),
 								CBEFF_FORMAT) && fileName.endsWith(CBEFF_FORMAT)) {
@@ -703,14 +709,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 											cbeffUtil.getBIRDataFromXML(CryptoUtil.decodeBase64(doc.getValue()))),
 									data)));
 						}
-					} catch (FSAdapterException e) {
-						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
-								e.getMessage());
-						throw new IdRepoAppUncheckedException(
-								e.getErrorCode().equals(HDFSAdapterErrorCode.FILE_NOT_FOUND_EXCEPTION.getErrorCode())
-										? FILE_NOT_FOUND
-										: FILE_STORAGE_ACCESS_ERROR,
-								e);
 					} catch (Exception e) {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 								"\n" + e.getMessage());
