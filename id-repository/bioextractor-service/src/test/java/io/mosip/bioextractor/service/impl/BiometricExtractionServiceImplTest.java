@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -21,7 +20,6 @@ import org.springframework.web.context.WebApplicationContext;
 import io.mosip.bioextractor.dto.BioExtractRequestDTO;
 import io.mosip.bioextractor.dto.BioExtractResponseDTO;
 import io.mosip.bioextractor.service.helper.BioExtractionHelper;
-import io.mosip.bioextractor.service.impl.BiometricExtractionServiceImpl;
 import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
 import io.mosip.kernel.biosdk.provider.spi.iBioProviderApi;
 import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;

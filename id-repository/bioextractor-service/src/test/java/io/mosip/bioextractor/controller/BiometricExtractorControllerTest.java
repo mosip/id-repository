@@ -5,13 +5,11 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
@@ -22,7 +20,6 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.context.WebApplicationContext;
 
-import io.mosip.bioextractor.controller.BiometricExtractorController;
 import io.mosip.bioextractor.dto.BioExtractRequestDTO;
 import io.mosip.bioextractor.dto.BioExtractResponseDTO;
 import io.mosip.bioextractor.service.helper.BioExtractionHelper;
