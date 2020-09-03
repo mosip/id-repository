@@ -16,7 +16,7 @@ ARG is_glowroot
 ARG artifactory_url
 
 # can be passed during Docker build as build time environment for extraction format
-ARG extraction_format
+ARG extraction_format=mock
 
 ARG bio_sdk_folder=mock/0.9
 
