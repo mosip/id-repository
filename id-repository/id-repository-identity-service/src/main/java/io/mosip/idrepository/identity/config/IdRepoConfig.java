@@ -43,6 +43,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.websub.spi.PublisherClient;
+import io.mosip.kernel.websub.api.exception.WebSubClientException;
 
 /**
  * The Class IdRepoConfig.
@@ -91,7 +92,11 @@ public class IdRepoConfig implements WebMvcConfigurer {
 
 	@PostConstruct
 	public void init() {
-		publisher.registerTopic(IDAEventType.AUTH_TYPE_STATUS_UPDATE.name(), publisherHubURL);
+		try {
+			publisher.registerTopic(IDAEventType.AUTH_TYPE_STATUS_UPDATE.name(), publisherHubURL);
+		} catch (WebSubClientException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), "IdRepoConfig", "init", e.getMessage().toUpperCase());
+		}
 		restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
 
 			@Override
