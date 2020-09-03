@@ -26,7 +26,7 @@ public enum CredentialServiceErrorCodes {
 	UNKNOWN_EXCEPTION("IDR-CRS-007", "unknown exception"),
 
 	/** The policy exception. */
-	POLICY_EXCEPTION("IDR-CRS-008", "Policy details not present"),
+	POLICY_EXCEPTION("IDR-CRS-008", "Failed to get policy details"),
 
 	/** The io exception. */
 	IO_EXCEPTION("IDR-CRS-009", "IO exception"),
@@ -38,6 +38,7 @@ public enum CredentialServiceErrorCodes {
 	DATA_ENCRYPTION_FAILURE_EXCEPTION("IDR-CRS-013", "Data Encryption failed"),
 	
 	WEBSUB_FAIL_EXCEPTION("IDR-CRS-014", "Websub event failed");
+	
 
 	/** The error code. */
 	private final String errorCode;

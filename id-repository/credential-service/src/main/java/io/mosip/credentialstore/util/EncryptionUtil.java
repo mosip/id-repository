@@ -22,7 +22,7 @@ import io.mosip.credentialstore.dto.CryptoWithPinResponseDto;
 import io.mosip.credentialstore.dto.CryptoZkResponseDto;
 import io.mosip.credentialstore.dto.EncryptZkRequestDto;
 import io.mosip.credentialstore.dto.EncryptZkResponseDto;
-import io.mosip.credentialstore.dto.PolicyDetailResponseDto;
+
 import io.mosip.credentialstore.dto.ZkDataAttribute;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.DataEncryptionFailureException;

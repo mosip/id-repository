@@ -1,12 +1,14 @@
 package io.mosip.credentialstore.util;
 
 import java.io.IOException;
+import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.SSLContext;
 
@@ -138,7 +140,34 @@ public class RestUtil {
 		}
 		return result;
     }
+	@SuppressWarnings("unchecked")
+	public <T> T getApi(ApiName apiName, Map<String, String>  pathsegments,
+			Class<?> responseType) throws ApiNotAccessibleException {
 
+		String apiHostIpPort = environment.getProperty(apiName.name());
+		T result = null;
+		UriComponentsBuilder builder = null;
+		UriComponents uriComponents = null;
+		if (apiHostIpPort != null) {
+
+			 builder = UriComponentsBuilder.fromUriString(apiHostIpPort);
+
+			 URI urlWithPath = builder.build(pathsegments);
+
+			
+        RestTemplate restTemplate;
+
+        try {
+            restTemplate = getRestTemplate();
+            result = (T) restTemplate.exchange(urlWithPath, HttpMethod.GET, setRequestHeader(null, null), responseType)
+                    .getBody();
+        } catch (Exception e) {
+            throw new ApiNotAccessibleException(e);
+        }
+
+		}
+		return result;
+    }
     public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
         TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
         SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
