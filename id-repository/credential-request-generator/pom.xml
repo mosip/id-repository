@@ -33,6 +33,7 @@
 	    <kernel.auth.adaptor.version>1.2.0-SNAPSHOT</kernel.auth.adaptor.version>
 	    <postgresql.version>42.2.2</postgresql.version>
 	    <io.micrometer.prometheus.version>1.4.2</io.micrometer.prometheus.version>
+	    <kernel.websubclient.version>1.2.0-SNAPSHOT</kernel.websubclient.version>
   </properties>
  <dependencyManagement>
 		<dependencies>
@@ -175,6 +176,11 @@
 			<artifactId>micrometer-registry-prometheus</artifactId>
 			<version>${io.micrometer.prometheus.version}</version>
 		</dependency>
+		 <dependency>
+     	<groupId>io.mosip.kernel</groupId>
+   	    <artifactId>kernel-websubclient-api</artifactId>
+   	     <version>${kernel.websubclient.version}</version>
+     </dependency>
        </dependencies>  
        <build>
 		<plugins>

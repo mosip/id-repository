@@ -201,7 +201,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			    EventModel eventModel=getEventModel(dataShare.getUrl(),credentialServiceRequestDto);
 				webSubUtil.publishSuccess(credentialServiceRequestDto.getIssuer(),eventModel);
 				credentialServiceResponse=new CredentialServiceResponse();
-				credentialServiceResponse.setStatus("DONE");
+				credentialServiceResponse.setStatus("ISSUED");
 				credentialServiceResponse.setCredentialId(dataProviderResponse.getCredentialId());
 				credentialServiceResponse.setDataShareUrl(dataShare.getUrl());
 				credentialServiceResponse.setSignature(dataShare.getSignature());
