@@ -16,9 +16,11 @@ ARG is_glowroot
 ARG artifactory_url
 
 # can be passed during Docker build as build time environment for extraction format
-ARG extraction_format
+ARG extraction_format=mock
 
 ARG bio_sdk_folder=mock/0.9
+
+ARG server_port=8100
 
 # environment variable to pass active profile such as DEV, QA etc at docker runtime
 ENV active_profile_env=${active_profile}
@@ -38,6 +40,8 @@ ENV artifactory_url_env=${artifactory_url}
 # environment variable to pass extration format, at docker runtime
 ENV extraction_format_env=${extraction_format}
 
+ENV server_port_env=${server_port}
+
 ENV bio_sdk_folder_env=${bio_sdk_folder}
 
 ENV work_dir_env=/
@@ -48,7 +52,7 @@ ADD configure_start.sh configure_start.sh
 
 RUN chmod +x configure_start.sh
 
-EXPOSE 8100
+EXPOSE ${server_port_env}
 
 ENTRYPOINT [ "/configure_start.sh" ]
 
