@@ -134,7 +134,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	private String objectStoreAccountName;
 	
 	@Autowired
-	@Qualifier("s3Adapter")
+	@Qualifier("S3Adapter")
 	private ObjectStoreAdapter objectStore;
 
 	/** The env. */
