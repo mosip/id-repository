@@ -1,11 +1,16 @@
 -- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_idamap
--- Release Version 	: 1.0.5
--- Purpose    		: Database Alter scripts for the release for ID Map DB.       
+-- Database Name: mosip_idrepo
+-- Release Version 	: 1.2
+-- Purpose    		: Database Alter scripts for the release for ID Repository DB.       
 -- Create By   		: Sadanandegowda DM
--- Created Date		: 03-Jan-2020
+-- Created Date		: Sep-2020
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- -------------------------------------------------------------------------------------------------
 
-\c mosip_idmap sysadmin
+\c mosip_idrepo sysadmin
+
+
+DROP TABLE IF EXISTS ida.uin_auth_lock;
+
+\ir ../ddl/ida-uin_auth_lock.sql
