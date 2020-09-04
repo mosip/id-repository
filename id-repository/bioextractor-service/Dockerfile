@@ -46,7 +46,9 @@ ENV bio_sdk_folder_env=${bio_sdk_folder}
 
 ENV work_dir_env=/
 
-COPY ./target/bioextractor-service-*.jar bioextractor-service.jar
+ENV current_module_env=bioextractor-service
+
+COPY ./target/${current_module_env}-*.jar ${current_module_env}.jar
 
 ADD configure_start.sh configure_start.sh
 
@@ -61,11 +63,8 @@ CMD if [ "$is_glowroot_env" = "present" ]; then \
     apt-get update && apt-get install -y unzip ; \
     unzip glowroot.zip ; \
     rm -rf glowroot.zip ; \
-    
-    sed -i 's/<service_name>/id-repository-vid-service/g' glowroot/glowroot.properties ; \
-    java -jar -javaagent:glowroot/glowroot.jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -DextractionFormat="${extraction_format_env}" bioextractor-service.jar ; \
+    sed -i "s/<service_name>/${current_module_env}/g" glowroot/glowroot.properties ; \
+    java -jar -javaagent:glowroot/glowroot.jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -DextractionFormat="${extraction_format_env}" ${current_module_env}.jar ; \
     else \
-    java -jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -DextractionFormat="${extraction_format_env}" bioextractor-service.jar ; \
+    java -jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -DextractionFormat="${extraction_format_env}" ${current_module_env}.jar ; \
     fi
-
-#CMD ["java","-jar","-Dspring.cloud.config.label=${spring_config_label_env}","-Dspring.profiles.active=${active_profile_env}","-Dspring.cloud.config.uri=${spring_config_url_env}","id-repository-vid-service.jar"]
