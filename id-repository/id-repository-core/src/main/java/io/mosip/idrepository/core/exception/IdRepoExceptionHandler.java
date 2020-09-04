@@ -8,7 +8,6 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_E
 
 import java.nio.file.AccessDeniedException;
 import java.time.format.DateTimeParseException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -18,6 +17,7 @@ import javax.annotation.Nullable;
 import javax.annotation.Resource;
 import javax.servlet.ServletException;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +39,6 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.auth.defaultadapter.constant.AuthAdapterErrorCode;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
 
@@ -96,7 +95,7 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	@ExceptionHandler(Exception.class)
 	protected ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
 		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_EXCEPTION_HANDLER,
-				"handleAllExceptions - \n" + Arrays.toString(ExceptionUtils.getRootCauseStackTrace(ex)));
+				"handleAllExceptions - \n" + ExceptionUtils.getStackTrace(ExceptionUtils.getRootCause(ex)));
 		IdRepoUnknownException e = new IdRepoUnknownException(UNKNOWN_ERROR);
 		return new ResponseEntity<>(
 				buildExceptionResponse((BaseCheckedException) e, ((ServletWebRequest) request).getHttpMethod(), null),
@@ -116,7 +115,7 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	@ExceptionHandler(BeanCreationException.class)
 	protected ResponseEntity<Object> handleBeanCreationException(BeanCreationException ex, WebRequest request) {
 		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_EXCEPTION_HANDLER,
-				"handleBeanCreationException - \n" + Arrays.toString(ExceptionUtils.getRootCauseStackTrace(ex)));
+				"handleBeanCreationException - \n" + ExceptionUtils.getStackTrace(ExceptionUtils.getRootCause(ex)));
 		Throwable rootCause = org.apache.commons.lang3.exception.ExceptionUtils.getRootCause(ex);
 		if (rootCause.getClass().isAssignableFrom(AuthenticationException.class)) {
 			return handleAuthenticationException((AuthenticationException) rootCause, request);
@@ -140,7 +139,7 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	@ExceptionHandler(AccessDeniedException.class)
 	protected ResponseEntity<Object> handleAccessDeniedException(Exception ex, WebRequest request) {
 		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_EXCEPTION_HANDLER,
-				"handleAccessDeniedException - \n" + Arrays.toString(ExceptionUtils.getRootCauseStackTrace(ex)));
+				"handleAccessDeniedException - \n" + ExceptionUtils.getStackTrace(ExceptionUtils.getRootCause(ex)));
 		IdRepoUnknownException e = new IdRepoUnknownException(AUTHORIZATION_FAILED);
 		return new ResponseEntity<>(
 				buildExceptionResponse((BaseCheckedException) e, ((ServletWebRequest) request).getHttpMethod(), null),
@@ -158,7 +157,7 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	@ExceptionHandler(AuthenticationException.class)
 	protected ResponseEntity<Object> handleAuthenticationException(AuthenticationException ex, WebRequest request) {
 		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_EXCEPTION_HANDLER,
-				"handleAuthenticationException - \n" + Arrays.toString(ExceptionUtils.getRootCauseStackTrace(ex)));
+				"handleAuthenticationException - \n" + ExceptionUtils.getStackTrace(ExceptionUtils.getRootCause(ex)));
 		IdRepoUnknownException e = new IdRepoUnknownException(
 				ex.getErrorTexts().isEmpty() ? AuthAdapterErrorCode.UNAUTHORIZED.getErrorCode() : ex.getErrorCode(),
 				ex.getErrorTexts().isEmpty() ? AuthAdapterErrorCode.UNAUTHORIZED.getErrorMessage() : ex.getErrorText());
@@ -180,7 +179,7 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object errorMessage,
 			HttpHeaders headers, HttpStatus status, WebRequest request) {
 		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_EXCEPTION_HANDLER,
-				"handleExceptionInternal - \n" + Arrays.toString(ExceptionUtils.getRootCauseStackTrace(ex)));
+				"handleExceptionInternal - \n" + ExceptionUtils.getStackTrace(ExceptionUtils.getRootCause(ex)));
 		if (ex instanceof HttpMessageNotReadableException && org.apache.commons.lang3.exception.ExceptionUtils
 				.getRootCause(ex).getClass().isAssignableFrom(DateTimeParseException.class)) {
 			ex = new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
@@ -223,7 +222,7 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	protected ResponseEntity<Object> handleIdAppException(IdRepoAppException ex, WebRequest request) {
 
 		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_EXCEPTION_HANDLER,
-				"handleIdAppException - \n" + Arrays.toString(ExceptionUtils.getRootCauseStackTrace(ex)));
+				"handleIdAppException - \n" + ExceptionUtils.getStackTrace(ExceptionUtils.getRootCause(ex)));
 
 		return new ResponseEntity<>(buildExceptionResponse((Exception) ex,
 				((ServletWebRequest) request).getHttpMethod(), ex.getOperation()), HttpStatus.OK);
@@ -241,7 +240,7 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	protected ResponseEntity<Object> handleIdAppUncheckedException(IdRepoAppUncheckedException ex, WebRequest request) {
 
 		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_EXCEPTION_HANDLER,
-				"handleIdAppUncheckedException - \n" + Arrays.toString(ExceptionUtils.getRootCauseStackTrace(ex)));
+				"handleIdAppUncheckedException - \n" + ExceptionUtils.getStackTrace(ExceptionUtils.getRootCause(ex)));
 
 		return new ResponseEntity<>(
 				buildExceptionResponse((Exception) ex, ((ServletWebRequest) request).getHttpMethod(), null),
