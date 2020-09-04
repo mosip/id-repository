@@ -204,7 +204,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
 		int modResult = (int) (Long.parseLong(uin) % moduloValue);
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
-		String uinHash = modResult + SPLITTER + securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
+		String uinHashwithSalt = securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
+		String uinHash = modResult + SPLITTER + uinHashwithSalt;
 		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(modResult);
 		String uinToEncrypt = modResult + SPLITTER + uin + SPLITTER + encryptSalt;
 
@@ -212,7 +213,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		List<UinBiometric> bioList = new ArrayList<>();
 		Uin uinEntity;
 		if (Objects.nonNull(request.getRequest().getDocuments()) && !request.getRequest().getDocuments().isEmpty()) {
-			addDocuments(uinHash, identityInfo, request.getRequest().getDocuments(), uinRefId, docList, bioList);
+			addDocuments(uinHashwithSalt, identityInfo, request.getRequest().getDocuments(), uinRefId, docList, bioList);
 			uinEntity = new Uin(uinRefId, uinToEncrypt, uinHash, identityInfo, securityManager.hash(identityInfo),
 					request.getRequest().getRegistrationId(), request.getRequest().getBiometricReferenceId(),
 					env.getProperty(ACTIVE_STATUS), env.getProperty(MOSIP_PRIMARY_LANGUAGE),
@@ -307,7 +308,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			data = CryptoUtil.decodeBase64(doc.getValue());
 		}
 
-		objectStore.putObject(objectStoreAccountName, uinHash, BIOMETRICS + SLASH + fileRefId,
+		objectStore.putObject(objectStoreAccountName, uinHash.substring(0, 63).toLowerCase(), BIOMETRICS + SLASH + fileRefId,
 				new ByteArrayInputStream(securityManager.encrypt(data)));
 
 		bioList.add(new UinBiometric(uinRefId, fileRefId, doc.getCategory(), docType.get(FILE_NAME_ATTRIBUTE).asText(),
@@ -345,7 +346,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 		byte[] data = CryptoUtil.decodeBase64(doc.getValue());
 		
-		objectStore.putObject(objectStoreAccountName, uinHash, DEMOGRAPHICS + SLASH + fileRefId,
+		objectStore.putObject(objectStoreAccountName, uinHash.substring(0, 63).toLowerCase(), DEMOGRAPHICS + SLASH + fileRefId,
 				new ByteArrayInputStream(securityManager.encrypt(data)));
 
 		docList.add(new UinDocument(uinRefId, doc.getCategory(), docType.get(TYPE).asText(), fileRefId,
@@ -414,7 +415,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
 		int modResult = (int) (Long.parseLong(uin) % moduloValue);
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
-		String uinHash = modResult + SPLITTER + securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
+		String uinHashwithSalt = securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
+		String uinHash = modResult + SPLITTER + uinHashwithSalt;
 		try {
 			Uin uinObject = retrieveIdentity(uinHash, IdType.UIN, null, null);
 			uinObject.setRegId(request.getRequest().getRegistrationId());
@@ -442,7 +444,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				}
 
 				if (Objects.nonNull(requestDTO.getDocuments()) && !requestDTO.getDocuments().isEmpty()) {
-					updateDocuments(uinHash, uinObject, requestDTO);
+					updateDocuments(uinHashwithSalt, uinHash, uinObject, requestDTO);
 					uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
 					uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
 				}
@@ -639,7 +641,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @throws IdRepoAppException
 	 *             the id repo app exception
 	 */
-	private void updateDocuments(String uinHash, Uin uinObject, RequestDTO requestDTO) throws IdRepoAppException {
+	private void updateDocuments(String uinHashwithSalt, String uinHash, Uin uinObject, RequestDTO requestDTO)
+			throws IdRepoAppException {
 		List<UinDocument> docList = new ArrayList<>();
 		List<UinBiometric> bioList = new ArrayList<>();
 
@@ -647,7 +650,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			updateCbeff(uinObject, requestDTO);
 		}
 
-		addDocuments(uinHash, convertToBytes(requestDTO.getIdentity()), requestDTO.getDocuments(),
+		addDocuments(uinHashwithSalt, convertToBytes(requestDTO.getIdentity()), requestDTO.getDocuments(),
 				uinObject.getUinRefId(), docList, bioList);
 
 		docList.stream().forEach(doc -> uinObject.getDocuments().stream()
@@ -696,13 +699,15 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				.filter(doc -> StringUtils.equals(bio.getBiometricFileType(), doc.getCategory())).forEach(doc -> {
 					try {
 						String fileName = BIOMETRICS + SLASH + bio.getBioFileId();
-						if (!objectStore.exists(objectStoreAccountName, uinObject.getUinHash(), fileName)) {
+						if (!objectStore.exists(objectStoreAccountName,
+								uinObject.getUinHash().substring(4, 63).toLowerCase(), fileName)) {
 							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateCbeff",
 									"FILE NOT FOUND IN OBJECT STORE");
 							throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
 						}
 						byte[] data = securityManager.decrypt(IOUtils.toByteArray(
-								objectStore.getObject(objectStoreAccountName, uinObject.getUinHash(), fileName)));
+								objectStore.getObject(objectStoreAccountName,
+										uinObject.getUinHash().substring(4, 63).toLowerCase(), fileName)));
 						if (StringUtils.equalsIgnoreCase(
 								identityMap.get(bio.getBiometricFileType()).get(FILE_FORMAT_ATTRIBUTE).asText(),
 								CBEFF_FORMAT) && fileName.endsWith(CBEFF_FORMAT)) {
