@@ -4,6 +4,7 @@ import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
 import io.mosip.idrepository.core.dto.EventModel;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
+import io.mosip.kernel.core.websub.spi.PublisherClient;
 import io.mosip.kernel.core.websub.spi.SubscriptionClient;
 import io.mosip.kernel.websub.api.annotation.PreAuthenticateContentAndVerifyIntent;
 import io.mosip.kernel.websub.api.model.SubscriptionChangeRequest;
@@ -60,11 +62,16 @@ public class CredentialRequestGeneratorController {
 	
 	@Value("${WEBSUBSECRET}")
 	private String webSubSecret;
+
+	@Value("${CALLBACKURL}")
+	private String callBackUrl;
+
 	
-	//@PostConstruct
+	@PostConstruct
 	public void postConstruct() {
+	   
 		SubscriptionChangeRequest subscriptionRequest = new SubscriptionChangeRequest();
-		subscriptionRequest.setCallbackURL("/notifyStatus");
+		subscriptionRequest.setCallbackURL(callBackUrl);
 		subscriptionRequest.setHubURL(webSubHubUrl);
 		subscriptionRequest.setSecret(webSubSecret);
 		subscriptionRequest.setTopic("CREDENTIAL_STATUS_UPDATE");
