@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
@@ -44,6 +45,8 @@ public class DataShareUtil {
 	private static final String GET_DATA = "getDataShare";
 	
 	private static final String DATASHARE = "DataShareUtil";
+	
+	private static final String CREDENTIALFILE = "credentialfile";
 
 	public DataShare getDataShare(byte[] data, String policyId, String partnerId)
 			throws ApiNotAccessibleException, IOException, DataShareException {
@@ -51,11 +54,17 @@ public class DataShareUtil {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), DATASHARE, GET_DATA, 
 		
 				"entry");
-		ByteArrayResource contentsAsResource = new ByteArrayResource(data) {
-			
-		};
-		LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
-		map.add("file", contentsAsResource);
+			LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+			map.add("name", CREDENTIALFILE);
+			map.add("filename", CREDENTIALFILE);
+
+			ByteArrayResource contentsAsResource = new ByteArrayResource(data) {
+				@Override
+				public String getFilename() {
+					return CREDENTIALFILE;
+				}
+			};
+			map.add("file", contentsAsResource);
 		List<String> pathsegments = new ArrayList<>();
 		pathsegments.add(policyId);
 		pathsegments.add(partnerId);
@@ -85,11 +94,11 @@ public class DataShareUtil {
 		} catch (Exception e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), DATASHARE, GET_DATA,
 					ExceptionUtils.getStackTrace(e));
-			if (e instanceof HttpClientErrorException) {
-				HttpClientErrorException httpClientException = (HttpClientErrorException) e;
+			if (e.getCause() instanceof HttpClientErrorException) {
+				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
 				throw new io.mosip.credentialstore.exception.ApiNotAccessibleException(httpClientException.getResponseBodyAsString());
-			} else if (e instanceof HttpServerErrorException) {
-				HttpServerErrorException httpServerException = (HttpServerErrorException) e;
+			} else if (e.getCause() instanceof HttpServerErrorException) {
+				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
 				throw new ApiNotAccessibleException(httpServerException.getResponseBodyAsString());
 			} else {
 				throw new DataShareException(e);

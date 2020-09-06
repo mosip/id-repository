@@ -69,6 +69,7 @@ import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.websub.api.exception.WebSubClientException;
 
@@ -430,8 +431,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 				break;
 			}
 		}
-		
-		List<BIRType>  typeList= cbeffutil.getBIRDataFromXML(value.getBytes());
+
+		/*List<BIRType>  typeList= cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(value));
 		List<BIR> birList=cbeffutil.convertBIRTypeToBIR(typeList);
 		Map<String, Map<String, byte[]>> biometrics = birList.stream().collect(Collectors.groupingBy(bir -> bir.getBdbInfo().getType().get(0).value(), 
 				Collectors.toMap(bir -> {
@@ -447,7 +448,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 				  attributesMap.put(key, entry.getValue());
 			  }
 		 }
-		
+		*/
 		return attributesMap;
 	}
 

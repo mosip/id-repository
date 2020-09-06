@@ -107,11 +107,11 @@ public class DigitalSignatureUtil {
 		} catch (Exception e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), DIGITALSIGNATURE, SIGN,
 					ExceptionUtils.getStackTrace(e));
-			if (e instanceof HttpClientErrorException) {
-				HttpClientErrorException httpClientException = (HttpClientErrorException) e;
+			if (e.getCause() instanceof HttpClientErrorException) {
+				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
 				throw new io.mosip.credentialstore.exception.ApiNotAccessibleException(httpClientException.getResponseBodyAsString());
-			} else if (e instanceof HttpServerErrorException) {
-				HttpServerErrorException httpServerException = (HttpServerErrorException) e;
+			} else if (e.getCause() instanceof HttpServerErrorException) {
+				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
 				throw new ApiNotAccessibleException(httpServerException.getResponseBodyAsString());
 			} else {
 				throw new SignatureException(e);
