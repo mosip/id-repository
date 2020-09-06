@@ -30,7 +30,7 @@ public class WebSubUtil {
 
 	@Autowired
 	RestUtil restUtil;
-	
+
 	private static final Logger LOGGER = IdRepoLogger.getLogger(WebSubUtil.class);
 
 
@@ -44,8 +44,8 @@ public class WebSubUtil {
         HttpHeaders httpHeaders=new HttpHeaders();
 		httpHeaders.add("Cookie",restUtil.getToken());
 		pb.publishUpdate(issuer+"/"+CredentialConstants.CREDENTIAL_ISSUED, eventModel, MediaType.APPLICATION_JSON_UTF8_VALUE, httpHeaders,  partnerhuburl); 
-	
-		
+
+
 	}
 
 	private void registerTopic(String issuer) {
