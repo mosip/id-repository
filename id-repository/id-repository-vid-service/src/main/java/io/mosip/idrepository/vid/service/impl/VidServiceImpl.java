@@ -50,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.EventType;
 import io.mosip.idrepository.core.constant.IDAEventType;
+import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
@@ -95,6 +96,8 @@ import io.mosip.kernel.core.websub.spi.PublisherClient;
 @Transactional
 public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper<VidResponseDTO>, ResponseWrapper<List<VidInfoDTO>>> {
 	
+	private static final String ID_TYPE = "idType";
+
 	private static final String TOKEN = "TOKEN";
 
 	private static final String PARTNER = "PARTNER";
@@ -739,7 +742,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 					.flatMap(vid -> {
 						LocalDateTime expiryTimestamp = status.equals(ACTIVATE_STATUS) ? vid.getExpiryDTimes() : vid.getUpdatedDTimes();
 						return partnerIds.stream().map(partnerId -> createCredReqDto(vid.getId(), partnerId,
-								expiryTimestamp,policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(), token));
+								expiryTimestamp,policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(), token, IdType.VID.getIdType()));
 					})
 					.collect(Collectors.toList());
 		
@@ -764,12 +767,13 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		}		
 	}
 	
-	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp, Integer transactionLimit, String token) {
+	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp, Integer transactionLimit, String token, String idType) {
 		Map<String, Object> data = new HashMap<>();
 		data.putAll(retrieveIdHashWithAttributes(id));
 		data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
 		data.put(TRANSACTION_LIMIT, Optional.ofNullable(transactionLimit).map(String::valueOf).orElse(null));
 		data.put(TOKEN, token);
+		data.put(ID_TYPE, idType);
 
 		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
 		credentialIssueRequestDto.setId(id);

@@ -71,7 +71,6 @@ import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.dto.Type;
 import io.mosip.idrepository.core.dto.VidInfoDTO;
-import io.mosip.idrepository.core.dto.VidInfoResponsDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
@@ -103,6 +102,8 @@ import io.mosip.kernel.core.websub.spi.PublisherClient;
  */
 @Service
 public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdResponseDTO> {
+
+	private static final String ID_TYPE = "idType";
 
 	private static final String TOKEN = "TOKEN";
 
@@ -505,13 +506,14 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		uinObject.getDocuments().stream().forEach(demo -> {
 			try {
 				String fileName = DEMOGRAPHICS + SLASH + demo.getDocId();
-				if (!objectStore.exists(objectStoreAccountName, uinObject.getUinHash(), fileName)) {
+				if (!objectStore.exists(objectStoreAccountName, uinObject.getUinHash().substring(4, 67).toLowerCase(),
+						fileName)) {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getDemographicFiles",
 							"FILE NOT FOUND IN OBJECT STORE");
 					throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
 				}
-				byte[] data = securityManager.decrypt(IOUtils
-						.toByteArray(objectStore.getObject(objectStoreAccountName, uinObject.getUinHash(), fileName)));
+				byte[] data = securityManager.decrypt(IOUtils.toByteArray(objectStore.getObject(objectStoreAccountName,
+						uinObject.getUinHash().substring(4, 67).toLowerCase(), fileName)));
 				if (demo.getDocHash().equals(securityManager.hash(data))) {
 					documents.add(new DocumentsDTO(demo.getDoccatCode(), CryptoUtil.encodeBase64(data)));
 				} else {
@@ -546,17 +548,20 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			if (allowedBioAttributes.contains(bio.getBiometricFileType())) {
 				try {
 					String fileName = BIOMETRICS + SLASH + bio.getBioFileId();
-					if (!objectStore.exists(objectStoreAccountName, uinObject.getUinHash(), fileName)) {
+					if (!objectStore.exists(objectStoreAccountName,
+							uinObject.getUinHash().substring(4, 67).toLowerCase(), fileName)) {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricFiles",
 								"FILE NOT FOUND IN OBJECT STORE");
 						throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
 					}
 					byte[] data = null;
 					if (Objects.nonNull(extractionFormats) && !extractionFormats.isEmpty()) {
-						data = extractTemplates(uinObject.getUinHash(), fileName, extractionFormats);
+						data = extractTemplates(uinObject.getUinHash().substring(4, 67).toLowerCase(), fileName,
+								extractionFormats);
 					} else {
 						data = securityManager.decrypt(IOUtils.toByteArray(
-								objectStore.getObject(objectStoreAccountName, uinObject.getUinHash(), fileName)));
+								objectStore.getObject(objectStoreAccountName,
+										uinObject.getUinHash().substring(4, 67).toLowerCase(), fileName)));
 					}
 					if (Objects.nonNull(data)) {
 						if (StringUtils.equals(bio.getBiometricFileHash(), securityManager.hash(data))) {
@@ -739,8 +744,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_VIDS_BY_UIN, null,
 						ResponseWrapper.class);
 				restRequest.setUri(restRequest.getUri().replace("{uin}", uin));
-				VidInfoResponsDTO response = restHelper.requestSync(restRequest);
-				vidInfoDtos = mapper.convertValue(response.getResponse(), List.class);
+				ResponseWrapper<Map<String, Object>> response = restHelper.requestSync(restRequest);
+				vidInfoDtos = mapper.convertValue(response.getResponse().get("events"), List.class);
 			}
 			
 			List<String> partnerIds = getPartnerIds();
@@ -753,8 +758,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				sendEventsToCredService(uin, expiryTimestamp, isUpdate, vidInfoDtos, partnerIds);
 			}
 			
-			//restHelper.requestSync(restBuilder.buildRequest(RestServicesConstants.ID_AUTH_SERVICE, request, Void.class));
-		} catch (IdRepoDataValidationException | RestServiceException e) {
+		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", e.getMessage());
 		}
 	}
@@ -841,7 +845,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	private void sendEventsToCredService(String uin, LocalDateTime expiryTimestamp, boolean isUpdate, List<VidInfoDTO> vidInfoDtos, List<String> partnerIds) {
 		List<CredentialIssueRequestDto> eventRequestsList = new ArrayList<>();
 		String token = tokenIDGenerator.generateTokenID(uin, PARTNER);
-		eventRequestsList.addAll(partnerIds.stream().map(partnerId -> createCredReqDto(uin, partnerId, expiryTimestamp, null, token)).collect(Collectors.toList()));
+		eventRequestsList.addAll(partnerIds.stream().map(partnerId -> createCredReqDto(uin, partnerId, expiryTimestamp, null, token, IdType.UIN.getIdType())).collect(Collectors.toList()));
 		
 		if(vidInfoDtos != null) {
 			List<CredentialIssueRequestDto> vidRequests = vidInfoDtos.stream()
@@ -850,7 +854,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 						return partnerIds.stream()
 								.map(partnerId -> createCredReqDto(vidInfoDTO.getVid(), partnerId, 
 														vidExpiryTime,
-														vidInfoDTO.getTransactionLimit(), token));
+														vidInfoDTO.getTransactionLimit(), token, IdType.VID.getIdType()));
 					}).collect(Collectors.toList());
 			eventRequestsList.addAll(vidRequests);
 		}
@@ -874,12 +878,13 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		}
 	}
 
-	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp, Integer transactionLimit, String token) {
+	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp, Integer transactionLimit, String token, String idType) {
 		Map<String, Object> data = new HashMap<>();
 		data.putAll(retrieveIdHashWithAttributes(id));
 		data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
 		data.put(TRANSACTION_LIMIT, Optional.ofNullable(transactionLimit).map(String::valueOf).orElse(null));
 		data.put(TOKEN, token);
+		data.put(ID_TYPE, idType);
 
 		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
 		credentialIssueRequestDto.setId(id);
