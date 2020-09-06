@@ -99,6 +99,8 @@ import io.mosip.kernel.core.websub.spi.PublisherClient;
 @Transactional
 public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper<VidResponseDTO>, ResponseWrapper<List<VidInfoDTO>>> {
 	
+	private static final String AUTHORIZATION = "Authorization=";
+
 	private static final String COOKIE = "Cookie";
 	
 	private static final String ID_TYPE = "idType";
@@ -720,8 +722,12 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		}
 	}
 	
-	private String getAuthToken() {
-		return "Authorization=" + ((AuthUserDetails)((UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication()).getPrincipal()).getToken();
+	private Optional<String> getAuthToken() {
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		if(principal instanceof AuthUserDetails) {
+			return Optional.of(AUTHORIZATION + ((AuthUserDetails)principal).getToken());
+		}
+		return Optional.empty();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -825,14 +831,16 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 						eventType.equals(IDAEventType.ACTIVATE_ID) ? vid.getExpiryDTimes() : vid.getUpdatedDTimes(),
 						policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(), partnerIds, transactionId))
 				.collect(Collectors.toList());
-		String authToken = getAuthToken();
+		Optional<String> authToken = getAuthToken();
 		eventDtos.forEach(eventDto -> sendEventToIDA(eventDto, authToken));
 	}
 	
-	private void sendEventToIDA(EventModel model, String authToken) {
+	private void sendEventToIDA(EventModel model, Optional<String> authToken) {
 		pb.registerTopic(model.getTopic(), webSubHubUrl);
 		HttpHeaders headers = new HttpHeaders();
-		headers.add(COOKIE, authToken);
+		if(authToken.isPresent()) {
+			headers.add(COOKIE, authToken.get());
+		}
 		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, headers, webSubHubUrl);
 	}
 
