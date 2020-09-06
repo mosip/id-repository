@@ -132,16 +132,27 @@ public class IdAuthProvider implements CredentialProvider {
 				
 
 		}
-		    EncryptZkResponseDto demoEncryptZkResponseDto=  encryptionUtil.encryptDataWithZK(credentialServiceRequestDto.getId(), demoZkDataAttributes);
+		 Map<String,Object> additionalData=credentialServiceRequestDto.getAdditionalData();
+		 if(!demoZkDataAttributes.isEmpty()) {
+			 EncryptZkResponseDto demoEncryptZkResponseDto=  encryptionUtil.encryptDataWithZK(credentialServiceRequestDto.getId(), demoZkDataAttributes);
+			 addToFormatter(demoEncryptZkResponseDto,formattedMap);
+			 additionalData.put(DEMO_ENCRYPTED_RANDOM_KEY, demoEncryptZkResponseDto.getEncryptedRandomKey());
+			 additionalData.put(DEMO_ENCRYPTED_RANDOM_INDEX, demoEncryptZkResponseDto.getRankomKeyIndex());
+		 }
+		 if(!demoZkDataAttributes.isEmpty()) {
+			 EncryptZkResponseDto bioEncryptZkResponseDto=  encryptionUtil.encryptDataWithZK(credentialServiceRequestDto.getId(), bioZkDataAttributes);
+			 addToFormatter(bioEncryptZkResponseDto,formattedMap);
+			 additionalData.put(BIO_ENCRYPTED_RANDOM_KEY, bioEncryptZkResponseDto.getEncryptedRandomKey());
+			 additionalData.put(BIO_ENCRYPTED_RANDOM_INDEX, bioEncryptZkResponseDto.getRankomKeyIndex());
+		 }  
+		    
 		    EncryptZkResponseDto bioEncryptZkResponseDto=  encryptionUtil.encryptDataWithZK(credentialServiceRequestDto.getId(), bioZkDataAttributes);
-			Map<String,Object> additionalData=credentialServiceRequestDto.getAdditionalData();
-		    addToFormatter(demoEncryptZkResponseDto,formattedMap);
+			
+		    
 		    addToFormatter(bioEncryptZkResponseDto,formattedMap);
 		    String credentialId = utilities.generateId();
-		    additionalData.put(DEMO_ENCRYPTED_RANDOM_KEY, demoEncryptZkResponseDto.getEncryptedRandomKey());
-		    additionalData.put(DEMO_ENCRYPTED_RANDOM_INDEX, demoEncryptZkResponseDto.getRankomKeyIndex());
-		    additionalData.put(BIO_ENCRYPTED_RANDOM_KEY, demoEncryptZkResponseDto.getEncryptedRandomKey());
-		    additionalData.put(BIO_ENCRYPTED_RANDOM_INDEX, demoEncryptZkResponseDto.getRankomKeyIndex());
+		   
+		 
 		    additionalData.put("CREDENTIALID", credentialId);
 		    credentialServiceRequestDto.setAdditionalData(additionalData);
 		    String data = JsonUtil.objectMapperObjectToJson(formattedMap);
