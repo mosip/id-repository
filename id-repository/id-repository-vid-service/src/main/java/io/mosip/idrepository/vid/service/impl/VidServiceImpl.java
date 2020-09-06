@@ -43,8 +43,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,7 +77,6 @@ import io.mosip.idrepository.vid.provider.VidPolicyProvider;
 import io.mosip.idrepository.vid.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.vid.repository.UinHashSaltRepo;
 import io.mosip.idrepository.vid.repository.VidRepo;
-import io.mosip.kernel.auth.defaultadapter.model.AuthUserDetails;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
@@ -720,10 +717,6 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		}
 	}
 	
-	private String getAuthToken() {
-		return "Authorization=" + ((AuthUserDetails)((UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication()).getPrincipal()).getToken();
-	}
-	
 	@SuppressWarnings("unchecked")
 	private List<String> getPartnerIds() {
 		try {
@@ -825,14 +818,16 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 						eventType.equals(IDAEventType.ACTIVATE_ID) ? vid.getExpiryDTimes() : vid.getUpdatedDTimes(),
 						policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(), partnerIds, transactionId))
 				.collect(Collectors.toList());
-		String authToken = getAuthToken();
+		Optional<String> authToken = RestHelper.getAuthToken();
 		eventDtos.forEach(eventDto -> sendEventToIDA(eventDto, authToken));
 	}
 	
-	private void sendEventToIDA(EventModel model, String authToken) {
+	private void sendEventToIDA(EventModel model, Optional<String> authToken) {
 		pb.registerTopic(model.getTopic(), webSubHubUrl);
 		HttpHeaders headers = new HttpHeaders();
-		headers.add(COOKIE, authToken);
+		if(authToken.isPresent()) {
+			headers.add(COOKIE, authToken.get());
+		}
 		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, headers, webSubHubUrl);
 	}
 

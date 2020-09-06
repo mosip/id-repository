@@ -47,7 +47,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
@@ -86,7 +85,6 @@ import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.repository.UinHashSaltRepo;
 import io.mosip.idrepository.identity.repository.UinHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinRepo;
-import io.mosip.kernel.auth.defaultadapter.model.AuthUserDetails;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -744,7 +742,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	@SuppressWarnings("unchecked")
 	private void notify(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate, String txnId) {
 		try {
-			String authToken = getAuthToken();
+			Optional<String> authToken = RestHelper.getAuthToken();
 			SecurityContextHolder.getContext().getAuthentication().getDetails();
 			List<VidInfoDTO> vidInfoDtos = null;
 			if (isUpdate) {
@@ -770,10 +768,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		}
 	}
 
-	private String getAuthToken() {
-		return "Authorization=" + ((AuthUserDetails)((UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication()).getPrincipal()).getToken();
-	}
-
 	@SuppressWarnings("unchecked")
 	private List<String> getPartnerIds() {
 		try {
@@ -795,7 +789,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		return Collections.emptyList();
 	}
 
-	private void sendEventToIDA(String uin, LocalDateTime expiryTimestamp, String status, List<VidInfoDTO> vidInfoDtos, List<String> partnerIds, String txnId, String authToken) {
+	private void sendEventToIDA(String uin, LocalDateTime expiryTimestamp, String status, List<VidInfoDTO> vidInfoDtos, List<String> partnerIds, String txnId, Optional<String> authToken) {
 		List<EventModel> eventList = new ArrayList<>();
 		EventType eventType = BLOCKED.equals(status) ? IDAEventType.REMOVE_ID : IDAEventType.DEACTIVATE_ID;
 		eventList.addAll(createIdaEventModel(eventType, uin, expiryTimestamp, null, partnerIds, txnId).collect(Collectors.toList()));
@@ -846,10 +840,12 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		return model;
 	}
 
-	private void sendEventToIDA(EventModel model, String authToken) {
+	private void sendEventToIDA(EventModel model, Optional<String> authToken) {
 		pb.registerTopic(model.getTopic(), webSubHubUrl);
 		HttpHeaders headers = new HttpHeaders();
-		headers.add(COOKIE, authToken);
+		if(authToken.isPresent()) {
+			headers.add(COOKIE, authToken.get());
+		}
 		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, headers, webSubHubUrl);
 	}
 
