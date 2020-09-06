@@ -85,7 +85,6 @@ import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.repository.UinHashSaltRepo;
 import io.mosip.idrepository.identity.repository.UinHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinRepo;
-import io.mosip.kernel.auth.defaultadapter.model.AuthUserDetails;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -104,8 +103,6 @@ import io.mosip.kernel.core.websub.spi.PublisherClient;
  */
 @Service
 public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdResponseDTO> {
-
-	private static final String AUTHORIZATION = "Authorization=";
 
 	private static final String COOKIE = "Cookie";
 
@@ -745,7 +742,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	@SuppressWarnings("unchecked")
 	private void notify(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate, String txnId) {
 		try {
-			Optional<String> authToken = getAuthToken();
+			Optional<String> authToken = RestHelper.getAuthToken();
 			SecurityContextHolder.getContext().getAuthentication().getDetails();
 			List<VidInfoDTO> vidInfoDtos = null;
 			if (isUpdate) {
@@ -769,14 +766,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", e.getMessage());
 		}
-	}
-
-	private Optional<String> getAuthToken() {
-		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if(principal instanceof AuthUserDetails) {
-			return Optional.of(AUTHORIZATION + ((AuthUserDetails)principal).getToken());
-		}
-		return Optional.empty();
 	}
 
 	@SuppressWarnings("unchecked")
