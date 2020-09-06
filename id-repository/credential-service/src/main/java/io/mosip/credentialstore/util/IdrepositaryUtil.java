@@ -64,8 +64,10 @@ public class IdrepositaryUtil {
 		String irisExtractionFormat=bioAttributeFormatterMap.get(CredentialConstants.IRIS);
 		List<String> pathsegments = new ArrayList<>();
 		pathsegments.add(credentialServiceRequestDto.getId());
-		String queryParamName = "TYPE,ID_TYPE,FINGER_EXTRACTION_FORMAT,IRIS_EXTRACTION_FORMAT,FACE_EXTRACTION_FORMAT";
-		String queryParamValue = "all"+","+idType+","+fingerExtractionFormat+","+irisExtractionFormat +","+ faceExtractionFormat;
+		//String queryParamName = "TYPE,ID_TYPE,FINGER_EXTRACTION_FORMAT,IRIS_EXTRACTION_FORMAT,FACE_EXTRACTION_FORMAT";
+		//String queryParamValue = "all"+","+idType+","+fingerExtractionFormat+","+irisExtractionFormat +","+ faceExtractionFormat;
+		String queryParamName = "type";
+	    String queryParamValue = "all";
 
 			String responseString = restUtil.getApi(ApiName.IDREPOGETIDBYID, pathsegments, queryParamName,
 					queryParamValue, String.class);
@@ -90,11 +92,11 @@ public class IdrepositaryUtil {
 		}catch (Exception e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), IDREPOSITARYUTIL, GET_DATA,
 					ExceptionUtils.getStackTrace(e));
-			if (e instanceof HttpClientErrorException) {
-				HttpClientErrorException httpClientException = (HttpClientErrorException) e;
+			if (e.getCause() instanceof HttpClientErrorException) {
+				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
 				throw new io.mosip.credentialstore.exception.ApiNotAccessibleException(httpClientException.getResponseBodyAsString());
-			} else if (e instanceof HttpServerErrorException) {
-				HttpServerErrorException httpServerException = (HttpServerErrorException) e;
+			} else if (e.getCause() instanceof HttpServerErrorException) {
+				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
 				throw new ApiNotAccessibleException(httpServerException.getResponseBodyAsString());
 			} else {
 				throw new IdRepoException(e);

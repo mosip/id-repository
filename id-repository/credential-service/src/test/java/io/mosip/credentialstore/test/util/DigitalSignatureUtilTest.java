@@ -61,7 +61,7 @@ public class DigitalSignatureUtilTest {
 	
 	@SuppressWarnings("unchecked")
 	@Before
-	public void setUp() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException{
+	public void setUp() throws Exception{
 
 		signResponseDto = new SignResponseDto();
 		SignatureResponse sign = new SignatureResponse();
@@ -97,22 +97,24 @@ public class DigitalSignatureUtilTest {
 	}
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
-	public void testHttpClientException() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException, SignatureException {
+	public void testHttpClientException() throws Exception {
 		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(HttpStatus.BAD_REQUEST,
 				"error");
+		Exception e=new Exception(httpClientErrorException);
 		String test = "testdata";
 		byte[] sample = test.getBytes();
-		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpClientErrorException);
+		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		digitalSignatureUtil.sign(sample);
 	}
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
-	public void testHttpServerException() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException, SignatureException {
+	public void testHttpServerException() throws Exception {
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(HttpStatus.BAD_REQUEST,
 				"error");
+		Exception e=new Exception(httpServerErrorException);
 		String test = "testdata";
 		byte[] sample = test.getBytes();
-		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpServerErrorException);
+		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		digitalSignatureUtil.sign(sample);
 	}
 	@Test(expected = SignatureException.class)

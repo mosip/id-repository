@@ -69,7 +69,7 @@ public class IdrepositaryUtilTest {
 	
 	@SuppressWarnings("unchecked")
 	@Before
-	public void setUp() throws ApiNotAccessibleException, JsonParseException, JsonMappingException, IOException {
+	public void setUp() throws Exception {
 		 response=new ResponseDTO();
 		idRepoResponse.setResponse(response);
 		idRepo="response";
@@ -122,30 +122,32 @@ public class IdrepositaryUtilTest {
 	}
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
-	public void testHttpClientException() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException, SignatureException, DataShareException, IdRepoException {
+	public void testHttpClientException() throws Exception {
 		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(HttpStatus.BAD_REQUEST,
 				"error");
+		Exception e=new Exception(httpClientErrorException);
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		credentialServiceRequestDto.setId("12345678");
 		Map<String,String> bioAttributeFormatterMap=new HashMap<>();
 		bioAttributeFormatterMap.put("face", "extractfmr");
-		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpClientErrorException);
+		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		idrepositaryUtil.getData(credentialServiceRequestDto, bioAttributeFormatterMap);
 	}
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
-	public void testHttpServerException() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException, SignatureException, DataShareException, IdRepoException {
+	public void testHttpServerException() throws Exception {
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(HttpStatus.BAD_REQUEST,
 				"error");
+		Exception e=new Exception(httpServerErrorException);
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		credentialServiceRequestDto.setId("12345678");
 		Map<String,String> bioAttributeFormatterMap=new HashMap<>();
 		bioAttributeFormatterMap.put("face", "extractfmr");
-		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpServerErrorException);
+		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		idrepositaryUtil.getData(credentialServiceRequestDto, bioAttributeFormatterMap);
 	}
 }

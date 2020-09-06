@@ -1,5 +1,7 @@
 package io.mosip.credentialstore.util;
 
+import java.io.IOException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -22,15 +24,18 @@ public class WebSubUtil {
 	@Value("${mosip.partnerhuburl}")
 	private String partnerhuburl;
 
+	@Autowired
+	RestUtil restUtil;
 	
-	public void publishSuccess(String issuer,EventModel eventModel) throws WebSubClientException{
+	public void publishSuccess(String issuer,EventModel eventModel) throws WebSubClientException, IOException{
 
 
 	   pb.registerTopic(issuer+"/"+CredentialConstants.CREDENTIAL_ISSUED, partnerhuburl);
 	
 		HttpHeaders httpHeaders=new HttpHeaders();
+		httpHeaders.add("Cookie",restUtil.getToken());
 		pb.publishUpdate(issuer+"/"+CredentialConstants.CREDENTIAL_ISSUED, eventModel, MediaType.APPLICATION_JSON_UTF8_VALUE, httpHeaders,  partnerhuburl); 
-		pb.unregisterTopic(issuer+"/"+CredentialConstants.CREDENTIAL_ISSUED, partnerhuburl);
+	
 		
 	}
 
