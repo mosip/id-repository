@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -399,7 +398,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @see io.mosip.idrepository.core.spi.IdRepoService#retrieveIdentity(java.lang.String, io.mosip.idrepository.core.constant.IdType, java.lang.String)
 	 */
 	@Override
-	public Uin retrieveIdentity(String id, IdType idType, String type, Set<String> extractionFormats)
+	public Uin retrieveIdentity(String id, IdType idType, String type, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
 		return uinRepo.findByUinHash(id);
 	}
