@@ -709,11 +709,16 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	}
 
 	private void notify(String uin, String status, List<Vid> vids, boolean isUpdated) {
-		List<String> partnerIds = getPartnerIds();
-		if(isUpdated) {
-			sendEventsToIDA(status, vids, partnerIds);
-		} else {
-			sendEventsToCredService(uin, status, vids, isUpdated, partnerIds);
+		try {
+			List<String> partnerIds = getPartnerIds();
+			if (isUpdated) {
+				sendEventsToIDA(status, vids, partnerIds);
+			} else {
+				sendEventsToCredService(uin, status, vids, isUpdated, partnerIds);
+			}
+		} catch (Exception e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "getPartnerIds",
+					e.getMessage());
 		}
 	}
 	
