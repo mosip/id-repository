@@ -32,7 +32,6 @@ import io.mosip.credentialstore.dto.CredentialTypeResponse;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.DataShare;
 
-
 import io.mosip.credentialstore.dto.JsonValue;
 import io.mosip.credentialstore.dto.PolicyResponseDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
@@ -50,6 +49,7 @@ import io.mosip.credentialstore.util.Utilities;
 import io.mosip.credentialstore.util.WebSubUtil;
 import io.mosip.idrepository.core.constant.AuditEvents;
 import io.mosip.idrepository.core.constant.AuditModules;
+import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.CredentialServiceResponse;
@@ -89,11 +89,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	@Autowired
 	private IdrepositaryUtil idrepositaryUtil;
 
-
 	/** The Constant VALUE. */
 	private static final String VALUE = "value";
-
-
 
 	/** The id auth provider. */
 	@Autowired(required = true)
@@ -104,13 +101,11 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	@Autowired(required = true)
 	@Qualifier("default")
 	CredentialProvider credentialDefaultProvider;
-	
-	
+
 	/** The default provider. */
 	@Autowired(required = true)
 	@Qualifier("qrcode")
 	CredentialProvider qrCodeProvider;
-
 
 	/** The data share util. */
 	@Autowired
@@ -142,25 +137,23 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 	/** The Constant CREDENTIAL_SERVICE_SERVICE_VERSION. */
 	private static final String CREDENTIAL_SERVICE_SERVICE_VERSION = "mosip.credential.service.service.version";
-	
-	
+
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialStoreServiceImpl.class);
 
 	private static final String CREATE_CRDENTIAL = "createCredentialIssuance";
-	
+
 	private static final String CREDENTIAL_STORE = "CredentialStoreServiceImpl";
-	
+
 	private static final String CREDENTIAL_SERVICE_TYPE_NAME = "mosip.credential.service.type.name";
-	
+
 	private static final String CREDENTIAL_SERVICE_TYPE_NAMESPACE = "mosip.credential.service.type.namespace";
-	
+
 	@Autowired
 	private CbeffUtil cbeffutil;
 
-	
-	
 	@Autowired
 	private AuditHelper auditHelper;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -174,46 +167,47 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 				"started creating credential");
 		List<ErrorDTO> errorList = new ArrayList<>();
 		CredentialServiceResponseDto credentialIssueResponseDto = new CredentialServiceResponseDto();
-		CredentialServiceResponse credentialServiceResponse=null;
+		CredentialServiceResponse credentialServiceResponse = null;
 		CredentialProvider credentialProvider;
 
-		try{
-			String policyId=getPolicyId(credentialServiceRequestDto.getCredentialType());
-			PolicyResponseDto policyDetailResponseDto = policyUtil.getPolicyDetail(policyId, credentialServiceRequestDto.getIssuer());
+		try {
+			String policyId = getPolicyId(credentialServiceRequestDto.getCredentialType());
+			PolicyResponseDto policyDetailResponseDto = policyUtil.getPolicyDetail(policyId,
+					credentialServiceRequestDto.getIssuer());
 
-			     if(credentialServiceRequestDto.getAdditionalData()==null) {
-			    	 Map<String,Object> additionalData=new HashMap<>();
-			    	 credentialServiceRequestDto.setAdditionalData(additionalData);
-			     }
-                Map<String,String> bioAttributeFormatterMap= getFormatters(policyDetailResponseDto);    
-				IdResponseDTO idResponseDto = idrepositaryUtil.getData(credentialServiceRequestDto,bioAttributeFormatterMap);
-				Map<String,Boolean> encryptMap=new HashMap<>();
-				Map<String, Object> sharableAttributeMap = setSharableAttributeValues(idResponseDto,
+			if (credentialServiceRequestDto.getAdditionalData() == null) {
+				Map<String, Object> additionalData = new HashMap<>();
+				credentialServiceRequestDto.setAdditionalData(additionalData);
+			}
+			Map<String, String> bioAttributeFormatterMap = getFormatters(policyDetailResponseDto);
+			IdResponseDTO idResponseDto = idrepositaryUtil.getData(credentialServiceRequestDto,
+					bioAttributeFormatterMap);
+			Map<String, Boolean> encryptMap = new HashMap<>();
+			Map<String, Object> sharableAttributeMap = setSharableAttributeValues(idResponseDto,
 					credentialServiceRequestDto, policyDetailResponseDto, encryptMap);
 
-				credentialProvider = getProvider(credentialServiceRequestDto.getCredentialType());
+			credentialProvider = getProvider(credentialServiceRequestDto.getCredentialType());
 
-				DataProviderResponse dataProviderResponse = credentialProvider.getFormattedCredentialData(encryptMap,
-						credentialServiceRequestDto,
-						sharableAttributeMap);
+			DataProviderResponse dataProviderResponse = credentialProvider.getFormattedCredentialData(encryptMap,
+					credentialServiceRequestDto, sharableAttributeMap);
 
-				DataShare dataShare = dataShareUtil.getDataShare(dataProviderResponse.getFormattedData(), policyId,
-						credentialServiceRequestDto.getIssuer());
-			    EventModel eventModel=getEventModel(dataShare.getUrl(),credentialServiceRequestDto);
-				webSubUtil.publishSuccess(credentialServiceRequestDto.getIssuer(),eventModel);
-				credentialServiceResponse=new CredentialServiceResponse();
-				credentialServiceResponse.setStatus("DONE");
-				credentialServiceResponse.setCredentialId(dataProviderResponse.getCredentialId());
-				credentialServiceResponse.setDataShareUrl(dataShare.getUrl());
-				credentialServiceResponse.setSignature(dataShare.getSignature());
-				
-				credentialServiceResponse.setIssuanceDate(dataProviderResponse.getIssuanceDate());
-				LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
-						"ended creating credential");
+			DataShare dataShare = dataShareUtil.getDataShare(dataProviderResponse.getFormattedData(), policyId,
+					credentialServiceRequestDto.getIssuer());
+			EventModel eventModel = getEventModel(dataShare.getUrl(), credentialServiceRequestDto);
+			webSubUtil.publishSuccess(credentialServiceRequestDto.getIssuer(), eventModel);
+			credentialServiceResponse = new CredentialServiceResponse();
+			credentialServiceResponse.setStatus("DONE");
+			credentialServiceResponse.setCredentialId(dataProviderResponse.getCredentialId());
+			credentialServiceResponse.setDataShareUrl(dataShare.getUrl());
+			credentialServiceResponse.setSignature(dataShare.getSignature());
 
-		
+			credentialServiceResponse.setIssuanceDate(dataProviderResponse.getIssuanceDate());
+			LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
+					"ended creating credential");
+
 		} catch (ApiNotAccessibleException e) {
-			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL, credentialServiceRequestDto.getId(), IdType.ID, e);
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getId(), IdType.ID, e);
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialServiceErrorCodes.API_NOT_ACCESSIBLE_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialServiceErrorCodes.API_NOT_ACCESSIBLE_EXCEPTION.getErrorMessage());
@@ -221,7 +215,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
 					ExceptionUtils.getStackTrace(e));
 		} catch (IdRepoException e) {
-			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL, credentialServiceRequestDto.getId(), IdType.ID, e);
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getId(), IdType.ID, e);
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialServiceErrorCodes.IPREPO_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialServiceErrorCodes.IPREPO_EXCEPTION.getErrorMessage());
@@ -229,7 +224,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
 					ExceptionUtils.getStackTrace(e));
 		} catch (CredentialFormatterException e) {
-			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL, credentialServiceRequestDto.getId(), IdType.ID, e);
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getId(), IdType.ID, e);
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialServiceErrorCodes.CREDENTIAL_FORMATTER_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialServiceErrorCodes.CREDENTIAL_FORMATTER_EXCEPTION.getErrorMessage());
@@ -237,45 +233,48 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
 					ExceptionUtils.getStackTrace(e));
 		} catch (IOException e) {
-			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL, credentialServiceRequestDto.getId(), IdType.ID, e);
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getId(), IdType.ID, e);
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialServiceErrorCodes.IO_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialServiceErrorCodes.IO_EXCEPTION.getErrorMessage());
 			errorList.add(error);
-			
+
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
 					ExceptionUtils.getStackTrace(e));
-		} catch(WebSubClientException e) {
-			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL, credentialServiceRequestDto.getId(), IdType.ID, e);
+		} catch (WebSubClientException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getId(), IdType.ID, e);
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialServiceErrorCodes.WEBSUB_FAIL_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialServiceErrorCodes.WEBSUB_FAIL_EXCEPTION.getErrorMessage());
 			errorList.add(error);
-			
+
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
 					ExceptionUtils.getStackTrace(e));
-		}
-		catch(DataShareException e) {
-			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL, credentialServiceRequestDto.getId(), IdType.ID, e);
+		} catch (DataShareException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getId(), IdType.ID, e);
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorMessage());
 			errorList.add(error);
-			
+
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
 					ExceptionUtils.getStackTrace(e));
-		}catch(PolicyException e) {
-			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL, credentialServiceRequestDto.getId(), IdType.ID, e);
+		} catch (PolicyException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getId(), IdType.ID, e);
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorMessage());
 			errorList.add(error);
-			
+
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
 					ExceptionUtils.getStackTrace(e));
-		}
-		catch (Exception e) {
-			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL, credentialServiceRequestDto.getId(), IdType.ID, e);
+		} catch (Exception e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getId(), IdType.ID, e);
 			ErrorDTO error = new ErrorDTO();
 			error.setErrorCode(CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
@@ -283,44 +282,44 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
 					ExceptionUtils.getStackTrace(e));
 
-		}finally {
+		} finally {
 
 			credentialIssueResponseDto.setId(CREDENTIAL_SERVICE_SERVICE_ID);
 			credentialIssueResponseDto
 					.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 			credentialIssueResponseDto.setVersion(env.getProperty(CREDENTIAL_SERVICE_SERVICE_VERSION));
-			
+
 			if (!errorList.isEmpty()) {
 				credentialIssueResponseDto.setErrors(errorList);
-			}else {
+			} else {
 				credentialIssueResponseDto.setResponse(credentialServiceResponse);
 			}
-			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL, credentialServiceRequestDto.getId(), IdType.ID,"create credential requested");
+			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getId(), IdType.ID, "create credential requested");
 		}
 		return credentialIssueResponseDto;
 	}
 
 	private EventModel getEventModel(String url, CredentialServiceRequestDto credentialServiceRequestDto) {
-		Map<String,Object> map=credentialServiceRequestDto.getAdditionalData();
+		Map<String, Object> map = credentialServiceRequestDto.getAdditionalData();
 		map.put("recepiant", credentialServiceRequestDto.getRecepiant());
 		credentialServiceRequestDto.setAdditionalData(map);
-		EventModel eventModel=new EventModel();
+		EventModel eventModel = new EventModel();
 		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 		LocalDateTime localdatetime = LocalDateTime
 				.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
 		eventModel.setPublishedOn(DateUtils.toISOString(localdatetime));
 		eventModel.setPublisher("CREDENTIAL_SERVICE");
-		eventModel.setTopic(credentialServiceRequestDto.getIssuer()+"/"+CredentialConstants.CREDENTIAL_ISSUED);
-		Event event=new Event();
+		eventModel.setTopic(credentialServiceRequestDto.getIssuer() + "/" + IDAEventType.CREDENTIAL_ISSUED);
+		Event event = new Event();
 		event.setData(credentialServiceRequestDto.getAdditionalData());
 		event.setTimestamp(DateUtils.toISOString(localdatetime));
 		event.setDataShareUri(url);
-		String eventId=utilities.generateId();
-		LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
-				"event id"+eventId);
+		String eventId = utilities.generateId();
+		LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL, "event id" + eventId);
 		event.setId(eventId);
 		event.setTransactionId(credentialServiceRequestDto.getRequestId());
-		Type type=new Type();
+		Type type = new Type();
 		type.setName(env.getProperty(CREDENTIAL_SERVICE_TYPE_NAME));
 		type.setNamespace(env.getProperty(CREDENTIAL_SERVICE_TYPE_NAMESPACE));
 		event.setType(type);
@@ -330,9 +329,11 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 	private Map<String, String> getFormatters(PolicyResponseDto policyResponseDto) {
 		Map<String, String> formatterMap = new HashMap<>();
-		List<AllowedKycDto> sharableAttributeList=policyResponseDto.getPolicies().getShareableAttributes();
+		List<AllowedKycDto> sharableAttributeList = policyResponseDto.getPolicies().getShareableAttributes();
 		sharableAttributeList.forEach(dto -> {
-			if(dto.getAttributeName().equalsIgnoreCase(CredentialConstants.FACE) ||dto.getAttributeName().equalsIgnoreCase(CredentialConstants.IRIS) ||dto.getAttributeName().equalsIgnoreCase(CredentialConstants.FINGER)) {
+			if (dto.getAttributeName().equalsIgnoreCase(CredentialConstants.FACE)
+					|| dto.getAttributeName().equalsIgnoreCase(CredentialConstants.IRIS)
+					|| dto.getAttributeName().equalsIgnoreCase(CredentialConstants.FINGER)) {
 				formatterMap.put(dto.getAttributeName(), dto.getFormat());
 			}
 		});
@@ -345,25 +346,26 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	 * @param credentialType the credential type
 	 * @return the provider
 	 */
-	private CredentialProvider getProvider(String credentialType)
-	                                                            {
+	private CredentialProvider getProvider(String credentialType) {
 
-    String provider=env.getProperty("credentialType.formatter."+credentialType.toUpperCase());
-   
-    if (provider.equalsIgnoreCase(CredentialFormatter.IdAuthProvider.name())) {
-    	return idAuthProvider;
-    }else if(provider.equalsIgnoreCase(CredentialFormatter.QrCodeProvider.name())) {
-    	return qrCodeProvider;
-     }else {
-    	 return credentialDefaultProvider;
-     }
+		String provider = env.getProperty("credentialType.formatter." + credentialType.toUpperCase());
+		if (provider == null) {
+			return credentialDefaultProvider;
+		} else if (provider.equalsIgnoreCase(CredentialFormatter.IdAuthProvider.name())) {
+			return idAuthProvider;
+		} else if (provider.equalsIgnoreCase(CredentialFormatter.QrCodeProvider.name())) {
+			return qrCodeProvider;
+		} else {
+			return credentialDefaultProvider;
+		}
 
 	}
-	private String getPolicyId(String credentialType)
-	{
-		  String policId=env.getProperty("credentialType.policyid."+credentialType.toUpperCase());
-          return policId;
+
+	private String getPolicyId(String credentialType) {
+		String policId = env.getProperty("credentialType.policyid." + credentialType.toUpperCase());
+		return policId;
 	}
+
 	/**
 	 * Sets the sharable attribute values.
 	 *
@@ -371,51 +373,55 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	 * @param credentialServiceRequestDto the credential service request dto
 	 * @param policyDetailResponseDto     the policy detail response dto
 	 * @return the map
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	private Map<String, Object> setSharableAttributeValues(IdResponseDTO idResponseDto,
-			CredentialServiceRequestDto credentialServiceRequestDto, PolicyResponseDto policyResponseDto,Map<String,Boolean> encryptionMap) throws Exception {
+			CredentialServiceRequestDto credentialServiceRequestDto, PolicyResponseDto policyResponseDto,
+			Map<String, Boolean> encryptionMap) throws Exception {
 
-		Map<String, Object> attributesMap = new HashMap<>(); 
+		Map<String, Object> attributesMap = new HashMap<>();
 		JSONObject identity = new JSONObject((Map) idResponseDto.getResponse().getIdentity());
 
-		List<AllowedKycDto> sharableAttributeList=policyResponseDto.getPolicies().getShareableAttributes();
-		Set<String> sharableAttributeDemographicKeySet=new HashSet<>();
-		Set<String> sharableAttributeBiometricKeySet=new HashSet<>();
-		
+		List<AllowedKycDto> sharableAttributeList = policyResponseDto.getPolicies().getShareableAttributes();
+		Set<String> sharableAttributeDemographicKeySet = new HashSet<>();
+		Set<String> sharableAttributeBiometricKeySet = new HashSet<>();
 
-		if(credentialServiceRequestDto.getSharableAttributes()!=null && !credentialServiceRequestDto.getSharableAttributes().isEmpty()) {
+		if (credentialServiceRequestDto.getSharableAttributes() != null
+				&& !credentialServiceRequestDto.getSharableAttributes().isEmpty()) {
 			credentialServiceRequestDto.getSharableAttributes().forEach(attribute -> {
-				if(attribute.equalsIgnoreCase(SingleType.FACE.value()) ||attribute.equalsIgnoreCase(SingleType.IRIS.value()) ||attribute.equalsIgnoreCase(SingleType.FINGER.value())) {
+				if (attribute.equalsIgnoreCase(SingleType.FACE.value())
+						|| attribute.equalsIgnoreCase(SingleType.IRIS.value())
+						|| attribute.equalsIgnoreCase(SingleType.FINGER.value())) {
 					sharableAttributeBiometricKeySet.add(attribute);
-					
-				}else {
+
+				} else {
 					sharableAttributeDemographicKeySet.add(attribute);
-					
+
 				}
 				encryptionMap.put(attribute, credentialServiceRequestDto.isEncrypt());
 			});
 		}
-			
 
 		sharableAttributeList.forEach(dto -> {
-			if(dto.getAttributeName().equalsIgnoreCase(SingleType.FACE.value()) ||dto.getAttributeName().equalsIgnoreCase(SingleType.IRIS.value()) ||dto.getAttributeName().equalsIgnoreCase(SingleType.FINGER.value())) {
-				
+			if (dto.getAttributeName().equalsIgnoreCase(SingleType.FACE.value())
+					|| dto.getAttributeName().equalsIgnoreCase(SingleType.IRIS.value())
+					|| dto.getAttributeName().equalsIgnoreCase(SingleType.FINGER.value())) {
+
 				sharableAttributeBiometricKeySet.add(dto.getAttributeName());
-				
-			}else {
+
+			} else {
 				sharableAttributeDemographicKeySet.add(dto.getAttributeName());
-				
+
 			}
 			encryptionMap.put(dto.getAttributeName(), dto.isEncrypted());
 		});
-		
+
 		for (String key : sharableAttributeDemographicKeySet) {
 			Object object = identity.get(key);
 			if (object instanceof ArrayList) {
 				JSONArray node = JsonUtil.getJSONArray(identity, key);
 				JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
-				attributesMap.put(key,  String.valueOf(jsonValues));
+				attributesMap.put(key, String.valueOf(jsonValues));
 			} else if (object instanceof LinkedHashMap) {
 				JSONObject json = JsonUtil.getJSONObject(identity, key);
 				attributesMap.put(key, (String) json.get(VALUE));
@@ -423,7 +429,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 				attributesMap.put(key, String.valueOf(object));
 			}
 		}
-		String value=null;
+		String value = null;
 		List<DocumentsDTO> documents = idResponseDto.getResponse().getDocuments();
 		for (DocumentsDTO doc : documents) {
 			if (doc.getCategory().equals(CredentialConstants.INDIVIDUAL_BIOMETRICS)) {
@@ -432,34 +438,30 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			}
 		}
 
-		/*List<BIRType>  typeList= cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(value));
-		List<BIR> birList=cbeffutil.convertBIRTypeToBIR(typeList);
-		Map<String, Map<String, byte[]>> biometrics = birList.stream().collect(Collectors.groupingBy(bir -> bir.getBdbInfo().getType().get(0).value(), 
-				Collectors.toMap(bir -> {
-					List<String> subtype = bir.getBdbInfo().getSubtype();
-					String type = bir.getBdbInfo().getType().get(0).value();
-					return subtype.isEmpty() ? type : (type + "_" + subtype.get(0));
-				},
-		  				bir -> (byte[])bir.getBdb())
-				));
-		 for (Entry<String, Map<String, byte[]>> entry : biometrics.entrySet()) {
-			  String key=entry.getKey().toLowerCase();
-			  if(sharableAttributeBiometricKeySet.contains(key)) {
-				  attributesMap.put(key, entry.getValue());
-			  }
-		 }
-		*/
+		/*
+		 * List<BIRType> typeList=
+		 * cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(value)); List<BIR>
+		 * birList=cbeffutil.convertBIRTypeToBIR(typeList); Map<String, Map<String,
+		 * byte[]>> biometrics = birList.stream().collect(Collectors.groupingBy(bir ->
+		 * bir.getBdbInfo().getType().get(0).value(), Collectors.toMap(bir -> {
+		 * List<String> subtype = bir.getBdbInfo().getSubtype(); String type =
+		 * bir.getBdbInfo().getType().get(0).value(); return subtype.isEmpty() ? type :
+		 * (type + "_" + subtype.get(0)); }, bir -> (byte[])bir.getBdb()) )); for
+		 * (Entry<String, Map<String, byte[]>> entry : biometrics.entrySet()) { String
+		 * key=entry.getKey().toLowerCase();
+		 * if(sharableAttributeBiometricKeySet.contains(key)) { attributesMap.put(key,
+		 * entry.getValue()); } }
+		 */
 		return attributesMap;
 	}
 
 	@Override
 	public CredentialTypeResponse getCredentialTypes() {
-		List<io.mosip.credentialstore.dto.Type> credentialTypes = utilities.getTypes(configServerFileStorageURL, credentialTypefile);
+		List<io.mosip.credentialstore.dto.Type> credentialTypes = utilities.getTypes(configServerFileStorageURL,
+				credentialTypefile);
 		CredentialTypeResponse CredentialTypeResponse = new CredentialTypeResponse();
 		CredentialTypeResponse.setCredentialTypes(credentialTypes);
 		return CredentialTypeResponse;
 	}
-
-
 
 }

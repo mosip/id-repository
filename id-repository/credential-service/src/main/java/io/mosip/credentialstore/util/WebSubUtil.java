@@ -9,7 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import io.mosip.credentialstore.constants.CredentialConstants;
-
+import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.dto.EventModel;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
@@ -43,14 +43,14 @@ public class WebSubUtil {
         registerTopic(issuer);
         HttpHeaders httpHeaders=new HttpHeaders();
 		httpHeaders.add("Cookie",restUtil.getToken());
-		pb.publishUpdate(issuer+"/"+CredentialConstants.CREDENTIAL_ISSUED, eventModel, MediaType.APPLICATION_JSON_UTF8_VALUE, httpHeaders,  partnerhuburl); 
+		pb.publishUpdate(issuer+"/"+IDAEventType.CREDENTIAL_ISSUED, eventModel, MediaType.APPLICATION_JSON_UTF8_VALUE, httpHeaders,  partnerhuburl); 
 
 
 	}
 
 	private void registerTopic(String issuer) {
 		try {
-			pb.registerTopic(issuer+"/"+CredentialConstants.CREDENTIAL_ISSUED, partnerhuburl);
+			pb.registerTopic(issuer+"/"+IDAEventType.CREDENTIAL_ISSUED, partnerhuburl);
 		}catch(WebSubClientException e){
 			LOGGER.error(IdRepoSecurityManager.getUser(), WEBSUBUTIL, REGISTERTOPIC,
 					"Topic already registered");
