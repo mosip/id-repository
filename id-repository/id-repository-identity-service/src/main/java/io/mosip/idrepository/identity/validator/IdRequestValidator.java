@@ -545,7 +545,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					"type is null but extraction format is not null");
 			throw new IdRepoAppException(MISSING_INPUT_PARAMETER.getErrorCode(),
 					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), "type"));
-		} else if (!type.equalsIgnoreCase("bio") && !extractionFormats.isEmpty()) {
+		} else if ((!type.equalsIgnoreCase("bio") || !type.equalsIgnoreCase("all")) && !extractionFormats.isEmpty()) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateTypeAndExtractionFormats",
 					"type is not bio but extraction format is not null");
 			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
