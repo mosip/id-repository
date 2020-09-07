@@ -59,7 +59,7 @@ public class RestUtil {
 
 	@SuppressWarnings("unchecked")
 	public <T> T postApi(ApiName apiName, List<String> pathsegments, String queryParamName, String queryParamValue,
-			MediaType mediaType, Object requestType, Class<?> responseClass) throws ApiNotAccessibleException {
+			MediaType mediaType, Object requestType, Class<?> responseClass) throws Exception {
 		  T result = null;
 		String apiHostIpPort = environment.getProperty(apiName.name());
 		UriComponentsBuilder builder = null;
@@ -91,7 +91,7 @@ public class RestUtil {
             result = (T) restTemplate.postForObject(builder.toUriString(), setRequestHeader(requestType, mediaType), responseClass);
 
         } catch (Exception e) {
-            throw new ApiNotAccessibleException(e);
+             throw new Exception(e);
 			}
 		}
         return result;
@@ -99,7 +99,7 @@ public class RestUtil {
 
 	@SuppressWarnings("unchecked")
 	public <T> T getApi(ApiName apiName, List<String> pathsegments, String queryParamName, String queryParamValue,
-			Class<?> responseType) throws ApiNotAccessibleException {
+			Class<?> responseType) throws Exception {
 
 		String apiHostIpPort = environment.getProperty(apiName.name());
 		T result = null;
@@ -134,7 +134,7 @@ public class RestUtil {
             result = (T) restTemplate.exchange(uriComponents.toUri(), HttpMethod.GET, setRequestHeader(null, null), responseType)
                     .getBody();
         } catch (Exception e) {
-            throw new ApiNotAccessibleException(e);
+            throw new Exception(e);
         }
 
 		}
@@ -142,7 +142,7 @@ public class RestUtil {
     }
 	@SuppressWarnings("unchecked")
 	public <T> T getApi(ApiName apiName, Map<String, String>  pathsegments,
-			Class<?> responseType) throws ApiNotAccessibleException {
+			Class<?> responseType) throws Exception {
 
 		String apiHostIpPort = environment.getProperty(apiName.name());
 		T result = null;
@@ -154,7 +154,7 @@ public class RestUtil {
 
 			 URI urlWithPath = builder.build(pathsegments);
 
-			
+
         RestTemplate restTemplate;
 
         try {
@@ -162,7 +162,7 @@ public class RestUtil {
             result = (T) restTemplate.exchange(urlWithPath, HttpMethod.GET, setRequestHeader(null, null), responseType)
                     .getBody();
         } catch (Exception e) {
-            throw new ApiNotAccessibleException(e);
+        	throw new Exception(e);
         }
 
 		}

@@ -9,12 +9,14 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
@@ -30,6 +32,7 @@ import io.mosip.idrepository.core.exception.AuthenticationException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.kernel.auth.defaultadapter.model.AuthUserDetails;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -44,6 +47,8 @@ import reactor.core.publisher.Mono;
 @Component
 @NoArgsConstructor
 public class RestHelper {
+	
+	private static final String AUTHORIZATION = "Authorization=";
 
 	/** The Constant ERRORS. */
 	private static final String ERRORS = "errors";
@@ -254,5 +259,16 @@ public class RestHelper {
 			return new RestServiceException(UNKNOWN_ERROR, ex);
 		}
 
+	}
+	
+	public static Optional<String> getAuthToken() {
+		if (SecurityContextHolder.getContext() != null
+				&& SecurityContextHolder.getContext().getAuthentication() != null) {
+			Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+			if (principal instanceof AuthUserDetails) {
+				return Optional.of(AUTHORIZATION + ((AuthUserDetails) principal).getToken());
+			}
+		}
+		return Optional.empty();
 	}
 }

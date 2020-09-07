@@ -8,5 +8,6 @@
 \ir ddl/idrepo-uin_biometric_h.sql
 \ir ddl/idrepo-uin_hash_salt.sql
 \ir ddl/idrepo-uin_encrypt_salt.sql
+\ir ddl/idrepo-uin_auth_lock.sql
 
 \ir ddl/idrepo-fk.sql

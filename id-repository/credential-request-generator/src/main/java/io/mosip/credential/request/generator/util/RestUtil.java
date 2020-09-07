@@ -73,11 +73,11 @@ public class RestUtil {
 	 * @param requestType     the request type
 	 * @param responseClass   the response class
 	 * @return the t
-	 * @throws ApiNotAccessibleException the api not accessible exception
+	 * @throws Exception 
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T postApi(ApiName apiName, List<String> pathsegments, String queryParamName, String queryParamValue,
-			MediaType mediaType, Object requestType, Class<?> responseClass) throws ApiNotAccessibleException {
+			MediaType mediaType, Object requestType, Class<?> responseClass) throws Exception {
 		T result = null;
 		String apiHostIpPort = environment.getProperty(apiName.name());
 		UriComponentsBuilder builder = null;
@@ -110,7 +110,7 @@ public class RestUtil {
 						responseClass);
 
         } catch (Exception e) {
-            throw new ApiNotAccessibleException(e);
+            throw new Exception(e);
 			}
 		}
         return result;
@@ -126,11 +126,11 @@ public class RestUtil {
 	 * @param queryParamValue the query param value
 	 * @param responseType    the response type
 	 * @return the api
-	 * @throws ApiNotAccessibleException the api not accessible exception
+	 * @throws Exception 
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T getApi(ApiName apiName, List<String> pathsegments, String queryParamName, String queryParamValue,
-			Class<?> responseType) throws ApiNotAccessibleException {
+			Class<?> responseType) throws Exception {
 
 		String apiHostIpPort = environment.getProperty(apiName.name());
 		T result = null;
@@ -166,7 +166,7 @@ public class RestUtil {
 						.exchange(uriComponents.toUri(), HttpMethod.GET, setRequestHeader(null, null), responseType)
                     .getBody();
         } catch (Exception e) {
-            throw new ApiNotAccessibleException(e);
+            throw new Exception(e);
         }
 
 		}

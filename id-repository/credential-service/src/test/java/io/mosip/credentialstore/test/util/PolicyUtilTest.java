@@ -55,7 +55,7 @@ public class PolicyUtilTest {
 	
 	@SuppressWarnings("unchecked")
 	@Before
-	public void setUp() throws IOException, ApiNotAccessibleException {
+	public void setUp() throws Exception {
 		
 		policyManagerResponseDto = new PolicyManagerResponseDto();
 		PolicyResponseDto responseData = new PolicyResponseDto();
@@ -88,20 +88,21 @@ public class PolicyUtilTest {
 
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
-	public void testHttpClientException() throws IOException, ApiNotAccessibleException, PolicyException {
+	public void testHttpClientException() throws Exception {
 		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(HttpStatus.BAD_REQUEST,
 				"error");
-
-		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpClientErrorException);
+		Exception e=new Exception(httpClientErrorException);
+		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		policyUtil.getPolicyDetail("1234", "3456");
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
-	public void testHttpServerException() throws  IOException, ApiNotAccessibleException, PolicyException {
+	public void testHttpServerException() throws  Exception {
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(HttpStatus.BAD_REQUEST,
 				"error");
-		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpServerErrorException);
+		Exception e=new Exception(httpServerErrorException);
+		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		policyUtil.getPolicyDetail("1234", "3456");
 	}
 

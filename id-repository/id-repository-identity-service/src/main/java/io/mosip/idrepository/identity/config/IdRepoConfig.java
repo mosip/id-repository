@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
@@ -27,6 +28,8 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
@@ -43,6 +46,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.websub.spi.PublisherClient;
+import io.mosip.kernel.websub.api.exception.WebSubClientException;
 
 /**
  * The Class IdRepoConfig.
@@ -52,6 +56,7 @@ import io.mosip.kernel.core.websub.spi.PublisherClient;
 @Configuration
 @ConfigurationProperties("mosip.idrepo.identity")
 @EnableTransactionManagement
+@EnableAsync
 public class IdRepoConfig implements WebMvcConfigurer {
 	
 	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISHER_URL + "}")
@@ -91,7 +96,11 @@ public class IdRepoConfig implements WebMvcConfigurer {
 
 	@PostConstruct
 	public void init() {
-		publisher.registerTopic(IDAEventType.AUTH_TYPE_STATUS_UPDATE.name(), publisherHubURL);
+		try {
+			publisher.registerTopic(IDAEventType.AUTH_TYPE_STATUS_UPDATE.name(), publisherHubURL);
+		} catch (WebSubClientException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), "IdRepoConfig", "init", e.getMessage().toUpperCase());
+		}
 		restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
 
 			@Override
@@ -317,5 +326,16 @@ public class IdRepoConfig implements WebMvcConfigurer {
 	public DataSource dataSource() {
 		return buildDataSource(db.get("shard"));
 	}
+	
+	  @Bean
+	  public Executor taskExecutor() {
+	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+	    executor.setCorePoolSize(3);
+	    executor.setMaxPoolSize(3);
+	    executor.setQueueCapacity(500);
+	    executor.setThreadNamePrefix("idrepo-");
+	    executor.initialize();
+	    return executor;
+	  }
 
 }
