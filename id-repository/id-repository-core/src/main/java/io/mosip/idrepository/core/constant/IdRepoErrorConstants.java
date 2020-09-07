@@ -63,13 +63,13 @@ public enum IdRepoErrorConstants {
 	ENCRYPTION_DECRYPTION_FAILED("IDR-IDS-003", "Failed to either encrypt/decrypt message using Kernel Crypto Manager"),
 
 	/** The file storage access error. */
-	FILE_STORAGE_ACCESS_ERROR("IDR-IDS-004", "Failed to store/retrieve files in DFS"),
+	FILE_STORAGE_ACCESS_ERROR("IDR-IDS-004", "Failed to store/retrieve files in Object Store"),
 
 	/** The id object processing failed. */
 	ID_OBJECT_PROCESSING_FAILED("IDR-IDS-005", "Failed to process Id Object using kernel Id Object validator"),
 
 	/** The file not found. */
-	FILE_NOT_FOUND("IDR-IDS-006", "File(s) not found in DFS"),
+	FILE_NOT_FOUND("IDR-IDS-006", "File(s) not found in Object Store"),
 	
 	/** The masterdata retrieve error. */
 	MASTERDATA_RETRIEVE_ERROR("IDR-IDS-007", "Failed to retrieve data from kernel Masterdata"),

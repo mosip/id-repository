@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -540,13 +539,13 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 		return null;
 	}
 
-	public void validateTypeAndExtractionFormats(String type, Set<String> extractionFormats) throws IdRepoAppException {
+	public void validateTypeAndExtractionFormats(String type, Map<String, String> extractionFormats) throws IdRepoAppException {
 		if (Objects.isNull(type) && !extractionFormats.isEmpty()) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateTypeAndExtractionFormats",
 					"type is null but extraction format is not null");
 			throw new IdRepoAppException(MISSING_INPUT_PARAMETER.getErrorCode(),
 					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), "type"));
-		} else if (type != "bio" && !extractionFormats.isEmpty()) {
+		} else if (!type.equalsIgnoreCase("bio") && !extractionFormats.isEmpty()) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateTypeAndExtractionFormats",
 					"type is not bio but extraction format is not null");
 			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),

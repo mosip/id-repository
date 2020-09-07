@@ -6,9 +6,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_I
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_REQUEST;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -219,8 +217,16 @@ public class IdRepoController {
 			throws IdRepoAppException {
 		try {
 			type = validator.validateType(type);
-			HashSet<String> extractionFormats = new HashSet<>(
-					Arrays.asList(fingerExtractionFormat, irisExtractionFormat, faceExtractionFormat));
+			Map<String, String> extractionFormats = new HashMap<>();
+			if(Objects.nonNull(fingerExtractionFormat)) {
+				extractionFormats.put("fingerExtractionFormat", fingerExtractionFormat);
+			}
+			if(Objects.nonNull(irisExtractionFormat)) {
+				extractionFormats.put("irisExtractionFormat", fingerExtractionFormat);
+			}
+			if(Objects.nonNull(faceExtractionFormat)) {
+				extractionFormats.put("faceExtractionFormat", fingerExtractionFormat);
+			}
 			extractionFormats.remove(null);
 			validator.validateTypeAndExtractionFormats(type, extractionFormats);
 			return new ResponseEntity<>(idRepoService.retrieveIdentity(id,
