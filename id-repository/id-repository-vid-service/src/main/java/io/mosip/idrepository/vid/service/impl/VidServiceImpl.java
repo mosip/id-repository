@@ -96,6 +96,8 @@ import io.mosip.kernel.core.websub.spi.PublisherClient;
 @Transactional
 public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper<VidResponseDTO>, ResponseWrapper<List<VidInfoDTO>>> {
 	
+	private static final String COOKIE = "Cookie";
+	
 	private static final String ID_TYPE = "idType";
 
 	private static final String TOKEN = "TOKEN";
@@ -707,11 +709,16 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	}
 
 	private void notify(String uin, String status, List<Vid> vids, boolean isUpdated) {
-		List<String> partnerIds = getPartnerIds();
-		if(isUpdated) {
-			sendEventsToIDA(status, vids, partnerIds);
-		} else {
-			sendEventsToCredService(uin, status, vids, isUpdated, partnerIds);
+		try {
+			List<String> partnerIds = getPartnerIds();
+			if (isUpdated) {
+				sendEventsToIDA(status, vids, partnerIds);
+			} else {
+				sendEventsToCredService(uin, status, vids, isUpdated, partnerIds);
+			}
+		} catch (Exception e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "getPartnerIds",
+					e.getMessage());
 		}
 	}
 	
@@ -816,12 +823,17 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 						eventType.equals(IDAEventType.ACTIVATE_ID) ? vid.getExpiryDTimes() : vid.getUpdatedDTimes(),
 						policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(), partnerIds, transactionId))
 				.collect(Collectors.toList());
-		eventDtos.forEach(eventDto -> sendEventToIDA(eventDto));
+		Optional<String> authToken = RestHelper.getAuthToken();
+		eventDtos.forEach(eventDto -> sendEventToIDA(eventDto, authToken));
 	}
 	
-	private void sendEventToIDA(EventModel model) {
+	private void sendEventToIDA(EventModel model, Optional<String> authToken) {
 		pb.registerTopic(model.getTopic(), webSubHubUrl);
-		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, new HttpHeaders(), webSubHubUrl);
+		HttpHeaders headers = new HttpHeaders();
+		if(authToken.isPresent()) {
+			headers.add(COOKIE, authToken.get());
+		}
+		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, headers, webSubHubUrl);
 	}
 
 	private Stream<EventModel> createIdaEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp, Integer transactionLimit, List<String> partnerIds, String transactionId) {

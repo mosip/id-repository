@@ -47,6 +47,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 
@@ -102,6 +103,8 @@ import io.mosip.kernel.core.websub.spi.PublisherClient;
  */
 @Service
 public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdResponseDTO> {
+
+	private static final String COOKIE = "Cookie";
 
 	private static final String ID_TYPE = "idType";
 
@@ -739,6 +742,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	@SuppressWarnings("unchecked")
 	private void notify(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate, String txnId) {
 		try {
+			Optional<String> authToken = RestHelper.getAuthToken();
+			SecurityContextHolder.getContext().getAuthentication().getDetails();
 			List<VidInfoDTO> vidInfoDtos = null;
 			if (isUpdate) {
 				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_VIDS_BY_UIN, null,
@@ -752,7 +757,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			
 			if(isUpdate && (!ACTIVE.equals(status) || expiryTimestamp != null)) {
 				//Event to be sent to IDA for deactivation/blocked uin state
-				sendEventToIDA(uin, expiryTimestamp, status, vidInfoDtos, partnerIds, txnId);
+				sendEventToIDA(uin, expiryTimestamp, status, vidInfoDtos, partnerIds, txnId, authToken);
 			} else {
 				//For create uin, or update uin with null expiry (active status), send event to credential service.
 				sendEventsToCredService(uin, expiryTimestamp, isUpdate, vidInfoDtos, partnerIds);
@@ -762,8 +767,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", e.getMessage());
 		}
 	}
-	
-	
 
 	@SuppressWarnings("unchecked")
 	private List<String> getPartnerIds() {
@@ -786,7 +789,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		return Collections.emptyList();
 	}
 
-	private void sendEventToIDA(String uin, LocalDateTime expiryTimestamp, String status, List<VidInfoDTO> vidInfoDtos, List<String> partnerIds, String txnId) {
+	private void sendEventToIDA(String uin, LocalDateTime expiryTimestamp, String status, List<VidInfoDTO> vidInfoDtos, List<String> partnerIds, String txnId, Optional<String> authToken) {
 		List<EventModel> eventList = new ArrayList<>();
 		EventType eventType = BLOCKED.equals(status) ? IDAEventType.REMOVE_ID : IDAEventType.DEACTIVATE_ID;
 		eventList.addAll(createIdaEventModel(eventType, uin, expiryTimestamp, null, partnerIds, txnId).collect(Collectors.toList()));
@@ -804,7 +807,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		
 		eventList.forEach(eventDto -> {
 			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", "notifying IDA for event" + eventType.toString());
-			sendEventToIDA(eventDto);
+			sendEventToIDA(eventDto, authToken);
 			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", "notified IDA for event" + eventType.toString());
 		});
 	}
@@ -837,9 +840,13 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		return model;
 	}
 
-	private void sendEventToIDA(EventModel model) {
+	private void sendEventToIDA(EventModel model, Optional<String> authToken) {
 		pb.registerTopic(model.getTopic(), webSubHubUrl);
-		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, new HttpHeaders(), webSubHubUrl);
+		HttpHeaders headers = new HttpHeaders();
+		if(authToken.isPresent()) {
+			headers.add(COOKIE, authToken.get());
+		}
+		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, headers, webSubHubUrl);
 	}
 
 	private void sendEventsToCredService(String uin, LocalDateTime expiryTimestamp, boolean isUpdate, List<VidInfoDTO> vidInfoDtos, List<String> partnerIds) {
