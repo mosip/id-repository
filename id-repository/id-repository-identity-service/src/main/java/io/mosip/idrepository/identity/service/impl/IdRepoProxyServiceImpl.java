@@ -596,12 +596,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			int i = 0;
 			CompletableFuture<?>[] extractTemplateFuture = new CompletableFuture<?>[extractionFormats.size()];
 			for (Entry<String, String> extractionFormat : extractionFormats.entrySet()) {
-				if (Objects.nonNull(extractionFormat.getValue())) {
-					mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
-							"EXTRACTING TEMPLATE FOR " + extractionFormat.getKey());
-					extractTemplateFuture[i++] = extractTemplate(uinHash, fileName, extractionFormat.getKey(),
-							extractionFormat.getValue());
-				}
+				extractTemplateFuture[i++] = extractTemplate(uinHash, fileName, extractionFormat.getKey(),
+						extractionFormat.getValue());
 			}
 			CompletableFuture.allOf(extractTemplateFuture).join();
 			for (int j = 0; j < extractTemplateFuture.length; j++) {

@@ -222,10 +222,10 @@ public class IdRepoController {
 				extractionFormats.put(FINGER_EXTRACTION_FORMAT, fingerExtractionFormat);
 			}
 			if(Objects.nonNull(irisExtractionFormat)) {
-				extractionFormats.put(IRIS_EXTRACTION_FORMAT, fingerExtractionFormat);
+				extractionFormats.put(IRIS_EXTRACTION_FORMAT, irisExtractionFormat);
 			}
 			if(Objects.nonNull(faceExtractionFormat)) {
-				extractionFormats.put(FACE_EXTRACTION_FORMAT, fingerExtractionFormat);
+				extractionFormats.put(FACE_EXTRACTION_FORMAT, faceExtractionFormat);
 			}
 			extractionFormats.remove(null);
 			validator.validateTypeAndExtractionFormats(type, extractionFormats);
