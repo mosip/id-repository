@@ -593,6 +593,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			int i = 0;
 			CompletableFuture<?>[] extractTemplateFuture = new CompletableFuture<?>[extractionFormats.size()];
 			for (Entry<String, String> extractionFormat : extractionFormats.entrySet()) {
+				if (Objects.nonNull(extractionFormat.getValue()))
 				extractTemplateFuture[i++] = extractTemplate(uinHash, fileName, extractionFormat.getKey(),
 						extractionFormat.getValue());
 			}
@@ -621,8 +622,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	@Async
 	private CompletableFuture<byte[]> extractTemplate(String uinHash, String fileName, String extractionType, String extractionFormat) throws IdRepoAppException {
 		try {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", env.getProperty("mosip.idrepo.bio-extractor-service.rest.uri"));
-			
 			String extractionFileName = fileName.split("\\.")[0] + DOT + extractionType;
 			//TODO need to remove AmazonS3Exception handling
 			try {
@@ -643,7 +642,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				request.setRequest(bioExtractReq);
 				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.BIO_EXTRACTOR_SERVICE, request,
 						ResponseWrapper.class);
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", restRequest.toString());
 				restRequest.setUri(restRequest.getUri().replace("{extractionFormat}", extractionFormat));
 				ResponseWrapper<Map<String, String>> response = restHelper.requestSync(restRequest);
 				byte[] extractedBiometrics = CryptoUtil.decodeBase64(response.getResponse().get("extractedBiometrics"));
