@@ -50,7 +50,7 @@ public class WebSubUtil {
 
 	private void registerTopic(String issuer) {
 		try {
-			pb.registerTopic(issuer+"/"+CredentialConstants.CREDENTIAL_ISSUED, partnerhuburl);
+			pb.registerTopic(issuer+"/"+IDAEventType.CREDENTIAL_ISSUED, partnerhuburl);
 		}catch(WebSubClientException e){
 			LOGGER.error(IdRepoSecurityManager.getUser(), WEBSUBUTIL, REGISTERTOPIC,
 					"Topic already registered");
