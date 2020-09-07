@@ -68,24 +68,7 @@ public final class IdRepoFilter extends BaseIdRepoFilter {
 	 */
 	@Override
 	protected final String buildResponse(HttpServletRequest request) {
-		if (request.getMethod().equals(GET) && (request.getParameterMap().size() > 1
-				|| (request.getParameterMap().size() == 1 && !request.getParameterMap().containsKey(TYPE)))) {
-			try {
-				IdResponseDTO idResponse = new IdResponseDTO();
-				idResponse.setId(id.get(READ));
-				idResponse.setVersion(env.getProperty(APPLICATION_VERSION));
-				ServiceError errors = new ServiceError(INVALID_REQUEST.getErrorCode(),
-						INVALID_REQUEST.getErrorMessage());
-				idResponse.setErrors(Collections.singletonList(errors));
-				return mapper.writeValueAsString(idResponse);
-			} catch (IOException e) {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_FILTER,
-						"\n" + e.getMessage());
-				throw new IdRepoAppUncheckedException(UNKNOWN_ERROR);
-			}
-		} else {
-			return null;
-		}
+		return null;
 	}
 
 }

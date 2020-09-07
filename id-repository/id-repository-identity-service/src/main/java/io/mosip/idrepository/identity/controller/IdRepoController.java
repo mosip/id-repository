@@ -224,7 +224,7 @@ public class IdRepoController {
 			extractionFormats.remove(null);
 			validator.validateTypeAndExtractionFormats(type, extractionFormats);
 			return new ResponseEntity<>(idRepoService.retrieveIdentity(id,
-					Objects.isNull(idType) ? getIdType(id) : validator.validateIdType(idType), type, extractionFormats),
+					Objects.isNull(idType) ? getIdType(id) : validator.validateIdType(idType.toUpperCase()), type, extractionFormats),
 					HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE,
