@@ -310,18 +310,7 @@ public class CredentialStoreServiceImplTest {
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.WEBSUB_FAIL_EXCEPTION.getErrorMessage());
 	}
 	
-	@Test
-	public void testException(){
-		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
-		credentialServiceRequestDto.setCredentialType("mosip");
-		credentialServiceRequestDto.setId("4238135072");
-		Map<String,Object> additionalData=new HashMap<>();
-		credentialServiceRequestDto.setAdditionalData(additionalData);
-		Mockito.when(env.getProperty("credentialType.formatter.MOSIP"))
-		.thenReturn(null);
-		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
-	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
-	}
+	
 	@Test
 	public void testgetCredentialTypes() {
 		List<Type> typeList=new ArrayList<>();
