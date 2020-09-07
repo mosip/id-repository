@@ -1,7 +1,6 @@
 package io.mosip.credentialstore.service.impl;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -22,16 +21,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import io.micrometer.core.instrument.util.IOUtils;
 import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.constants.CredentialFormatter;
 import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
-import io.mosip.credentialstore.constants.CredentialType;
 import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.CredentialTypeResponse;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.DataShare;
-
 import io.mosip.credentialstore.dto.JsonValue;
 import io.mosip.credentialstore.dto.PolicyResponseDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
@@ -438,20 +434,24 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			}
 		}
 
-		/*
-		 * List<BIRType> typeList=
-		 * cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(value)); List<BIR>
-		 * birList=cbeffutil.convertBIRTypeToBIR(typeList); Map<String, Map<String,
-		 * byte[]>> biometrics = birList.stream().collect(Collectors.groupingBy(bir ->
-		 * bir.getBdbInfo().getType().get(0).value(), Collectors.toMap(bir -> {
-		 * List<String> subtype = bir.getBdbInfo().getSubtype(); String type =
-		 * bir.getBdbInfo().getType().get(0).value(); return subtype.isEmpty() ? type :
-		 * (type + "_" + subtype.get(0)); }, bir -> (byte[])bir.getBdb()) )); for
-		 * (Entry<String, Map<String, byte[]>> entry : biometrics.entrySet()) { String
-		 * key=entry.getKey().toLowerCase();
-		 * if(sharableAttributeBiometricKeySet.contains(key)) { attributesMap.put(key,
-		 * entry.getValue()); } }
-		 */
+		
+		List<BIRType> typeList =
+		 cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(value)); List<BIR>
+		birList = cbeffutil.convertBIRTypeToBIR(typeList);
+		Map<String, Map<String, byte[]>> biometrics = birList.stream().collect(Collectors.groupingBy(bir ->
+		  bir.getBdbInfo().getType().get(0).value(), Collectors.toMap(bir -> {
+			List<String> subtype = bir.getBdbInfo().getSubtype();
+			String type = bir.getBdbInfo().getType().get(0).value();
+			return subtype.isEmpty() ? type :
+					(type + "_" + subtype.stream().collect(Collectors.joining(" ")));
+		}, bir -> (byte[]) bir.getBdb())));
+
+		for (Entry<String, Map<String, byte[]>> entry : biometrics.entrySet()) {
+			String
+		  key=entry.getKey().toLowerCase();
+		  if(sharableAttributeBiometricKeySet.contains(key)) { attributesMap.put(key,
+		  entry.getValue()); } }
+
 		return attributesMap;
 	}
 
