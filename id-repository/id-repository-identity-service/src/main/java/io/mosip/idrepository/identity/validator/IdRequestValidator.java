@@ -529,7 +529,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	public IdType validateIdType(String idType) throws IdRepoAppException {
 		if (Objects.nonNull(idType)) {
 			try {
-				return IdType.valueOf(idType);
+				return IdType.valueOf(idType.toUpperCase());
 			} catch (IllegalArgumentException e) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateIdType",
 						e.getMessage());
