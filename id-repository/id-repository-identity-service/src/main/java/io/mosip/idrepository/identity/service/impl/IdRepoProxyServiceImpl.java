@@ -421,8 +421,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			return constructIdResponse(this.id.get(READ), uinObject, null);
 		} else if (type.equalsIgnoreCase(BIO)) {
 			getFiles(uinObject, documents, extractionFormats, BIOMETRICS);
-			mosipLogger.info(IdRepoSecurityManager.getUser(), RETRIEVE_IDENTITY, "filter - bio",
-					"bio documents  --> " + documents);
 			return constructIdResponse(this.id.get(READ), uinObject, documents);
 		} else if (type.equalsIgnoreCase(DEMO)) {
 			getFiles(uinObject, documents, null, DEMOGRAPHICS);
@@ -643,6 +641,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				request.setRequest(bioExtractReq);
 				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.BIO_EXTRACTOR_SERVICE, request,
 						ResponseWrapper.class);
+				System.err.println(restRequest.getUri());
 				restRequest.setUri(restRequest.getUri().replace("{extractionFormat}", extractionFormat));
 				ResponseWrapper<Map<String, String>> response = restHelper.requestSync(restRequest);
 				byte[] extractedBiometrics = CryptoUtil.decodeBase64(response.getResponse().get("extractedBiometrics"));

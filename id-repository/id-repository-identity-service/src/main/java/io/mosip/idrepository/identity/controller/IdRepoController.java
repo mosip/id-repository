@@ -219,13 +219,13 @@ public class IdRepoController {
 			type = validator.validateType(type);
 			Map<String, String> extractionFormats = new HashMap<>();
 			if(Objects.nonNull(fingerExtractionFormat)) {
-				extractionFormats.put("fingerExtractionFormat", fingerExtractionFormat);
+				extractionFormats.put(FINGER_EXTRACTION_FORMAT, fingerExtractionFormat);
 			}
 			if(Objects.nonNull(irisExtractionFormat)) {
-				extractionFormats.put("irisExtractionFormat", fingerExtractionFormat);
+				extractionFormats.put(IRIS_EXTRACTION_FORMAT, fingerExtractionFormat);
 			}
 			if(Objects.nonNull(faceExtractionFormat)) {
-				extractionFormats.put("faceExtractionFormat", fingerExtractionFormat);
+				extractionFormats.put(FACE_EXTRACTION_FORMAT, fingerExtractionFormat);
 			}
 			extractionFormats.remove(null);
 			validator.validateTypeAndExtractionFormats(type, extractionFormats);
