@@ -823,7 +823,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 						eventType.equals(IDAEventType.ACTIVATE_ID) ? vid.getExpiryDTimes() : vid.getUpdatedDTimes(),
 						policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(), partnerIds, transactionId))
 				.collect(Collectors.toList());
-		Optional<String> authToken = RestHelper.getAuthToken();
+		Optional<String> authToken = IdRepoSecurityManager.getAuthToken();
 		eventDtos.forEach(eventDto -> sendEventToIDA(eventDto, authToken));
 	}
 	
