@@ -7,6 +7,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ENCRYPTIO
 
 import java.util.Date;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -48,6 +49,8 @@ public class IdRepoSecurityManager {
 
 	/** The Constant ID_REPO_SECURITY_MANAGER. */
 	private static final String ID_REPO_SECURITY_MANAGER = "IdRepoSecurityManager";
+	
+	private static final String AUTHORIZATION = "Authorization=";
 
 	/** The rest factory. */
 	@Autowired
@@ -103,6 +106,17 @@ public class IdRepoSecurityManager {
 		} else {
 			return null;
 		}
+	}
+	
+	public static Optional<String> getAuthToken() {
+		if (SecurityContextHolder.getContext() != null
+				&& SecurityContextHolder.getContext().getAuthentication() != null) {
+			Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+			if (principal instanceof AuthUserDetails) {
+				return Optional.of(AUTHORIZATION + ((AuthUserDetails) principal).getToken());
+			}
+		}
+		return Optional.empty();
 	}
 
 	/**

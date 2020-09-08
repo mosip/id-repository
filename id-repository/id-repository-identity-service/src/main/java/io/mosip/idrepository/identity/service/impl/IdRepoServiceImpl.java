@@ -4,7 +4,6 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.CBEFF_FORMAT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_FORMAT_ATTRIBUTE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_NAME_ATTRIBUTE;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.FMR_ENABLED;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MOSIP_PRIMARY_LANGUAGE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.OBJECT_STORE_ACCOUNT_NAME;
@@ -62,7 +61,6 @@ import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.IdRepoService;
-import io.mosip.idrepository.core.spi.MosipFingerprintProvider;
 import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.entity.UinBiometric;
 import io.mosip.idrepository.identity.entity.UinBiometricHistory;
@@ -75,7 +73,6 @@ import io.mosip.idrepository.identity.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.identity.repository.UinHashSaltRepo;
 import io.mosip.idrepository.identity.repository.UinHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinRepo;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -159,10 +156,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	/** The uin history repo. */
 	@Autowired
 	private UinHistoryRepo uinHistoryRepo;
-
-	/** The fp provider. */
-	@Autowired
-	private MosipFingerprintProvider<BIR, BIR> fpProvider;
 
 	/** The cbeff util. */
 	@Autowired
@@ -301,11 +294,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						docType.get(FILE_NAME_ATTRIBUTE).asText() + SPLITTER + DateUtils.getUTCCurrentDateTime())
 				.toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
 
-		if (StringUtils.equalsIgnoreCase(docType.get(FILE_FORMAT_ATTRIBUTE).asText(), CBEFF_FORMAT)) {
-			data = convertToFMR(doc.getCategory(), doc.getValue());
-		} else {
-			data = CryptoUtil.decodeBase64(doc.getValue());
-		}
+		data = CryptoUtil.decodeBase64(doc.getValue());
 
 		objectStore.putObject(objectStoreAccountName, uinHash.substring(0, 63).toLowerCase(), BIOMETRICS + SLASH + fileRefId,
 				new ByteArrayInputStream(securityManager.encrypt(data)));
@@ -359,41 +348,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				DateUtils.getUTCCurrentDateTime(), null, null, false, null));
 	}
 
-	/**
-	 * Convert to FMR.
-	 *
-	 * @param category
-	 *            the category
-	 * @param encodedCbeffFile
-	 *            the encoded cbeff file
-	 * @return the byte[]
-	 * @throws IdRepoAppException
-	 *             the id repo app exception
-	 */
-	private byte[] convertToFMR(String category, String encodedCbeffFile) throws IdRepoAppException {
-		try {
-			byte[] cbeffFileData = CryptoUtil.decodeBase64(encodedCbeffFile);
-			if (env.getProperty(FMR_ENABLED, Boolean.class, false)) {
-				return cbeffUtil.updateXML(
-						fpProvider.convertFIRtoFMR(
-								cbeffUtil.convertBIRTypeToBIR(cbeffUtil.getBIRDataFromXML(cbeffFileData))),
-						cbeffFileData);
-			} else if (cbeffUtil.validateXML(cbeffFileData)) {
-				return cbeffFileData;
-			} else {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "convertToFMR",
-						"\n" + "cbeff validation failed");
-				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
-						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), DOCUMENTS + " - " + category));
-			}
-		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
-					"\n" + e.getMessage());
-			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
-					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), DOCUMENTS + " - " + category));
-		}
-	}
-	
 	/* (non-Javadoc)
 	 * @see io.mosip.idrepository.core.spi.IdRepoService#retrieveIdentity(java.lang.String, io.mosip.idrepository.core.constant.IdType, java.lang.String)
 	 */

@@ -348,13 +348,13 @@ public class IdRepoController {
 	 * @throws IDDataValidationException
 	 */
 	@PreAuthorize("hasAnyRole('RESIDENT')")
-	@PostMapping(path = "authtypes/status", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@PostMapping(path = "authtypes/status/individualIdType/{IDType}/individualId/{ID}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@ApiOperation(value = "Authenticate Internal Request", response = IdRepoAppException.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Request authenticated successfully"),
 			@ApiResponse(code = 400, message = "Request authenticated failed") })
 	public ResponseEntity<IdResponseDTO> updateAuthtypeStatus(@PathVariable("ID") String individualId,
 			@PathVariable("IDType") String individualIdType,
-			@Validated @RequestBody RequestWrapper<List<AuthtypeStatus>> authTypeStatus) throws IdRepoAppException {
+			@RequestBody RequestWrapper<List<AuthtypeStatus>> authTypeStatus) throws IdRepoAppException {
 		boolean isIdTypeValid = false;
 		try {
 			IdType idType = validator.validateIdTypeForAuthTypeStatus(individualIdType);
