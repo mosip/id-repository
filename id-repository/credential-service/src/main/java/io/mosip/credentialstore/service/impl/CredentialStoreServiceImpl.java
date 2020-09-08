@@ -144,6 +144,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 	private static final String CREDENTIAL_SERVICE_TYPE_NAMESPACE = "mosip.credential.service.type.namespace";
 
+	private static final String DATASHARE = "datashare";
+
 	@Autowired
 	private CbeffUtil cbeffutil;
 
@@ -186,16 +188,22 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 			DataProviderResponse dataProviderResponse = credentialProvider.getFormattedCredentialData(encryptMap,
 					credentialServiceRequestDto, sharableAttributeMap);
-
-			DataShare dataShare = dataShareUtil.getDataShare(dataProviderResponse.getFormattedData(), policyId,
-					credentialServiceRequestDto.getIssuer());
-			EventModel eventModel = getEventModel(dataShare.getUrl(), credentialServiceRequestDto);
-			webSubUtil.publishSuccess(credentialServiceRequestDto.getIssuer(), eventModel);
 			credentialServiceResponse = new CredentialServiceResponse();
+			DataShare dataShare = null;
+			if (policyDetailResponseDto.getPolicies().getDataSharePolicies().getTypeOfShare()
+					.equalsIgnoreCase(DATASHARE)) {
+				dataShare = dataShareUtil.getDataShare(dataProviderResponse.getFormattedData(), policyId,
+						credentialServiceRequestDto.getIssuer());
+				credentialServiceResponse.setDataShareUrl(dataShare.getUrl());
+				credentialServiceResponse.setSignature(dataShare.getSignature());
+			}
+
+			EventModel eventModel = getEventModel(dataShare, credentialServiceRequestDto, sharableAttributeMap);
+			webSubUtil.publishSuccess(credentialServiceRequestDto.getIssuer(), eventModel);
+
 			credentialServiceResponse.setStatus("DONE");
 			credentialServiceResponse.setCredentialId(dataProviderResponse.getCredentialId());
-			credentialServiceResponse.setDataShareUrl(dataShare.getUrl());
-			credentialServiceResponse.setSignature(dataShare.getSignature());
+
 
 			credentialServiceResponse.setIssuanceDate(dataProviderResponse.getIssuanceDate());
 			LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
@@ -296,9 +304,11 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		return credentialIssueResponseDto;
 	}
 
-	private EventModel getEventModel(String url, CredentialServiceRequestDto credentialServiceRequestDto) {
+	private EventModel getEventModel(DataShare dataShare, CredentialServiceRequestDto credentialServiceRequestDto,
+			Map<String, Object> sharableAttributes) {
 		Map<String, Object> map = credentialServiceRequestDto.getAdditionalData();
 		map.put("recepiant", credentialServiceRequestDto.getRecepiant());
+
 		credentialServiceRequestDto.setAdditionalData(map);
 		EventModel eventModel = new EventModel();
 		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
@@ -308,9 +318,15 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		eventModel.setPublisher("CREDENTIAL_SERVICE");
 		eventModel.setTopic(credentialServiceRequestDto.getIssuer() + "/" + IDAEventType.CREDENTIAL_ISSUED);
 		Event event = new Event();
+
+		if (dataShare == null) {
+			map.putAll(sharableAttributes);
+		} else {
+			event.setDataShareUri(dataShare.getUrl());
+		}
 		event.setData(credentialServiceRequestDto.getAdditionalData());
 		event.setTimestamp(DateUtils.toISOString(localdatetime));
-		event.setDataShareUri(url);
+
 		String eventId = utilities.generateId();
 		LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL, "event id" + eventId);
 		event.setId(eventId);
@@ -434,7 +450,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			}
 		}
 
-		
+
 		List<BIRType> typeList =
 		 cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(value)); List<BIR>
 		birList = cbeffutil.convertBIRTypeToBIR(typeList);
