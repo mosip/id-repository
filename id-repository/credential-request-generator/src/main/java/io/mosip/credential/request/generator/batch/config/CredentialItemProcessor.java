@@ -11,12 +11,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credential.request.generator.constants.ApiName;
 import io.mosip.credential.request.generator.constants.CredentialStatusCode;
-import io.mosip.credential.request.generator.constants.LoggerFileConstant;
-
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.ApiNotAccessibleException;
-
-
 import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.idrepository.core.constant.AuditEvents;
 import io.mosip.idrepository.core.constant.AuditModules;
@@ -97,7 +93,7 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 				credential.setSignature(credentialServiceResponse.getSignature());
 			}
 			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, credential.getRequestId(), IdType.ID,"update the request");	
-		   	LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
+			LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
 					"ended processing item");
 		} catch (ApiNotAccessibleException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, credential.getRequestId(), IdType.ID,e);
