@@ -304,7 +304,7 @@ public class IdRepoController {
 	 * @throws IDDataValidationException
 	 *             the ID data validation exception
 	 */
-//	@PreAuthorize("hasAnyRole('RESIDENT')")
+	@PreAuthorize("hasAnyRole('RESIDENT')")
 	@ApiOperation(value = "Authtype Status Request", response = IdRepoAppException.class)
 	@GetMapping(path = "/authtypes/status/individualIdType/{IDType}/individualId/{ID}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Request authenticated successfully"),
@@ -347,7 +347,7 @@ public class IdRepoController {
 	 *             the id authentication app exception
 	 * @throws IDDataValidationException
 	 */
-//	@PreAuthorize("hasAnyRole('RESIDENT')")
+	@PreAuthorize("hasAnyRole('RESIDENT')")
 	@PostMapping(path = "authtypes/status/individualIdType/{IDType}/individualId/{ID}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@ApiOperation(value = "Authenticate Internal Request", response = IdRepoAppException.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Request authenticated successfully"),
