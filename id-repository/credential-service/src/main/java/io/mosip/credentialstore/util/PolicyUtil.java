@@ -41,18 +41,18 @@ public class PolicyUtil {
 	RestUtil restUtil;
 
 
-	
-	private static final Logger LOGGER = IdRepoLogger.getLogger(EncryptionUtil.class); 
-	
+
+	private static final Logger LOGGER = IdRepoLogger.getLogger(EncryptionUtil.class);
+
 	private static final String GETPOLICYDETAIL = "getPolicyDetail";
-	
+
 	private static final String POLICYUTIL = "PolicyUtil";
 
 	/** The mapper. */
 	@Autowired
 	private ObjectMapper mapper;
-	
-	
+
+
 	public PolicyResponseDto getPolicyDetail(String policyId, String subscriberId) throws PolicyException, ApiNotAccessibleException {
 
 		try {
@@ -62,7 +62,7 @@ public class PolicyUtil {
 			pathsegments.put("partnerId", subscriberId);
 			pathsegments.put("policyId", policyId);
 			String responseString = restUtil.getApi(ApiName.PARTNER_POLICY, pathsegments, String.class);
-		
+
 			PolicyManagerResponseDto responseObject = mapper.readValue(responseString,
 					PolicyManagerResponseDto.class);
 			if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {

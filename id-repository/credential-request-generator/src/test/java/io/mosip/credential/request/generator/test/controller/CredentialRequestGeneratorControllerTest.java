@@ -30,6 +30,7 @@ import io.mosip.credential.request.generator.test.config.TestConfig;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
+import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
 import io.mosip.kernel.core.http.ResponseWrapper;
 
 @RunWith(SpringRunner.class)
@@ -51,13 +52,15 @@ public class CredentialRequestGeneratorControllerTest {
 	String reqJson;
 
 	ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper;
+	
+	ResponseWrapper<CredentialIssueStatusResponse> credentialIssueStatusResponseWrapper;
 
 
 
 
 	@Before
 	public void setup() throws Exception {
-
+		credentialIssueStatusResponseWrapper=new ResponseWrapper<CredentialIssueStatusResponse>();
 		credentialIssueResponseWrapper = new ResponseWrapper<CredentialIssueResponse>();
 		MockitoAnnotations.initMocks(this);
 		this.mockMvc = MockMvcBuilders.standaloneSetup(credentialRequestGeneratorController).build();
@@ -91,6 +94,18 @@ public class CredentialRequestGeneratorControllerTest {
 				.thenReturn(credentialIssueResponseWrapper);
 
 		mockMvc.perform(MockMvcRequestBuilders.get("/cancel/requestId").contentType(MediaType.APPLICATION_JSON_VALUE))
+				.andExpect(status().isOk());
+
+	}
+
+	@Test
+	@WithUserDetails("test")
+	public void testgetCredentialRequestStatusSuccess() throws Exception {
+
+		Mockito.when(credentialRequestService.getCredentialRequestStatus(Mockito.any()))
+				.thenReturn(credentialIssueStatusResponseWrapper);
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/get/requestId").contentType(MediaType.APPLICATION_JSON_VALUE))
 				.andExpect(status().isOk());
 
 	}

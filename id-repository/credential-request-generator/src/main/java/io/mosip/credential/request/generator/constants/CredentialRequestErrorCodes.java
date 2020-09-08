@@ -10,7 +10,8 @@ public enum CredentialRequestErrorCodes {
 	API_NOT_ACCESSIBLE_EXCEPTION("IDR-CRG-002", "API not accessible"),
 	REQUEST_ID_ERROR("IDR-CRG-003", "request id is not present"),
 
-	UNKNOWN_EXCEPTION("IDR-CRG-004", "unknown exception");
+	UNKNOWN_EXCEPTION("IDR-CRG-004", "unknown exception"),
+	CREDENTIAL_REQUEST_GENERATOR_BUSINESS_EXCEPTION("IDR-CRG-005", "Credential status update failed");
 	
 	private final String errorCode;
 	private final String errorMessage;

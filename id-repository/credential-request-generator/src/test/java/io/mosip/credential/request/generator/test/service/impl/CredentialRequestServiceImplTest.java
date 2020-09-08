@@ -24,6 +24,7 @@ import io.mosip.credential.request.generator.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
+import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.http.ResponseWrapper;
@@ -117,6 +118,23 @@ public class CredentialRequestServiceImplTest {
 		Mockito.when(credentialRepositary.findById(Mockito.any())).thenReturn(entity);
 	
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto=credentialRequestServiceImpl.cancelCredentialRequest("1234");
+		assertNotNull(credentialIssueResponseDto.getErrors().get(0));
+	}
+	@Test
+	public void testGetCredentialRequestStatusSuccess() throws JsonProcessingException {
+		CredentialEntity credentialEntity=new CredentialEntity();
+		credentialEntity.setRequestId("1234");
+		Optional<CredentialEntity> entity = Optional.of(credentialEntity);
+		Mockito.when(credentialRepositary.findById(Mockito.any())).thenReturn(entity);
+	
+		ResponseWrapper<CredentialIssueStatusResponse> credentialIssueResponseDto=credentialRequestServiceImpl.getCredentialRequestStatus("1234");
+				assertEquals("1234", credentialIssueResponseDto.getResponse().getRequestId());
+	}
+	
+	@Test
+	public void testDataAccessLayerExceptionFoGetCredentialRequestStatus() throws JsonProcessingException {
+		Mockito.when(credentialRepositary.findById(Mockito.any())).thenThrow(new DataAccessLayerException("", "", new Throwable()));
+	    ResponseWrapper<CredentialIssueStatusResponse> credentialIssueResponseDto=credentialRequestServiceImpl.getCredentialRequestStatus("1234");
 		assertNotNull(credentialIssueResponseDto.getErrors().get(0));
 	}
 }

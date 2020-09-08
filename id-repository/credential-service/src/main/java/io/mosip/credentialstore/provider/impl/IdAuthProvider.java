@@ -142,7 +142,7 @@ public class IdAuthProvider implements CredentialProvider {
 			 additionalData.put(BIO_ENCRYPTED_RANDOM_KEY, bioEncryptZkResponseDto.getEncryptedRandomKey());
 			 additionalData.put(BIO_ENCRYPTED_RANDOM_INDEX, bioEncryptZkResponseDto.getRankomKeyIndex());
 		 }  
-			
+
 			String credentialId = utilities.generateId();
 		    additionalData.put("CREDENTIALID", credentialId);
 		    credentialServiceRequestDto.setAdditionalData(additionalData);

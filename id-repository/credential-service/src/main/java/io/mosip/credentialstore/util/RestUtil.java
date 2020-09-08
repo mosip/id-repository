@@ -154,7 +154,7 @@ public class RestUtil {
 
 			 URI urlWithPath = builder.build(pathsegments);
 
-			
+
         RestTemplate restTemplate;
 
         try {
