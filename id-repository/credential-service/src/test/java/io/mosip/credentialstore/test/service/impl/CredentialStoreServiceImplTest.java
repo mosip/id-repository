@@ -17,7 +17,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.core.env.Environment;
@@ -32,7 +31,6 @@ import io.mosip.credentialstore.dto.CredentialTypeResponse;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.DataShare;
 import io.mosip.credentialstore.dto.DataShareDto;
-
 import io.mosip.credentialstore.dto.PolicyAttributesDto;
 import io.mosip.credentialstore.dto.PolicyResponseDto;
 import io.mosip.credentialstore.dto.Type;
@@ -42,7 +40,6 @@ import io.mosip.credentialstore.exception.DataShareException;
 import io.mosip.credentialstore.exception.IdRepoException;
 import io.mosip.credentialstore.exception.PolicyException;
 import io.mosip.credentialstore.provider.CredentialProvider;
-import io.mosip.credentialstore.service.CredentialStoreService;
 import io.mosip.credentialstore.service.impl.CredentialStoreServiceImpl;
 import io.mosip.credentialstore.util.DataShareUtil;
 import io.mosip.credentialstore.util.IdrepositaryUtil;
@@ -135,6 +132,7 @@ public class CredentialStoreServiceImplTest {
 		dataSharePolicies.setShareDomain("mosip.io");
 		dataSharePolicies.setTransactionsAllowed("2");
 		dataSharePolicies.setValidForInMinutes("30");
+		dataSharePolicies.setTypeOfShare("dataShare");
 		PolicyAttributesDto policies = new PolicyAttributesDto();
 		policies.setDataSharePolicies(dataSharePolicies);
 		List<AllowedKycDto> sharableAttributesList = new ArrayList<AllowedKycDto>();
@@ -310,18 +308,7 @@ public class CredentialStoreServiceImplTest {
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.WEBSUB_FAIL_EXCEPTION.getErrorMessage());
 	}
 	
-	@Test
-	public void testException(){
-		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
-		credentialServiceRequestDto.setCredentialType("mosip");
-		credentialServiceRequestDto.setId("4238135072");
-		Map<String,Object> additionalData=new HashMap<>();
-		credentialServiceRequestDto.setAdditionalData(additionalData);
-		Mockito.when(env.getProperty("credentialType.formatter.MOSIP"))
-		.thenReturn(null);
-		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
-	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
-	}
+	
 	@Test
 	public void testgetCredentialTypes() {
 		List<Type> typeList=new ArrayList<>();
