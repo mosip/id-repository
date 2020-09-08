@@ -450,7 +450,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			}
 		}
 
-		
+
 		List<BIRType> typeList =
 		 cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(value)); List<BIR>
 		birList = cbeffutil.convertBIRTypeToBIR(typeList);

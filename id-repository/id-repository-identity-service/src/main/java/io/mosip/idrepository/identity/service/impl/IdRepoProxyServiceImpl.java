@@ -421,8 +421,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			return constructIdResponse(this.id.get(READ), uinObject, null);
 		} else if (type.equalsIgnoreCase(BIO)) {
 			getFiles(uinObject, documents, extractionFormats, BIOMETRICS);
-			mosipLogger.info(IdRepoSecurityManager.getUser(), RETRIEVE_IDENTITY, "filter - bio",
-					"bio documents  --> " + documents);
 			return constructIdResponse(this.id.get(READ), uinObject, documents);
 		} else if (type.equalsIgnoreCase(DEMO)) {
 			getFiles(uinObject, documents, null, DEMOGRAPHICS);
@@ -591,6 +589,9 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	private byte[] extractTemplates(String uinHash, String fileName, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
 		try {
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
+					"EXTRACTING FORMAT: " + extractionFormats.toString());
+			
 			List<byte[]> extractedTemplates = new ArrayList<>();
 			int i = 0;
 			CompletableFuture<?>[] extractTemplateFuture = new CompletableFuture<?>[extractionFormats.size()];
