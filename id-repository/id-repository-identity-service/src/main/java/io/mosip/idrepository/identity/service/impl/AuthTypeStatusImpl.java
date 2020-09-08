@@ -131,8 +131,10 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 		event.setAuthTypeStatusList(authTypeStatusList);
 		events.add(event);
 		eventsDTO.setEvents(events);
+		HttpHeaders headers = new HttpHeaders();
+		IdRepoSecurityManager.getAuthToken().ifPresent(token -> headers.set(HttpHeaders.COOKIE, token));
 		publisher.publishUpdate(IDAEventType.AUTH_TYPE_STATUS_UPDATE.name(), eventsDTO,
-				MediaType.APPLICATION_JSON_UTF8_VALUE, HttpHeaders.EMPTY, publisherHubURL);
+				MediaType.APPLICATION_JSON_UTF8_VALUE, headers, publisherHubURL);
 	}
 
 	private String getUin(String vid) throws IdRepoAppException {

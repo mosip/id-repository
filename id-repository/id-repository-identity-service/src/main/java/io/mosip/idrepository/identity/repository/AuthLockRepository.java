@@ -21,14 +21,14 @@ public interface AuthLockRepository extends JpaRepository<AuthtypeLock, Integer>
 			"        t.auth_type_code, " + 
 			"        t.status_code  " + 
 			"    from " + 
-			"        ida.uin_auth_lock t  " + 
+			"        idrepo.uin_auth_lock t  " + 
 			"    inner join " + 
 			"        ( " + 
 			"            select " + 
 			"                auth_type_code, " + 
 			"                MAX(cr_dtimes) as crd " + 
 			"            from " + 
-			"                ida.uin_auth_lock      " + 
+			"                idrepo.uin_auth_lock      " + 
 			"            where " + 
 			"                uin_hash = :uin_hash " + 
 			"            group by " + 

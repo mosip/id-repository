@@ -45,7 +45,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 
@@ -756,8 +755,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	@SuppressWarnings("unchecked")
 	private void notify(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate, String txnId) {
 		try {
-			Optional<String> authToken = RestHelper.getAuthToken();
-			SecurityContextHolder.getContext().getAuthentication().getDetails();
+			Optional<String> authToken = IdRepoSecurityManager.getAuthToken();
 			List<VidInfoDTO> vidInfoDtos = null;
 			if (isUpdate) {
 				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_VIDS_BY_UIN, null,
