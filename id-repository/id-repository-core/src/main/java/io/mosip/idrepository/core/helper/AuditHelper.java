@@ -75,6 +75,9 @@ public class AuditHelper {
 		} catch (IdRepoDataValidationException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), "AuditRequestBuilder", "audit",
 					"Exception : " + ExceptionUtils.getStackTrace(e));
+		} catch (Exception e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), "AuditRequestBuilder", "audit",
+					"Exception : " + ExceptionUtils.getStackTrace(e));
 		}
 	}
 	
