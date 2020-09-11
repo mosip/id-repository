@@ -5,19 +5,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
-import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.dto.DataProviderResponse;
-
 import io.mosip.credentialstore.dto.Proof;
 import io.mosip.credentialstore.dto.VerifiableCredential;
-import io.mosip.credentialstore.dto.ZkDataAttribute;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
 import io.mosip.credentialstore.exception.DataEncryptionFailureException;
@@ -30,7 +25,6 @@ import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.kernel.core.util.DateUtils;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class CredentialDefaultProvider.
  * 
@@ -67,7 +61,7 @@ public class CredentialDefaultProvider implements CredentialProvider {
 	public DataProviderResponse getFormattedCredentialData(	Map<String,Boolean> encryptMap,
 			CredentialServiceRequestDto credentialServiceRequestDto, Map<String, Object> sharableAttributeMap)
 			throws CredentialFormatterException {
-      // TODO pin based encryption added for this  need to check for removal 
+
 		DataProviderResponse dataProviderResponse=null;
 		try {
 			
