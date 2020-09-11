@@ -201,9 +201,11 @@ public class CredentialStoreServiceImplTest {
 		type.setBDBInfo(bdbinfotype);
 		List<BIRType> birtypeList = new ArrayList<>();
 		birtypeList.add(type);
+
 		response.setDocuments(docList);
 		idResponse.setResponse(response);
 		Mockito.when(cbeffutil.getBIRDataFromXML(Mockito.any())).thenReturn(birtypeList);
+
 
 		Mockito.when(utilities.generateId()).thenReturn("123456");
 	 	Mockito.when(policyUtil.getPolicyDetail(Mockito.anyString(), Mockito.anyString())).thenReturn(policyDetailResponseDto);
@@ -325,6 +327,8 @@ public class CredentialStoreServiceImplTest {
 		credentialServiceRequestDto.setId("4238135072");
 		List<String> sharableAttributes=new ArrayList<>();
 		sharableAttributes.add("face");
+		sharableAttributes.add("finger");
+		sharableAttributes.add("iris");
 		credentialServiceRequestDto.setSharableAttributes(sharableAttributes);
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);

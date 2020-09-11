@@ -5,19 +5,15 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
@@ -31,17 +27,13 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.credentialstore.dto.DataShare;
-import io.mosip.credentialstore.dto.DataShareResponseDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.DataShareException;
 import io.mosip.credentialstore.exception.IdRepoException;
 import io.mosip.credentialstore.exception.SignatureException;
-import io.mosip.credentialstore.util.DataShareUtil;
 import io.mosip.credentialstore.util.IdrepositaryUtil;
 import io.mosip.credentialstore.util.RestUtil;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
-import io.mosip.idrepository.core.dto.ErrorDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.kernel.core.exception.ServiceError;
@@ -81,10 +73,13 @@ public class IdrepositaryUtilTest {
 	public void idRepoSuccessTest() throws IOException, ApiNotAccessibleException, SignatureException, DataShareException, IdRepoException {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
 		Map<String,Object> additionalData=new HashMap<>();
+		additionalData.put("idType", "UIN");
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		credentialServiceRequestDto.setId("12345678");
 		Map<String,String> bioAttributeFormatterMap=new HashMap<>();
-		bioAttributeFormatterMap.put("face", "extractfmr");
+		bioAttributeFormatterMap.put("face", "mock");
+		bioAttributeFormatterMap.put("finger", "mock");
+		bioAttributeFormatterMap.put("iris", "mock");
 		 IdResponseDTO idRepoResponseResult=idrepositaryUtil.getData(credentialServiceRequestDto, bioAttributeFormatterMap);
 		 assertEquals(idRepoResponseResult.getResponse(),idRepoResponse.getResponse());
 		

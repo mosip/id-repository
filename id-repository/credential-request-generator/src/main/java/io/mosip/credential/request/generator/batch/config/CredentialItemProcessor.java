@@ -14,14 +14,10 @@ import io.mosip.credential.request.generator.constants.CredentialStatusCode;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.ApiNotAccessibleException;
 import io.mosip.credential.request.generator.util.RestUtil;
-import io.mosip.idrepository.core.constant.AuditEvents;
-import io.mosip.idrepository.core.constant.AuditModules;
-import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.CredentialServiceResponse;
 import io.mosip.idrepository.core.dto.CredentialServiceResponseDto;
-import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -53,8 +49,7 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialItemProcessor.class);
 	
-	@Autowired
-	private AuditHelper auditHelper;
+
 
 	@Override
 	public CredentialEntity process(CredentialEntity credential) {
@@ -92,21 +87,21 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 				credential.setStatusCode(credentialServiceResponse.getStatus());
 				credential.setSignature(credentialServiceResponse.getSignature());
 			}
-			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, credential.getRequestId(), IdType.ID,"update the request");	
+
 			LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
 					"ended processing item");
 		} catch (ApiNotAccessibleException e) {
-			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, credential.getRequestId(), IdType.ID,e);
+
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
 					ExceptionUtils.getStackTrace(e));
         	credential.setStatusCode("FAILED");
 		} catch (IOException e) {
-			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, credential.getRequestId(), IdType.ID,e);
+
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
 					ExceptionUtils.getStackTrace(e));
 			credential.setStatusCode("FAILED");
 		} catch (Exception e) {
-			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, credential.getRequestId(), IdType.ID,e);
+
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
 					ExceptionUtils.getStackTrace(e));
 			credential.setStatusCode("FAILED");

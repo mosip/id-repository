@@ -27,10 +27,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
-import io.mosip.credential.request.generator.service.CredentialRequestService;
-import io.mosip.credential.request.generator.service.impl.CredentialRequestServiceImpl;
 import io.mosip.credential.request.generator.util.RestUtil;
-import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
 import io.mosip.kernel.dataaccess.hibernate.repository.impl.HibernateRepositoryImpl;
 
@@ -115,7 +112,6 @@ public class BatchConfiguration {
 		 final Map<String, Sort.Direction> sorts = new HashMap<>();
 		    sorts.put("createDateTime", Direction.ASC);
 		methodArgs.add("NEW");
-		// TODO based on only NEW status code or any other 
 		reader.setArguments(methodArgs);
 		reader.setSort(sorts);
 		reader.setPageSize(10);
