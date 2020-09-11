@@ -1,4 +1,4 @@
-## MOSIP ID Rpository module Databases (**mosip_idrepo, mosip_idmap**) Release scripts inventory and deployment/revoke guidelines on postgresql database. 
+## MOSIP ID Rpository module Databases (**mosip_idrepo, mosip_idmap and mosip_credential**) Release scripts inventory and deployment/revoke guidelines on postgresql database. 
 
 ## Prerequisities
 
@@ -12,7 +12,7 @@
 
 * Database release objects related to MOSIP modules are placed in "**mosip_base_directory**>>db_release_scripts>>mosip_<schema_name> folder on git/repository
 
-**Example:** For id repository module release script folder is /**mosip_base_directory**>>db_release_scripts>>mosip_master where all the database release scripts related to Master/Admin are available.
+**Example:** For id repository module release script folder is /**mosip_base_directory**>>db_release_scripts>>mosip_idrepo where all the database release scripts related to IDREPO are available.
 
 * Create a log file directory if it doesn't exist on DB deployment server before updating the properties file. Please follow the steps to create the same:
  
@@ -39,11 +39,7 @@
 
 * **mosip_<schema_name>/<schema_name>_revoke_db_deploy.sh:**  Script to revoke database deployment.
 
-* **mosip_release_commons_db_deployment.sh:**  DB release deployment script for all commons module database.
-
-* **mosip_revoke_commons_db_deployment.sh:**  DB revoke deployment script for all commons module database deployment.
-
-**Note:** SQL script files name under sql folder are appended with release version numbers( like **1.0.0**_master-scripts_release.sql), Same version number has to be passed as argument while executing release/revoke shell scripts. Ex. **$bash mosip_release_commons_db_deployment.sh 1.0.0**
+**Note:** SQL script files name under sql folder are appended with release version numbers( like **1.2.0**_idrepo-scripts_release.sql), Same version number has to be passed as argument while executing release/revoke shell scripts. Ex. **$bash idrepo_release_db_deploy.sh drepo_release_deploy.properties 1.2.0**
 
 **Note :** No need of shell script update unless it is really causing any problem or any further implementation is being introduced.
 
@@ -59,15 +55,11 @@ Once completed with sourcing the database release files, Follow the DB release d
 
 **SU_USER=** Contains the postgres super user name to connect to the postgres database i.e. postgres
 
-**SU_USER_PWD=** Contains the password for postgres super user
-
 **DEFAULT_DB_NAME=** Default database name to connect with respective postgres server i.e. ex: postgres
 
 **MOSIP_DB_NAME=** Database name for which the deployment is scheduled.
 
 **SYSADMIN_USER=** Variable contains the sysadmin use name which indeed is going to be the super user for the remaining actions going to be performed by shell script.
-
-**SYSADMIN_PWD=** Contains the credential details for SYSADMIN_USER.
 
 **BASEPATH=** Path for DB scrips which are kept in the Deployment server. Ex: /home/madmin/database_release
 
@@ -83,16 +75,23 @@ Once completed with sourcing the database release files, Follow the DB release d
 
 **Note - Make sure, There is a single empty line at end of the .properties files content and No spaces in beggining and end of the parameter values**
 
+### Set below password for users in environmental variable
+
+**SU_USER_PWD=** Contains the password for postgres super user
+**SYSADMIN_PWD=** Contains the credential details for SYSADMIN_USER.
+Example:
+	`export SU_USER_PWD=supassword
+	 export SYSADMIN_PWD=sysadminpassword`
 
 ## DB release deployment:
 		
 **Step 1** -> Make modification to all the respective database properties files **(<<schema>>_release_deploy.properties)** in the respective database directories. Path of properties file and variables list explained above. Once the properties files are ready then access the directory where the deployment script is kept.
 
-**Step 2** -> DB Release deployment for all commons module databases, run the **"mosip_release_commons_db_deployment.sh"** script with release version as parameter.  To access and exeute **"mosip_release_commons_db_deployment.sh"** script, follow the below given sample commands:
+**Step 2** -> DB Release deployment for all databases, run the **"<<schema>>_release_db_deploy.sh"** script with release version as parameter.  To access and exeute **"<<schema>>_release_db_deploy.sh"** script, follow the below given sample commands:
 
-<em> **Enter:-bash-4.2$** cd /home/madmin/database_release/ </em>
+<em> **Enter:-bash-4.2$** cd /home/madmin/database_release/<<database_name>> </em>
 
-<em> **Enter:-bash-4.2$** bash mosip_release_commons_db_deployment.sh <release_version_number> </em>
+<em> **Enter:-bash-4.2$** bash <<schema>>_release_db_deploy.sh  <<schema>>_release_deploy.properties <release_version_number> </em>
 
 **Step 3** -> Please observe <em> Post Release Deployment Validation </em>  steps below
 
@@ -101,11 +100,11 @@ Once completed with sourcing the database release files, Follow the DB release d
 
 ## DB deployment revoke: (Optional: Execute only if db version release deployment revoking required)
 
-**Step 1** -> DB Revoke deployment for all databases, run the **"mosip_revoke_commons_db_deployment.sh "** script with release version as parameter.  To access and exeute **"mosip_revoke_commons_db_deployment.sh "** script, follow the below given commands:
+**Step 1** -> DB Revoke deployment for all databases, run the **"<<schema>>_revoke_db_deploy.sh"** script with release version as parameter.  To access and exeute **"<<schema>>_revoke_db_deploy.sh"** script, follow the below given sample commands:
 
-<em> **Enter:-bash-4.2$** cd /home/madmin/database_release/ </em>
+<em> **Enter:-bash-4.2$** cd /home/madmin/database_release/<<database_name>> </em>
 
-<em> **Enter:-bash-4.2$** bash mosip_revoke_commons_db_deployment.sh <release_version_number> </em>
+<em> **Enter:-bash-4.2$** bash bash <<schema>>_revoke_db_deploy.sh  <<schema>>_release_deploy.properties <release_version_number> </em>
 
 **Step 2** -> Please observe <em> Post Release Deployment Validation </em>  steps below
 
