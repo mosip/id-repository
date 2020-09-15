@@ -63,6 +63,7 @@ import io.mosip.idrepository.core.dto.VidInfoDTO;
 import io.mosip.idrepository.core.dto.VidPolicy;
 import io.mosip.idrepository.core.dto.VidRequestDTO;
 import io.mosip.idrepository.core.dto.VidResponseDTO;
+import io.mosip.idrepository.core.dto.VidsInfosDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
@@ -95,8 +96,6 @@ import io.mosip.kernel.core.websub.spi.PublisherClient;
 @Component
 @Transactional
 public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper<VidResponseDTO>, ResponseWrapper<List<VidInfoDTO>>> {
-	
-	private static final String COOKIE = "Cookie";
 	
 	private static final String ID_TYPE = "idType";
 
@@ -391,7 +390,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	 * io.mosip.idrepository.core.spi.VidService#retrieveUinByVid(java.lang.String)
 	 */
 	@Override
-	public ResponseWrapper<List<VidInfoDTO>> retrieveVidsByUin(String uin) throws IdRepoAppException {
+	public VidsInfosDTO retrieveVidsByUin(String uin) throws IdRepoAppException {
 		try {
 			Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
 			int modResult = (int) (Long.parseLong(uin) % moduloValue);
@@ -404,7 +403,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 					.map(vid -> new VidInfoDTO(vid.getVid(), vid.getExpiryDTimes(),
 							policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions()))
 					.collect(Collectors.toList());
-			ResponseWrapper<List<VidInfoDTO>> response = new ResponseWrapper<>();
+			VidsInfosDTO response = new VidsInfosDTO();
 			response.setResponse(vidInfos);
 			return response;
 		} catch (IdRepoAppUncheckedException e) {
@@ -777,7 +776,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp, Integer transactionLimit, String token, String idType) {
 		Map<String, Object> data = new HashMap<>();
 		data.putAll(retrieveIdHashWithAttributes(id));
-		data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
+		data.put(EXPIRY_TIMESTAMP, Optional.ofNullable(expiryTimestamp).map(DateUtils::formatToISOString).orElse(null));
 		data.put(TRANSACTION_LIMIT, Optional.ofNullable(transactionLimit).map(String::valueOf).orElse(null));
 		data.put(TOKEN, token);
 		data.put(ID_TYPE, idType);
@@ -823,17 +822,19 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 						eventType.equals(IDAEventType.ACTIVATE_ID) ? vid.getExpiryDTimes() : vid.getUpdatedDTimes(),
 						policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(), partnerIds, transactionId))
 				.collect(Collectors.toList());
-		Optional<String> authToken = IdRepoSecurityManager.getAuthToken();
-		eventDtos.forEach(eventDto -> sendEventToIDA(eventDto, authToken));
+		eventDtos.forEach(eventDto -> sendEventToIDA(eventDto));
 	}
 	
-	private void sendEventToIDA(EventModel model, Optional<String> authToken) {
-		pb.registerTopic(model.getTopic(), webSubHubUrl);
-		HttpHeaders headers = new HttpHeaders();
-		if(authToken.isPresent()) {
-			headers.add(COOKIE, authToken.get());
+	private void sendEventToIDA(EventModel model) {
+		try {
+			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "sendEventToIDA", "Trying registering topic: " + model.getTopic());
+			pb.registerTopic(model.getTopic(), webSubHubUrl);
+		} catch (Exception e) {
+			//Exception will be there if topic already registered. Ignore that
+			mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "sendEventToIDA", "Error in registering topic: " + model.getTopic() + " : " + e.getMessage() );
 		}
-		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, headers, webSubHubUrl);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "sendEventToIDA", "Publising event to topic: " + model.getTopic());
+		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null, webSubHubUrl);
 	}
 
 	private Stream<EventModel> createIdaEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp, Integer transactionLimit, List<String> partnerIds, String transactionId) {
@@ -856,7 +857,9 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		event.setType(type);
 		Map<String, Object> data = new HashMap<>();
 		data.put(ID_HASH, retrieveIdHash(id));
-		data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
+		if(expiryTimestamp != null) {
+			data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
+		}		
 		data.put(TRANSACTION_LIMIT, transactionLimit);
 		event.setData(data);
 		model.setEvent(event);
