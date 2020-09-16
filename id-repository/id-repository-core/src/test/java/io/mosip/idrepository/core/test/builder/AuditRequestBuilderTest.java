@@ -53,7 +53,7 @@ public class AuditRequestBuilderTest {
 	@Test
 	public void testBuildRequest() {
 		RequestWrapper<AuditRequestDTO> actualRequest = auditBuilder.buildRequest(AuditModules.ID_REPO_CORE_SERVICE,
-				AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",IdType.REG_ID, "desc");
+				AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",IdType.RID, "desc");
 		actualRequest.getRequest().setActionTimeStamp(null);
 		AuditRequestDTO expectedRequest = new AuditRequestDTO();
 		try {
@@ -70,7 +70,7 @@ public class AuditRequestBuilderTest {
 			expectedRequest.setSessionUserId("sessionUserId");
 			expectedRequest.setSessionUserName("sessionUserName");
 			expectedRequest.setId("id");
-			expectedRequest.setIdType(IdType.REG_ID.getIdType());
+			expectedRequest.setIdType(IdType.RID.getIdType());
 			expectedRequest.setCreatedBy(env.getProperty("user.name"));
 			expectedRequest.setModuleName(AuditModules.ID_REPO_CORE_SERVICE.getModuleName());
 			expectedRequest.setModuleId(AuditModules.ID_REPO_CORE_SERVICE.getModuleId());
