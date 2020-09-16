@@ -161,12 +161,20 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
 			if (entity != null) {
 				CredentialEntity credentialEntity = entity.get();
-				credentialEntity.setStatusCode(CredentialStatusCode.CANCELLED.name());
-				credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-				credentialEntity.setUpdatedBy(USER);
-				credentialRepositary.update(credentialEntity);
-				credentialIssueResponse = new CredentialIssueResponse();
-				credentialIssueResponse.setRequestId(requestId);
+				if (credentialEntity.getStatusCode().equalsIgnoreCase("NEW")) {
+					credentialEntity.setStatusCode(CredentialStatusCode.CANCELLED.name());
+					credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+					credentialEntity.setUpdatedBy(USER);
+					credentialRepositary.update(credentialEntity);
+					credentialIssueResponse = new CredentialIssueResponse();
+					credentialIssueResponse.setRequestId(requestId);
+				} else {
+					ServiceError error = new ServiceError();
+					error.setErrorCode(CredentialRequestErrorCodes.REQUEST_ID_PROCESSED_ERROR.getErrorCode());
+					error.setMessage(CredentialRequestErrorCodes.REQUEST_ID_PROCESSED_ERROR.getErrorMessage());
+					errorList.add(error);
+				}
+
 			} else {
 				ServiceError error = new ServiceError();
 				error.setErrorCode(CredentialRequestErrorCodes.REQUEST_ID_ERROR.getErrorCode());
