@@ -4,12 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-
 
 import io.mosip.credentialstore.dto.CredentialTypeResponse;
 import io.mosip.credentialstore.service.CredentialStoreService;
@@ -40,7 +40,7 @@ public class CredentialStoreController {
 	 * @param credentialServiceRequestDto the credential service request dto
 	 * @return the response entity
 	 */
-	// @PreAuthorize("hasAnyRole('CREDENTIAL_ISSUANCE')")
+	@PreAuthorize("hasAnyRole('CREDENTIAL_ISSUANCE')")
 	@PostMapping(path = "/issue", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "get the status of credential", response = CredentialServiceResponseDto.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Get status of credential successfully"),
@@ -55,7 +55,7 @@ public class CredentialStoreController {
 
 	}
 
-	// @PreAuthorize("hasAnyRole('CREDENTIAL_ISSUANCE')")
+	@PreAuthorize("hasAnyRole('CREDENTIAL_ISSUANCE')")
 	@GetMapping(path = "/types", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "get the credential types", response = CredentialTypeResponse.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "get the credential types successfully"),

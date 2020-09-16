@@ -23,7 +23,8 @@ import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
 import io.mosip.credentialstore.exception.DataEncryptionFailureException;
 import io.mosip.credentialstore.exception.SignatureException;
-import io.mosip.credentialstore.provider.impl.CredentialDefaultProvider;
+import io.mosip.credentialstore.provider.impl.QrCodeProvider;
+import io.mosip.credentialstore.util.DigitalSignatureUtil;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
@@ -31,12 +32,14 @@ import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 @RunWith(SpringRunner.class)
 @WebMvcTest
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class})
-public class CredentialDefaultProviderTest {
+public class QrCodeProviderTest {
 	/** The environment. */
 	@Mock
 	private Environment environment;	
 	
-
+	/** The digital signature util. */
+	@Mock
+	DigitalSignatureUtil digitalSignatureUtil;
 	
 	/** The utilities. */
 	@Mock
@@ -47,7 +50,7 @@ public class CredentialDefaultProviderTest {
 	EncryptionUtil encryptionUtil;
 	
 	@InjectMocks
-	private CredentialDefaultProvider credentialDefaultProvider;
+	private QrCodeProvider qrCodeProvider;
 	
 	
 	@Before
@@ -56,7 +59,7 @@ public class CredentialDefaultProviderTest {
 		.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any())).thenReturn("testdata");
 		
-
+		Mockito.when(digitalSignatureUtil.sign(Mockito.any())).thenReturn("testdata");
 		Mockito.when(utilities.generateId()).thenReturn("test123");
 	}
 	
@@ -71,7 +74,8 @@ public class CredentialDefaultProviderTest {
 		sharableAttributesMap.put("name", "test");
 		credentialServiceRequestDto.setEncrypt(true);
 		credentialServiceRequestDto.setEncryptionKey("te1234");
-		DataProviderResponse dataProviderResponse=credentialDefaultProvider.getFormattedCredentialData(encryptMap, credentialServiceRequestDto, sharableAttributesMap);
+		DataProviderResponse dataProviderResponse = qrCodeProvider.getFormattedCredentialData(encryptMap,
+				credentialServiceRequestDto, sharableAttributesMap);
 	    assertNotNull(dataProviderResponse);
 	}
 
@@ -89,8 +93,8 @@ public class CredentialDefaultProviderTest {
 		credentialServiceRequestDto.setEncryptionKey("te1234");
 		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any()))
 				.thenThrow(new DataEncryptionFailureException());
-		credentialDefaultProvider.getFormattedCredentialData(encryptMap,
-				credentialServiceRequestDto, sharableAttributesMap);
+		qrCodeProvider.getFormattedCredentialData(encryptMap, credentialServiceRequestDto,
+				sharableAttributesMap);
 
 	}
 
@@ -108,7 +112,7 @@ public class CredentialDefaultProviderTest {
 		credentialServiceRequestDto.setEncryptionKey("te1234");
 		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any()))
 				.thenThrow(new ApiNotAccessibleException());
-		credentialDefaultProvider.getFormattedCredentialData(encryptMap, credentialServiceRequestDto,
+		qrCodeProvider.getFormattedCredentialData(encryptMap, credentialServiceRequestDto,
 				sharableAttributesMap);
 
 	}

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,6 @@ import io.mosip.credentialstore.exception.DataEncryptionFailureException;
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.service.impl.CredentialStoreServiceImpl;
 import io.mosip.credentialstore.util.EncryptionUtil;
-import io.mosip.credentialstore.util.JsonUtil;
 import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
@@ -117,14 +117,14 @@ public class IdAuthProvider implements CredentialProvider {
 					ZkDataAttribute zkDataAttribute=new ZkDataAttribute();
 					zkDataAttribute.setIdentifier(key);
 					zkDataAttribute.setValue(valueStr);
-					if(key.equalsIgnoreCase(CredentialConstants.FACE) ||key.equalsIgnoreCase(CredentialConstants.IRIS) ||key.equalsIgnoreCase(CredentialConstants.FINGER)) {
+					if (key.equalsIgnoreCase(CredentialConstants.INDIVIDUAL_BIOMETRICS)) {
 						bioZkDataAttributes.add(zkDataAttribute);
 					}else {
                       demoZkDataAttributes.add(zkDataAttribute);
 					}
 						
 				} else {
-					formattedMap.put(key, value);
+					formattedMap.put(key, valueStr);
 				}
 				
 
@@ -144,14 +144,15 @@ public class IdAuthProvider implements CredentialProvider {
 		 }  
 
 			String credentialId = utilities.generateId();
-		    additionalData.put("CREDENTIALID", credentialId);
+
 		    credentialServiceRequestDto.setAdditionalData(additionalData);
-		    String data = JsonUtil.objectMapperObjectToJson(formattedMap);
+
+			JSONObject json = new JSONObject(formattedMap);
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 			LocalDateTime localdatetime = LocalDateTime
 					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
 			dataProviderResponse.setIssuanceDate(localdatetime);
-			dataProviderResponse.setFormattedData(data.getBytes());
+			dataProviderResponse.setJSON(json);
 			dataProviderResponse.setCredentialId(credentialId);
 			LOGGER.debug(IdRepoSecurityManager.getUser(), IDAUTHPROVIDER, GET_FORAMTTED_DATA,
 					"formatting the data end");
