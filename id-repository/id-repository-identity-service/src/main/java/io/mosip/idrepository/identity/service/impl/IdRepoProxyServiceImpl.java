@@ -360,7 +360,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 					ResponseWrapper.class);
 			request.setUri(request.getUri().replace("{vid}", vid));
 			ResponseWrapper<Map<String, String>> response = restHelper.requestSync(request);
-			String uin = response.getResponse().get("uin");
+			String uin = response.getResponse().get("UIN");
 			return retrieveIdentityByUin(uin, type, extractionFormats);
 		} catch (RestServiceException e) {
 			if (e.getResponseBodyAsString().isPresent()) {
