@@ -101,6 +101,7 @@ public class CredentialRequestServiceImplTest {
 	public void testCancelCredentialIssuanceSuccess() throws JsonProcessingException {
 		CredentialEntity credentialEntity=new CredentialEntity();
 		credentialEntity.setRequestId("1234");
+		credentialEntity.setStatusCode("NEW");
 		Optional<CredentialEntity> entity = Optional.of(credentialEntity);
 		Mockito.when(credentialRepositary.update(Mockito.any())).thenReturn(credentialEntity);
 		Mockito.when(credentialRepositary.findById(Mockito.any())).thenReturn(entity);
@@ -108,10 +109,25 @@ public class CredentialRequestServiceImplTest {
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto=credentialRequestServiceImpl.cancelCredentialRequest("1234");
 				assertEquals("1234", credentialIssueResponseDto.getResponse().getRequestId());
 	}
+
+	@Test
+	public void testCancelCredentialIssuanceFailure() throws JsonProcessingException {
+		CredentialEntity credentialEntity = new CredentialEntity();
+		credentialEntity.setRequestId("1234");
+		credentialEntity.setStatusCode("ISSUED");
+		Optional<CredentialEntity> entity = Optional.of(credentialEntity);
+		Mockito.when(credentialRepositary.update(Mockito.any())).thenReturn(credentialEntity);
+		Mockito.when(credentialRepositary.findById(Mockito.any())).thenReturn(entity);
+
+		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto = credentialRequestServiceImpl
+				.cancelCredentialRequest("1234");
+		assertNotNull(credentialIssueResponseDto.getErrors().get(0));
+	}
 	@Test
 	public void testDataAccessLayerExceptionForCancelCredentialIssuance() throws JsonProcessingException {
 		CredentialEntity credentialEntity=new CredentialEntity();
 		credentialEntity.setRequestId("1234");
+		credentialEntity.setStatusCode("NEW");
 		Optional<CredentialEntity> entity = Optional.of(credentialEntity);
 		Mockito.when(credentialRepositary.update(Mockito.any())).thenThrow(new DataAccessLayerException("", "", new Throwable()));
 		Mockito.when(credentialRepositary.findById(Mockito.any())).thenReturn(entity);
