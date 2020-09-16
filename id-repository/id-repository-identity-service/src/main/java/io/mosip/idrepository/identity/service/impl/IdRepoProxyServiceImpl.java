@@ -297,7 +297,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			return retrieveIdentityByUin(id, type, extractionFormats);
 		case VID:
 			return retrieveIdentityByVid(id, type, extractionFormats);
-		case REG_ID:
+		case RID:
 			return retrieveIdentityByRid(id, type, extractionFormats);
 		default:
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getIdType", "Invalid ID");

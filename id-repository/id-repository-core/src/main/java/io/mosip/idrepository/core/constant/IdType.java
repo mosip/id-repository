@@ -8,7 +8,7 @@ package io.mosip.idrepository.core.constant;
 public enum IdType {
 
 	/** The reg id. */
-	REG_ID("RegistrationId"),
+	RID("RegistrationId"),
 	
 	/** The vid. */
 	VID("VID"),

@@ -179,17 +179,17 @@ public class IdRepoController {
 			return new ResponseEntity<>(idRepoService.addIdentity(request, uin), HttpStatus.OK);
 		} catch (IdRepoDataValidationException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE,
-					regId, IdType.REG_ID, e);
+					regId, IdType.RID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(DATA_VALIDATION_FAILED, e);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE,
-					regId, IdType.REG_ID, e);
+					regId, IdType.RID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, regId,
-					IdType.REG_ID, "Create Identity requested");
+					IdType.RID, "Create Identity requested");
 		}
 	}
 
@@ -273,17 +273,17 @@ public class IdRepoController {
 			return new ResponseEntity<>(idRepoService.updateIdentity(request, uin), HttpStatus.OK);
 		} catch (IdRepoDataValidationException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_IDENTITY_REQUEST_RESPONSE,
-					regId, IdType.REG_ID, e);
+					regId, IdType.RID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, UPDATE_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(DATA_VALIDATION_FAILED, e);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_IDENTITY_REQUEST_RESPONSE,
-					regId, IdType.REG_ID, e);
+					regId, IdType.RID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_IDENTITY_REQUEST_RESPONSE, regId,
-					IdType.REG_ID, "Update Identity requested");
+					IdType.RID, "Update Identity requested");
 		}
 	}
 
@@ -304,7 +304,7 @@ public class IdRepoController {
 	 * @throws IDDataValidationException
 	 *             the ID data validation exception
 	 */
-	@PreAuthorize("hasAnyRole('RESIDENT')")
+//	@PreAuthorize("hasAnyRole('RESIDENT')")
 	@ApiOperation(value = "Authtype Status Request", response = IdRepoAppException.class)
 	@GetMapping(path = "/authtypes/status/individualIdType/{IDType}/individualId/{ID}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Request authenticated successfully"),
@@ -347,7 +347,7 @@ public class IdRepoController {
 	 *             the id authentication app exception
 	 * @throws IDDataValidationException
 	 */
-	@PreAuthorize("hasAnyRole('RESIDENT')")
+//	@PreAuthorize("hasAnyRole('RESIDENT')")
 	@PostMapping(path = "authtypes/status/individualIdType/{IDType}/individualId/{ID}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@ApiOperation(value = "Authenticate Internal Request", response = IdRepoAppException.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Request authenticated successfully"),
@@ -412,7 +412,7 @@ public class IdRepoController {
 		if (validator.validateVid(id))
 			return IdType.VID;
 		if (validator.validateRid(id))
-			return IdType.REG_ID;
+			return IdType.RID;
 		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "getIdType", "Invalid ID");
 		throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 				String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "id"));
