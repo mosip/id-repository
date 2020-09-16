@@ -79,7 +79,7 @@ public class QrCodeProvider implements CredentialProvider {
 			}
 
 			String credentialId = utilities.generateId();
-           
+
 
 			dataProviderResponse = new DataProviderResponse();
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
@@ -99,9 +99,9 @@ public class QrCodeProvider implements CredentialProvider {
 			json.put(JsonConstants.CREDENTIALSUBJECT, formattedMap);
 
 			dataProviderResponse.setJSON(json);
-			
+
 			dataProviderResponse.setCredentialId(credentialId);
-			
+
 			dataProviderResponse.setIssuanceDate(localdatetime);
 
 			return dataProviderResponse;
