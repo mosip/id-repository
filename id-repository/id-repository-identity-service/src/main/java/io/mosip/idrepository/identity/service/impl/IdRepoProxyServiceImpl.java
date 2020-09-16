@@ -19,6 +19,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_E
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -581,34 +582,48 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		});
 	}
 
+	@SuppressWarnings("unchecked")
 	private byte[] extractTemplates(String uinHash, String fileName, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
 		try {
 			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
 					"EXTRACTING FORMAT: " + extractionFormats.toString());
-			
-			List<byte[]> extractedTemplates = new ArrayList<>();
+
+			Map<String, byte[]> extractedTemplates = new HashMap<>();
 			int i = 0;
 			CompletableFuture<?>[] extractTemplateFuture = new CompletableFuture<?>[extractionFormats.size()];
 			for (Entry<String, String> extractionFormat : extractionFormats.entrySet()) {
-				extractTemplateFuture[i++] = extractTemplate(uinHash, fileName, extractionFormat.getKey(),
-						extractionFormat.getValue());
+				if (!extractedTemplates.containsKey(extractionFormat.getValue())) {
+					extractTemplateFuture[i++] = extractTemplate(uinHash, fileName, extractionFormat.getKey(),
+							extractionFormat.getValue());
+				} else {
+					String extractionFileName = fileName.split("\\.")[0] + DOT + extractionFormat.getKey();
+					objectStore.putObject(objectStoreAccountName, uinHash, extractionFileName,
+							new ByteArrayInputStream(extractedTemplates.get(extractionFormat.getValue())));
+				}
 			}
 			CompletableFuture.allOf(extractTemplateFuture).join();
 			for (int j = 0; j < extractTemplateFuture.length; j++) {
-				extractedTemplates.add((byte[]) extractTemplateFuture[j].get());
+				extractedTemplates.put(((Entry<String, byte[]>) extractTemplateFuture[j].get()).getKey(),
+						((Entry<String, byte[]>) extractTemplateFuture[j].get()).getValue());
 			}
 			extractedTemplates.remove(null);
 			List<BIRType> birTypeList = new ArrayList<>();
 			if (!extractedTemplates.isEmpty()) {
-				for (byte[] template : extractedTemplates) {
+				for (byte[] template : extractedTemplates.values()) {
 					birTypeList.addAll(cbeffUtil.getBIRDataFromXML(template));
 				}
 			}
-			return cbeffUtil.createXML(cbeffUtil.convertBIRTypeToBIR(birTypeList));
+			byte[] createXML = cbeffUtil.createXML(cbeffUtil.convertBIRTypeToBIR(birTypeList));
+			System.err.println(new String(createXML));
+			return createXML;
 		} catch (IdRepoAppUncheckedException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		} catch (AmazonS3Exception e) {
+			// TODO need to remove AmazonS3Exception handling
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES, e.getMessage());
+			throw new IdRepoAppUncheckedException(FILE_NOT_FOUND, e);
 		} catch (Exception e) {
 			ExceptionUtils.getStackTrace(e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
@@ -617,14 +632,16 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	}
 
 	@Async
-	private CompletableFuture<byte[]> extractTemplate(String uinHash, String fileName, String extractionType, String extractionFormat) throws IdRepoAppException {
+	private CompletableFuture<Entry<String, byte[]>> extractTemplate(String uinHash, String fileName,
+			String extractionType, String extractionFormat) throws IdRepoAppException {
 		try {
 			String extractionFileName = fileName.split("\\.")[0] + DOT + extractionType;
-			//TODO need to remove AmazonS3Exception handling
+			// TODO need to remove AmazonS3Exception handling
 			try {
 				if (objectStore.exists(objectStoreAccountName, uinHash, extractionFileName)) {
-					return CompletableFuture.completedFuture(securityManager.decrypt(IOUtils
-							.toByteArray(objectStore.getObject(objectStoreAccountName, uinHash, extractionFileName))));
+					return CompletableFuture.completedFuture(new AbstractMap.SimpleImmutableEntry<>(extractionFormat,
+							securityManager.decrypt(IOUtils.toByteArray(
+									objectStore.getObject(objectStoreAccountName, uinHash, extractionFileName)))));
 				}
 			} catch (AmazonS3Exception e) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
@@ -637,14 +654,16 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 						.decrypt(IOUtils.toByteArray(objectStore.getObject(objectStoreAccountName, uinHash, fileName)));
 				bioExtractReq.setBiometrics(CryptoUtil.encodeBase64(data));
 				request.setRequest(bioExtractReq);
-				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.BIO_EXTRACTOR_SERVICE, request,
-						ResponseWrapper.class);
+				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.BIO_EXTRACTOR_SERVICE,
+						request, ResponseWrapper.class);
 				restRequest.setUri(restRequest.getUri().replace("{extractionFormat}", extractionFormat));
 				ResponseWrapper<Map<String, String>> response = restHelper.requestSync(restRequest);
 				byte[] extractedBiometrics = CryptoUtil.decodeBase64(response.getResponse().get("extractedBiometrics"));
+				System.err.println(new String(extractedBiometrics));
 				objectStore.putObject(objectStoreAccountName, uinHash, extractionFileName,
 						new ByteArrayInputStream(securityManager.encrypt(extractedBiometrics)));
-				return CompletableFuture.completedFuture(extractedBiometrics);
+				return CompletableFuture
+						.completedFuture(new AbstractMap.SimpleImmutableEntry<>(extractionFormat, extractedBiometrics));
 			} else {
 				return null;
 			}
@@ -658,7 +677,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES, e.getMessage());
 			throw new IdRepoAppUncheckedException(FILE_STORAGE_ACCESS_ERROR, e);
 		} catch (AmazonS3Exception e) {
-			//TODO need to remove AmazonS3Exception handling
+			// TODO need to remove AmazonS3Exception handling
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES, e.getMessage());
 			throw new IdRepoAppUncheckedException(FILE_NOT_FOUND, e);
 		}
