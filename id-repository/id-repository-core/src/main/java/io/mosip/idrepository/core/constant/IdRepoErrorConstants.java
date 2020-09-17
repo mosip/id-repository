@@ -57,7 +57,7 @@ public enum IdRepoErrorConstants {
 	IDENTITY_HASH_MISMATCH("IDR-IDS-001", "Identity Element hash does not match"),
 
 	/** The document hash mismatch. */
-	DOCUMENT_HASH_MISMATCH("IDR-IDS-002", "Biometric/Document hash does not match"),
+	DOCUMENT_HASH_MISMATCH("IDR-IDS-012", "Authentication Failed"),
 
 	/** The internal server error. */
 	ENCRYPTION_DECRYPTION_FAILED("IDR-IDS-003", "Failed to either encrypt/decrypt message using Kernel Crypto Manager"),
@@ -99,8 +99,11 @@ public enum IdRepoErrorConstants {
 	UIN_RETRIEVAL_FAILED("IDR-VID-005", "Failed to retrieve uin data using Identity Service"),
 	
 	/** The uin hash mismatch. */
-	UIN_HASH_MISMATCH("IDR-VID-006", "Uin hash does not match");
+	UIN_HASH_MISMATCH("IDR-VID-006", "Uin hash does not match"),
 	
+	/** The authorization failed. */
+	/** The document hash mismatch. */
+	AUTHENTICATION_FAILED("IDR-IDS-012", "Authentication Failed");	
 
 	/** The error code. */
 	private final String errorCode;
