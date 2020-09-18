@@ -8,5 +8,7 @@ public class CredentialIssueStatusResponse {
 	
 	private String requestId;
 	
+	private String id;
+	
 	private String statusCode;
 }

@@ -6,4 +6,5 @@ import lombok.Data;
 public class CredentialIssueResponse {
 
 	private String requestId;
+	private String id;
 }

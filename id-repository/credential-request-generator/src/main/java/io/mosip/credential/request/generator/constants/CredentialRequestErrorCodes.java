@@ -12,7 +12,8 @@ public enum CredentialRequestErrorCodes {
 	REQUEST_ID_PROCESSED_ERROR("IDR-CRG-004", "request id already processed"),
 
 	UNKNOWN_EXCEPTION("IDR-CRG-004", "unknown exception"),
-	CREDENTIAL_REQUEST_GENERATOR_BUSINESS_EXCEPTION("IDR-CRG-005", "Credential status update failed");
+	CREDENTIAL_REQUEST_GENERATOR_BUSINESS_EXCEPTION("IDR-CRG-005", "Credential status update failed"),
+	IO_EXCEPTION("IDR-CRG-006", "IO exception");
 	
 	private final String errorCode;
 	private final String errorMessage;
