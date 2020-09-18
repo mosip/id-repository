@@ -314,7 +314,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				.toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
 
 		byte[] data = CryptoUtil.decodeBase64(doc.getValue());
-
 		objectStore.putObject(objectStoreAccountName, uinHash.substring(0, 63).toLowerCase(), null, null,
 				DEMOGRAPHICS + SLASH + fileRefId, new ByteArrayInputStream(securityManager.encrypt(data)));
 
