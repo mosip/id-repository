@@ -851,8 +851,12 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		event.setType(type);
 		Map<String, Object> data = new HashMap<>();
 		data.put(ID_HASH, retrieveUinHash(id));
-		if(expiryTimestamp != null) {
-			data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
+		if(eventType.equals(IDAEventType.DEACTIVATE_ID)) {
+			data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+		} else {
+			if(expiryTimestamp != null) {
+				data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
+			}
 		}
 		data.put(TRANSACTION_LIMIT, transactionLimit);
 		event.setData(data);
