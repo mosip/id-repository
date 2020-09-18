@@ -57,7 +57,7 @@ public enum IdRepoErrorConstants {
 	IDENTITY_HASH_MISMATCH("IDR-IDS-001", "Identity Element hash does not match"),
 
 	/** The document hash mismatch. */
-	DOCUMENT_HASH_MISMATCH("IDR-IDS-012", "Authentication Failed"),
+	DOCUMENT_HASH_MISMATCH("IDR-IDS-002", "Biometric/Document hash does not match"),
 
 	/** The internal server error. */
 	ENCRYPTION_DECRYPTION_FAILED("IDR-IDS-003", "Failed to either encrypt/decrypt message using Kernel Crypto Manager"),
