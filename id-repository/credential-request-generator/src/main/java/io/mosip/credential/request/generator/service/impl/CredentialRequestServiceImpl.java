@@ -1,5 +1,6 @@
 package io.mosip.credential.request.generator.service.impl;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -85,6 +86,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 	
 	@Autowired
 	private AuditHelper auditHelper;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -166,7 +168,11 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 					credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 					credentialEntity.setUpdatedBy(USER);
 					credentialRepositary.update(credentialEntity);
+					CredentialIssueRequestDto credentialIssueRequestDto = mapper
+							.readValue(credentialEntity.getRequest(),
+							CredentialIssueRequestDto.class);
 					credentialIssueResponse = new CredentialIssueResponse();
+					credentialIssueResponse.setId(credentialIssueRequestDto.getId());
 					credentialIssueResponse.setRequestId(requestId);
 				} else {
 					ServiceError error = new ServiceError();
@@ -188,6 +194,13 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			error.setMessage(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorMessage());
 			errorList.add(error);
 
+		} catch (IOException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR,
+					AuditEvents.CANCEL_CREDENTIAL_REQUEST, requestId, IdType.ID, e);
+			ServiceError error = new ServiceError();
+			error.setErrorCode(CredentialRequestErrorCodes.IO_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialRequestErrorCodes.IO_EXCEPTION.getErrorMessage());
+			errorList.add(error);
 		} finally {
 			credentialIssueResponseWrapper.setId(CREDENTIAL_REQUEST_SERVICE_ID);
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
@@ -219,6 +232,10 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
 			if (entity != null) {
 				CredentialEntity credentialEntity = entity.get();
+				CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credentialEntity.getRequest(),
+						CredentialIssueRequestDto.class);
+
+				credentialIssueStatusResponse.setId(credentialIssueRequestDto.getId());
 				credentialIssueStatusResponse.setRequestId(requestId);
 				credentialIssueStatusResponse.setStatusCode(credentialEntity.getStatusCode());
 			} else {
@@ -235,6 +252,13 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			error.setMessage(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorMessage());
 			errorList.add(error);
 
+		} catch (IOException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR,
+					AuditEvents.CANCEL_CREDENTIAL_REQUEST, requestId, IdType.ID, e);
+			ServiceError error = new ServiceError();
+			error.setErrorCode(CredentialRequestErrorCodes.IO_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialRequestErrorCodes.IO_EXCEPTION.getErrorMessage());
+			errorList.add(error);
 		} finally {
 			credentialIssueStatusResponseWrapper.setId(CREDENTIAL_REQUEST_SERVICE_ID);
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));

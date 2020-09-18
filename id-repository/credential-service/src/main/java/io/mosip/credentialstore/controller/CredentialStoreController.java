@@ -55,7 +55,7 @@ public class CredentialStoreController {
 
 	}
 
-	@PreAuthorize("hasAnyRole('CREDENTIAL_ISSUANCE')")
+
 	@GetMapping(path = "/types", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "get the credential types", response = CredentialTypeResponse.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "get the credential types successfully"),
