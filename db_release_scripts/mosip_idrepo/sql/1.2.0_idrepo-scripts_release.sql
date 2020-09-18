@@ -11,6 +11,6 @@
 \c mosip_idrepo sysadmin
 
 
-DROP TABLE IF EXISTS ida.uin_auth_lock;
+DROP TABLE IF EXISTS idrepo.uin_auth_lock;
 
-\ir ../ddl/ida-uin_auth_lock.sql
+\ir ../ddl/idrepo-uin_auth_lock.sql

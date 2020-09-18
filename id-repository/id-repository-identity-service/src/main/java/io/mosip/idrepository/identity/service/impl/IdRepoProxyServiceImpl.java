@@ -50,6 +50,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 
 import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
@@ -71,6 +72,7 @@ import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.dto.Type;
 import io.mosip.idrepository.core.dto.VidInfoDTO;
+import io.mosip.idrepository.core.dto.VidsInfosDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
@@ -103,8 +105,6 @@ import io.mosip.kernel.core.websub.spi.PublisherClient;
 @Service
 public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdResponseDTO> {
 
-	private static final String COOKIE = "Cookie";
-
 	private static final String ID_TYPE = "idType";
 
 	private static final String TOKEN = "TOKEN";
@@ -125,7 +125,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	private static final String IDA = "IDA";
 
-	private static final String PARNER_ACTIVE_STATUS = "Active";
+	private static final String PARTNER_ACTIVE_STATUS = "Active";
 
 	private static final String AUTH = "AUTH";
 
@@ -761,30 +761,27 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private void notify(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate, String txnId) {
 		try {
-			Optional<String> authToken = IdRepoSecurityManager.getAuthToken();
 			List<VidInfoDTO> vidInfoDtos = null;
 			if (isUpdate) {
 				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_VIDS_BY_UIN, null,
-						ResponseWrapper.class);
+						VidsInfosDTO.class);
 				restRequest.setUri(restRequest.getUri().replace("{uin}", uin));
-				ResponseWrapper<Map<String, Object>> response = restHelper.requestSync(restRequest);
-				vidInfoDtos = mapper.convertValue(response.getResponse().get("events"), List.class);
+				VidsInfosDTO response = restHelper.requestSync(restRequest);
+				vidInfoDtos = response.getResponse();
 			}
-
+			
 			List<String> partnerIds = getPartnerIds();
-
-			if (isUpdate && (!ACTIVE.equals(status) || expiryTimestamp != null)) {
-				// Event to be sent to IDA for deactivation/blocked uin state
-				sendEventToIDA(uin, expiryTimestamp, status, vidInfoDtos, partnerIds, txnId, authToken);
+			
+			if((status != null && isUpdate) && (!ACTIVE.equals(status) || expiryTimestamp != null)) {
+				//Event to be sent to IDA for deactivation/blocked uin state
+				sendEventToIDA(uin, expiryTimestamp, status, vidInfoDtos, partnerIds, txnId);
 			} else {
-				// For create uin, or update uin with null expiry (active status), send event to
-				// credential service.
+				//For create uin, or update uin with null expiry (active status), send event to credential service.
 				sendEventsToCredService(uin, expiryTimestamp, isUpdate, vidInfoDtos, partnerIds);
 			}
-
+			
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", e.getMessage());
 		}
@@ -793,16 +790,16 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	@SuppressWarnings("unchecked")
 	private List<String> getPartnerIds() {
 		try {
-			Map<String, Object> responseWrapperMap = restHelper
-					.requestSync(restBuilder.buildRequest(RestServicesConstants.PARTNER_SERVICE, null, Map.class));
+			Map<String, Object> responseWrapperMap = restHelper.requestSync(restBuilder.buildRequest(RestServicesConstants.PARTNER_SERVICE, null, Map.class));
 			Object response = responseWrapperMap.get("response");
-			if (response instanceof Map) {
-				Object partners = responseWrapperMap.get("partners");
-				if (partners instanceof List) {
+			if(response instanceof Map) {
+				Object partners = ((Map<String,?>)response).get("partners");
+				if(partners instanceof List) {
 					List<Map<String, Object>> partnersList = (List<Map<String, Object>>) partners;
 					return partnersList.stream()
-							.filter(partner -> PARNER_ACTIVE_STATUS.equalsIgnoreCase((String) partner.get("status")))
-							.map(partner -> (String) partner.get("partnerID")).collect(Collectors.toList());
+								.filter(partner -> PARTNER_ACTIVE_STATUS.equalsIgnoreCase((String)partner.get("status")))
+								.map(partner -> (String)partner.get("partnerID"))
+								.collect(Collectors.toList());
 				}
 			}
 		} catch (RestServiceException | IdRepoDataValidationException e) {
@@ -811,37 +808,34 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		return Collections.emptyList();
 	}
 
-	private void sendEventToIDA(String uin, LocalDateTime expiryTimestamp, String status, List<VidInfoDTO> vidInfoDtos,
-			List<String> partnerIds, String txnId, Optional<String> authToken) {
+	private void sendEventToIDA(String uin, LocalDateTime expiryTimestamp, String status, List<VidInfoDTO> vidInfoDtos, List<String> partnerIds, String txnId) {
 		List<EventModel> eventList = new ArrayList<>();
 		EventType eventType = BLOCKED.equals(status) ? IDAEventType.REMOVE_ID : IDAEventType.DEACTIVATE_ID;
-		eventList.addAll(createIdaEventModel(eventType, uin, expiryTimestamp, null, partnerIds, txnId)
-				.collect(Collectors.toList()));
-
-		if (vidInfoDtos != null) {
-			List<EventModel> idaEvents = vidInfoDtos.stream().flatMap(vidInfoDTO -> createIdaEventModel(eventType,
-					vidInfoDTO.getVid(), expiryTimestamp, vidInfoDTO.getTransactionLimit(), partnerIds, txnId))
+		eventList.addAll(createIdaEventModel(eventType, uin, expiryTimestamp, null, partnerIds, txnId).collect(Collectors.toList()));
+		
+		if(vidInfoDtos != null) {
+			List<EventModel> idaEvents = vidInfoDtos.stream()
+					.flatMap(vidInfoDTO -> createIdaEventModel(eventType,
+							vidInfoDTO.getVid(), 
+							expiryTimestamp,
+							vidInfoDTO.getTransactionLimit(),
+							partnerIds, txnId))
 					.collect(Collectors.toList());
 			eventList.addAll(idaEvents);
 		}
-
+		
 		eventList.forEach(eventDto -> {
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify",
-					"notifying IDA for event" + eventType.toString());
-			sendEventToIDA(eventDto, authToken);
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify",
-					"notified IDA for event" + eventType.toString());
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", "notifying IDA for event" + eventType.toString());
+			sendEventToIDA(eventDto);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", "notified IDA for event" + eventType.toString());
 		});
 	}
 
-	private Stream<EventModel> createIdaEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp,
-			Integer transactionLimit, List<String> partnerIds, String transactionId) {
-		return partnerIds.stream().map(
-				partner -> createEventModel(eventType, id, expiryTimestamp, transactionLimit, transactionId, partner));
+	private Stream<EventModel> createIdaEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp, Integer transactionLimit, List<String> partnerIds, String transactionId) {
+		return partnerIds.stream().map(partner -> createEventModel(eventType, id, expiryTimestamp, transactionLimit, transactionId, partner));
 	}
 
-	private EventModel createEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp,
-			Integer transactionLimit, String transactionId, String partner) {
+	private EventModel createEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp, Integer transactionLimit, String transactionId, String partner) {
 		EventModel model = new EventModel();
 		model.setPublisher(ID_REPO);
 		String dateTime = DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime());
@@ -857,7 +851,9 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		event.setType(type);
 		Map<String, Object> data = new HashMap<>();
 		data.put(ID_HASH, retrieveUinHash(id));
-		data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
+		if(expiryTimestamp != null) {
+			data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
+		}
 		data.put(TRANSACTION_LIMIT, transactionLimit);
 		event.setData(data);
 		model.setEvent(event);
@@ -865,61 +861,59 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		return model;
 	}
 
-	private void sendEventToIDA(EventModel model, Optional<String> authToken) {
-		pb.registerTopic(model.getTopic(), webSubHubUrl);
-		HttpHeaders headers = new HttpHeaders();
-		if (authToken.isPresent()) {
-			headers.add(COOKIE, authToken.get());
+	private void sendEventToIDA(EventModel model) {
+		try {
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendEventToIDA", "Trying registering topic: " + model.getTopic());
+			pb.registerTopic(model.getTopic(), webSubHubUrl);
+		} catch (Exception e) {
+			//Exception will be there if topic already registered. Ignore that
+			mosipLogger.warn(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendEventToIDA", "Error in registering topic: " + model.getTopic() + " : " + e.getMessage() );
 		}
-		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, headers, webSubHubUrl);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendEventToIDA", "Publising event to topic: " + model.getTopic());
+		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null, webSubHubUrl);
 	}
 
-	private void sendEventsToCredService(String uin, LocalDateTime expiryTimestamp, boolean isUpdate,
-			List<VidInfoDTO> vidInfoDtos, List<String> partnerIds) {
+	private void sendEventsToCredService(String uin, LocalDateTime expiryTimestamp, boolean isUpdate, List<VidInfoDTO> vidInfoDtos, List<String> partnerIds) {
 		List<CredentialIssueRequestDto> eventRequestsList = new ArrayList<>();
 		String token = tokenIDGenerator.generateTokenID(uin, PARTNER);
-		eventRequestsList.addAll(partnerIds.stream().map(
-				partnerId -> createCredReqDto(uin, partnerId, expiryTimestamp, null, token, IdType.UIN.getIdType()))
-				.collect(Collectors.toList()));
-
-		if (vidInfoDtos != null) {
-			List<CredentialIssueRequestDto> vidRequests = vidInfoDtos.stream().flatMap(vidInfoDTO -> {
-				LocalDateTime vidExpiryTime = Objects.isNull(expiryTimestamp) ? vidInfoDTO.getExpiryTimestamp()
-						: expiryTimestamp;
-				return partnerIds.stream().map(partnerId -> createCredReqDto(vidInfoDTO.getVid(), partnerId,
-						vidExpiryTime, vidInfoDTO.getTransactionLimit(), token, IdType.VID.getIdType()));
-			}).collect(Collectors.toList());
+		eventRequestsList.addAll(partnerIds.stream().map(partnerId -> createCredReqDto(uin, partnerId, expiryTimestamp, null, token, IdType.UIN.getIdType())).collect(Collectors.toList()));
+		
+		if(vidInfoDtos != null) {
+			List<CredentialIssueRequestDto> vidRequests = vidInfoDtos.stream()
+					.flatMap(vidInfoDTO -> {
+						LocalDateTime vidExpiryTime = Objects.isNull(expiryTimestamp) ? vidInfoDTO.getExpiryTimestamp() : expiryTimestamp;
+						return partnerIds.stream()
+								.map(partnerId -> createCredReqDto(vidInfoDTO.getVid(), partnerId, 
+														vidExpiryTime,
+														vidInfoDTO.getTransactionLimit(), token, IdType.VID.getIdType()));
+					}).collect(Collectors.toList());
 			eventRequestsList.addAll(vidRequests);
 		}
-
+		
 		eventRequestsList.forEach(reqDto -> {
 			CredentialIssueRequestWrapperDto requestWrapper = new CredentialIssueRequestWrapperDto();
 			requestWrapper.setRequest(reqDto);
 			requestWrapper.setRequesttime(DateUtils.getUTCCurrentDateTime());
-			String eventTypeDisplayName = isUpdate ? "Update ID" : "Create ID";
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify",
-					"notifying Credential Service for event " + eventTypeDisplayName);
+			String eventTypeDisplayName = isUpdate? "Update ID" : "Create ID";
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", "notifying Credential Service for event " + eventTypeDisplayName);
 			sendRequestToCredService(requestWrapper);
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify",
-					"notified Credential Service for event" + eventTypeDisplayName);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", "notified Credential Service for event" + eventTypeDisplayName);
 		});
 	}
 
 	private void sendRequestToCredService(CredentialIssueRequestWrapperDto requestWrapper) {
 		try {
-			restHelper.requestSync(restBuilder.buildRequest(RestServicesConstants.CREDENTIAL_REQUEST_SERVICE,
-					requestWrapper, Map.class));
-		} catch (RestServiceException | IdRepoDataValidationException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendRequestToCredService",
-					e.getMessage());
+			Map<String, Object> response = restHelper.requestSync(restBuilder.buildRequest(RestServicesConstants.CREDENTIAL_REQUEST_SERVICE, requestWrapper, Map.class));
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendRequestToCredService", "Response of Credential Request: " + mapper.writeValueAsString(response));
+		} catch (RestServiceException | IdRepoDataValidationException | JsonProcessingException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendRequestToCredService", e.getMessage());
 		}
 	}
 
-	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp,
-			Integer transactionLimit, String token, String idType) {
+	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp, Integer transactionLimit, String token, String idType) {
 		Map<String, Object> data = new HashMap<>();
 		data.putAll(retrieveIdHashWithAttributes(id));
-		data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
+		data.put(EXPIRY_TIMESTAMP, Optional.ofNullable(expiryTimestamp).map(DateUtils::formatToISOString).orElse(null));
 		data.put(TRANSACTION_LIMIT, Optional.ofNullable(transactionLimit).map(String::valueOf).orElse(null));
 		data.put(TOKEN, token);
 		data.put(ID_TYPE, idType);

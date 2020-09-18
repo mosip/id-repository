@@ -6,7 +6,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -17,11 +16,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.credential.request.generator.batch.config.CredentialItemProcessor;
 import io.mosip.credential.request.generator.constants.CredentialRequestErrorCodes;
 import io.mosip.credential.request.generator.constants.CredentialStatusCode;
-import io.mosip.credential.request.generator.constants.LoggerFileConstant;
-
+import io.mosip.credential.request.generator.dto.CredentialStatusEvent;
+import io.mosip.credential.request.generator.dto.Event;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
-import io.mosip.credential.request.generator.exception.CredentialIssueException;
-
+import io.mosip.credential.request.generator.exception.CredentialrRequestGeneratorException;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import io.mosip.credential.request.generator.service.CredentialRequestService;
 import io.mosip.credential.request.generator.util.Utilities;
@@ -30,8 +28,7 @@ import io.mosip.idrepository.core.constant.AuditModules;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
-import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
-import io.mosip.idrepository.core.dto.ErrorDTO;
+import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
@@ -41,6 +38,7 @@ import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.StringUtils;
 
 /**
  * 
@@ -163,15 +161,25 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
 			if (entity != null) {
 				CredentialEntity credentialEntity = entity.get();
-				credentialEntity.setStatusCode(CredentialStatusCode.CANCELLED.name());
-				credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-				credentialEntity.setUpdatedBy(USER);
-				credentialRepositary.update(credentialEntity);
-				credentialIssueResponse = new CredentialIssueResponse();
-				credentialIssueResponse.setRequestId(requestId);
+				if (credentialEntity.getStatusCode().equalsIgnoreCase("NEW")) {
+					credentialEntity.setStatusCode(CredentialStatusCode.CANCELLED.name());
+					credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+					credentialEntity.setUpdatedBy(USER);
+					credentialRepositary.update(credentialEntity);
+					credentialIssueResponse = new CredentialIssueResponse();
+					credentialIssueResponse.setRequestId(requestId);
+				} else {
+					ServiceError error = new ServiceError();
+					error.setErrorCode(CredentialRequestErrorCodes.REQUEST_ID_PROCESSED_ERROR.getErrorCode());
+					error.setMessage(CredentialRequestErrorCodes.REQUEST_ID_PROCESSED_ERROR.getErrorMessage());
+					errorList.add(error);
+				}
+
 			} else {
-				throw new CredentialIssueException(CredentialRequestErrorCodes.REQUEST_ID_ERROR.getErrorCode(),
-						CredentialRequestErrorCodes.REQUEST_ID_ERROR.getErrorMessage());
+				ServiceError error = new ServiceError();
+				error.setErrorCode(CredentialRequestErrorCodes.REQUEST_ID_ERROR.getErrorCode());
+				error.setMessage(CredentialRequestErrorCodes.REQUEST_ID_ERROR.getErrorMessage());
+				errorList.add(error);
 			}
 		} catch (DataAccessLayerException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CANCEL_CREDENTIAL_REQUEST, requestId, IdType.ID,e);
@@ -180,12 +188,6 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			error.setMessage(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorMessage());
 			errorList.add(error);
 
-		} catch (Exception e) {
-			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CANCEL_CREDENTIAL_REQUEST, requestId, IdType.ID,e);
-			ServiceError error = new ServiceError();
-			error.setErrorCode(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorCode());
-			error.setMessage(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
-			errorList.add(error);
 		} finally {
 			credentialIssueResponseWrapper.setId(CREDENTIAL_REQUEST_SERVICE_ID);
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
@@ -204,5 +206,83 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		}
 		return credentialIssueResponseWrapper;
 	}
-	;
+
+
+	@Override
+	public ResponseWrapper<CredentialIssueStatusResponse> getCredentialRequestStatus(String requestId) {
+	
+		List<ServiceError> errorList = new ArrayList<>();
+		ResponseWrapper<CredentialIssueStatusResponse> credentialIssueStatusResponseWrapper = new ResponseWrapper<CredentialIssueStatusResponse>();
+
+		CredentialIssueStatusResponse credentialIssueStatusResponse = new CredentialIssueStatusResponse();
+		try {
+			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
+			if (entity != null) {
+				CredentialEntity credentialEntity = entity.get();
+				credentialIssueStatusResponse.setRequestId(requestId);
+				credentialIssueStatusResponse.setStatusCode(credentialEntity.getStatusCode());
+			} else {
+				ServiceError error = new ServiceError();
+				error.setErrorCode(CredentialRequestErrorCodes.REQUEST_ID_ERROR.getErrorCode());
+				error.setMessage(CredentialRequestErrorCodes.REQUEST_ID_ERROR.getErrorMessage());
+				errorList.add(error);
+			
+			}
+		} catch (DataAccessLayerException e) {
+		
+			ServiceError error = new ServiceError();
+			error.setErrorCode(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+
+		} finally {
+			credentialIssueStatusResponseWrapper.setId(CREDENTIAL_REQUEST_SERVICE_ID);
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			LocalDateTime localdatetime = LocalDateTime
+					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+
+			credentialIssueStatusResponseWrapper
+					.setResponsetime(localdatetime);
+			credentialIssueStatusResponseWrapper.setVersion(env.getProperty(CREDENTIAL_REQUEST_SERVICE_VERSION));
+			if (!errorList.isEmpty()) {
+				credentialIssueStatusResponseWrapper.setErrors(errorList);
+			} else {
+				credentialIssueStatusResponseWrapper.setResponse(credentialIssueStatusResponse);
+			}
+			
+		}
+		return credentialIssueStatusResponseWrapper;
+	}
+
+
+	@Override
+	public void updateCredentialStatus(CredentialStatusEvent credentialStatusEvent) throws CredentialrRequestGeneratorException {
+		String requestId=null;
+		try {
+			Event event=credentialStatusEvent.getEvent();
+			requestId=credentialStatusEvent.getEvent().getRequestId();
+			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
+			if (entity != null) {
+				CredentialEntity credentialEntity = entity.get();
+				credentialEntity.setStatusCode(event.getStatus());
+				if(!StringUtils.isEmpty(event.getUrl())) {
+					credentialEntity.setDataShareUrl(event.getUrl());
+				}
+				credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+				credentialEntity.setUpdatedBy(USER);
+				credentialRepositary.update(credentialEntity);
+				
+			} else {
+				throw new CredentialrRequestGeneratorException();
+			}
+			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,"update the request");
+		}catch (DataAccessLayerException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,e);
+			
+			throw new CredentialrRequestGeneratorException();
+
+		}
+		
+	}
+	
 }
