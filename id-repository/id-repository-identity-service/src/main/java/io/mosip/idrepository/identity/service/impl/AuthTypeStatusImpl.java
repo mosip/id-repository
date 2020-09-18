@@ -1,6 +1,5 @@
 package io.mosip.idrepository.identity.service.impl;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,7 +19,6 @@ import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.AuthtypeStatus;
 import io.mosip.idrepository.core.dto.IDAEventDTO;
-import io.mosip.idrepository.core.dto.IDAEventsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
@@ -80,7 +78,7 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	private RestRequestBuilder restBuilder;
 
 	@Autowired
-	private PublisherClient<String, IDAEventsDTO, HttpHeaders> publisher;
+	private PublisherClient<String, IDAEventDTO, HttpHeaders> publisher;
 
 	@Autowired
 	private TokenIDGenerator tokenIdGenerator;
@@ -124,16 +122,12 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	}
 
 	private void publishEvent(String individualId, List<AuthtypeStatus> authTypeStatusList) {
-		IDAEventsDTO eventsDTO = new IDAEventsDTO();
-		List<IDAEventDTO> events = new ArrayList<>();
 		IDAEventDTO event = new IDAEventDTO();
 		event.setTokenId(tokenIdGenerator.generateTokenID(individualId, IdRepoConstants.PARTNER_ID));
 		event.setAuthTypeStatusList(authTypeStatusList);
-		events.add(event);
-		eventsDTO.setEvents(events);
 		HttpHeaders headers = new HttpHeaders();
 		IdRepoSecurityManager.getAuthToken().ifPresent(token -> headers.set(HttpHeaders.COOKIE, token));
-		publisher.publishUpdate(IDAEventType.AUTH_TYPE_STATUS_UPDATE.name(), eventsDTO,
+		publisher.publishUpdate(IDAEventType.AUTH_TYPE_STATUS_UPDATE.name(), event,
 				MediaType.APPLICATION_JSON_UTF8_VALUE, headers, publisherHubURL);
 	}
 
