@@ -792,7 +792,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
 		int modResult = (int) (Long.parseLong(id) % moduloValue);
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
-		String hash =  modResult + SPLITTER + securityManager.hashwithSalt(id.getBytes(), hashSalt.getBytes());
+		String hash = securityManager.hashwithSalt(id.getBytes(), hashSalt.getBytes());
 		hashWithAttributes.put(ID_HASH, hash);
 		hashWithAttributes.put(MODULO, String.valueOf(modResult));
 		hashWithAttributes.put(SALT, hashSalt);

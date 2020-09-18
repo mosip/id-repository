@@ -385,7 +385,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
 		int modResult = (int) (Long.parseLong(uin) % moduloValue);
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
-		return modResult + SPLITTER + securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
+		String hashwithSalt = securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
+		return modResult + SPLITTER + hashwithSalt;
 	}
 
 	private Map<String, String> retrieveIdHashWithAttributes(String id) {
@@ -393,7 +394,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
 		int modResult = (int) (Long.parseLong(id) % moduloValue);
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
-		String hash = modResult + SPLITTER + securityManager.hashwithSalt(id.getBytes(), hashSalt.getBytes());
+		String hash = securityManager.hashwithSalt(id.getBytes(), hashSalt.getBytes());
 		hashWithAttributes.put(ID_HASH, hash);
 		hashWithAttributes.put(MODULO, String.valueOf(modResult));
 		hashWithAttributes.put(SALT, hashSalt);
