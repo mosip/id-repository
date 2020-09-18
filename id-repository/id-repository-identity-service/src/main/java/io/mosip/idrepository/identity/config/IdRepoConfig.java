@@ -37,7 +37,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
-import io.mosip.idrepository.core.dto.IDAEventsDTO;
+import io.mosip.idrepository.core.dto.IDAEventDTO;
 import io.mosip.idrepository.core.exception.AuthenticationException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
@@ -92,7 +92,7 @@ public class IdRepoConfig implements WebMvcConfigurer {
 	private Map<String, String> id;
 	
 	@Autowired
-	private PublisherClient<String, IDAEventsDTO, HttpHeaders> publisher; 
+	private PublisherClient<String, IDAEventDTO, HttpHeaders> publisher; 
 
 	@PostConstruct
 	public void init() {
