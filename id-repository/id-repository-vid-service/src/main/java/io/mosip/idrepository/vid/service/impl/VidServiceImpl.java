@@ -117,10 +117,6 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 
 	private static final String AUTH = "AUTH";
 
-	private static final String ACTIVATE_STATUS = "ACTIVATE";
-	
-	private static final String DEACTIVATE_STATUS = "DEACTIVATE";
-
 	private static final String REVOKED = "REVOKED";
 
 	/** The Constant VID. */
@@ -273,7 +269,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			vidObject.setUpdatedDTimes(DateUtils.getUTCCurrentDateTime());
 			vidObject.setUin(uinToEncrypt);
 			vidRepo.saveAndFlush(vidObject);
-			notify(uin, DEACTIVATE_STATUS, Collections.singletonList(vidObject), true);
+			notify(uin, env.getProperty(VID_DEACTIVATED), Collections.singletonList(vidObject), true);
 			return generateVid(uin, vidType);
 		} else {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID,
@@ -727,7 +723,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			Map<String, Object> responseWrapperMap = restHelper.requestSync(restBuilder.buildRequest(RestServicesConstants.PARTNER_SERVICE, null, Map.class));
 			Object response = responseWrapperMap.get("response");
 			if(response instanceof Map) {
-				Object partners = responseWrapperMap.get("partners");
+				Object partners = ((Map<String, ?>)response).get("partners");
 				if(partners instanceof List) {
 					List<Map<String, Object>> partnersList = (List<Map<String, Object>>) partners;
 					return partnersList.stream()
@@ -746,8 +742,8 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		String token = tokenIDGenerator.generateTokenID(uin, PARTNER);
 		List<CredentialIssueRequestDto> eventRequestsList = vids.stream()
 					.flatMap(vid -> {
-						LocalDateTime expiryTimestamp = status.equals(ACTIVATE_STATUS) ? vid.getExpiryDTimes() : vid.getUpdatedDTimes();
-						return partnerIds.stream().map(partnerId -> createCredReqDto(vid.getId(), partnerId,
+						LocalDateTime expiryTimestamp = status.equals(env.getProperty(VID_ACTIVE_STATUS)) ? vid.getExpiryDTimes() : vid.getUpdatedDTimes();
+						return partnerIds.stream().map(partnerId -> createCredReqDto(vid.getVid(), partnerId,
 								expiryTimestamp,policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(), token, IdType.VID.getIdType()));
 					})
 					.collect(Collectors.toList());
@@ -805,14 +801,11 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 
 	private void sendEventsToIDA(String status, List<Vid> vids, List<String> partnerIds) {
 		EventType eventType;
-		switch (status) {
-		case ACTIVATE_STATUS:
+		if (env.getProperty(VID_ACTIVE_STATUS).equals(status)) {
 			eventType = IDAEventType.ACTIVATE_ID;
-			break;
-		case REVOKED:
+		} else if (REVOKED.equals(status)) {
 			eventType = IDAEventType.REMOVE_ID;
-			break;
-		default:
+		} else {
 			eventType = IDAEventType.DEACTIVATE_ID;
 		}
 		String transactionId = "";//TODO
@@ -857,9 +850,13 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		event.setType(type);
 		Map<String, Object> data = new HashMap<>();
 		data.put(ID_HASH, retrieveIdHash(id));
-		if(expiryTimestamp != null) {
-			data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
-		}		
+		if(eventType.equals(IDAEventType.DEACTIVATE_ID)) {
+			data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+		} else {
+			if(expiryTimestamp != null) {
+				data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
+			}
+		}	
 		data.put(TRANSACTION_LIMIT, transactionLimit);
 		event.setData(data);
 		model.setEvent(event);

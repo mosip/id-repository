@@ -99,8 +99,11 @@ public enum IdRepoErrorConstants {
 	UIN_RETRIEVAL_FAILED("IDR-VID-005", "Failed to retrieve uin data using Identity Service"),
 	
 	/** The uin hash mismatch. */
-	UIN_HASH_MISMATCH("IDR-VID-006", "Uin hash does not match");
+	UIN_HASH_MISMATCH("IDR-VID-006", "Uin hash does not match"),
 	
+	/** The authorization failed. */
+	/** The document hash mismatch. */
+	AUTHENTICATION_FAILED("IDR-IDS-012", "Authentication Failed");	
 
 	/** The error code. */
 	private final String errorCode;

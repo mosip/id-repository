@@ -500,8 +500,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		uinObject.getDocuments().stream().forEach(demo -> {
 			try {
 				String fileName = DEMOGRAPHICS + SLASH + demo.getDocId();
-				if (!objectStore.exists(objectStoreAccountName, uinObject.getUinHash().substring(4, 67).toLowerCase(),
-						null, null, fileName)) {
+				if (!objectStore.exists(objectStoreAccountName, uinObject.getUinHash().substring(4, 67).toLowerCase(), null, null,
+						fileName)) {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getDemographicFiles",
 							"FILE NOT FOUND IN OBJECT STORE");
 					throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
@@ -541,7 +541,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				try {
 					String fileName = BIOMETRICS + SLASH + bio.getBioFileId();
 					String uinHash = uinObject.getUinHash().substring(4, 67).toLowerCase();
-					if (!objectStore.exists(objectStoreAccountName, uinHash, null, null, fileName)) {
+					if (!objectStore.exists(objectStoreAccountName,
+							uinHash, null, null, fileName)) {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricFiles",
 								"FILE NOT FOUND IN OBJECT STORE");
 						throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
@@ -554,7 +555,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 						}
 					} else {
 						data = securityManager.decrypt(IOUtils.toByteArray(
-								objectStore.getObject(objectStoreAccountName, uinHash, null, null, fileName)));
+								objectStore.getObject(objectStoreAccountName,
+										uinHash, null, null, fileName)));
 						if (Objects.nonNull(data)) {
 							if (StringUtils.equals(bio.getBiometricFileHash(), securityManager.hash(data))) {
 								documents.add(
@@ -635,8 +637,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			try {
 				if (objectStore.exists(objectStoreAccountName, uinHash, null, null, extractionFileName)) {
 					return CompletableFuture.completedFuture(new AbstractMap.SimpleImmutableEntry<>(extractionFormat,
-							securityManager.decrypt(IOUtils.toByteArray(objectStore.getObject(objectStoreAccountName,
-									uinHash, null, null, extractionFileName)))));
+							securityManager.decrypt(IOUtils.toByteArray(
+									objectStore.getObject(objectStoreAccountName, uinHash, null, null, extractionFileName)))));
 				}
 			} catch (AmazonS3Exception e) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
@@ -645,8 +647,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			if (objectStore.exists(objectStoreAccountName, uinHash, null, null, fileName)) {
 				RequestWrapper<BioExtractRequestDTO> request = new RequestWrapper<>();
 				BioExtractRequestDTO bioExtractReq = new BioExtractRequestDTO();
-				byte[] data = securityManager.decrypt(IOUtils
-						.toByteArray(objectStore.getObject(objectStoreAccountName, uinHash, null, null, fileName)));
+				byte[] data = securityManager
+						.decrypt(IOUtils.toByteArray(objectStore.getObject(objectStoreAccountName, uinHash, null, null, fileName)));
 				bioExtractReq.setBiometrics(CryptoUtil.encodeBase64(data));
 				request.setRequest(bioExtractReq);
 				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.BIO_EXTRACTOR_SERVICE,
@@ -851,8 +853,12 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		event.setType(type);
 		Map<String, Object> data = new HashMap<>();
 		data.put(ID_HASH, retrieveUinHash(id));
-		if(expiryTimestamp != null) {
-			data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
+		if(eventType.equals(IDAEventType.DEACTIVATE_ID)) {
+			data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+		} else {
+			if(expiryTimestamp != null) {
+				data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
+			}
 		}
 		data.put(TRANSACTION_LIMIT, transactionLimit);
 		event.setData(data);

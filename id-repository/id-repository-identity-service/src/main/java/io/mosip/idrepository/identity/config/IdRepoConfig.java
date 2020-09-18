@@ -38,6 +38,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.dto.IDAEventDTO;
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.exception.AuthenticationException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
@@ -117,8 +118,12 @@ public class IdRepoConfig implements WebMvcConfigurer {
 								.getServiceErrorList(new String(super.getResponseBody(response)));
 						mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError",
 								"Throwing AuthenticationException", errorList.toString());
-						throw new AuthenticationException(errorList.get(0).getErrorCode(),
-								errorList.get(0).getMessage(), response.getRawStatusCode());
+						if(errorList.isEmpty()) {
+							throw new AuthenticationException(IdRepoErrorConstants.AUTHENTICATION_FAILED, response.getRawStatusCode());
+						} else {
+							throw new AuthenticationException(errorList.get(0).getErrorCode(),
+									errorList.get(0).getMessage(), response.getRawStatusCode());
+						}
 					} else {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError", "Rest Template logs",
 								"Status error - returning RestServiceException - CLIENT_ERROR -- "
