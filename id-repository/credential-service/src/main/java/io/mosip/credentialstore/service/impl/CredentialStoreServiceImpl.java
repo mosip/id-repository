@@ -6,13 +6,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,7 +26,6 @@ import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.CredentialTypeResponse;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.DataShare;
-import io.mosip.credentialstore.dto.JsonValue;
 import io.mosip.credentialstore.dto.PolicyResponseDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
@@ -469,16 +466,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 		for (String key : sharableAttributeDemographicKeySet) {
 			Object object = identity.get(key);
-			if (object instanceof ArrayList) {
-				JSONArray node = JsonUtil.getJSONArray(identity, key);
-				JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
-				attributesMap.put(key, String.valueOf(jsonValues));
-			} else if (object instanceof LinkedHashMap) {
-				JSONObject json = JsonUtil.getJSONObject(identity, key);
-				attributesMap.put(key, (String) json.get(VALUE));
-			} else {
-				attributesMap.put(key, String.valueOf(object));
-			}
+			attributesMap.put(key, object);
 		}
 		String value = null;
 		List<DocumentsDTO> documents = idResponseDto.getResponse().getDocuments();
