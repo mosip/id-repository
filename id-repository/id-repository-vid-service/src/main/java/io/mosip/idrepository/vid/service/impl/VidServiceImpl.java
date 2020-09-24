@@ -739,12 +739,14 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	}
 
 	private void sendEventsToCredService(String uin, String status, List<Vid> vids, boolean isUpdated, List<String> partnerIds) {
-		String token = tokenIDGenerator.generateTokenID(uin, PARTNER);
 		List<CredentialIssueRequestDto> eventRequestsList = vids.stream()
 					.flatMap(vid -> {
 						LocalDateTime expiryTimestamp = status.equals(env.getProperty(VID_ACTIVE_STATUS)) ? vid.getExpiryDTimes() : vid.getUpdatedDTimes();
-						return partnerIds.stream().map(partnerId -> createCredReqDto(vid.getVid(), partnerId,
-								expiryTimestamp,policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(), token, IdType.VID.getIdType()));
+						return partnerIds.stream().map(partnerId -> {
+							String token = tokenIDGenerator.generateTokenID(uin, partnerId);
+							return createCredReqDto(vid.getVid(), partnerId,
+									expiryTimestamp,policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(), token, IdType.VID.getIdType());
+						});
 					})
 					.collect(Collectors.toList());
 		

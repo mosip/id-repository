@@ -882,17 +882,22 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	private void sendEventsToCredService(String uin, LocalDateTime expiryTimestamp, boolean isUpdate, List<VidInfoDTO> vidInfoDtos, List<String> partnerIds) {
 		List<CredentialIssueRequestDto> eventRequestsList = new ArrayList<>();
-		String token = tokenIDGenerator.generateTokenID(uin, PARTNER);
-		eventRequestsList.addAll(partnerIds.stream().map(partnerId -> createCredReqDto(uin, partnerId, expiryTimestamp, null, token, IdType.UIN.getIdType())).collect(Collectors.toList()));
+		eventRequestsList.addAll(partnerIds.stream().map(partnerId -> {
+			String token = tokenIDGenerator.generateTokenID(uin, partnerId);
+			return createCredReqDto(uin, partnerId, expiryTimestamp, null, token, IdType.UIN.getIdType());
+		}).collect(Collectors.toList()));
 		
 		if(vidInfoDtos != null) {
 			List<CredentialIssueRequestDto> vidRequests = vidInfoDtos.stream()
 					.flatMap(vidInfoDTO -> {
 						LocalDateTime vidExpiryTime = Objects.isNull(expiryTimestamp) ? vidInfoDTO.getExpiryTimestamp() : expiryTimestamp;
 						return partnerIds.stream()
-								.map(partnerId -> createCredReqDto(vidInfoDTO.getVid(), partnerId, 
-														vidExpiryTime,
-														vidInfoDTO.getTransactionLimit(), token, IdType.VID.getIdType()));
+								.map(partnerId -> {
+									String token = tokenIDGenerator.generateTokenID(uin, partnerId);
+									return createCredReqDto(vidInfoDTO.getVid(), partnerId, 
+															vidExpiryTime,
+															vidInfoDTO.getTransactionLimit(), token, IdType.VID.getIdType());
+								});
 					}).collect(Collectors.toList());
 			eventRequestsList.addAll(vidRequests);
 		}
