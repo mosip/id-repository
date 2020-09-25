@@ -101,8 +101,6 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 
 	private static final String TOKEN = "TOKEN";
 
-	private static final String PARTNER = "PARTNER";
-
 	private static final String SALT = "SALT";
 
 	private static final String MODULO = "MODULO";
@@ -773,7 +771,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	
 	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp, Integer transactionLimit, String token, String idType) {
 		Map<String, Object> data = new HashMap<>();
-		data.putAll(retrieveIdHashWithAttributes(id));
+		data.putAll(getIdHashAndAttributes(id));
 		data.put(EXPIRY_TIMESTAMP, Optional.ofNullable(expiryTimestamp).map(DateUtils::formatToISOString).orElse(null));
 		data.put(TRANSACTION_LIMIT, Optional.ofNullable(transactionLimit).map(String::valueOf).orElse(null));
 		data.put(TOKEN, token);
@@ -789,7 +787,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		return credentialIssueRequestDto;
 	}
 	
-	private Map<String, String> retrieveIdHashWithAttributes(String id) {
+	private Map<String, String> getIdHashAndAttributes(String id) {
 		Map<String, String> hashWithAttributes = new HashMap<>();
 		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
 		int modResult = (int) (Long.parseLong(id) % moduloValue);
@@ -851,7 +849,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		type.setName(idaEventTypeName);
 		event.setType(type);
 		Map<String, Object> data = new HashMap<>();
-		data.put(ID_HASH, retrieveIdHash(id));
+		data.put(ID_HASH, getIdHash(id));
 		if(eventType.equals(IDAEventType.DEACTIVATE_ID)) {
 			data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 		} else {
@@ -872,10 +870,10 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	 * @param id the uin
 	 * @return the string
 	 */
-	private String retrieveIdHash(String id) {
+	private String getIdHash(String id) {
 		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
 		int modResult = (int) (Long.parseLong(id) % moduloValue);
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
-		return modResult + SPLITTER + securityManager.hashwithSalt(id.getBytes(), hashSalt.getBytes());
+		return securityManager.hashwithSalt(id.getBytes(), hashSalt.getBytes());
 	}
 }

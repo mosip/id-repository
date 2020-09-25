@@ -109,8 +109,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	private static final String TOKEN = "TOKEN";
 
-	private static final String PARTNER = "PARTNER";
-
 	private static final String SALT = "SALT";
 
 	private static final String MODULO = "MODULO";
@@ -388,8 +386,15 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		String hashwithSalt = securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
 		return modResult + SPLITTER + hashwithSalt;
 	}
+	
+	private String getIdHash(String uin) {
+		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
+		int modResult = (int) (Long.parseLong(uin) % moduloValue);
+		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
+		return securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
+	}
 
-	private Map<String, String> retrieveIdHashWithAttributes(String id) {
+	private Map<String, String> getIdHashAndAttributes(String id) {
 		Map<String, String> hashWithAttributes = new HashMap<>();
 		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
 		int modResult = (int) (Long.parseLong(id) % moduloValue);
@@ -853,7 +858,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		type.setName(idaEventTypeName);
 		event.setType(type);
 		Map<String, Object> data = new HashMap<>();
-		data.put(ID_HASH, retrieveUinHash(id));
+		data.put(ID_HASH, getIdHash(id));
 		if(eventType.equals(IDAEventType.DEACTIVATE_ID)) {
 			data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 		} else {
@@ -924,7 +929,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp, Integer transactionLimit, String token, String idType) {
 		Map<String, Object> data = new HashMap<>();
-		data.putAll(retrieveIdHashWithAttributes(id));
+		data.putAll(getIdHashAndAttributes(id));
 		data.put(EXPIRY_TIMESTAMP, Optional.ofNullable(expiryTimestamp).map(DateUtils::formatToISOString).orElse(null));
 		data.put(TRANSACTION_LIMIT, Optional.ofNullable(transactionLimit).map(String::valueOf).orElse(null));
 		data.put(TOKEN, token);

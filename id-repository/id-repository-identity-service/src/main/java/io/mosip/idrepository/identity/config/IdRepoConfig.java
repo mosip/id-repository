@@ -21,7 +21,6 @@ import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -35,9 +34,7 @@ import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
-import io.mosip.idrepository.core.dto.IDAEventDTO;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.exception.AuthenticationException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
@@ -46,8 +43,6 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.websub.spi.PublisherClient;
-import io.mosip.kernel.websub.api.exception.WebSubClientException;
 
 /**
  * The Class IdRepoConfig.
@@ -91,17 +86,9 @@ public class IdRepoConfig implements WebMvcConfigurer {
 
 	/** The id. */
 	private Map<String, String> id;
-	
-	@Autowired
-	private PublisherClient<String, IDAEventDTO, HttpHeaders> publisher; 
 
 	@PostConstruct
 	public void init() {
-		try {
-			publisher.registerTopic(IDAEventType.AUTH_TYPE_STATUS_UPDATE.name(), publisherHubURL);
-		} catch (WebSubClientException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), "IdRepoConfig", "init", e.getMessage().toUpperCase());
-		}
 		restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
 
 			@Override
