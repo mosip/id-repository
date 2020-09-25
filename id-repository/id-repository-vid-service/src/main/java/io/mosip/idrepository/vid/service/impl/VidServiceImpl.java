@@ -394,8 +394,10 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			List<Vid> vidList = vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(uinHash,
 					env.getProperty(VID_ACTIVE_STATUS), DateUtils.getUTCCurrentDateTime());
 			List<VidInfoDTO> vidInfos = vidList.stream()
-					.map(vid -> new VidInfoDTO(vid.getVid(), vid.getExpiryDTimes(),
-							policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions()))
+					.map(vid -> new VidInfoDTO(vid.getVid(), 
+							vid.getExpiryDTimes(),
+							policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(),
+							getIdHashAndAttributes(vid.getVid())))
 					.collect(Collectors.toList());
 			VidsInfosDTO response = new VidsInfosDTO();
 			response.setResponse(vidInfos);
@@ -773,7 +775,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		Map<String, Object> data = new HashMap<>();
 		data.putAll(getIdHashAndAttributes(id));
 		data.put(EXPIRY_TIMESTAMP, Optional.ofNullable(expiryTimestamp).map(DateUtils::formatToISOString).orElse(null));
-		data.put(TRANSACTION_LIMIT, Optional.ofNullable(transactionLimit).map(String::valueOf).orElse(null));
+		data.put(TRANSACTION_LIMIT, transactionLimit);
 		data.put(TOKEN, token);
 		data.put(ID_TYPE, idType);
 

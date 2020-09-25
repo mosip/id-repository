@@ -819,7 +819,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	private void sendEventToIDA(String uin, LocalDateTime expiryTimestamp, String status, List<VidInfoDTO> vidInfoDtos, List<String> partnerIds, String txnId) {
 		List<EventModel> eventList = new ArrayList<>();
 		EventType eventType = BLOCKED.equals(status) ? IDAEventType.REMOVE_ID : IDAEventType.DEACTIVATE_ID;
-		eventList.addAll(createIdaEventModel(eventType, uin, expiryTimestamp, null, partnerIds, txnId).collect(Collectors.toList()));
+		eventList.addAll(createIdaEventModel(eventType, uin, expiryTimestamp, null, partnerIds, txnId, getIdHash(uin)).collect(Collectors.toList()));
 		
 		if(vidInfoDtos != null) {
 			List<EventModel> idaEvents = vidInfoDtos.stream()
@@ -827,7 +827,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 							vidInfoDTO.getVid(), 
 							expiryTimestamp,
 							vidInfoDTO.getTransactionLimit(),
-							partnerIds, txnId))
+							partnerIds, txnId, vidInfoDTO.getHashAttributes().get(ID_HASH)))
 					.collect(Collectors.toList());
 			eventList.addAll(idaEvents);
 		}
@@ -839,11 +839,11 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		});
 	}
 
-	private Stream<EventModel> createIdaEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp, Integer transactionLimit, List<String> partnerIds, String transactionId) {
-		return partnerIds.stream().map(partner -> createEventModel(eventType, id, expiryTimestamp, transactionLimit, transactionId, partner));
+	private Stream<EventModel> createIdaEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp, Integer transactionLimit, List<String> partnerIds, String transactionId, String idHash) {
+		return partnerIds.stream().map(partner -> createEventModel(eventType, id, expiryTimestamp, transactionLimit, transactionId, partner, idHash));
 	}
 
-	private EventModel createEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp, Integer transactionLimit, String transactionId, String partner) {
+	private EventModel createEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp, Integer transactionLimit, String transactionId, String partner, Object idHash) {
 		EventModel model = new EventModel();
 		model.setPublisher(ID_REPO);
 		String dateTime = DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime());
@@ -858,7 +858,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		type.setName(idaEventTypeName);
 		event.setType(type);
 		Map<String, Object> data = new HashMap<>();
-		data.put(ID_HASH, getIdHash(id));
+		data.put(ID_HASH, idHash);
 		if(eventType.equals(IDAEventType.DEACTIVATE_ID)) {
 			data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 		} else {
@@ -889,7 +889,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		List<CredentialIssueRequestDto> eventRequestsList = new ArrayList<>();
 		eventRequestsList.addAll(partnerIds.stream().map(partnerId -> {
 			String token = tokenIDGenerator.generateTokenID(uin, partnerId);
-			return createCredReqDto(uin, partnerId, expiryTimestamp, null, token, IdType.UIN.getIdType());
+			return createCredReqDto(uin, partnerId, expiryTimestamp, null, token, IdType.UIN.getIdType(), getIdHashAndAttributes(uin));
 		}).collect(Collectors.toList()));
 		
 		if(vidInfoDtos != null) {
@@ -901,7 +901,9 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 									String token = tokenIDGenerator.generateTokenID(uin, partnerId);
 									return createCredReqDto(vidInfoDTO.getVid(), partnerId, 
 															vidExpiryTime,
-															vidInfoDTO.getTransactionLimit(), token, IdType.VID.getIdType());
+															vidInfoDTO.getTransactionLimit(), token, 
+															IdType.VID.getIdType(),
+															vidInfoDTO.getHashAttributes());
 								});
 					}).collect(Collectors.toList());
 			eventRequestsList.addAll(vidRequests);
@@ -927,11 +929,11 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		}
 	}
 
-	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp, Integer transactionLimit, String token, String idType) {
+	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp, Integer transactionLimit, String token, String idType, Map<? extends String, ? extends Object> idHashAttributes) {
 		Map<String, Object> data = new HashMap<>();
-		data.putAll(getIdHashAndAttributes(id));
+		data.putAll(idHashAttributes);
 		data.put(EXPIRY_TIMESTAMP, Optional.ofNullable(expiryTimestamp).map(DateUtils::formatToISOString).orElse(null));
-		data.put(TRANSACTION_LIMIT, Optional.ofNullable(transactionLimit).map(String::valueOf).orElse(null));
+		data.put(TRANSACTION_LIMIT, transactionLimit);
 		data.put(TOKEN, token);
 		data.put(ID_TYPE, idType);
 
