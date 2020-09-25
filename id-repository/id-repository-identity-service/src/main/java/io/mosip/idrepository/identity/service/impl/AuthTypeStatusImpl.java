@@ -1,5 +1,6 @@
 package io.mosip.idrepository.identity.service.impl;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ import io.mosip.idrepository.core.dto.IDAEventDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
+import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
@@ -36,6 +38,7 @@ import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.spi.PublisherClient;
+import io.mosip.kernel.websub.api.exception.WebSubClientException;
 
 /**
  * The Class AuthtypeStatusImpl - implementation of
@@ -46,6 +49,8 @@ import io.mosip.kernel.core.websub.spi.PublisherClient;
 
 @Component
 public class AuthTypeStatusImpl implements AuthtypeStatusService {
+	
+	private static final String PARTNER_ACTIVE_STATUS = "Active";
 
 	private static final String AUTH_TYPE_STATUS_IMPL = "AuthTypeStatusImpl";
 
@@ -113,21 +118,55 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	@Override
 	public IdResponseDTO updateAuthTypeStatus(String individualId, IdType idType,
 			List<AuthtypeStatus> authTypeStatusList) throws IdRepoAppException {
-		if (idType == IdType.VID) {
-			individualId = getUin(individualId);
-		}
+		String idvid = idType == IdType.VID ? getUin(individualId) : individualId;
 		IdResponseDTO updateAuthTypeStatus = doUpdateAuthTypeStatus(individualId, authTypeStatusList);
-		publishEvent(individualId, authTypeStatusList);
+		
+		List<String> partnerIds = getPartnerIds();
+		partnerIds.forEach(partnerId -> {
+			String topic =  partnerId + "/" + IDAEventType.AUTH_TYPE_STATUS_UPDATE.name();
+			tryRegisteringTopic(topic);
+			publishEvent(idvid, authTypeStatusList, topic, partnerId);
+		});
+		
 		return updateAuthTypeStatus;
 	}
+	
+	@SuppressWarnings("unchecked")
+	private List<String> getPartnerIds() {
+		try {
+			Map<String, Object> responseWrapperMap = restHelper.requestSync(restBuilder.buildRequest(RestServicesConstants.PARTNER_SERVICE, null, Map.class));
+			Object response = responseWrapperMap.get("response");
+			if(response instanceof Map) {
+				Object partners = ((Map<String,?>)response).get("partners");
+				if(partners instanceof List) {
+					List<Map<String, Object>> partnersList = (List<Map<String, Object>>) partners;
+					return partnersList.stream()
+								.filter(partner -> PARTNER_ACTIVE_STATUS.equalsIgnoreCase((String)partner.get("status")))
+								.map(partner -> (String)partner.get("partnerID"))
+								.collect(Collectors.toList());
+				}
+			}
+		} catch (RestServiceException | IdRepoDataValidationException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSuperclass().getSimpleName(), "getPartnerIds", e.getMessage());
+		}
+		return Collections.emptyList();
+	}
 
-	private void publishEvent(String individualId, List<AuthtypeStatus> authTypeStatusList) {
+	private void tryRegisteringTopic(String topic) {
+		try {
+			publisher.registerTopic(topic, publisherHubURL);
+		} catch (WebSubClientException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), "IdRepoConfig", "init", e.getMessage().toUpperCase());
+		}		
+	}
+
+	private void publishEvent(String individualId, List<AuthtypeStatus> authTypeStatusList, String topic, String partnerId) {
 		IDAEventDTO event = new IDAEventDTO();
-		event.setTokenId(tokenIdGenerator.generateTokenID(individualId, IdRepoConstants.PARTNER_ID));
+		event.setTokenId(tokenIdGenerator.generateTokenID(individualId, partnerId));
 		event.setAuthTypeStatusList(authTypeStatusList);
 		HttpHeaders headers = new HttpHeaders();
 		IdRepoSecurityManager.getAuthToken().ifPresent(token -> headers.set(HttpHeaders.COOKIE, token));
-		publisher.publishUpdate(IDAEventType.AUTH_TYPE_STATUS_UPDATE.name(), event,
+		publisher.publishUpdate(topic, event,
 				MediaType.APPLICATION_JSON_UTF8_VALUE, headers, publisherHubURL);
 	}
 
