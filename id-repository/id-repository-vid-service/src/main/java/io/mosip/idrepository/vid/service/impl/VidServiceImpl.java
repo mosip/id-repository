@@ -23,6 +23,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.VID_POLIC
 
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,6 +46,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
@@ -258,16 +260,17 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 							: LocalDateTime.MAX.withYear(9999),
 					env.getProperty(VID_ACTIVE_STATUS), IdRepoSecurityManager.getUser(), currentTime, null, null, false,
 					null);
-			notify(uin, env.getProperty(VID_ACTIVE_STATUS), Collections.singletonList(vidEntity), false);
+			notify(uin, env.getProperty(VID_ACTIVE_STATUS), Collections.singletonList(createVidInfo(vidEntity, getIdHashAndAttributes(vidEntity.getVid()))), false);
 			return vidRepo.save(vidEntity);
 		} else if (vidDetails.size() == policy.getAllowedInstances() && policy.getAutoRestoreAllowed()) {
 			Vid vidObject = vidDetails.get(0);
+			Map<String, String> idHashAndAttributes = getIdHashAndAttributes(vidObject.getVid());
 			vidObject.setStatusCode(policy.getRestoreOnAction());
 			vidObject.setUpdatedBy(IdRepoSecurityManager.getUser());
 			vidObject.setUpdatedDTimes(DateUtils.getUTCCurrentDateTime());
 			vidObject.setUin(uinToEncrypt);
 			vidRepo.saveAndFlush(vidObject);
-			notify(uin, env.getProperty(VID_DEACTIVATED), Collections.singletonList(vidObject), true);
+			notify(uin, env.getProperty(VID_DEACTIVATED), Collections.singletonList(createVidInfo(vidObject, idHashAndAttributes)), true);
 			return generateVid(uin, vidType);
 		} else {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CREATE_VID,
@@ -394,10 +397,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			List<Vid> vidList = vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(uinHash,
 					env.getProperty(VID_ACTIVE_STATUS), DateUtils.getUTCCurrentDateTime());
 			List<VidInfoDTO> vidInfos = vidList.stream()
-					.map(vid -> new VidInfoDTO(vid.getVid(), 
-							vid.getExpiryDTimes(),
-							policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(),
-							getIdHashAndAttributes(vid.getVid())))
+					.map(vid -> createVidInfo(vid, getIdHashAndAttributes(vid.getVid())))
 					.collect(Collectors.toList());
 			VidsInfosDTO response = new VidsInfosDTO();
 			response.setResponse(vidInfos);
@@ -463,6 +463,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	private VidResponseDTO updateVidStatus(String vidStatus, Vid vidObject, String decryptedUin, VidPolicy policy)
 			throws IdRepoAppException {
 		String uin = Arrays.asList(decryptedUin.split(SPLITTER)).get(1);
+		Map<String, String> idHashAndAttributes = getIdHashAndAttributes(vidObject.getVid());
 		if (!(vidStatus.equals(env.getProperty(VID_UNLIMITED_TRANSACTION_STATUS))
 				&& Objects.isNull(policy.getAllowedTransactions()))) {
 			vidObject.setStatusCode(vidStatus);
@@ -470,7 +471,8 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			vidObject.setUpdatedDTimes(DateUtils.getUTCCurrentDateTime());
 			vidObject.setUin(decryptedUin);
 			vidRepo.saveAndFlush(vidObject);
-			notify(decryptedUin, vidStatus, Collections.singletonList(vidObject), true);
+			VidInfoDTO vidInfo = createVidInfo(vidObject, idHashAndAttributes);
+			notify(decryptedUin, vidStatus, Collections.singletonList(vidInfo), true);
 		}
 		VidResponseDTO response = new VidResponseDTO();
 		response.setVidStatus(vidObject.getStatusCode());
@@ -573,17 +575,22 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 				DateUtils.getUTCCurrentDateTime());
 		if (!vidList.isEmpty()) {
 			String decryptedUin = decryptUin(vidList.get(0).getUin(), uinHash);
+			List<VidInfoDTO> vidInfos = new ArrayList<>();
+			Map<String, Map<String, String>> vidHashAttributesMap = vidList.stream().collect(Collectors.toMap(Vid::getVid, vid -> getIdHashAndAttributes(vid.getVid())));
 			vidList.forEach(vid -> {
+				Map<String, String> idHashAndAttributes = vidHashAttributesMap.get(vid.getVid());
 				vid.setStatusCode(status);
 				vid.setUpdatedBy(IdRepoSecurityManager.getUser());
 				vid.setUpdatedDTimes(DateUtils.getUTCCurrentDateTime());
 				vid.setUin(decryptedUin);
+				vidInfos.add(createVidInfo(vid, idHashAndAttributes));
 			});
+			
 			vidRepo.saveAll(vidList);
 			if (idType.contentEquals(DEACTIVATE)) {
-				notify(uin, status, vidList, true);
+				notify(uin, status, vidInfos, true);
 			} else {
-				notify(uin, status, vidList, true);
+				notify(uin, status, vidInfos, true);
 			}
 			VidResponseDTO response = new VidResponseDTO();
 			response.setVidStatus(status);
@@ -593,6 +600,13 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 					"throwing NO_RECORD_FOUND_VID");
 			throw new IdRepoAppException(NO_RECORD_FOUND);
 		}
+	}
+
+	private VidInfoDTO createVidInfo(Vid vid, Map<String, String> idHashAttributes) {
+		return new VidInfoDTO(vid.getVid(), 
+				vid.getExpiryDTimes(), 
+				policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(), 
+				idHashAttributes);
 	}
 
 	/**
@@ -702,8 +716,9 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		responseDto.setResponse(response);
 		return responseDto;
 	}
-
-	private void notify(String uin, String status, List<Vid> vids, boolean isUpdated) {
+	
+	@Transactional(propagation = Propagation.NEVER)
+	private void notify(String uin, String status, List<VidInfoDTO> vids, boolean isUpdated) {
 		try {
 			List<String> partnerIds = getPartnerIds();
 			if (isUpdated) {
@@ -738,14 +753,14 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		return Collections.emptyList();
 	}
 
-	private void sendEventsToCredService(String uin, String status, List<Vid> vids, boolean isUpdated, List<String> partnerIds) {
+	private void sendEventsToCredService(String uin, String status, List<VidInfoDTO> vids, boolean isUpdated, List<String> partnerIds) {
 		List<CredentialIssueRequestDto> eventRequestsList = vids.stream()
 					.flatMap(vid -> {
-						LocalDateTime expiryTimestamp = status.equals(env.getProperty(VID_ACTIVE_STATUS)) ? vid.getExpiryDTimes() : vid.getUpdatedDTimes();
+						LocalDateTime expiryTimestamp = status.equals(env.getProperty(VID_ACTIVE_STATUS)) ? vid.getExpiryTimestamp() : DateUtils.getUTCCurrentDateTime();
 						return partnerIds.stream().map(partnerId -> {
 							String token = tokenIDGenerator.generateTokenID(uin, partnerId);
 							return createCredReqDto(vid.getVid(), partnerId,
-									expiryTimestamp,policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(), token, IdType.VID.getIdType());
+									expiryTimestamp, vid.getTransactionLimit(), token, IdType.VID.getIdType());
 						});
 					})
 					.collect(Collectors.toList());
@@ -801,7 +816,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		return hashWithAttributes;
 	}
 
-	private void sendEventsToIDA(String status, List<Vid> vids, List<String> partnerIds) {
+	private void sendEventsToIDA(String status,  List<VidInfoDTO> vids, List<String> partnerIds) {
 		EventType eventType;
 		if (env.getProperty(VID_ACTIVE_STATUS).equals(status)) {
 			eventType = IDAEventType.ACTIVATE_ID;
@@ -814,8 +829,9 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		List<EventModel> eventDtos = vids.stream()
 				.flatMap(vid -> createIdaEventModel(eventType, 
 						vid.getVid(),
-						eventType.equals(IDAEventType.ACTIVATE_ID) ? vid.getExpiryDTimes() : vid.getUpdatedDTimes(),
-						policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(), partnerIds, transactionId))
+						eventType.equals(IDAEventType.ACTIVATE_ID) ? vid.getExpiryTimestamp() : DateUtils.getUTCCurrentDateTime(),
+								vid.getTransactionLimit(), partnerIds, transactionId,
+								vid.getHashAttributes().get(ID_HASH)))
 				.collect(Collectors.toList());
 		eventDtos.forEach(eventDto -> sendEventToIDA(eventDto));
 	}
@@ -832,11 +848,11 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null, webSubHubUrl);
 	}
 
-	private Stream<EventModel> createIdaEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp, Integer transactionLimit, List<String> partnerIds, String transactionId) {
-		return partnerIds.stream().map(partner -> createEventModel(eventType, id, expiryTimestamp, transactionLimit, transactionId, partner));
+	private Stream<EventModel> createIdaEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp, Integer transactionLimit, List<String> partnerIds, String transactionId, String idHash) {
+		return partnerIds.stream().map(partner -> createEventModel(eventType, id, expiryTimestamp, transactionLimit, transactionId, partner, idHash));
 	}
 
-	private EventModel createEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp, Integer transactionLimit, String transactionId, String partner) {
+	private EventModel createEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp, Integer transactionLimit, String transactionId, String partner, Object idHash) {
 		EventModel model = new EventModel();
 		model.setPublisher(ID_REPO_VID_SERVICE);
 		String dateTime = DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime());
@@ -851,7 +867,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		type.setName(idaEventTypeName);
 		event.setType(type);
 		Map<String, Object> data = new HashMap<>();
-		data.put(ID_HASH, getIdHash(id));
+		data.put(ID_HASH, idHash);
 		if(eventType.equals(IDAEventType.DEACTIVATE_ID)) {
 			data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 		} else {
