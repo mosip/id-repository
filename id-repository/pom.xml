@@ -63,6 +63,7 @@
 		<module>bioextractor-service</module>
         <module>credential-request-generator</module>
         <module>credential-service</module>
+        <module>id-repository-salt-generator</module>
 	</modules>
 
 	<properties>	
