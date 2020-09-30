@@ -1,6 +1,6 @@
-package io.mosip.kernel.saltgenerator.config;
+package io.mosip.idrepository.saltgenerator.config;
 
-import static io.mosip.kernel.saltgenerator.constant.SaltGeneratorConstant.CHUNK_SIZE;
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.CHUNK_SIZE;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.env.Environment;
 
-import io.mosip.kernel.saltgenerator.entity.SaltEntity;
+import io.mosip.idrepository.saltgenerator.entity.SaltEntity;
 
 /**
  * The Class SaltGeneratorJobConfig - provides configuration for Salt generator Job.

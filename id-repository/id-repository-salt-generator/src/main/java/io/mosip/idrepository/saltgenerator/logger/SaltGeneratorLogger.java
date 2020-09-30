@@ -1,4 +1,4 @@
-package io.mosip.kernel.saltgenerator.logger;
+package io.mosip.idrepository.saltgenerator.logger;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.logger.logback.appender.RollingFileAppender;

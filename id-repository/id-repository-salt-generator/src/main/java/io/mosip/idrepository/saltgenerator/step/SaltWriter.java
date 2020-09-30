@@ -1,4 +1,4 @@
-package io.mosip.kernel.saltgenerator.step;
+package io.mosip.idrepository.saltgenerator.step;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,12 +9,12 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import io.mosip.idrepository.saltgenerator.entity.SaltEntity;
+import io.mosip.idrepository.saltgenerator.logger.SaltGeneratorLogger;
+import io.mosip.idrepository.saltgenerator.repository.SaltRepository;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.saltgenerator.constant.SaltGeneratorErrorConstants;
 import io.mosip.kernel.core.saltgenerator.exception.SaltGeneratorException;
-import io.mosip.kernel.saltgenerator.entity.SaltEntity;
-import io.mosip.kernel.saltgenerator.logger.SaltGeneratorLogger;
-import io.mosip.kernel.saltgenerator.repository.SaltRepository;
 
 /**
  * The Class SaltWriter - Class to write salt entities to DB in batch.

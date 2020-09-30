@@ -1,4 +1,4 @@
-package io.mosip.kernel.saltgenerator.entity;
+package io.mosip.idrepository.saltgenerator.entity;
 
 import java.time.LocalDateTime;
 

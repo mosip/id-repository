@@ -12,11 +12,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import io.mosip.idrepository.saltgenerator.entity.SaltEntity;
+import io.mosip.idrepository.saltgenerator.repository.SaltRepository;
+import io.mosip.idrepository.saltgenerator.step.SaltWriter;
 import io.mosip.kernel.core.saltgenerator.constant.SaltGeneratorErrorConstants;
 import io.mosip.kernel.core.saltgenerator.exception.SaltGeneratorException;
-import io.mosip.kernel.saltgenerator.entity.SaltEntity;
-import io.mosip.kernel.saltgenerator.repository.SaltRepository;
-import io.mosip.kernel.saltgenerator.step.SaltWriter;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SaltWriterTest {

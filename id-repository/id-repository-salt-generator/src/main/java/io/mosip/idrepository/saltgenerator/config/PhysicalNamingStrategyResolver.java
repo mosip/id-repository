@@ -1,7 +1,7 @@
-package io.mosip.kernel.saltgenerator.config;
+package io.mosip.idrepository.saltgenerator.config;
 
-import static io.mosip.kernel.saltgenerator.constant.SaltGeneratorConstant.DB_SCHEMA_NAME;
-import static io.mosip.kernel.saltgenerator.constant.SaltGeneratorConstant.DB_TABLE_NAME;
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DB_SCHEMA_NAME;
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DB_TABLE_NAME;
 
 import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;

@@ -1,7 +1,7 @@
-package io.mosip.kernel.saltgenerator.step;
+package io.mosip.idrepository.saltgenerator.step;
 
-import static io.mosip.kernel.saltgenerator.constant.SaltGeneratorConstant.END_SEQ;
-import static io.mosip.kernel.saltgenerator.constant.SaltGeneratorConstant.START_SEQ;
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.END_SEQ;
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.START_SEQ;
 
 import javax.annotation.PostConstruct;
 
@@ -10,12 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import io.mosip.idrepository.saltgenerator.entity.SaltEntity;
+import io.mosip.idrepository.saltgenerator.logger.SaltGeneratorLogger;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.HMACUtils;
-import io.mosip.kernel.saltgenerator.entity.SaltEntity;
-import io.mosip.kernel.saltgenerator.logger.SaltGeneratorLogger;
 
 /**
  * The Class SaltReader - Creates entities based on chunk size.

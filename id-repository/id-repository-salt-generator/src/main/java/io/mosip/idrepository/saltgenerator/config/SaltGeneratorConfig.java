@@ -1,11 +1,11 @@
-package io.mosip.kernel.saltgenerator.config;
+package io.mosip.idrepository.saltgenerator.config;
 
-import static io.mosip.kernel.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_ALIAS;
-import static io.mosip.kernel.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_DRIVERCLASSNAME;
-import static io.mosip.kernel.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_PASSWORD;
-import static io.mosip.kernel.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_URL;
-import static io.mosip.kernel.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_USERNAME;
-import static io.mosip.kernel.saltgenerator.constant.SaltGeneratorConstant.PACKAGE_TO_SCAN;
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_ALIAS;
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_DRIVERCLASSNAME;
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_PASSWORD;
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_URL;
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_USERNAME;
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.PACKAGE_TO_SCAN;
 
 import java.util.HashMap;
 import java.util.Map;

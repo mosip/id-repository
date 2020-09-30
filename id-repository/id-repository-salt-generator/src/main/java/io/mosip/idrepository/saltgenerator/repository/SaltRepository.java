@@ -1,10 +1,10 @@
-package io.mosip.kernel.saltgenerator.repository;
+package io.mosip.idrepository.saltgenerator.repository;
 
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import io.mosip.kernel.saltgenerator.entity.SaltEntity;
+import io.mosip.idrepository.saltgenerator.entity.SaltEntity;
 
 /**
  * The Interface SaltRepository.

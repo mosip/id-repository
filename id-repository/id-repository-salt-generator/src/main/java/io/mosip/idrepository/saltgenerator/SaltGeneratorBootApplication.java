@@ -1,4 +1,4 @@
-package io.mosip.kernel.saltgenerator;
+package io.mosip.idrepository.saltgenerator;
 
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.SpringApplication;

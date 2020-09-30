@@ -7,9 +7,9 @@ import org.junit.Test;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import io.mosip.kernel.saltgenerator.constant.SaltGeneratorConstant;
-import io.mosip.kernel.saltgenerator.entity.SaltEntity;
-import io.mosip.kernel.saltgenerator.step.SaltReader;
+import io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant;
+import io.mosip.idrepository.saltgenerator.entity.SaltEntity;
+import io.mosip.idrepository.saltgenerator.step.SaltReader;
 
 public class SaltReaderTest {
 

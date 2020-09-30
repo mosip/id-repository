@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 
-import io.mosip.kernel.saltgenerator.listener.BatchJobListener;
+import io.mosip.idrepository.saltgenerator.listener.BatchJobListener;
 
 public class BatchJobListenerTest {
 

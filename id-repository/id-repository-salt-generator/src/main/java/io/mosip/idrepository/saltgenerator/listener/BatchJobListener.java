@@ -1,4 +1,4 @@
-package io.mosip.kernel.saltgenerator.listener;
+package io.mosip.idrepository.saltgenerator.listener;
 
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
@@ -6,10 +6,10 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 import org.springframework.stereotype.Component;
 
+import io.mosip.idrepository.saltgenerator.logger.SaltGeneratorLogger;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.saltgenerator.constant.SaltGeneratorErrorConstants;
 import io.mosip.kernel.core.saltgenerator.exception.SaltGeneratorException;
-import io.mosip.kernel.saltgenerator.logger.SaltGeneratorLogger;
 
 /**
  * The listener interface for receiving batchJob events.

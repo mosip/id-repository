@@ -1,4 +1,4 @@
-package io.mosip.kernel.saltgenerator.constant;
+package io.mosip.idrepository.saltgenerator.constant;
 
 /**
  * The Enum SaltGeneratorConstant - contains constants for SaltGenerator.
@@ -8,7 +8,7 @@ package io.mosip.kernel.saltgenerator.constant;
 public enum SaltGeneratorConstant {
 	
 	/** The package to scan. */
-	PACKAGE_TO_SCAN("io.mosip.kernel.saltgenerator.*"),
+	PACKAGE_TO_SCAN("io.mosip.idrepository.saltgenerator.*"),
 	
 	/** The db schema name. */
 	DB_SCHEMA_NAME("mosip.kernel.salt-generator.schemaName"),
