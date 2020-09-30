@@ -123,6 +123,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		credentialRepositary.save(credential);
 		credentialIssueResponse = new CredentialIssueResponse();
 		credentialIssueResponse.setRequestId(requestId);
+	        credentialIssueResponse.setId(credentialIssueRequestDto.getId());
 		LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL,
 				"ended creating credential");
 	    }catch(DataAccessLayerException e) {
