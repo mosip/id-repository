@@ -26,7 +26,7 @@
         <swagger.version>2.9.2</swagger.version>
         <kernel.core.version>1.1.2-SNAPSHOT</kernel.core.version>
         <kernel.auth.adaptor.version>1.1.2-SNAPSHOT</kernel.auth.adaptor.version>
-        <kernel.logger.logback.version>1.0.6</kernel.logger.logback.version>
+        <kernel.logger.logback.version>1.1.2-SNAPSHOT</kernel.logger.logback.version>
         <powermock.module.junit4.version>1.7.4</powermock.module.junit4.version>
 		<powermock.api.mockito.version>1.7.4</powermock.api.mockito.version>
 		<mockito.version>1.10.19</mockito.version>
