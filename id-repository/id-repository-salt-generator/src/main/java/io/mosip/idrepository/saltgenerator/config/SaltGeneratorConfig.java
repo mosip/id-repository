@@ -6,7 +6,6 @@ import org.springframework.batch.core.configuration.annotation.BatchConfigurer;
 import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * The Class SaltGeneratorIdMapDataSourceConfig - Provides configuration for Salt
@@ -15,7 +14,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Manoj SP
  */
 @Configuration
-@EnableTransactionManagement
 public class SaltGeneratorConfig {
 	
 	/**
