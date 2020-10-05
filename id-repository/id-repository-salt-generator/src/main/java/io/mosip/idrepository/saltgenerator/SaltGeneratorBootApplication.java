@@ -2,6 +2,8 @@ package io.mosip.idrepository.saltgenerator;
 
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.actuate.autoconfigure.scheduling.ScheduledTasksEndpointAutoConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 
@@ -13,6 +15,7 @@ import org.springframework.context.ApplicationContext;
  */
 @SpringBootApplication
 @EnableBatchProcessing
+@EnableAutoConfiguration(exclude={ScheduledTasksEndpointAutoConfiguration.class})  
 public class SaltGeneratorBootApplication {
 
 	/**

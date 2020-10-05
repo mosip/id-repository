@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.env.Environment;
 
-import io.mosip.idrepository.saltgenerator.entity.SaltEntity;
+import io.mosip.idrepository.saltgenerator.entity.IdRepoSaltEntitiesComposite;
 
 /**
  * The Class SaltGeneratorJobConfig - provides configuration for Salt generator Job.
@@ -44,11 +44,11 @@ public class SaltGeneratorJobConfig {
 	
 	/** The reader. */
 	@Autowired
-	private ItemReader<SaltEntity> reader;
+	private ItemReader<IdRepoSaltEntitiesComposite> reader;
 	
 	/** The writer. */
 	@Autowired
-	private ItemWriter<SaltEntity> writer;
+	private ItemWriter<IdRepoSaltEntitiesComposite> writer;
 	
 	/**
 	 * Job.
@@ -77,7 +77,7 @@ public class SaltGeneratorJobConfig {
 	public Step step() {
 		return stepBuilderFactory
 				.get("step")
-				.<SaltEntity, SaltEntity> chunk(env.getProperty(CHUNK_SIZE.getValue(), Integer.class))
+				.<IdRepoSaltEntitiesComposite, IdRepoSaltEntitiesComposite> chunk(env.getProperty(CHUNK_SIZE.getValue(), Integer.class))
 				.reader(reader)
 				.writer(writer)
 				.build();

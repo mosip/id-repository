@@ -1,4 +1,4 @@
-package io.mosip.idrepository.saltgenerator.entity;
+package io.mosip.idrepository.saltgenerator.entity.idmap;
 
 import java.time.LocalDateTime;
 
@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import io.mosip.idrepository.saltgenerator.entity.ISaltEntity;
 import lombok.Data;
 
 /**
@@ -20,8 +21,8 @@ import lombok.Data;
  * Instantiates a new salt entity.
  */
 @Data
-@Table
-public class SaltEntity {
+@Table(name = "uin_hash_salt")
+public class VidHashSaltEntity implements ISaltEntity{
 
 	/** The id. */
 	@Id

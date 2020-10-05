@@ -52,5 +52,5 @@ COPY ./target/id-repository-salt-generator-*.jar id-repository-salt-generator.ja
 
 #EXPOSE 8092
 
-CMD ["java","-jar","-Dspring.cloud.config.label=${spring_config_label_env}","-Dspring.cloud.config.name=${spring_config_name_env}","-Dspring.profiles.active=${active_profile_env}","-Dspring.cloud.config.uri=${spring_config_url_env}","-Dserver.port=${spring_server_port}","-Dmosip.kernel.salt-generator.db.key-alias=${db_alias}","-Dmosip.kernel.salt-generator.schemaName=${schema_name}","-Dmosip.kernel.salt-generator.tableName=${table_name}", "id-repository-salt-generator.jar"]
+CMD ["java","-jar","-Dspring.cloud.config.label=${spring_config_label_env}","-Dspring.profiles.active=${active_profile_env}","-Dspring.cloud.config.uri=${spring_config_url_env}","-Dserver.port=${spring_server_port}", "id-repository-salt-generator.jar"]
 

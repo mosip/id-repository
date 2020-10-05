@@ -37,7 +37,9 @@ public enum SaltGeneratorConstant {
 	DATASOURCE_PASSWORD("%s.password"),
 	
 	/** The datasource driverclassname. */
-	DATASOURCE_DRIVERCLASSNAME("%s.driverClassName");
+	DATASOURCE_DRIVERCLASSNAME("%s.driverClassName"),
+	
+	DATASOURCE_SCHEMA("%s.schema");
 
 	/** The value. */
 	private String value;
