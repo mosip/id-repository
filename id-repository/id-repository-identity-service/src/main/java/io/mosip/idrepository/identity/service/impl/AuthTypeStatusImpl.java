@@ -23,6 +23,7 @@ import io.mosip.idrepository.core.dto.IDAEventDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
+import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
@@ -156,18 +157,18 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 		try {
 			publisher.registerTopic(topic, publisherHubURL);
 		} catch (WebSubClientException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), "IdRepoConfig", "init", e.getMessage().toUpperCase());
-		}		
+			mosipLogger.warn(IdRepoSecurityManager.getUser(), "IdRepoConfig", "init", e.getMessage().toUpperCase());
+		} catch (IdRepoAppUncheckedException e) {
+			mosipLogger.warn(IdRepoSecurityManager.getUser(), "IdRepoConfig", "init", e.getMessage().toUpperCase());
+		}	
 	}
 
 	private void publishEvent(String individualId, List<AuthtypeStatus> authTypeStatusList, String topic, String partnerId) {
 		IDAEventDTO event = new IDAEventDTO();
 		event.setTokenId(tokenIdGenerator.generateTokenID(individualId, partnerId));
 		event.setAuthTypeStatusList(authTypeStatusList);
-		HttpHeaders headers = new HttpHeaders();
-		IdRepoSecurityManager.getAuthToken().ifPresent(token -> headers.set(HttpHeaders.COOKIE, token));
 		publisher.publishUpdate(topic, event,
-				MediaType.APPLICATION_JSON_UTF8_VALUE, headers, publisherHubURL);
+				MediaType.APPLICATION_JSON_UTF8_VALUE, null, publisherHubURL);
 	}
 
 	private String getUin(String vid) throws IdRepoAppException {
