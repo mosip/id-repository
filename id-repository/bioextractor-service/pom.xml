@@ -18,7 +18,6 @@
 		<io.micrometer.prometheus.version>1.4.2</io.micrometer.prometheus.version>
 		<kernel-dataaccess-hibernate.version>1.0.7</kernel-dataaccess-hibernate.version>
 		<postgresql.version>42.2.2</postgresql.version>
-		<kernel.logger.logback.version>1.1.2-SNAPSHOT</kernel.logger.logback.version>
 	</properties>
 
 	<dependencies>
@@ -160,11 +159,6 @@
 			<groupId>io.mosip.idrepository</groupId>
 			<artifactId>id-repository-core</artifactId>
 			<version>1.1.2-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-logger-logback</artifactId>
-			<version>${kernel.logger.logback.version}</version>
 		</dependency>
 	</dependencies>
 
