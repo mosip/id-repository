@@ -1,6 +1,6 @@
 package io.mosip.idrepository.core.spi;
 
-import java.util.Set;
+import java.util.Map;
 
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
@@ -48,7 +48,7 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 * @return the response
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	RESPONSE retrieveIdentity(String id, IdType idType, String type, Set<String> extractionFormats) throws IdRepoAppException;
+	RESPONSE retrieveIdentity(String id, IdType idType, String type, Map<String, String> extractionFormats) throws IdRepoAppException;
 
 	/**
 	 * This operation will update an existing ID record in the ID repository for a 

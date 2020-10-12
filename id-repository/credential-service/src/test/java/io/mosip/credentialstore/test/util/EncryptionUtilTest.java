@@ -68,7 +68,7 @@ public class EncryptionUtilTest {
 	
 	@SuppressWarnings("unchecked")
 	@Before
-	public void setUp() throws ApiNotAccessibleException {
+	public void setUp() throws Exception {
 		 test = "testdata";
 		cryptoResponse = "response";
 		cryptoWithPinResponseDto=new CryptoWithPinResponseDto();
@@ -115,7 +115,7 @@ public class EncryptionUtilTest {
 	}
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
-	public void testHttpClientException() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException, SignatureException, DataEncryptionFailureException {
+	public void testHttpClientException() throws Exception {
 		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(HttpStatus.BAD_REQUEST,
 				"error");
 	
@@ -124,7 +124,7 @@ public class EncryptionUtilTest {
 	}
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
-	public void testHttpServerException() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException, SignatureException, DataEncryptionFailureException {
+	public void testHttpServerException() throws Exception {
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(HttpStatus.BAD_REQUEST,
 				"error");
 	
@@ -158,20 +158,21 @@ public class EncryptionUtilTest {
 	}
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
-	public void encryptionWithZktestHttpClientException() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException, SignatureException, DataEncryptionFailureException {
+	public void encryptionWithZktestHttpClientException() throws Exception {
+	
 		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(HttpStatus.BAD_REQUEST,
 				"error");
-	
-		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpClientErrorException);
+		Exception e=new Exception(httpClientErrorException);
+		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList);
 	}
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
-	public void encryptionWithZktestHttpServerException() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException, SignatureException, DataEncryptionFailureException {
+	public void encryptionWithZktestHttpServerException() throws Exception {
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(HttpStatus.BAD_REQUEST,
 				"error");
-	
-		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpServerErrorException);
+		Exception e=new Exception(httpServerErrorException);
+		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList);
 	}
 	

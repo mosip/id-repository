@@ -17,7 +17,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.core.env.Environment;
@@ -27,22 +26,24 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.context.WebApplicationContext;
 
 import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
+import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.CredentialTypeResponse;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.DataShare;
-import io.mosip.credentialstore.dto.DataSharePolicies;
-import io.mosip.credentialstore.dto.Policies;
-import io.mosip.credentialstore.dto.PolicyDetailResponseDto;
-import io.mosip.credentialstore.dto.ShareableAttribute;
+import io.mosip.credentialstore.dto.DataShareDto;
+import io.mosip.credentialstore.dto.PolicyAttributesDto;
+import io.mosip.credentialstore.dto.PolicyResponseDto;
 import io.mosip.credentialstore.dto.Type;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
 import io.mosip.credentialstore.exception.DataShareException;
 import io.mosip.credentialstore.exception.IdRepoException;
+import io.mosip.credentialstore.exception.PolicyException;
+import io.mosip.credentialstore.exception.SignatureException;
 import io.mosip.credentialstore.provider.CredentialProvider;
-import io.mosip.credentialstore.service.CredentialStoreService;
 import io.mosip.credentialstore.service.impl.CredentialStoreServiceImpl;
 import io.mosip.credentialstore.util.DataShareUtil;
+import io.mosip.credentialstore.util.DigitalSignatureUtil;
 import io.mosip.credentialstore.util.IdrepositaryUtil;
 import io.mosip.credentialstore.util.PolicyUtil;
 import io.mosip.credentialstore.util.Utilities;
@@ -114,37 +115,46 @@ public class CredentialStoreServiceImplTest {
 	/** The response. */
 	private ResponseDTO response = new ResponseDTO();
 	
+	PolicyResponseDto policyDetailResponseDto;
+
+	PolicyAttributesDto policies;
+
+	@Mock
+	DigitalSignatureUtil digitalSignatureUtil;
+
 	@Before
 	public void setUp() throws Exception {
 		
 		Mockito.when(env.getProperty("mosip.credential.service.datetime.pattern"))
 		.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		
-		
+		Mockito.when(env.getProperty("credentialType.policyid.MOSIP"))
+		.thenReturn("45678451034176");
+		Mockito.when(env.getProperty("credentialType.policyid.AUTH")).thenReturn("45678451034176");
 		Mockito.when(env.getProperty("credentialType.formatter.MOSIP"))
 		.thenReturn("CredentialDefaultProvider");
-		PolicyDetailResponseDto policyDetailResponseDto = new PolicyDetailResponseDto();
+		policyDetailResponseDto = new PolicyResponseDto();
 		policyDetailResponseDto.setPolicyId("45678451034176");
 		policyDetailResponseDto.setVersion("1.1");
 		policyDetailResponseDto.setPolicyName("Digital QR Code Policy");
 		policyDetailResponseDto.setPolicyDesc("");
-		DataSharePolicies dataSharePolicies = new DataSharePolicies();
+		DataShareDto dataSharePolicies = new DataShareDto();
 		dataSharePolicies.setEncryptionType("partnerBased");
 		dataSharePolicies.setShareDomain("mosip.io");
-		dataSharePolicies.setTransactionsAllowed(2);
-		dataSharePolicies.setValidForInMinutes(30);
-		Policies policies = new Policies();
+		dataSharePolicies.setTransactionsAllowed("2");
+		dataSharePolicies.setValidForInMinutes("30");
+		dataSharePolicies.setTypeOfShare("dataShare");
+		policies = new PolicyAttributesDto();
 		policies.setDataSharePolicies(dataSharePolicies);
-		List<ShareableAttribute> sharableAttributesList = new ArrayList<ShareableAttribute>();
-		ShareableAttribute shareableAttribute1 = new ShareableAttribute();
+		List<AllowedKycDto> sharableAttributesList = new ArrayList<AllowedKycDto>();
+		AllowedKycDto shareableAttribute1 = new AllowedKycDto();
 		shareableAttribute1.setAttributeName("fullName");
 		shareableAttribute1.setEncrypted(true);
 		sharableAttributesList.add(shareableAttribute1);
-		ShareableAttribute shareableAttribute2 = new ShareableAttribute();
+		AllowedKycDto shareableAttribute2 = new AllowedKycDto();
 		shareableAttribute2.setAttributeName("dateOfBirth");
 		shareableAttribute2.setEncrypted(true);
 		sharableAttributesList.add(shareableAttribute2);
-		ShareableAttribute shareableAttribute3 = new ShareableAttribute();
+		AllowedKycDto shareableAttribute3 = new AllowedKycDto();
 		shareableAttribute3.setAttributeName("face");
 		shareableAttribute3.setEncrypted(true);
 		shareableAttribute3.setFormat("extraction");
@@ -201,18 +211,24 @@ public class CredentialStoreServiceImplTest {
 		type.setBDBInfo(bdbinfotype);
 		List<BIRType> birtypeList = new ArrayList<>();
 		birtypeList.add(type);
+
 		response.setDocuments(docList);
 		idResponse.setResponse(response);
 		Mockito.when(cbeffutil.getBIRDataFromXML(Mockito.any())).thenReturn(birtypeList);
+
 
 		Mockito.when(utilities.generateId()).thenReturn("123456");
 	 	Mockito.when(policyUtil.getPolicyDetail(Mockito.anyString(), Mockito.anyString())).thenReturn(policyDetailResponseDto);
 		Mockito.when(idrepositaryUtil.getData(Mockito.any(),Mockito.any()))
 		.thenReturn(idResponse);
 		DataProviderResponse dataProviderResponse=new DataProviderResponse();
+		JSONObject jsonObject1 = new JSONObject();
+		jsonObject1.put("name", "value");
+		dataProviderResponse.setJSON(jsonObject1);
 		Mockito.when(credentialDefaultProvider.getFormattedCredentialData(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(dataProviderResponse);
 		DataShare dataShare=new DataShare();
 		Mockito.when(dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(dataShare);
+		Mockito.when(digitalSignatureUtil.sign(Mockito.any())).thenReturn("testdata");
 		
 	}
 	
@@ -221,19 +237,22 @@ public class CredentialStoreServiceImplTest {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
 		credentialServiceRequestDto.setCredentialType("mosip");
 		credentialServiceRequestDto.setId("4238135072");
+		credentialServiceRequestDto.setIssuer("791212");
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
-	    assertEquals(credentialServiceResponseDto.getResponse().getStatus(),"DONE");
+		assertEquals(credentialServiceResponseDto.getResponse().getStatus(), "ISSUED");
 	}
 	@Test
-	public void testCreateCredentialIssuePolicyFailure() {
+	public void testCreateCredentialIssuePolicyFailure() throws PolicyException, ApiNotAccessibleException {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
 		credentialServiceRequestDto.setCredentialType("mosip");
 		credentialServiceRequestDto.setId("4238135072");
+		credentialServiceRequestDto.setIssuer("791212");
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
-	 	Mockito.when(policyUtil.getPolicyDetail(Mockito.anyString(), Mockito.anyString())).thenReturn(null);
+		PolicyException e = new PolicyException();
+	 	Mockito.when(policyUtil.getPolicyDetail(Mockito.anyString(), Mockito.anyString())).thenThrow(e);
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorMessage());
 	}
@@ -243,6 +262,7 @@ public class CredentialStoreServiceImplTest {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
 		credentialServiceRequestDto.setCredentialType("mosip");
 		credentialServiceRequestDto.setId("4238135072");
+		credentialServiceRequestDto.setIssuer("791212");
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		ApiNotAccessibleException e = new ApiNotAccessibleException();
@@ -257,6 +277,7 @@ public class CredentialStoreServiceImplTest {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
 		credentialServiceRequestDto.setCredentialType("mosip");
 		credentialServiceRequestDto.setId("4238135072");
+		credentialServiceRequestDto.setIssuer("791212");
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		IdRepoException e = new IdRepoException();
@@ -271,6 +292,7 @@ public class CredentialStoreServiceImplTest {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
 		credentialServiceRequestDto.setCredentialType("mosip");
 		credentialServiceRequestDto.setId("4238135072");
+		credentialServiceRequestDto.setIssuer("791212");
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		CredentialFormatterException e = new CredentialFormatterException();
@@ -284,6 +306,7 @@ public class CredentialStoreServiceImplTest {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
 		credentialServiceRequestDto.setCredentialType("mosip");
 		credentialServiceRequestDto.setId("4238135072");
+		credentialServiceRequestDto.setIssuer("791212");
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		IOException e = new IOException();
@@ -298,6 +321,7 @@ public class CredentialStoreServiceImplTest {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
 		credentialServiceRequestDto.setCredentialType("mosip");
 		credentialServiceRequestDto.setId("4238135072");
+		credentialServiceRequestDto.setIssuer("791212");
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		WebSubClientException e = new WebSubClientException("","");
@@ -307,18 +331,7 @@ public class CredentialStoreServiceImplTest {
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.WEBSUB_FAIL_EXCEPTION.getErrorMessage());
 	}
 	
-	@Test
-	public void testException(){
-		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
-		credentialServiceRequestDto.setCredentialType("mosip");
-		credentialServiceRequestDto.setId("4238135072");
-		Map<String,Object> additionalData=new HashMap<>();
-		credentialServiceRequestDto.setAdditionalData(additionalData);
-		Mockito.when(env.getProperty("credentialType.formatter.MOSIP"))
-		.thenReturn(null);
-		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
-	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
-	}
+	
 	@Test
 	public void testgetCredentialTypes() {
 		List<Type> typeList=new ArrayList<>();
@@ -333,20 +346,26 @@ public class CredentialStoreServiceImplTest {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
 		credentialServiceRequestDto.setCredentialType("mosip");
 		credentialServiceRequestDto.setId("4238135072");
+		credentialServiceRequestDto.setIssuer("791212");
 		List<String> sharableAttributes=new ArrayList<>();
 		sharableAttributes.add("face");
+		sharableAttributes.add("finger");
+		sharableAttributes.add("iris");
 		credentialServiceRequestDto.setSharableAttributes(sharableAttributes);
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
-	    assertEquals(credentialServiceResponseDto.getResponse().getStatus(),"DONE");
+		assertEquals(credentialServiceResponseDto.getResponse().getStatus(), "ISSUED");
 	}
 
 	@Test
-	public void testDataShareException() throws ApiNotAccessibleException, IdRepoException, IOException, DataShareException {
+	public void testDataShareException()
+			throws ApiNotAccessibleException, IdRepoException, IOException, DataShareException, PolicyException,
+			CredentialFormatterException {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
 		credentialServiceRequestDto.setCredentialType("mosip");
 		credentialServiceRequestDto.setId("4238135072");
+		credentialServiceRequestDto.setIssuer("791212");
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		DataShareException e = new DataShareException();
@@ -354,5 +373,52 @@ public class CredentialStoreServiceImplTest {
 
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorMessage());
+	}
+
+	@Test
+	public void testCreateCredentialIssueDirectShareSuccess() {
+		DataShareDto dataSharePolicies = new DataShareDto();
+		dataSharePolicies.setEncryptionType("partnerBased");
+		dataSharePolicies.setShareDomain("mosip.io");
+		dataSharePolicies.setTransactionsAllowed("2");
+		dataSharePolicies.setValidForInMinutes("30");
+		dataSharePolicies.setTypeOfShare("direct");
+		policies.setDataSharePolicies(dataSharePolicies);
+		policyDetailResponseDto.setPolicies(policies);
+		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
+		credentialServiceRequestDto.setCredentialType("mosip");
+		credentialServiceRequestDto.setId("4238135072");
+		credentialServiceRequestDto.setIssuer("791212");
+		Map<String, Object> additionalData = new HashMap<>();
+		credentialServiceRequestDto.setAdditionalData(additionalData);
+		CredentialServiceResponseDto credentialServiceResponseDto = credentialStoreServiceImpl
+				.createCredentialIssuance(credentialServiceRequestDto);
+		assertEquals(credentialServiceResponseDto.getResponse().getStatus(), "ISSUED");
+	}
+
+	@Test
+	public void testSignatureException()
+			throws ApiNotAccessibleException, IdRepoException, IOException, DataShareException, SignatureException {
+		DataShareDto dataSharePolicies = new DataShareDto();
+		dataSharePolicies.setEncryptionType("partnerBased");
+		dataSharePolicies.setShareDomain("mosip.io");
+		dataSharePolicies.setTransactionsAllowed("2");
+		dataSharePolicies.setValidForInMinutes("30");
+		dataSharePolicies.setTypeOfShare("direct");
+		policies.setDataSharePolicies(dataSharePolicies);
+		policyDetailResponseDto.setPolicies(policies);
+		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
+		credentialServiceRequestDto.setCredentialType("mosip");
+		credentialServiceRequestDto.setId("4238135072");
+		credentialServiceRequestDto.setIssuer("791212");
+		Map<String, Object> additionalData = new HashMap<>();
+		credentialServiceRequestDto.setAdditionalData(additionalData);
+		Mockito.when(digitalSignatureUtil.sign(Mockito.any())).thenThrow(new SignatureException());
+		CredentialServiceResponseDto credentialServiceResponseDto = credentialStoreServiceImpl
+				.createCredentialIssuance(credentialServiceRequestDto);
+
+	
+		assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),
+				CredentialServiceErrorCodes.SIGNATURE_EXCEPTION.getErrorMessage());
 	}
 }

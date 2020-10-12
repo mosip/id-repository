@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
@@ -20,21 +21,21 @@ import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
-import io.mosip.idrepository.core.dto.IDAEventsDTO;
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.exception.AuthenticationException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
@@ -42,7 +43,6 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.websub.spi.PublisherClient;
 
 /**
  * The Class IdRepoConfig.
@@ -52,6 +52,7 @@ import io.mosip.kernel.core.websub.spi.PublisherClient;
 @Configuration
 @ConfigurationProperties("mosip.idrepo.identity")
 @EnableTransactionManagement
+@EnableAsync
 public class IdRepoConfig implements WebMvcConfigurer {
 	
 	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISHER_URL + "}")
@@ -85,13 +86,9 @@ public class IdRepoConfig implements WebMvcConfigurer {
 
 	/** The id. */
 	private Map<String, String> id;
-	
-	@Autowired
-	private PublisherClient<String, IDAEventsDTO, HttpHeaders> publisher; 
 
 	@PostConstruct
 	public void init() {
-		publisher.registerTopic(IDAEventType.AUTH_TYPE_STATUS_UPDATE.name(), publisherHubURL);
 		restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
 
 			@Override
@@ -108,8 +105,12 @@ public class IdRepoConfig implements WebMvcConfigurer {
 								.getServiceErrorList(new String(super.getResponseBody(response)));
 						mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError",
 								"Throwing AuthenticationException", errorList.toString());
-						throw new AuthenticationException(errorList.get(0).getErrorCode(),
-								errorList.get(0).getMessage(), response.getRawStatusCode());
+						if(errorList.isEmpty()) {
+							throw new AuthenticationException(IdRepoErrorConstants.AUTHENTICATION_FAILED, response.getRawStatusCode());
+						} else {
+							throw new AuthenticationException(errorList.get(0).getErrorCode(),
+									errorList.get(0).getMessage(), response.getRawStatusCode());
+						}
 					} else {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError", "Rest Template logs",
 								"Status error - returning RestServiceException - CLIENT_ERROR -- "
@@ -317,5 +318,16 @@ public class IdRepoConfig implements WebMvcConfigurer {
 	public DataSource dataSource() {
 		return buildDataSource(db.get("shard"));
 	}
+	
+	  @Bean
+	  public Executor taskExecutor() {
+	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+	    executor.setCorePoolSize(3);
+	    executor.setMaxPoolSize(3);
+	    executor.setQueueCapacity(500);
+	    executor.setThreadNamePrefix("idrepo-");
+	    executor.initialize();
+	    return executor;
+	  }
 
 }

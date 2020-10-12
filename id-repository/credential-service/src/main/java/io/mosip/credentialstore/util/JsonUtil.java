@@ -13,7 +13,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.credentialstore.dto.JsonValue;
 import io.mosip.credentialstore.exception.FieldNotFoundException;
 import io.mosip.credentialstore.exception.InstantanceCreationException;
 
@@ -144,25 +143,7 @@ public class JsonUtil {
 		return (T) objectMapper.readValue(jsonString, clazz);
 	}
 
-	/**
-	 * Gets the json values. Returns JsonValue[] java array for the particular key
-	 * in demographic json.
-	 * 
-	 * @param identityKey
-	 *            the identity key
-	 * @return the json values
-	 */
-	public static JsonValue[] getJsonValues(JSONObject demographicIdentity, Object identityKey) {
-		JSONArray demographicJsonNode = null;
 
-		if (demographicIdentity != null)
-			demographicJsonNode = JsonUtil.getJSONArray(demographicIdentity, identityKey);
-		return (demographicJsonNode != null)
-				? (JsonValue[]) mapJsonNodeToJavaObject(JsonValue.class,
-						demographicJsonNode)
-				: null;
-
-	}
 
 	/**
 	 * Map json node to java object.

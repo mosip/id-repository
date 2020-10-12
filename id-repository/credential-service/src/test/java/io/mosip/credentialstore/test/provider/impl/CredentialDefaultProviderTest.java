@@ -11,7 +11,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.ContextConfiguration;
@@ -25,8 +24,6 @@ import io.mosip.credentialstore.exception.CredentialFormatterException;
 import io.mosip.credentialstore.exception.DataEncryptionFailureException;
 import io.mosip.credentialstore.exception.SignatureException;
 import io.mosip.credentialstore.provider.impl.CredentialDefaultProvider;
-import io.mosip.credentialstore.provider.impl.IdAuthProvider;
-import io.mosip.credentialstore.util.DigitalSignatureUtil;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
@@ -39,9 +36,7 @@ public class CredentialDefaultProviderTest {
 	@Mock
 	private Environment environment;	
 	
-	/** The digital signature util. */
-	@Mock
-	DigitalSignatureUtil digitalSignatureUtil;
+
 	
 	/** The utilities. */
 	@Mock
@@ -57,11 +52,11 @@ public class CredentialDefaultProviderTest {
 	
 	@Before
 	public void setUp() throws DataEncryptionFailureException, ApiNotAccessibleException, SignatureException {
-		Mockito.when(environment.getProperty("mosip.credential.vc.datetime.pattern"))
+		Mockito.when(environment.getProperty("mosip.credential.service.datetime.pattern"))
 		.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any())).thenReturn("testdata");
 		
-		Mockito.when(digitalSignatureUtil.sign(Mockito.any())).thenReturn("testdata");
+
 		Mockito.when(utilities.generateId()).thenReturn("test123");
 	}
 	
@@ -78,5 +73,43 @@ public class CredentialDefaultProviderTest {
 		credentialServiceRequestDto.setEncryptionKey("te1234");
 		DataProviderResponse dataProviderResponse=credentialDefaultProvider.getFormattedCredentialData(encryptMap, credentialServiceRequestDto, sharableAttributesMap);
 	    assertNotNull(dataProviderResponse);
+	}
+
+	@Test(expected = CredentialFormatterException.class)
+	public void testEncryptionFailure()
+			throws CredentialFormatterException, DataEncryptionFailureException, ApiNotAccessibleException {
+		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
+		Map<String, Object> additionalData = new HashMap<>();
+		credentialServiceRequestDto.setAdditionalData(additionalData);
+		Map<String, Boolean> encryptMap = new HashMap<>();
+		encryptMap.put("name", true);
+		Map<String, Object> sharableAttributesMap = new HashMap<>();
+		sharableAttributesMap.put("name", "test");
+		credentialServiceRequestDto.setEncrypt(true);
+		credentialServiceRequestDto.setEncryptionKey("te1234");
+		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any()))
+				.thenThrow(new DataEncryptionFailureException());
+		credentialDefaultProvider.getFormattedCredentialData(encryptMap,
+				credentialServiceRequestDto, sharableAttributesMap);
+
+	}
+
+	@Test(expected = CredentialFormatterException.class)
+	public void testApiNotAccessible()
+			throws CredentialFormatterException, DataEncryptionFailureException, ApiNotAccessibleException {
+		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
+		Map<String, Object> additionalData = new HashMap<>();
+		credentialServiceRequestDto.setAdditionalData(additionalData);
+		Map<String, Boolean> encryptMap = new HashMap<>();
+		encryptMap.put("name", true);
+		Map<String, Object> sharableAttributesMap = new HashMap<>();
+		sharableAttributesMap.put("name", "test");
+		credentialServiceRequestDto.setEncrypt(true);
+		credentialServiceRequestDto.setEncryptionKey("te1234");
+		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any()))
+				.thenThrow(new ApiNotAccessibleException());
+		credentialDefaultProvider.getFormattedCredentialData(encryptMap, credentialServiceRequestDto,
+				sharableAttributesMap);
+
 	}
 }

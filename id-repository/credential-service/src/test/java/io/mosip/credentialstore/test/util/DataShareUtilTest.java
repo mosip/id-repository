@@ -60,7 +60,7 @@ public class DataShareUtilTest {
 	String dataShareResponse;
 	@SuppressWarnings("unchecked")
 	@Before
-	public void setUp() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException{
+	public void setUp() throws Exception{
 
 		dataShareResponseDto = new DataShareResponseDto();
          dataShare = new DataShare();
@@ -109,22 +109,24 @@ public class DataShareUtilTest {
 	}
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
-	public void testHttpClientException() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException, SignatureException, DataShareException {
+	public void testHttpClientException() throws Exception {
 		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(HttpStatus.BAD_REQUEST,
 				"error");
+		Exception e=new Exception(httpClientErrorException);
 		String test = "testdata";
 		byte[] sample = test.getBytes();
-		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpClientErrorException);
+		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		dataShareUtil.getDataShare(sample, "policyId", "partnerId");
 	}
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
-	public void testHttpServerException() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException, SignatureException, DataShareException {
+	public void testHttpServerException() throws Exception {
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(HttpStatus.BAD_REQUEST,
 				"error");
+		Exception e=new Exception(httpServerErrorException);
 		String test = "testdata";
 		byte[] sample = test.getBytes();
-		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpServerErrorException);
+		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		dataShareUtil.getDataShare(sample, "policyId", "partnerId");
 	}
 }

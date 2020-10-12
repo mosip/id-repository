@@ -1,6 +1,5 @@
 package io.mosip.credentialstore.util;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,10 +10,9 @@ import java.util.UUID;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-
 
 import io.mosip.credentialstore.dto.Issuer;
 import io.mosip.credentialstore.dto.Type;
@@ -28,14 +26,14 @@ public class Utilities {
 	private static final String ISSUERS = "issuers";
 	private static final String CODE = "code";
 
+	@Autowired
+	private RestTemplate restTemplate;
 	
 	public List<Type> getTypes(String configServerFileStorageURL, String uri) {
 		List<Type> typeList = new ArrayList<>();
-		RestTemplate restTemplate = new RestTemplate();
-		String types = restTemplate.getForObject(configServerFileStorageURL + uri, String.class);
-
 		JSONObject credentialTypes;
 		try {
+			String types = restTemplate.getForObject(configServerFileStorageURL + uri, String.class);
 			credentialTypes = JsonUtil.objectMapperReadValue(types, JSONObject.class);
 			JSONArray credentialTypeArray = JsonUtil.getJSONArray(credentialTypes, "types");
 			for (Object jsonObject : credentialTypeArray) {

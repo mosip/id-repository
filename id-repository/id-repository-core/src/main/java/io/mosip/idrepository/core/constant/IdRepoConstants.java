@@ -90,7 +90,7 @@ public class IdRepoConstants {
 	
 	public static final String VID_REACTIVATED = "mosip.idrepo.vid.reactive-status";
 	
-	public static final String FMR_ENABLED = "mosip.fingerprint.fmr.enabled";
+//	public static final String FMR_ENABLED = "mosip.fingerprint.fmr.enabled";
 	
 	public static final String IDA_NOTIFY_REQ_ID = "ida.api.id.event.notify";
 	
@@ -98,7 +98,7 @@ public class IdRepoConstants {
 	
 	public static final String WEB_SUB_PUBLISHER_URL = "kernel.websub.publisher.url";
 	
-	public static final String PARTNER_ID = "PARTNER";
+	public static final String OBJECT_STORE_ACCOUNT_NAME = "mosip.idrepo.objectstore.account-name";
 	
 	/** The value. */
 	private final String value;

@@ -23,7 +23,7 @@ import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
-import io.mosip.kernel.auth.adapter.model.AuthUserDetails;
+import io.mosip.kernel.auth.defaultadapter.model.AuthUserDetails;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -48,6 +48,8 @@ public class IdRepoSecurityManager {
 
 	/** The Constant ID_REPO_SECURITY_MANAGER. */
 	private static final String ID_REPO_SECURITY_MANAGER = "IdRepoSecurityManager";
+	
+	private static final String AUTHORIZATION = "Authorization=";
 
 	/** The rest factory. */
 	@Autowired
@@ -104,7 +106,7 @@ public class IdRepoSecurityManager {
 			return null;
 		}
 	}
-
+	
 	/**
 	 * Encryption of data by making rest call to kernel-cryptomanager.
 	 *

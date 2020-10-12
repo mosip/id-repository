@@ -1,7 +1,7 @@
 package io.mosip.credential.request.generator.test.controller;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import org.junit.Ignore;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,12 +24,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import io.mosip.credential.request.generator.controller.CredentialRequestGeneratorController;
+import io.mosip.credential.request.generator.dto.CredentialStatusEvent;
 import io.mosip.credential.request.generator.service.CredentialRequestService;
 import io.mosip.credential.request.generator.test.TestBootApplication;
 import io.mosip.credential.request.generator.test.config.TestConfig;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
-import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
+import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
 import io.mosip.kernel.core.http.ResponseWrapper;
 
 @RunWith(SpringRunner.class)
@@ -51,19 +52,23 @@ public class CredentialRequestGeneratorControllerTest {
 	String reqJson;
 
 	ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper;
+	
+	ResponseWrapper<CredentialIssueStatusResponse> credentialIssueStatusResponseWrapper;
 
-
+	String reqCredentialEventJson;
 
 
 	@Before
 	public void setup() throws Exception {
-
+		credentialIssueStatusResponseWrapper=new ResponseWrapper<CredentialIssueStatusResponse>();
 		credentialIssueResponseWrapper = new ResponseWrapper<CredentialIssueResponse>();
 		MockitoAnnotations.initMocks(this);
 		this.mockMvc = MockMvcBuilders.standaloneSetup(credentialRequestGeneratorController).build();
 		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
 		credentialIssueRequestDto.setId("12345");
 		reqJson = gson.toJson(credentialIssueRequestDto);
+		CredentialStatusEvent credentialStatusEvent = new CredentialStatusEvent();
+		reqCredentialEventJson = gson.toJson(credentialStatusEvent);
 	}
 
 
@@ -92,6 +97,29 @@ public class CredentialRequestGeneratorControllerTest {
 
 		mockMvc.perform(MockMvcRequestBuilders.get("/cancel/requestId").contentType(MediaType.APPLICATION_JSON_VALUE))
 				.andExpect(status().isOk());
+
+	}
+
+	@Test
+	@WithUserDetails("test")
+	public void testgetCredentialRequestStatusSuccess() throws Exception {
+
+		Mockito.when(credentialRequestService.getCredentialRequestStatus(Mockito.any()))
+				.thenReturn(credentialIssueStatusResponseWrapper);
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/get/requestId").contentType(MediaType.APPLICATION_JSON_VALUE))
+				.andExpect(status().isOk());
+
+	}
+
+	@Test
+	@WithUserDetails("test")
+	public void testHandleSubscribeEventSuccess() throws Exception {
+
+		mockMvc.perform(MockMvcRequestBuilders.post("/callback/notifyStatus")
+				.contentType(MediaType.APPLICATION_JSON_VALUE).content(reqCredentialEventJson.getBytes()))
+				.andExpect(status().isOk());
+
 
 	}
 

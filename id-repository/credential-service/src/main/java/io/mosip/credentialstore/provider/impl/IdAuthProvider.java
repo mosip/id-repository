@@ -1,7 +1,5 @@
 package io.mosip.credentialstore.provider.impl;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -10,16 +8,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.EncryptZkResponseDto;
-import io.mosip.credentialstore.dto.PolicyDetailResponseDto;
-import io.mosip.credentialstore.dto.ShareableAttribute;
 import io.mosip.credentialstore.dto.ZkDataAttribute;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
@@ -27,7 +25,6 @@ import io.mosip.credentialstore.exception.DataEncryptionFailureException;
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.service.impl.CredentialStoreServiceImpl;
 import io.mosip.credentialstore.util.EncryptionUtil;
-import io.mosip.credentialstore.util.JsonUtil;
 import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
@@ -38,7 +35,7 @@ import io.mosip.kernel.core.util.DateUtils;
 
 
 
-// TODO: Auto-generated Javadoc
+
 /**
  * The Class IdAuthProvider.
  * 
@@ -78,12 +75,16 @@ public class IdAuthProvider implements CredentialProvider {
 	/** The encryption util. */
 	@Autowired
 	EncryptionUtil encryptionUtil;
-	
+
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialStoreServiceImpl.class);
 
 	private static final String GET_FORAMTTED_DATA = "getFormattedCredentialData";
-	
+
 	private static final String IDAUTHPROVIDER = "IdAuthProvider";
+
+	@Autowired
+	private ObjectMapper mapper;
+
 
 	/* (non-Javadoc)
 	 * @see io.mosip.credentialstore.provider.CredentialProvider#getFormattedCredentialData(java.util.Map, io.mosip.idrepository.core.dto.CredentialServiceRequestDto, java.util.Map)
@@ -92,7 +93,7 @@ public class IdAuthProvider implements CredentialProvider {
 	public DataProviderResponse getFormattedCredentialData(	Map<String,Boolean> encryptMap,
 			CredentialServiceRequestDto credentialServiceRequestDto, Map<String, Object> sharableAttributeMap)
 			throws CredentialFormatterException {
-		
+
 		LOGGER.debug(IdRepoSecurityManager.getUser(), IDAUTHPROVIDER, GET_FORAMTTED_DATA,
 				"formatting the data start");
 		DataProviderResponse dataProviderResponse=new DataProviderResponse();
@@ -106,40 +107,52 @@ public class IdAuthProvider implements CredentialProvider {
 		 for (Map.Entry<String,Object> entry : sharableAttributeMap.entrySet()) {
 			    String key=entry.getKey();
 				Object value = entry.getValue();
+				String valueStr=null;
+				if (value instanceof String) {
+					valueStr=value.toString();
+				}else {
+					valueStr=mapper.writeValueAsString(value);
+				}
 				if (encryptMap.get(key)) {
 					ZkDataAttribute zkDataAttribute=new ZkDataAttribute();
 					zkDataAttribute.setIdentifier(key);
-					zkDataAttribute.setValue(value.toString());
-					if(key.equalsIgnoreCase(CredentialConstants.FACE) ||key.equalsIgnoreCase(CredentialConstants.IRIS) ||key.equalsIgnoreCase(CredentialConstants.FINGER)) {
+					zkDataAttribute.setValue(valueStr);
+					if (key.equalsIgnoreCase(CredentialConstants.INDIVIDUAL_BIOMETRICS)) {
 						bioZkDataAttributes.add(zkDataAttribute);
 					}else {
                       demoZkDataAttributes.add(zkDataAttribute);
 					}
 						
 				} else {
-					formattedMap.put(key, value);
+					formattedMap.put(key, valueStr);
 				}
 				
 
 		}
-		    EncryptZkResponseDto demoEncryptZkResponseDto=  encryptionUtil.encryptDataWithZK(credentialServiceRequestDto.getId(), demoZkDataAttributes);
-		    EncryptZkResponseDto bioEncryptZkResponseDto=  encryptionUtil.encryptDataWithZK(credentialServiceRequestDto.getId(), bioZkDataAttributes);
-			Map<String,Object> additionalData=credentialServiceRequestDto.getAdditionalData();
-		    addToFormatter(demoEncryptZkResponseDto,formattedMap);
-		    addToFormatter(bioEncryptZkResponseDto,formattedMap);
-		    String credentialId = utilities.generateId();
-		    additionalData.put(DEMO_ENCRYPTED_RANDOM_KEY, demoEncryptZkResponseDto.getEncryptedRandomKey());
-		    additionalData.put(DEMO_ENCRYPTED_RANDOM_INDEX, demoEncryptZkResponseDto.getRankomKeyIndex());
-		    additionalData.put(BIO_ENCRYPTED_RANDOM_KEY, demoEncryptZkResponseDto.getEncryptedRandomKey());
-		    additionalData.put(BIO_ENCRYPTED_RANDOM_INDEX, demoEncryptZkResponseDto.getRankomKeyIndex());
-		    additionalData.put("CREDENTIALID", credentialId);
+		 Map<String,Object> additionalData=credentialServiceRequestDto.getAdditionalData();
+		 if(!demoZkDataAttributes.isEmpty()) {
+			 EncryptZkResponseDto demoEncryptZkResponseDto=  encryptionUtil.encryptDataWithZK(credentialServiceRequestDto.getId(), demoZkDataAttributes);
+			 addToFormatter(demoEncryptZkResponseDto,formattedMap);
+			 additionalData.put(DEMO_ENCRYPTED_RANDOM_KEY, demoEncryptZkResponseDto.getEncryptedRandomKey());
+			 additionalData.put(DEMO_ENCRYPTED_RANDOM_INDEX, demoEncryptZkResponseDto.getRankomKeyIndex());
+		 }
+			if (!bioZkDataAttributes.isEmpty()) {
+			 EncryptZkResponseDto bioEncryptZkResponseDto=  encryptionUtil.encryptDataWithZK(credentialServiceRequestDto.getId(), bioZkDataAttributes);
+			 addToFormatter(bioEncryptZkResponseDto,formattedMap);
+			 additionalData.put(BIO_ENCRYPTED_RANDOM_KEY, bioEncryptZkResponseDto.getEncryptedRandomKey());
+			 additionalData.put(BIO_ENCRYPTED_RANDOM_INDEX, bioEncryptZkResponseDto.getRankomKeyIndex());
+		 }  
+
+			String credentialId = utilities.generateId();
+
 		    credentialServiceRequestDto.setAdditionalData(additionalData);
-		    String data = JsonUtil.objectMapperObjectToJson(formattedMap);
+
+			JSONObject json = new JSONObject(formattedMap);
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 			LocalDateTime localdatetime = LocalDateTime
 					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
 			dataProviderResponse.setIssuanceDate(localdatetime);
-			dataProviderResponse.setFormattedData(data.getBytes());
+			dataProviderResponse.setJSON(json);
 			dataProviderResponse.setCredentialId(credentialId);
 			LOGGER.debug(IdRepoSecurityManager.getUser(), IDAUTHPROVIDER, GET_FORAMTTED_DATA,
 					"formatting the data end");

@@ -2,12 +2,12 @@ package io.mosip.idrepository.identity.repository;
 
 import java.util.List;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import io.mosip.idrepository.identity.entity.AuthtypeLock;
-import io.mosip.kernel.core.dataaccess.spi.repository.BaseRepository;
 
 /**
  * 
@@ -15,20 +15,20 @@ import io.mosip.kernel.core.dataaccess.spi.repository.BaseRepository;
  *
  */
 @Repository
-public interface AuthLockRepository extends BaseRepository<AuthtypeLock, Integer> {
+public interface AuthLockRepository extends JpaRepository<AuthtypeLock, Integer> {
 
 	@Query(value = "select " + 
 			"        t.auth_type_code, " + 
 			"        t.status_code  " + 
 			"    from " + 
-			"        ida.uin_auth_lock t  " + 
+			"        idrepo.uin_auth_lock t  " + 
 			"    inner join " + 
 			"        ( " + 
 			"            select " + 
 			"                auth_type_code, " + 
 			"                MAX(cr_dtimes) as crd " + 
 			"            from " + 
-			"                ida.uin_auth_lock      " + 
+			"                idrepo.uin_auth_lock      " + 
 			"            where " + 
 			"                uin_hash = :uin_hash " + 
 			"            group by " + 
