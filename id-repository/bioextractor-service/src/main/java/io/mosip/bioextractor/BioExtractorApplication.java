@@ -14,7 +14,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @SpringBootApplication()
 @Import(value = { RestTemplate.class })
-@ComponentScan(basePackages={ "io.mosip.*" },
+@ComponentScan(basePackages={ "io.mosip.*" ,"${mosip.auth.adapter.impl.basepackage}"},
 	excludeFilters = 
 	@ComponentScan.Filter(type=FilterType.REGEX,
 	  pattern="io\\.mosip\\.idrepository\\.core\\..*"))
