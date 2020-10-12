@@ -16,8 +16,4 @@ public class AuthTypeStatusRequestDto {
 	private String individualIdType;
 
 	private List<AuthtypeStatus> request;
-
-	private String requestTime;
-
-	private String version;
 }
