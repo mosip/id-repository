@@ -30,6 +30,7 @@ import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
+import io.mosip.idrepository.core.dto.AuthTypeStatusRequestDto;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
@@ -161,7 +162,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 */
 	@Override
 	public boolean supports(Class<?> clazz) {
-		return clazz.isAssignableFrom(IdRequestDTO.class);
+		return clazz.isAssignableFrom(IdRequestDTO.class) || clazz.isAssignableFrom(AuthTypeStatusRequestDto.class);
 	}
 
 	/*
@@ -172,26 +173,27 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 */
 	@Override
 	public void validate(@Nonnull Object target, Errors errors) {
-		IdRequestDTO request = (IdRequestDTO) target;
+		if (target instanceof IdRequestDTO) {
+			IdRequestDTO request = (IdRequestDTO) target;
 
-		validateReqTime(request.getRequesttime(), errors);
+			validateReqTime(request.getRequesttime(), errors);
 
-		if (!errors.hasErrors()) {
-			validateVersion(request.getVersion(), errors);
-		}
-
-		if (!errors.hasErrors() && Objects.nonNull(request.getId())) {
-			if (request.getId().equals(id.get(CREATE))) {
-				validateStatus(request.getRequest().getStatus(), errors, CREATE);
-				validateRequest(request.getRequest(), errors, CREATE);
-			} else if (request.getId().equals(id.get(UPDATE))) {
-				validateStatus(request.getRequest().getStatus(), errors, UPDATE);
-				validateRequest(request.getRequest(), errors, UPDATE);
+			if (!errors.hasErrors()) {
+				validateVersion(request.getVersion(), errors);
 			}
 
-			validateRegId(request.getRequest().getRegistrationId(), errors);
-		}
+			if (!errors.hasErrors() && Objects.nonNull(request.getId())) {
+				if (request.getId().equals(id.get(CREATE))) {
+					validateStatus(request.getRequest().getStatus(), errors, CREATE);
+					validateRequest(request.getRequest(), errors, CREATE);
+				} else if (request.getId().equals(id.get(UPDATE))) {
+					validateStatus(request.getRequest().getStatus(), errors, UPDATE);
+					validateRequest(request.getRequest(), errors, UPDATE);
+				}
 
+				validateRegId(request.getRequest().getRegistrationId(), errors);
+			}
+		}
 	}
 
 	/**

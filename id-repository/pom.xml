@@ -63,6 +63,7 @@
 		<module>bioextractor-service</module>
         <module>credential-request-generator</module>
         <module>credential-service</module>
+        <module>id-repository-salt-generator</module>
 	</modules>
 
 	<properties>	
@@ -96,6 +97,8 @@
 		<!-- Test & Logging -->
 		<junit.version>4.12</junit.version>
 		<mockito.version>2.22.0</mockito.version>
+
+		<kernel.logger.logback.version>1.2.0-SNAPSHOT</kernel.logger.logback.version>
 	</properties>
     <dependencies>
     	<!-- JUnit -->
@@ -132,6 +135,14 @@
 		    <artifactId>javassist</artifactId>
 		    <version>3.27.0-GA</version>
 		</dependency>
+
+
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-logger-logback</artifactId>
+			<version>${kernel.logger.logback.version}</version>
+		</dependency>
+
     </dependencies>
 	<build>
 		<pluginManagement>
