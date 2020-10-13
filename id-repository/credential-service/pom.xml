@@ -72,11 +72,6 @@
             <version>${spring-cloud-config.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.mosip.kernel</groupId>
-            <artifactId>kernel-auth-adapter</artifactId>
-            <version>${kernel.auth.adaptor.version}</version>
-        </dependency> 
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
             <version>${spring.boot.version}</version>
@@ -158,6 +153,7 @@
 			<artifactId>micrometer-registry-prometheus</artifactId>
 			<version>${io.micrometer.prometheus.version}</version>
 		</dependency>
+		
   </dependencies>
   <build>
 		<plugins>

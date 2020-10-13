@@ -133,11 +133,6 @@
             <artifactId>gson</artifactId>
             <version>${gson.version}</version>
         </dependency>
-           <dependency>
-            <groupId>io.mosip.kernel</groupId>
-            <artifactId>kernel-auth-adapter</artifactId>
-            <version>${kernel.auth.adaptor.version}</version>
-        </dependency> 
          <dependency>
           <groupId>junit</groupId>
           <artifactId>junit</artifactId>
