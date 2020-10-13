@@ -49,6 +49,7 @@ public class WebSubSubscriptionHelper {
 	public void initSubsriptions() {
 		LOGGER.info(IdRepoSecurityManager.getUser(), WEBSUBSUBSCRIPTIONHEPLER, INITSUBSCRIPTION,
 				"Initializing subscribptions..");
+		registerTopic();
 		subscribeForPrintServiceEvents();
 	}
 
