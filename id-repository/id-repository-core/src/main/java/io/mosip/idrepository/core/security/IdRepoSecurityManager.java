@@ -49,8 +49,6 @@ public class IdRepoSecurityManager {
 	/** The Constant ID_REPO_SECURITY_MANAGER. */
 	private static final String ID_REPO_SECURITY_MANAGER = "IdRepoSecurityManager";
 	
-	private static final String AUTHORIZATION = "Authorization=";
-
 	/** The rest factory. */
 	@Autowired
 	private RestRequestBuilder restBuilder;

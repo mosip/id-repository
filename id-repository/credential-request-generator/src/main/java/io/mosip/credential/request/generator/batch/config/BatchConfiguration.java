@@ -24,6 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
@@ -130,6 +131,10 @@ public class BatchConfiguration {
 	public RestUtil getRestUtil() {
 		return new RestUtil();
 	}
-	
+
+	@Bean
+	public ThreadPoolTaskScheduler getTaskScheduler() {
+		return new ThreadPoolTaskScheduler();
+	}
 
 }
