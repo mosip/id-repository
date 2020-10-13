@@ -347,7 +347,7 @@ public class IdRepoController {
 	 *             the id authentication app exception
 	 * @throws IDDataValidationException
 	 */
-	@PreAuthorize("hasAnyRole('RESIDENT')")
+//	@PreAuthorize("hasAnyRole('RESIDENT')")
 	@PostMapping(path = "authtypes/status", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	@ApiOperation(value = "Authenticate Internal Request", response = IdRepoAppException.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Request authenticated successfully"),
