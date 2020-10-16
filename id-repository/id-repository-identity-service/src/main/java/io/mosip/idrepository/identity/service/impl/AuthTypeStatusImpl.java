@@ -177,7 +177,7 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 					ResponseWrapper.class);
 			request.setUri(request.getUri().replace("{vid}", vid));
 			ResponseWrapper<Map<String, String>> response = restHelper.requestSync(request);
-			return response.getResponse().get("uin");
+			return response.getResponse().get("UIN");
 		} catch (RestServiceException e) {
 			if (e.getResponseBodyAsString().isPresent()) {
 				List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(e.getResponseBodyAsString().get());
