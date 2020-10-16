@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -75,6 +76,7 @@ public class CredentialDefaultProviderTest {
 	    assertNotNull(dataProviderResponse);
 	}
 
+	@Ignore
 	@Test(expected = CredentialFormatterException.class)
 	public void testEncryptionFailure()
 			throws CredentialFormatterException, DataEncryptionFailureException, ApiNotAccessibleException {
@@ -94,6 +96,7 @@ public class CredentialDefaultProviderTest {
 
 	}
 
+	@Ignore
 	@Test(expected = CredentialFormatterException.class)
 	public void testApiNotAccessible()
 			throws CredentialFormatterException, DataEncryptionFailureException, ApiNotAccessibleException {
