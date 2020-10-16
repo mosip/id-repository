@@ -119,14 +119,14 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	@Override
 	public IdResponseDTO updateAuthTypeStatus(String individualId, IdType idType,
 			List<AuthtypeStatus> authTypeStatusList) throws IdRepoAppException {
-		String idvid = idType == IdType.VID ? getUin(individualId) : individualId;
+		String uin = idType == IdType.VID ? getUin(individualId) : individualId;
 		IdResponseDTO updateAuthTypeStatus = doUpdateAuthTypeStatus(individualId, authTypeStatusList);
 		
 		List<String> partnerIds = getPartnerIds();
 		partnerIds.forEach(partnerId -> {
 			String topic =  partnerId + "/" + IDAEventType.AUTH_TYPE_STATUS_UPDATE.name();
 			tryRegisteringTopic(topic);
-			publishEvent(idvid, authTypeStatusList, topic, partnerId);
+			publishEvent(uin, authTypeStatusList, topic, partnerId);
 		});
 		
 		return updateAuthTypeStatus;
@@ -177,7 +177,7 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 					ResponseWrapper.class);
 			request.setUri(request.getUri().replace("{vid}", vid));
 			ResponseWrapper<Map<String, String>> response = restHelper.requestSync(request);
-			return response.getResponse().get("uin");
+			return response.getResponse().get("UIN");
 		} catch (RestServiceException e) {
 			if (e.getResponseBodyAsString().isPresent()) {
 				List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(e.getResponseBodyAsString().get());
