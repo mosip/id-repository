@@ -120,7 +120,7 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	public IdResponseDTO updateAuthTypeStatus(String individualId, IdType idType,
 			List<AuthtypeStatus> authTypeStatusList) throws IdRepoAppException {
 		String uin = idType == IdType.VID ? getUin(individualId) : individualId;
-		IdResponseDTO updateAuthTypeStatus = doUpdateAuthTypeStatus(individualId, authTypeStatusList);
+		IdResponseDTO updateAuthTypeStatus = doUpdateAuthTypeStatus(uin, authTypeStatusList);
 		
 		List<String> partnerIds = getPartnerIds();
 		partnerIds.forEach(partnerId -> {
