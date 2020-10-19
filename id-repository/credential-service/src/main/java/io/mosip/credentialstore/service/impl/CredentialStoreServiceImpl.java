@@ -466,7 +466,9 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 		for (String key : sharableAttributeDemographicKeySet) {
 			Object object = identity.get(key);
-			attributesMap.put(key, object);
+			if (object != null) {
+				attributesMap.put(key, object);
+			}
 		}
 		String value = null;
 		List<DocumentsDTO> documents = idResponseDto.getResponse().getDocuments();
