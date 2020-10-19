@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Import;
  */
 @SpringBootApplication
 @Import(value = { java.lang.String.class })
-@ComponentScan(basePackages = { "io.mosip.*", "io.mosip.kernel.auth.*" })
+@ComponentScan(basePackages={ "io.mosip.*" ,"${mosip.auth.adapter.impl.basepackage}"})
 public class CredentialStoreApp 
 {
 
