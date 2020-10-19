@@ -105,8 +105,7 @@ jobs:
         
     - name: Publish the maven package
       run: |
-        #chmod +x ./deploy.sh
-        cd id-repository && mvn deploy -DskipTests -s $GITHUB_WORKSPACE/settings.xml -f pom.xml
+        mvn deploy -DskipTests -DaltDeploymentRepository=ossrh::default::${{ secrets.MAVEN_REPO_URL }} -s $GITHUB_WORKSPACE/settings.xml -f pom.xml
       env:
         GPG_TTY: $(tty)
     - name: Analyze with SonarCloud
