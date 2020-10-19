@@ -17,9 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.JsonConstants;
 import io.mosip.credentialstore.dto.DataProviderResponse;
-import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
-import io.mosip.credentialstore.exception.DataEncryptionFailureException;
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.Utilities;
@@ -79,12 +77,13 @@ public class CredentialDefaultProvider implements CredentialProvider {
 				} else {
 					valueStr = mapper.writeValueAsString(value);
 				}
-					if (encryptMap.get(key)) {
-					String encryptedValue = encryptionUtil.encryptDataWithPin(valueStr, pin);
-						formattedMap.put(key, encryptedValue);
-					} else {
-					formattedMap.put(key, valueStr);
-					}
+				formattedMap.put(key, valueStr);
+				// TODO this is going to implement in 1.1.3 as per new policy
+				/*
+				 * if (encryptMap.get(key)) { String encryptedValue =
+				 * encryptionUtil.encryptDataWithPin(valueStr, pin); formattedMap.put(key,
+				 * encryptedValue); } else { formattedMap.put(key, valueStr); }
+				 */
 
 			}
 			String credentialId = utilities.generateId();
@@ -113,11 +112,11 @@ public class CredentialDefaultProvider implements CredentialProvider {
 			dataProviderResponse.setJSON(json);
 
 			return dataProviderResponse;
-		} catch (DataEncryptionFailureException e) {
-			throw new CredentialFormatterException(e);
-		} catch (ApiNotAccessibleException e) {
-			throw new CredentialFormatterException(e);
-		} catch (JsonProcessingException e) {
+		} /*
+			 * catch (DataEncryptionFailureException e) { throw new
+			 * CredentialFormatterException(e); } catch (ApiNotAccessibleException e) {
+			 * throw new CredentialFormatterException(e); }
+			 */catch (JsonProcessingException e) {
 			throw new CredentialFormatterException(e);
 		}
 
