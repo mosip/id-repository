@@ -37,7 +37,11 @@ public enum CredentialServiceErrorCodes {
 	
 	DATA_ENCRYPTION_FAILURE_EXCEPTION("IDR-CRS-013", "Data Encryption failed"),
 	
-	WEBSUB_FAIL_EXCEPTION("IDR-CRS-014", "Websub event failed");
+	WEBSUB_FAIL_EXCEPTION("IDR-CRS-014", "Websub event failed"),
+
+	POLICY_SCHEMA_VALIDATION_EXCEPTION("IDR-CRS-015", "Policy Schema validation failed"),
+
+	PARTNER_EXCEPTION("IDR-CRS-008", "Failed to get partner extraction policy details");
 	
 
 	/** The error code. */

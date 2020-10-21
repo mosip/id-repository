@@ -22,4 +22,8 @@ public class CredentialConstants {
 	public  static final String INDIVIDUAL_BIOMETRICS = "individualBiometrics";
 	
 	public static final String CREDENTIAL_ISSUED = "credentialIssued";
+
+	public static final String CBEFF = "CBEFF";
+
+	public static final String EXTRACTION = "extraction";
 }

@@ -69,4 +69,8 @@ public class Utilities {
 	return  RandomStringUtils.randomAlphabetic(5);
 	}
 
+	public String getPolicySchema(String configServerFileStorageURL, String fileName) {
+		String policySchema = restTemplate.getForObject(configServerFileStorageURL + fileName, String.class);
+		return policySchema;
+	}
 }

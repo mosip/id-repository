@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.CredentialConstants;
+import io.mosip.credentialstore.constants.JsonConstants;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.EncryptZkResponseDto;
 import io.mosip.credentialstore.dto.ZkDataAttribute;
@@ -147,10 +148,21 @@ public class IdAuthProvider implements CredentialProvider {
 
 		    credentialServiceRequestDto.setAdditionalData(additionalData);
 
-			JSONObject json = new JSONObject(formattedMap);
+
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 			LocalDateTime localdatetime = LocalDateTime
 					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+			JSONObject json = new JSONObject();
+			List<String> typeList = new ArrayList<>();
+			typeList.add(JsonConstants.VERFIABLECREDENTIAL);
+			typeList.add(JsonConstants.MOSIPVERFIABLECREDENTIAL);
+			json.put(JsonConstants.ID, env.getProperty("mosip.credential.service.format.id"));
+			json.put(JsonConstants.TYPE, typeList);
+			json.put(JsonConstants.ISSUER, env.getProperty("mosip.credential.service.format.issuer"));
+			json.put(JsonConstants.ISSUANCEDATE, DateUtils.formatToISOString(localdatetime));
+			json.put(JsonConstants.ISSUEDTO, credentialServiceRequestDto.getIssuer());
+			json.put(JsonConstants.CONSENT, "");
+			json.put(JsonConstants.CREDENTIALSUBJECT, formattedMap);
 			dataProviderResponse.setIssuanceDate(localdatetime);
 			dataProviderResponse.setJSON(json);
 			dataProviderResponse.setCredentialId(credentialId);

@@ -379,12 +379,18 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		Map<String, String> formatterMap = new HashMap<>();
 		List<AllowedKycDto> sharableAttributeList = policyResponseDto.getPolicies().getShareableAttributes();
 		sharableAttributeList.forEach(dto -> {
-			if (dto.getAttributeName().equalsIgnoreCase(CredentialConstants.FACE)
-					|| dto.getAttributeName().equalsIgnoreCase(CredentialConstants.IRIS)
-					|| dto.getAttributeName().equalsIgnoreCase(CredentialConstants.FINGER)) {
-				formatterMap.put(dto.getAttributeName(), dto.getFormat());
-			}
-		});
+			if (dto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)
+				&& dto.getFormat().equalsIgnoreCase(CredentialConstants.EXTRACTION)) {
+
+	}
+});
+		/*
+		 * sharableAttributeList.forEach(dto -> { if
+		 * (dto.getAttributeName().equalsIgnoreCase(CredentialConstants.FACE) ||
+		 * dto.getAttributeName().equalsIgnoreCase(CredentialConstants.IRIS) ||
+		 * dto.getAttributeName().equalsIgnoreCase(CredentialConstants.FINGER)) {
+		 * formatterMap.put(dto.getAttributeName(), dto.getFormat()); } });
+		 */
 		return formatterMap;
 	}
 
