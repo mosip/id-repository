@@ -6,14 +6,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,20 +21,22 @@ import org.springframework.stereotype.Component;
 import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.constants.CredentialFormatter;
 import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
+import io.mosip.credentialstore.constants.JsonConstants;
 import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.CredentialTypeResponse;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.DataShare;
-import io.mosip.credentialstore.dto.JsonValue;
 import io.mosip.credentialstore.dto.PolicyResponseDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
 import io.mosip.credentialstore.exception.DataShareException;
 import io.mosip.credentialstore.exception.IdRepoException;
 import io.mosip.credentialstore.exception.PolicyException;
+import io.mosip.credentialstore.exception.SignatureException;
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.service.CredentialStoreService;
 import io.mosip.credentialstore.util.DataShareUtil;
+import io.mosip.credentialstore.util.DigitalSignatureUtil;
 import io.mosip.credentialstore.util.IdrepositaryUtil;
 import io.mosip.credentialstore.util.JsonUtil;
 import io.mosip.credentialstore.util.PolicyUtil;
@@ -152,6 +151,9 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	@Autowired
 	private AuditHelper auditHelper;
 
+	@Autowired
+	private DigitalSignatureUtil digitalSignatureUtil;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -190,18 +192,27 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 					credentialServiceRequestDto, sharableAttributeMap);
 			credentialServiceResponse = new CredentialServiceResponse();
 			DataShare dataShare = null;
+			String jsonData=null;
+			String signature = null;
 			if (policyDetailResponseDto.getPolicies().getDataSharePolicies().getTypeOfShare()
 					.equalsIgnoreCase(DATASHARE)) {
-				dataShare = dataShareUtil.getDataShare(dataProviderResponse.getFormattedData(), policyId,
+				jsonData = JsonUtil.objectMapperObjectToJson(dataProviderResponse.getJSON());
+				dataShare = dataShareUtil.getDataShare(jsonData.getBytes(), policyId,
 						credentialServiceRequestDto.getIssuer());
 				credentialServiceResponse.setDataShareUrl(dataShare.getUrl());
-				credentialServiceResponse.setSignature(dataShare.getSignature());
+				signature = dataShare.getSignature();
+
+			} else {
+				jsonData=processJson(dataProviderResponse.getJSON());
+				signature = digitalSignatureUtil.sign(jsonData.getBytes());
+
 			}
 
-			EventModel eventModel = getEventModel(dataShare, credentialServiceRequestDto, sharableAttributeMap);
+			EventModel eventModel = getEventModel(dataShare, credentialServiceRequestDto,
+					jsonData, signature);
 			webSubUtil.publishSuccess(credentialServiceRequestDto.getIssuer(), eventModel);
-
-			credentialServiceResponse.setStatus("DONE");
+			credentialServiceResponse.setSignature(signature);
+			credentialServiceResponse.setStatus("ISSUED");
 			credentialServiceResponse.setCredentialId(dataProviderResponse.getCredentialId());
 
 
@@ -276,6 +287,16 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
 					ExceptionUtils.getStackTrace(e));
+		} catch (SignatureException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getId(), IdType.ID, e);
+			ErrorDTO error = new ErrorDTO();
+			error.setErrorCode(CredentialServiceErrorCodes.SIGNATURE_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialServiceErrorCodes.SIGNATURE_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
+					ExceptionUtils.getStackTrace(e));
 		} catch (Exception e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
 					credentialServiceRequestDto.getId(), IdType.ID, e);
@@ -304,12 +325,18 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		return credentialIssueResponseDto;
 	}
 
-	private EventModel getEventModel(DataShare dataShare, CredentialServiceRequestDto credentialServiceRequestDto,
-			Map<String, Object> sharableAttributes) {
-		Map<String, Object> map = credentialServiceRequestDto.getAdditionalData();
-		map.put("recepiant", credentialServiceRequestDto.getRecepiant());
+	private String processJson(JSONObject json) throws IOException {
+		// TODO add JWT token
+		String jsonData = JsonUtil.objectMapperObjectToJson(json);
+		return CryptoUtil.encodeBase64(jsonData.getBytes());
 
-		credentialServiceRequestDto.setAdditionalData(map);
+	}
+
+	@SuppressWarnings("unchecked")
+	private EventModel getEventModel(DataShare dataShare, CredentialServiceRequestDto credentialServiceRequestDto,
+			String credentialData, String signature) throws IOException, ApiNotAccessibleException, SignatureException {
+		Map<String, Object> map = credentialServiceRequestDto.getAdditionalData();
+
 		EventModel eventModel = new EventModel();
 		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 		LocalDateTime localdatetime = LocalDateTime
@@ -320,10 +347,17 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		Event event = new Event();
 
 		if (dataShare == null) {
-			map.putAll(sharableAttributes);
+
+			map.put("credential", credentialData);
+
 		} else {
 			event.setDataShareUri(dataShare.getUrl());
 		}
+
+		JSONObject signaturejson = new JSONObject();
+		signaturejson.put(JsonConstants.SIGNATURE, signature);
+		map.put(JsonConstants.PROOF, signaturejson);
+		credentialServiceRequestDto.setAdditionalData(map);
 		event.setData(credentialServiceRequestDto.getAdditionalData());
 		event.setTimestamp(DateUtils.toISOString(localdatetime));
 
@@ -336,6 +370,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		type.setNamespace(env.getProperty(CREDENTIAL_SERVICE_TYPE_NAMESPACE));
 		event.setType(type);
 		eventModel.setEvent(event);
+		LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_STORE, CREATE_CRDENTIAL,
+				"event json" + JsonUtil.objectMapperObjectToJson(eventModel));
 		return eventModel;
 	}
 
@@ -374,8 +410,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	}
 
 	private String getPolicyId(String credentialType) {
-		String policId = env.getProperty("credentialType.policyid." + credentialType.toUpperCase());
-		return policId;
+		String policyId = env.getProperty("credentialType.policyid." + credentialType.toUpperCase());
+		return policyId;
 	}
 
 	/**
@@ -408,9 +444,9 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 				} else {
 					sharableAttributeDemographicKeySet.add(attribute);
-
+					encryptionMap.put(attribute, credentialServiceRequestDto.isEncrypt());
 				}
-				encryptionMap.put(attribute, credentialServiceRequestDto.isEncrypt());
+
 			});
 		}
 
@@ -423,22 +459,15 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 			} else {
 				sharableAttributeDemographicKeySet.add(dto.getAttributeName());
-
+				encryptionMap.put(dto.getAttributeName(), dto.isEncrypted());
 			}
-			encryptionMap.put(dto.getAttributeName(), dto.isEncrypted());
+
 		});
 
 		for (String key : sharableAttributeDemographicKeySet) {
 			Object object = identity.get(key);
-			if (object instanceof ArrayList) {
-				JSONArray node = JsonUtil.getJSONArray(identity, key);
-				JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
-				attributesMap.put(key, String.valueOf(jsonValues));
-			} else if (object instanceof LinkedHashMap) {
-				JSONObject json = JsonUtil.getJSONObject(identity, key);
-				attributesMap.put(key, (String) json.get(VALUE));
-			} else {
-				attributesMap.put(key, String.valueOf(object));
+			if (object != null) {
+				attributesMap.put(key, object);
 			}
 		}
 		String value = null;
@@ -452,21 +481,18 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 
 		List<BIRType> typeList =
-		 cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(value)); List<BIR>
-		birList = cbeffutil.convertBIRTypeToBIR(typeList);
-		Map<String, Map<String, byte[]>> biometrics = birList.stream().collect(Collectors.groupingBy(bir ->
-		  bir.getBdbInfo().getType().get(0).value(), Collectors.toMap(bir -> {
-			List<String> subtype = bir.getBdbInfo().getSubtype();
-			String type = bir.getBdbInfo().getType().get(0).value();
-			return subtype.isEmpty() ? type :
-					(type + "_" + subtype.stream().collect(Collectors.joining(" ")));
-		}, bir -> (byte[]) bir.getBdb())));
+				cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(value));
+		List<BIR> birList = cbeffutil.convertBIRTypeToBIR(typeList);
 
-		for (Entry<String, Map<String, byte[]>> entry : biometrics.entrySet()) {
-			String
-		  key=entry.getKey().toLowerCase();
-		  if(sharableAttributeBiometricKeySet.contains(key)) { attributesMap.put(key,
-		  entry.getValue()); } }
+		List<BIR> filteredBIRList = birList.stream()
+				.filter(bir -> sharableAttributeBiometricKeySet
+				.contains(bir.getBdbInfo().getType().get(0).value().toLowerCase())).collect(Collectors.toList());
+		if (!filteredBIRList.isEmpty()) {
+			byte[] cBEFFByte = cbeffutil.createXML(filteredBIRList);
+
+			attributesMap.put(CredentialConstants.INDIVIDUAL_BIOMETRICS, CryptoUtil.encodeBase64(cBEFFByte));
+			encryptionMap.put(CredentialConstants.INDIVIDUAL_BIOMETRICS, true);
+		}
 
 		return attributesMap;
 	}

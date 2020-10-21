@@ -30,6 +30,7 @@ import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
+import io.mosip.idrepository.core.dto.AuthTypeStatusRequestDto;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
@@ -161,7 +162,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 */
 	@Override
 	public boolean supports(Class<?> clazz) {
-		return clazz.isAssignableFrom(IdRequestDTO.class);
+		return clazz.isAssignableFrom(IdRequestDTO.class) || clazz.isAssignableFrom(AuthTypeStatusRequestDto.class);
 	}
 
 	/*
@@ -172,26 +173,27 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 */
 	@Override
 	public void validate(@Nonnull Object target, Errors errors) {
-		IdRequestDTO request = (IdRequestDTO) target;
+		if (target instanceof IdRequestDTO) {
+			IdRequestDTO request = (IdRequestDTO) target;
 
-		validateReqTime(request.getRequesttime(), errors);
+			validateReqTime(request.getRequesttime(), errors);
 
-		if (!errors.hasErrors()) {
-			validateVersion(request.getVersion(), errors);
-		}
-
-		if (!errors.hasErrors() && Objects.nonNull(request.getId())) {
-			if (request.getId().equals(id.get(CREATE))) {
-				validateStatus(request.getRequest().getStatus(), errors, CREATE);
-				validateRequest(request.getRequest(), errors, CREATE);
-			} else if (request.getId().equals(id.get(UPDATE))) {
-				validateStatus(request.getRequest().getStatus(), errors, UPDATE);
-				validateRequest(request.getRequest(), errors, UPDATE);
+			if (!errors.hasErrors()) {
+				validateVersion(request.getVersion(), errors);
 			}
 
-			validateRegId(request.getRequest().getRegistrationId(), errors);
-		}
+			if (!errors.hasErrors() && Objects.nonNull(request.getId())) {
+				if (request.getId().equals(id.get(CREATE))) {
+					validateStatus(request.getRequest().getStatus(), errors, CREATE);
+					validateRequest(request.getRequest(), errors, CREATE);
+				} else if (request.getId().equals(id.get(UPDATE))) {
+					validateStatus(request.getRequest().getStatus(), errors, UPDATE);
+					validateRequest(request.getRequest(), errors, UPDATE);
+				}
 
+				validateRegId(request.getRequest().getRegistrationId(), errors);
+			}
+		}
 	}
 
 	/**
@@ -545,7 +547,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					"type is null but extraction format is not null");
 			throw new IdRepoAppException(MISSING_INPUT_PARAMETER.getErrorCode(),
 					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), "type"));
-		} else if (!type.equalsIgnoreCase("bio") && !type.equalsIgnoreCase("all") && !extractionFormats.isEmpty()) {
+		} else if (Objects.nonNull(type) && !type.equalsIgnoreCase("bio") && !type.equalsIgnoreCase("all") && !extractionFormats.isEmpty()) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateTypeAndExtractionFormats",
 					"type is not bio but extraction format is not null");
 			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
@@ -556,7 +558,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	public void validateIdvId(String individualId, IdType idType) throws IdRepoAppException {
 		if ((idType == IdType.UIN && !this.validateUin(individualId))
 				|| (idType == IdType.VID && !this.validateVid(individualId))
-				|| (idType == IdType.REG_ID && this.validateRid(individualId))) {
+				|| (idType == IdType.RID && this.validateRid(individualId))) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "getIdType", "Invalid ID");
 			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "id"));
@@ -565,7 +567,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 
 	public IdType validateIdTypeForAuthTypeStatus(String type) throws IdRepoAppException {
 		IdType idType = this.validateIdType(type);
-		if (idType == IdType.REG_ID) {
+		if (idType == IdType.RID) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateIdTypeForAuthTypeStatus",
 					"REG ID NOT SUPPORTED");
 			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),

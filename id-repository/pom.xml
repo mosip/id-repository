@@ -63,6 +63,7 @@
 		<module>bioextractor-service</module>
         <module>credential-request-generator</module>
         <module>credential-service</module>
+        <module>id-repository-salt-generator</module>
 	</modules>
 
 	<properties>	
@@ -71,11 +72,11 @@
 		<maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
 		<maven.war.plugin.version>3.1.0</maven.war.plugin.version>
 		<maven.surefire.plugin.version>2.22.0</maven.surefire.plugin.version>
-		<maven.jacoco.plugin.version>0.8.1</maven.jacoco.plugin.version>
+		<maven.jacoco.plugin.version>0.8.4</maven.jacoco.plugin.version>
 		<maven.sonar.plugin.version>3.7.0.1746</maven.sonar.plugin.version>
 		<maven.javadoc.version>3.2.0</maven.javadoc.version>
 		<sonar.coverage.exclusions>**/constant/**,**/config/**,**/httpfilter/**,**/cache/**,**/dto/**,**/entity/**,**/model/**,**/exception/**,**/repository/**,**/security/**,**/*Config.java,**/*BootApplication.java,**/*VertxApplication.java,**/cbeffutil/**</sonar.coverage.exclusions>
-		<sonar.cpd.exclusions>**/dto/**,**/entity/**,**/config/**</sonar.cpd.exclusions>
+		<sonar.cpd.exclusions>**/dto/**,**/entity/**,**/config/**,**/api/**</sonar.cpd.exclusions>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
 		<maven.compiler.version>3.8.0</maven.compiler.version>
@@ -96,6 +97,8 @@
 		<!-- Test & Logging -->
 		<junit.version>4.12</junit.version>
 		<mockito.version>2.22.0</mockito.version>
+
+		<kernel.logger.logback.version>1.2.0-SNAPSHOT</kernel.logger.logback.version>
 	</properties>
     <dependencies>
     	<!-- JUnit -->
@@ -132,6 +135,14 @@
 		    <artifactId>javassist</artifactId>
 		    <version>3.27.0-GA</version>
 		</dependency>
+
+
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-logger-logback</artifactId>
+			<version>${kernel.logger.logback.version}</version>
+		</dependency>
+
     </dependencies>
 	<build>
 		<pluginManagement>
@@ -153,7 +164,7 @@
 						<skip>false</skip>
 						<useFile>false</useFile>
 						<argLine>
-							--illegal-access=permit
+							${argLine} --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED --illegal-access=permit
 						</argLine>						
 					</configuration>
 				</plugin>

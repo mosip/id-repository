@@ -11,12 +11,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credential.request.generator.constants.ApiName;
 import io.mosip.credential.request.generator.constants.CredentialStatusCode;
-import io.mosip.credential.request.generator.constants.LoggerFileConstant;
-
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.ApiNotAccessibleException;
-
-
 import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
@@ -52,6 +48,8 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialItemProcessor.class);
+	
+
 
 	@Override
 	public CredentialEntity process(CredentialEntity credential) {
@@ -89,18 +87,21 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 				credential.setStatusCode(credentialServiceResponse.getStatus());
 				credential.setSignature(credentialServiceResponse.getSignature());
 			}
-				
-		   	LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
+
+			LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
 					"ended processing item");
 		} catch (ApiNotAccessibleException e) {
+
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
 					ExceptionUtils.getStackTrace(e));
         	credential.setStatusCode("FAILED");
 		} catch (IOException e) {
+
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
 					ExceptionUtils.getStackTrace(e));
 			credential.setStatusCode("FAILED");
 		} catch (Exception e) {
+
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
 					ExceptionUtils.getStackTrace(e));
 			credential.setStatusCode("FAILED");

@@ -29,6 +29,8 @@ ENV is_glowroot_env=${is_glowroot}
 
 # environment variable to pass artifactory url, at docker runtime
 ENV artifactory_url_env=${artifactory_url}
+# environment variable to pass iam_adapter url, at docker runtime
+ENV iam_adapter_url_env=${iam_adapter_url}
 
 COPY ./target/id-repository-identity-service-*.jar id-repository-identity-service.jar
 
@@ -37,17 +39,19 @@ COPY ./target/id-repository-identity-service-*.jar id-repository-identity-servic
 EXPOSE 8090
 
 CMD if [ "$is_glowroot_env" = "present" ]; then \
-    wget "${artifactory_url_env}"/artifactory/libs-snapshot-local/io/mosip/kernel/kernel-ref-idobjectvalidator/1.0.9-SNAPSHOT/kernel-ref-idobjectvalidator-1.0.9-SNAPSHOT.jar kernel-ref-idobjectvalidator-1.0.9-SNAPSHOT.jar ; \
+    wget "${artifactory_url_env}"/artifactory/libs-snapshot-local/io/mosip/kernel/kernel-ref-idobjectvalidator/kernel-ref-idobjectvalidator.jar kernel-ref-idobjectvalidator.jar ; \
     wget "${artifactory_url_env}"/artifactory/libs-snapshot-local/io/mosip/testing/glowroot.zip ; \
     apt-get update && apt-get install -y unzip ; \
     unzip glowroot.zip ; \
     rm -rf glowroot.zip ; \
     
     sed -i 's/<service_name>/id-repository-identity-service/g' glowroot/glowroot.properties ; \
-    java -Dloader.path=/kernel-ref-idobjectvalidator-1.0.9-SNAPSHOT.jar -jar -javaagent:glowroot/glowroot.jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}"  -Dspring.cloud.config.uri="${spring_config_url_env}" id-repository-identity-service.jar ; \
+    wget "${iam_adapter_url_env}" -O kernel-auth-adapter.jar; \
+    java -Dloader.path=/kernel-ref-idobjectvalidator.jar,./kernel-auth-adapter.jar -jar -javaagent:glowroot/glowroot.jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}"  -Dspring.cloud.config.uri="${spring_config_url_env}" id-repository-identity-service.jar ; \
     else \
-    wget "${artifactory_url_env}"/artifactory/libs-snapshot-local/io/mosip/kernel/kernel-ref-idobjectvalidator/1.0.9-SNAPSHOT/kernel-ref-idobjectvalidator-1.0.9-SNAPSHOT.jar kernel-ref-idobjectvalidator-1.0.9-SNAPSHOT.jar ; \
-    java -Dloader.path=/kernel-ref-idobjectvalidator-1.0.9-SNAPSHOT.jar -jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}"  -Dspring.cloud.config.uri="${spring_config_url_env}" id-repository-identity-service.jar ; \
+    wget "${artifactory_url_env}"/artifactory/libs-snapshot-local/io/mosip/kernel/kernel-ref-idobjectvalidator/kernel-ref-idobjectvalidator.jar kernel-ref-idobjectvalidator.jar ; \
+    wget "${iam_adapter_url_env}" -O kernel-auth-adapter.jar; \	
+    java -Dloader.path=/kernel-ref-idobjectvalidator.jar,./kernel-auth-adapter.jar -jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}"  -Dspring.cloud.config.uri="${spring_config_url_env}" id-repository-identity-service.jar ; \
     fi
 
 
