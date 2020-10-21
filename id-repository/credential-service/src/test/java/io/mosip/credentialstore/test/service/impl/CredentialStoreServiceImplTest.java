@@ -229,7 +229,7 @@ public class CredentialStoreServiceImplTest {
 		DataShare dataShare=new DataShare();
 		Mockito.when(dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(dataShare);
 		Mockito.when(digitalSignatureUtil.sign(Mockito.any())).thenReturn("testdata");
-		
+
 	}
 	
 	@Test
@@ -417,7 +417,7 @@ public class CredentialStoreServiceImplTest {
 		CredentialServiceResponseDto credentialServiceResponseDto = credentialStoreServiceImpl
 				.createCredentialIssuance(credentialServiceRequestDto);
 
-	
+
 		assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),
 				CredentialServiceErrorCodes.SIGNATURE_EXCEPTION.getErrorMessage());
 	}

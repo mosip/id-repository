@@ -455,7 +455,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 					sharableAttributeDemographicKeySet.add(attribute);
 					encryptionMap.put(attribute, credentialServiceRequestDto.isEncrypt());
 				}
-				
+
 			});
 		}
 
@@ -470,7 +470,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 				sharableAttributeDemographicKeySet.add(dto.getAttributeName());
 				encryptionMap.put(dto.getAttributeName(), dto.isEncrypted());
 			}
-			
+
 		});
 
 		for (String key : sharableAttributeDemographicKeySet) {
