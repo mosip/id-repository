@@ -546,7 +546,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			if (allowedBioAttributes.contains(bio.getBiometricFileType())) {
 				try {
 					String fileName = BIOMETRICS + SLASH + bio.getBioFileId();
-					String uinHash = uinObject.getUinHash().substring(4, 67).toLowerCase();
+					String uinHash = uinObject.getUinHash().split("_")[1].substring(0, 63).toLowerCase();
 					if (!objectStore.exists(objectStoreAccountName,
 							uinHash, null, null, fileName)) {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricFiles",
