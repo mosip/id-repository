@@ -23,7 +23,7 @@ public class WebSubUtil {
 	   
 
 	/** The config server file storage URL. */
-	@Value("${mosip.partnerhuburl}")
+	@Value("${kernel.websub.publisher.url}")
 	private String partnerhuburl;
 
 

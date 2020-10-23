@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.constants.JsonConstants;
+import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.EncryptZkResponseDto;
 import io.mosip.credentialstore.dto.ZkDataAttribute;
@@ -43,7 +44,7 @@ import io.mosip.kernel.core.util.DateUtils;
  * @author Sowmya
  */
 @Component
-public class IdAuthProvider implements CredentialProvider {
+public class IdAuthProvider extends CredentialProvider {
 	
 	
 	/** The utilities. */
@@ -90,23 +91,25 @@ public class IdAuthProvider implements CredentialProvider {
 	/* (non-Javadoc)
 	 * @see io.mosip.credentialstore.provider.CredentialProvider#getFormattedCredentialData(java.util.Map, io.mosip.idrepository.core.dto.CredentialServiceRequestDto, java.util.Map)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
-	public DataProviderResponse getFormattedCredentialData(	Map<String,Boolean> encryptMap,
-			CredentialServiceRequestDto credentialServiceRequestDto, Map<String, Object> sharableAttributeMap)
+	public DataProviderResponse getFormattedCredentialData(
+			CredentialServiceRequestDto credentialServiceRequestDto, Map<AllowedKycDto, Object> sharableAttributeMap)
 			throws CredentialFormatterException {
 
 		LOGGER.debug(IdRepoSecurityManager.getUser(), IDAUTHPROVIDER, GET_FORAMTTED_DATA,
 				"formatting the data start");
 		DataProviderResponse dataProviderResponse=new DataProviderResponse();
 		try {
-			
+			List<String> protectedAttributes = new ArrayList<>();
 			List<ZkDataAttribute> bioZkDataAttributes=new ArrayList<>();
 			
 			List<ZkDataAttribute> demoZkDataAttributes=new ArrayList<>();
             Map<String, Object> formattedMap=new HashMap<>();
-              
-		 for (Map.Entry<String,Object> entry : sharableAttributeMap.entrySet()) {
-			    String key=entry.getKey();
+			formattedMap.put(JsonConstants.ID, credentialServiceRequestDto.getId());
+			for (Map.Entry<AllowedKycDto, Object> entry : sharableAttributeMap.entrySet()) {
+				AllowedKycDto allowedKycDto = entry.getKey();
+				String attributeName = allowedKycDto.getAttributeName();
 				Object value = entry.getValue();
 				String valueStr=null;
 				if (value instanceof String) {
@@ -114,22 +117,23 @@ public class IdAuthProvider implements CredentialProvider {
 				}else {
 					valueStr=mapper.writeValueAsString(value);
 				}
-				if (encryptMap.get(key)) {
+				if (allowedKycDto.isEncrypted()) {
 					ZkDataAttribute zkDataAttribute=new ZkDataAttribute();
-					zkDataAttribute.setIdentifier(key);
+					zkDataAttribute.setIdentifier(attributeName);
 					zkDataAttribute.setValue(valueStr);
-					if (key.equalsIgnoreCase(CredentialConstants.INDIVIDUAL_BIOMETRICS)) {
+					if (allowedKycDto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)) {
 						bioZkDataAttributes.add(zkDataAttribute);
-					}else {
-                      demoZkDataAttributes.add(zkDataAttribute);
+					} else {
+						demoZkDataAttributes.add(zkDataAttribute);
 					}
-						
+					protectedAttributes.add(attributeName);
 				} else {
-					formattedMap.put(key, valueStr);
+					formattedMap.put(attributeName, valueStr);
 				}
 				
 
 		}
+
 		 Map<String,Object> additionalData=credentialServiceRequestDto.getAdditionalData();
 		 if(!demoZkDataAttributes.isEmpty()) {
 			 EncryptZkResponseDto demoEncryptZkResponseDto=  encryptionUtil.encryptDataWithZK(credentialServiceRequestDto.getId(), demoZkDataAttributes);
@@ -156,13 +160,15 @@ public class IdAuthProvider implements CredentialProvider {
 			List<String> typeList = new ArrayList<>();
 			typeList.add(JsonConstants.VERFIABLECREDENTIAL);
 			typeList.add(JsonConstants.MOSIPVERFIABLECREDENTIAL);
-			json.put(JsonConstants.ID, env.getProperty("mosip.credential.service.format.id"));
+			typeList.add(JsonConstants.PHILSYSVERFIABLECREDENTIAL);
+			json.put(JsonConstants.ID, env.getProperty("mosip.credential.service.format.id") + credentialId);
 			json.put(JsonConstants.TYPE, typeList);
 			json.put(JsonConstants.ISSUER, env.getProperty("mosip.credential.service.format.issuer"));
 			json.put(JsonConstants.ISSUANCEDATE, DateUtils.formatToISOString(localdatetime));
 			json.put(JsonConstants.ISSUEDTO, credentialServiceRequestDto.getIssuer());
 			json.put(JsonConstants.CONSENT, "");
 			json.put(JsonConstants.CREDENTIALSUBJECT, formattedMap);
+			json.put(JsonConstants.PROTECTEDATTRIBUTES, protectedAttributes);
 			dataProviderResponse.setIssuanceDate(localdatetime);
 			dataProviderResponse.setJSON(json);
 			dataProviderResponse.setCredentialId(credentialId);
@@ -176,11 +182,11 @@ public class IdAuthProvider implements CredentialProvider {
 		} catch (ApiNotAccessibleException e) {
 			throw new CredentialFormatterException(e);
 		}
-		
-
 
 	}
 	
+
+
 	/**
 	 * Adds the to formatter.
 	 *

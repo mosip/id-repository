@@ -1,12 +1,12 @@
 package io.mosip.credentialstore.dto;
 
+import java.util.List;
+
 import lombok.Data;
 
 @Data
 public class PartnerExtractorResponse {
-	private String attributeName;
+	
+	List<PartnerExtractor> extractors;
 
-	private String biometric;
-
-	private Extractor extractor;
 }

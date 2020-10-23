@@ -225,7 +225,8 @@ public class CredentialStoreServiceImplTest {
 		JSONObject jsonObject1 = new JSONObject();
 		jsonObject1.put("name", "value");
 		dataProviderResponse.setJSON(jsonObject1);
-		Mockito.when(credentialDefaultProvider.getFormattedCredentialData(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(dataProviderResponse);
+		// Mockito.when(credentialDefaultProvider.getFormattedCredentialData(Mockito.any(),
+		// Mockito.any(), Mockito.any())).thenReturn(dataProviderResponse);
 		DataShare dataShare=new DataShare();
 		Mockito.when(dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(dataShare);
 		Mockito.when(digitalSignatureUtil.sign(Mockito.any())).thenReturn("testdata");
@@ -296,7 +297,8 @@ public class CredentialStoreServiceImplTest {
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		CredentialFormatterException e = new CredentialFormatterException();
-		Mockito.when(credentialDefaultProvider.getFormattedCredentialData(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
+		// Mockito.when(credentialDefaultProvider.getFormattedCredentialData(Mockito.any(),
+		// Mockito.any(), Mockito.any())).thenThrow(e);
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.CREDENTIAL_FORMATTER_EXCEPTION.getErrorMessage());
 	}

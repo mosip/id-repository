@@ -5,11 +5,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +23,14 @@ import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.CredentialTypeResponse;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.DataShare;
+import io.mosip.credentialstore.dto.PartnerExtractor;
+import io.mosip.credentialstore.dto.PartnerExtractorResponse;
 import io.mosip.credentialstore.dto.PolicyResponseDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
 import io.mosip.credentialstore.exception.DataShareException;
 import io.mosip.credentialstore.exception.IdRepoException;
+import io.mosip.credentialstore.exception.PartnerException;
 import io.mosip.credentialstore.exception.PolicyException;
 import io.mosip.credentialstore.exception.SignatureException;
 import io.mosip.credentialstore.provider.CredentialProvider;
@@ -49,7 +49,6 @@ import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.CredentialServiceResponse;
 import io.mosip.idrepository.core.dto.CredentialServiceResponseDto;
-import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.ErrorDTO;
 import io.mosip.idrepository.core.dto.Event;
 import io.mosip.idrepository.core.dto.EventModel;
@@ -58,9 +57,6 @@ import io.mosip.idrepository.core.dto.Type;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -179,17 +175,20 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 				Map<String, Object> additionalData = new HashMap<>();
 				credentialServiceRequestDto.setAdditionalData(additionalData);
 			}
-			Map<String, String> bioAttributeFormatterMap = getFormatters(policyDetailResponseDto);
+			Map<String, String> bioAttributeFormatterMap = getFormatters(policyDetailResponseDto,
+					credentialServiceRequestDto.getIssuer());
 			IdResponseDTO idResponseDto = idrepositaryUtil.getData(credentialServiceRequestDto,
 					bioAttributeFormatterMap);
-			Map<String, Boolean> encryptMap = new HashMap<>();
-			Map<String, Object> sharableAttributeMap = setSharableAttributeValues(idResponseDto,
-					credentialServiceRequestDto, policyDetailResponseDto, encryptMap);
 
+             
 			credentialProvider = getProvider(credentialServiceRequestDto.getCredentialType());
 
-			DataProviderResponse dataProviderResponse = credentialProvider.getFormattedCredentialData(encryptMap,
-					credentialServiceRequestDto, sharableAttributeMap);
+			Map<AllowedKycDto, Object> shrableAttributesMap = credentialProvider.prepareSharableAttributes(
+					idResponseDto, policyDetailResponseDto,
+					credentialServiceRequestDto);
+			DataProviderResponse dataProviderResponse = credentialProvider
+					.getFormattedCredentialData(
+					credentialServiceRequestDto, shrableAttributesMap);
 			credentialServiceResponse = new CredentialServiceResponse();
 			DataShare dataShare = null;
 			String jsonData=null;
@@ -203,6 +202,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 				signature = dataShare.getSignature();
 
 			} else {
+				// TO DO encrypt the credential based on certificate
 				jsonData=processJson(dataProviderResponse.getJSON());
 				signature = digitalSignatureUtil.sign(jsonData.getBytes());
 
@@ -375,22 +375,39 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		return eventModel;
 	}
 
-	private Map<String, String> getFormatters(PolicyResponseDto policyResponseDto) {
+	private Map<String, String> getFormatters(PolicyResponseDto policyResponseDto, String partnerId)
+			throws ApiNotAccessibleException, PartnerException {
 		Map<String, String> formatterMap = new HashMap<>();
 		List<AllowedKycDto> sharableAttributeList = policyResponseDto.getPolicies().getShareableAttributes();
+		PartnerExtractorResponse partnerExtractorResponse = policyUtil
+				.getPartnerExtractorFormat(policyResponseDto.getPolicyId(),
+				partnerId);
+		List<PartnerExtractor> partnerExtractorList = partnerExtractorResponse.getExtractors();
+
 		sharableAttributeList.forEach(dto -> {
 			if (dto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)
 				&& dto.getFormat().equalsIgnoreCase(CredentialConstants.EXTRACTION)) {
+				partnerExtractorList.forEach(partnerExtractorDto -> {
+					if (partnerExtractorDto.getAttributeName().equalsIgnoreCase(dto.getAttributeName())) {
+						if(partnerExtractorDto.getBiometric().contains(CredentialConstants.FACE)){
+							formatterMap.put(CredentialConstants.FACE,
+									partnerExtractorDto.getExtractor().getProvider());
+						} else if (partnerExtractorDto.getBiometric().contains(CredentialConstants.IRIS)) {
+							formatterMap.put(CredentialConstants.IRIS,
+									partnerExtractorDto.getExtractor().getProvider());
+						} else if (partnerExtractorDto.getBiometric().contains(CredentialConstants.FINGER)) {
+							formatterMap.put(CredentialConstants.FINGER,
+									partnerExtractorDto.getExtractor().getProvider());
+		               }
+					}
 
-	}
+	  
+				});
+	
+				}
+			
 });
-		/*
-		 * sharableAttributeList.forEach(dto -> { if
-		 * (dto.getAttributeName().equalsIgnoreCase(CredentialConstants.FACE) ||
-		 * dto.getAttributeName().equalsIgnoreCase(CredentialConstants.IRIS) ||
-		 * dto.getAttributeName().equalsIgnoreCase(CredentialConstants.FINGER)) {
-		 * formatterMap.put(dto.getAttributeName(), dto.getFormat()); } });
-		 */
+
 		return formatterMap;
 	}
 
@@ -420,88 +437,6 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		return policyId;
 	}
 
-	/**
-	 * Sets the sharable attribute values.
-	 *
-	 * @param idResponseDto               the id response dto
-	 * @param credentialServiceRequestDto the credential service request dto
-	 * @param policyDetailResponseDto     the policy detail response dto
-	 * @return the map
-	 * @throws Exception
-	 */
-	private Map<String, Object> setSharableAttributeValues(IdResponseDTO idResponseDto,
-			CredentialServiceRequestDto credentialServiceRequestDto, PolicyResponseDto policyResponseDto,
-			Map<String, Boolean> encryptionMap) throws Exception {
-
-		Map<String, Object> attributesMap = new HashMap<>();
-		JSONObject identity = new JSONObject((Map) idResponseDto.getResponse().getIdentity());
-
-		List<AllowedKycDto> sharableAttributeList = policyResponseDto.getPolicies().getShareableAttributes();
-		Set<String> sharableAttributeDemographicKeySet = new HashSet<>();
-		Set<String> sharableAttributeBiometricKeySet = new HashSet<>();
-
-		if (credentialServiceRequestDto.getSharableAttributes() != null
-				&& !credentialServiceRequestDto.getSharableAttributes().isEmpty()) {
-			credentialServiceRequestDto.getSharableAttributes().forEach(attribute -> {
-				if (attribute.equalsIgnoreCase(SingleType.FACE.value())
-						|| attribute.equalsIgnoreCase(SingleType.IRIS.value())
-						|| attribute.equalsIgnoreCase(SingleType.FINGER.value())) {
-					sharableAttributeBiometricKeySet.add(attribute);
-
-				} else {
-					sharableAttributeDemographicKeySet.add(attribute);
-					encryptionMap.put(attribute, credentialServiceRequestDto.isEncrypt());
-				}
-
-			});
-		}
-
-		sharableAttributeList.forEach(dto -> {
-			if (dto.getAttributeName().equalsIgnoreCase(SingleType.FACE.value())
-					|| dto.getAttributeName().equalsIgnoreCase(SingleType.IRIS.value())
-					|| dto.getAttributeName().equalsIgnoreCase(SingleType.FINGER.value())) {
-
-				sharableAttributeBiometricKeySet.add(dto.getAttributeName());
-
-			} else {
-				sharableAttributeDemographicKeySet.add(dto.getAttributeName());
-				encryptionMap.put(dto.getAttributeName(), dto.isEncrypted());
-			}
-
-		});
-
-		for (String key : sharableAttributeDemographicKeySet) {
-			Object object = identity.get(key);
-			if (object != null) {
-				attributesMap.put(key, object);
-			}
-		}
-		String value = null;
-		List<DocumentsDTO> documents = idResponseDto.getResponse().getDocuments();
-		for (DocumentsDTO doc : documents) {
-			if (doc.getCategory().equals(CredentialConstants.INDIVIDUAL_BIOMETRICS)) {
-				value = doc.getValue();
-				break;
-			}
-		}
-
-
-		List<BIRType> typeList =
-				cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(value));
-		List<BIR> birList = cbeffutil.convertBIRTypeToBIR(typeList);
-
-		List<BIR> filteredBIRList = birList.stream()
-				.filter(bir -> sharableAttributeBiometricKeySet
-				.contains(bir.getBdbInfo().getType().get(0).value().toLowerCase())).collect(Collectors.toList());
-		if (!filteredBIRList.isEmpty()) {
-			byte[] cBEFFByte = cbeffutil.createXML(filteredBIRList);
-
-			attributesMap.put(CredentialConstants.INDIVIDUAL_BIOMETRICS, CryptoUtil.encodeBase64(cBEFFByte));
-			encryptionMap.put(CredentialConstants.INDIVIDUAL_BIOMETRICS, true);
-		}
-
-		return attributesMap;
-	}
 
 	@Override
 	public CredentialTypeResponse getCredentialTypes() {

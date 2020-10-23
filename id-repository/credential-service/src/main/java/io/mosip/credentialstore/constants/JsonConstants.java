@@ -25,4 +25,8 @@ public class JsonConstants {
 	public static final String MOSIPVERFIABLECREDENTIAL = "MOSIPVerifiableCredential";
 
 	public static final String SIGNATURE = "signature";
+
+	public static final String PROTECTEDATTRIBUTES = "protectedAtributes";
+
+	public static final String PHILSYSVERFIABLECREDENTIAL = "PhilsysVerifiableCredential";
 }
