@@ -121,7 +121,8 @@ public class IdAuthProvider extends CredentialProvider {
 					ZkDataAttribute zkDataAttribute=new ZkDataAttribute();
 					zkDataAttribute.setIdentifier(attributeName);
 					zkDataAttribute.setValue(valueStr);
-					if (allowedKycDto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)) {
+					if (allowedKycDto.getGroup() != null
+							&& allowedKycDto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)) {
 						bioZkDataAttributes.add(zkDataAttribute);
 					} else {
 						demoZkDataAttributes.add(zkDataAttribute);

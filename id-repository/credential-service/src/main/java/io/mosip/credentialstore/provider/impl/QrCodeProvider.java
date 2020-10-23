@@ -273,7 +273,14 @@ public class QrCodeProvider extends CredentialProvider {
 				} else if (typeAndSubTypeMap.containsKey(type)
 						&& typeAndSubTypeMap.get(type) != null) {
 					List<String> subTypeList = typeAndSubTypeMap.get(type);
-					if (subTypeList.contains(bdbInfo.getSubtype().get(0))) {
+					List<String> bdbSubTypeList = bdbInfo.getSubtype();
+					String subType;
+					if (bdbSubTypeList.size() == 1) {
+						subType = bdbSubTypeList.get(0);
+					} else {
+						subType = bdbSubTypeList.get(0) + " " + bdbSubTypeList.get(1);
+					}
+					if (subTypeList.contains(subType)) {
 						filteredBIRList.add(bir);
 					}
 				}
