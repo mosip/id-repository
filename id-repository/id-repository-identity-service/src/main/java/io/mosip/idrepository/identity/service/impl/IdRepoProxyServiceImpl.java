@@ -506,14 +506,15 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		uinObject.getDocuments().stream().forEach(demo -> {
 			try {
 				String fileName = DEMOGRAPHICS + SLASH + demo.getDocId();
-				if (!objectStore.exists(objectStoreAccountName, uinObject.getUinHash().substring(4, 67).toLowerCase(), null, null,
+				String uinHash = uinObject.getUinHash().split("_")[1].substring(0, 63).toLowerCase();
+				if (!objectStore.exists(objectStoreAccountName, uinHash, null, null,
 						fileName)) {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getDemographicFiles",
 							"FILE NOT FOUND IN OBJECT STORE");
 					throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
 				}
-				byte[] data = securityManager.decrypt(IOUtils.toByteArray(objectStore.getObject(objectStoreAccountName,
-						uinObject.getUinHash().substring(4, 67).toLowerCase(), null, null, fileName)));
+				byte[] data = securityManager.decrypt(IOUtils
+						.toByteArray(objectStore.getObject(objectStoreAccountName, uinHash, null, null, fileName)));
 				if (demo.getDocHash().equals(securityManager.hash(data))) {
 					documents.add(new DocumentsDTO(demo.getDoccatCode(), CryptoUtil.encodeBase64(data)));
 				} else {
