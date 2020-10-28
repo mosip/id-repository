@@ -1,0 +1,8 @@
+language: java
+jdk: openjdk11
+install: true
+cache:
+  directories:
+  - $HOME/.m2
+script: cd id-repository && mvn install -DskipTests=false -Dgpg.skip=true -Dmaven.javadoc.skip=true -DargLine="-Dlogging.level.root=ERROR" -B -V
+
