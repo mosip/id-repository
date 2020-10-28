@@ -175,9 +175,9 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 				Map<String, Object> additionalData = new HashMap<>();
 				credentialServiceRequestDto.setAdditionalData(additionalData);
 			}
-			Map<String, String> bioAttributeFormatterMap = new HashMap<>();
-					//getFormatters(policyDetailResponseDto,
-					//credentialServiceRequestDto.getIssuer());
+
+			Map<String, String> bioAttributeFormatterMap = getFormatters(policyDetailResponseDto,
+					credentialServiceRequestDto.getIssuer());
 			IdResponseDTO idResponseDto = idrepositaryUtil.getData(credentialServiceRequestDto,
 					bioAttributeFormatterMap);
 
@@ -383,10 +383,11 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		PartnerExtractorResponse partnerExtractorResponse = policyUtil
 				.getPartnerExtractorFormat(policyResponseDto.getPolicyId(),
 				partnerId);
+		if (partnerExtractorResponse != null) {
 		List<PartnerExtractor> partnerExtractorList = partnerExtractorResponse.getExtractors();
 
 		sharableAttributeList.forEach(dto -> {
-			if (dto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)
+			if (dto.getGroup() != null && dto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)
 				&& dto.getFormat().equalsIgnoreCase(CredentialConstants.EXTRACTION)) {
 				partnerExtractorList.forEach(partnerExtractorDto -> {
 					if (partnerExtractorDto.getAttributeName().equalsIgnoreCase(dto.getAttributeName())) {
@@ -408,6 +409,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 				}
 			
 });
+		}
 
 		return formatterMap;
 	}

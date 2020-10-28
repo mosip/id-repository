@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.ApiName;
@@ -124,12 +125,17 @@ public class PolicyUtil {
 			pathsegments.put("partnerId", subscriberId);
 			pathsegments.put("policyId", policyId);
 			String responseString = restUtil.getApi(ApiName.PARTNER_EXTRACTION_POLICY, pathsegments, String.class);
-
+			mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 			PartnerExtractorResponseDto responseObject = mapper.readValue(responseString,
 					PartnerExtractorResponseDto.class);
 			if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
 				ServiceError error = responseObject.getErrors().get(0);
-				throw new PartnerException(error.getMessage());
+				if (error.getErrorCode().equalsIgnoreCase("PMS_PRT_064")) {
+					return null;
+				} else {
+					throw new PartnerException(error.getMessage());
+				}
+
 			}
 
 			partnerExtractorResponse = responseObject.getResponse();
