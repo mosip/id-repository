@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -14,10 +13,8 @@ import org.springframework.web.client.HttpServerErrorException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.ApiName;
-import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
 import io.mosip.credentialstore.dto.PartnerExtractorResponse;
 import io.mosip.credentialstore.dto.PartnerExtractorResponseDto;
-import io.mosip.credentialstore.dto.PolicyAttributesDto;
 import io.mosip.credentialstore.dto.PolicyManagerResponseDto;
 import io.mosip.credentialstore.dto.PolicyResponseDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
@@ -62,13 +59,6 @@ public class PolicyUtil {
 	@Autowired
 	Utilities utilities;
 
-	/** The config server file storage URL. */
-	@Value("${config.server.file.storage.uri}")
-	private String configServerFileStorageURL;
-
-	@Value("${credential.service.policyschema.file}")
-	private String policySchemaName;
-
 	public PolicyResponseDto getPolicyDetail(String policyId, String subscriberId) throws PolicyException, ApiNotAccessibleException {
 
 		try {
@@ -90,17 +80,7 @@ public class PolicyUtil {
 					"Fetched policy details successfully");
 			LOGGER.debug(IdRepoSecurityManager.getUser(), POLICYUTIL, GETPOLICYDETAIL,
 					"ended fetching the policy data");
-			if (validatePolicy(policyResponseDto.getPolicies())) {
-				LOGGER.info(IdRepoSecurityManager.getUser(), POLICYUTIL, GETPOLICYDETAIL,
-						"Policy schema validation successfull");
-				return policyResponseDto;
-			} else {
-				LOGGER.debug(IdRepoSecurityManager.getUser(), POLICYUTIL, GETPOLICYDETAIL,
-						"Policy Schema validation Failure");
-				throw new PolicyException(CredentialServiceErrorCodes.POLICY_SCHEMA_VALIDATION_EXCEPTION.getErrorCode(),
-						CredentialServiceErrorCodes.POLICY_SCHEMA_VALIDATION_EXCEPTION.getErrorMessage());
-			}
-
+			return policyResponseDto;
 
 		} catch (IOException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), POLICYUTIL, GETPOLICYDETAIL,
@@ -131,14 +111,7 @@ public class PolicyUtil {
 
 	}
 
-	private boolean validatePolicy(PolicyAttributesDto policies)
-			throws InvalidPolicySchemaException, PolicyIOException, IOException {
-		boolean isValid = false;
-		String policySchema = utilities.getPolicySchema(configServerFileStorageURL, policySchemaName);
-		String policy = JsonUtil.objectMapperObjectToJson(policies);
-		isValid = policyValidator.validatePolicies(policySchema, policy);
-		return isValid;
-	}
+
 
 	public PartnerExtractorResponse getPartnerExtractorFormat(String policyId, String subscriberId)
 			throws ApiNotAccessibleException, PartnerException {

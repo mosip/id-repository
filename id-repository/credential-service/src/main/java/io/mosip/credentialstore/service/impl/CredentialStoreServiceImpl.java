@@ -175,8 +175,9 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 				Map<String, Object> additionalData = new HashMap<>();
 				credentialServiceRequestDto.setAdditionalData(additionalData);
 			}
-			Map<String, String> bioAttributeFormatterMap = getFormatters(policyDetailResponseDto,
-					credentialServiceRequestDto.getIssuer());
+			Map<String, String> bioAttributeFormatterMap = new HashMap<>();
+					//getFormatters(policyDetailResponseDto,
+					//credentialServiceRequestDto.getIssuer());
 			IdResponseDTO idResponseDto = idrepositaryUtil.getData(credentialServiceRequestDto,
 					bioAttributeFormatterMap);
 
