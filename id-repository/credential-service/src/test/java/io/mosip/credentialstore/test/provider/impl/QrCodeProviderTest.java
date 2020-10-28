@@ -1,10 +1,13 @@
 package io.mosip.credentialstore.test.provider.impl;
 
+import static org.junit.Assert.assertNotNull;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -17,6 +20,9 @@ import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.context.WebApplicationContext;
 
+import io.mosip.credentialstore.dto.AllowedKycDto;
+import io.mosip.credentialstore.dto.DataProviderResponse;
+import io.mosip.credentialstore.dto.Source;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
 import io.mosip.credentialstore.exception.DataEncryptionFailureException;
@@ -66,40 +72,55 @@ public class QrCodeProviderTest {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
         Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
-		Map<String,Boolean> encryptMap=new HashMap<>();
-		encryptMap.put("name",true);
-        Map<String, Object> sharableAttributesMap=new  HashMap<>();
-		sharableAttributesMap.put("name", "test");
+		Map<AllowedKycDto, Object> sharableAttributes = new HashMap<>();
+		AllowedKycDto kyc1 = new AllowedKycDto();
+		kyc1.setAttributeName("fullName");
+		kyc1.setEncrypted(true);
+		List<Source> sourceList = new ArrayList<>();
+		Source source1 = new Source();
+		source1.setAttribute("fullName");
+
+		sourceList.add(source1);
+		kyc1.setSource(sourceList);
+
+		sharableAttributes.put(kyc1, "testname");
+
 		credentialServiceRequestDto.setEncrypt(true);
 		credentialServiceRequestDto.setEncryptionKey("te1234");
-		// DataProviderResponse dataProviderResponse =
-		// qrCodeProvider.getFormattedCredentialData(encryptMap,
-		// credentialServiceRequestDto, sharableAttributesMap);
-		// assertNotNull(dataProviderResponse);
+		DataProviderResponse dataProviderResponse = qrCodeProvider
+				.getFormattedCredentialData(
+						credentialServiceRequestDto, sharableAttributes);
+		assertNotNull(dataProviderResponse);
 	}
 
-	@Ignore
+
 	@Test(expected = CredentialFormatterException.class)
 	public void testEncryptionFailure()
 			throws CredentialFormatterException, DataEncryptionFailureException, ApiNotAccessibleException {
 		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
 		Map<String, Object> additionalData = new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
-		Map<String, Boolean> encryptMap = new HashMap<>();
-		encryptMap.put("name", true);
-		Map<String, Object> sharableAttributesMap = new HashMap<>();
-		sharableAttributesMap.put("name", "test");
+		Map<AllowedKycDto, Object> sharableAttributes = new HashMap<>();
+		AllowedKycDto kyc1 = new AllowedKycDto();
+		kyc1.setAttributeName("fullName");
+		kyc1.setEncrypted(true);
+		List<Source> sourceList = new ArrayList<>();
+		Source source1 = new Source();
+		source1.setAttribute("fullName");
+
+		sourceList.add(source1);
+		kyc1.setSource(sourceList);
+
+		sharableAttributes.put(kyc1, "testname");
 		credentialServiceRequestDto.setEncrypt(true);
 		credentialServiceRequestDto.setEncryptionKey("te1234");
 		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any()))
 				.thenThrow(new DataEncryptionFailureException());
-		// qrCodeProvider.getFormattedCredentialData(encryptMap,
-		// credentialServiceRequestDto,
-		// sharableAttributesMap);
+		qrCodeProvider.getFormattedCredentialData(credentialServiceRequestDto, sharableAttributes);
 
 	}
 
-	@Ignore
+
 	@Test(expected = CredentialFormatterException.class)
 	public void testApiNotAccessible()
 			throws CredentialFormatterException, DataEncryptionFailureException, ApiNotAccessibleException {
@@ -108,15 +129,23 @@ public class QrCodeProviderTest {
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		Map<String, Boolean> encryptMap = new HashMap<>();
 		encryptMap.put("name", true);
-		Map<String, Object> sharableAttributesMap = new HashMap<>();
-		sharableAttributesMap.put("name", "test");
+		Map<AllowedKycDto, Object> sharableAttributes = new HashMap<>();
+		AllowedKycDto kyc1 = new AllowedKycDto();
+		kyc1.setAttributeName("fullName");
+		kyc1.setEncrypted(true);
+		List<Source> sourceList = new ArrayList<>();
+		Source source1 = new Source();
+		source1.setAttribute("fullName");
+
+		sourceList.add(source1);
+		kyc1.setSource(sourceList);
+
+		sharableAttributes.put(kyc1, "testname");
 		credentialServiceRequestDto.setEncrypt(true);
 		credentialServiceRequestDto.setEncryptionKey("te1234");
 		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any()))
 				.thenThrow(new ApiNotAccessibleException());
-		// qrCodeProvider.getFormattedCredentialData(encryptMap,
-		// credentialServiceRequestDto,
-		// sharableAttributesMap);
+		qrCodeProvider.getFormattedCredentialData(credentialServiceRequestDto, sharableAttributes);
 
 	}
 }

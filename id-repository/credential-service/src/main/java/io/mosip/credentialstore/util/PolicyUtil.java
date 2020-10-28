@@ -26,8 +26,6 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.pmp.policy.validator.exception.InvalidPolicySchemaException;
-import io.mosip.pmp.policy.validator.exception.PolicyIOException;
 import io.mosip.pmp.policy.validator.spi.PolicyValidator;
 
 @Component
@@ -87,14 +85,6 @@ public class PolicyUtil {
 			LOGGER.error(IdRepoSecurityManager.getUser(), POLICYUTIL, GETPOLICYDETAIL,
 					"error with error message" + ExceptionUtils.getStackTrace(e));
 			throw new PolicyException(e);
-		} catch (InvalidPolicySchemaException e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), POLICYUTIL, GETPOLICYDETAIL,
-					"error with error message" + ExceptionUtils.getStackTrace(e));
-			throw new PolicyException(e.getMessage());
-		} catch (PolicyIOException e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), POLICYUTIL, GETPOLICYDETAIL,
-					"error with error message" + ExceptionUtils.getStackTrace(e));
-			throw new PolicyException(e.getMessage());
 		} catch (Exception e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(),  POLICYUTIL, GETPOLICYDETAIL,
 					"error with error message" + ExceptionUtils.getStackTrace(e));
