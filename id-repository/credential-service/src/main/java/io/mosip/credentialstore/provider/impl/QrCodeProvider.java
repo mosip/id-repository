@@ -158,7 +158,8 @@ public class QrCodeProvider extends CredentialProvider {
 	@Override
 	public Map<AllowedKycDto, Object> prepareSharableAttributes(IdResponseDTO idResponseDto,
 			PolicyResponseDto policyResponseDto, CredentialServiceRequestDto credentialServiceRequestDto)
-			throws Exception {
+			throws CredentialFormatterException {
+		try {
 		Map<AllowedKycDto, Object> attributesMap = new HashMap<>();
 		JSONObject identity = new JSONObject((Map) idResponseDto.getResponse().getIdentity());
 
@@ -223,7 +224,11 @@ public class QrCodeProvider extends CredentialProvider {
 			}
 
 		}
+
 		return attributesMap;
+		} catch (Exception e) {
+			throw new CredentialFormatterException(e);
+		}
 	}
 
 	private Object getFullname(JSONObject identity, String attribute) {

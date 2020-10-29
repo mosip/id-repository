@@ -32,6 +32,9 @@ import io.mosip.credentialstore.dto.CredentialTypeResponse;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.DataShare;
 import io.mosip.credentialstore.dto.DataShareDto;
+import io.mosip.credentialstore.dto.Extractor;
+import io.mosip.credentialstore.dto.PartnerExtractor;
+import io.mosip.credentialstore.dto.PartnerExtractorResponse;
 import io.mosip.credentialstore.dto.PolicyAttributesDto;
 import io.mosip.credentialstore.dto.PolicyResponseDto;
 import io.mosip.credentialstore.dto.Type;
@@ -122,6 +125,8 @@ public class CredentialStoreServiceImplTest {
 
 	@Mock
 	DigitalSignatureUtil digitalSignatureUtil;
+	
+	PartnerExtractorResponse partnerExtractorResponse;
 
 	@Before
 	public void setUp() throws Exception {
@@ -156,8 +161,9 @@ public class CredentialStoreServiceImplTest {
 		shareableAttribute2.setEncrypted(true);
 		sharableAttributesList.add(shareableAttribute2);
 		AllowedKycDto shareableAttribute3 = new AllowedKycDto();
-		shareableAttribute3.setAttributeName("face");
+		shareableAttribute3.setAttributeName("biometrics");
 		shareableAttribute3.setEncrypted(true);
+		shareableAttribute3.setGroup("CBEFF");
 		shareableAttribute3.setFormat("extraction");
 		sharableAttributesList.add(shareableAttribute3);
 		policies.setShareableAttributes(sharableAttributesList);
@@ -232,7 +238,35 @@ public class CredentialStoreServiceImplTest {
 		DataShare dataShare=new DataShare();
 		Mockito.when(dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(dataShare);
 		Mockito.when(digitalSignatureUtil.sign(Mockito.any())).thenReturn("testdata");
+		PartnerExtractorResponse partnerExtractorResponse = new PartnerExtractorResponse();
+		List<PartnerExtractor> extractors = new ArrayList<>();
 
+		PartnerExtractor extractor = new PartnerExtractor();
+		extractor.setAttributeName("biometrics");
+		extractor.setBiometric("face");
+		Extractor ext = new Extractor();
+		ext.setProvider("mock");
+		extractor.setExtractor(ext);
+		extractors.add(extractor);
+		PartnerExtractor extractor1 = new PartnerExtractor();
+		extractor1.setAttributeName("biometrics");
+		extractor1.setBiometric("finger");
+
+		Extractor ext1 = new Extractor();
+		ext1.setProvider("mock");
+		extractor1.setExtractor(ext1);
+		extractors.add(extractor1);
+		PartnerExtractor extractor2 = new PartnerExtractor();
+		extractor2.setAttributeName("biometrics");
+		extractor2.setBiometric("iris");
+
+		Extractor ext2 = new Extractor();
+		ext2.setProvider("mock");
+		extractor2.setExtractor(ext2);
+		extractors.add(extractor2);
+		partnerExtractorResponse.setExtractors(extractors);
+		Mockito.when(policyUtil.getPartnerExtractorFormat(Mockito.anyString(), Mockito.anyString()))
+				.thenReturn(partnerExtractorResponse);
 	}
 	
 	@Test

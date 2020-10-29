@@ -140,7 +140,9 @@ public class CredentialProvider {
 
 	public Map<AllowedKycDto, Object> prepareSharableAttributes(IdResponseDTO idResponseDto,
 			PolicyResponseDto policyResponseDto, CredentialServiceRequestDto credentialServiceRequestDto)
-			throws Exception {
+			throws CredentialFormatterException
+	{
+		try {
 		Map<AllowedKycDto, Object> attributesMap = new HashMap<>();
 		JSONObject identity = new JSONObject((Map) idResponseDto.getResponse().getIdentity());
 
@@ -200,5 +202,8 @@ public class CredentialProvider {
 
 		}
 		return attributesMap;
+		} catch (Exception e) {
+			throw new CredentialFormatterException(e);
+		}
 	}
 }
