@@ -32,7 +32,6 @@
 	    <kernel.cbeffutil.version>1.1.0</kernel.cbeffutil.version>
 	    <kernel.websubclient.version>1.2.0-SNAPSHOT</kernel.websubclient.version>
         <io.micrometer.prometheus.version>1.4.2</io.micrometer.prometheus.version>
-         <pmp.policy.validator.version>1.0.1-SNAPSHOT</pmp.policy.validator.version>
   </properties>
    <dependencyManagement>
 		<dependencies>
@@ -154,15 +153,10 @@
 			<version>${io.micrometer.prometheus.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.mosip.pmp</groupId>
-			<artifactId>pmp-policy-validator</artifactId>
-			<version>${pmp.policy.validator.version}</version>
-		</dependency>	
-		<dependency>
         <groupId>org.mvel</groupId>
         <artifactId>mvel2</artifactId>
         <version>2.4.7.Final</version>
-</dependency>
+   </dependency>
   <dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-module-junit4</artifactId>
