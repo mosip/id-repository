@@ -26,7 +26,7 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.pmp.policy.validator.spi.PolicyValidator;
+
 
 @Component
 public class PolicyUtil {
@@ -51,9 +51,6 @@ public class PolicyUtil {
 	/** The mapper. */
 	@Autowired
 	private ObjectMapper mapper;
-
-	@Autowired
-	PolicyValidator policyValidator;
 
 	@Autowired
 	Utilities utilities;
