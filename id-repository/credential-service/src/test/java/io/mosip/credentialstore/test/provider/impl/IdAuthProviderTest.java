@@ -20,8 +20,10 @@ import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.context.WebApplicationContext;
 
+import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.EncryptZkResponseDto;
+import io.mosip.credentialstore.dto.Source;
 import io.mosip.credentialstore.dto.ZkDataAttribute;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
@@ -69,14 +71,33 @@ public class IdAuthProviderTest {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
         Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
-		Map<String,Boolean> encryptMap=new HashMap<>();
-		encryptMap.put("name",true);
-		encryptMap.put("individualBiometrics", true);
-		Map<String, Object> sharableAttributesMap=new  HashMap<>();
-		sharableAttributesMap.put("name", "test");
-		sharableAttributesMap.put("individualBiometrics", "sdsgfsddfh");
-		DataProviderResponse dataProviderResponse=idAuthProvider.getFormattedCredentialData(encryptMap, credentialServiceRequestDto, sharableAttributesMap);
-	    assertNotNull(dataProviderResponse);
+		Map<AllowedKycDto, Object> sharableAttributes = new HashMap<>();
+
+		AllowedKycDto kyc1 = new AllowedKycDto();
+		kyc1.setAttributeName("fullName");
+		kyc1.setEncrypted(true);
+		List<Source> sourceList = new ArrayList<>();
+		Source source1 = new Source();
+		source1.setAttribute("fullName");
+
+		sourceList.add(source1);
+		kyc1.setSource(sourceList);
+
+		AllowedKycDto kyc2 = new AllowedKycDto();
+		kyc2.setAttributeName("biomterics");
+		kyc2.setEncrypted(true);
+		kyc2.setGroup("CBEFF");
+		List<Source> sourceList1 = new ArrayList<>();
+		Source source2 = new Source();
+		source2.setAttribute("individualBiometrics");
+
+		sourceList1.add(source2);
+		kyc2.setSource(sourceList1);
+		sharableAttributes.put(kyc1, "testname");
+		sharableAttributes.put(kyc2, "biomtericencodedcbeffstring");
+		DataProviderResponse dataProviderResponse = idAuthProvider
+				.getFormattedCredentialData(credentialServiceRequestDto, sharableAttributes);
+		assertNotNull(dataProviderResponse);
 	}
 
 	@Test(expected = CredentialFormatterException.class)
@@ -85,16 +106,33 @@ public class IdAuthProviderTest {
 		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
 		Map<String, Object> additionalData = new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
-		Map<String, Boolean> encryptMap = new HashMap<>();
-		encryptMap.put("name", true);
-		encryptMap.put("individualBiometrics", true);
-		Map<String, Object> sharableAttributesMap = new HashMap<>();
-		sharableAttributesMap.put("name", "test");
-		sharableAttributesMap.put("individualBiometrics", "sdsgfsddfh");
+
+		Map<AllowedKycDto, Object> sharableAttributes = new HashMap<>();
+		AllowedKycDto kyc1 = new AllowedKycDto();
+		kyc1.setAttributeName("fullName");
+		kyc1.setEncrypted(true);
+		List<Source> sourceList = new ArrayList<>();
+		Source source1 = new Source();
+		source1.setAttribute("fullName");
+
+		sourceList.add(source1);
+		kyc1.setSource(sourceList);
+
+		AllowedKycDto kyc2 = new AllowedKycDto();
+		kyc2.setAttributeName("biomterics");
+		kyc2.setEncrypted(true);
+		kyc2.setGroup("CBEFF");
+		List<Source> sourceList1 = new ArrayList<>();
+		Source source2 = new Source();
+		source2.setAttribute("individualBiometrics");
+
+		sourceList1.add(source2);
+		kyc2.setSource(sourceList1);
+		sharableAttributes.put(kyc1, "testname");
+		sharableAttributes.put(kyc2, "biomtericencodedcbeffstring");
 		Mockito.when(encryptionUtil.encryptDataWithZK(Mockito.any(), Mockito.any()))
 				.thenThrow(new DataEncryptionFailureException());
-		idAuthProvider.getFormattedCredentialData(encryptMap,
-				credentialServiceRequestDto, sharableAttributesMap);
+		idAuthProvider.getFormattedCredentialData(credentialServiceRequestDto, sharableAttributes);
 
 	}
 
@@ -104,15 +142,32 @@ public class IdAuthProviderTest {
 		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
 		Map<String, Object> additionalData = new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
-		Map<String, Boolean> encryptMap = new HashMap<>();
-		encryptMap.put("name", true);
-		encryptMap.put("individualBiometrics", true);
-		Map<String, Object> sharableAttributesMap = new HashMap<>();
-		sharableAttributesMap.put("name", "test");
-		sharableAttributesMap.put("individualBiometrics", "sdsgfsddfh");
+		Map<AllowedKycDto, Object> sharableAttributes = new HashMap<>();
+		AllowedKycDto kyc1 = new AllowedKycDto();
+		kyc1.setAttributeName("fullName");
+		kyc1.setEncrypted(true);
+		List<Source> sourceList = new ArrayList<>();
+		Source source1 = new Source();
+		source1.setAttribute("fullName");
+
+		sourceList.add(source1);
+		kyc1.setSource(sourceList);
+
+		AllowedKycDto kyc2 = new AllowedKycDto();
+		kyc2.setAttributeName("biomterics");
+		kyc2.setEncrypted(true);
+		kyc2.setGroup("CBEFF");
+		List<Source> sourceList1 = new ArrayList<>();
+		Source source2 = new Source();
+		source2.setAttribute("individualBiometrics");
+
+		sourceList1.add(source2);
+		kyc2.setSource(sourceList1);
+		sharableAttributes.put(kyc1, "testname");
+		sharableAttributes.put(kyc2, "biomtericencodedcbeffstring");
 		Mockito.when(encryptionUtil.encryptDataWithZK(Mockito.any(), Mockito.any()))
 				.thenThrow(new ApiNotAccessibleException());
-		idAuthProvider.getFormattedCredentialData(encryptMap, credentialServiceRequestDto, sharableAttributesMap);
+		idAuthProvider.getFormattedCredentialData(credentialServiceRequestDto, sharableAttributes);
 
 	}
 }
