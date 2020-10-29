@@ -143,7 +143,7 @@ public class CredentialStoreServiceImplTest {
 		dataSharePolicies.setShareDomain("mosip.io");
 		dataSharePolicies.setTransactionsAllowed("2");
 		dataSharePolicies.setValidForInMinutes("30");
-		dataSharePolicies.setTypeOfShare("dataShare");
+		dataSharePolicies.setTypeOfShare("Data Share");
 		policies = new PolicyAttributesDto();
 		policies.setDataSharePolicies(dataSharePolicies);
 		List<AllowedKycDto> sharableAttributesList = new ArrayList<AllowedKycDto>();
@@ -387,7 +387,7 @@ public class CredentialStoreServiceImplTest {
 		dataSharePolicies.setShareDomain("mosip.io");
 		dataSharePolicies.setTransactionsAllowed("2");
 		dataSharePolicies.setValidForInMinutes("30");
-		dataSharePolicies.setTypeOfShare("direct");
+		dataSharePolicies.setTypeOfShare("Direct");
 		policies.setDataSharePolicies(dataSharePolicies);
 		policyDetailResponseDto.setPolicies(policies);
 		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
@@ -409,7 +409,7 @@ public class CredentialStoreServiceImplTest {
 		dataSharePolicies.setShareDomain("mosip.io");
 		dataSharePolicies.setTransactionsAllowed("2");
 		dataSharePolicies.setValidForInMinutes("30");
-		dataSharePolicies.setTypeOfShare("direct");
+		dataSharePolicies.setTypeOfShare("Direct");
 		policies.setDataSharePolicies(dataSharePolicies);
 		policyDetailResponseDto.setPolicies(policies);
 		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();

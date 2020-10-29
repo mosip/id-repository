@@ -57,7 +57,6 @@ import io.mosip.idrepository.core.dto.Type;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -139,10 +138,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 	private static final String CREDENTIAL_SERVICE_TYPE_NAMESPACE = "mosip.credential.service.type.namespace";
 
-	private static final String DATASHARE = "datashare";
-
-	@Autowired
-	private CbeffUtil cbeffutil;
+	private static final String DATASHARE = "Data Share";
 
 	@Autowired
 	private AuditHelper auditHelper;
