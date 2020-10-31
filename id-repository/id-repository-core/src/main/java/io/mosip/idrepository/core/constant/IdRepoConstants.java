@@ -46,7 +46,7 @@ public class IdRepoConstants {
 	public static final String APPLICATION_VERSION_VID = "mosip.idrepo.vid.application.version";
 
 	/** The application id. */
-	public static final String APPLICATION_ID = "mosip.idrepo.application.id";
+	public static final String APPLICATION_ID = "mosip.idrepo.app-id";
 
 	/** The application name. */
 	public static final String APPLICATION_NAME = "mosip.idrepo.application.name";
