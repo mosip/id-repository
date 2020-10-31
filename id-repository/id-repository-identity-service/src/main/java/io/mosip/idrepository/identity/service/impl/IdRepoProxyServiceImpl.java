@@ -3,7 +3,6 @@ package io.mosip.idrepository.identity.service.impl;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.OBJECT_STORE_ACCOUNT_NAME;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
@@ -16,7 +15,6 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.AbstractMap;
@@ -35,11 +33,9 @@ import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.JDBCConnectionException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
@@ -53,7 +49,6 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.EventType;
 import io.mosip.idrepository.core.constant.IDAEventType;
@@ -83,6 +78,7 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.IdRepoService;
 import io.mosip.idrepository.core.util.TokenIDGenerator;
 import io.mosip.idrepository.identity.entity.Uin;
+import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 import io.mosip.idrepository.identity.repository.UinHashSaltRepo;
 import io.mosip.idrepository.identity.repository.UinHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinRepo;
@@ -149,9 +145,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	/** The Constant TYPE. */
 	private static final String TYPE = "type";
 
-	/** The Constant SLASH. */
-	private static final String SLASH = "/";
-
 	/** The Constant RETRIEVE_IDENTITY. */
 	private static final String RETRIEVE_IDENTITY = "retrieveIdentity";
 
@@ -182,12 +175,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	/** The Constant DOT. */
 	private static final String DOT = ".";
 
-	@Value("${" + OBJECT_STORE_ACCOUNT_NAME + "}")
-	private String objectStoreAccountName;
-
 	@Autowired
-	@Qualifier("S3Adapter")
-	private ObjectStoreAdapter objectStore;
+	private ObjectStoreHelper objectStoreHelper;
 
 	/** The env. */
 	@Autowired
@@ -505,16 +494,13 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	private void getDemographicFiles(Uin uinObject, List<DocumentsDTO> documents) {
 		uinObject.getDocuments().stream().forEach(demo -> {
 			try {
-				String fileName = DEMOGRAPHICS + SLASH + demo.getDocId();
 				String uinHash = uinObject.getUinHash().split("_")[1].substring(0, 63).toLowerCase();
-				if (!objectStore.exists(objectStoreAccountName, uinHash, null, null,
-						fileName)) {
+				if (!objectStoreHelper.demographicObjectExists(uinHash, demo.getDocId())) {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getDemographicFiles",
 							"FILE NOT FOUND IN OBJECT STORE");
 					throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
 				}
-				byte[] data = securityManager.decrypt(IOUtils.toByteArray(objectStore.getObject(objectStoreAccountName,
-						uinHash, null, null, fileName)));
+				byte[] data = objectStoreHelper.getDemographicObject(uinHash, demo.getDocId());
 				if (demo.getDocHash().equals(securityManager.hash(data))) {
 					documents.add(new DocumentsDTO(demo.getDoccatCode(), CryptoUtil.encodeBase64(data)));
 				} else {
@@ -546,24 +532,23 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		uinObject.getBiometrics().stream().forEach(bio -> {
 			if (allowedBioAttributes.contains(bio.getBiometricFileType())) {
 				try {
-					String fileName = BIOMETRICS + SLASH + bio.getBioFileId();
 					String uinHash = uinObject.getUinHash().split("_")[1].substring(0, 63).toLowerCase();
-					if (!objectStore.exists(objectStoreAccountName,
-							uinHash, null, null, fileName)) {
+					if (!objectStoreHelper.biometricObjectExists(uinHash, bio.getBioFileId())) {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricFiles",
 								"FILE NOT FOUND IN OBJECT STORE");
 						throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
 					}
 					byte[] data = null;
 					if (Objects.nonNull(extractionFormats) && !extractionFormats.isEmpty()) {
-						data = extractTemplates(uinHash, fileName, extractionFormats);
+						data = extractTemplates(uinHash, bio.getBioFileId(), extractionFormats);
 						if (Objects.nonNull(data)) {
 							documents.add(new DocumentsDTO(bio.getBiometricFileType(), CryptoUtil.encodeBase64(data)));
 						}
 					} else {
-						data = securityManager.decrypt(IOUtils.toByteArray(
-								objectStore.getObject(objectStoreAccountName,
-										uinHash, null, null, fileName)));
+//						data = securityManager.decrypt(IOUtils.toByteArray(
+//								objectStore.getObject(objectStoreAccountName,
+//										uinHash, null, null, fileName)));
+						data = objectStoreHelper.getBiometricObject(uinHash, bio.getBioFileId());
 						if (Objects.nonNull(data)) {
 							if (StringUtils.equals(bio.getBiometricFileHash(), securityManager.hash(data))) {
 								documents.add(
@@ -602,8 +587,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 							extractionFormat.getValue());
 				} else {
 					String extractionFileName = fileName.split("\\.")[0] + DOT + extractionFormat.getKey();
-					objectStore.putObject(objectStoreAccountName, uinHash, null, null, extractionFileName,
-							new ByteArrayInputStream(extractedTemplates.get(extractionFormat.getValue())));
+					objectStoreHelper.putBiometricObject(uinHash, extractionFileName,
+							extractedTemplates.get(extractionFormat.getValue()));
 				}
 			}
 			CompletableFuture.allOf(extractTemplateFuture).join();
@@ -642,20 +627,18 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			String extractionFileName = fileName.split("\\.")[0] + DOT + extractionType;
 			// TODO need to remove AmazonS3Exception handling
 			try {
-				if (objectStore.exists(objectStoreAccountName, uinHash, null, null, extractionFileName)) {
+				if (objectStoreHelper.biometricObjectExists(uinHash, extractionFileName)) {
 					return CompletableFuture.completedFuture(new AbstractMap.SimpleImmutableEntry<>(extractionFormat,
-							securityManager.decrypt(IOUtils.toByteArray(
-									objectStore.getObject(objectStoreAccountName, uinHash, null, null, extractionFileName)))));
+							objectStoreHelper.getBiometricObject(uinHash, extractionFileName)));
 				}
 			} catch (AmazonS3Exception e) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
 						e.getMessage());
 			}
-			if (objectStore.exists(objectStoreAccountName, uinHash, null, null, fileName)) {
+			if (objectStoreHelper.biometricObjectExists(uinHash, fileName)) {
 				RequestWrapper<BioExtractRequestDTO> request = new RequestWrapper<>();
 				BioExtractRequestDTO bioExtractReq = new BioExtractRequestDTO();
-				byte[] data = securityManager
-						.decrypt(IOUtils.toByteArray(objectStore.getObject(objectStoreAccountName, uinHash, null, null, fileName)));
+				byte[] data = objectStoreHelper.getBiometricObject(uinHash, fileName);
 				bioExtractReq.setBiometrics(CryptoUtil.encodeBase64(data));
 				request.setRequest(bioExtractReq);
 				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.BIO_EXTRACTOR_SERVICE,
@@ -664,8 +647,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				ResponseWrapper<Map<String, String>> response = restHelper.requestSync(restRequest);
 				byte[] extractedBiometrics = CryptoUtil.decodeBase64(response.getResponse().get("extractedBiometrics"));
 				System.err.println(new String(extractedBiometrics));
-				objectStore.putObject(objectStoreAccountName, uinHash, null, null, extractionFileName,
-						new ByteArrayInputStream(securityManager.encrypt(extractedBiometrics)));
+				objectStoreHelper.putBiometricObject(uinHash, extractionFileName, extractedBiometrics);
 				return CompletableFuture
 						.completedFuture(new AbstractMap.SimpleImmutableEntry<>(extractionFormat, extractedBiometrics));
 			} else {

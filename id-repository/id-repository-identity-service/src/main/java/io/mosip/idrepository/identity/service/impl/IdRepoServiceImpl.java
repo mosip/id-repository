@@ -6,14 +6,12 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_FORMAT_AT
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_NAME_ATTRIBUTE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MOSIP_PRIMARY_LANGUAGE;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.OBJECT_STORE_ACCOUNT_NAME;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_NOT_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,7 +22,6 @@ import java.util.Objects;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,8 +31,6 @@ import org.skyscreamer.jsonassert.JSONCompare;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.skyscreamer.jsonassert.JSONCompareResult;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +46,6 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 
-import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
@@ -67,6 +61,7 @@ import io.mosip.idrepository.identity.entity.UinBiometricHistory;
 import io.mosip.idrepository.identity.entity.UinDocument;
 import io.mosip.idrepository.identity.entity.UinDocumentHistory;
 import io.mosip.idrepository.identity.entity.UinHistory;
+import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 import io.mosip.idrepository.identity.repository.UinBiometricHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinEncryptSaltRepo;
@@ -114,24 +109,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	/** The Constant DOT. */
 	private static final String DOT = ".";
 
-	/** The Constant SLASH. */
-	private static final String SLASH = "/";
-
-	/** The Constant BIOMETRICS. */
-	private static final String BIOMETRICS = "Biometrics";
-
 	/** The Constant ID_REPO_SERVICE_IMPL. */
 	private static final String ID_REPO_SERVICE_IMPL = "IdRepoServiceImpl";
-
-	/** The Constant DEMOGRAPHICS. */
-	private static final String DEMOGRAPHICS = "Demographics";
-
-	@Value("${" + OBJECT_STORE_ACCOUNT_NAME + "}")
-	private String objectStoreAccountName;
-
-	@Autowired
-	@Qualifier("S3Adapter")
-	private ObjectStoreAdapter objectStore;
 
 	/** The env. */
 	@Autowired
@@ -176,6 +155,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	/** The uin encrypt salt repo. */
 	@Autowired
 	private UinEncryptSaltRepo uinEncryptSaltRepo;
+	
+	@Autowired
+	private ObjectStoreHelper objectStoreHelper;
 
 	/**
 	 * Adds the identity to DB.
@@ -283,8 +265,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 		data = CryptoUtil.decodeBase64(doc.getValue());
 
-		objectStore.putObject(objectStoreAccountName, uinHash.substring(0, 63).toLowerCase(), null, null,
-				BIOMETRICS + SLASH + fileRefId, new ByteArrayInputStream(securityManager.encrypt(data)));
+		objectStoreHelper.putBiometricObject(uinHash, fileRefId, data);
 
 		bioList.add(new UinBiometric(uinRefId, fileRefId, doc.getCategory(), docType.get(FILE_NAME_ATTRIBUTE).asText(),
 				securityManager.hash(data), env.getProperty(MOSIP_PRIMARY_LANGUAGE), IdRepoSecurityManager.getUser(),
@@ -314,8 +295,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				.toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
 
 		byte[] data = CryptoUtil.decodeBase64(doc.getValue());
-		objectStore.putObject(objectStoreAccountName, uinHash.substring(0, 63).toLowerCase(), null, null,
-				DEMOGRAPHICS + SLASH + fileRefId, new ByteArrayInputStream(securityManager.encrypt(data)));
+		objectStoreHelper.putDemographicObject(uinHash, fileRefId, data);
 
 		docList.add(new UinDocument(uinRefId, doc.getCategory(), docType.get(TYPE).asText(), fileRefId,
 				docType.get(FILE_NAME_ATTRIBUTE).asText(), docType.get(FILE_FORMAT_ATTRIBUTE).asText(),
@@ -614,19 +594,16 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		uinObject.getBiometrics().stream().forEach(bio -> requestDTO.getDocuments().stream()
 				.filter(doc -> StringUtils.equals(bio.getBiometricFileType(), doc.getCategory())).forEach(doc -> {
 					try {
-						String fileName = BIOMETRICS + SLASH + bio.getBioFileId();
-						if (!objectStore.exists(objectStoreAccountName,
-								uinObject.getUinHash().substring(4, 63).toLowerCase(), null, null, fileName)) {
+						if (!objectStoreHelper.biometricObjectExists(
+								uinObject.getUinHash(), bio.getBioFileId())) {
 							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateCbeff",
 									"FILE NOT FOUND IN OBJECT STORE");
 							throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
 						}
-						byte[] data = securityManager
-								.decrypt(IOUtils.toByteArray(objectStore.getObject(objectStoreAccountName,
-										uinObject.getUinHash().substring(4, 63).toLowerCase(), null, null, fileName)));
+						byte[] data = objectStoreHelper.getBiometricObject(uinObject.getUinHash(), bio.getBioFileId());
 						if (StringUtils.equalsIgnoreCase(
 								identityMap.get(bio.getBiometricFileType()).get(FILE_FORMAT_ATTRIBUTE).asText(),
-								CBEFF_FORMAT) && fileName.endsWith(CBEFF_FORMAT)) {
+								CBEFF_FORMAT) && bio.getBioFileId().endsWith(CBEFF_FORMAT)) {
 							doc.setValue(CryptoUtil.encodeBase64(cbeffUtil.updateXML(
 									cbeffUtil.convertBIRTypeToBIR(
 											cbeffUtil.getBIRDataFromXML(CryptoUtil.decodeBase64(doc.getValue()))),
