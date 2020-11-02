@@ -3,7 +3,6 @@ package io.mosip.credentialstore.exception;
 
 import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
 import io.mosip.kernel.core.exception.BaseCheckedException;
-import io.mosip.kernel.core.exception.BaseUncheckedException;
 
 public class PolicyException extends BaseCheckedException {
 	/** The Constant serialVersionUID. */
@@ -29,5 +28,9 @@ public class PolicyException extends BaseCheckedException {
 	public PolicyException(Throwable t) {
 		super(CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorCode(),
 				CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorMessage(), t);
+	}
+
+	public PolicyException(String errorCode, String errorMessage) {
+		super(errorCode, errorMessage);
 	}
 }

@@ -1,30 +1,55 @@
 package io.mosip.credentialstore.provider.impl;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.mvel2.MVEL;
+import org.mvel2.integration.VariableResolverFactory;
+import org.mvel2.integration.impl.MapVariableResolverFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.constants.JsonConstants;
+import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
+import io.mosip.credentialstore.dto.Filter;
+import io.mosip.credentialstore.dto.JsonValue;
+import io.mosip.credentialstore.dto.PolicyResponseDto;
+import io.mosip.credentialstore.dto.Source;
+import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
+import io.mosip.credentialstore.exception.DataEncryptionFailureException;
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.util.EncryptionUtil;
+import io.mosip.credentialstore.util.JsonUtil;
 import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
+import io.mosip.idrepository.core.dto.DocumentsDTO;
+import io.mosip.idrepository.core.dto.IdResponseDTO;
+import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
+import io.mosip.kernel.core.cbeffutil.entity.BIR;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
+import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 @Component
-public class QrCodeProvider implements CredentialProvider {
+public class QrCodeProvider extends CredentialProvider {
 
 	@Autowired
 	EncryptionUtil encryptionUtil;
@@ -42,10 +67,23 @@ public class QrCodeProvider implements CredentialProvider {
 	@Autowired
 	private ObjectMapper mapper;
 
+	@Autowired
+	private CbeffUtil cbeffutil;
+
+	@Autowired(required = true)
+	@Qualifier("varres")
+	VariableResolverFactory functionFactory;
+	
+	@Value("${credential.service.dob.format}")
+	private String dobFormat;
+
+	@Value("${mosip.primary-language}")
+	private String primaryLang;
+
 	@SuppressWarnings("unchecked")
 	@Override
-	public DataProviderResponse getFormattedCredentialData(	Map<String,Boolean> encryptMap,
-			CredentialServiceRequestDto credentialServiceRequestDto, Map<String, Object> sharableAttributeMap)
+	public DataProviderResponse getFormattedCredentialData(
+			CredentialServiceRequestDto credentialServiceRequestDto, Map<AllowedKycDto, Object> sharableAttributeMap)
 			throws CredentialFormatterException {
 
 		DataProviderResponse dataProviderResponse = null;
@@ -54,12 +92,12 @@ public class QrCodeProvider implements CredentialProvider {
 			String pin = credentialServiceRequestDto.getEncryptionKey();
 
 			Map<String, Object> formattedMap = new HashMap<>();
+			List<String> protectedAttributes = new ArrayList<>();
+			formattedMap.put(JsonConstants.ID, credentialServiceRequestDto.getId());
 
-			formattedMap.put(JsonConstants.ID,
-					env.getProperty("mosip.credential.service.format.credentialsubject.id") + "id");
-
-			for (Map.Entry<String, Object> entry : sharableAttributeMap.entrySet()) {
-				String key = entry.getKey();
+			for (Map.Entry<AllowedKycDto, Object> entry : sharableAttributeMap.entrySet()) {
+				AllowedKycDto allowedKycDto = entry.getKey();
+				String attributeName = allowedKycDto.getAttributeName();
 				Object value = entry.getValue();
 				String valueStr = null;
 				if (value instanceof String) {
@@ -67,13 +105,14 @@ public class QrCodeProvider implements CredentialProvider {
 				} else {
 					valueStr = mapper.writeValueAsString(value);
 				}
-				formattedMap.put(key, valueStr);
-				// TODO this is going to implement in 1.1.3 as per new policy
-				/*
-				 * if (encryptMap.get(key)) { String encryptedValue =
-				 * encryptionUtil.encryptDataWithPin(valueStr, pin); formattedMap.put(key,
-				 * encryptedValue); } else { formattedMap.put(key, valueStr); }
-				 */
+				formattedMap.put(attributeName, valueStr);
+				if (allowedKycDto.isEncrypted() || credentialServiceRequestDto.isEncrypt()) {
+					String encryptedValue = encryptionUtil.encryptDataWithPin(valueStr, pin);
+					formattedMap.put(attributeName, encryptedValue);
+					protectedAttributes.add(attributeName);
+				} else {
+					formattedMap.put(attributeName, valueStr);
+				}
 
 			}
 
@@ -89,14 +128,14 @@ public class QrCodeProvider implements CredentialProvider {
 			List<String> typeList = new ArrayList<>();
 			typeList.add(JsonConstants.VERFIABLECREDENTIAL);
 			typeList.add(JsonConstants.MOSIPVERFIABLECREDENTIAL);
-			json.put(JsonConstants.ID, env.getProperty("mosip.credential.service.format.id"));
+			json.put(JsonConstants.ID, env.getProperty("mosip.credential.service.format.id") + credentialId);
 			json.put(JsonConstants.TYPE, typeList);
 			json.put(JsonConstants.ISSUER, env.getProperty("mosip.credential.service.format.issuer"));
 			json.put(JsonConstants.ISSUANCEDATE, DateUtils.formatToISOString(localdatetime));
 			json.put(JsonConstants.ISSUEDTO, credentialServiceRequestDto.getIssuer());
 			json.put(JsonConstants.CONSENT, "");
 			json.put(JsonConstants.CREDENTIALSUBJECT, formattedMap);
-
+			json.put(JsonConstants.PROTECTEDATTRIBUTES, protectedAttributes);
 			dataProviderResponse.setJSON(json);
 
 			dataProviderResponse.setCredentialId(credentialId);
@@ -104,14 +143,228 @@ public class QrCodeProvider implements CredentialProvider {
 			dataProviderResponse.setIssuanceDate(localdatetime);
 
 			return dataProviderResponse;
-		} /*
-			 * catch (DataEncryptionFailureException e) { throw new
-			 * CredentialFormatterException(e); } catch (ApiNotAccessibleException e) {
-			 * throw new CredentialFormatterException(e); }
-			 */ catch (JsonProcessingException e) {
+		} catch (DataEncryptionFailureException e) {
+			throw new CredentialFormatterException(e);
+		} catch (ApiNotAccessibleException e) {
+			throw new CredentialFormatterException(e);
+		} catch (JsonProcessingException e) {
+			throw new CredentialFormatterException(e);
+		} catch (Exception e) {
 			throw new CredentialFormatterException(e);
 		}
 
+	}
+
+	@Override
+	public Map<AllowedKycDto, Object> prepareSharableAttributes(IdResponseDTO idResponseDto,
+			PolicyResponseDto policyResponseDto, CredentialServiceRequestDto credentialServiceRequestDto)
+			throws CredentialFormatterException {
+		try {
+		Map<AllowedKycDto, Object> attributesMap = new HashMap<>();
+		JSONObject identity = new JSONObject((Map) idResponseDto.getResponse().getIdentity());
+
+		List<AllowedKycDto> sharableAttributeList = policyResponseDto.getPolicies().getShareableAttributes();
+		Set<AllowedKycDto> sharableAttributeDemographicKeySet = new HashSet<>();
+		Set<AllowedKycDto> sharableAttributeBiometricKeySet = new HashSet<>();
+		// TO DO how to handle if this face and finger from user
+		if (credentialServiceRequestDto.getSharableAttributes() != null
+				&& !credentialServiceRequestDto.getSharableAttributes().isEmpty()) {
+			credentialServiceRequestDto.getSharableAttributes().forEach(attribute -> {
+				AllowedKycDto allowedKycDto = new AllowedKycDto();
+				List<Source> sourceList = new ArrayList<>();
+				Source source = new Source();
+				source.setAttribute(attribute);
+				sourceList.add(source);
+				allowedKycDto.setSource(sourceList);
+				allowedKycDto.setAttributeName(attribute);
+				sharableAttributeDemographicKeySet.add(allowedKycDto);
+
+			});
+		}
+		sharableAttributeList.forEach(dto -> {
+			if (dto.getGroup() == null) {
+
+				sharableAttributeDemographicKeySet.add(dto);
+
+			} else if (dto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)) {
+				sharableAttributeBiometricKeySet.add(dto);
+
+			}
+
+		});
+
+		for (AllowedKycDto key : sharableAttributeDemographicKeySet) {
+			String attribute = key.getSource().get(0).getAttribute();
+
+			Object object = identity.get(attribute);
+			if (object != null) {
+				Object formattedObject = filterAndFormat(key, object,identity);
+				attributesMap.put(key, formattedObject);
+			} else {
+				if (attribute.equalsIgnoreCase(CredentialConstants.FULLNAME)) {
+					Object formattedObject = getFullname(identity, attribute);
+					attributesMap.put(key, formattedObject);
+				}
+			}
+		}
+		String individualBiometricsValue = null;
+		List<DocumentsDTO> documents = idResponseDto.getResponse().getDocuments();
+
+		for (AllowedKycDto key : sharableAttributeBiometricKeySet) {
+			String attribute = key.getSource().get(0).getAttribute();
+			for (DocumentsDTO doc : documents) {
+				if (doc.getCategory().equals(attribute)) {
+					individualBiometricsValue = doc.getValue();
+					break;
+				}
+			}
+			if (individualBiometricsValue != null) {
+				String cbeff = filterBiometric(individualBiometricsValue, key);
+				attributesMap.put(key, cbeff);
+			}
+
+		}
+
+		return attributesMap;
+		} catch (Exception e) {
+			throw new CredentialFormatterException(e);
+		}
+	}
+
+	private Object getFullname(JSONObject identity, String attribute) {
+		String firstName = getName(identity, "firstName");
+		String lastName = getName(identity, "lastName");
+		String middleName = getName(identity, "middleName");
+		Object fullname = formatName(firstName, lastName, middleName);
+		return fullname;
+	}
+
+
+	private String getName(JSONObject identity, String attribute) {
+		String formattedObject = "";
+		JSONArray node = JsonUtil.getJSONArray(identity, attribute);
+		JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
+		for (JsonValue jsonValue : jsonValues) {
+			if (jsonValue.getLanguage().equals(primaryLang))
+				formattedObject = jsonValue.getValue();
+		}
+		return formattedObject;
+	}
+
+	private String filterBiometric(String individualBiometricsValue, AllowedKycDto key) throws Exception {
+
+		Source source = key.getSource().get(0);
+
+		List<Filter> filterList = source.getFilter();
+		if (filterList != null && !filterList.isEmpty()) {
+			Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
+			filterList.forEach(filter -> {
+				if (filter.getSubType() != null && !filter.getSubType().isEmpty()) {
+					typeAndSubTypeMap.put(filter.getType(), filter.getSubType());
+				} else {
+					typeAndSubTypeMap.put(filter.getType(), null);
+				}
+			});
+
+			List<BIRType> typeList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(individualBiometricsValue));
+			List<BIR> birList = cbeffutil.convertBIRTypeToBIR(typeList);
+			List<BIR> filteredBIRList=new  ArrayList<>();
+			for (BIR bir : birList) {
+				BDBInfo bdbInfo = bir.getBdbInfo();
+				String type=bdbInfo.getType().get(0).value();
+				if (typeAndSubTypeMap.containsKey(type)
+						&& typeAndSubTypeMap.get(type) == null) {
+					filteredBIRList.add(bir);
+				} else if (typeAndSubTypeMap.containsKey(type)
+						&& typeAndSubTypeMap.get(type) != null) {
+					List<String> subTypeList = typeAndSubTypeMap.get(type);
+					List<String> bdbSubTypeList = bdbInfo.getSubtype();
+					String subType;
+					if (bdbSubTypeList.size() == 1) {
+						subType = bdbSubTypeList.get(0);
+					} else {
+						subType = bdbSubTypeList.get(0) + " " + bdbSubTypeList.get(1);
+					}
+					if (subTypeList.contains(subType)) {
+						filteredBIRList.add(bir);
+					}
+				}
+			}
+			if (!filteredBIRList.isEmpty()) {
+				byte[] cBEFFByte = cbeffutil.createXML(filteredBIRList);
+				return CryptoUtil.encodeBase64(cBEFFByte);
+				
+			} else {
+				return individualBiometricsValue;
+			}
+		} else {
+			return individualBiometricsValue;
+		}
+
+	}
+
+	private Object filterAndFormat(AllowedKycDto key, Object object,JSONObject identity) {
+		Object formattedObject = object;
+		Source source = key.getSource().get(0);
+		String attribute = source.getAttribute();
+		List<Filter> filterList = source.getFilter();
+		if (filterList != null && !filterList.isEmpty()) {
+			Filter filter = filterList.get(0);
+			String lang = filter.getLanguage();
+			JSONArray node = JsonUtil.getJSONArray(identity, attribute);
+			JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
+			for (JsonValue jsonValue : jsonValues) {
+				if (jsonValue.getLanguage().equals(lang))
+					formattedObject = jsonValue.getValue();
+			}
+		}
+		if (key.getFormat() != null) {
+			if (attribute.equalsIgnoreCase(CredentialConstants.DATEOFBIRTH)
+					&& !key.getFormat().equalsIgnoreCase(CredentialConstants.MASK)) {
+				formattedObject = formatDate(formattedObject, key.getFormat());
+			} else if (key.getFormat().equalsIgnoreCase(CredentialConstants.MASK)) {
+				formattedObject = maskData(formattedObject);
+			}
+		}
+
+
+		return formattedObject;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Object maskData(Object object) {
+		Map context = new HashMap();
+		context.put("value", String.valueOf(object));
+		VariableResolverFactory myVarFactory = new MapVariableResolverFactory(context);
+		myVarFactory.setNextFactory(functionFactory);
+		Serializable serializable = MVEL.compileExpression("convertToMaskData(value);");
+		String formattedObject = MVEL.executeExpression(serializable, context, myVarFactory, String.class);
+		return formattedObject;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Object formatDate(Object object, String format) {
+		Map context = new HashMap();
+		context.put("value", String.valueOf(object));
+		context.put("inputformat", dobFormat);
+		context.put("outputformat", format);
+		VariableResolverFactory myVarFactory = new MapVariableResolverFactory(context);
+		myVarFactory.setNextFactory(functionFactory);
+		Serializable serializable = MVEL.compileExpression("convertDateFormat(value, inputformat, outputformat);");
+		String formattedObject = MVEL.executeExpression(serializable, context, myVarFactory, String.class);
+		return formattedObject;
+	}
+
+	private Object formatName(String firstName, String lastName, String middleName) {
+		Map context = new HashMap();
+		context.put("firstName", firstName);
+		context.put("lastName", lastName);
+		context.put("middleName", middleName);
+		VariableResolverFactory myVarFactory = new MapVariableResolverFactory(context);
+		myVarFactory.setNextFactory(functionFactory);
+		Serializable serializable = MVEL.compileExpression("formatName(firstName,middleName,lastName);");
+		String formattedObject = MVEL.executeExpression(serializable, context, myVarFactory, String.class);
+		return formattedObject;
 	}
 
 }
