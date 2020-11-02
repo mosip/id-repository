@@ -102,8 +102,7 @@ public class CredentialProvider {
 
 			}
 			String credentialId = utilities.generateId();
-			formattedMap.put(JsonConstants.ID,
-					env.getProperty("mosip.credential.service.format.credentialsubject.id") + credentialId);
+
 
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 			LocalDateTime localdatetime = LocalDateTime
