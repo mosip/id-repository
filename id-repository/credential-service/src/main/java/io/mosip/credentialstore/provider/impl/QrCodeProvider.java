@@ -166,32 +166,38 @@ public class QrCodeProvider extends CredentialProvider {
 		List<AllowedKycDto> sharableAttributeList = policyResponseDto.getPolicies().getShareableAttributes();
 		Set<AllowedKycDto> sharableAttributeDemographicKeySet = new HashSet<>();
 		Set<AllowedKycDto> sharableAttributeBiometricKeySet = new HashSet<>();
-		// TO DO how to handle if this face and finger from user
-		if (credentialServiceRequestDto.getSharableAttributes() != null
-				&& !credentialServiceRequestDto.getSharableAttributes().isEmpty()) {
-			credentialServiceRequestDto.getSharableAttributes().forEach(attribute -> {
-				AllowedKycDto allowedKycDto = new AllowedKycDto();
-				List<Source> sourceList = new ArrayList<>();
-				Source source = new Source();
-				source.setAttribute(attribute);
-				sourceList.add(source);
-				allowedKycDto.setSource(sourceList);
-				allowedKycDto.setAttributeName(attribute);
-				sharableAttributeDemographicKeySet.add(allowedKycDto);
+			List<String> userRequestedAttributes = credentialServiceRequestDto.getSharableAttributes();
+			Map<String, Object> additionalData = credentialServiceRequestDto.getAdditionalData();
+
+			if (userRequestedAttributes != null && !userRequestedAttributes.isEmpty()) {
+				sharableAttributeList.forEach(dto -> {
+		
+					if (userRequestedAttributes.contains(dto.getAttributeName())) {
+						if (dto.getGroup() == null) {
+
+							sharableAttributeDemographicKeySet.add(dto);
+
+						} else if (dto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)) {
+							sharableAttributeBiometricKeySet.add(dto);
+
+						}
+					}
+					
 
 			});
-		}
-		sharableAttributeList.forEach(dto -> {
-			if (dto.getGroup() == null) {
+			} else {
+				sharableAttributeList.forEach(dto -> {
+					if (dto.getGroup() == null) {
 
-				sharableAttributeDemographicKeySet.add(dto);
+						sharableAttributeDemographicKeySet.add(dto);
 
-			} else if (dto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)) {
-				sharableAttributeBiometricKeySet.add(dto);
+					} else if (dto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)) {
+						sharableAttributeBiometricKeySet.add(dto);
 
+					}
+
+				});
 			}
-
-		});
 
 		for (AllowedKycDto key : sharableAttributeDemographicKeySet) {
 			String attribute = key.getSource().get(0).getAttribute();
@@ -201,10 +207,12 @@ public class QrCodeProvider extends CredentialProvider {
 				Object formattedObject = filterAndFormat(key, object,identity);
 				attributesMap.put(key, formattedObject);
 			} else {
-				if (attribute.equalsIgnoreCase(CredentialConstants.FULLNAME)) {
+					if (attribute.equalsIgnoreCase(CredentialConstants.FULLNAME)) {
 					Object formattedObject = getFullname(identity, attribute);
 					attributesMap.put(key, formattedObject);
-				}
+					} else if (attribute.equalsIgnoreCase(CredentialConstants.ENCRYPTIONKEY)) {
+						additionalData.put(key.getAttributeName(), credentialServiceRequestDto.getEncryptionKey());
+					}
 			}
 		}
 		String individualBiometricsValue = null;

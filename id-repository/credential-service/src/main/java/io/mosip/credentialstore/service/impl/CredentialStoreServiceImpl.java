@@ -37,6 +37,7 @@ import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.service.CredentialStoreService;
 import io.mosip.credentialstore.util.DataShareUtil;
 import io.mosip.credentialstore.util.DigitalSignatureUtil;
+import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.IdrepositaryUtil;
 import io.mosip.credentialstore.util.JsonUtil;
 import io.mosip.credentialstore.util.PolicyUtil;
@@ -146,6 +147,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	@Autowired
 	private DigitalSignatureUtil digitalSignatureUtil;
 
+	@Autowired
+	EncryptionUtil encryptionUtil;
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -199,9 +202,12 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 				signature = dataShare.getSignature();
 
 			} else {
-				// TO DO encrypt the credential based on certificate
+
 				jsonData=processJson(dataProviderResponse.getJSON());
 				signature = digitalSignatureUtil.sign(jsonData.getBytes());
+				jsonData = encryptionUtil.encryptData(jsonData, credentialServiceRequestDto.getIssuer());
+
+
 
 			}
 

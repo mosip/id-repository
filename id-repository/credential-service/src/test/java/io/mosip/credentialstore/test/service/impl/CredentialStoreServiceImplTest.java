@@ -48,6 +48,7 @@ import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.service.impl.CredentialStoreServiceImpl;
 import io.mosip.credentialstore.util.DataShareUtil;
 import io.mosip.credentialstore.util.DigitalSignatureUtil;
+import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.IdrepositaryUtil;
 import io.mosip.credentialstore.util.PolicyUtil;
 import io.mosip.credentialstore.util.Utilities;
@@ -127,6 +128,9 @@ public class CredentialStoreServiceImplTest {
 	DigitalSignatureUtil digitalSignatureUtil;
 
 	PartnerExtractorResponse partnerExtractorResponse;
+
+	@Mock
+	EncryptionUtil encryptionUtil;
 
 	@Before
 	public void setUp() throws Exception {
@@ -267,6 +271,8 @@ public class CredentialStoreServiceImplTest {
 		partnerExtractorResponse.setExtractors(extractors);
 		Mockito.when(policyUtil.getPartnerExtractorFormat(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(partnerExtractorResponse);
+		Mockito.when(encryptionUtil.encryptData(Mockito.anyString(), Mockito.anyString()))
+				.thenReturn("encryptedData");
 	}
 	
 	@Test
@@ -428,6 +434,7 @@ public class CredentialStoreServiceImplTest {
 		credentialServiceRequestDto.setCredentialType("mosip");
 		credentialServiceRequestDto.setId("4238135072");
 		credentialServiceRequestDto.setIssuer("791212");
+		credentialServiceRequestDto.setEncryptionKey("abc123");
 		Map<String, Object> additionalData = new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		CredentialServiceResponseDto credentialServiceResponseDto = credentialStoreServiceImpl

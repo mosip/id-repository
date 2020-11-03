@@ -32,7 +32,7 @@ public class WebSubSubscriptionHelper {
 	private String callBackUrl;
 
 	/** The config server file storage URL. */
-	@Value("${mosip.partnerhuburl}")
+	@Value("${kernel.websub.publisher.url}")
 	private String partnerhuburl;
 
 	@Autowired
