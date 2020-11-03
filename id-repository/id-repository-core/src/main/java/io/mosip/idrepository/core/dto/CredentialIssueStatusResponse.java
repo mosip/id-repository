@@ -11,4 +11,6 @@ public class CredentialIssueStatusResponse {
 	private String id;
 	
 	private String statusCode;
+
+	private String url;
 }
