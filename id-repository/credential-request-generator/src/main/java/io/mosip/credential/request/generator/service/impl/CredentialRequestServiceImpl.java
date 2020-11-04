@@ -255,6 +255,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 				credentialIssueStatusResponse.setId(credentialIssueRequestDto.getId());
 				credentialIssueStatusResponse.setRequestId(requestId);
 				credentialIssueStatusResponse.setStatusCode(credentialEntity.getStatusCode());
+				credentialIssueStatusResponse.setUrl(credentialEntity.getDataShareUrl());
 				LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CANCEL_CREDENTIAL,
 						"get credential status of " + requestId);
 			} else {
