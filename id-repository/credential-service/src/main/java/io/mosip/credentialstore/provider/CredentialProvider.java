@@ -22,7 +22,6 @@ import io.mosip.credentialstore.constants.JsonConstants;
 import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.PolicyResponseDto;
-import io.mosip.credentialstore.dto.Source;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
 import io.mosip.credentialstore.exception.DataEncryptionFailureException;
@@ -102,8 +101,7 @@ public class CredentialProvider {
 
 			}
 			String credentialId = utilities.generateId();
-			formattedMap.put(JsonConstants.ID,
-					env.getProperty("mosip.credential.service.format.credentialsubject.id") + credentialId);
+
 
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 			LocalDateTime localdatetime = LocalDateTime
@@ -149,33 +147,37 @@ public class CredentialProvider {
 		List<AllowedKycDto> sharableAttributeList = policyResponseDto.getPolicies().getShareableAttributes();
 		Set<AllowedKycDto> sharableAttributeDemographicKeySet = new HashSet<>();
 		Set<AllowedKycDto> sharableAttributeBiometricKeySet = new HashSet<>();
-		// TO DO how to handle if this face and finger from user
-		if (credentialServiceRequestDto.getSharableAttributes() != null
-				&& !credentialServiceRequestDto.getSharableAttributes().isEmpty()) {
-			credentialServiceRequestDto.getSharableAttributes().forEach(attribute -> {
-				AllowedKycDto allowedKycDto = new AllowedKycDto();
-				List<Source> sourceList = new ArrayList<>();
-				Source source = new Source();
-				source.setAttribute(attribute);
-				sourceList.add(source);
-				allowedKycDto.setSource(sourceList);
-				allowedKycDto.setAttributeName(attribute);
-				sharableAttributeDemographicKeySet.add(allowedKycDto);
+			List<String> userRequestedAttributes = credentialServiceRequestDto.getSharableAttributes();
 
+			if (userRequestedAttributes != null && !userRequestedAttributes.isEmpty()) {
+				sharableAttributeList.forEach(dto -> {
 
-			});
-		}
-		sharableAttributeList.forEach(dto -> {
-			if (dto.getGroup() == null) {
+					if (userRequestedAttributes.contains(dto.getAttributeName())) {
+						if (dto.getGroup() == null) {
 
-				sharableAttributeDemographicKeySet.add(dto);
+							sharableAttributeDemographicKeySet.add(dto);
 
-			} else if (dto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)) {
-				sharableAttributeBiometricKeySet.add(dto);
+						} else if (dto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)) {
+							sharableAttributeBiometricKeySet.add(dto);
 
+						}
+					}
+
+				});
+			} else {
+				sharableAttributeList.forEach(dto -> {
+					if (dto.getGroup() == null) {
+
+						sharableAttributeDemographicKeySet.add(dto);
+
+					} else if (dto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)) {
+						sharableAttributeBiometricKeySet.add(dto);
+
+					}
+
+				});
 			}
 
-		});
 
 		for (AllowedKycDto key : sharableAttributeDemographicKeySet) {
 			String attribute = key.getSource().get(0).getAttribute();
