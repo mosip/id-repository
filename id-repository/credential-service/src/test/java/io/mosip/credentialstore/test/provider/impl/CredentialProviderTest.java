@@ -266,13 +266,51 @@ public class CredentialProviderTest {
 		response.setDocuments(docList);
 		idResponse.setResponse(response);
 		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
-		List<String> sharableAttributesList = new ArrayList<>();
-		sharableAttributesList.add("gender");
-		credentialServiceRequestDto.setSharableAttributes(sharableAttributesList);
+
 		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = credentialDefaultProvider
 				.prepareSharableAttributes(idResponse,
 				policyResponse, credentialServiceRequestDto);
-		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() > 1);
+		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
+	}
+
+	@Test
+	public void testPrepareSharableAttributesSuccessWithUserRequestedAttributes() throws CredentialFormatterException {
+		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
+		Map<String, String> map = new HashMap<>();
+		map.put("language", "eng");
+		map.put("value", "raghav");
+		JSONObject j1 = new JSONObject(map);
+
+		Map<String, String> map2 = new HashMap<>();
+		map2.put("language", "ara");
+		map2.put("value", "Alok");
+		JSONObject j2 = new JSONObject(map2);
+		JSONArray array = new JSONArray();
+		array.add(j1);
+		array.add(j2);
+		identityMap.put("fullName", array);
+
+		identityMap.put("dateOfBirth", "1980/11/14");
+
+		Object identity = identityMap;
+		response.setIdentity(identity);
+
+		DocumentsDTO doc1 = new DocumentsDTO();
+		doc1.setCategory("individualBiometrics");
+
+		doc1.setValue("text biomterics");
+		List<DocumentsDTO> docList = new ArrayList<>();
+		docList.add(doc1);
+
+		response.setDocuments(docList);
+		idResponse.setResponse(response);
+		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
+		List<String> sharableAttributesList = new ArrayList<>();
+		sharableAttributesList.add("fullName");
+		credentialServiceRequestDto.setSharableAttributes(sharableAttributesList);
+		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = credentialDefaultProvider
+				.prepareSharableAttributes(idResponse, policyResponse, credentialServiceRequestDto);
+		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
 	}
 
 }

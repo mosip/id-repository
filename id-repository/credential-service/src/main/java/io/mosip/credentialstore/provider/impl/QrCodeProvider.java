@@ -128,6 +128,7 @@ public class QrCodeProvider extends CredentialProvider {
 			List<String> typeList = new ArrayList<>();
 			typeList.add(JsonConstants.VERFIABLECREDENTIAL);
 			typeList.add(JsonConstants.MOSIPVERFIABLECREDENTIAL);
+			typeList.add(JsonConstants.PHILSYSVERFIABLECREDENTIAL);
 			json.put(JsonConstants.ID, env.getProperty("mosip.credential.service.format.id") + credentialId);
 			json.put(JsonConstants.TYPE, typeList);
 			json.put(JsonConstants.ISSUER, env.getProperty("mosip.credential.service.format.issuer"));
@@ -215,6 +216,7 @@ public class QrCodeProvider extends CredentialProvider {
 					}
 			}
 		}
+			credentialServiceRequestDto.setAdditionalData(additionalData);
 		String individualBiometricsValue = null;
 		List<DocumentsDTO> documents = idResponseDto.getResponse().getDocuments();
 
