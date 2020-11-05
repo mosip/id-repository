@@ -193,7 +193,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	@Value("${id-repo-ida-event-type-name:ida}")
 	private  String idaEventTypeName;
 	
-	@Value("${id-repo-websub-hub-url}")
+	@Value("${websub.hub.url}")
 	private String webSubHubUrl;
 	
 	@Autowired
