@@ -270,7 +270,8 @@ public class EncryptionUtil {
 
 			int count = 0;
 			for (ServiceError error : certificateResponseobj.getErrors()) {
-				if (error.getErrorCode().equals("KER-KMS-002") || error.getErrorCode().equals("KER-KMS-012")) {
+				if (error.getErrorCode().equals("KER-KMS-002") || error.getErrorCode().equals("KER-KMS-012")
+						|| error.getErrorCode().equals("KER-KMS-016") || error.getErrorCode().equals("KER-KMS-018")) {
 					count++;
 					PartnerGetCertificateResponseDto partnerCertificateResponseObj = getPartnerCertificate(partnerId);
 
