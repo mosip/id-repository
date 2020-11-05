@@ -90,13 +90,13 @@ public class IdRepoConstants {
 	
 	public static final String VID_REACTIVATED = "mosip.idrepo.vid.reactive-status";
 	
-//	public static final String FMR_ENABLED = "mosip.fingerprint.fmr.enabled";
-	
 	public static final String IDA_NOTIFY_REQ_ID = "ida.api.id.event.notify";
 	
 	public static final String IDA_NOTIFY_REQ_VER = "ida.api.version.event.notify";
 	
-	public static final String WEB_SUB_PUBLISHER_URL = "kernel.websub.publisher.url";
+	public static final String WEB_SUB_PUBLISH_URL = "websub.publish.url";
+	
+	public static final String WEB_SUB_HUB_URL = "websub.hub.url";
 	
 	public static final String OBJECT_STORE_ACCOUNT_NAME = "mosip.idrepo.objectstore.account-name";
 	

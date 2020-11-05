@@ -1,6 +1,6 @@
 package io.mosip.idrepository.identity.service.impl;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.OBJECT_STORE_ACCOUNT_NAME;
@@ -236,9 +236,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	@Value("${id-repo-ida-event-type-name:ida}")
 	private String idaEventTypeName;
-
-	@Value("${id-repo-websub-hub-url}")
-	private String webSubHubUrl;
 
 	@Autowired
 	private PublisherClient<String, EventModel, HttpHeaders> pb;
@@ -877,13 +874,13 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	private void sendEventToIDA(EventModel model) {
 		try {
 			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendEventToIDA", "Trying registering topic: " + model.getTopic());
-			pb.registerTopic(model.getTopic(), webSubHubUrl);
+			pb.registerTopic(model.getTopic(), env.getProperty(WEB_SUB_PUBLISH_URL));
 		} catch (Exception e) {
 			//Exception will be there if topic already registered. Ignore that
 			mosipLogger.warn(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendEventToIDA", "Error in registering topic: " + model.getTopic() + " : " + e.getMessage() );
 		}
 		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendEventToIDA", "Publising event to topic: " + model.getTopic());
-		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null, webSubHubUrl);
+		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null, env.getProperty(WEB_SUB_PUBLISH_URL));
 	}
 
 	private void sendEventsToCredService(String uin, LocalDateTime expiryTimestamp, boolean isUpdate, List<VidInfoDTO> vidInfoDtos, List<String> partnerIds) {
