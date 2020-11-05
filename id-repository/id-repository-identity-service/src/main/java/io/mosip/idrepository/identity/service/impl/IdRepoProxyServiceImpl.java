@@ -5,6 +5,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VE
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.OBJECT_STORE_ACCOUNT_NAME;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.WEB_SUB_PUBLISH_URL;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DOCUMENT_HASH_MISMATCH;
@@ -236,9 +237,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	@Value("${id-repo-ida-event-type-name:ida}")
 	private String idaEventTypeName;
-
-	@Value("${id-repo-websub-hub-url}")
-	private String webSubHubUrl;
 
 	@Autowired
 	private PublisherClient<String, EventModel, HttpHeaders> pb;
@@ -877,13 +875,13 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	private void sendEventToIDA(EventModel model) {
 		try {
 			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendEventToIDA", "Trying registering topic: " + model.getTopic());
-			pb.registerTopic(model.getTopic(), webSubHubUrl);
+			pb.registerTopic(model.getTopic(), env.getProperty(WEB_SUB_PUBLISH_URL));
 		} catch (Exception e) {
 			//Exception will be there if topic already registered. Ignore that
 			mosipLogger.warn(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendEventToIDA", "Error in registering topic: " + model.getTopic() + " : " + e.getMessage() );
 		}
 		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendEventToIDA", "Publising event to topic: " + model.getTopic());
-		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null, webSubHubUrl);
+		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null, env.getProperty(WEB_SUB_PUBLISH_URL));
 	}
 
 	private void sendEventsToCredService(String uin, LocalDateTime expiryTimestamp, boolean isUpdate, List<VidInfoDTO> vidInfoDtos, List<String> partnerIds) {

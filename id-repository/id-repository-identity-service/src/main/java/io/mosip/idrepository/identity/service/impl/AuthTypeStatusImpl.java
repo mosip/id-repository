@@ -61,7 +61,7 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	/** The Constant HYPHEN. */
 	private static final String HYPHEN = "-";
 
-	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISHER_URL + "}")
+	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISH_URL + "}")
 	public String publisherHubURL;
 
 	/** The auth lock repository. */
