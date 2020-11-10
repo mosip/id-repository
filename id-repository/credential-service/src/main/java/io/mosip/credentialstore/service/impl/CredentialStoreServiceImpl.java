@@ -204,7 +204,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			} else {
 
 				jsonData=processJson(dataProviderResponse.getJSON());
-				signature = digitalSignatureUtil.sign(jsonData.getBytes());
+				signature = digitalSignatureUtil.sign(jsonData);
 				jsonData = encryptionUtil.encryptData(jsonData, credentialServiceRequestDto.getIssuer());
 
 
@@ -329,7 +329,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	}
 
 	private String processJson(JSONObject json) throws IOException {
-		// TODO add JWT token
+
 		String jsonData = JsonUtil.objectMapperObjectToJson(json);
 		return CryptoUtil.encodeBase64(jsonData.getBytes());
 
