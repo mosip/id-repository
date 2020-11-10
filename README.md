@@ -2,7 +2,7 @@
 
 ID Repository acts as a repository of Identity details of an Individual, and provides API based mechanism to store and retrieve Identity details by Registration Processor module.
 
-Following are the pre-requisites for storing or retrieving Identity authentication of an individual
+Following are the pre-requisites for storing or retrieving Identity authentication of an individual -
 
 1. ID Repository accepts ID JSON in the format as provided by the country in ID Schema
 2. ID JSON present in ID Repository APIs gets validated against IdObjectValidator.
