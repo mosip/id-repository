@@ -11,6 +11,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_DEACTIVATE
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_REGENERATE_ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_REGENERATE_ALLOWED_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_UNLIMITED_TRANSACTION_STATUS;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.WEB_SUB_PUBLISH_URL;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_UIN;
@@ -193,9 +194,9 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	@Value("${id-repo-ida-event-type-name:ida}")
 	private  String idaEventTypeName;
 	
-	@Value("${websub.hub.url}")
-	private String webSubHubUrl;
-	
+	@Value("${" + WEB_SUB_PUBLISH_URL + "}")
+	private String webSubPublishUrl;
+
 	@Autowired
 	private PublisherClient<String, EventModel, HttpHeaders> pb;
 	
@@ -854,13 +855,13 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	private void sendEventToIDA(EventModel model) {
 		try {
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "sendEventToIDA", "Trying registering topic: " + model.getTopic());
-			pb.registerTopic(model.getTopic(), webSubHubUrl);
+			pb.registerTopic(model.getTopic(), webSubPublishUrl);
 		} catch (Exception e) {
 			//Exception will be there if topic already registered. Ignore that
 			mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "sendEventToIDA", "Error in registering topic: " + model.getTopic() + " : " + e.getMessage() );
 		}
 		mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "sendEventToIDA", "Publising event to topic: " + model.getTopic());
-		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null, webSubHubUrl);
+		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null, webSubPublishUrl);
 	}
 
 	private Stream<EventModel> createIdaEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp, Integer transactionLimit, List<String> partnerIds, String transactionId, String idHash) {
