@@ -72,10 +72,12 @@ public class DigitalSignatureUtil {
 
 			JWTSignatureRequestDto dto = new JWTSignatureRequestDto();
 			dto.setDataToSign(data);
-			dto.setIncludeCertHash(environment.getProperty("mosip.credential.service.includeCertificateHash",Boolean.class));
+			dto.setIncludeCertHash(
+					environment.getProperty("mosip.credential.service.includeCertificateHash", Boolean.class));
 			dto.setIncludeCertificate(
 					environment.getProperty("mosip.credential.service.includeCertificate", Boolean.class));
 			dto.setIncludePayload(environment.getProperty("mosip.credential.service.includePayload", Boolean.class));
+
 
 			RequestWrapper<JWTSignatureRequestDto> request = new RequestWrapper<>();
 			request.setRequest(dto);
@@ -84,7 +86,7 @@ public class DigitalSignatureUtil {
 			LocalDateTime localdatetime = LocalDateTime
 					.parse(DateUtils.getUTCCurrentDateTimeString(environment.getProperty(DATETIME_PATTERN)), format);
 			request.setRequesttime(localdatetime);
-			String responseString = restUtil.postApi(ApiName.KEYMANAGER_SIGN, null, "", "",
+			String responseString = restUtil.postApi(ApiName.KEYMANAGER_JWTSIGN, null, "", "",
 					MediaType.APPLICATION_JSON, request, String.class);
 
 			SignResponseDto responseObject = mapper.readValue(responseString, SignResponseDto.class);
