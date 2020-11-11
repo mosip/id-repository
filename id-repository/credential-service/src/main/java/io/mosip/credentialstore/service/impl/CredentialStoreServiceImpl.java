@@ -326,12 +326,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		return credentialIssueResponseDto;
 	}
 
-	private String processJson(JSONObject json) throws IOException {
 
-		String jsonData = JsonUtil.objectMapperObjectToJson(json);
-		return CryptoUtil.encodeBase64(jsonData.getBytes());
-
-	}
 
 	@SuppressWarnings("unchecked")
 	private EventModel getEventModel(DataShare dataShare, CredentialServiceRequestDto credentialServiceRequestDto,
