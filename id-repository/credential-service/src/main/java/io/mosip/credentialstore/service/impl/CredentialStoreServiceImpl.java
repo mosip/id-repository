@@ -193,24 +193,22 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			DataShare dataShare = null;
 			String jsonData=null;
 			String signature = null;
+			String encodedData = null;
+			jsonData = JsonUtil.objectMapperObjectToJson(dataProviderResponse.getJSON());
+			encodedData = CryptoUtil.encodeBase64(jsonData.getBytes());
 			if (policyDetailResponseDto.getPolicies().getDataSharePolicies().getTypeOfShare()
 					.equalsIgnoreCase(DATASHARE)) {
-				jsonData = JsonUtil.objectMapperObjectToJson(dataProviderResponse.getJSON());
+
 				dataShare = dataShareUtil.getDataShare(jsonData.getBytes(), policyId,
 						credentialServiceRequestDto.getIssuer());
 				credentialServiceResponse.setDataShareUrl(dataShare.getUrl());
-				signature = dataShare.getSignature();
 
 			} else {
 
-				jsonData=processJson(dataProviderResponse.getJSON());
-				signature = digitalSignatureUtil.sign(jsonData.getBytes());
-				jsonData = encryptionUtil.encryptData(jsonData, credentialServiceRequestDto.getIssuer());
-
-
+				jsonData = encryptionUtil.encryptData(encodedData, credentialServiceRequestDto.getIssuer());
 
 			}
-
+			signature = digitalSignatureUtil.sign(encodedData);
 			EventModel eventModel = getEventModel(dataShare, credentialServiceRequestDto,
 					jsonData, signature);
 			webSubUtil.publishSuccess(credentialServiceRequestDto.getIssuer(), eventModel);
@@ -328,12 +326,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		return credentialIssueResponseDto;
 	}
 
-	private String processJson(JSONObject json) throws IOException {
-		// TODO add JWT token
-		String jsonData = JsonUtil.objectMapperObjectToJson(json);
-		return CryptoUtil.encodeBase64(jsonData.getBytes());
 
-	}
 
 	@SuppressWarnings("unchecked")
 	private EventModel getEventModel(DataShare dataShare, CredentialServiceRequestDto credentialServiceRequestDto,
