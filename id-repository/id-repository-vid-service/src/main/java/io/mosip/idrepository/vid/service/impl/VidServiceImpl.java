@@ -621,6 +621,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	private VidInfoDTO createVidInfo(Vid vid, Map<String, String> idHashAttributes) {
 		return new VidInfoDTO(vid.getVid(), 
 				vid.getExpiryDTimes(), 
+				vid.getVidTypeCode(),
 				policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(), 
 				idHashAttributes);
 	}
