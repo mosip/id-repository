@@ -354,6 +354,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		signaturejson.put(JsonConstants.SIGNATURE, signature);
 		map.put(JsonConstants.PROOF, signaturejson);
 		map.put(JsonConstants.CREDENTIALTYPE, credentialServiceRequestDto.getCredentialType());
+		map.put(JsonConstants.PROTECTIONKEY, credentialServiceRequestDto.getEncryptionKey());
 		credentialServiceRequestDto.setAdditionalData(map);
 		event.setData(credentialServiceRequestDto.getAdditionalData());
 		event.setTimestamp(DateUtils.toISOString(localdatetime));
