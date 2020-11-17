@@ -616,14 +616,16 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					try {
 						String fileName = BIOMETRICS + SLASH + bio.getBioFileId();
 						if (!objectStore.exists(objectStoreAccountName,
-								uinObject.getUinHash().substring(4, 63).toLowerCase(), null, null, fileName)) {
+								uinObject.getUinHash().split("_")[1].substring(0, 63).toLowerCase(), null, null,
+								fileName)) {
 							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateCbeff",
 									"FILE NOT FOUND IN OBJECT STORE");
 							throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
 						}
 						byte[] data = securityManager
 								.decrypt(IOUtils.toByteArray(objectStore.getObject(objectStoreAccountName,
-										uinObject.getUinHash().substring(4, 63).toLowerCase(), null, null, fileName)));
+										uinObject.getUinHash().split("_")[1].substring(0, 63).toLowerCase(), null, null,
+										fileName)));
 						if (StringUtils.equalsIgnoreCase(
 								identityMap.get(bio.getBiometricFileType()).get(FILE_FORMAT_ATTRIBUTE).asText(),
 								CBEFF_FORMAT) && fileName.endsWith(CBEFF_FORMAT)) {
