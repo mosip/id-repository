@@ -100,6 +100,10 @@ public class IdRepoConstants {
 	
 	public static final String OBJECT_STORE_ACCOUNT_NAME = "mosip.idrepo.objectstore.account-name";
 	
+	public static final String OBJECT_STORE_BUCKET_NAME = "mosip.idrepo.objectstore.bucket-name";
+	
+	public static final String OBJECT_STORE_ADAPTER_NAME = "mosip.idrepo.objectstore.adapter-name";
+	
 	/** The value. */
 	private final String value;
 
