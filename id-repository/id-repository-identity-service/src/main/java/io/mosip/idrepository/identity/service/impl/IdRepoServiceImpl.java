@@ -23,6 +23,7 @@ import java.util.Objects;
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -610,8 +611,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 									data)));
 						}
 					} catch (Exception e) {
-						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
-								"\n" + e.getMessage());
+						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateCbeff",
+								"\n" + ExceptionUtils.getStackTrace(e));
 						throw new IdRepoAppUncheckedException(INVALID_INPUT_PARAMETER.getErrorCode(), String.format(
 								INVALID_INPUT_PARAMETER.getErrorMessage(), DOCUMENTS + " - " + doc.getCategory()));
 					}
