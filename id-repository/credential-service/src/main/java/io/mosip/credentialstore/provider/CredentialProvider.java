@@ -30,7 +30,6 @@ import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
-import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 
 
@@ -199,7 +198,7 @@ public class CredentialProvider {
 			}
 			if (individualBiometricsValue != null) {
 			attributesMap.put(key,
-					CryptoUtil.encodeBase64(individualBiometricsValue.getBytes()));
+							individualBiometricsValue);
 			}
 
 		}

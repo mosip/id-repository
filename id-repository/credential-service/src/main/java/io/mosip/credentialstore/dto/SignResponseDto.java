@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class SignResponseDto  extends ResponseWrapper<SignatureResponse>{
+public class SignResponseDto  extends ResponseWrapper<JWTSignatureResponseDto>{
 
 	
 }
