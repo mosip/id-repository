@@ -20,7 +20,7 @@ public class CredentialInstializer implements ApplicationListener<ApplicationRea
 	@Value("${retry-count:3}")
 	private int retryCount;
 
-	@Value("${resubscription-delay-secs:7200}") // Default is 60 * 60 * 2 = 2 hours
+	@Value("${resubscription-delay-secs:0}")
 	private int reSubscriptionDelaySecs;
 
 	@Autowired
@@ -39,10 +39,19 @@ public class CredentialInstializer implements ApplicationListener<ApplicationRea
 
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent event) {
+		if (reSubscriptionDelaySecs > 0) {
 		LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIALINSTIALIZER, ONAPPLICATIONEVENT,
 				"Work around for web-sub notification issue after some time.");
 
 		scheduleRetrySubscriptions();
+		}
+		else {
+			LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIALINSTIALIZER, ONAPPLICATIONEVENT,
+
+					"Scheduling for re-subscription is Disabled as the re-subsctription delay value is: "
+							+ reSubscriptionDelaySecs);
+
+		}
 	}
 
 	private void scheduleRetrySubscriptions() {
@@ -56,7 +65,7 @@ public class CredentialInstializer implements ApplicationListener<ApplicationRea
 
 	private void retrySubscriptions() {
 		// Call Init Subscriptions for the count until no error in the subscription
-		for (int i = 0; i < retryCount; i++) {
+		for (int i = 0; i <= retryCount; i++) {
 			if (initSubsriptions()) {
 				return;
 			}

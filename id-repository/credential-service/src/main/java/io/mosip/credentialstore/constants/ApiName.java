@@ -12,7 +12,7 @@ public enum ApiName {
 	/** The createdatashare. */
 	CREATEDATASHARE,
 	
-	KEYMANAGER_SIGN,
+	KEYMANAGER_JWTSIGN,
 	
 	KEYMANAGER_ENCRYPT_PIN,
 	
