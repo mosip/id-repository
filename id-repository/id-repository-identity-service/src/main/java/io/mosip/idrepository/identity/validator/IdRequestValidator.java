@@ -109,11 +109,11 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	private static final String TYPE = "type";
 
 	/** The new registration fields. */
-	@Value("${mosip.kernel.idobjectvalidator.mandatory-attributes.id-repository.new-registration}")
+	@Value("#{'${mosip.kernel.idobjectvalidator.mandatory-attributes.id-repository.new-registration:}'.split(',')}")
 	private List<String> newRegistrationFields;
 
 	/** The update uin fields. */
-	@Value("${mosip.kernel.idobjectvalidator.mandatory-attributes.id-repository.update-uin}")
+	@Value("#{'${mosip.kernel.idobjectvalidator.mandatory-attributes.id-repository.update-uin:}'.split(',')}")
 	private List<String> updateUinFields;
 
 	/** The status. */
