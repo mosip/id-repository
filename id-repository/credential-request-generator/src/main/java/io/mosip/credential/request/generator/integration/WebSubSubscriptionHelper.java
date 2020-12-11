@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
+import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.dto.EventModel;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
@@ -22,7 +23,7 @@ public class WebSubSubscriptionHelper {
 	@Autowired
 	SubscriptionClient<SubscriptionChangeRequest, UnsubscriptionRequest, SubscriptionChangeResponse> sb;
 
-	@Value("${WEBSUBSUBSCRIBEURL}")
+	@Value("${" + IdRepoConstants.WEB_SUB_HUB_URL + "}")
 	private String webSubHubUrl;
 
 	@Value("${WEBSUBSECRET}")
@@ -32,7 +33,7 @@ public class WebSubSubscriptionHelper {
 	private String callBackUrl;
 
 	/** The config server file storage URL. */
-	@Value("${mosip.partnerhuburl}")
+	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISH_URL + "}")
 	private String partnerhuburl;
 
 	@Autowired

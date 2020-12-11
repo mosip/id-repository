@@ -302,12 +302,10 @@ public class QrCodeProviderTest {
 		response.setDocuments(docList);
 		idResponse.setResponse(response);
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
-		List<String> sharableAttributesList=new ArrayList<>();
-		sharableAttributesList.add("gender");
-		credentialServiceRequestDto.setSharableAttributes(sharableAttributesList);
+
 		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = qrCodeProvider.prepareSharableAttributes(idResponse,
 				policyResponse, credentialServiceRequestDto);
-		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() > 1);
+		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
 	}
 
 	@Test
@@ -344,10 +342,10 @@ public class QrCodeProviderTest {
 		idResponse.setResponse(response);
 		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
 		List<String> sharableAttributesList = new ArrayList<>();
-		sharableAttributesList.add("gender");
+		sharableAttributesList.add("fullName");
 		credentialServiceRequestDto.setSharableAttributes(sharableAttributesList);
 		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = qrCodeProvider.prepareSharableAttributes(idResponse,
 				policyResponse, credentialServiceRequestDto);
-		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() > 1);
+		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
 	}
 }

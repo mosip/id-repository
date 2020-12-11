@@ -37,6 +37,7 @@ import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.service.CredentialStoreService;
 import io.mosip.credentialstore.util.DataShareUtil;
 import io.mosip.credentialstore.util.DigitalSignatureUtil;
+import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.IdrepositaryUtil;
 import io.mosip.credentialstore.util.JsonUtil;
 import io.mosip.credentialstore.util.PolicyUtil;
@@ -146,6 +147,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	@Autowired
 	private DigitalSignatureUtil digitalSignatureUtil;
 
+	@Autowired
+	EncryptionUtil encryptionUtil;
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -190,21 +193,22 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			DataShare dataShare = null;
 			String jsonData=null;
 			String signature = null;
+			String encodedData = null;
+			jsonData = JsonUtil.objectMapperObjectToJson(dataProviderResponse.getJSON());
+			encodedData = CryptoUtil.encodeBase64(jsonData.getBytes());
 			if (policyDetailResponseDto.getPolicies().getDataSharePolicies().getTypeOfShare()
 					.equalsIgnoreCase(DATASHARE)) {
-				jsonData = JsonUtil.objectMapperObjectToJson(dataProviderResponse.getJSON());
+
 				dataShare = dataShareUtil.getDataShare(jsonData.getBytes(), policyId,
 						credentialServiceRequestDto.getIssuer());
 				credentialServiceResponse.setDataShareUrl(dataShare.getUrl());
-				signature = dataShare.getSignature();
 
 			} else {
-				// TO DO encrypt the credential based on certificate
-				jsonData=processJson(dataProviderResponse.getJSON());
-				signature = digitalSignatureUtil.sign(jsonData.getBytes());
+
+				jsonData = encryptionUtil.encryptData(encodedData, credentialServiceRequestDto.getIssuer());
 
 			}
-
+			signature = digitalSignatureUtil.sign(encodedData);
 			EventModel eventModel = getEventModel(dataShare, credentialServiceRequestDto,
 					jsonData, signature);
 			webSubUtil.publishSuccess(credentialServiceRequestDto.getIssuer(), eventModel);
@@ -322,12 +326,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		return credentialIssueResponseDto;
 	}
 
-	private String processJson(JSONObject json) throws IOException {
-		// TODO add JWT token
-		String jsonData = JsonUtil.objectMapperObjectToJson(json);
-		return CryptoUtil.encodeBase64(jsonData.getBytes());
 
-	}
 
 	@SuppressWarnings("unchecked")
 	private EventModel getEventModel(DataShare dataShare, CredentialServiceRequestDto credentialServiceRequestDto,
@@ -354,6 +353,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		JSONObject signaturejson = new JSONObject();
 		signaturejson.put(JsonConstants.SIGNATURE, signature);
 		map.put(JsonConstants.PROOF, signaturejson);
+		map.put(JsonConstants.CREDENTIALTYPE, credentialServiceRequestDto.getCredentialType());
+		map.put(JsonConstants.PROTECTIONKEY, credentialServiceRequestDto.getEncryptionKey());
 		credentialServiceRequestDto.setAdditionalData(map);
 		event.setData(credentialServiceRequestDto.getAdditionalData());
 		event.setTimestamp(DateUtils.toISOString(localdatetime));

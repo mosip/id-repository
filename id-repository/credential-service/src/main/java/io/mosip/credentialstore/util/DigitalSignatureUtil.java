@@ -1,30 +1,23 @@
 package io.mosip.credentialstore.util;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.ApiName;
-import io.mosip.credentialstore.dto.SignRequestDto;
+import io.mosip.credentialstore.dto.JWTSignatureRequestDto;
 import io.mosip.credentialstore.dto.SignResponseDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.SignatureException;
-import io.mosip.credentialstore.service.impl.CredentialStoreServiceImpl;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -72,21 +65,28 @@ public class DigitalSignatureUtil {
 	 * @throws ApiNotAccessibleException 
 	 * @throws SignatureException 
 	 */
-	public String sign(byte[] packet) throws ApiNotAccessibleException, SignatureException {
+	public String sign(String data) throws ApiNotAccessibleException, SignatureException {
 		try {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), DIGITALSIGNATURE, SIGN,
 					"entry");
-			String packetData = new String(packet, StandardCharsets.UTF_8);
-			SignRequestDto dto = new SignRequestDto();
-			dto.setData(packetData);
-			RequestWrapper<SignRequestDto> request = new RequestWrapper<>();
+
+			JWTSignatureRequestDto dto = new JWTSignatureRequestDto();
+			dto.setDataToSign(data);
+			dto.setIncludeCertHash(
+					environment.getProperty("mosip.credential.service.includeCertificateHash", Boolean.class));
+			dto.setIncludeCertificate(
+					environment.getProperty("mosip.credential.service.includeCertificate", Boolean.class));
+			dto.setIncludePayload(environment.getProperty("mosip.credential.service.includePayload", Boolean.class));
+
+
+			RequestWrapper<JWTSignatureRequestDto> request = new RequestWrapper<>();
 			request.setRequest(dto);
 			request.setMetadata(null);
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(environment.getProperty(DATETIME_PATTERN));
 			LocalDateTime localdatetime = LocalDateTime
 					.parse(DateUtils.getUTCCurrentDateTimeString(environment.getProperty(DATETIME_PATTERN)), format);
 			request.setRequesttime(localdatetime);
-			String responseString = restUtil.postApi(ApiName.KEYMANAGER_SIGN, null, "", "",
+			String responseString = restUtil.postApi(ApiName.KEYMANAGER_JWTSIGN, null, "", "",
 					MediaType.APPLICATION_JSON, request, String.class);
 
 			SignResponseDto responseObject = mapper.readValue(responseString, SignResponseDto.class);
@@ -94,7 +94,7 @@ public class DigitalSignatureUtil {
 				ServiceError error = responseObject.getErrors().get(0);
 				throw new SignatureException(error.getMessage());
 			}
-			String signedData = responseObject.getResponse().getSignature();
+			String signedData = responseObject.getResponse().getJwtSignedData();
 			LOGGER.info(IdRepoSecurityManager.getUser(), DIGITALSIGNATURE, SIGN,
 					"Signed data successfully");
 			LOGGER.debug(IdRepoSecurityManager.getUser(), DIGITALSIGNATURE, SIGN,

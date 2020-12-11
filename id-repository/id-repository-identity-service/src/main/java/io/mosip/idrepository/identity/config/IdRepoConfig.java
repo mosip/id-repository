@@ -21,6 +21,7 @@ import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -55,7 +56,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 @EnableAsync
 public class IdRepoConfig implements WebMvcConfigurer {
 	
-	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISHER_URL + "}")
+	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISH_URL + "}")
 	public String publisherHubURL;
 
 	/** The mosip logger. */
@@ -70,7 +71,8 @@ public class IdRepoConfig implements WebMvcConfigurer {
 	private Interceptor interceptor;
 
 	/** The db. */
-	private Map<String, Map<String, String>> db;
+//	If sharding is enabled, need to uncomment
+//	private Map<String, Map<String, String>> db;
 
 	/** The uin Status. */
 	private List<String> uinStatus;
@@ -86,6 +88,9 @@ public class IdRepoConfig implements WebMvcConfigurer {
 
 	/** The id. */
 	private Map<String, String> id;
+	
+	@Autowired
+	private Environment env;
 
 	@PostConstruct
 	public void init() {
@@ -132,9 +137,10 @@ public class IdRepoConfig implements WebMvcConfigurer {
 	 *
 	 * @return the db
 	 */
-	public Map<String, Map<String, String>> getDb() {
-		return db;
-	}
+//	If sharding is enabled, need to uncomment
+//	public Map<String, Map<String, String>> getDb() {
+//		return db;
+//	}
 
 	/**
 	 * Sets the db.
@@ -142,9 +148,10 @@ public class IdRepoConfig implements WebMvcConfigurer {
 	 * @param db
 	 *            the db
 	 */
-	public void setDb(Map<String, Map<String, String>> db) {
-		this.db = db;
-	}
+//	If sharding is enabled, need to uncomment
+//	public void setDb(Map<String, Map<String, String>> db) {
+//		this.db = db;
+//	}
 
 	/**
 	 * Sets the status.
@@ -316,7 +323,16 @@ public class IdRepoConfig implements WebMvcConfigurer {
 	 */
 	@Bean
 	public DataSource dataSource() {
-		return buildDataSource(db.get("shard"));
+//		If sharding is enabled, need to uncomment
+//		return buildDataSource(db.get("shard"));
+		
+//		If sharding is enabled, need to comment below code
+		Map<String, String> dbValues = new HashMap<>();
+		dbValues.put("url", env.getProperty("mosip.idrepo.identity.db.url"));
+		dbValues.put("username", env.getProperty("mosip.idrepo.identity.db.username"));
+		dbValues.put("password", env.getProperty("mosip.idrepo.identity.db.password"));
+		dbValues.put("driverClassName", env.getProperty("mosip.idrepo.identity.db.driverClassName"));
+		return buildDataSource(dbValues);
 	}
 	
 	  @Bean

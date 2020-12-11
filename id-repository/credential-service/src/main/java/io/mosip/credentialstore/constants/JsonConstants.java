@@ -26,7 +26,11 @@ public class JsonConstants {
 
 	public static final String SIGNATURE = "signature";
 
-	public static final String PROTECTEDATTRIBUTES = "protectedAtributes";
+	public static final String PROTECTEDATTRIBUTES = "protectedAttributes";
 
 	public static final String PHILSYSVERFIABLECREDENTIAL = "PhilsysVerifiableCredential";
+
+	public static final String CREDENTIALTYPE = "credentialType";
+
+	public static final String PROTECTIONKEY = "protectionKey";
 }

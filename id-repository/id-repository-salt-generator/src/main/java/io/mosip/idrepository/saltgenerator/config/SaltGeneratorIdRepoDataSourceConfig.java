@@ -41,7 +41,7 @@ transactionManagerRef= "identityTransactionManager"
 )
 public class SaltGeneratorIdRepoDataSourceConfig {
 	
-	private static final String MOSIP_IDREPO_IDENTITY_DB = "mosip.idrepo.identity.db.shard";
+	private static final String MOSIP_IDREPO_IDENTITY_DB = "mosip.idrepo.identity.db";
 	
 	@Autowired
 	private Environment env;

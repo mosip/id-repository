@@ -21,22 +21,16 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.context.WebApplicationContext;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.dto.DataShare;
 import io.mosip.credentialstore.dto.DataShareResponseDto;
-import io.mosip.credentialstore.dto.SignResponseDto;
-import io.mosip.credentialstore.dto.SignatureResponse;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.DataShareException;
 import io.mosip.credentialstore.exception.SignatureException;
 import io.mosip.credentialstore.util.DataShareUtil;
-import io.mosip.credentialstore.util.DigitalSignatureUtil;
 import io.mosip.credentialstore.util.RestUtil;
 import io.mosip.idrepository.core.dto.ErrorDTO;
-import io.mosip.kernel.core.exception.ServiceError;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest
