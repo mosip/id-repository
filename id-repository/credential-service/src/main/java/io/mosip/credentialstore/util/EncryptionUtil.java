@@ -194,13 +194,16 @@ public class EncryptionUtil {
 
 		String encryptedPacket = null;
 		try {
-			makeCertificateAvailable(partnerId);
+			checkCertificateAndUpload(partnerId);
 
 			CryptomanagerRequestDto cryptomanagerRequestDto = new CryptomanagerRequestDto();
 			RequestWrapper<CryptomanagerRequestDto> request = new RequestWrapper<>();
 			cryptomanagerRequestDto.setApplicationId(applicationId);
 			cryptomanagerRequestDto.setData(dataToBeEncrypted);
 			cryptomanagerRequestDto.setReferenceId(partnerId);
+			cryptomanagerRequestDto
+					.setPrependThumbprint(
+							env.getProperty("mosip.credential.service.share.prependThumbprint", Boolean.class));
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 			LocalDateTime localdatetime = LocalDateTime
 					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
@@ -248,7 +251,7 @@ public class EncryptionUtil {
 
 	}
 
-	private void makeCertificateAvailable(String partnerId) throws Exception {
+	private void checkCertificateAndUpload(String partnerId) throws Exception {
 
 		String getCertificateQueryParameterName = "applicationId,referenceId";
 		String getCertificateQueryParameterValue = applicationId + "," + partnerId;
@@ -273,26 +276,7 @@ public class EncryptionUtil {
 				if (error.getErrorCode().equals("KER-KMS-002") || error.getErrorCode().equals("KER-KMS-012")
 						|| error.getErrorCode().equals("KER-KMS-016") || error.getErrorCode().equals("KER-KMS-018")) {
 					count++;
-					PartnerGetCertificateResponseDto partnerCertificateResponseObj = getPartnerCertificate(partnerId);
-
-					if (partnerCertificateResponseObj != null && partnerCertificateResponseObj.getResponse() != null
-							&& partnerCertificateResponseObj.getResponse().getCertificateData() != null
-							&& !partnerCertificateResponseObj.getResponse().getCertificateData().isEmpty()) {
-
-						KeyManagerUploadCertificateResponseDto uploadCertificateResponseobj = uploadCertificate(
-								partnerId, partnerCertificateResponseObj);
-
-						if (uploadCertificateResponseobj != null && uploadCertificateResponseobj.getErrors() != null
-								&& !uploadCertificateResponseobj.getErrors().isEmpty()) {
-							ServiceError error1 = uploadCertificateResponseobj.getErrors().get(0);
-							throw new DataEncryptionFailureException(error1.getMessage());
-						}
-
-					} else if (partnerCertificateResponseObj != null
-							&& partnerCertificateResponseObj.getErrors() != null) {
-						ServiceError error2 = partnerCertificateResponseObj.getErrors();
-						throw new DataEncryptionFailureException(error2.getMessage());
-					}
+					getPartnerCertificateAndUpload(partnerId);
 
 				}
 			}
@@ -302,6 +286,29 @@ public class EncryptionUtil {
 			}
 		}
 
+	}
+	private void getPartnerCertificateAndUpload(String partnerId)
+			throws Exception, IOException, JsonParseException, JsonMappingException, DataEncryptionFailureException {
+		PartnerGetCertificateResponseDto partnerCertificateResponseObj = getPartnerCertificate(partnerId);
+
+		if (partnerCertificateResponseObj != null && partnerCertificateResponseObj.getResponse() != null
+				&& partnerCertificateResponseObj.getResponse().getCertificateData() != null
+				&& !partnerCertificateResponseObj.getResponse().getCertificateData().isEmpty()) {
+
+			KeyManagerUploadCertificateResponseDto uploadCertificateResponseobj = uploadCertificate(
+					partnerId, partnerCertificateResponseObj);
+
+			if (uploadCertificateResponseobj != null && uploadCertificateResponseobj.getErrors() != null
+					&& !uploadCertificateResponseobj.getErrors().isEmpty()) {
+				ServiceError error1 = uploadCertificateResponseobj.getErrors().get(0);
+				throw new DataEncryptionFailureException(error1.getMessage());
+			}
+
+		} else if (partnerCertificateResponseObj != null
+				&& partnerCertificateResponseObj.getErrors() != null) {
+			ServiceError error2 = partnerCertificateResponseObj.getErrors();
+			throw new DataEncryptionFailureException(error2.getMessage());
+		}
 	}
 	private KeyManagerUploadCertificateResponseDto uploadCertificate(String partnerId,
 			PartnerGetCertificateResponseDto partnerCertificateResponseObj)
