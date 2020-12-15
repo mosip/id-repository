@@ -49,6 +49,7 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialItemProcessor.class);
 	
+	private static final String CREDENTIAL_USER = "service-account-mosip-crereq-client";
 
 
 	@Override
@@ -79,6 +80,7 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 			   		 responseObject.toString());
 				
 				credential.setStatusCode(CredentialStatusCode.FAILED.name());
+
 			}else {
 				CredentialServiceResponse credentialServiceResponse=responseObject.getResponse();
 				credential.setCredentialId(credentialServiceResponse.getCredentialId());
@@ -86,8 +88,9 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 				credential.setIssuanceDate(credentialServiceResponse.getIssuanceDate());
 				credential.setStatusCode(credentialServiceResponse.getStatus());
 				credential.setSignature(credentialServiceResponse.getSignature());
-			}
 
+			}
+			credential.setUpdatedBy(CREDENTIAL_USER);
 			LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
 					"ended processing item");
 		} catch (ApiNotAccessibleException e) {
