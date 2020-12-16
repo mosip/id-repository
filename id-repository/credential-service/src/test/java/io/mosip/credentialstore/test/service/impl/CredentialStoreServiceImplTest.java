@@ -12,7 +12,6 @@ import java.util.Map;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -33,6 +32,7 @@ import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.DataShare;
 import io.mosip.credentialstore.dto.DataShareDto;
 import io.mosip.credentialstore.dto.Extractor;
+import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
 import io.mosip.credentialstore.dto.PartnerExtractor;
 import io.mosip.credentialstore.dto.PartnerExtractorResponse;
 import io.mosip.credentialstore.dto.PolicyAttributesDto;
@@ -361,7 +361,6 @@ public class CredentialStoreServiceImplTest {
 	}
 	
 	@Test
-	@Ignore
 	public void testWebSubClientException() throws ApiNotAccessibleException, IdRepoException, IOException {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
 		credentialServiceRequestDto.setCredentialType("mosip");
