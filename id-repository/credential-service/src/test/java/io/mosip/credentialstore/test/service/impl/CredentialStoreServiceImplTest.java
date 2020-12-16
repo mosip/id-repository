@@ -36,6 +36,7 @@ import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
 import io.mosip.credentialstore.dto.PartnerExtractor;
 import io.mosip.credentialstore.dto.PartnerExtractorResponse;
 import io.mosip.credentialstore.dto.PolicyAttributesDto;
+import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
 import io.mosip.credentialstore.dto.Type;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
