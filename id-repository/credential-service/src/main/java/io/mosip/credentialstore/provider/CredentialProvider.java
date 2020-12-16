@@ -30,7 +30,7 @@ import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.Filter;
 import io.mosip.credentialstore.dto.JsonValue;
-import io.mosip.credentialstore.dto.PolicyResponseDto;
+import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
 import io.mosip.credentialstore.dto.Source;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
@@ -164,7 +164,7 @@ public class CredentialProvider {
 	}
 
 	public Map<AllowedKycDto, Object> prepareSharableAttributes(IdResponseDTO idResponseDto,
-			PolicyResponseDto policyResponseDto, CredentialServiceRequestDto credentialServiceRequestDto)
+			PartnerCredentialTypePolicyDto policyResponseDto, CredentialServiceRequestDto credentialServiceRequestDto)
 			throws CredentialFormatterException {
 		try {
 		Map<AllowedKycDto, Object> attributesMap = new HashMap<>();

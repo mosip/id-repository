@@ -25,11 +25,11 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
 import io.mosip.credentialstore.dto.PartnerExtractor;
 import io.mosip.credentialstore.dto.PartnerExtractorResponse;
 import io.mosip.credentialstore.dto.PartnerExtractorResponseDto;
 import io.mosip.credentialstore.dto.PolicyManagerResponseDto;
-import io.mosip.credentialstore.dto.PolicyResponseDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.PartnerException;
 import io.mosip.credentialstore.exception.PolicyException;
@@ -64,7 +64,7 @@ public class PolicyUtilTest {
 	public void setUp() throws Exception {
 		
 		policyManagerResponseDto = new PolicyManagerResponseDto();
-		PolicyResponseDto responseData = new PolicyResponseDto();
+		PartnerCredentialTypePolicyDto responseData = new PartnerCredentialTypePolicyDto();
 		responseData.setPolicyId("1234");
 		policyManagerResponseDto.setResponse(responseData);
 		partnerExtractorResponseDto = new PartnerExtractorResponseDto();
@@ -83,7 +83,7 @@ public class PolicyUtilTest {
 	public void policySuccessTest() throws Exception {
 		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(policyResponse);
 
-		PolicyResponseDto policyResponseDto = policyUtil.getPolicyDetail("1234", "3456");
+		PartnerCredentialTypePolicyDto policyResponseDto = policyUtil.getPolicyDetail("euin", "3456");
 		assertEquals(policyResponseDto.getPolicyId(), "1234");
 
 	}
@@ -94,7 +94,7 @@ public class PolicyUtilTest {
 		Mockito.when(objectMapper.readValue(policyResponse, PolicyManagerResponseDto.class))
 				.thenThrow(new IOException());
 		
-		policyUtil.getPolicyDetail("1234", "3456");
+		policyUtil.getPolicyDetail("euin", "3456");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -104,7 +104,7 @@ public class PolicyUtilTest {
 				"error");
 		Exception e=new Exception(httpClientErrorException);
 		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
-		policyUtil.getPolicyDetail("1234", "3456");
+		policyUtil.getPolicyDetail("euin", "3456");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -114,7 +114,7 @@ public class PolicyUtilTest {
 				"error");
 		Exception e=new Exception(httpServerErrorException);
 		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
-		policyUtil.getPolicyDetail("1234", "3456");
+		policyUtil.getPolicyDetail("euin", "3456");
 	}
 
 	@Test(expected = PolicyException.class)
@@ -126,7 +126,7 @@ public class PolicyUtilTest {
 		List<ServiceError> errors = new ArrayList<ServiceError>();
 		errors.add(error);
 		policyManagerResponseDto.setErrors(errors);
-		policyUtil.getPolicyDetail("1234", "3456");
+		policyUtil.getPolicyDetail("euin", "3456");
 	}
 
 	@Test
@@ -188,7 +188,7 @@ public class PolicyUtilTest {
 		errors.add(error);
 		partnerExtractorResponseDto.setErrors(errors);
 
-		PartnerExtractorResponse policyResponseDto = policyUtil.getPartnerExtractorFormat("1234", "3456");
+		PartnerExtractorResponse policyResponseDto = policyUtil.getPartnerExtractorFormat("euin", "3456");
 		assertNull(policyResponseDto);
 
 	}
