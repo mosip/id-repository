@@ -8,6 +8,6 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class PolicyManagerResponseDto  extends ResponseWrapper<PolicyResponseDto> {
+public class PolicyManagerResponseDto  extends ResponseWrapper<PartnerCredentialTypePolicyDto> {
 
 }

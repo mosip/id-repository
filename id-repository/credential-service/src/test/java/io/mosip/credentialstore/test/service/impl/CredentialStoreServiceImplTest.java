@@ -36,7 +36,7 @@ import io.mosip.credentialstore.dto.Extractor;
 import io.mosip.credentialstore.dto.PartnerExtractor;
 import io.mosip.credentialstore.dto.PartnerExtractorResponse;
 import io.mosip.credentialstore.dto.PolicyAttributesDto;
-import io.mosip.credentialstore.dto.PolicyResponseDto;
+import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
 import io.mosip.credentialstore.dto.Type;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
@@ -120,7 +120,7 @@ public class CredentialStoreServiceImplTest {
 	/** The response. */
 	private ResponseDTO response = new ResponseDTO();
 	
-	PolicyResponseDto policyDetailResponseDto;
+	PartnerCredentialTypePolicyDto policyDetailResponseDto;
 
 	PolicyAttributesDto policies;
 
@@ -142,7 +142,7 @@ public class CredentialStoreServiceImplTest {
 		Mockito.when(env.getProperty("credentialType.policyid.AUTH")).thenReturn("45678451034176");
 		Mockito.when(env.getProperty("credentialType.formatter.MOSIP"))
 		.thenReturn("CredentialDefaultProvider");
-		policyDetailResponseDto = new PolicyResponseDto();
+		policyDetailResponseDto = new PartnerCredentialTypePolicyDto();
 		policyDetailResponseDto.setPolicyId("45678451034176");
 		policyDetailResponseDto.setVersion("1.1");
 		policyDetailResponseDto.setPolicyName("Digital QR Code Policy");
