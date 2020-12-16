@@ -5,6 +5,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VE
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DATETIME_PATTERN;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Objects;
 
@@ -17,10 +18,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.AuthUserDetails;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
+import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
@@ -28,7 +31,7 @@ import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 
 /**
  * The Class IdRepoSecurityManager - provides security related functionalities
@@ -72,7 +75,12 @@ public class IdRepoSecurityManager {
 	 * @return the string
 	 */
 	public String hash(final byte[] data) {
-		return HMACUtils.digestAsPlainText(HMACUtils.generateHash(data));
+		try {
+			return HMACUtils2.digestAsPlainText(data);
+		} catch (NoSuchAlgorithmException e) {
+			//TODO to be removed
+			throw new IdRepoAppUncheckedException(IdRepoErrorConstants.UNKNOWN_ERROR, e);
+		}
 	}
 
 	
@@ -85,7 +93,12 @@ public class IdRepoSecurityManager {
 	 * @return the string
 	 */
 	public String hashwithSalt(final byte[] data, final byte[] salt) {
-		return HMACUtils.digestAsPlainTextWithSalt(data, salt);
+		try {
+			return HMACUtils2.digestAsPlainTextWithSalt(data, salt);
+		} catch (NoSuchAlgorithmException e) {
+			//TODO to be removed
+			throw new IdRepoAppUncheckedException(IdRepoErrorConstants.UNKNOWN_ERROR, e);
+		}
 	}
 	
 	/**
