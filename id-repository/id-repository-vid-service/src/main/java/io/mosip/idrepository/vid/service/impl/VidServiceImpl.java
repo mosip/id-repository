@@ -116,7 +116,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 
 	private static final String IDA = "IDA";
 
-	private static final String AUTH = "AUTH";
+	private static final String AUTH = "auth";
 
 	private static final String REVOKED = "REVOKED";
 
