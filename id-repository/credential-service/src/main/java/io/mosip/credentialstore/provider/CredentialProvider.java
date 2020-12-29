@@ -136,9 +136,7 @@ public class CredentialProvider {
 
 			JSONObject json = new JSONObject();
 			List<String> typeList = new ArrayList<>();
-			typeList.add(JsonConstants.VERFIABLECREDENTIAL);
-			typeList.add(JsonConstants.MOSIPVERFIABLECREDENTIAL);
-			typeList.add(JsonConstants.PHILSYSVERFIABLECREDENTIAL);
+			typeList.add(env.getProperty("mosip.credential.service.credential.schema"));
 			json.put(JsonConstants.ID, env.getProperty("mosip.credential.service.format.id") + credentialId);
 			json.put(JsonConstants.TYPE, typeList);
 			json.put(JsonConstants.ISSUER, env.getProperty("mosip.credential.service.format.issuer"));
