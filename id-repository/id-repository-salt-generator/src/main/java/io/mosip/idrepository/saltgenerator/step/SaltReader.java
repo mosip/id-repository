@@ -21,7 +21,7 @@ import io.mosip.idrepository.saltgenerator.logger.SaltGeneratorLogger;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 
 /**
  * The Class SaltReader - Creates entities based on chunk size.
@@ -59,7 +59,7 @@ public class SaltReader implements ItemReader<IdRepoSaltEntitiesComposite> {
 	@Override
 	public IdRepoSaltEntitiesComposite read() {
 		if (startSeq <= endSeq) {
-			String idHshSalt = CryptoUtil.encodeBase64String(HMACUtils.generateSalt());
+			String idHshSalt = CryptoUtil.encodeBase64String(HMACUtils2.generateSalt());
 			String vidHshSalt = idHshSalt;
 			LocalDateTime currentDateTime = DateUtils.getUTCCurrentDateTime();
 			
@@ -75,7 +75,7 @@ public class SaltReader implements ItemReader<IdRepoSaltEntitiesComposite> {
 			vidHashSalt.setCreatedBy("System");
 			vidHashSalt.setCreateDtimes(currentDateTime);
 			
-			String idEncSalt = CryptoUtil.encodeBase64String(HMACUtils.generateSalt());
+			String idEncSalt = CryptoUtil.encodeBase64String(HMACUtils2.generateSalt());
 
 			IdentityEncryptSaltEntity identityEncryptSalt = new IdentityEncryptSaltEntity();
 			identityEncryptSalt.setId(startSeq);
@@ -83,7 +83,7 @@ public class SaltReader implements ItemReader<IdRepoSaltEntitiesComposite> {
 			identityEncryptSalt.setCreatedBy("System");
 			identityEncryptSalt.setCreateDtimes(currentDateTime);
 			
-			String vidEncSalt = CryptoUtil.encodeBase64String(HMACUtils.generateSalt());
+			String vidEncSalt = CryptoUtil.encodeBase64String(HMACUtils2.generateSalt());
 			
 			VidEncryptSaltEntity vidEncryptSalt = new VidEncryptSaltEntity();
 			vidEncryptSalt.setId(startSeq);
