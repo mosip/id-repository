@@ -11,7 +11,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
@@ -19,12 +18,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.ApiName;
 import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
+import io.mosip.credentialstore.constants.JsonConstants;
 import io.mosip.credentialstore.dto.DataShare;
 import io.mosip.credentialstore.dto.DataShareResponseDto;
-
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.DataShareException;
-import io.mosip.credentialstore.exception.SignatureException;
 import io.mosip.idrepository.core.dto.ErrorDTO;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
@@ -48,7 +46,7 @@ public class DataShareUtil {
 	
 	private static final String CREDENTIALFILE = "credentialfile";
 
-	public DataShare getDataShare(byte[] data, String policyId, String partnerId)
+	public DataShare getDataShare(byte[] data, String policyId, String partnerId, String domain)
 			throws ApiNotAccessibleException, IOException, DataShareException {
 		try {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), DATASHARE, GET_DATA, 
@@ -72,8 +70,14 @@ public class DataShareUtil {
 		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 		HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<LinkedMultiValueMap<String, Object>>(
 				map, headers);
-		String responseString = restUtil.postApi(ApiName.CREATEDATASHARE, pathsegments, "", "",
-				MediaType.MULTIPART_FORM_DATA, requestEntity, String.class);
+			String responseString = null;
+			if (JsonConstants.DATASAHREDOMAIN1.equalsIgnoreCase(domain)) {
+				responseString = restUtil.postApi(ApiName.CREATEDATASHARE1, pathsegments, "", "",
+						MediaType.MULTIPART_FORM_DATA, requestEntity, String.class);
+			} else if (JsonConstants.DATASAHREDOMAIN2.equalsIgnoreCase(domain)) {
+				responseString = restUtil.postApi(ApiName.CREATEDATASHARE2, pathsegments, "", "",
+						MediaType.MULTIPART_FORM_DATA, requestEntity, String.class);
+			}
 		DataShareResponseDto responseObject = mapper.readValue(responseString, DataShareResponseDto.class);
 
 		if (responseObject == null) {

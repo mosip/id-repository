@@ -71,7 +71,8 @@ public class DataShareUtilTest {
 		String test = "testdata";
 		byte[] sample = test.getBytes();
 		
-		 DataShare dataShareResponse=dataShareUtil.getDataShare(sample, "policyId", "partnerId");
+		DataShare dataShareResponse = dataShareUtil.getDataShare(sample, "policyId", "partnerId",
+				"datashare1.mosip.io");
 		 assertEquals(dataShareResponse.getUrl(),dataShare.getUrl());
 		
 
@@ -82,7 +83,8 @@ public class DataShareUtilTest {
 		String test = "testdata";
 		byte[] sample = test.getBytes();
 		Mockito.when(objectMapper.readValue(dataShareResponse, DataShareResponseDto.class)).thenReturn(null);
-		 DataShare dataShareResponse=dataShareUtil.getDataShare(sample, "policyId", "partnerId");
+		DataShare dataShareResponse = dataShareUtil.getDataShare(sample, "policyId", "partnerId",
+				"datashare2.mosip.io");
 		 assertEquals(dataShareResponse.getUrl(),dataShare.getUrl());
 		
 
@@ -98,7 +100,7 @@ public class DataShareUtilTest {
 		errors.add(error);
 		dataShareResponseDto.setErrors(errors);
 		
-	dataShareUtil.getDataShare(sample, "policyId", "partnerId");
+		dataShareUtil.getDataShare(sample, "policyId", "partnerId", "datashare1.mosip.io");
 
 	}
 	@SuppressWarnings("unchecked")
@@ -110,7 +112,7 @@ public class DataShareUtilTest {
 		String test = "testdata";
 		byte[] sample = test.getBytes();
 		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
-		dataShareUtil.getDataShare(sample, "policyId", "partnerId");
+		dataShareUtil.getDataShare(sample, "policyId", "partnerId", "datashare1.mosip.io");
 	}
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
@@ -121,6 +123,6 @@ public class DataShareUtilTest {
 		String test = "testdata";
 		byte[] sample = test.getBytes();
 		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
-		dataShareUtil.getDataShare(sample, "policyId", "partnerId");
+		dataShareUtil.getDataShare(sample, "policyId", "partnerId", "datashare1.mosip.io");
 	}
 }
