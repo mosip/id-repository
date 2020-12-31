@@ -34,7 +34,4 @@ public class JsonConstants {
 
 	public static final String PROTECTIONKEY = "protectionKey";
 
-	public static final String DATASAHREDOMAIN1 = "datashare1.mosip.io";
-
-	public static final String DATASAHREDOMAIN2 = "datashare2.mosip.io";
 }

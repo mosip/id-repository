@@ -1,10 +1,13 @@
 package io.mosip.credentialstore.util;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -18,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.ApiName;
 import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
-import io.mosip.credentialstore.constants.JsonConstants;
 import io.mosip.credentialstore.dto.DataShare;
 import io.mosip.credentialstore.dto.DataShareResponseDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
@@ -46,6 +48,15 @@ public class DataShareUtil {
 	
 	private static final String CREDENTIALFILE = "credentialfile";
 
+	/** The Constant PROTOCOL. */
+	public static final String PROTOCOL = "https";
+
+	@Value("${mosip.data.share.protocol}")
+	private String httpProtocol;
+
+	@Autowired
+	private Environment env;
+
 	public DataShare getDataShare(byte[] data, String policyId, String partnerId, String domain)
 			throws ApiNotAccessibleException, IOException, DataShareException {
 		try {
@@ -70,14 +81,20 @@ public class DataShareUtil {
 		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 		HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<LinkedMultiValueMap<String, Object>>(
 				map, headers);
-			String responseString = null;
-			if (JsonConstants.DATASAHREDOMAIN1.equalsIgnoreCase(domain)) {
-				responseString = restUtil.postApi(ApiName.CREATEDATASHARE1, pathsegments, "", "",
-						MediaType.MULTIPART_FORM_DATA, requestEntity, String.class);
-			} else if (JsonConstants.DATASAHREDOMAIN2.equalsIgnoreCase(domain)) {
-				responseString = restUtil.postApi(ApiName.CREATEDATASHARE2, pathsegments, "", "",
-						MediaType.MULTIPART_FORM_DATA, requestEntity, String.class);
+			URL dataShareUrl = null;
+			String protocol = PROTOCOL;
+			String url = null;
+
+			if (httpProtocol != null && !httpProtocol.isEmpty()) {
+				protocol = httpProtocol;
 			}
+
+			dataShareUrl = new URL(protocol, domain, env.getProperty(ApiName.CREATEDATASHARE.name()));
+			url = dataShareUrl.toString();
+			url = url.replaceAll("[\\[\\]]", "");
+			String responseString = restUtil.postApi(url, pathsegments, "", "",
+					MediaType.MULTIPART_FORM_DATA, requestEntity, String.class);
+
 		DataShareResponseDto responseObject = mapper.readValue(responseString, DataShareResponseDto.class);
 
 		if (responseObject == null) {
