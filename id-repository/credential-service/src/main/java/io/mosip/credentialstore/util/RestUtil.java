@@ -39,11 +39,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.google.gson.Gson;
 
 import io.mosip.credentialstore.constants.ApiName;
-
-
-import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.idrepository.core.dto.Metadata;
-import io.mosip.idrepository.core.dto.PasswordRequest;
 import io.mosip.idrepository.core.dto.SecretKeyRequest;
 import io.mosip.idrepository.core.dto.TokenRequestDTO;
 import io.mosip.kernel.core.util.DateUtils;
@@ -260,11 +256,45 @@ public class RestUtil {
         return request;
     }
 
-    private PasswordRequest setPasswordRequestDTO() {
-        PasswordRequest request = new PasswordRequest();
-		request.setAppId(environment.getProperty("credential.service.token.request.appid"));
-		request.setPassword(environment.getProperty("credential.service.token.request.password"));
-		request.setUserName(environment.getProperty("credential.service.token.request.username"));
-        return request;
-    }
+	@SuppressWarnings("unchecked")
+	public <T> T postApi(String url, List<String> pathsegments, String queryParamName, String queryParamValue,
+			MediaType mediaType, Object requestType, Class<?> responseClass) throws Exception {
+		T result = null;
+
+		UriComponentsBuilder builder = null;
+		if (url != null)
+			builder = UriComponentsBuilder.fromUriString(url);
+		if (builder != null) {
+
+			if (!((pathsegments == null) || (pathsegments.isEmpty()))) {
+				for (String segment : pathsegments) {
+					if (!((segment == null) || (("").equals(segment)))) {
+						builder.pathSegment(segment);
+					}
+				}
+
+			}
+			if (!((queryParamName == null) || (("").equals(queryParamName)))) {
+				String[] queryParamNameArr = queryParamName.split(",");
+				String[] queryParamValueArr = queryParamValue.split(",");
+
+				for (int i = 0; i < queryParamNameArr.length; i++) {
+					builder.queryParam(queryParamNameArr[i], queryParamValueArr[i]);
+				}
+			}
+
+			RestTemplate restTemplate;
+
+			try {
+				restTemplate = getRestTemplate();
+				result = (T) restTemplate.postForObject(builder.toUriString(), setRequestHeader(requestType, mediaType),
+						responseClass);
+
+			} catch (Exception e) {
+				throw new Exception(e);
+			}
+		}
+		return result;
+	}
+
 }
