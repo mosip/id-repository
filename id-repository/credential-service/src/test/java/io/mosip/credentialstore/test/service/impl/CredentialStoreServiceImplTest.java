@@ -36,7 +36,6 @@ import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
 import io.mosip.credentialstore.dto.PartnerExtractor;
 import io.mosip.credentialstore.dto.PartnerExtractorResponse;
 import io.mosip.credentialstore.dto.PolicyAttributesDto;
-import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
 import io.mosip.credentialstore.dto.Type;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
@@ -240,7 +239,8 @@ public class CredentialStoreServiceImplTest {
 
 				.thenReturn(dataProviderResponse);
 		DataShare dataShare=new DataShare();
-		Mockito.when(dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(dataShare);
+		Mockito.when(dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn(dataShare);
 		Mockito.when(digitalSignatureUtil.sign(Mockito.any())).thenReturn("testdata");
 		PartnerExtractorResponse partnerExtractorResponse = new PartnerExtractorResponse();
 		List<PartnerExtractor> extractors = new ArrayList<>();
@@ -413,7 +413,8 @@ public class CredentialStoreServiceImplTest {
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		DataShareException e = new DataShareException();
-		Mockito.when(dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
+		Mockito.when(dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenThrow(e);
 
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorMessage());
