@@ -26,6 +26,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.credentialstore.constants.ApiName;
 import io.mosip.credentialstore.dto.CryptoWithPinResponseDto;
 import io.mosip.credentialstore.dto.CryptoZkResponseDto;
 import io.mosip.credentialstore.dto.CryptomanagerResponseDto;
@@ -98,7 +99,8 @@ public class EncryptionUtilTest {
 		cryptoZkResponseDto.setResponse(encryptZkResponseDto);
 		Mockito.when(environment.getProperty("mosip.credential.service.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(cryptoResponse);
+		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(cryptoResponse);
 
 		cryptomanagerResponseDto = new CryptomanagerResponseDto();
 		EncryptResponseDto responseData = new EncryptResponseDto();
@@ -119,7 +121,8 @@ public class EncryptionUtilTest {
 		partnerCertificateResponseObj.setResponse(partnerCertDownloadResponeDto);
 
 
-		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
+		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(),
 				Mockito.any(), Mockito.any())).thenReturn(cryptoResponse);
 		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenReturn(cryptoResponse);
@@ -167,7 +170,8 @@ public class EncryptionUtilTest {
 		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(HttpStatus.BAD_REQUEST,
 				"error");
 	
-		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpClientErrorException);
+		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpClientErrorException);
 		encryptionUtil.encryptDataWithPin(test, "test123");
 	}
 	@SuppressWarnings("unchecked")
@@ -176,7 +180,8 @@ public class EncryptionUtilTest {
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(HttpStatus.BAD_REQUEST,
 				"error");
 	
-		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpServerErrorException);
+		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpServerErrorException);
 		encryptionUtil.encryptDataWithPin(test, "test123");
 	}
 	
@@ -211,7 +216,8 @@ public class EncryptionUtilTest {
 		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(HttpStatus.BAD_REQUEST,
 				"error");
 		Exception e=new Exception(httpClientErrorException);
-		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
+		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList);
 	}
 	@SuppressWarnings("unchecked")
@@ -220,7 +226,8 @@ public class EncryptionUtilTest {
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(HttpStatus.BAD_REQUEST,
 				"error");
 		Exception e=new Exception(httpServerErrorException);
-		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
+		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList);
 	}
 

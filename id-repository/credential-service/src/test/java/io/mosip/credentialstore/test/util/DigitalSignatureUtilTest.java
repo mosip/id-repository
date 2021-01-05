@@ -26,6 +26,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.credentialstore.constants.ApiName;
 import io.mosip.credentialstore.dto.JWTSignatureResponseDto;
 import io.mosip.credentialstore.dto.SignResponseDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
@@ -86,7 +87,8 @@ public class DigitalSignatureUtilTest {
 				.thenReturn("false");
 		Mockito.when(environment.getProperty("mosip.credential.service.includePayload"))
 				.thenReturn("false");
-		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(signResponse);
+		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(signResponse);
 	}
 	
 	@Test
@@ -107,7 +109,8 @@ public class DigitalSignatureUtilTest {
 		Exception e=new Exception(httpClientErrorException);
 		String test = "testdata";
 
-		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
+		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		digitalSignatureUtil.sign(test);
 	}
 	@SuppressWarnings("unchecked")
@@ -118,7 +121,8 @@ public class DigitalSignatureUtilTest {
 		Exception e=new Exception(httpServerErrorException);
 		String test = "testdata";
 
-		Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
+		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		digitalSignatureUtil.sign(test);
 	}
 	@Test(expected = SignatureException.class)

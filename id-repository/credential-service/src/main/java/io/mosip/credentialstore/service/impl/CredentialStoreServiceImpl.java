@@ -201,7 +201,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 					.equalsIgnoreCase(DATASHARE)) {
 
 				dataShare = dataShareUtil.getDataShare(jsonData.getBytes(), policyDetailResponseDto.getPolicyId(),
-						credentialServiceRequestDto.getIssuer());
+						credentialServiceRequestDto.getIssuer(),
+						policyDetailResponseDto.getPolicies().getDataSharePolicies().getShareDomain());
 				credentialServiceResponse.setDataShareUrl(dataShare.getUrl());
 
 			} else {
