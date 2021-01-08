@@ -137,6 +137,7 @@ public class IdRepoSecurityManager {
 					DateUtils.formatDate(new Date(), env.getProperty(DATETIME_PATTERN)));
 			request.put("data", CryptoUtil.encodeBase64(dataToEncrypt));
 			request.put("referenceId", "");
+			request.put("prependThumbprint", true);
 			baseRequest.setRequest(request);
 			return encryptDecryptData(restBuilder.buildRequest(RestServicesConstants.CRYPTO_MANAGER_ENCRYPT,
 					baseRequest, ObjectNode.class));
@@ -167,6 +168,7 @@ public class IdRepoSecurityManager {
 			request.put("data", CryptoUtil.encodeBase64(dataToEncrypt));
 			request.put("salt", CryptoUtil.encodeBase64(saltToEncrypt));
 			request.put("referenceId", "");
+			request.put("prependThumbprint", true);
 			baseRequest.setRequest(request);
 			return encryptDecryptData(restBuilder.buildRequest(RestServicesConstants.CRYPTO_MANAGER_ENCRYPT,
 					baseRequest, ObjectNode.class));
@@ -194,6 +196,7 @@ public class IdRepoSecurityManager {
 			request.put("timeStamp",
 					DateUtils.formatDate(new Date(), env.getProperty(DATETIME_PATTERN)));
 			request.put("data", new String(dataToDecrypt));
+			request.put("prependThumbprint", true);
 			baseRequest.setRequest(request);
 			return CryptoUtil.decodeBase64(new String(encryptDecryptData(restBuilder
 					.buildRequest(RestServicesConstants.CRYPTO_MANAGER_DECRYPT, baseRequest, ObjectNode.class))));
@@ -223,6 +226,7 @@ public class IdRepoSecurityManager {
 					DateUtils.formatDate(new Date(), env.getProperty(DATETIME_PATTERN)));
 			request.put("data", CryptoUtil.encodeBase64(dataToDecrypt));
 			request.put("salt", CryptoUtil.encodeBase64(saltToDecrypt));
+			request.put("prependThumbprint", true);
 			baseRequest.setRequest(request);
 			return CryptoUtil.decodeBase64(new String(encryptDecryptData(restBuilder
 					.buildRequest(RestServicesConstants.CRYPTO_MANAGER_DECRYPT, baseRequest, ObjectNode.class))));
