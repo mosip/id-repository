@@ -104,7 +104,7 @@ public class IdRepoSecurityManager {
 	 *
 	 * @return the user
 	 */
-	public String getUser() {
+	public static String getUser() {
 		if (Objects.nonNull(SecurityContextHolder.getContext())
 				&& Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())
 				&& Objects.nonNull(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
