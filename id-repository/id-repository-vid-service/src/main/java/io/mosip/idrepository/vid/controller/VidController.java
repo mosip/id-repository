@@ -137,13 +137,13 @@ public class VidController {
 			request.getRequest().setVidType(request.getRequest().getVidType().toUpperCase());
 			return new ResponseEntity<>(vidService.generateVid(request.getRequest()), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
-			auditHelper.auditError(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.CREATE_VID, uin, IdType.VID, e);
+			auditHelper.auditError(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.CREATE_VID, uin, IdType.UIN, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_CONTROLLER, RETRIEVE_UIN_BY_VID, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e, CREATE);
 		} finally {
 			String vidType = Optional.ofNullable(request.getRequest()).map(req -> String.valueOf(req.getVidType()))
 					.orElse("null");
-			auditHelper.audit(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.CREATE_VID, uin, IdType.VID,
+			auditHelper.audit(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.CREATE_VID, uin, IdType.UIN,
 					"Create VID requested for " + vidType);
 		}
 	}
