@@ -90,7 +90,6 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 
 	private static final String CANCEL_CREDENTIAL = "cancelCredentialRequest";
 
-	private static final String GET_STATUS_CREDENTIAL = "getCredentialRequestStatus";
 
 	private static final String UPDATE_STATUS_CREDENTIAL = "updateCredentialStatus";
 
@@ -109,8 +108,9 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = new ResponseWrapper<CredentialIssueResponse>();
 
 		CredentialIssueResponse credentialIssueResponse = null;
+		String requestId = utilities.generateId();
 		try{
-			String requestId = utilities.generateId();
+
 		
 
 	    CredentialEntity credential=new CredentialEntity();
@@ -128,14 +128,16 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL,
 				"ended creating credential");
 	    }catch(DataAccessLayerException e) {
-	    	auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID, e);
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR,
+					AuditEvents.CREATING_CREDENTIAL_REQUEST, requestId, IdType.ID, e);
 			ServiceError error = new ServiceError();
 			error.setErrorCode(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorMessage());
 			errorList.add(error);
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL, ExceptionUtils.getStackTrace(e));
 		} catch (Exception e) {
-			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID, e);
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR,
+					AuditEvents.CREATING_CREDENTIAL_REQUEST, requestId, IdType.ID, e);
 			ServiceError error = new ServiceError();
 			error.setErrorCode(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
