@@ -35,6 +35,10 @@ public class CredentialEntity {
 	@Column(name = "status_code", nullable = false)
 	private String statusCode;
 
+	/** The status code. */
+	@Column(name = "status_comment")
+	private String statusComment;
+
 	
 	@Column(name = "datashareurl")
 	private String dataShareUrl;
@@ -289,6 +293,14 @@ public class CredentialEntity {
 
 	public void setSignature(String signature) {
 		this.signature = signature;
+	}
+
+	public String getStatusComment() {
+		return statusComment;
+	}
+
+	public void setStatusComment(String statusComment) {
+		this.statusComment = statusComment;
 	}
 
 }
