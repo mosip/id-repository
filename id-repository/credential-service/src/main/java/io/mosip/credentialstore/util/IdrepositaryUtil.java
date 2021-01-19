@@ -17,14 +17,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.credentialstore.constants.ApiName;
 import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
+import io.mosip.credentialstore.constants.LoggerFileConstant;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
-import io.mosip.credentialstore.exception.DataShareException;
 import io.mosip.credentialstore.exception.IdRepoException;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -39,19 +38,17 @@ public class IdrepositaryUtil {
 	@Autowired
 	private ObjectMapper mapper;
 
-	private static final Logger LOGGER = IdRepoLogger.getLogger(DataShareUtil.class);
+	private static final Logger LOGGER = IdRepoLogger.getLogger(IdrepositaryUtil.class);
 
-	private static final String GET_DATA = "getData";
 
-	private static final String IDREPOSITARYUTIL = "IdrepositaryUtil";
 
 	public IdResponseDTO getData(CredentialServiceRequestDto credentialServiceRequestDto,
 			Map<String, String> bioAttributeFormatterMap)
 			throws ApiNotAccessibleException, IdRepoException, JsonParseException, JsonMappingException, IOException {
+		String requestId=credentialServiceRequestDto.getRequestId();
 		try {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), IDREPOSITARYUTIL, GET_DATA,
-
-					"entry");
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					requestId, "Id repository get data entry");
 			Map<String, Object> map = credentialServiceRequestDto.getAdditionalData();
 			String idType = null;
 			idType = (String) map.get("idType");
@@ -84,21 +81,24 @@ public class IdrepositaryUtil {
 					queryParamValue, String.class);
 			IdResponseDTO responseObject = mapper.readValue(responseString, IdResponseDTO.class);
 			if (responseObject == null) {
-				LOGGER.error(IdRepoSecurityManager.getUser(), IDREPOSITARYUTIL, GET_DATA,
+				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 						CredentialServiceErrorCodes.IPREPO_EXCEPTION.getErrorMessage());
 				throw new IdRepoException();
 			}
 			if (responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
 
 				ServiceError error = responseObject.getErrors().get(0);
-				LOGGER.error(IdRepoSecurityManager.getUser(), IDREPOSITARYUTIL, GET_DATA, error.getMessage());
+				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						error.getMessage());
 				throw new IdRepoException(error.getMessage());
 			} else {
-				LOGGER.debug(IdRepoSecurityManager.getUser(), IDREPOSITARYUTIL, GET_DATA, "exit");
+				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						"Id repository get data exit");
 				return responseObject;
 			}
 		} catch (Exception e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), IDREPOSITARYUTIL, GET_DATA, ExceptionUtils.getStackTrace(e));
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
 			if (e.getCause() instanceof HttpClientErrorException) {
 				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
 				throw new io.mosip.credentialstore.exception.ApiNotAccessibleException(

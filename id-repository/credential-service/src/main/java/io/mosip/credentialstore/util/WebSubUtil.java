@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
+import io.mosip.credentialstore.constants.LoggerFileConstant;
 import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.dto.EventModel;
@@ -31,24 +32,23 @@ public class WebSubUtil {
 	private static final Logger LOGGER = IdRepoLogger.getLogger(WebSubUtil.class);
 
 
-	private static final String WEBSUBUTIL = "WebSubUtil";
-
-
-	private static final String REGISTERTOPIC = "registerTopic";
 
 	public void publishSuccess(String issuer,EventModel eventModel) throws WebSubClientException, IOException{
-        registerTopic(issuer);
+		String requestId=eventModel.getEvent().getTransactionId();
+		registerTopic(issuer, requestId);
         HttpHeaders httpHeaders=new HttpHeaders();
 		pb.publishUpdate(issuer+"/"+IDAEventType.CREDENTIAL_ISSUED, eventModel, MediaType.APPLICATION_JSON_UTF8_VALUE, httpHeaders,  partnerhuburl);
-
+		LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+				requestId,
+				"Publish the update successfully");
 		
 	}
 
-	private void registerTopic(String issuer) {
+	private void registerTopic(String issuer, String requestId) {
 		try {
 			pb.registerTopic(issuer+"/"+IDAEventType.CREDENTIAL_ISSUED, partnerhuburl);
 		}catch(WebSubClientException e){
-			LOGGER.error(IdRepoSecurityManager.getUser(), WEBSUBUTIL, REGISTERTOPIC,
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Topic already registered");
 		}
 

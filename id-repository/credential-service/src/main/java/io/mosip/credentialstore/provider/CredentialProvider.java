@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.constants.JsonConstants;
+import io.mosip.credentialstore.constants.LoggerFileConstant;
 import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.Filter;
@@ -41,10 +42,14 @@ import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 
@@ -85,6 +90,8 @@ public class CredentialProvider {
 
 	@Value("${credential.service.dob.format}")
 	private String dobFormat;
+
+	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialProvider.class);
 	/**
 	 * Gets the formatted credential data.
 	 *
@@ -98,10 +105,11 @@ public class CredentialProvider {
 	public DataProviderResponse getFormattedCredentialData(
 			CredentialServiceRequestDto credentialServiceRequestDto, Map<AllowedKycDto, Object> sharableAttributeMap)
 			throws CredentialFormatterException{
-
+		String requestId = credentialServiceRequestDto.getRequestId();
 		DataProviderResponse dataProviderResponse=null;
 		try {
-			
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Formatting credential data");
 			String pin = credentialServiceRequestDto.getEncryptionKey();
 			List<String> protectedAttributes = new ArrayList<>();
 			 Map<String, Object> formattedMap=new HashMap<>();
@@ -119,7 +127,7 @@ public class CredentialProvider {
 				}
 				formattedMap.put(attributeName, valueStr);
 				if (allowedKycDto.isEncrypted() || credentialServiceRequestDto.isEncrypt()) {
-					String encryptedValue = encryptionUtil.encryptDataWithPin(valueStr, pin);
+					String encryptedValue = encryptionUtil.encryptDataWithPin(attributeName, valueStr, pin, requestId);
 					formattedMap.put(attributeName, encryptedValue);
 					protectedAttributes.add(attributeName);
 				} else {
@@ -151,13 +159,24 @@ public class CredentialProvider {
 			dataProviderResponse.setCredentialId(credentialId);
 			dataProviderResponse.setIssuanceDate(localdatetime);
 			dataProviderResponse.setJSON(json);
-
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"end formatting credential data");
 			return dataProviderResponse;
 		} catch (DataEncryptionFailureException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
 			throw new CredentialFormatterException(e);
 		} catch (ApiNotAccessibleException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
 			throw new CredentialFormatterException(e);
 		} catch (JsonProcessingException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
+			throw new CredentialFormatterException(e);
+		} catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
 			throw new CredentialFormatterException(e);
 		}
 
@@ -166,7 +185,10 @@ public class CredentialProvider {
 	public Map<AllowedKycDto, Object> prepareSharableAttributes(IdResponseDTO idResponseDto,
 			PartnerCredentialTypePolicyDto policyResponseDto, CredentialServiceRequestDto credentialServiceRequestDto)
 			throws CredentialFormatterException {
+		String requestId = credentialServiceRequestDto.getRequestId();
 		try {
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Preparing demo and bio sharable attributes");
 		Map<AllowedKycDto, Object> attributesMap = new HashMap<>();
 		JSONObject identity = new JSONObject((Map) idResponseDto.getResponse().getIdentity());
 
@@ -177,6 +199,8 @@ public class CredentialProvider {
 			Map<String, Object> additionalData = credentialServiceRequestDto.getAdditionalData();
 
 			if (userRequestedAttributes != null && !userRequestedAttributes.isEmpty()) {
+				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						"preparing sharable attributes from user requested if attributes available in policy");
 				sharableAttributeList.forEach(dto -> {
 
 					if (userRequestedAttributes.contains(dto.getAttributeName())) {
@@ -192,7 +216,10 @@ public class CredentialProvider {
 
 
 				});
+
 			} else {
+				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						"preparing  sharable attributes from policy");
 				sharableAttributeList.forEach(dto -> {
 					if (dto.getGroup() == null) {
 
@@ -240,9 +267,12 @@ public class CredentialProvider {
 			}
 
 		}
-
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"end preparing demo and bio sharable attributes");
 		return attributesMap;
 		} catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
 			throw new CredentialFormatterException(e);
 		}
 	}
