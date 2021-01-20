@@ -80,9 +80,11 @@ public class QrCodeProvider extends CredentialProvider {
 				}
 				formattedMap.put(attributeName, valueStr);
 				if (allowedKycDto.isEncrypted() || credentialServiceRequestDto.isEncrypt()) {
+					if (!valueStr.isEmpty()) {
 					String encryptedValue = encryptionUtil.encryptDataWithPin(attributeName, valueStr, pin, requestId);
 					formattedMap.put(attributeName, encryptedValue);
 					protectedAttributes.add(attributeName);
+					}
 				} else {
 					formattedMap.put(attributeName, valueStr);
 				}

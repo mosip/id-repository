@@ -127,9 +127,11 @@ public class CredentialProvider {
 				}
 				formattedMap.put(attributeName, valueStr);
 				if (allowedKycDto.isEncrypted() || credentialServiceRequestDto.isEncrypt()) {
+					if (!valueStr.isEmpty()) {
 					String encryptedValue = encryptionUtil.encryptDataWithPin(attributeName, valueStr, pin, requestId);
 					formattedMap.put(attributeName, encryptedValue);
 					protectedAttributes.add(attributeName);
+					}
 				} else {
 					formattedMap.put(attributeName, valueStr);
 				}
@@ -237,7 +239,7 @@ public class CredentialProvider {
 			String attribute = key.getSource().get(0).getAttribute();
 
 			Object object = identity.get(attribute);
-			if (object != null) {
+				if (object != null) {
 					Object formattedObject = filterAndFormat(key, object, identity);
 					attributesMap.put(key, formattedObject);
 				} else {
