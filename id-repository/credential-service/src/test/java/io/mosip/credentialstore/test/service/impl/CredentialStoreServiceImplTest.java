@@ -228,7 +228,8 @@ public class CredentialStoreServiceImplTest {
 
 
 		Mockito.when(utilities.generateId()).thenReturn("123456");
-	 	Mockito.when(policyUtil.getPolicyDetail(Mockito.anyString(), Mockito.anyString())).thenReturn(policyDetailResponseDto);
+		Mockito.when(policyUtil.getPolicyDetail(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn(policyDetailResponseDto);
 		Mockito.when(idrepositaryUtil.getData(Mockito.any(),Mockito.any()))
 		.thenReturn(idResponse);
 		DataProviderResponse dataProviderResponse=new DataProviderResponse();
@@ -239,9 +240,10 @@ public class CredentialStoreServiceImplTest {
 
 				.thenReturn(dataProviderResponse);
 		DataShare dataShare=new DataShare();
-		Mockito.when(dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+		Mockito.when(dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any()))
 				.thenReturn(dataShare);
-		Mockito.when(digitalSignatureUtil.sign(Mockito.any())).thenReturn("testdata");
+		Mockito.when(digitalSignatureUtil.sign(Mockito.any(), Mockito.any())).thenReturn("testdata");
 		PartnerExtractorResponse partnerExtractorResponse = new PartnerExtractorResponse();
 		List<PartnerExtractor> extractors = new ArrayList<>();
 
@@ -269,9 +271,10 @@ public class CredentialStoreServiceImplTest {
 		extractor2.setExtractor(ext2);
 		extractors.add(extractor2);
 		partnerExtractorResponse.setExtractors(extractors);
-		Mockito.when(policyUtil.getPartnerExtractorFormat(Mockito.anyString(), Mockito.anyString()))
+		Mockito.when(
+				policyUtil.getPartnerExtractorFormat(Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenReturn(partnerExtractorResponse);
-		Mockito.when(encryptionUtil.encryptData(Mockito.anyString(), Mockito.anyString()))
+		Mockito.when(encryptionUtil.encryptData(Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenReturn("encryptedData");
 	}
 	
@@ -295,7 +298,8 @@ public class CredentialStoreServiceImplTest {
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		PolicyException e = new PolicyException();
-	 	Mockito.when(policyUtil.getPolicyDetail(Mockito.anyString(), Mockito.anyString())).thenThrow(e);
+		Mockito.when(policyUtil.getPolicyDetail(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenThrow(e);
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorMessage());
 	}
@@ -369,7 +373,7 @@ public class CredentialStoreServiceImplTest {
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		WebSubClientException e = new WebSubClientException("","");
-		Mockito.doThrow(e).when(webSubUtil).publishSuccess(Mockito.anyString(), Mockito.any());
+		Mockito.doThrow(e).when(webSubUtil).publishSuccess(Mockito.any(), Mockito.any());
 
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.WEBSUB_FAIL_EXCEPTION.getErrorMessage());
@@ -413,7 +417,8 @@ public class CredentialStoreServiceImplTest {
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		DataShareException e = new DataShareException();
-		Mockito.when(dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+		Mockito.when(
+				dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenThrow(e);
 
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
@@ -459,7 +464,7 @@ public class CredentialStoreServiceImplTest {
 		credentialServiceRequestDto.setIssuer("791212");
 		Map<String, Object> additionalData = new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
-		Mockito.when(digitalSignatureUtil.sign(Mockito.any())).thenThrow(new SignatureException());
+		Mockito.when(digitalSignatureUtil.sign(Mockito.any(), Mockito.any())).thenThrow(new SignatureException());
 		CredentialServiceResponseDto credentialServiceResponseDto = credentialStoreServiceImpl
 				.createCredentialIssuance(credentialServiceRequestDto);
 

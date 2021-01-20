@@ -30,8 +30,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.Filter;
-import io.mosip.credentialstore.dto.PolicyAttributesDto;
 import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
+import io.mosip.credentialstore.dto.PolicyAttributesDto;
 import io.mosip.credentialstore.dto.Source;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
@@ -96,9 +96,10 @@ public class QrCodeProviderTest {
 		
 		Mockito.when(environment.getProperty("mosip.credential.service.datetime.pattern"))
 		.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any())).thenReturn("testdata");
+		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(),Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn("testdata");
 		
-		Mockito.when(digitalSignatureUtil.sign(Mockito.any())).thenReturn("testdata");
+		Mockito.when(digitalSignatureUtil.sign(Mockito.any(), Mockito.any())).thenReturn("testdata");
 		Mockito.when(utilities.generateId()).thenReturn("test123");
 		Map<String, String> map1 = new HashMap<>();
 		map1.put("UIN", "4238135072");
@@ -235,7 +236,7 @@ public class QrCodeProviderTest {
 		sharableAttributes.put(kyc1, "testname");
 		credentialServiceRequestDto.setEncrypt(true);
 		credentialServiceRequestDto.setEncryptionKey("te1234");
-		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any()))
+		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenThrow(new DataEncryptionFailureException());
 		qrCodeProvider.getFormattedCredentialData(credentialServiceRequestDto, sharableAttributes);
 
@@ -264,7 +265,7 @@ public class QrCodeProviderTest {
 		sharableAttributes.put(kyc1, "testname");
 		credentialServiceRequestDto.setEncrypt(true);
 		credentialServiceRequestDto.setEncryptionKey("te1234");
-		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any()))
+		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenThrow(new ApiNotAccessibleException());
 		qrCodeProvider.getFormattedCredentialData(credentialServiceRequestDto, sharableAttributes);
 

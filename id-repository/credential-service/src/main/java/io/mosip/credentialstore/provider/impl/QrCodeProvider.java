@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.JsonConstants;
+import io.mosip.credentialstore.constants.LoggerFileConstant;
 import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
@@ -25,6 +26,10 @@ import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 @Component
 public class QrCodeProvider extends CredentialProvider {
@@ -45,17 +50,18 @@ public class QrCodeProvider extends CredentialProvider {
 	@Autowired
 	private ObjectMapper mapper;
 
-
+	private static final Logger LOGGER = IdRepoLogger.getLogger(QrCodeProvider.class);
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public DataProviderResponse getFormattedCredentialData(
 			CredentialServiceRequestDto credentialServiceRequestDto, Map<AllowedKycDto, Object> sharableAttributeMap)
 			throws CredentialFormatterException {
-
+		String requestId = credentialServiceRequestDto.getRequestId();
 		DataProviderResponse dataProviderResponse = null;
 		try {
-
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Formatting credential data");
 			String pin = credentialServiceRequestDto.getEncryptionKey();
 
 			Map<String, Object> formattedMap = new HashMap<>();
@@ -74,9 +80,11 @@ public class QrCodeProvider extends CredentialProvider {
 				}
 				formattedMap.put(attributeName, valueStr);
 				if (allowedKycDto.isEncrypted() || credentialServiceRequestDto.isEncrypt()) {
-					String encryptedValue = encryptionUtil.encryptDataWithPin(valueStr, pin);
+					if (!valueStr.isEmpty()) {
+					String encryptedValue = encryptionUtil.encryptDataWithPin(attributeName, valueStr, pin, requestId);
 					formattedMap.put(attributeName, encryptedValue);
 					protectedAttributes.add(attributeName);
+					}
 				} else {
 					formattedMap.put(attributeName, valueStr);
 				}
@@ -109,15 +117,24 @@ public class QrCodeProvider extends CredentialProvider {
 			dataProviderResponse.setCredentialId(credentialId);
 
 			dataProviderResponse.setIssuanceDate(localdatetime);
-
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"end formatting credential data");
 			return dataProviderResponse;
 		} catch (DataEncryptionFailureException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
 			throw new CredentialFormatterException(e);
 		} catch (ApiNotAccessibleException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
 			throw new CredentialFormatterException(e);
 		} catch (JsonProcessingException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
 			throw new CredentialFormatterException(e);
 		} catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
 			throw new CredentialFormatterException(e);
 		}
 	}

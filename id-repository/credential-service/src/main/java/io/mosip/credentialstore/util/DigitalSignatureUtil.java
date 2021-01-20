@@ -14,6 +14,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.ApiName;
+import io.mosip.credentialstore.constants.LoggerFileConstant;
 import io.mosip.credentialstore.dto.JWTSignatureRequestDto;
 import io.mosip.credentialstore.dto.SignResponseDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
@@ -52,9 +53,6 @@ public class DigitalSignatureUtil {
 	
 	private static final Logger LOGGER = IdRepoLogger.getLogger(DigitalSignatureUtil.class);
 
-	private static final String SIGN = "sign";
-	
-	private static final String DIGITALSIGNATURE = "DigitalSignatureUtil";
 
 
 	/**
@@ -65,10 +63,10 @@ public class DigitalSignatureUtil {
 	 * @throws ApiNotAccessibleException 
 	 * @throws SignatureException 
 	 */
-	public String sign(String data) throws ApiNotAccessibleException, SignatureException {
+	public String sign(String data, String requestId) throws ApiNotAccessibleException, SignatureException {
 		try {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), DIGITALSIGNATURE, SIGN,
-					"entry");
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Digital signature entry");
 
 			JWTSignatureRequestDto dto = new JWTSignatureRequestDto();
 			dto.setDataToSign(data);
@@ -95,17 +93,17 @@ public class DigitalSignatureUtil {
 				throw new SignatureException(error.getMessage());
 			}
 			String signedData = responseObject.getResponse().getJwtSignedData();
-			LOGGER.info(IdRepoSecurityManager.getUser(), DIGITALSIGNATURE, SIGN,
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Signed data successfully");
-			LOGGER.debug(IdRepoSecurityManager.getUser(), DIGITALSIGNATURE, SIGN,
-					"exit");
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Digital signature exit");
 			return signedData;
 		} catch (IOException e) {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), DIGITALSIGNATURE, SIGN,
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					ExceptionUtils.getStackTrace(e));
 			throw new SignatureException(e);
 		} catch (Exception e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), DIGITALSIGNATURE, SIGN,
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					ExceptionUtils.getStackTrace(e));
 			if (e.getCause() instanceof HttpClientErrorException) {
 				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();

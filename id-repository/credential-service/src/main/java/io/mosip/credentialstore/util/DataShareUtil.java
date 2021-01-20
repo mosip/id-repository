@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.ApiName;
 import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
+import io.mosip.credentialstore.constants.LoggerFileConstant;
 import io.mosip.credentialstore.dto.DataShare;
 import io.mosip.credentialstore.dto.DataShareResponseDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
@@ -41,10 +42,6 @@ public class DataShareUtil {
 	
 	
 	private static final Logger LOGGER = IdRepoLogger.getLogger(DataShareUtil.class);
-
-	private static final String GET_DATA = "getDataShare";
-	
-	private static final String DATASHARE = "DataShareUtil";
 	
 	private static final String CREDENTIALFILE = "credentialfile";
 
@@ -57,12 +54,13 @@ public class DataShareUtil {
 	@Autowired
 	private Environment env;
 
-	public DataShare getDataShare(byte[] data, String policyId, String partnerId, String domain)
+	public DataShare getDataShare(byte[] data, String policyId, String partnerId, String domain, String requestId)
 			throws ApiNotAccessibleException, IOException, DataShareException {
+		long fileLengthInBytes=0;
 		try {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), DATASHARE, GET_DATA, 
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 		
-				"entry");
+					"creating data share entry");
 			LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 			map.add("name", CREDENTIALFILE);
 			map.add("filename", CREDENTIALFILE);
@@ -74,6 +72,7 @@ public class DataShareUtil {
 				}
 			};
 			map.add("file", contentsAsResource);
+			fileLengthInBytes = contentsAsResource.contentLength();
 		List<String> pathsegments = new ArrayList<>();
 		pathsegments.add(policyId);
 		pathsegments.add(partnerId);
@@ -98,22 +97,33 @@ public class DataShareUtil {
 		DataShareResponseDto responseObject = mapper.readValue(responseString, DataShareResponseDto.class);
 
 		if (responseObject == null) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), DATASHARE, GET_DATA,
-					CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorMessage());
+				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						"File size" + " " + fileLengthInBytes);
+				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorMessage());
+
 			throw new DataShareException();
 		}
 		if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
+
 			ErrorDTO error = responseObject.getErrors().get(0);
-			LOGGER.error(IdRepoSecurityManager.getUser(), DATASHARE, GET_DATA,
+				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						"File size" + " " + fileLengthInBytes);
+				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					error.getMessage());
 			throw new DataShareException();
+
 		} else {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), DATASHARE, GET_DATA,
-					"exit");
+
+				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						"data share created");
 			return responseObject.getDataShare();
-		}
+
+			}
 		} catch (Exception e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), DATASHARE, GET_DATA,
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"File size" + " " + fileLengthInBytes);
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					ExceptionUtils.getStackTrace(e));
 			if (e.getCause() instanceof HttpClientErrorException) {
 				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();

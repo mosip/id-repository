@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.constants.JsonConstants;
+import io.mosip.credentialstore.constants.LoggerFileConstant;
 import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.EncryptZkResponseDto;
@@ -25,12 +26,12 @@ import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
 import io.mosip.credentialstore.exception.DataEncryptionFailureException;
 import io.mosip.credentialstore.provider.CredentialProvider;
-import io.mosip.credentialstore.service.impl.CredentialStoreServiceImpl;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 
@@ -78,11 +79,7 @@ public class IdAuthProvider extends CredentialProvider {
 	@Autowired
 	EncryptionUtil encryptionUtil;
 
-	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialStoreServiceImpl.class);
-
-	private static final String GET_FORAMTTED_DATA = "getFormattedCredentialData";
-
-	private static final String IDAUTHPROVIDER = "IdAuthProvider";
+	private static final Logger LOGGER = IdRepoLogger.getLogger(IdAuthProvider.class);
 
 	@Autowired
 	private ObjectMapper mapper;
@@ -96,8 +93,8 @@ public class IdAuthProvider extends CredentialProvider {
 	public DataProviderResponse getFormattedCredentialData(
 			CredentialServiceRequestDto credentialServiceRequestDto, Map<AllowedKycDto, Object> sharableAttributeMap)
 			throws CredentialFormatterException {
-
-		LOGGER.debug(IdRepoSecurityManager.getUser(), IDAUTHPROVIDER, GET_FORAMTTED_DATA,
+		String requestId = credentialServiceRequestDto.getRequestId();
+		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 				"formatting the data start");
 		DataProviderResponse dataProviderResponse=new DataProviderResponse();
 		try {
@@ -137,13 +134,15 @@ public class IdAuthProvider extends CredentialProvider {
 
 		 Map<String,Object> additionalData=credentialServiceRequestDto.getAdditionalData();
 		 if(!demoZkDataAttributes.isEmpty()) {
-			 EncryptZkResponseDto demoEncryptZkResponseDto=  encryptionUtil.encryptDataWithZK(credentialServiceRequestDto.getId(), demoZkDataAttributes);
+				EncryptZkResponseDto demoEncryptZkResponseDto = encryptionUtil
+						.encryptDataWithZK(credentialServiceRequestDto.getId(), demoZkDataAttributes, requestId);
 			 addToFormatter(demoEncryptZkResponseDto,formattedMap);
 			 additionalData.put(DEMO_ENCRYPTED_RANDOM_KEY, demoEncryptZkResponseDto.getEncryptedRandomKey());
 			 additionalData.put(DEMO_ENCRYPTED_RANDOM_INDEX, demoEncryptZkResponseDto.getRankomKeyIndex());
 		 }
 			if (!bioZkDataAttributes.isEmpty()) {
-			 EncryptZkResponseDto bioEncryptZkResponseDto=  encryptionUtil.encryptDataWithZK(credentialServiceRequestDto.getId(), bioZkDataAttributes);
+				EncryptZkResponseDto bioEncryptZkResponseDto = encryptionUtil
+						.encryptDataWithZK(credentialServiceRequestDto.getId(), bioZkDataAttributes, requestId);
 			 addToFormatter(bioEncryptZkResponseDto,formattedMap);
 			 additionalData.put(BIO_ENCRYPTED_RANDOM_KEY, bioEncryptZkResponseDto.getEncryptedRandomKey());
 			 additionalData.put(BIO_ENCRYPTED_RANDOM_INDEX, bioEncryptZkResponseDto.getRankomKeyIndex());
@@ -173,14 +172,24 @@ public class IdAuthProvider extends CredentialProvider {
 			dataProviderResponse.setIssuanceDate(localdatetime);
 			dataProviderResponse.setJSON(json);
 			dataProviderResponse.setCredentialId(credentialId);
-			LOGGER.debug(IdRepoSecurityManager.getUser(), IDAUTHPROVIDER, GET_FORAMTTED_DATA,
-					"formatting the data end");
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"end formatting credential data");
 			return dataProviderResponse;
 		} catch (IOException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
 			throw new CredentialFormatterException(e);
 		} catch (DataEncryptionFailureException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
 			throw new CredentialFormatterException(e);
 		} catch (ApiNotAccessibleException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
+			throw new CredentialFormatterException(e);
+		} catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
 			throw new CredentialFormatterException(e);
 		}
 

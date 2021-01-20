@@ -96,7 +96,7 @@ public class DigitalSignatureUtilTest {
 		String test = "testdata";
 
 		
-		String signedData = digitalSignatureUtil.sign(test);
+		String signedData = digitalSignatureUtil.sign(test, "requestId");
 		assertEquals(test, signedData);
 		
 
@@ -111,7 +111,7 @@ public class DigitalSignatureUtilTest {
 
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
-		digitalSignatureUtil.sign(test);
+		digitalSignatureUtil.sign(test, "requestId");
 	}
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
@@ -123,7 +123,7 @@ public class DigitalSignatureUtilTest {
 
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
-		digitalSignatureUtil.sign(test);
+		digitalSignatureUtil.sign(test, "requestId");
 	}
 	@Test(expected = SignatureException.class)
 	public void signFailureTest() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException, SignatureException {
@@ -135,13 +135,13 @@ public class DigitalSignatureUtilTest {
 		signResponseDto.setErrors(errors);
 		String test = "testdata";
 
-		digitalSignatureUtil.sign(test);
+		digitalSignatureUtil.sign(test, "requestId");
 	}
 	@Test(expected = SignatureException.class)
 	public void testIOException() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException, SignatureException {
 		String test = "testdata";
 
 		Mockito.when(objectMapper.readValue(signResponse, SignResponseDto.class)).thenThrow(new IOException());
-		digitalSignatureUtil.sign(test);
+		digitalSignatureUtil.sign(test, "requestId");
 	}
 }

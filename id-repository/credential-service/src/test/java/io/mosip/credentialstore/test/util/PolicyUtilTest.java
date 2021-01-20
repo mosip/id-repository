@@ -83,7 +83,7 @@ public class PolicyUtilTest {
 	public void policySuccessTest() throws Exception {
 		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(policyResponse);
 
-		PartnerCredentialTypePolicyDto policyResponseDto = policyUtil.getPolicyDetail("euin", "3456");
+		PartnerCredentialTypePolicyDto policyResponseDto = policyUtil.getPolicyDetail("euin", "3456", "requestId");
 		assertEquals(policyResponseDto.getPolicyId(), "1234");
 
 	}
@@ -94,7 +94,7 @@ public class PolicyUtilTest {
 		Mockito.when(objectMapper.readValue(policyResponse, PolicyManagerResponseDto.class))
 				.thenThrow(new IOException());
 		
-		policyUtil.getPolicyDetail("euin", "3456");
+		policyUtil.getPolicyDetail("euin", "3456", "requestId");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -104,7 +104,7 @@ public class PolicyUtilTest {
 				"error");
 		Exception e=new Exception(httpClientErrorException);
 		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
-		policyUtil.getPolicyDetail("euin", "3456");
+		policyUtil.getPolicyDetail("euin", "3456", "requestId");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -114,7 +114,7 @@ public class PolicyUtilTest {
 				"error");
 		Exception e=new Exception(httpServerErrorException);
 		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
-		policyUtil.getPolicyDetail("euin", "3456");
+		policyUtil.getPolicyDetail("euin", "3456", "requestId");
 	}
 
 	@Test(expected = PolicyException.class)
@@ -126,14 +126,14 @@ public class PolicyUtilTest {
 		List<ServiceError> errors = new ArrayList<ServiceError>();
 		errors.add(error);
 		policyManagerResponseDto.setErrors(errors);
-		policyUtil.getPolicyDetail("euin", "3456");
+		policyUtil.getPolicyDetail("euin", "3456", "requestId");
 	}
 
 	@Test
 	public void partnerExtractorSuccessTest() throws Exception {
 		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(partnerextractorResponse);
 
-		PartnerExtractorResponse policyResponseDto = policyUtil.getPartnerExtractorFormat("1234", "3456");
+		PartnerExtractorResponse policyResponseDto = policyUtil.getPartnerExtractorFormat("1234", "3456", "requestId");
 		assertNotNull(policyResponseDto.getExtractors());
 
 	}
@@ -147,7 +147,7 @@ public class PolicyUtilTest {
 		List<ServiceError> errors = new ArrayList<ServiceError>();
 		errors.add(error);
 		partnerExtractorResponseDto.setErrors(errors);
-		policyUtil.getPartnerExtractorFormat("1234", "3456");
+		policyUtil.getPartnerExtractorFormat("1234", "3456", "requestId");
 	}
 
 	@Test(expected = PartnerException.class)
@@ -155,7 +155,7 @@ public class PolicyUtilTest {
 		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(partnerextractorResponse);
 		Mockito.when(objectMapper.readValue(partnerextractorResponse, PartnerExtractorResponseDto.class))
 				.thenThrow(new IOException());
-		policyUtil.getPartnerExtractorFormat("1234", "3456");
+		policyUtil.getPartnerExtractorFormat("1234", "3456", "requestId");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -165,7 +165,7 @@ public class PolicyUtilTest {
 				"error");
 		Exception e = new Exception(httpClientErrorException);
 		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
-		policyUtil.getPartnerExtractorFormat("1234", "3456");
+		policyUtil.getPartnerExtractorFormat("1234", "3456", "requestId");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -175,7 +175,7 @@ public class PolicyUtilTest {
 				"error");
 		Exception e = new Exception(httpServerErrorException);
 		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
-		policyUtil.getPartnerExtractorFormat("1234", "3456");
+		policyUtil.getPartnerExtractorFormat("1234", "3456", "requestId");
 	}
 
 	@Test
@@ -188,7 +188,7 @@ public class PolicyUtilTest {
 		errors.add(error);
 		partnerExtractorResponseDto.setErrors(errors);
 
-		PartnerExtractorResponse policyResponseDto = policyUtil.getPartnerExtractorFormat("euin", "3456");
+		PartnerExtractorResponse policyResponseDto = policyUtil.getPartnerExtractorFormat("euin", "3456", "requestId");
 		assertNull(policyResponseDto);
 
 	}
