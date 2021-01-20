@@ -42,7 +42,7 @@ public class DataShareUtil {
 	
 	
 	private static final Logger LOGGER = IdRepoLogger.getLogger(DataShareUtil.class);
-	
+
 	private static final String CREDENTIALFILE = "credentialfile";
 
 	/** The Constant PROTOCOL. */
