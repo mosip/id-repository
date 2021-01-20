@@ -41,7 +41,7 @@ public class EncryptionUtil {
 
 	
 	private static final Logger LOGGER = IdRepoLogger.getLogger(EncryptionUtil.class); 
-	
+
 	
 	/** The Constant DATETIME_PATTERN. */
 	private static final String DATETIME_PATTERN = "mosip.credential.service.datetime.pattern";
