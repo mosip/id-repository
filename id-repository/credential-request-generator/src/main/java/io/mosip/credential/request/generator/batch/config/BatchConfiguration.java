@@ -17,7 +17,6 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -72,9 +71,6 @@ public class BatchConfiguration {
 	@Autowired
 	private Job credentialReProcessJob;
 
-	/** The credential request type. */
-	@Value("${credential.request.type}")
-	private String credentialRequestType;
 
 
 	/**
@@ -213,7 +209,7 @@ public class BatchConfiguration {
 		statuCodes.add("FAILED");
 		statuCodes.add("RETRY");
 		methodArgs.add(statuCodes);
-		methodArgs.add(credentialRequestType);
+		methodArgs.add(propertyLoader().credentialRequestType);
 		reader.setArguments(methodArgs);
 		reader.setSort(sorts);
 		reader.setPageSize(10);
@@ -224,5 +220,10 @@ public class BatchConfiguration {
 		return stepBuilderFactory.get("credentialReProcessStep").<CredentialEntity, CredentialEntity>chunk(10)
 				.reader(reader).processor(reProcessor()).writer(writer).build();
 
+	}
+
+	@Bean
+	public PropertyLoader propertyLoader() {
+		return new PropertyLoader();
 	}
 }
