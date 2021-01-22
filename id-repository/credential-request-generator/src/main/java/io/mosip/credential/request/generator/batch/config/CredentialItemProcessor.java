@@ -1,6 +1,8 @@
 package io.mosip.credential.request.generator.batch.config;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,7 +97,7 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 				credential.setStatusComment("credentials issued to partner");
 
 			}
-			credential.setUpdatedBy(CREDENTIAL_USER);
+
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					credential.getRequestId(),
 					"ended processing item");
@@ -125,6 +127,8 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 			credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
 			retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
 		} finally {
+			credential.setUpdatedBy(CREDENTIAL_USER);
+			credential.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 			if (retryCount != 0) {
 				credential.setRetryCount(retryCount);
 			}

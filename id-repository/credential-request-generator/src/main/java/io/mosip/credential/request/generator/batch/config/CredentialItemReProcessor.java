@@ -1,6 +1,8 @@
 package io.mosip.credential.request.generator.batch.config;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,13 +63,14 @@ public class CredentialItemReProcessor implements ItemProcessor<CredentialEntity
 	 */
 	@Override
 	public CredentialEntity process(CredentialEntity credential) {
-
+		int retryCount = credential.getRetryCount() != null ? credential.getRetryCount() : 0;
 		TrimExceptionMessage trimMessage = new TrimExceptionMessage();
 		try {
+
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					credential.getRequestId(), "started reprocessing item");
 			if ((CredentialStatusCode.FAILED.name().equalsIgnoreCase(credential.getStatusCode())
-					&& credential.getRetryCount() <= retryMaxCount)
+					&& (retryCount <= retryMaxCount))
 					|| (CredentialStatusCode.RETRY.name().equalsIgnoreCase(credential.getStatusCode()))) {
 			CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credential.getRequest(),
 					CredentialIssueRequestDto.class);
@@ -95,7 +98,7 @@ public class CredentialItemReProcessor implements ItemProcessor<CredentialEntity
 				ErrorDTO error = responseObject.getErrors().get(0);
 				credential.setStatusCode(CredentialStatusCode.FAILED.name());
 				credential.setStatusComment(error.getMessage());
-					credential.setRetryCount(credential.getRetryCount() + 1);
+					credential.setRetryCount(retryCount + 1);
 
 			} else {
 				CredentialServiceResponse credentialServiceResponse = responseObject.getResponse();
@@ -107,7 +110,7 @@ public class CredentialItemReProcessor implements ItemProcessor<CredentialEntity
 				credential.setStatusComment("credentials issued to partner");
 
 			}
-			credential.setUpdatedBy(CREDENTIAL_USER);
+
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					credential.getRequestId(), "ended reprocessing item");
 			
@@ -121,21 +124,25 @@ public class CredentialItemReProcessor implements ItemProcessor<CredentialEntity
 					credential.getRequestId(), ExceptionUtils.getStackTrace(e));
 			credential.setStatusCode("FAILED");
 			credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
-			credential.setRetryCount(credential.getRetryCount() + 1);
+			credential.setRetryCount(retryCount + 1);
 		} catch (IOException e) {
 
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					credential.getRequestId(), ExceptionUtils.getStackTrace(e));
 			credential.setStatusCode("FAILED");
 			credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
-			credential.setRetryCount(credential.getRetryCount() + 1);
+			credential.setRetryCount(retryCount + 1);
 		} catch (Exception e) {
 
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					credential.getRequestId(), ExceptionUtils.getStackTrace(e));
 			credential.setStatusCode("FAILED");
 			credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
-			credential.setRetryCount(credential.getRetryCount() + 1);
+			credential.setRetryCount(retryCount + 1);
+		}
+		finally {
+			credential.setUpdatedBy(CREDENTIAL_USER);
+			credential.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		}
 		return credential;
 	}
