@@ -18,9 +18,22 @@ ARG artifactory_url
 # can be passed during Docker build as build time environment for extraction format
 ARG extraction_format=mock
 
-ARG bio_sdk_folder=mock/0.9
+#ARG bio_sdk_folder=mock/0.9
+ARG biosdk_zip_path
 
 ARG server_port=8100
+
+# can be passed during Docker build as build time environment for github branch to pickup configuration from.
+ARG container_user=mosip
+
+# can be passed during Docker build as build time environment for github branch to pickup configuration from.
+ARG container_user_group=mosip
+
+# can be passed during Docker build as build time environment for github branch to pickup configuration from.
+ARG container_user_uid=1001
+
+# can be passed during Docker build as build time environment for github branch to pickup configuration from.
+ARG container_user_gid=1001
 
 # environment variable to pass active profile such as DEV, QA etc at docker runtime
 ENV active_profile_env=${active_profile}
@@ -44,11 +57,29 @@ ENV extraction_format_env=${extraction_format}
 
 ENV server_port_env=${server_port}
 
-ENV bio_sdk_folder_env=${bio_sdk_folder}
+ARG boisdk_local_dir=biosdk-client
 
-ENV work_dir_env=/
+ENV biosdk_local_dir_name=${boisdk_local_dir}
+
+#ENV bio_sdk_folder_env=${bio_sdk_folder}
+ENV biosdk_zip_file_path=${biosdk_zip_path}
+
+#ENV work_dir_env=/home/${container_user}
 
 ENV current_module_env=bioextractor-service
+
+# install packages and create user
+RUN apt-get -y update \
+&& apt-get install -y unzip \
+&& groupadd -g ${container_user_gid} ${container_user_group} \
+&& useradd -u ${container_user_uid} -g ${container_user_group} -s /bin/sh -m ${container_user} \
+&& adduser ${container_user} sudo \
+&& echo "%sudo ALL=(ALL) NOPASSWD:/home/${container_user}/${boisdk_local_dir}/install.sh" >> /etc/sudoers
+
+# set working directory for the user
+WORKDIR /home/${container_user}
+
+ENV work_dir=/home/${container_user}
 
 COPY ./target/${current_module_env}-*.jar ${current_module_env}.jar
 
@@ -58,12 +89,17 @@ RUN chmod +x configure_start.sh
 
 EXPOSE ${server_port_env}
 
-ENTRYPOINT [ "/configure_start.sh" ]
+# change permissions of file inside working dir
+RUN chown -R ${container_user}:${container_user} /home/${container_user}
+
+# select container user for all tasks
+USER ${container_user_uid}:${container_user_gid}
+
+ENTRYPOINT [ "./configure_start.sh" ]
 
 CMD if [ "$is_glowroot_env" = "present" ]; then \
-    wget "${artifactory_url_env}"/artifactory/libs-snapshot-local/io/mosip/testing/glowroot.zip ; \
-    wget "${iam_adapter_url_env}" -O kernel-auth-adapter.jar; \
-    apt-get update && apt-get install -y unzip ; \
+    wget -q --show-progress "${artifactory_url_env}"/artifactory/libs-snapshot-local/io/mosip/testing/glowroot.zip ; \
+    wget -q --show-progress "${iam_adapter_url_env}" -O kernel-auth-adapter.jar; \
     unzip glowroot.zip ; \
     rm -rf glowroot.zip ; \
     sed -i "s/<service_name>/${current_module_env}/g" glowroot/glowroot.properties ; \
