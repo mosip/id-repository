@@ -57,9 +57,9 @@ ENV extraction_format_env=${extraction_format}
 
 ENV server_port_env=${server_port}
 
-ARG boisdk_local_dir=biosdk-client
+ARG biosdk_local_dir=biosdk-client
 
-ENV biosdk_local_dir_name=${boisdk_local_dir}
+ENV biosdk_local_dir_name=${biosdk_local_dir}
 
 #ENV bio_sdk_folder_env=${bio_sdk_folder}
 ENV biosdk_zip_file_path=${biosdk_zip_path}
@@ -74,7 +74,7 @@ RUN apt-get -y update \
 && groupadd -g ${container_user_gid} ${container_user_group} \
 && useradd -u ${container_user_uid} -g ${container_user_group} -s /bin/sh -m ${container_user} \
 && adduser ${container_user} sudo \
-&& echo "%sudo ALL=(ALL) NOPASSWD:/home/${container_user}/${boisdk_local_dir}/install.sh" >> /etc/sudoers
+&& echo "%sudo ALL=(ALL) NOPASSWD:/home/${container_user}/${biosdk_local_dir}/install.sh" >> /etc/sudoers
 
 # set working directory for the user
 WORKDIR /home/${container_user}
