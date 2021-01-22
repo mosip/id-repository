@@ -17,6 +17,7 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -31,6 +32,7 @@ import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
 import io.mosip.kernel.dataaccess.hibernate.repository.impl.HibernateRepositoryImpl;
+
 
 
 /**
@@ -54,6 +56,7 @@ public class BatchConfiguration {
 	@Autowired
 	public StepBuilderFactory stepBuilderFactory;
 
+	/** The job launcher. */
 	@Autowired
 	private JobLauncher jobLauncher;
 
@@ -61,12 +64,24 @@ public class BatchConfiguration {
 	@Autowired
 	private CredentialRepositary<CredentialEntity, String> crdentialRepo;
 
+	/** The credential process job. */
 	@Autowired
 	private Job credentialProcessJob;
 
+	/** The credential re process job. */
+	@Autowired
+	private Job credentialReProcessJob;
 
+	/** The credential request type. */
+	@Value("${credential.request.type}")
+	private String credentialRequestType;
+
+
+	/**
+	 * Process job.
+	 */
 	@Scheduled(fixedRateString = "${mosip.credential.request.job.timeintervel}")
-	public void printMessage() {
+	public void processJob() {
 		try {
 			JobParameters jobParameters = new JobParametersBuilder().addLong("time", System.currentTimeMillis())
 					.toJobParameters();
@@ -78,6 +93,20 @@ public class BatchConfiguration {
 	}
 
 	/**
+	 * Re process job.
+	 */
+	@Scheduled(fixedRateString = "${mosip.credential.request.reprocess.job.timeintervel}")
+	public void reProcessJob() {
+		try {
+			JobParameters jobParameters = new JobParametersBuilder().addLong("time", System.currentTimeMillis())
+					.toJobParameters();
+			jobLauncher.run(credentialReProcessJob, jobParameters);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	/**
 	 * Processor.
 	 *
 	 * @return the credential item processor
@@ -87,6 +116,15 @@ public class BatchConfiguration {
 		return new CredentialItemProcessor();
 	}
 
+	/**
+	 * Re processor.
+	 *
+	 * @return the credential item re processor
+	 */
+	@Bean
+	public CredentialItemReProcessor reProcessor() {
+		return new CredentialItemReProcessor();
+	}
 	/**
 	 * Credential process job.
 	 *
@@ -99,6 +137,17 @@ public class BatchConfiguration {
 				.flow(credentialProcessStep()).end().build();
 	}
 
+	/**
+	 * Credential re process job.
+	 *
+	 * @param listener the listener
+	 * @return the job
+	 */
+	@Bean
+	public Job credentialReProcessJob(JobCompletionNotificationListener listener) {
+		return jobBuilderFactory.get("credentialReProcessJob").incrementer(new RunIdIncrementer()).listener(listener)
+				.flow(credentialReProcessStep()).end().build();
+	}
 	/**
 	 * Credential process step.
 	 *
@@ -127,14 +176,53 @@ public class BatchConfiguration {
 
 	}
 
+	/**
+	 * Gets the rest util.
+	 *
+	 * @return the rest util
+	 */
 	@Bean
 	public RestUtil getRestUtil() {
 		return new RestUtil();
 	}
 
+	/**
+	 * Gets the task scheduler.
+	 *
+	 * @return the task scheduler
+	 */
 	@Bean
 	public ThreadPoolTaskScheduler getTaskScheduler() {
 		return new ThreadPoolTaskScheduler();
 	}
 
+	/**
+	 * Credential re process step.
+	 *
+	 * @return the step
+	 */
+	@Bean
+	public Step credentialReProcessStep() {
+		RepositoryItemReader<CredentialEntity> reader = new RepositoryItemReader<>();
+		List<Object> methodArgs = new ArrayList<Object>();
+		reader.setRepository(crdentialRepo);
+		reader.setMethodName("findCredentialByStatusCodes");
+		final Map<String, Sort.Direction> sorts = new HashMap<>();
+		sorts.put("updateDateTime", Direction.ASC);
+		List<String> statuCodes = new ArrayList<String>();
+		statuCodes.add("FAILED");
+		statuCodes.add("RETRY");
+		methodArgs.add(statuCodes);
+		methodArgs.add(credentialRequestType);
+		reader.setArguments(methodArgs);
+		reader.setSort(sorts);
+		reader.setPageSize(10);
+
+		RepositoryItemWriter<CredentialEntity> writer = new RepositoryItemWriter<>();
+		writer.setRepository(crdentialRepo);
+		writer.setMethodName("update");
+		return stepBuilderFactory.get("credentialReProcessStep").<CredentialEntity, CredentialEntity>chunk(10)
+				.reader(reader).processor(reProcessor()).writer(writer).build();
+
+	}
 }

@@ -13,7 +13,7 @@ public enum CredentialRequestErrorCodes {
 
 	UNKNOWN_EXCEPTION("IDR-CRG-004", "unknown exception"),
 	CREDENTIAL_REQUEST_GENERATOR_BUSINESS_EXCEPTION("IDR-CRG-005", "Credential status update failed"),
-	IO_EXCEPTION("IDR-CRG-006", "IO exception");
+	IO_EXCEPTION("IDR-CRG-006", "IO exception"), RETRY_COUNT_EXCEEDED("IDR-CRG-007", "retry count exceeded");
 	
 	private final String errorCode;
 	private final String errorMessage;

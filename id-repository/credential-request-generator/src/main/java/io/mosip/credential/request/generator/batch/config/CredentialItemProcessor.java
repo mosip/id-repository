@@ -42,12 +42,6 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 	@Autowired
 	private RestUtil restUtil;
 	
-	
-	/** The Constant BIOMETRICS. */
-	private static final String PROCESS = "process";
-
-	/** The Constant ID_REPO_SERVICE_IMPL. */
-	private static final String CREDENTIAL_ITEM_PROCESSOR = "CredentialItemProcessor";
 
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialItemProcessor.class);
@@ -57,12 +51,13 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 
 	@Override
 	public CredentialEntity process(CredentialEntity credential) {
+		int retryCount = 0;
 		TrimExceptionMessage trimMessage = new TrimExceptionMessage();
         try {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					credential.getRequestId(),
 					"started processing item");
-			
+
 		CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class);
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
 		credentialServiceRequestDto.setCredentialType(credentialIssueRequestDto.getCredentialType());
@@ -88,6 +83,7 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 				ErrorDTO error = responseObject.getErrors().get(0);
 				credential.setStatusCode(CredentialStatusCode.FAILED.name());
 				credential.setStatusComment(error.getMessage());
+				retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
 
 			}else {
 				CredentialServiceResponse credentialServiceResponse=responseObject.getResponse();
@@ -111,6 +107,7 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
         	credential.setStatusCode("FAILED");
 			credential.setStatusComment(trimMessage
 					.trimExceptionMessage(e.getMessage()));
+			retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
 		} catch (IOException e) {
 
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
@@ -118,6 +115,7 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 					ExceptionUtils.getStackTrace(e));
 			credential.setStatusCode("FAILED");
 			credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
+			retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
 		} catch (Exception e) {
 
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
@@ -125,6 +123,11 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 					ExceptionUtils.getStackTrace(e));
 			credential.setStatusCode("FAILED");
 			credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
+			retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
+		} finally {
+			if (retryCount != 0) {
+				credential.setRetryCount(retryCount);
+			}
 		}
 		return credential;
 	}
