@@ -288,10 +288,12 @@ public class CredentialProvider {
 	private String getName(JSONObject identity, String attribute) {
 		String formattedObject = "";
 		JSONArray node = JsonUtil.getJSONArray(identity, attribute);
+		if (node != null) {
 		JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
 		for (JsonValue jsonValue : jsonValues) {
 			if (jsonValue.getLanguage().equals(primaryLang))
 				formattedObject = jsonValue.getValue();
+			}
 		}
 		return formattedObject;
 	}

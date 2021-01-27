@@ -33,6 +33,7 @@ import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
 import io.mosip.kernel.dataaccess.hibernate.repository.impl.HibernateRepositoryImpl;
 
 
+
 /**
  * The Class BatchConfiguration.
  *
@@ -54,6 +55,7 @@ public class BatchConfiguration {
 	@Autowired
 	public StepBuilderFactory stepBuilderFactory;
 
+	/** The job launcher. */
 	@Autowired
 	private JobLauncher jobLauncher;
 
@@ -61,12 +63,21 @@ public class BatchConfiguration {
 	@Autowired
 	private CredentialRepositary<CredentialEntity, String> crdentialRepo;
 
+	/** The credential process job. */
 	@Autowired
 	private Job credentialProcessJob;
 
+	/** The credential re process job. */
+	@Autowired
+	private Job credentialReProcessJob;
 
+
+
+	/**
+	 * Process job.
+	 */
 	@Scheduled(fixedRateString = "${mosip.credential.request.job.timeintervel}")
-	public void printMessage() {
+	public void processJob() {
 		try {
 			JobParameters jobParameters = new JobParametersBuilder().addLong("time", System.currentTimeMillis())
 					.toJobParameters();
@@ -78,6 +89,20 @@ public class BatchConfiguration {
 	}
 
 	/**
+	 * Re process job.
+	 */
+	@Scheduled(fixedRateString = "${mosip.credential.request.reprocess.job.timeintervel}")
+	public void reProcessJob() {
+		try {
+			JobParameters jobParameters = new JobParametersBuilder().addLong("time", System.currentTimeMillis())
+					.toJobParameters();
+			jobLauncher.run(credentialReProcessJob, jobParameters);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	/**
 	 * Processor.
 	 *
 	 * @return the credential item processor
@@ -87,6 +112,15 @@ public class BatchConfiguration {
 		return new CredentialItemProcessor();
 	}
 
+	/**
+	 * Re processor.
+	 *
+	 * @return the credential item re processor
+	 */
+	@Bean
+	public CredentialItemReProcessor reProcessor() {
+		return new CredentialItemReProcessor();
+	}
 	/**
 	 * Credential process job.
 	 *
@@ -99,6 +133,17 @@ public class BatchConfiguration {
 				.flow(credentialProcessStep()).end().build();
 	}
 
+	/**
+	 * Credential re process job.
+	 *
+	 * @param listener the listener
+	 * @return the job
+	 */
+	@Bean
+	public Job credentialReProcessJob(JobCompletionNotificationListener listener) {
+		return jobBuilderFactory.get("credentialReProcessJob").incrementer(new RunIdIncrementer()).listener(listener)
+				.flow(credentialReProcessStep()).end().build();
+	}
 	/**
 	 * Credential process step.
 	 *
@@ -127,14 +172,58 @@ public class BatchConfiguration {
 
 	}
 
+	/**
+	 * Gets the rest util.
+	 *
+	 * @return the rest util
+	 */
 	@Bean
 	public RestUtil getRestUtil() {
 		return new RestUtil();
 	}
 
+	/**
+	 * Gets the task scheduler.
+	 *
+	 * @return the task scheduler
+	 */
 	@Bean
 	public ThreadPoolTaskScheduler getTaskScheduler() {
 		return new ThreadPoolTaskScheduler();
 	}
 
+	/**
+	 * Credential re process step.
+	 *
+	 * @return the step
+	 */
+	@Bean
+	public Step credentialReProcessStep() {
+		RepositoryItemReader<CredentialEntity> reader = new RepositoryItemReader<>();
+		List<Object> methodArgs = new ArrayList<Object>();
+		reader.setRepository(crdentialRepo);
+		reader.setMethodName("findCredentialByStatusCodes");
+		final Map<String, Sort.Direction> sorts = new HashMap<>();
+		sorts.put("updateDateTime", Direction.ASC);
+		List<String> statuCodes = new ArrayList<String>();
+		statuCodes.add("FAILED");
+		statuCodes.add("RETRY");
+		methodArgs.add(statuCodes);
+		methodArgs.add(propertyLoader().credentialRequestType);
+		reader.setArguments(methodArgs);
+		reader.setSort(sorts);
+		reader.setPageSize(10);
+
+		RepositoryItemWriter<CredentialEntity> writer = new RepositoryItemWriter<>();
+		writer.setRepository(crdentialRepo);
+		writer.setMethodName("update");
+		return stepBuilderFactory.get("credentialReProcessStep").<CredentialEntity, CredentialEntity>chunk(10)
+				.reader(reader).processor(reProcessor()).writer(writer).build();
+
+	}
+
+	@Bean
+	public PropertyLoader propertyLoader() {
+		return new PropertyLoader();
+	}
 }
