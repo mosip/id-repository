@@ -118,7 +118,6 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credential.setRequest(mapper.writeValueAsString(credentialIssueRequestDto));
 			credential.setStatusCode(CredentialStatusCode.NEW.name());
 		credential.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-		credential.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 			credential.setCreatedBy(IdRepoSecurityManager.getUser());
 			credential.setStatusComment("Request created");
 		credentialRepositary.save(credential);
