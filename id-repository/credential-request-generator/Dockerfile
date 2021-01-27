@@ -53,6 +53,14 @@ RUN apt-get -y update \
 # set working directory for the user
 WORKDIR /home/${container_user}
 
+ENV work_dir=/home/${container_user}
+
+ARG loader_path=${work_dir}/additional_jars/
+
+RUN mkdir -p ${loader_path}
+
+ENV loader_path_env=${loader_path}
+
 # change volume to whichever storage directory you want to use for this container.
 VOLUME /home/logs
 
@@ -71,11 +79,11 @@ CMD if [ "$is_glowroot_env" = "present" ]; then \
     unzip glowroot.zip ; \
     rm -rf glowroot.zip ; \
     sed -i 's/<service_name>/credential-request-generator/g' glowroot/glowroot.properties ; \
-    wget -q --show-progress "${iam_adapter_url_env}" -O kernel-auth-adapter.jar; \
-    java -Dloader.path=./kernel-auth-adapter.jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -jar -javaagent:glowroot/glowroot.jar credential-request-generator.jar ; \
+    wget -q --show-progress "${iam_adapter_url_env}" -O "${loader_path_env}"/kernel-auth-adapter.jar; \
+    java -Dloader.path="${loader_path_env}" -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -jar -javaagent:glowroot/glowroot.jar credential-request-generator.jar ; \
     else \
-    wget "${iam_adapter_url_env}" -O kernel-auth-adapter.jar; \
-    java -Dloader.path=./kernel-auth-adapter.jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -jar credential-request-generator.jar ; \
+    wget "${iam_adapter_url_env}" -O "${loader_path_env}"/kernel-auth-adapter.jar; \
+    java -Dloader.path="${loader_path_env}" -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -jar credential-request-generator.jar ; \
     fi
 
 
