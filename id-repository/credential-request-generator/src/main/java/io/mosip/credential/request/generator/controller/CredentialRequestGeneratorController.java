@@ -106,6 +106,14 @@ public class CredentialRequestGeneratorController {
 		return new ResponseWrapper<>();
 	}
 
+	@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
+	@GetMapping(path = "/getRequestIds", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@ApiOperation(value = "get credential issuance request ids", response = CredentialRequestIdsDto.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "get credential issuance request ids successfully"),
+			@ApiResponse(code = 400, message = "Unable to get credential issuance request ids"),
+			@ApiResponse(code = 500, message = "Internal Server Error") })
+	@ResponseBody
 	public ResponseWrapper<PageDto<CredentialRequestIdsDto>> getRequestIds(
 			@RequestParam(value = "statusCode", defaultValue = "FAILED") @ApiParam(value = "get the requested data with statuscode", defaultValue = "FAILED") String statusCode,
 			@RequestParam(value = "effectivedtimes") @ApiParam(value = "Effective date time") @Nullable String effectivedtimes,
@@ -113,9 +121,8 @@ public class CredentialRequestGeneratorController {
 			@RequestParam(value = "pageSize", defaultValue = "1") @ApiParam(value = "page size for the request data", defaultValue = "1") int size,
 			@RequestParam(value = "orderBy", defaultValue = "upd_dtimes") @ApiParam(value = "sort the requested data based on param value", defaultValue = "updateDateTime") String orderBy,
 			@RequestParam(value = "direction", defaultValue = "DESC") @ApiParam(value = "order the requested data based on param", defaultValue = "ASC") String direction) {
-		ResponseWrapper<PageDto<CredentialRequestIdsDto>> responseWrapper = new ResponseWrapper<>();
-		responseWrapper.setResponse(
-				credentialRequestService.getRequestIds(statusCode, effectivedtimes, page, size, orderBy, direction));
+		ResponseWrapper<PageDto<CredentialRequestIdsDto>> responseWrapper =
+				credentialRequestService.getRequestIds(statusCode, effectivedtimes, page, size, orderBy, direction);
 		return responseWrapper;
 	}
 }

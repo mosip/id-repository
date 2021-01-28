@@ -14,7 +14,8 @@ public enum CredentialRequestErrorCodes {
 	UNKNOWN_EXCEPTION("IDR-CRG-004", "unknown exception"),
 	CREDENTIAL_REQUEST_GENERATOR_BUSINESS_EXCEPTION("IDR-CRG-005", "Credential status update failed"),
 	IO_EXCEPTION("IDR-CRG-006", "IO exception"), RETRY_COUNT_EXCEEDED("IDR-CRG-007", "retry count exceeded"),
-	DATE_PARSE_ERROR("IDR-CRG-008", "Date Parsing Error"), DATA_NOT_FOUND("IDR-CRG-009", "No records found");
+	DATE_PARSE_ERROR("IDR-CRG-008", "Date Parsing Error format should be yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
+	DATA_NOT_FOUND("IDR-CRG-009", "No records found");
 	
 	private final String errorCode;
 	private final String errorMessage;

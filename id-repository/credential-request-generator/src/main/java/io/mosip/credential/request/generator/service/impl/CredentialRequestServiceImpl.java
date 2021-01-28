@@ -359,7 +359,8 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 	}
 
 	@Override
-	public PageDto<CredentialRequestIdsDto> getRequestIds(String statusCode, String effectivedtimes, int pageNumber,
+	public ResponseWrapper<PageDto<CredentialRequestIdsDto>> getRequestIds(String statusCode, String effectivedtimes,
+			int pageNumber,
 			int pageSize,
 			String sortBy, String direction) {
 		List<ServiceError> errorList = new ArrayList<>();
@@ -379,7 +380,8 @@ try {
 		}
 
 		if (pageData != null && pageData.getContent() != null && !pageData.getContent().isEmpty()) {
-			for(CredentialEntity credential:pageData.getContent()) {
+				List<CredentialEntity> credentialRequestList = pageData.getContent();
+				for (CredentialEntity credential : credentialRequestList) {
 				CredentialRequestIdsDto credentialRequestIdsDto=new CredentialRequestIdsDto();
 				CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credential.getRequest(),
 						CredentialIssueRequestDto.class);
@@ -388,8 +390,9 @@ try {
 				credentialRequestIdsDto.setPartner(credentialIssueRequestDto.getIssuer());
 				credentialRequestIdsDto.setStatusCode(credential.getStatusCode());
 				credentialRequestIdsDto.setStatusComment(credential.getStatusComment());
-					credentialRequestIdsDto.setCreateDateTime(DateUtils.toISOString(credential.getCreateDateTime()));
-					credentialRequestIdsDto.setUpdateDateTime(DateUtils.toISOString(credential.getCreateDateTime()));
+
+							credentialRequestIdsDto.setCreateDateTime(credential.getCreateDateTime().toString());
+					credentialRequestIdsDto.setUpdateDateTime(credential.getUpdateDateTime().toString());
 				
 				requestDetails.add(credentialRequestIdsDto);
 			}
@@ -448,7 +451,7 @@ try {
 			}
 
 		}
-		return null;
+		return credentialRequestIdsResponseWrapper;
 	}
 	
 }

@@ -66,7 +66,8 @@ public interface CredentialRequestService {
 	 * @param direction       the direction
 	 * @return the request ids
 	 */
-	public PageDto<CredentialRequestIdsDto> getRequestIds(String statusCode, String effectivedtimes, int page, int size,
+	public ResponseWrapper<PageDto<CredentialRequestIdsDto>> getRequestIds(String statusCode, String effectivedtimes,
+			int page, int size,
 			String orderBy, String direction);
 
 }
