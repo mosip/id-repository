@@ -1,5 +1,7 @@
 package io.mosip.credential.request.generator.controller;
 
+import javax.annotation.Nullable;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,11 +22,14 @@ import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
 import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
+import io.mosip.idrepository.core.dto.CredentialRequestIdsDto;
+import io.mosip.idrepository.core.dto.PageDto;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.websub.api.annotation.PreAuthenticateContentAndVerifyIntent;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
@@ -100,4 +106,16 @@ public class CredentialRequestGeneratorController {
 		return new ResponseWrapper<>();
 	}
 
+	public ResponseWrapper<PageDto<CredentialRequestIdsDto>> getRequestIds(
+			@RequestParam(value = "statusCode", defaultValue = "FAILED") @ApiParam(value = "get the requested data with statuscode", defaultValue = "FAILED") String statusCode,
+			@RequestParam(value = "effectivedtimes") @ApiParam(value = "Effective date time") @Nullable String effectivedtimes,
+			@RequestParam(value = "pageNumber", defaultValue = "0") @ApiParam(value = "page number for the requested data", defaultValue = "0") int page,
+			@RequestParam(value = "pageSize", defaultValue = "1") @ApiParam(value = "page size for the request data", defaultValue = "1") int size,
+			@RequestParam(value = "orderBy", defaultValue = "upd_dtimes") @ApiParam(value = "sort the requested data based on param value", defaultValue = "updateDateTime") String orderBy,
+			@RequestParam(value = "direction", defaultValue = "DESC") @ApiParam(value = "order the requested data based on param", defaultValue = "ASC") String direction) {
+		ResponseWrapper<PageDto<CredentialRequestIdsDto>> responseWrapper = new ResponseWrapper<>();
+		responseWrapper.setResponse(
+				credentialRequestService.getRequestIds(statusCode, effectivedtimes, page, size, orderBy, direction));
+		return responseWrapper;
+	}
 }
