@@ -7,9 +7,12 @@ import io.mosip.credential.request.generator.exception.CredentialrRequestGenerat
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
+import io.mosip.idrepository.core.dto.CredentialRequestIdsDto;
+import io.mosip.idrepository.core.dto.PageDto;
 import io.mosip.kernel.core.http.ResponseWrapper;
 
 
+// TODO: Auto-generated Javadoc
 /**
  * The Interface CredentialRequestService.
  *
@@ -43,6 +46,28 @@ public interface CredentialRequestService {
 	 */
 	public ResponseWrapper<CredentialIssueStatusResponse> getCredentialRequestStatus(String requestId);
 
+	/**
+	 * Update credential status.
+	 *
+	 * @param credentialStatusEvent the credential status event
+	 * @throws CredentialrRequestGeneratorException the credentialr request
+	 *                                              generator exception
+	 */
 	public void updateCredentialStatus(CredentialStatusEvent credentialStatusEvent) throws CredentialrRequestGeneratorException;
+
+	/**
+	 * Gets the request ids.
+	 *
+	 * @param statusCode      the status code
+	 * @param effectivedtimes the effectivedtimes
+	 * @param page            the page
+	 * @param size            the size
+	 * @param orderBy         the order by
+	 * @param direction       the direction
+	 * @return the request ids
+	 */
+	public ResponseWrapper<PageDto<CredentialRequestIdsDto>> getRequestIds(String statusCode, String effectivedtimes,
+			int page, int size,
+			String orderBy, String direction);
 
 }
