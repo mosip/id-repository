@@ -70,4 +70,12 @@ public interface CredentialRequestService {
 			int page, int size,
 			String orderBy, String direction);
 
+	/**
+	 * Reprocess credential request.
+	 *
+	 * @param requestId the request id
+	 * @return the response wrapper
+	 */
+	public ResponseWrapper<CredentialIssueResponse> retriggerCredentialRequest(String requestId);
+
 }

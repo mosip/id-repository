@@ -125,4 +125,18 @@ public class CredentialRequestGeneratorController {
 				credentialRequestService.getRequestIds(statusCode, effectivedtimes, page, size, orderBy, direction);
 		return responseWrapper;
 	}
+
+	@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
+	@GetMapping(path = "/retrigger/{requestId}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@ApiOperation(value = "retrigger the credential issuance request", response = CredentialIssueResponseDto.class)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "retrigger the  the request successfully"),
+			@ApiResponse(code = 400, message = "Unable to retrigger the request"),
+			@ApiResponse(code = 500, message = "Internal Server Error") })
+	@ResponseBody
+	public ResponseEntity<Object> reprocessCredentialRequest(@PathVariable("requestId") String requestId) {
+
+		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = credentialRequestService
+				.retriggerCredentialRequest(requestId);
+		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseWrapper);
+	}
 }
