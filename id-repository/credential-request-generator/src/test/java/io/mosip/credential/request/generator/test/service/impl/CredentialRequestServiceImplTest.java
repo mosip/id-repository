@@ -4,6 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.Before;
@@ -14,6 +18,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.core.env.Environment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -32,6 +38,8 @@ import io.mosip.credential.request.generator.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
+import io.mosip.idrepository.core.dto.CredentialRequestIdsDto;
+import io.mosip.idrepository.core.dto.PageDto;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.http.ResponseWrapper;
@@ -270,5 +278,170 @@ public class CredentialRequestServiceImplTest {
 		credentialStatusEvent.setEvent(event);
 		credentialRequestServiceImpl.updateCredentialStatus(credentialStatusEvent);
 
+	}
+
+	@Test
+	public void testGetRequestIdsWithStatusCodeSuccess() throws IOException {
+		List<CredentialEntity> credentialList=new ArrayList<CredentialEntity>();
+		CredentialEntity credentialEntity = new CredentialEntity();
+		credentialEntity.setRequestId("1234");
+		credentialEntity.setRequest("test");
+		credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialList.add(credentialEntity);
+		Page<CredentialEntity> page = new PageImpl<>(credentialList);
+
+		Mockito.when(credentialRepositary.fingByStatusCode(Mockito.any(), Mockito.any())).thenReturn(page);
+		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
+		credentialIssueRequestDto.setCredentialType("MOSIP");
+		credentialIssueRequestDto.setId("123");
+		credentialIssueRequestDto.setIssuer("test");
+		Mockito.when(objectMapper.readValue(credentialEntity.getRequest(), CredentialIssueRequestDto.class))
+				.thenReturn(credentialIssueRequestDto);
+		ResponseWrapper<PageDto<CredentialRequestIdsDto>> credentialgetRequestIdsresponseDto = credentialRequestServiceImpl
+				.getRequestIds("FAILED", null, 0, 1, "updateDateTime", "ASC");
+		assertNotNull(credentialgetRequestIdsresponseDto.getResponse());
+	}
+
+	@Test
+	public void testGetRequestIdsWithEffectiveDtimeSuccess() throws IOException {
+		List<CredentialEntity> credentialList = new ArrayList<CredentialEntity>();
+		CredentialEntity credentialEntity = new CredentialEntity();
+		credentialEntity.setRequestId("1234");
+		credentialEntity.setRequest("test");
+		credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialList.add(credentialEntity);
+		Page<CredentialEntity> page = new PageImpl<>(credentialList);
+
+		Mockito.when(
+				credentialRepositary.fingByStatusCodeWithEffectiveDtimes(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn(page);
+		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
+		credentialIssueRequestDto.setCredentialType("MOSIP");
+		credentialIssueRequestDto.setId("123");
+		credentialIssueRequestDto.setIssuer("test");
+		Mockito.when(objectMapper.readValue(credentialEntity.getRequest(), CredentialIssueRequestDto.class))
+				.thenReturn(credentialIssueRequestDto);
+		ResponseWrapper<PageDto<CredentialRequestIdsDto>> credentialgetRequestIdsresponseDto = credentialRequestServiceImpl
+				.getRequestIds("FAILED", "2018-12-10T06:12:52.994Z", 0, 1, "updateDateTime", "ASC");
+		assertNotNull(credentialgetRequestIdsresponseDto.getResponse());
+	}
+
+	@Test
+	public void testGetRequestIdsWithDataNotFound() throws IOException {
+		List<CredentialEntity> credentialList = new ArrayList<CredentialEntity>();
+		CredentialEntity credentialEntity = new CredentialEntity();
+		credentialEntity.setRequestId("1234");
+		credentialEntity.setRequest("test");
+		credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialList.add(credentialEntity);
+		Page<CredentialEntity> page = new PageImpl<>(credentialList);
+
+		Mockito.when(credentialRepositary.fingByStatusCode(Mockito.any(), Mockito.any())).thenReturn(null);
+		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
+		credentialIssueRequestDto.setCredentialType("MOSIP");
+		credentialIssueRequestDto.setId("123");
+		credentialIssueRequestDto.setIssuer("test");
+		Mockito.when(objectMapper.readValue(credentialEntity.getRequest(), CredentialIssueRequestDto.class))
+				.thenReturn(credentialIssueRequestDto);
+		ResponseWrapper<PageDto<CredentialRequestIdsDto>> credentialgetRequestIdsresponseDto = credentialRequestServiceImpl
+				.getRequestIds("FAILED", null, 0, 1, "updateDateTime", "ASC");
+		assertNotNull(credentialgetRequestIdsresponseDto.getErrors().get(0));
+	}
+
+	@Test
+	public void testGetRequestIdsIoException() throws IOException {
+		List<CredentialEntity> credentialList = new ArrayList<CredentialEntity>();
+		CredentialEntity credentialEntity = new CredentialEntity();
+		credentialEntity.setRequestId("1234");
+		credentialEntity.setRequest("test");
+		credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialList.add(credentialEntity);
+		Page<CredentialEntity> page = new PageImpl<>(credentialList);
+
+		Mockito.when(credentialRepositary.fingByStatusCode(Mockito.any(), Mockito.any())).thenReturn(page);
+		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
+		credentialIssueRequestDto.setCredentialType("MOSIP");
+		credentialIssueRequestDto.setId("123");
+		credentialIssueRequestDto.setIssuer("test");
+		Mockito.when(objectMapper.readValue(credentialEntity.getRequest(), CredentialIssueRequestDto.class))
+				.thenThrow(new IOException());
+		ResponseWrapper<PageDto<CredentialRequestIdsDto>> credentialgetRequestIdsresponseDto = credentialRequestServiceImpl
+				.getRequestIds("FAILED", null, 0, 1, "updateDateTime", "ASC");
+		assertNotNull(credentialgetRequestIdsresponseDto.getErrors().get(0));
+	}
+
+	@Test
+	public void testGetRequestIdsWithDataAccessLayerException() throws IOException
+	{
+		List<CredentialEntity> credentialList = new ArrayList<CredentialEntity>();
+		CredentialEntity credentialEntity = new CredentialEntity();
+		credentialEntity.setRequestId("1234");
+		credentialEntity.setRequest("test");
+		credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialList.add(credentialEntity);
+		Page<CredentialEntity> page = new PageImpl<>(credentialList);
+
+		Mockito.when(credentialRepositary.fingByStatusCode(Mockito.any(), Mockito.any()))
+				.thenThrow(new DataAccessLayerException("", "", new Throwable()));
+		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
+		credentialIssueRequestDto.setCredentialType("MOSIP");
+		credentialIssueRequestDto.setId("123");
+		credentialIssueRequestDto.setIssuer("test");
+		Mockito.when(objectMapper.readValue(credentialEntity.getRequest(), CredentialIssueRequestDto.class))
+				.thenReturn(credentialIssueRequestDto);
+		ResponseWrapper<PageDto<CredentialRequestIdsDto>> credentialgetRequestIdsresponseDto = credentialRequestServiceImpl
+				.getRequestIds("FAILED", null, 0, 1, "updateDateTime", "ASC");
+		assertNotNull(credentialgetRequestIdsresponseDto.getErrors().get(0));
+	}
+
+	@Test
+	public void testGetRequestIdsWithException() throws IOException {
+		List<CredentialEntity> credentialList = new ArrayList<CredentialEntity>();
+		CredentialEntity credentialEntity = new CredentialEntity();
+		credentialEntity.setRequestId("1234");
+		credentialEntity.setRequest("test");
+
+		credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialList.add(credentialEntity);
+		Page<CredentialEntity> page = new PageImpl<>(credentialList);
+		Mockito.when(credentialRepositary.fingByStatusCode(Mockito.any(), Mockito.any())).thenReturn(page);
+		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
+		credentialIssueRequestDto.setCredentialType("MOSIP");
+		credentialIssueRequestDto.setId("123");
+		credentialIssueRequestDto.setIssuer("test");
+		Mockito.when(objectMapper.readValue(credentialEntity.getRequest(), CredentialIssueRequestDto.class))
+				.thenReturn(credentialIssueRequestDto);
+		ResponseWrapper<PageDto<CredentialRequestIdsDto>> credentialgetRequestIdsresponseDto = credentialRequestServiceImpl
+				.getRequestIds("FAILED", null, 0, 1, "updateDateTime", "ASC");
+		assertNotNull(credentialgetRequestIdsresponseDto.getErrors().get(0));
+	}
+
+	@Test
+	public void testGetRequestIdsWithDateParseException() throws IOException {
+		List<CredentialEntity> credentialList = new ArrayList<CredentialEntity>();
+		CredentialEntity credentialEntity = new CredentialEntity();
+		credentialEntity.setRequestId("1234");
+		credentialEntity.setRequest("test");
+		credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialList.add(credentialEntity);
+		Page<CredentialEntity> page = new PageImpl<>(credentialList);
+		Mockito.when(
+				credentialRepositary.fingByStatusCodeWithEffectiveDtimes(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn(page);
+		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
+		credentialIssueRequestDto.setCredentialType("MOSIP");
+		credentialIssueRequestDto.setId("123");
+		credentialIssueRequestDto.setIssuer("test");
+		Mockito.when(objectMapper.readValue(credentialEntity.getRequest(), CredentialIssueRequestDto.class))
+				.thenReturn(credentialIssueRequestDto);
+		ResponseWrapper<PageDto<CredentialRequestIdsDto>> credentialgetRequestIdsresponseDto = credentialRequestServiceImpl
+				.getRequestIds("FAILED", "2018-12-10:52.94Z", 0, 1, "updateDateTime", "ASC");
+		assertNotNull(credentialgetRequestIdsresponseDto.getErrors().get(0));
 	}
 }
