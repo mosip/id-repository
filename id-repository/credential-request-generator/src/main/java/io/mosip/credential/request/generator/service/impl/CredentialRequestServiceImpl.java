@@ -192,7 +192,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 					credentialRepositary.update(credentialEntity);
 					CredentialIssueRequestDto credentialIssueRequestDto = mapper
 							.readValue(credentialEntity.getRequest(),
-							CredentialIssueRequestDto.class);
+									CredentialIssueRequestDto.class);
 					credentialIssueResponse = new CredentialIssueResponse();
 					credentialIssueResponse.setId(credentialIssueRequestDto.getId());
 					credentialIssueResponse.setRequestId(requestId);

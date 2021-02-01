@@ -145,4 +145,16 @@ public class CredentialRequestGeneratorControllerTest {
 
 	}
 
+	@Test
+	@WithUserDetails("test")
+	public void testReprocessCredentialRequestSuccess() throws Exception {
+
+		Mockito.when(credentialRequestService.retriggerCredentialRequest(Mockito.any()))
+				.thenReturn(credentialIssueResponseWrapper);
+
+		mockMvc.perform(
+				MockMvcRequestBuilders.get("/retrigger/requestId").contentType(MediaType.APPLICATION_JSON_VALUE))
+				.andExpect(status().isOk());
+
+	}
 }
