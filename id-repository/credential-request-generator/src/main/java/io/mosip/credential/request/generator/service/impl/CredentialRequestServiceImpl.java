@@ -182,7 +182,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		CredentialIssueResponse credentialIssueResponse = null;
 		try {
 			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
-			if (entity != null) {
+			if (entity != null && !entity.isEmpty()) {
 				CredentialEntity credentialEntity = entity.get();
 				if (credentialEntity.getStatusCode().equalsIgnoreCase("NEW")) {
 					credentialEntity.setStatusCode(CredentialStatusCode.CANCELLED.name());
@@ -192,7 +192,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 					credentialRepositary.update(credentialEntity);
 					CredentialIssueRequestDto credentialIssueRequestDto = mapper
 							.readValue(credentialEntity.getRequest(),
-							CredentialIssueRequestDto.class);
+									CredentialIssueRequestDto.class);
 					credentialIssueResponse = new CredentialIssueResponse();
 					credentialIssueResponse.setId(credentialIssueRequestDto.getId());
 					credentialIssueResponse.setRequestId(requestId);
@@ -262,7 +262,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		CredentialIssueStatusResponse credentialIssueStatusResponse = new CredentialIssueStatusResponse();
 		try {
 			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
-			if (entity != null) {
+			if (entity != null && !entity.isEmpty()) {
 				CredentialEntity credentialEntity = entity.get();
 				CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credentialEntity.getRequest(),
 						CredentialIssueRequestDto.class);
@@ -452,6 +452,78 @@ try {
 
 		}
 		return credentialRequestIdsResponseWrapper;
+	}
+
+	@Override
+	public ResponseWrapper<CredentialIssueResponse> retriggerCredentialRequest(String requestId) {
+		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+				"started updating to retry credential");
+		List<ServiceError> errorList = new ArrayList<>();
+		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = new ResponseWrapper<CredentialIssueResponse>();
+
+		CredentialIssueResponse credentialIssueResponse = null;
+		try {
+			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
+			if (entity != null && !entity.isEmpty()) {
+				CredentialEntity credentialEntity = entity.get();
+
+				credentialEntity.setStatusCode(CredentialStatusCode.RETRY.name());
+					credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+					credentialEntity.setUpdatedBy(IdRepoSecurityManager.getUser());
+				credentialEntity.setStatusComment("retrigger the request");
+					credentialRepositary.update(credentialEntity);
+					CredentialIssueRequestDto credentialIssueRequestDto = mapper
+							.readValue(credentialEntity.getRequest(), CredentialIssueRequestDto.class);
+					credentialIssueResponse = new CredentialIssueResponse();
+					credentialIssueResponse.setId(credentialIssueRequestDto.getId());
+					credentialIssueResponse.setRequestId(requestId);
+
+					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CANCEL_CREDENTIAL,
+						"updated to RETRY credential status of " + requestId);
+
+			} else {
+				ServiceError error = new ServiceError();
+				error.setErrorCode(CredentialRequestErrorCodes.REQUEST_ID_ERROR.getErrorCode());
+				error.setMessage(CredentialRequestErrorCodes.REQUEST_ID_ERROR.getErrorMessage());
+				errorList.add(error);
+			}
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"ended updating to retry credential");
+		} catch (DataAccessLayerException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR,
+					AuditEvents.RETRY_CREDENTIAL_REQUEST, requestId, IdType.ID, e);
+			ServiceError error = new ServiceError();
+			error.setErrorCode(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
+		} catch (IOException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR,
+					AuditEvents.RETRY_CREDENTIAL_REQUEST, requestId, IdType.ID, e);
+			ServiceError error = new ServiceError();
+			error.setErrorCode(CredentialRequestErrorCodes.IO_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialRequestErrorCodes.IO_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
+		} finally {
+			credentialIssueResponseWrapper.setId(CREDENTIAL_REQUEST_SERVICE_ID);
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			LocalDateTime localdatetime = LocalDateTime
+					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+
+			credentialIssueResponseWrapper.setResponsetime(localdatetime);
+			credentialIssueResponseWrapper.setVersion(env.getProperty(CREDENTIAL_REQUEST_SERVICE_VERSION));
+			if (!errorList.isEmpty()) {
+				credentialIssueResponseWrapper.setErrors(errorList);
+			} else {
+				credentialIssueResponseWrapper.setResponse(credentialIssueResponse);
+			}
+			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.RETRY_CREDENTIAL_REQUEST,
+					requestId, IdType.ID, "retrigger the request");
+		}
+		return credentialIssueResponseWrapper;
 	}
 	
 }
