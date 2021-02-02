@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.web.client.RestTemplate;
 
 import io.mosip.credentialstore.provider.CredentialProvider;
@@ -24,6 +25,7 @@ import io.mosip.idrepository.core.helper.AuditHelper;
  * @author Sowmya
  */
 @Configuration
+@EnableRetry
 @PropertySource("classpath:bootstrap.properties")
 public class CredentialStoreBeanConfig {
 

@@ -12,6 +12,8 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
@@ -54,6 +56,8 @@ public class DataShareUtil {
 	@Autowired
 	private Environment env;
 
+	@Retryable(value = { DataShareException.class,
+			ApiNotAccessibleException.class }, maxAttemptsExpression = "${mosip.credential.service.retry.maxAttempts}", backoff = @Backoff(delayExpression = "${mosip.credential.service.retry.maxDelay}"))
 	public DataShare getDataShare(byte[] data, String policyId, String partnerId, String domain, String requestId)
 			throws ApiNotAccessibleException, IOException, DataShareException {
 		long fileLengthInBytes=0;
@@ -139,4 +143,6 @@ public class DataShareUtil {
 
 
 	}
+
+
 }
