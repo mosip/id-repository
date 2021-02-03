@@ -1,5 +1,8 @@
 package io.mosip.credential.request.generator.repositary;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -11,11 +14,13 @@ import io.mosip.kernel.core.dataaccess.spi.repository.BaseRepository;
 
 
 
+// TODO: Auto-generated Javadoc
 /**
+ * The Interface CredentialRepositary.
+ *
  * @author Sowmya
  * 
  *         The Interface CredentialRepositary.
- *
  * @param <T> the generic type
  * @param <E> the element type
  */
@@ -32,4 +37,26 @@ public interface CredentialRepositary<T extends CredentialEntity, E> extends Bas
 	 */
 	@Query("SELECT crdn FROM CredentialEntity crdn WHERE crdn.statusCode=:statusCode")
 	Page<CredentialEntity> findCredentialByStatusCode(@Param("statusCode")String statusCode, Pageable pageable);
+
+	/**
+	 * Find credential by status codes.
+	 *
+	 * @param statusCodes the status codes
+	 * @param type        the type
+	 * @param pageable    the pageable
+	 * @return the page
+	 */
+	@Query("SELECT crdn FROM CredentialEntity crdn WHERE crdn.statusCode in :statusCodes and crdn.request like %:type% ")
+	Page<CredentialEntity> findCredentialByStatusCodes(@Param("statusCodes") List<String> statusCodes,
+			@Param("type") String type, Pageable pageable);
+
+
+	@Query("SELECT crdn FROM CredentialEntity crdn WHERE crdn.statusCode= :statusCode")
+	Page<CredentialEntity> fingByStatusCode(@Param("statusCode") String statusCode, Pageable pageable);
+
+
+	@Query("SELECT crdn FROM CredentialEntity crdn WHERE crdn.statusCode= :statusCode and crdn.updateDateTime>= :effectiveDTimes")
+	Page<CredentialEntity> fingByStatusCodeWithEffectiveDtimes(@Param("statusCode") String statusCode,
+			@Param("effectiveDTimes") LocalDateTime effectiveDTimes,
+			Pageable pageable);
 }

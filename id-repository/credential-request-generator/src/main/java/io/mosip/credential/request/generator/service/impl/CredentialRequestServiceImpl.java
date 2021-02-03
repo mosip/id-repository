@@ -4,12 +4,17 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,6 +36,8 @@ import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
+import io.mosip.idrepository.core.dto.CredentialRequestIdsDto;
+import io.mosip.idrepository.core.dto.PageDto;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
@@ -79,12 +86,14 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 	@Autowired
 	private Utilities utilities;
 	
-	/** The Constant BIOMETRICS. */
+
 	private static final String CREATE_CREDENTIAL = "createCredentialIssuance";
 
-	/** The Constant ID_REPO_SERVICE_IMPL. */
+
 	private static final String CREDENTIAL_SERVICE = "CredentialRequestServiceImpl";
 	
+	private static final String GET_REQUESTIDS = "getRequestIds";
+
 	@Autowired
 	private AuditHelper auditHelper;
 
@@ -118,7 +127,6 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credential.setRequest(mapper.writeValueAsString(credentialIssueRequestDto));
 			credential.setStatusCode(CredentialStatusCode.NEW.name());
 		credential.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-		credential.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 			credential.setCreatedBy(IdRepoSecurityManager.getUser());
 			credential.setStatusComment("Request created");
 		credentialRepositary.save(credential);
@@ -174,7 +182,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		CredentialIssueResponse credentialIssueResponse = null;
 		try {
 			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
-			if (entity != null) {
+			if (entity != null && !entity.isEmpty()) {
 				CredentialEntity credentialEntity = entity.get();
 				if (credentialEntity.getStatusCode().equalsIgnoreCase("NEW")) {
 					credentialEntity.setStatusCode(CredentialStatusCode.CANCELLED.name());
@@ -184,7 +192,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 					credentialRepositary.update(credentialEntity);
 					CredentialIssueRequestDto credentialIssueRequestDto = mapper
 							.readValue(credentialEntity.getRequest(),
-							CredentialIssueRequestDto.class);
+									CredentialIssueRequestDto.class);
 					credentialIssueResponse = new CredentialIssueResponse();
 					credentialIssueResponse.setId(credentialIssueRequestDto.getId());
 					credentialIssueResponse.setRequestId(requestId);
@@ -254,7 +262,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		CredentialIssueStatusResponse credentialIssueStatusResponse = new CredentialIssueStatusResponse();
 		try {
 			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
-			if (entity != null) {
+			if (entity != null && !entity.isEmpty()) {
 				CredentialEntity credentialEntity = entity.get();
 				CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credentialEntity.getRequest(),
 						CredentialIssueRequestDto.class);
@@ -348,6 +356,174 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 
 		}
 		
+	}
+
+	@Override
+	public ResponseWrapper<PageDto<CredentialRequestIdsDto>> getRequestIds(String statusCode, String effectivedtimes,
+			int pageNumber,
+			int pageSize,
+			String sortBy, String direction) {
+		List<ServiceError> errorList = new ArrayList<>();
+		ResponseWrapper<PageDto<CredentialRequestIdsDto>> credentialRequestIdsResponseWrapper = new ResponseWrapper<PageDto<CredentialRequestIdsDto>>();
+		PageDto<CredentialRequestIdsDto> pageDto = null;
+try {
+		List<CredentialRequestIdsDto> requestDetails = new ArrayList<>();
+
+		Page<CredentialEntity> pageData=null;
+		if (StringUtils.isEmpty(effectivedtimes)) {
+			   pageData = credentialRepositary.fingByStatusCode(statusCode,
+					PageRequest.of(pageNumber, pageSize, Sort.by(Direction.fromString(direction), sortBy)));
+		}else {
+			LocalDateTime effectiveDateTime=DateUtils.parseToLocalDateTime(effectivedtimes);
+			pageData = credentialRepositary.fingByStatusCodeWithEffectiveDtimes(statusCode, effectiveDateTime,
+					PageRequest.of(pageNumber, pageSize, Sort.by(Direction.fromString(direction), sortBy)));
+		}
+
+		if (pageData != null && pageData.getContent() != null && !pageData.getContent().isEmpty()) {
+				List<CredentialEntity> credentialRequestList = pageData.getContent();
+				for (CredentialEntity credential : credentialRequestList) {
+				CredentialRequestIdsDto credentialRequestIdsDto=new CredentialRequestIdsDto();
+				CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credential.getRequest(),
+						CredentialIssueRequestDto.class);
+				credentialRequestIdsDto.setRequestId(credential.getRequestId());
+				credentialRequestIdsDto.setCredentialType(credentialIssueRequestDto.getCredentialType());
+				credentialRequestIdsDto.setPartner(credentialIssueRequestDto.getIssuer());
+				credentialRequestIdsDto.setStatusCode(credential.getStatusCode());
+				credentialRequestIdsDto.setStatusComment(credential.getStatusComment());
+
+							credentialRequestIdsDto.setCreateDateTime(credential.getCreateDateTime().toString());
+					credentialRequestIdsDto.setUpdateDateTime(credential.getUpdateDateTime().toString());
+				
+				requestDetails.add(credentialRequestIdsDto);
+			}
+
+				pageDto = new PageDto<>(pageData.getNumber(), pageSize, pageData.getSort(), pageData.getTotalElements(),
+						pageData.getTotalPages(), requestDetails);
+			} else {
+				ServiceError error = new ServiceError();
+				error.setErrorCode(CredentialRequestErrorCodes.DATA_NOT_FOUND.getErrorCode());
+				error.setMessage(CredentialRequestErrorCodes.DATA_NOT_FOUND.getErrorMessage());
+				errorList.add(error);
+			}
+		
+		} catch (IOException e) {
+			ServiceError error = new ServiceError();
+			error.setErrorCode(CredentialRequestErrorCodes.IO_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialRequestErrorCodes.IO_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, GET_REQUESTIDS,
+					ExceptionUtils.getStackTrace(e));
+		} catch (DateTimeParseException e) {
+			ServiceError error = new ServiceError();
+			error.setErrorCode(CredentialRequestErrorCodes.DATE_PARSE_ERROR.getErrorCode());
+			error.setMessage(CredentialRequestErrorCodes.DATE_PARSE_ERROR.getErrorMessage());
+			errorList.add(error);
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, GET_REQUESTIDS,
+					ExceptionUtils.getStackTrace(e));
+		} catch (DataAccessLayerException e) {
+
+			ServiceError error = new ServiceError();
+			error.setErrorCode(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, GET_REQUESTIDS,
+					ExceptionUtils.getStackTrace(e));
+		} catch (Exception e) {
+
+			ServiceError error = new ServiceError();
+			error.setErrorCode(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, GET_REQUESTIDS,
+					ExceptionUtils.getStackTrace(e));
+		} finally {
+			credentialRequestIdsResponseWrapper.setId(CREDENTIAL_REQUEST_SERVICE_ID);
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			LocalDateTime localdatetime = LocalDateTime
+					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+
+			credentialRequestIdsResponseWrapper.setResponsetime(localdatetime);
+			credentialRequestIdsResponseWrapper.setVersion(env.getProperty(CREDENTIAL_REQUEST_SERVICE_VERSION));
+			if (!errorList.isEmpty()) {
+				credentialRequestIdsResponseWrapper.setErrors(errorList);
+			} else {
+				credentialRequestIdsResponseWrapper.setResponse(pageDto);
+			}
+
+		}
+		return credentialRequestIdsResponseWrapper;
+	}
+
+	@Override
+	public ResponseWrapper<CredentialIssueResponse> retriggerCredentialRequest(String requestId) {
+		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+				"started updating to retry credential");
+		List<ServiceError> errorList = new ArrayList<>();
+		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = new ResponseWrapper<CredentialIssueResponse>();
+
+		CredentialIssueResponse credentialIssueResponse = null;
+		try {
+			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
+			if (entity != null && !entity.isEmpty()) {
+				CredentialEntity credentialEntity = entity.get();
+
+				credentialEntity.setStatusCode(CredentialStatusCode.RETRY.name());
+					credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+					credentialEntity.setUpdatedBy(IdRepoSecurityManager.getUser());
+				credentialEntity.setStatusComment("retrigger the request");
+					credentialRepositary.update(credentialEntity);
+					CredentialIssueRequestDto credentialIssueRequestDto = mapper
+							.readValue(credentialEntity.getRequest(), CredentialIssueRequestDto.class);
+					credentialIssueResponse = new CredentialIssueResponse();
+					credentialIssueResponse.setId(credentialIssueRequestDto.getId());
+					credentialIssueResponse.setRequestId(requestId);
+
+					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CANCEL_CREDENTIAL,
+						"updated to RETRY credential status of " + requestId);
+
+			} else {
+				ServiceError error = new ServiceError();
+				error.setErrorCode(CredentialRequestErrorCodes.REQUEST_ID_ERROR.getErrorCode());
+				error.setMessage(CredentialRequestErrorCodes.REQUEST_ID_ERROR.getErrorMessage());
+				errorList.add(error);
+			}
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"ended updating to retry credential");
+		} catch (DataAccessLayerException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR,
+					AuditEvents.RETRY_CREDENTIAL_REQUEST, requestId, IdType.ID, e);
+			ServiceError error = new ServiceError();
+			error.setErrorCode(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
+		} catch (IOException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR,
+					AuditEvents.RETRY_CREDENTIAL_REQUEST, requestId, IdType.ID, e);
+			ServiceError error = new ServiceError();
+			error.setErrorCode(CredentialRequestErrorCodes.IO_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialRequestErrorCodes.IO_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
+		} finally {
+			credentialIssueResponseWrapper.setId(CREDENTIAL_REQUEST_SERVICE_ID);
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			LocalDateTime localdatetime = LocalDateTime
+					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+
+			credentialIssueResponseWrapper.setResponsetime(localdatetime);
+			credentialIssueResponseWrapper.setVersion(env.getProperty(CREDENTIAL_REQUEST_SERVICE_VERSION));
+			if (!errorList.isEmpty()) {
+				credentialIssueResponseWrapper.setErrors(errorList);
+			} else {
+				credentialIssueResponseWrapper.setResponse(credentialIssueResponse);
+			}
+			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.RETRY_CREDENTIAL_REQUEST,
+					requestId, IdType.ID, "retrigger the request");
+		}
+		return credentialIssueResponseWrapper;
 	}
 	
 }

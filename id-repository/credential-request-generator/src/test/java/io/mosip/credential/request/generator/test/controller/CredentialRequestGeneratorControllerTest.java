@@ -31,6 +31,8 @@ import io.mosip.credential.request.generator.test.config.TestConfig;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
+import io.mosip.idrepository.core.dto.CredentialRequestIdsDto;
+import io.mosip.idrepository.core.dto.PageDto;
 import io.mosip.kernel.core.http.ResponseWrapper;
 
 @RunWith(SpringRunner.class)
@@ -57,6 +59,8 @@ public class CredentialRequestGeneratorControllerTest {
 
 	String reqCredentialEventJson;
 
+	ResponseWrapper<PageDto<CredentialRequestIdsDto>> responseWrapper;
+
 
 	@Before
 	public void setup() throws Exception {
@@ -69,6 +73,9 @@ public class CredentialRequestGeneratorControllerTest {
 		reqJson = gson.toJson(credentialIssueRequestDto);
 		CredentialStatusEvent credentialStatusEvent = new CredentialStatusEvent();
 		reqCredentialEventJson = gson.toJson(credentialStatusEvent);
+		PageDto<CredentialRequestIdsDto> pageDto = new PageDto<CredentialRequestIdsDto>();
+		responseWrapper = new ResponseWrapper<PageDto<CredentialRequestIdsDto>>();
+		responseWrapper.setResponse(pageDto);
 	}
 
 
@@ -123,4 +130,31 @@ public class CredentialRequestGeneratorControllerTest {
 
 	}
 
+	@Test
+	@WithUserDetails("test")
+	public void testGetRequestIdsSuccess() throws Exception {
+
+		Mockito.when(credentialRequestService.getRequestIds(Mockito.anyString(), Mockito.anyString(), Mockito.anyInt(),Mockito.anyInt(),
+				Mockito.anyString(), Mockito.anyString()))
+				.thenReturn(responseWrapper);
+
+		mockMvc.perform(MockMvcRequestBuilders.get(
+				"/getRequestIds")
+				.contentType(MediaType.APPLICATION_JSON_VALUE))
+				.andExpect(status().isOk());
+
+	}
+
+	@Test
+	@WithUserDetails("test")
+	public void testReprocessCredentialRequestSuccess() throws Exception {
+
+		Mockito.when(credentialRequestService.retriggerCredentialRequest(Mockito.any()))
+				.thenReturn(credentialIssueResponseWrapper);
+
+		mockMvc.perform(
+				MockMvcRequestBuilders.get("/retrigger/requestId").contentType(MediaType.APPLICATION_JSON_VALUE))
+				.andExpect(status().isOk());
+
+	}
 }
