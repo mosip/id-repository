@@ -8,6 +8,8 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -15,7 +17,6 @@ import io.mosip.credential.request.generator.constants.ApiName;
 import io.mosip.credential.request.generator.constants.CredentialStatusCode;
 import io.mosip.credential.request.generator.constants.LoggerFileConstant;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
-import io.mosip.credential.request.generator.exception.ApiNotAccessibleException;
 import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.credential.request.generator.util.TrimExceptionMessage;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
@@ -101,15 +102,6 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					credential.getRequestId(),
 					"ended processing item");
-		} catch (ApiNotAccessibleException e) {
-
-			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
-					credential.getRequestId(),
-					ExceptionUtils.getStackTrace(e));
-        	credential.setStatusCode("FAILED");
-			credential.setStatusComment(trimMessage
-					.trimExceptionMessage(e.getMessage()));
-			retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
 		} catch (IOException e) {
 
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
@@ -119,12 +111,22 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 			credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
 			retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
 		} catch (Exception e) {
+			String errorMessage;
+			if (e.getCause() instanceof HttpClientErrorException) {
+				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
+				errorMessage = httpClientException.getResponseBodyAsString();
+			} else if (e.getCause() instanceof HttpServerErrorException) {
+				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
+				errorMessage = httpServerException.getResponseBodyAsString();
+			} else {
+				errorMessage = e.getMessage();
+			}
 
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					credential.getRequestId(),
 					ExceptionUtils.getStackTrace(e));
 			credential.setStatusCode("FAILED");
-			credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
+			credential.setStatusComment(trimMessage.trimExceptionMessage(errorMessage));
 			retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
 		} finally {
 			credential.setUpdatedBy(CREDENTIAL_USER);
