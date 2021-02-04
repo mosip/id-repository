@@ -65,10 +65,11 @@ public class CredentialItemReProcessor implements ItemProcessor<CredentialEntity
 	public CredentialEntity process(CredentialEntity credential) {
 		int retryCount = credential.getRetryCount() != null ? credential.getRetryCount() : 0;
 		TrimExceptionMessage trimMessage = new TrimExceptionMessage();
+		LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+				credential.getRequestId(), "started reprocessing item");
 		try {
 
-			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
-					credential.getRequestId(), "started reprocessing item");
+
 			if ((CredentialStatusCode.FAILED.name().equalsIgnoreCase(credential.getStatusCode())
 					&& (retryCount <= retryMaxCount))
 					|| (CredentialStatusCode.RETRY.name().equalsIgnoreCase(credential.getStatusCode()))) {
@@ -111,13 +112,14 @@ public class CredentialItemReProcessor implements ItemProcessor<CredentialEntity
 
 			}
 
-			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
-					credential.getRequestId(), "ended reprocessing item");
 			
+
 			} else {
 				credential.setStatusCode(CredentialStatusCode.FAILED.name());
 				credential.setStatusComment(CredentialRequestErrorCodes.RETRY_COUNT_EXCEEDED.getErrorMessage());
 			}
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					credential.getRequestId(), "ended reprocessing item");
 		} catch (ApiNotAccessibleException e) {
 
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
