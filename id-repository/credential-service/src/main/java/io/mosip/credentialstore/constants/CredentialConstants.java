@@ -34,4 +34,6 @@ public class CredentialConstants {
 	public static final String FULLNAME = "fullname";
 
 	public static final String ENCRYPTIONKEY = "encryptionKey";
+
+	public static final String BESTTWOFINGERS = "bestTwoFingers";
 }
