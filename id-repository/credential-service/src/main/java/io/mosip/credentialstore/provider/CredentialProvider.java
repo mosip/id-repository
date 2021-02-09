@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.constants.JsonConstants;
 import io.mosip.credentialstore.dto.AllowedKycDto;
+import io.mosip.credentialstore.dto.BestFingerDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.Filter;
 import io.mosip.credentialstore.dto.JsonValue;
@@ -233,8 +235,15 @@ public class CredentialProvider {
 				}
 			}
 			if (individualBiometricsValue != null) {
+					if ((key.getFormat() != null)
+							&& CredentialConstants.BESTTWOFINGERS.equalsIgnoreCase(key.getFormat())) {
+						List<BestFingerDto> bestFingerList = getBestTwoFingers(individualBiometricsValue, key);
+						attributesMap.put(key, bestFingerList);
+					} else {
 					String cbeff = filterBiometric(individualBiometricsValue, key);
 					attributesMap.put(key, cbeff);
+					}
+
 			}
 
 		}
@@ -245,6 +254,80 @@ public class CredentialProvider {
 		}
 	}
 
+	private List<BestFingerDto> getBestTwoFingers(String individualBiometricsValue, AllowedKycDto key)
+			throws Exception {
+		List<BestFingerDto> bestFingerList = new ArrayList<>();
+		Map<String, Long> subTypeScoreMap = new HashMap<String, Long>();
+		Source source = key.getSource().get(0);
+
+		List<Filter> filterList = source.getFilter();
+
+		Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
+		filterList.forEach(filter -> {
+			if (filter.getSubType() != null && !filter.getSubType().isEmpty()) {
+				typeAndSubTypeMap.put(filter.getType(), filter.getSubType());
+			} else {
+				typeAndSubTypeMap.put(filter.getType(), null);
+			}
+		});
+
+		List<BIRType> typeList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(individualBiometricsValue));
+		List<BIR> birList = cbeffutil.convertBIRTypeToBIR(typeList);
+
+		for (BIR bir : birList) {
+			BDBInfo bdbInfo = bir.getBdbInfo();
+			String type = bdbInfo.getType().get(0).value();
+			if (typeAndSubTypeMap.containsKey(type) && typeAndSubTypeMap.get(type) == null) {
+
+				List<String> bdbSubTypeList = bdbInfo.getSubtype();
+				String subType;
+				if (bdbSubTypeList != null) {
+					subType = getSubType(bdbSubTypeList);
+					subTypeScoreMap.put(subType, bdbInfo.getQuality().getScore());
+				}
+
+			} else if (typeAndSubTypeMap.containsKey(type) && typeAndSubTypeMap.get(type) != null) {
+				List<String> subTypeList = typeAndSubTypeMap.get(type);
+				List<String> bdbSubTypeList = bdbInfo.getSubtype();
+				String subType;
+				if (bdbSubTypeList != null) {
+					subType = getSubType(bdbSubTypeList);
+					if (subTypeList.contains(subType)) {
+						subTypeScoreMap.put(subType, bdbInfo.getQuality().getScore());
+
+					}
+				}
+			}
+		}
+		if (!subTypeScoreMap.isEmpty()) {
+			if (subTypeScoreMap.size() == 1) {
+				String firstBestFinger = Collections.max(subTypeScoreMap.entrySet(), Map.Entry.comparingByValue())
+						.getKey();
+				bestFingerList.add(new BestFingerDto(firstBestFinger, 1));
+			} else {
+				String firstBestFinger = Collections.max(subTypeScoreMap.entrySet(), Map.Entry.comparingByValue())
+						.getKey();
+				subTypeScoreMap.remove(firstBestFinger);
+				String secondBestFinger = Collections.max(subTypeScoreMap.entrySet(), Map.Entry.comparingByValue())
+						.getKey();
+				bestFingerList.add(new BestFingerDto(firstBestFinger, 1));
+				bestFingerList.add(new BestFingerDto(secondBestFinger, 2));
+			}
+
+		}
+
+		return bestFingerList;
+	}
+
+	private String getSubType(List<String> bdbSubTypeList) {
+		String subType;
+		if (bdbSubTypeList.size() == 1) {
+			subType = bdbSubTypeList.get(0);
+		} else {
+			subType = bdbSubTypeList.get(0) + " " + bdbSubTypeList.get(1);
+		}
+		return subType;
+	}
 	private Object getFullname(JSONObject identity, String attribute) {
 		String firstName = getName(identity, "firstName");
 		String lastName = getName(identity, "lastName");
@@ -291,11 +374,7 @@ public class CredentialProvider {
 					List<String> subTypeList = typeAndSubTypeMap.get(type);
 					List<String> bdbSubTypeList = bdbInfo.getSubtype();
 					String subType;
-					if (bdbSubTypeList.size() == 1) {
-						subType = bdbSubTypeList.get(0);
-					} else {
-						subType = bdbSubTypeList.get(0) + " " + bdbSubTypeList.get(1);
-					}
+					subType = getSubType(bdbSubTypeList);
 					if (subTypeList.contains(subType)) {
 						filteredBIRList.add(bir);
 					}
