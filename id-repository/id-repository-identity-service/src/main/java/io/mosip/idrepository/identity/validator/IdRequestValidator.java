@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,11 +110,11 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	private static final String TYPE = "type";
 
 	/** The new registration fields. */
-	@Value("${mosip.kernel.idobjectvalidator.mandatory-attributes.id-repository.new-registration}")
+	@Value("#{'${mosip.kernel.idobjectvalidator.mandatory-attributes.id-repository.new-registration:}'.split(',')}") 
 	private List<String> newRegistrationFields;
 
 	/** The update uin fields. */
-	@Value("${mosip.kernel.idobjectvalidator.mandatory-attributes.id-repository.update-uin}")
+	@Value("#{'${mosip.kernel.idobjectvalidator.mandatory-attributes.id-repository.update-uin:}'.split(',')}") 
 	private List<String> updateUinFields;
 
 	/** The status. */
@@ -154,6 +155,12 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	/** The vid validator. */
 	@Autowired
 	private VidValidator<String> vidValidator;
+	
+	@PostConstruct
+	public void init() {
+		newRegistrationFields.remove("");
+		updateUinFields.remove("");
+	}
 
 	/*
 	 * (non-Javadoc)
