@@ -22,4 +22,10 @@ public class PropertyLoader {
 	@Value("${credential.batch.page.size:10}")
 	public int pageSize;
 
+	@Value("${credential.batch.chunk.size:10}")
+	public int chunkSize;
+
+	@Value("${credential.request.reprocess.statuscodes}")
+	public String reprocessStatusCodes;
+
 }

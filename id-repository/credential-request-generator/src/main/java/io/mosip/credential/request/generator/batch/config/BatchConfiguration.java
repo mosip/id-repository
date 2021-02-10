@@ -169,7 +169,8 @@ public class BatchConfiguration {
 		RepositoryItemWriter<CredentialEntity> writer = new RepositoryItemWriter<>();
 		writer.setRepository(crdentialRepo);
 		writer.setMethodName("update");
-		return stepBuilderFactory.get("credentialProcessStep").<CredentialEntity, CredentialEntity>chunk(10)
+		return stepBuilderFactory.get("credentialProcessStep")
+				.<CredentialEntity, CredentialEntity>chunk(propertyLoader().chunkSize)
 				.reader(reader).processor((ItemProcessor) asyncItemProcessor()).writer(asyncItemWriter()).build();
 
 	}
@@ -207,10 +208,8 @@ public class BatchConfiguration {
 		reader.setMethodName("findCredentialByStatusCodes");
 		final Map<String, Sort.Direction> sorts = new HashMap<>();
 		sorts.put("updateDateTime", Direction.ASC);
-		List<String> statuCodes = new ArrayList<String>();
-		statuCodes.add("FAILED");
-		statuCodes.add("RETRY");
-		methodArgs.add(statuCodes);
+		String[] statusCodes = propertyLoader().reprocessStatusCodes.split(",");
+		methodArgs.add(statusCodes);
 		methodArgs.add(propertyLoader().credentialRequestType);
 		reader.setArguments(methodArgs);
 		reader.setSort(sorts);
@@ -219,7 +218,8 @@ public class BatchConfiguration {
 		RepositoryItemWriter<CredentialEntity> writer = new RepositoryItemWriter<>();
 		writer.setRepository(crdentialRepo);
 		writer.setMethodName("update");
-		return stepBuilderFactory.get("credentialReProcessStep").<CredentialEntity, CredentialEntity>chunk(10)
+		return stepBuilderFactory.get("credentialReProcessStep")
+				.<CredentialEntity, CredentialEntity>chunk(propertyLoader().chunkSize)
 				.reader(reader).processor((ItemProcessor) asyncItemReProcessor()).writer(asyncItemWReprocessWriter())
 				.build();
 
