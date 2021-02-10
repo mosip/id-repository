@@ -1,7 +1,6 @@
 package io.mosip.credential.request.generator.repositary;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,7 +46,7 @@ public interface CredentialRepositary<T extends CredentialEntity, E> extends Bas
 	 * @return the page
 	 */
 	@Query("SELECT crdn FROM CredentialEntity crdn WHERE crdn.statusCode in :statusCodes and crdn.request like %:type% ")
-	Page<CredentialEntity> findCredentialByStatusCodes(@Param("statusCodes") List<String> statusCodes,
+	Page<CredentialEntity> findCredentialByStatusCodes(@Param("statusCodes") String[] statusCodes,
 			@Param("type") String type, Pageable pageable);
 
 

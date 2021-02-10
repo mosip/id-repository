@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -17,7 +19,6 @@ import io.mosip.credential.request.generator.constants.CredentialRequestErrorCod
 import io.mosip.credential.request.generator.constants.CredentialStatusCode;
 import io.mosip.credential.request.generator.constants.LoggerFileConstant;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
-import io.mosip.credential.request.generator.exception.ApiNotAccessibleException;
 import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.credential.request.generator.util.TrimExceptionMessage;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
@@ -65,10 +66,11 @@ public class CredentialItemReProcessor implements ItemProcessor<CredentialEntity
 	public CredentialEntity process(CredentialEntity credential) {
 		int retryCount = credential.getRetryCount() != null ? credential.getRetryCount() : 0;
 		TrimExceptionMessage trimMessage = new TrimExceptionMessage();
+		LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+				credential.getRequestId(), "started reprocessing item");
 		try {
 
-			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
-					credential.getRequestId(), "started reprocessing item");
+
 			if ((CredentialStatusCode.FAILED.name().equalsIgnoreCase(credential.getStatusCode())
 					&& (retryCount <= retryMaxCount))
 					|| (CredentialStatusCode.RETRY.name().equalsIgnoreCase(credential.getStatusCode()))) {
@@ -111,20 +113,14 @@ public class CredentialItemReProcessor implements ItemProcessor<CredentialEntity
 
 			}
 
-			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
-					credential.getRequestId(), "ended reprocessing item");
 			
+
 			} else {
 				credential.setStatusCode(CredentialStatusCode.FAILED.name());
 				credential.setStatusComment(CredentialRequestErrorCodes.RETRY_COUNT_EXCEEDED.getErrorMessage());
 			}
-		} catch (ApiNotAccessibleException e) {
-
-			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
-					credential.getRequestId(), ExceptionUtils.getStackTrace(e));
-			credential.setStatusCode("FAILED");
-			credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
-			credential.setRetryCount(retryCount + 1);
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					credential.getRequestId(), "ended reprocessing item");
 		} catch (IOException e) {
 
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
@@ -133,11 +129,21 @@ public class CredentialItemReProcessor implements ItemProcessor<CredentialEntity
 			credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
 			credential.setRetryCount(retryCount + 1);
 		} catch (Exception e) {
+			String errorMessage;
+			if (e.getCause() instanceof HttpClientErrorException) {
+				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
+				errorMessage = httpClientException.getResponseBodyAsString();
+			} else if (e.getCause() instanceof HttpServerErrorException) {
+				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
+				errorMessage = httpServerException.getResponseBodyAsString();
+			} else {
+				errorMessage = e.getMessage();
+			}
 
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					credential.getRequestId(), ExceptionUtils.getStackTrace(e));
 			credential.setStatusCode("FAILED");
-			credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
+			credential.setStatusComment(trimMessage.trimExceptionMessage(errorMessage));
 			credential.setRetryCount(retryCount + 1);
 		}
 		finally {
