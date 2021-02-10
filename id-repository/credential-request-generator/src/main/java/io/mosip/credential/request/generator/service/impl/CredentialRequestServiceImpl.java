@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.credential.request.generator.batch.config.CredentialItemProcessor;
 import io.mosip.credential.request.generator.constants.CredentialRequestErrorCodes;
 import io.mosip.credential.request.generator.constants.CredentialStatusCode;
 import io.mosip.credential.request.generator.constants.LoggerFileConstant;
@@ -81,7 +80,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 	private ObjectMapper mapper;
 
 	/** The Constant LOGGER. */
-	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialItemProcessor.class);
+	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialRequestServiceImpl.class);
 	
 	@Autowired
 	private Utilities utilities;

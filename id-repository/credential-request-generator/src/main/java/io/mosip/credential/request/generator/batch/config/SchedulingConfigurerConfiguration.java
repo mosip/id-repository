@@ -17,7 +17,8 @@ import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 	 * 
 	 * @see
 	 * org.springframework.scheduling.annotation.SchedulingConfigurer#configureTasks
-	 * (org.springframework.scheduling.config.ScheduledTaskRegistrar)
+	 * (org.springframework.scheduling.config.ScheduledTaskRegistrar) This will
+	 * config 2 schedular to run
 	 */
 	@Override
 	    public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {

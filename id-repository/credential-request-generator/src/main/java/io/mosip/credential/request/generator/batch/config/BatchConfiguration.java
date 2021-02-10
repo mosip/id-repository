@@ -14,6 +14,9 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.integration.async.AsyncItemProcessor;
+import org.springframework.batch.integration.async.AsyncItemWriter;
+import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import io.mosip.credential.request.generator.entity.CredentialEntity;
@@ -76,7 +80,7 @@ public class BatchConfiguration {
 	/**
 	 * Process job.
 	 */
-	@Scheduled(fixedRateString = "${mosip.credential.request.job.timeintervel}")
+	@Scheduled(fixedDelayString = "${mosip.credential.request.job.timedelay}")
 	public void processJob() {
 		try {
 			JobParameters jobParameters = new JobParametersBuilder().addLong("time", System.currentTimeMillis())
@@ -91,7 +95,7 @@ public class BatchConfiguration {
 	/**
 	 * Re process job.
 	 */
-	@Scheduled(fixedRateString = "${mosip.credential.request.reprocess.job.timeintervel}")
+	@Scheduled(fixedDelayString = "${mosip.credential.request.reprocess.job.timedelay}")
 	public void reProcessJob() {
 		try {
 			JobParameters jobParameters = new JobParametersBuilder().addLong("time", System.currentTimeMillis())
@@ -128,7 +132,7 @@ public class BatchConfiguration {
 	 * @return the job
 	 */
 	@Bean
-	public Job credentialProcessJob(JobCompletionNotificationListener listener) {
+	public Job credentialProcessJob(JobCompletionNotificationListener listener) throws Exception {
 		return jobBuilderFactory.get("credentialProcessJob").incrementer(new RunIdIncrementer()).listener(listener)
 				.flow(credentialProcessStep()).end().build();
 	}
@@ -140,7 +144,7 @@ public class BatchConfiguration {
 	 * @return the job
 	 */
 	@Bean
-	public Job credentialReProcessJob(JobCompletionNotificationListener listener) {
+	public Job credentialReProcessJob(JobCompletionNotificationListener listener) throws Exception {
 		return jobBuilderFactory.get("credentialReProcessJob").incrementer(new RunIdIncrementer()).listener(listener)
 				.flow(credentialReProcessStep()).end().build();
 	}
@@ -150,7 +154,7 @@ public class BatchConfiguration {
 	 * @return the step
 	 */
 	@Bean
-	public Step credentialProcessStep() {
+	public Step credentialProcessStep() throws Exception {
 		RepositoryItemReader<CredentialEntity> reader = new RepositoryItemReader<>();
 		List<Object> methodArgs = new ArrayList<Object>();
 		reader.setRepository(crdentialRepo);
@@ -160,15 +164,14 @@ public class BatchConfiguration {
 		methodArgs.add("NEW");
 		reader.setArguments(methodArgs);
 		reader.setSort(sorts);
-		reader.setPageSize(10);
+		reader.setPageSize(propertyLoader().pageSize);
 	
 		RepositoryItemWriter<CredentialEntity> writer = new RepositoryItemWriter<>();
 		writer.setRepository(crdentialRepo);
 		writer.setMethodName("update");
-		return stepBuilderFactory.get("credentialProcessStep").<CredentialEntity, CredentialEntity>chunk(10)
-				.reader(reader)
-				.processor(processor())
-				.writer(writer).build();
+		return stepBuilderFactory.get("credentialProcessStep")
+				.<CredentialEntity, CredentialEntity>chunk(propertyLoader().chunkSize)
+				.reader(reader).processor((ItemProcessor) asyncItemProcessor()).writer(asyncItemWriter()).build();
 
 	}
 
@@ -198,32 +201,100 @@ public class BatchConfiguration {
 	 * @return the step
 	 */
 	@Bean
-	public Step credentialReProcessStep() {
+	public Step credentialReProcessStep() throws Exception {
 		RepositoryItemReader<CredentialEntity> reader = new RepositoryItemReader<>();
 		List<Object> methodArgs = new ArrayList<Object>();
 		reader.setRepository(crdentialRepo);
 		reader.setMethodName("findCredentialByStatusCodes");
 		final Map<String, Sort.Direction> sorts = new HashMap<>();
 		sorts.put("updateDateTime", Direction.ASC);
-		List<String> statuCodes = new ArrayList<String>();
-		statuCodes.add("FAILED");
-		statuCodes.add("RETRY");
-		methodArgs.add(statuCodes);
+		String[] statusCodes = propertyLoader().reprocessStatusCodes.split(",");
+		methodArgs.add(statusCodes);
 		methodArgs.add(propertyLoader().credentialRequestType);
 		reader.setArguments(methodArgs);
 		reader.setSort(sorts);
-		reader.setPageSize(10);
+		reader.setPageSize(propertyLoader().pageSize);
 
 		RepositoryItemWriter<CredentialEntity> writer = new RepositoryItemWriter<>();
 		writer.setRepository(crdentialRepo);
 		writer.setMethodName("update");
-		return stepBuilderFactory.get("credentialReProcessStep").<CredentialEntity, CredentialEntity>chunk(10)
-				.reader(reader).processor(reProcessor()).writer(writer).build();
+		return stepBuilderFactory.get("credentialReProcessStep")
+				.<CredentialEntity, CredentialEntity>chunk(propertyLoader().chunkSize)
+				.reader(reader).processor((ItemProcessor) asyncItemReProcessor()).writer(asyncItemWReprocessWriter())
+				.build();
 
 	}
 
 	@Bean
 	public PropertyLoader propertyLoader() {
 		return new PropertyLoader();
+	}
+
+	@Bean
+	public AsyncItemProcessor<CredentialEntity, CredentialEntity> asyncItemProcessor() throws Exception {
+
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(propertyLoader().corePoolSize);
+		executor.setMaxPoolSize(propertyLoader().maxPoolSize);
+		executor.setQueueCapacity(propertyLoader().queueCapacity);
+		executor.setThreadNamePrefix("CredentialProcessing-");
+		executor.afterPropertiesSet();
+
+		AsyncItemProcessor<CredentialEntity, CredentialEntity> asyncProcessor = new AsyncItemProcessor<>();
+		asyncProcessor.setDelegate(processor());
+		asyncProcessor.setTaskExecutor(executor);
+		asyncProcessor.afterPropertiesSet();
+
+		return asyncProcessor;
+	}
+
+	@Bean
+	public AsyncItemProcessor<CredentialEntity, CredentialEntity> asyncItemReProcessor() throws Exception {
+
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(propertyLoader().corePoolSize);
+		executor.setMaxPoolSize(propertyLoader().maxPoolSize);
+		executor.setQueueCapacity(propertyLoader().queueCapacity);
+		executor.setThreadNamePrefix("CredentialReProcessing-");
+		executor.afterPropertiesSet();
+
+		AsyncItemProcessor<CredentialEntity, CredentialEntity> asyncProcessor = new AsyncItemProcessor<>();
+		asyncProcessor.setDelegate(reProcessor());
+		asyncProcessor.setTaskExecutor(executor);
+		asyncProcessor.afterPropertiesSet();
+
+		return asyncProcessor;
+	}
+
+	@Bean
+	public AsyncItemWriter<CredentialEntity> asyncItemWriter() {
+		AsyncItemWriter<CredentialEntity> asyncWriter = new AsyncItemWriter<>();
+		asyncWriter.setDelegate(processwriter());
+
+		return asyncWriter;
+	}
+
+	@Bean
+	public AsyncItemWriter<CredentialEntity> asyncItemWReprocessWriter() {
+		AsyncItemWriter<CredentialEntity> asyncWriter = new AsyncItemWriter<>();
+		asyncWriter.setDelegate(reProcesswriter());
+
+		return asyncWriter;
+	}
+
+	@Bean
+	public RepositoryItemWriter<CredentialEntity> processwriter() {
+		RepositoryItemWriter<CredentialEntity> writer = new RepositoryItemWriter<>();
+		writer.setRepository(crdentialRepo);
+		writer.setMethodName("update");
+		return writer;
+	}
+
+	@Bean
+	public RepositoryItemWriter<CredentialEntity> reProcesswriter() {
+		RepositoryItemWriter<CredentialEntity> writer = new RepositoryItemWriter<>();
+		writer.setRepository(crdentialRepo);
+		writer.setMethodName("update");
+		return writer;
 	}
 }
