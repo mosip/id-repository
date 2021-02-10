@@ -27,6 +27,7 @@ import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.Filter;
@@ -47,6 +48,7 @@ import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.QualityType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 
@@ -147,6 +149,7 @@ public class QrCodeProviderTest {
 
 		List<String> subtypeList = new ArrayList<>();
 		subtypeList.add("Right Thumb");
+		subtypeList.add("Left Thumb");
 		filter2.setSubType(subtypeList);
 		filterList2.add(filter2);
 		Filter filter3 = new Filter();
@@ -162,6 +165,25 @@ public class QrCodeProviderTest {
 		sourceList3.add(source3);
 		kyc3.setSource(sourceList3);
 		shareableAttributes.add(kyc3);
+		AllowedKycDto kyc4 = new AllowedKycDto();
+		kyc4.setAttributeName("bestTwoFingers");
+		kyc4.setGroup("CBEFF");
+		kyc4.setEncrypted(true);
+		kyc4.setFormat(CredentialConstants.BESTTWOFINGERS);
+		List<Source> sourceList4 = new ArrayList<>();
+		List<Filter> filterList3 = new ArrayList<>();
+
+		Filter filter4 = new Filter();
+		filter4.setType("Finger");
+		filterList3.add(filter4);
+
+		Source source4 = new Source();
+		source4.setAttribute("individualBiometrics");
+		source4.setFilter(filterList2);
+		sourceList4.add(source4);
+		kyc4.setSource(sourceList4);
+		shareableAttributes.add(kyc4);
+
 		PolicyAttributesDto dto = new PolicyAttributesDto();
 		dto.setShareableAttributes(shareableAttributes);
 		policyResponse.setPolicies(dto);
@@ -176,16 +198,33 @@ public class QrCodeProviderTest {
 		bir.setBdbInfo(bdbInfoFace);
 		birList.add(bir);
 		BIR birFinger = new BIR();
-		BDBInfo bdbInfoFinger = new BDBInfo();
+		BDBInfo bdbInfoRightThumb = new BDBInfo();
+		QualityType bdbInfoFingerQuality = new QualityType();
+		bdbInfoFingerQuality.setScore(60L);
 		List<SingleType> singleFingerList = new ArrayList<>();
 		singleFingerList.add(SingleType.FINGER);
-		bdbInfoFinger.setType(singleFingerList);
+		bdbInfoRightThumb.setType(singleFingerList);
 		List<String> subTypeList = new ArrayList<>();
 		subTypeList.add("Right");
 		subTypeList.add("Thumb");
-		bdbInfoFinger.setSubtype(subTypeList);
-		birFinger.setBdbInfo(bdbInfoFinger);
+		bdbInfoRightThumb.setSubtype(subTypeList);
+		bdbInfoRightThumb.setQuality(bdbInfoFingerQuality);
+		birFinger.setBdbInfo(bdbInfoRightThumb);
 		birList.add(birFinger);
+
+		BIR birLeftThumb = new BIR();
+		BDBInfo bdbInfoLeftThumb = new BDBInfo();
+		QualityType bdbInfoLeftThumbQuality = new QualityType();
+		bdbInfoLeftThumbQuality.setScore(58L);
+
+		bdbInfoLeftThumb.setType(singleFingerList);
+		List<String> subTypeListLeftThumb = new ArrayList<>();
+		subTypeListLeftThumb.add("Left");
+		subTypeListLeftThumb.add("Thumb");
+		bdbInfoLeftThumb.setSubtype(subTypeListLeftThumb);
+		bdbInfoLeftThumb.setQuality(bdbInfoLeftThumbQuality);
+		birLeftThumb.setBdbInfo(bdbInfoLeftThumb);
+		birList.add(birLeftThumb);
 		Mockito.when(cbeffutil.convertBIRTypeToBIR(Mockito.any())).thenReturn(birList);
 	}
 	
