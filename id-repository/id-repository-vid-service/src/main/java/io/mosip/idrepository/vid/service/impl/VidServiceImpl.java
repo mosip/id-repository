@@ -57,11 +57,8 @@ import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
-import io.mosip.idrepository.core.dto.Event;
-import io.mosip.idrepository.core.dto.EventModel;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
-import io.mosip.idrepository.core.dto.Type;
 import io.mosip.idrepository.core.dto.VidInfoDTO;
 import io.mosip.idrepository.core.dto.VidPolicy;
 import io.mosip.idrepository.core.dto.VidRequestDTO;
@@ -88,6 +85,9 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.UUIDUtils;
+import io.mosip.kernel.core.websub.model.Event;
+import io.mosip.kernel.core.websub.model.EventModel;
+import io.mosip.kernel.core.websub.model.Type;
 import io.mosip.kernel.core.websub.spi.PublisherClient;
 
 /**
