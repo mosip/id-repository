@@ -14,8 +14,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.context.WebApplicationContext;
 
 import io.mosip.credentialstore.util.WebSubUtil;
-import io.mosip.idrepository.core.dto.Event;
-import io.mosip.idrepository.core.dto.EventModel;
+import io.mosip.kernel.core.websub.model.Event;
+import io.mosip.kernel.core.websub.model.EventModel;
 import io.mosip.kernel.core.websub.spi.PublisherClient;
 import io.mosip.kernel.websub.api.exception.WebSubClientException;
 
