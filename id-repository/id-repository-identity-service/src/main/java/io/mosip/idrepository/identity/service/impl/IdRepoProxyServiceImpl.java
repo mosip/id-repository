@@ -57,6 +57,7 @@ import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.BioExtractRequestDTO;
+import io.mosip.idrepository.core.dto.BioExtractResponseDTO;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
@@ -66,6 +67,7 @@ import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.dto.VidInfoDTO;
 import io.mosip.idrepository.core.dto.VidsInfosDTO;
+import io.mosip.idrepository.core.exception.BiometricExtractionException;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
@@ -73,6 +75,7 @@ import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.spi.BiometricExtractionService;
 import io.mosip.idrepository.core.spi.IdRepoService;
 import io.mosip.idrepository.core.util.TokenIDGenerator;
 import io.mosip.idrepository.identity.entity.Uin;
@@ -84,7 +87,6 @@ import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
-import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -242,6 +244,9 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	/** The cbeff util. */
 	@Autowired
 	private CbeffUtil cbeffUtil;
+	
+	@Autowired
+	private BiometricExtractionService biometricExtractionService; 
 
 	/*
 	 * (non-Javadoc)
@@ -637,16 +642,10 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 						e.getMessage());
 			}
 			if (objectStoreHelper.biometricObjectExists(uinHash, fileName)) {
-				RequestWrapper<BioExtractRequestDTO> request = new RequestWrapper<>();
-				BioExtractRequestDTO bioExtractReq = new BioExtractRequestDTO();
 				byte[] data = objectStoreHelper.getBiometricObject(uinHash, fileName);
-				bioExtractReq.setBiometrics(CryptoUtil.encodeBase64(data));
-				request.setRequest(bioExtractReq);
-				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.BIO_EXTRACTOR_SERVICE,
-						request, ResponseWrapper.class);
-				restRequest.setUri(restRequest.getUri().replace("{extractionFormat}", extractionFormat));
-				ResponseWrapper<Map<String, String>> response = restHelper.requestSync(restRequest);
-				byte[] extractedBiometrics = CryptoUtil.decodeBase64(response.getResponse().get("extractedBiometrics"));
+				
+				byte[] extractedBiometrics = extractBiometricTemplate(extractionFormat, data);
+			
 				System.err.println(new String(extractedBiometrics));
 				objectStoreHelper.putBiometricObject(uinHash, extractionFileName, extractedBiometrics);
 				return CompletableFuture
@@ -657,7 +656,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		} catch (IdRepoDataValidationException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);
-		} catch (RestServiceException e) {
+		} catch (BiometricExtractionException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
 			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
 		} catch (IOException e) {
@@ -668,6 +667,17 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES, e.getMessage());
 			throw new IdRepoAppUncheckedException(FILE_NOT_FOUND, e);
 		}
+	}
+
+	private byte[] extractBiometricTemplate(String extractionFormat, byte[] data)
+			throws BiometricExtractionException {
+		BioExtractRequestDTO bioExtractReq = new BioExtractRequestDTO();
+		bioExtractReq.setBiometrics(CryptoUtil.encodeBase64(data));
+		
+		BioExtractResponseDTO bioExtractResponseDTO = biometricExtractionService.extractBiometrics(bioExtractReq);
+		
+		byte[] extractedBiometrics = CryptoUtil.decodeBase64(bioExtractResponseDTO.getExtractedBiometrics());
+		return extractedBiometrics;
 	}
 
 	/*
