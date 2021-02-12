@@ -644,7 +644,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			if (objectStoreHelper.biometricObjectExists(uinHash, fileName)) {
 				byte[] data = objectStoreHelper.getBiometricObject(uinHash, fileName);
 				
-				byte[] extractedBiometrics = extractBiometricTemplate(extractionFormat, data);
+				byte[] extractedBiometrics = extractBiometricTemplate(Map.of(extractionType, extractionFormat), data);
 			
 				System.err.println(new String(extractedBiometrics));
 				objectStoreHelper.putBiometricObject(uinHash, extractionFileName, extractedBiometrics);
@@ -669,10 +669,11 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		}
 	}
 
-	private byte[] extractBiometricTemplate(String extractionFormat, byte[] data)
+	private byte[] extractBiometricTemplate(Map<String, String> extractionFormats, byte[] data)
 			throws BiometricExtractionException {
 		BioExtractRequestDTO bioExtractReq = new BioExtractRequestDTO();
 		bioExtractReq.setBiometrics(CryptoUtil.encodeBase64(data));
+		bioExtractReq.setExtractionFormats(extractionFormats);
 		
 		BioExtractResponseDTO bioExtractResponseDTO = biometricExtractionService.extractBiometrics(bioExtractReq);
 		

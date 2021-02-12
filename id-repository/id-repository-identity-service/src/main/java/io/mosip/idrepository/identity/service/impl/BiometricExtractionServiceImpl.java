@@ -1,5 +1,7 @@
 package io.mosip.idrepository.identity.service.impl;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +25,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 
 		String biometrics = bioExtractRequestDTO.getBiometrics();
 		byte[] cbeffFileContent = getCbeffFileContent(biometrics);
-		String encodedExtractedBiometrrics = doBioExtraction(cbeffFileContent);
+		String encodedExtractedBiometrrics = doBioExtraction(cbeffFileContent, bioExtractRequestDTO.getExtractionFormats());
 		bioExtractPromiseResponseDTO.setExtractedBiometrics(encodedExtractedBiometrrics);
 		return bioExtractPromiseResponseDTO;
 	}
@@ -33,9 +35,9 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 		return cbeffContent;
 	}
 
-	private String doBioExtraction(byte[] cbeffContent)
+	private String doBioExtraction(byte[] cbeffContent, Map<String, String> extractionFormats)
 			throws BiometricExtractionException {
-		byte[] extractedTemplatesCbeff = bioExractionHelper.extractTemplates(cbeffContent);
+		byte[] extractedTemplatesCbeff = bioExractionHelper.extractTemplates(cbeffContent, extractionFormats);
 		return CryptoUtil.encodeBase64(extractedTemplatesCbeff);
 	}
 

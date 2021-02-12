@@ -31,7 +31,7 @@ public class BioExtractionHelper {
 	@Autowired
 	private BioAPIFactory bioApiFactory;
 	
-	public byte[] extractTemplates(byte[] cbeffContent) throws BiometricExtractionException {
+	public byte[] extractTemplates(byte[] cbeffContent, Map<String, String> extractionFormats) throws BiometricExtractionException {
 		try {
 			List<BIR> birs = getBirs(cbeffContent);
 			Map<SingleType, List<BIR>> birsByType = birs.stream().collect(Collectors.groupingBy(bir -> bir.getBdbInfo().getType().get(0)));
@@ -43,6 +43,7 @@ public class BioExtractionHelper {
 				iBioProviderApi bioProvider = bioApiFactory.getBioProvider(BiometricType.fromValue(modality.value()),
 						BiometricFunction.EXTRACT);
 				Map<String, String> flags = new LinkedHashMap<>();
+				flags.putAll(extractionFormats);
 				List<BIR> extractedTemplates = bioProvider.extractTemplate(entry.getValue(), flags);
 				allExtractedTemplates.addAll(extractedTemplates);
 			}
