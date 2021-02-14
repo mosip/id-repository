@@ -27,12 +27,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.AuthenticationException;
+import io.mosip.idrepository.core.exception.IdRepoRetryException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.retry.WithRetry;
 import lombok.NoArgsConstructor;
 import reactor.core.publisher.Mono;
 
@@ -88,6 +90,7 @@ public class RestHelper {
 	 * @throws RestServiceException the rest service exception
 	 */
 	@SuppressWarnings("unchecked")
+	@WithRetry
 	public <T> T requestSync(@Valid RestRequestDTO request) throws RestServiceException {
 		Object response;
 		try {
@@ -111,11 +114,11 @@ public class RestHelper {
 			if (e.getCause() != null && e.getCause().getClass().equals(TimeoutException.class)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_SYNC,
 						THROWING_REST_SERVICE_EXCEPTION + "- CONNECTION_TIMED_OUT - \n " + e.getMessage());
-				throw new RestServiceException(CONNECTION_TIMED_OUT, e);
+				throw new IdRepoRetryException(new RestServiceException(CONNECTION_TIMED_OUT, e));
 			} else {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, REQUEST_SYNC_RUNTIME_EXCEPTION,
 						THROWING_REST_SERVICE_EXCEPTION + "- UNKNOWN_ERROR - " + e.getMessage());
-				throw new RestServiceException(UNKNOWN_ERROR, e);
+				throw new IdRepoRetryException(new RestServiceException(UNKNOWN_ERROR, e));
 			}
 		}
 	}
@@ -214,45 +217,44 @@ public class RestHelper {
 	}
 
 	/**
-	 * Handle 4XX/5XX status error.
+	 * Handle 4XX/5XX status error. Retry is triggered using {@code IdRepoRetryException}.
+	 * Retry is done for 401 and 5xx status codes.
 	 *
 	 * @param e            the response
 	 * @param responseType the response type
 	 * @return the mono<? extends throwable>
+	 * @throws RestServiceException 
 	 */
-	private RestServiceException handleStatusError(WebClientResponseException e, Class<?> responseType) {
+	private RestServiceException handleStatusError(WebClientResponseException e, Class<?> responseType)
+			throws RestServiceException {
 		try {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_HANDLE_STATUS_ERROR,
-					"Status error : " + e.getRawStatusCode() + " " + e.getStatusCode() + "  " + e.getStatusText());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER,
+					"request failed with status code :" + e.getRawStatusCode(), "\n\n" + e.getResponseBodyAsString());
 			if (e.getStatusCode().is4xxClientError()) {
-				if (e.getRawStatusCode() == 401 || e.getRawStatusCode() == 403) {
-					mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER,
-							"request failed with status code :" + e.getRawStatusCode(),
-							"\n\n" + e.getResponseBodyAsString());
+				if (e.getRawStatusCode() == 401) {
 					List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(e.getResponseBodyAsString());
-					mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, "Throwing AuthenticationException",
-							errorList.toString());
 					throw new AuthenticationException(errorList.get(0).getErrorCode(), errorList.get(0).getMessage(),
 							e.getRawStatusCode());
-					
+				} else if (e.getRawStatusCode() == 403) {
+					List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(e.getResponseBodyAsString());
+					throw new IdRepoRetryException(new AuthenticationException(errorList.get(0).getErrorCode(),
+							errorList.get(0).getMessage(), e.getRawStatusCode()));
 				} else {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_HANDLE_STATUS_ERROR,
-						"Status error - returning RestServiceException - CLIENT_ERROR -- "
-								+ e.getResponseBodyAsString());
-				return new RestServiceException(CLIENT_ERROR, e.getResponseBodyAsString(),
-						mapper.readValue(e.getResponseBodyAsString().getBytes(), responseType));
+					mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_HANDLE_STATUS_ERROR,
+							"Status error - returning RestServiceException - CLIENT_ERROR ");
+					throw new RestServiceException(CLIENT_ERROR, e.getResponseBodyAsString(),
+							mapper.readValue(e.getResponseBodyAsString().getBytes(), responseType));
 				}
 			} else {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_HANDLE_STATUS_ERROR,
-						"Status error - returning RestServiceException - SERVER_ERROR -- "
-								+ e.getResponseBodyAsString());
-				return new RestServiceException(SERVER_ERROR, e.getResponseBodyAsString(),
-						mapper.readValue(e.getResponseBodyAsString().getBytes(), responseType));
+						"Status error - returning RestServiceException - SERVER_ERROR");
+				throw new IdRepoRetryException(new RestServiceException(SERVER_ERROR, e.getResponseBodyAsString(),
+						mapper.readValue(e.getResponseBodyAsString().getBytes(), responseType)));
 			}
 		} catch (IOException ex) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_HANDLE_STATUS_ERROR, ex.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_HANDLE_STATUS_ERROR,
+					ex.getMessage());
 			return new RestServiceException(UNKNOWN_ERROR, ex);
 		}
-
 	}
 }
