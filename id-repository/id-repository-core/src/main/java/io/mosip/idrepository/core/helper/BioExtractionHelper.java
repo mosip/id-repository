@@ -17,22 +17,16 @@ import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
 import io.mosip.kernel.biosdk.provider.spi.iBioProviderApi;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
-import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 
 @Component
 public class BioExtractionHelper {
 	
 	@Autowired
-	private CbeffUtil cbeffUtil;
-	
-	@Autowired
 	private BioAPIFactory bioApiFactory;
 	
-	public byte[] extractTemplates(byte[] cbeffContent, Map<String, String> extractionFormats) throws BiometricExtractionException {
+	public List<BIR> extractTemplates(List<BIR> birs, Map<String, String> extractionFormats) throws BiometricExtractionException {
 		try {
-			List<BIR> birs = getBirs(cbeffContent);
 			Map<SingleType, List<BIR>> birsByType = birs.stream().collect(Collectors.groupingBy(bir -> bir.getBdbInfo().getType().get(0)));
 			
 			List<BIR> allExtractedTemplates =  new ArrayList<>();
@@ -45,17 +39,11 @@ public class BioExtractionHelper {
 				allExtractedTemplates.addAll(extractedTemplates);
 			}
 			
-			return cbeffUtil.createXML(allExtractedTemplates);
+			return allExtractedTemplates;
 			
 		} catch (Exception e) {
 			throw new BiometricExtractionException(TECHNICAL_ERROR, e);
 		}
 	}
-
-	private List<BIR> getBirs(byte[] cbeffContent) throws Exception {
-		List<BIRType> birDataFromXML = cbeffUtil.getBIRDataFromXML(cbeffContent);
-		return cbeffUtil.convertBIRTypeToBIR(birDataFromXML);
-	}
-	
 
 }

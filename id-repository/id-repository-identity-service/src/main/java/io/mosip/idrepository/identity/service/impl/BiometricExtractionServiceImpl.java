@@ -1,5 +1,6 @@
 package io.mosip.idrepository.identity.service.impl;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +11,7 @@ import io.mosip.idrepository.core.dto.BioExtractResponseDTO;
 import io.mosip.idrepository.core.exception.BiometricExtractionException;
 import io.mosip.idrepository.core.helper.BioExtractionHelper;
 import io.mosip.idrepository.core.spi.BiometricExtractionService;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.kernel.core.cbeffutil.entity.BIR;
 
 @Service
 public class BiometricExtractionServiceImpl implements BiometricExtractionService {
@@ -22,23 +23,15 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	public BioExtractResponseDTO extractBiometrics(BioExtractRequestDTO bioExtractRequestDTO)
 			throws BiometricExtractionException {
 		BioExtractResponseDTO bioExtractPromiseResponseDTO = new BioExtractResponseDTO();
-
-		String biometrics = bioExtractRequestDTO.getBiometrics();
-		byte[] cbeffFileContent = getCbeffFileContent(biometrics);
-		String encodedExtractedBiometrrics = doBioExtraction(cbeffFileContent, bioExtractRequestDTO.getExtractionFormats());
-		bioExtractPromiseResponseDTO.setExtractedBiometrics(encodedExtractedBiometrrics);
+		List<BIR> birs = bioExtractRequestDTO.getBiometrics();
+		List<BIR> encodedExtractedBiometrics = doBioExtraction(birs, bioExtractRequestDTO.getExtractionFormats());
+		bioExtractPromiseResponseDTO.setExtractedBiometrics(encodedExtractedBiometrics);
 		return bioExtractPromiseResponseDTO;
 	}
 
-	private byte[] getCbeffFileContent(String biometrics) throws BiometricExtractionException {
-		byte[] cbeffContent = CryptoUtil.decodeBase64(biometrics);
-		return cbeffContent;
-	}
-
-	private String doBioExtraction(byte[] cbeffContent, Map<String, String> extractionFormats)
+	private List<BIR> doBioExtraction(List<BIR> birs, Map<String, String> extractionFormats)
 			throws BiometricExtractionException {
-		byte[] extractedTemplatesCbeff = bioExractionHelper.extractTemplates(cbeffContent, extractionFormats);
-		return CryptoUtil.encodeBase64(extractedTemplatesCbeff);
+		return bioExractionHelper.extractTemplates(birs, extractionFormats);
 	}
 
 }
