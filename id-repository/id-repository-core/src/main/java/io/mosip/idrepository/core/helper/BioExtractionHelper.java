@@ -3,7 +3,6 @@ package io.mosip.idrepository.core.helper;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.TECHNICAL_ERROR;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -42,12 +41,7 @@ public class BioExtractionHelper {
 				SingleType modality = entry.getKey();
 				iBioProviderApi bioProvider = bioApiFactory.getBioProvider(BiometricType.fromValue(modality.value()),
 						BiometricFunction.EXTRACT);
-				Map<String, String> flags = new LinkedHashMap<>();
-				Map<? extends String, ? extends String> extractionFormatForModality = extractionFormats.entrySet().stream()
-													.filter(ent -> ent.getKey().toLowerCase().contains(modality.value().toLowerCase()))
-													.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
-				flags.putAll(extractionFormatForModality);
-				List<BIR> extractedTemplates = bioProvider.extractTemplate(entry.getValue(), flags);
+				List<BIR> extractedTemplates = bioProvider.extractTemplate(entry.getValue(), extractionFormats);
 				allExtractedTemplates.addAll(extractedTemplates);
 			}
 			
