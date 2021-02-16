@@ -14,7 +14,6 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
 import static io.mosip.kernel.biometrics.constant.BiometricType.FACE;
 import static io.mosip.kernel.biometrics.constant.BiometricType.FINGER;
 import static io.mosip.kernel.biometrics.constant.BiometricType.IRIS;
@@ -44,7 +43,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 
@@ -58,8 +56,6 @@ import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
-import io.mosip.idrepository.core.dto.BioExtractRequestDTO;
-import io.mosip.idrepository.core.dto.BioExtractResponseDTO;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
@@ -69,7 +65,6 @@ import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.dto.VidInfoDTO;
 import io.mosip.idrepository.core.dto.VidsInfosDTO;
-import io.mosip.idrepository.core.exception.BiometricExtractionException;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
@@ -149,7 +144,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	private static final String ADD_IDENTITY = "addIdentity";
 
 	/** The mosip logger. */
-	Logger mosipLogger = IdRepoLogger.getLogger(IdRepoProxyServiceImpl.class);
+	private static final Logger mosipLogger = IdRepoLogger.getLogger(IdRepoProxyServiceImpl.class);
 
 	/** The Constant TYPE. */
 	private static final String TYPE = "type";
@@ -180,13 +175,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	/** The Constant DEMOGRAPHICS. */
 	private static final String DEMOGRAPHICS = "Demographics";
-
-	/** The Constant DOT. */
-	private static final String DOT = ".";
-	
-	private static final String FORMAT_FLAG_SUFFIX = ".format";
-
-	private static final String EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX = "ExtractionFormat";
 
 	@Autowired
 	private ObjectStoreHelper objectStoreHelper;
@@ -592,6 +580,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		try {
 			List<BIRType> originalBirs = cbeffUtil.getBIRDataFromXML(originalData);
 			List<BIR> finalBirs = new ArrayList<>();
+			
+			List<CompletableFuture<List<BIR>>> extractionFutures = new ArrayList<>();
 
 			for(BiometricType modality : SUPPORTED_MODALITIES) {
 				List<BIRType> birTypesForModality = originalBirs.stream()
@@ -603,21 +593,22 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 						.findAny();
 				
 				if(!extractionFormatForModality.isEmpty()) {
-					List<BIR> extractedTemplates = new ArrayList<>();
-
 					Entry<String, String> format = extractionFormatForModality.get();
-					CompletableFuture<List<BIR>> extractTemplateFuture = extractTemplate(uinHash, fileName, format.getKey(),
-							format.getValue(), cbeffUtil.convertBIRTypeToBIR(birTypesForModality));
+					CompletableFuture<List<BIR>> extractTemplateFuture = biometricExtractionService.extractTemplate(
+							uinHash, fileName, format.getKey(), format.getValue(),
+							cbeffUtil.convertBIRTypeToBIR(birTypesForModality));
+					extractionFutures.add(extractTemplateFuture);
 					
-					CompletableFuture.allOf(extractTemplateFuture).join();
-					extractedTemplates.addAll(extractTemplateFuture.get());
-					
-					finalBirs.addAll(extractedTemplates);
 				} else {
 					mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
 							"GETTING NON EXTRACTED FORMAT for Modality: " + modality.name());
 					finalBirs.addAll(cbeffUtil.convertBIRTypeToBIR(birTypesForModality));
 				}
+			}
+			
+			CompletableFuture.allOf(extractionFutures.toArray(new CompletableFuture<?>[extractionFutures.size()])).join();
+			for(CompletableFuture<List<BIR>> future:  extractionFutures) {
+				finalBirs.addAll(future.get());
 			}
 			
 			return  cbeffUtil.createXML(finalBirs);
@@ -634,73 +625,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
 		}
 	}
-
-	@Async
-	private CompletableFuture<List<BIR>> extractTemplate(String uinHash, String fileName,
-			String extractionType, String extractionFormat, List<BIR> birsForModality) throws IdRepoAppException {
-		try {
-			String extractionFileName = fileName.split("\\.")[0] + DOT + getModalityForFormat(extractionType) + DOT + extractionFormat;
-			// TODO need to remove AmazonS3Exception handling
-			try {
-				if (objectStoreHelper.biometricObjectExists(uinHash, extractionFileName)) {
-					mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
-							"RETURNING EXISTING EXTRACTED BIOMETRICS FOR FORMAT: " + extractionType +" : "+ extractionFormat);
-					byte[] xmlBytes = objectStoreHelper.getBiometricObject(uinHash, extractionFileName);
-					List<BIR> existingBirs = cbeffUtil.convertBIRTypeToBIR(cbeffUtil.getBIRDataFromXML(xmlBytes));
-					return CompletableFuture.completedFuture(existingBirs);
-				}
-			} catch (AmazonS3Exception e) {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
-						e.getMessage());
-			}
-			
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
-					"EXTRATCING BIOMETRICS FOR FORMAT: " + extractionType +" : "+ extractionFormat);
-			Map<String, String> formatFlag = Map.of(getFormatFlag(extractionType), extractionFormat);
-			List<BIR> extractedBiometrics = extractBiometricTemplate(formatFlag, birsForModality);
-		
-			objectStoreHelper.putBiometricObject(uinHash, extractionFileName, cbeffUtil.createXML(extractedBiometrics));
-			return CompletableFuture.completedFuture(extractedBiometrics);
-		} catch (IdRepoDataValidationException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
-			throw new IdRepoAppException(UNKNOWN_ERROR, e);
-		} catch (BiometricExtractionException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
-			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
-		} catch (IOException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES, e.getMessage());
-			throw new IdRepoAppUncheckedException(FILE_STORAGE_ACCESS_ERROR, e);
-		} catch (AmazonS3Exception e) {
-			// TODO need to remove AmazonS3Exception handling
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES, e.getMessage());
-			throw new IdRepoAppUncheckedException(FILE_NOT_FOUND, e);
-		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
-			throw new IdRepoAppException(UNKNOWN_ERROR, e);
-		}
-	}
 	
-	private String getFormatFlag(String formatQueryParam) {
-		return formatQueryParam.replace(EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX, FORMAT_FLAG_SUFFIX);
-	}
-	
-	private String getModalityForFormat(String formatQueryParam) {
-		return formatQueryParam.replace(EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX, "");
-	}
-
-	private List<BIR> extractBiometricTemplate(Map<String, String> extractionFormats, List<BIR> birs)
-			throws BiometricExtractionException {
-		mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractBiometricTemplate",
-				"INVOKING BIOMETRIC EXTRACTION FOR THE FORMAT: " + extractionFormats);
-		
-		BioExtractRequestDTO bioExtractReq = new BioExtractRequestDTO();
-		bioExtractReq.setBiometrics(birs);
-		bioExtractReq.setExtractionFormats(extractionFormats);
-		
-		BioExtractResponseDTO bioExtractResponseDTO = biometricExtractionService.extractBiometrics(bioExtractReq);
-		return bioExtractResponseDTO.getExtractedBiometrics();
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * 

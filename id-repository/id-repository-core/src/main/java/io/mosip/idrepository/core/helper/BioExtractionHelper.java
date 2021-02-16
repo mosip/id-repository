@@ -19,12 +19,26 @@ import io.mosip.kernel.biosdk.provider.spi.iBioProviderApi;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 
+/**
+ * The Class BioExtractionHelper.
+ * 
+ *  @author Loganathan Sekar
+ */
 @Component
 public class BioExtractionHelper {
 	
+	/** The bio api factory. */
 	@Autowired
 	private BioAPIFactory bioApiFactory;
 	
+	/**
+	 * Extract templates.
+	 *
+	 * @param birs the birs
+	 * @param extractionFormats the extraction formats
+	 * @return the list
+	 * @throws BiometricExtractionException the biometric extraction exception
+	 */
 	public List<BIR> extractTemplates(List<BIR> birs, Map<String, String> extractionFormats) throws BiometricExtractionException {
 		try {
 			Map<SingleType, List<BIR>> birsByType = birs.stream().collect(Collectors.groupingBy(bir -> bir.getBdbInfo().getType().get(0)));
