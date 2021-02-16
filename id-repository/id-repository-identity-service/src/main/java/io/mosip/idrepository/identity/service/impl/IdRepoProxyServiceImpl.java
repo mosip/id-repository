@@ -177,6 +177,10 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	/** The Constant DOT. */
 	private static final String DOT = ".";
+	
+	private static final String FORMAT_FLAG_SUFFIX = ".format";
+
+	private static final String EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX = "ExtractionFormat";
 
 	@Autowired
 	private ObjectStoreHelper objectStoreHelper;
@@ -582,7 +586,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			throws IdRepoAppException {
 		try {
 			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
-					"EXTRACTING FORMAT: " + extractionFormats.toString());
+					"GETTING EXTRACTED FORMAT: " + extractionFormats.toString());
 
 			Map<String, byte[]> extractedTemplates = new HashMap<>();
 			int i = 0;
@@ -610,7 +614,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				}
 			}
 			byte[] createXML = cbeffUtil.createXML(cbeffUtil.convertBIRTypeToBIR(birTypeList));
-			System.err.println(new String(createXML));
 			return createXML;
 		} catch (IdRepoAppUncheckedException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
@@ -634,6 +637,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			// TODO need to remove AmazonS3Exception handling
 			try {
 				if (objectStoreHelper.biometricObjectExists(uinHash, extractionFileName)) {
+					mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
+							"RETURNING EXISTING EXTRACTED FORMAT: " + extractionType +" : "+ extractionFormat);
 					return CompletableFuture.completedFuture(new AbstractMap.SimpleImmutableEntry<>(extractionFormat,
 							objectStoreHelper.getBiometricObject(uinHash, extractionFileName)));
 				}
@@ -644,7 +649,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			if (objectStoreHelper.biometricObjectExists(uinHash, fileName)) {
 				byte[] data = objectStoreHelper.getBiometricObject(uinHash, fileName);
 				
-				byte[] extractedBiometrics = extractBiometricTemplate(Map.of(extractionType, extractionFormat), data);
+				byte[] extractedBiometrics = extractBiometricTemplate(Map.of(getFormatFlag(extractionType), extractionFormat), data);
 			
 				System.err.println(new String(extractedBiometrics));
 				objectStoreHelper.putBiometricObject(uinHash, extractionFileName, extractedBiometrics);
@@ -668,9 +673,16 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			throw new IdRepoAppUncheckedException(FILE_NOT_FOUND, e);
 		}
 	}
+	
+	private String getFormatFlag(String formatQueryParam) {
+		return formatQueryParam.replace(EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX, FORMAT_FLAG_SUFFIX);
+	}
 
 	private byte[] extractBiometricTemplate(Map<String, String> extractionFormats, byte[] data)
 			throws BiometricExtractionException {
+		mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractBiometricTemplate",
+				"INVOKING BIOMETRIC EXTRACTION FOR THE FORMAT: " + extractionFormats);
+		
 		BioExtractRequestDTO bioExtractReq = new BioExtractRequestDTO();
 		bioExtractReq.setBiometrics(CryptoUtil.encodeBase64(data));
 		bioExtractReq.setExtractionFormats(extractionFormats);

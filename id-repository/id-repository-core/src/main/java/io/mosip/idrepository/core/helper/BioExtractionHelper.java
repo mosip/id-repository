@@ -43,7 +43,10 @@ public class BioExtractionHelper {
 				iBioProviderApi bioProvider = bioApiFactory.getBioProvider(BiometricType.fromValue(modality.value()),
 						BiometricFunction.EXTRACT);
 				Map<String, String> flags = new LinkedHashMap<>();
-				flags.putAll(extractionFormats);
+				Map<? extends String, ? extends String> extractionFormatForModality = extractionFormats.entrySet().stream()
+													.filter(ent -> ent.getKey().toLowerCase().contains(modality.value().toLowerCase()))
+													.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+				flags.putAll(extractionFormatForModality);
 				List<BIR> extractedTemplates = bioProvider.extractTemplate(entry.getValue(), flags);
 				allExtractedTemplates.addAll(extractedTemplates);
 			}
