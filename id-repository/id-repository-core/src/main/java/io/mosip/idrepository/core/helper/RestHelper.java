@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
@@ -231,11 +232,11 @@ public class RestHelper {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER,
 					"request failed with status code :" + e.getRawStatusCode(), "\n\n" + e.getResponseBodyAsString());
 			if (e.getStatusCode().is4xxClientError()) {
-				if (e.getRawStatusCode() == 401) {
+				if (e.getRawStatusCode() == HttpStatus.UNAUTHORIZED.value()) {
 					List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(e.getResponseBodyAsString());
 					throw new AuthenticationException(errorList.get(0).getErrorCode(), errorList.get(0).getMessage(),
 							e.getRawStatusCode());
-				} else if (e.getRawStatusCode() == 403) {
+				} else if (e.getRawStatusCode() == HttpStatus.FORBIDDEN.value()) {
 					List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(e.getResponseBodyAsString());
 					throw new IdRepoRetryException(new AuthenticationException(errorList.get(0).getErrorCode(),
 							errorList.get(0).getMessage(), e.getRawStatusCode()));
