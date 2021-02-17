@@ -63,7 +63,7 @@ ENV biosdk_local_dir_name=${biosdk_local_dir}
 #ENV bio_sdk_folder_env=${bio_sdk_folder}
 ENV biosdk_zip_file_path=${biosdk_zip_path}
 
-ENV current_module_env=bioextractor-service
+ENV current_module_env=id-repository-identity-service
 
 ENV work_dir=/home/${container_user}
 
