@@ -26,6 +26,7 @@
 		<kernel-websubclient-api.version>1.2.0-SNAPSHOT</kernel-websubclient-api.version>
 		<kernel-idvalidator-vid.version>1.2.0-SNAPSHOT</kernel-idvalidator-vid.version>
 		<kernel.khazana.version>1.2.0-SNAPSHOT</kernel.khazana.version>
+		<kernel-biosdk-provider.version>1.2.0-SNAPSHOT</kernel-biosdk-provider.version>
 	</properties>
 
 	<dependencies>
@@ -94,6 +95,11 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-config</artifactId>
 			<version>${spring-cloud-config.version}</version>
+		</dependency>
+		<dependency>
+		  <groupId>io.mosip.kernel</groupId>
+		  <artifactId>kernel-biosdk-provider</artifactId>
+		  <version>${kernel-biosdk-provider.version}</version>
 		</dependency>
 	</dependencies>
 	<build>

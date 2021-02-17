@@ -1,4 +1,4 @@
-package io.mosip.idrepository.core.helper;
+package io.mosip.idrepository.identity.helper;
 
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.TECHNICAL_ERROR;
 
