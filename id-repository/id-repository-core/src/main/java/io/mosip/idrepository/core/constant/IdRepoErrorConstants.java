@@ -103,7 +103,15 @@ public enum IdRepoErrorConstants {
 	
 	/** The authorization failed. */
 	/** The document hash mismatch. */
-	AUTHENTICATION_FAILED("IDR-IDS-012", "Authentication Failed");	
+	AUTHENTICATION_FAILED("IDR-IDS-012", "Authentication Failed"),
+	
+	
+	
+	INVALID_CBEFF("IDR-BIE-001", "Invalid CBEFF"),
+	TECHNICAL_ERROR("IDR-BIE-001", "Technical Error in Biometric Extraction")
+	
+	;
+	
 
 	/** The error code. */
 	private final String errorCode;

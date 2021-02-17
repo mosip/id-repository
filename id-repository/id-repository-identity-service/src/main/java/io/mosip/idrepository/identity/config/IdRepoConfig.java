@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executor;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
@@ -30,6 +29,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
@@ -335,15 +335,23 @@ public class IdRepoConfig implements WebMvcConfigurer {
 		return buildDataSource(dbValues);
 	}
 	
-	  @Bean
-	  public Executor taskExecutor() {
-	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-	    executor.setCorePoolSize(3);
-	    executor.setMaxPoolSize(3);
-	    executor.setQueueCapacity(500);
-	    executor.setThreadNamePrefix("idrepo-");
-	    executor.initialize();
-	    return executor;
-	  }
+	/*
+	 * This bean is returned because for async task the security context needs to be
+	 * passed.
+	 * 
+	 */
+	@Bean("withSecurityContext")
+	public DelegatingSecurityContextAsyncTaskExecutor taskExecutor() {
+		return new DelegatingSecurityContextAsyncTaskExecutor(threadPoolTaskExecutor());
+	}
 
+	private ThreadPoolTaskExecutor threadPoolTaskExecutor() {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(3);
+		executor.setMaxPoolSize(3);
+		executor.setQueueCapacity(500);
+		executor.setThreadNamePrefix("idrepo-");
+		executor.initialize();
+		return executor;
+	}
 }
