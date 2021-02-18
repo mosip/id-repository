@@ -73,6 +73,8 @@ import io.mosip.kernel.websub.api.exception.WebSubClientException;
 @Component
 public class CredentialStoreServiceImpl implements CredentialStoreService {
 
+	private static final String FORMAT_VERSION_SEPARATOR = "-";
+
 	/** The policy util. */
 	@Autowired
 	private PolicyUtil policyUtil;
@@ -407,14 +409,11 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 				partnerExtractorList.forEach(partnerExtractorDto -> {
 					if (partnerExtractorDto.getAttributeName().equalsIgnoreCase(dto.getAttributeName())) {
 						if(partnerExtractorDto.getBiometric().contains(CredentialConstants.FACE)){
-							formatterMap.put(CredentialConstants.FACE,
-									partnerExtractorDto.getExtractor().getProvider());
+							formatterMap.put(CredentialConstants.FACE, getFormat(partnerExtractorDto));
 						} else if (partnerExtractorDto.getBiometric().contains(CredentialConstants.IRIS)) {
-							formatterMap.put(CredentialConstants.IRIS,
-									partnerExtractorDto.getExtractor().getProvider());
+							formatterMap.put(CredentialConstants.IRIS, getFormat(partnerExtractorDto));
 						} else if (partnerExtractorDto.getBiometric().contains(CredentialConstants.FINGER)) {
-							formatterMap.put(CredentialConstants.FINGER,
-									partnerExtractorDto.getExtractor().getProvider());
+							formatterMap.put(CredentialConstants.FINGER, getFormat(partnerExtractorDto));
 		               }
 					}
 
@@ -427,6 +426,12 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		}
 
 		return formatterMap;
+	}
+
+
+
+	private String getFormat(PartnerExtractor partnerExtractorDto) {
+		return partnerExtractorDto.getExtractor().getProvider() + FORMAT_VERSION_SEPARATOR + partnerExtractorDto.getExtractor().getVersion();
 	}
 
 	/**
