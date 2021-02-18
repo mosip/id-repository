@@ -243,7 +243,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	@Autowired
 	private CbeffUtil cbeffUtil;
 	
-	@Autowired
+	@Autowired(required = false)
 	private BiometricExtractionService biometricExtractionService; 
 
 	/*
@@ -593,6 +593,9 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 						.findAny();
 				
 				if(!extractionFormatForModality.isEmpty()) {
+					if(biometricExtractionService == null) {
+						throw new IdRepoAppUncheckedException(BIO_EXTRACTION_ERROR, new IllegalStateException("Biometric Extraction Service is not initialzed."));
+					}
 					Entry<String, String> format = extractionFormatForModality.get();
 					CompletableFuture<List<BIR>> extractTemplateFuture = biometricExtractionService.extractTemplate(
 							uinHash, fileName, format.getKey(), format.getValue(),
