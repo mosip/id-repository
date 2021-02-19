@@ -28,4 +28,10 @@ public class PropertyLoader {
 	@Value("${credential.request.reprocess.statuscodes}")
 	public String reprocessStatusCodes;
 
+	@Value("${credential.request.process.locktimeout}")
+	public String processLockTimeout;
+
+	@Value("${credential.request.reprocess.locktimeout}")
+	public String reProcessLockTimeout;
+
 }
