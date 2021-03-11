@@ -116,7 +116,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 
 	private static final String IDA = "IDA";
 
-	private static final String AUTH = "AUTH";
+	private static final String AUTH = "auth";
 
 	private static final String REVOKED = "REVOKED";
 
@@ -196,6 +196,12 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	
 	@Value("${" + WEB_SUB_PUBLISH_URL + "}")
 	private String webSubPublishUrl;
+	
+	@Value("${id-repo-ida-credential-type:" + AUTH + "}")
+	private String credentialType;
+	
+	@Value("${id-repo-ida-credential-recepiant:" + IDA + "}")
+	private String credentialRecepiant;
 
 	@Autowired
 	private PublisherClient<String, EventModel, HttpHeaders> pb;
@@ -813,9 +819,9 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 
 		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
 		credentialIssueRequestDto.setId(id);
-		credentialIssueRequestDto.setCredentialType(AUTH);
+		credentialIssueRequestDto.setCredentialType(credentialType);
 		credentialIssueRequestDto.setIssuer(partnerId);
-		credentialIssueRequestDto.setRecepiant(IDA);
+		credentialIssueRequestDto.setRecepiant(credentialRecepiant);
 		credentialIssueRequestDto.setUser(IdRepoSecurityManager.getUser());
 		credentialIssueRequestDto.setAdditionalData(data);
 		return credentialIssueRequestDto;

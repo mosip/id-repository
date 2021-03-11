@@ -23,9 +23,9 @@ import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.CredentialTypeResponse;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.DataShare;
+import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
 import io.mosip.credentialstore.dto.PartnerExtractor;
 import io.mosip.credentialstore.dto.PartnerExtractorResponse;
-import io.mosip.credentialstore.dto.PolicyResponseDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
 import io.mosip.credentialstore.exception.DataShareException;
@@ -166,8 +166,9 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		CredentialProvider credentialProvider;
 
 		try {
-			String policyId = getPolicyId(credentialServiceRequestDto.getCredentialType());
-			PolicyResponseDto policyDetailResponseDto = policyUtil.getPolicyDetail(policyId,
+
+			PartnerCredentialTypePolicyDto policyDetailResponseDto = policyUtil.getPolicyDetail(
+					credentialServiceRequestDto.getCredentialType(),
 					credentialServiceRequestDto.getIssuer());
 
 			if (credentialServiceRequestDto.getAdditionalData() == null) {
@@ -199,8 +200,9 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			if (policyDetailResponseDto.getPolicies().getDataSharePolicies().getTypeOfShare()
 					.equalsIgnoreCase(DATASHARE)) {
 
-				dataShare = dataShareUtil.getDataShare(jsonData.getBytes(), policyId,
-						credentialServiceRequestDto.getIssuer());
+				dataShare = dataShareUtil.getDataShare(jsonData.getBytes(), policyDetailResponseDto.getPolicyId(),
+						credentialServiceRequestDto.getIssuer(),
+						policyDetailResponseDto.getPolicies().getDataSharePolicies().getShareDomain());
 				credentialServiceResponse.setDataShareUrl(dataShare.getUrl());
 
 			} else {
@@ -373,7 +375,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		return eventModel;
 	}
 
-	private Map<String, String> getFormatters(PolicyResponseDto policyResponseDto, String partnerId)
+	private Map<String, String> getFormatters(PartnerCredentialTypePolicyDto policyResponseDto, String partnerId)
 			throws ApiNotAccessibleException, PartnerException {
 		Map<String, String> formatterMap = new HashMap<>();
 		List<AllowedKycDto> sharableAttributeList = policyResponseDto.getPolicies().getShareableAttributes();

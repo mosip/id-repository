@@ -42,9 +42,9 @@ public class CredentialStoreController {
 	 */
 	@PreAuthorize("hasAnyRole('CREDENTIAL_ISSUANCE')")
 	@PostMapping(path = "/issue", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "get the status of credential", response = CredentialServiceResponseDto.class)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Get status of credential successfully"),
-			@ApiResponse(code = 400, message = "Unable toget status of credential ") })
+	@ApiOperation(value = "create credential", response = CredentialServiceResponseDto.class)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "create credential successfully"),
+			@ApiResponse(code = 400, message = "Unable to create credential ") })
 	public ResponseEntity<Object> credentialIssue(
 			@RequestBody(required = true) CredentialServiceRequestDto credentialServiceRequestDto) {
 		

@@ -14,10 +14,10 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.ApiName;
+import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
 import io.mosip.credentialstore.dto.PartnerExtractorResponse;
 import io.mosip.credentialstore.dto.PartnerExtractorResponseDto;
 import io.mosip.credentialstore.dto.PolicyManagerResponseDto;
-import io.mosip.credentialstore.dto.PolicyResponseDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.PartnerException;
 import io.mosip.credentialstore.exception.PolicyException;
@@ -55,14 +55,15 @@ public class PolicyUtil {
 	@Autowired
 	Utilities utilities;
 
-	public PolicyResponseDto getPolicyDetail(String policyId, String subscriberId) throws PolicyException, ApiNotAccessibleException {
+	public PartnerCredentialTypePolicyDto getPolicyDetail(String credentialType, String subscriberId)
+			throws PolicyException, ApiNotAccessibleException {
 
 		try {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), POLICYUTIL, GETPOLICYDETAIL,
 					"started fetching the policy data");
 			Map<String, String> pathsegments = new HashMap<>();
 			pathsegments.put("partnerId", subscriberId);
-			pathsegments.put("policyId", policyId);
+			pathsegments.put("credentialType", credentialType);
 			String responseString = restUtil.getApi(ApiName.PARTNER_POLICY, pathsegments, String.class);
 
 			PolicyManagerResponseDto responseObject = mapper.readValue(responseString,
@@ -71,7 +72,7 @@ public class PolicyUtil {
 				ServiceError error = responseObject.getErrors().get(0);
 				throw new PolicyException(error.getMessage());
 			}
-			PolicyResponseDto policyResponseDto = responseObject.getResponse();
+			PartnerCredentialTypePolicyDto policyResponseDto = responseObject.getResponse();
 			LOGGER.info(IdRepoSecurityManager.getUser(), POLICYUTIL, GETPOLICYDETAIL,
 					"Fetched policy details successfully");
 			LOGGER.debug(IdRepoSecurityManager.getUser(), POLICYUTIL, GETPOLICYDETAIL,

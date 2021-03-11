@@ -159,8 +159,7 @@ public class IdAuthProvider extends CredentialProvider {
 					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
 			JSONObject json = new JSONObject();
 			List<String> typeList = new ArrayList<>();
-			typeList.add(JsonConstants.VERFIABLECREDENTIAL);
-			typeList.add(JsonConstants.MOSIPVERFIABLECREDENTIAL);
+			typeList.add(env.getProperty("mosip.credential.service.credential.schema"));
 
 			json.put(JsonConstants.ID, env.getProperty("mosip.credential.service.format.id") + credentialId);
 			json.put(JsonConstants.TYPE, typeList);

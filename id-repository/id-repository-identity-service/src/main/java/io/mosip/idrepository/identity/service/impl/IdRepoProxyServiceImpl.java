@@ -122,7 +122,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	private static final String PARTNER_ACTIVE_STATUS = "Active";
 
-	private static final String AUTH = "AUTH";
+	private static final String AUTH = "auth";
 
 	private static final String ACTIVE = "ACTIVE";
 
@@ -226,6 +226,12 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	@Value("${id-repo-ida-event-type-name:ida}")
 	private String idaEventTypeName;
+	
+	@Value("${id-repo-ida-credential-type:" + AUTH + "}")
+	private String credentialType;
+	
+	@Value("${id-repo-ida-credential-recepiant:" + IDA + "}")
+	private String credentialRecepiant;
 
 	@Autowired
 	private PublisherClient<String, EventModel, HttpHeaders> pb;
@@ -933,9 +939,9 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
 		credentialIssueRequestDto.setId(id);
-		credentialIssueRequestDto.setCredentialType(AUTH);
+		credentialIssueRequestDto.setCredentialType(credentialType);
 		credentialIssueRequestDto.setIssuer(partnerId);
-		credentialIssueRequestDto.setRecepiant(IDA);
+		credentialIssueRequestDto.setRecepiant(credentialRecepiant);
 		credentialIssueRequestDto.setUser(IdRepoSecurityManager.getUser());
 		credentialIssueRequestDto.setAdditionalData(data);
 		return credentialIssueRequestDto;

@@ -31,7 +31,7 @@ import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.Filter;
 import io.mosip.credentialstore.dto.PolicyAttributesDto;
-import io.mosip.credentialstore.dto.PolicyResponseDto;
+import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
 import io.mosip.credentialstore.dto.Source;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
@@ -81,7 +81,7 @@ public class QrCodeProviderTest {
 	/** The response. */
 	private ResponseDTO response = new ResponseDTO();
 	
-	PolicyResponseDto policyResponse;
+	PartnerCredentialTypePolicyDto policyResponse;
 
 	@Mock
 	private CbeffUtil cbeffutil;
@@ -105,7 +105,7 @@ public class QrCodeProviderTest {
 		JSONObject jsonObject = new JSONObject(map1);
 
 
-		policyResponse = new PolicyResponseDto();
+		policyResponse = new PartnerCredentialTypePolicyDto();
 		List<AllowedKycDto> shareableAttributes = new ArrayList<>();
 		AllowedKycDto kyc1 = new AllowedKycDto();
 		kyc1.setAttributeName("fullName");
