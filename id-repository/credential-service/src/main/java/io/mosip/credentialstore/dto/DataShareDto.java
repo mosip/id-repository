@@ -14,4 +14,6 @@ public class DataShareDto {
 	private String shareDomain;
 	
 	private String typeOfShare;
+	
+	private String source;
 }

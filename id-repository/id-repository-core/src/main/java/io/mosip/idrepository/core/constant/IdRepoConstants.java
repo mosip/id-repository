@@ -46,7 +46,7 @@ public class IdRepoConstants {
 	public static final String APPLICATION_VERSION_VID = "mosip.idrepo.vid.application.version";
 
 	/** The application id. */
-	public static final String APPLICATION_ID = "mosip.idrepo.application.id";
+	public static final String APPLICATION_ID = "mosip.idrepo.app-id";
 
 	/** The application name. */
 	public static final String APPLICATION_NAME = "mosip.idrepo.application.name";
@@ -90,15 +90,19 @@ public class IdRepoConstants {
 	
 	public static final String VID_REACTIVATED = "mosip.idrepo.vid.reactive-status";
 	
-//	public static final String FMR_ENABLED = "mosip.fingerprint.fmr.enabled";
-	
 	public static final String IDA_NOTIFY_REQ_ID = "ida.api.id.event.notify";
 	
 	public static final String IDA_NOTIFY_REQ_VER = "ida.api.version.event.notify";
 	
-	public static final String WEB_SUB_PUBLISHER_URL = "kernel.websub.publisher.url";
+	public static final String WEB_SUB_PUBLISH_URL = "websub.publish.url";
+	
+	public static final String WEB_SUB_HUB_URL = "websub.hub.url";
 	
 	public static final String OBJECT_STORE_ACCOUNT_NAME = "mosip.idrepo.objectstore.account-name";
+	
+	public static final String OBJECT_STORE_BUCKET_NAME = "mosip.idrepo.objectstore.bucket-name";
+	
+	public static final String OBJECT_STORE_ADAPTER_NAME = "mosip.idrepo.objectstore.adapter-name";
 	
 	/** The value. */
 	private final String value;

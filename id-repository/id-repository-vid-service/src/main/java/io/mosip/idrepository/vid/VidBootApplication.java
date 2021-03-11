@@ -13,7 +13,7 @@ import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
  * @author Prem Kumar
  */
 @SpringBootApplication(exclude = HibernateDaoConfig.class)
-@ComponentScan(basePackages = "io.mosip.*"
+@ComponentScan(basePackages={ "io.mosip.*" ,"${mosip.auth.adapter.impl.basepackage}"}
 , excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig"))
 public class VidBootApplication {
 

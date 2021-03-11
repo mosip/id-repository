@@ -24,6 +24,7 @@ import org.springframework.web.context.WebApplicationContext;
 import io.mosip.idrepository.core.builder.AuditRequestBuilder;
 import io.mosip.idrepository.core.constant.AuditEvents;
 import io.mosip.idrepository.core.constant.AuditModules;
+import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.AuditRequestDTO;
 import io.mosip.kernel.core.http.RequestWrapper;
@@ -65,8 +66,8 @@ public class AuditRequestBuilderTest {
 			expectedRequest.setActionTimeStamp(null);
 			expectedRequest.setHostName(inetAddress.getHostName());
 			expectedRequest.setHostIp(inetAddress.getHostAddress());
-			expectedRequest.setApplicationId(env.getProperty("mosip.idrepo.application.id"));
-			expectedRequest.setApplicationName(env.getProperty("mosip.idrepo.application.name"));
+			expectedRequest.setApplicationId(env.getProperty(IdRepoConstants.APPLICATION_ID));
+			expectedRequest.setApplicationName(env.getProperty(IdRepoConstants.APPLICATION_NAME));
 			expectedRequest.setSessionUserId("sessionUserId");
 			expectedRequest.setSessionUserName("sessionUserName");
 			expectedRequest.setId("id");

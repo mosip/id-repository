@@ -16,7 +16,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @SpringBootApplication
 @Import(value = { java.lang.String.class })
-@ComponentScan(basePackages = { "io.mosip.*" })
+@ComponentScan(basePackages={ "io.mosip.*" ,"${mosip.auth.adapter.impl.basepackage}"})
 @EnableBatchProcessing
 @EnableScheduling
 public class CredentialRequestGeneratorApp 

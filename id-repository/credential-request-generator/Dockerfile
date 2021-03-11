@@ -29,6 +29,8 @@ ENV is_glowroot_env=${is_glowroot}
 
 # environment variable to pass artifactory url, at docker runtime
 ENV artifactory_url_env=${artifactory_url}
+# environment variable to pass iam_adapter url, at docker runtime
+ENV iam_adapter_url_env=${iam_adapter_url}
 
 # change volume to whichever storage directory you want to use for this container.
 VOLUME /home/logs
@@ -44,9 +46,11 @@ CMD if [ "$is_glowroot_env" = "present" ]; then \
     rm -rf glowroot.zip ; \
     
     sed -i 's/<service_name>/credential-request-generator/g' glowroot/glowroot.properties ; \
-    java -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -jar -javaagent:glowroot/glowroot.jar credential-request-generator.jar ; \
+    wget "${iam_adapter_url_env}" -O kernel-auth-adapter.jar; \
+    java -Dloader.path=./kernel-auth-adapter.jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -jar -javaagent:glowroot/glowroot.jar credential-request-generator.jar ; \
     else \
-    java -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -jar credential-request-generator.jar ; \
+    wget "${iam_adapter_url_env}" -O kernel-auth-adapter.jar; \
+    java -Dloader.path=./kernel-auth-adapter.jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -jar credential-request-generator.jar ; \
     fi
 
 
