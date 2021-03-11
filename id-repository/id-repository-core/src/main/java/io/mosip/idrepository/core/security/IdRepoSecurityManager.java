@@ -5,30 +5,33 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VE
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DATETIME_PATTERN;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
+import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
-import io.mosip.kernel.core.authmanager.authadapter.model.AuthUserDetails;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 
 /**
  * The Class IdRepoSecurityManager - provides security related functionalities
@@ -48,7 +51,7 @@ public class IdRepoSecurityManager {
 
 	/** The Constant ID_REPO_SECURITY_MANAGER. */
 	private static final String ID_REPO_SECURITY_MANAGER = "IdRepoSecurityManager";
-	
+
 	/** The rest factory. */
 	@Autowired
 	private RestRequestBuilder restBuilder;
@@ -72,11 +75,14 @@ public class IdRepoSecurityManager {
 	 * @return the string
 	 */
 	public String hash(final byte[] data) {
-		return HMACUtils.digestAsPlainText(HMACUtils.generateHash(data));
+		try {
+			return HMACUtils2.digestAsPlainText(data);
+		} catch (NoSuchAlgorithmException e) {
+			// TODO to be removed
+			throw new IdRepoAppUncheckedException(IdRepoErrorConstants.UNKNOWN_ERROR, e);
+		}
 	}
 
-	
-	
 	/**
 	 * Hash with salt - provides hash value based on provided salt.
 	 *
@@ -85,9 +91,14 @@ public class IdRepoSecurityManager {
 	 * @return the string
 	 */
 	public String hashwithSalt(final byte[] data, final byte[] salt) {
-		return HMACUtils.digestAsPlainTextWithSalt(data, salt);
+		try {
+			return HMACUtils2.digestAsPlainTextWithSalt(data, salt);
+		} catch (NoSuchAlgorithmException e) {
+			// TODO to be removed
+			throw new IdRepoAppUncheckedException(IdRepoErrorConstants.UNKNOWN_ERROR, e);
+		}
 	}
-	
+
 	/**
 	 * provides the user id.
 	 *
@@ -97,14 +108,14 @@ public class IdRepoSecurityManager {
 		if (Objects.nonNull(SecurityContextHolder.getContext())
 				&& Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())
 				&& Objects.nonNull(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-				&& SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof AuthUserDetails) {
-			return ((AuthUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-					.getUserId();
+				&& SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof UserDetails) {	
+			return ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+					.getUsername();
 		} else {
-			return null;
+			return "";
 		}
 	}
-	
+
 	/**
 	 * Encryption of data by making rest call to kernel-cryptomanager.
 	 *
@@ -120,19 +131,20 @@ public class IdRepoSecurityManager {
 			baseRequest.setVersion(env.getProperty(APPLICATION_VERSION));
 			ObjectNode request = new ObjectNode(mapper.getNodeFactory());
 			request.put("applicationId", env.getProperty(APPLICATION_ID));
-			request.put("timeStamp",
-					DateUtils.formatDate(new Date(), env.getProperty(DATETIME_PATTERN)));
+			request.put("timeStamp", DateUtils.formatDate(new Date(), env.getProperty(DATETIME_PATTERN)));
 			request.put("data", CryptoUtil.encodeBase64(dataToEncrypt));
 			request.put("referenceId", "");
+			request.put("prependThumbprint", true);
 			baseRequest.setRequest(request);
 			return encryptDecryptData(restBuilder.buildRequest(RestServicesConstants.CRYPTO_MANAGER_ENCRYPT,
 					baseRequest, ObjectNode.class));
 		} catch (IdRepoAppException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SECURITY_MANAGER, ENCRYPT_DECRYPT_DATA, e.getErrorText());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SECURITY_MANAGER, ENCRYPT_DECRYPT_DATA,
+					e.getErrorText());
 			throw new IdRepoAppException(ENCRYPTION_DECRYPTION_FAILED, e);
 		}
 	}
-	
+
 	/**
 	 * Encryption of data by making rest call to kernel-cryptomanager with salt.
 	 *
@@ -141,7 +153,7 @@ public class IdRepoSecurityManager {
 	 * @return the byte[]
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	public byte[] encryptWithSalt(final byte[] dataToEncrypt,final byte[] saltToEncrypt) throws IdRepoAppException {
+	public byte[] encryptWithSalt(final byte[] dataToEncrypt, final byte[] saltToEncrypt) throws IdRepoAppException {
 		try {
 			RequestWrapper<ObjectNode> baseRequest = new RequestWrapper<>();
 			baseRequest.setId("string");
@@ -149,16 +161,17 @@ public class IdRepoSecurityManager {
 			baseRequest.setVersion(env.getProperty(APPLICATION_VERSION));
 			ObjectNode request = new ObjectNode(mapper.getNodeFactory());
 			request.put("applicationId", env.getProperty(APPLICATION_ID));
-			request.put("timeStamp",
-					DateUtils.formatDate(new Date(), env.getProperty(DATETIME_PATTERN)));
+			request.put("timeStamp", DateUtils.formatDate(new Date(), env.getProperty(DATETIME_PATTERN)));
 			request.put("data", CryptoUtil.encodeBase64(dataToEncrypt));
 			request.put("salt", CryptoUtil.encodeBase64(saltToEncrypt));
 			request.put("referenceId", "");
+			request.put("prependThumbprint", true);
 			baseRequest.setRequest(request);
 			return encryptDecryptData(restBuilder.buildRequest(RestServicesConstants.CRYPTO_MANAGER_ENCRYPT,
 					baseRequest, ObjectNode.class));
 		} catch (IdRepoAppException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SECURITY_MANAGER, ENCRYPT_DECRYPT_DATA, e.getErrorText());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SECURITY_MANAGER, ENCRYPT_DECRYPT_DATA,
+					e.getErrorText());
 			throw new IdRepoAppException(ENCRYPTION_DECRYPTION_FAILED, e);
 		}
 	}
@@ -178,18 +191,19 @@ public class IdRepoSecurityManager {
 			baseRequest.setVersion(env.getProperty(APPLICATION_VERSION));
 			ObjectNode request = new ObjectNode(mapper.getNodeFactory());
 			request.put("applicationId", env.getProperty(APPLICATION_ID));
-			request.put("timeStamp",
-					DateUtils.formatDate(new Date(), env.getProperty(DATETIME_PATTERN)));
+			request.put("timeStamp", DateUtils.formatDate(new Date(), env.getProperty(DATETIME_PATTERN)));
 			request.put("data", new String(dataToDecrypt));
+			request.put("prependThumbprint", true);
 			baseRequest.setRequest(request);
 			return CryptoUtil.decodeBase64(new String(encryptDecryptData(restBuilder
 					.buildRequest(RestServicesConstants.CRYPTO_MANAGER_DECRYPT, baseRequest, ObjectNode.class))));
 		} catch (IdRepoAppException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SECURITY_MANAGER, ENCRYPT_DECRYPT_DATA, e.getErrorText());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SECURITY_MANAGER, ENCRYPT_DECRYPT_DATA,
+					e.getErrorText());
 			throw new IdRepoAppException(ENCRYPTION_DECRYPTION_FAILED, e);
 		}
 	}
-	
+
 	/**
 	 * Decryption of data by making rest call to kernel-cryptomanager with salt.
 	 *
@@ -206,21 +220,22 @@ public class IdRepoSecurityManager {
 			baseRequest.setVersion(env.getProperty(APPLICATION_VERSION));
 			ObjectNode request = new ObjectNode(mapper.getNodeFactory());
 			request.put("applicationId", env.getProperty(APPLICATION_ID));
-			request.put("timeStamp",
-					DateUtils.formatDate(new Date(), env.getProperty(DATETIME_PATTERN)));
+			request.put("timeStamp", DateUtils.formatDate(new Date(), env.getProperty(DATETIME_PATTERN)));
 			request.put("data", CryptoUtil.encodeBase64(dataToDecrypt));
 			request.put("salt", CryptoUtil.encodeBase64(saltToDecrypt));
+			request.put("prependThumbprint", true);
 			baseRequest.setRequest(request);
 			return CryptoUtil.decodeBase64(new String(encryptDecryptData(restBuilder
 					.buildRequest(RestServicesConstants.CRYPTO_MANAGER_DECRYPT, baseRequest, ObjectNode.class))));
 		} catch (IdRepoAppException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SECURITY_MANAGER, ENCRYPT_DECRYPT_DATA, e.getErrorText());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SECURITY_MANAGER, ENCRYPT_DECRYPT_DATA,
+					e.getErrorText());
 			throw new IdRepoAppException(ENCRYPTION_DECRYPTION_FAILED, e);
 		}
 	}
 
 	/**
-	 * Rest calls is made to kernel-cryptomanager and required data from response is 
+	 * Rest calls is made to kernel-cryptomanager and required data from response is
 	 * extracted and handled.
 	 *
 	 * @param restRequest the rest request
@@ -240,7 +255,8 @@ public class IdRepoSecurityManager {
 				throw new IdRepoAppException(ENCRYPTION_DECRYPTION_FAILED);
 			}
 		} catch (RestServiceException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SECURITY_MANAGER, ENCRYPT_DECRYPT_DATA, e.getErrorText());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SECURITY_MANAGER, ENCRYPT_DECRYPT_DATA,
+					e.getErrorText());
 			throw new IdRepoAppException(ENCRYPTION_DECRYPTION_FAILED, e);
 		}
 	}

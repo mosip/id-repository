@@ -55,7 +55,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 	CredentialRepositary<CredentialEntity, String> credentialRepositary;
 	
 	/** The Constant USER. */
-	private static final String USER = "MOSIP_SYSTEM";
+	private static final String PRINT_USER = "service-account-mosip-print-client";
 	/** The env. */
 	@Autowired
 	private Environment env;
@@ -118,7 +118,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credential.setStatusCode(CredentialStatusCode.NEW.name());
 		credential.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		credential.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-		credential.setCreatedBy(USER);
+			credential.setCreatedBy(IdRepoSecurityManager.getUser());
 
 		credentialRepositary.save(credential);
 		credentialIssueResponse = new CredentialIssueResponse();
@@ -175,7 +175,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 				if (credentialEntity.getStatusCode().equalsIgnoreCase("NEW")) {
 					credentialEntity.setStatusCode(CredentialStatusCode.CANCELLED.name());
 					credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-					credentialEntity.setUpdatedBy(USER);
+					credentialEntity.setUpdatedBy(IdRepoSecurityManager.getUser());
 					credentialRepositary.update(credentialEntity);
 					CredentialIssueRequestDto credentialIssueRequestDto = mapper
 							.readValue(credentialEntity.getRequest(),
@@ -255,6 +255,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 				credentialIssueStatusResponse.setId(credentialIssueRequestDto.getId());
 				credentialIssueStatusResponse.setRequestId(requestId);
 				credentialIssueStatusResponse.setStatusCode(credentialEntity.getStatusCode());
+				credentialIssueStatusResponse.setUrl(credentialEntity.getDataShareUrl());
 				LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CANCEL_CREDENTIAL,
 						"get credential status of " + requestId);
 			} else {
@@ -318,7 +319,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 					credentialEntity.setDataShareUrl(event.getUrl());
 				}
 				credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-				credentialEntity.setUpdatedBy(USER);
+				credentialEntity.setUpdatedBy(PRINT_USER);
 				credentialRepositary.update(credentialEntity);
 				LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CANCEL_CREDENTIAL,
 						"updated the status of  " + requestId);

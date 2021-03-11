@@ -20,9 +20,12 @@ public class JsonConstants {
 
 	public static final String PROOF = "proof";
 
-	public static final String VERFIABLECREDENTIAL = "VerifiableCredential";
-
-	public static final String MOSIPVERFIABLECREDENTIAL = "MOSIPVerifiableCredential";
-
 	public static final String SIGNATURE = "signature";
+
+	public static final String PROTECTEDATTRIBUTES = "protectedAttributes";
+
+
+	public static final String CREDENTIALTYPE = "credentialType";
+
+	public static final String PROTECTIONKEY = "protectionKey";
 }

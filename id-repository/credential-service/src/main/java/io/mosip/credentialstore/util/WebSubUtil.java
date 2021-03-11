@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import io.mosip.idrepository.core.constant.IDAEventType;
+import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.dto.EventModel;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
@@ -23,7 +24,7 @@ public class WebSubUtil {
 	   
 
 	/** The config server file storage URL. */
-	@Value("${mosip.partnerhuburl}")
+	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISH_URL + "}")
 	private String partnerhuburl;
 
 

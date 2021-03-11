@@ -1,4 +1,3 @@
-
 name: Maven Package upon a push 
 
 on:
@@ -22,13 +21,16 @@ jobs:
         java-version: 11
         server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
-
+    - name: Setup branch and env 
+      run: |
+        # Strip git ref prefix from version
+        echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
+        echo "GPG_TTY=$(tty)" >> $GITHUB_ENV
+        
     - name: Setup branch and GPG public key 
       run: |
         # Strip git ref prefix from version
-        echo "::set-env name=BRANCH_NAME::$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')"
         echo ${{ env.BRANCH_NAME }}
-        echo "::set-env name=GPG_TTY::$(tty)"
         echo ${{ env.GPG_TTY }}
         sudo apt-get --yes install gnupg2
         gpg2 --import ./.github/keys/mosipgpgkey_pub.gpg 
@@ -73,13 +75,17 @@ jobs:
         java-version: 11
         server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
-
+        
+    - name: Setup branch and env 
+      run: |
+        # Strip git ref prefix from version
+        echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
+        echo "GPG_TTY=$(tty)" >> $GITHUB_ENV
+        
     - name: Setup branch and GPG public key 
       run: |
         # Strip git ref prefix from version
-        echo "::set-env name=BRANCH_NAME::$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')"
         echo ${{ env.BRANCH_NAME }}
-        echo "::set-env name=GPG_TTY::$(tty)"
         echo ${{ env.GPG_TTY }}
         sudo apt-get --yes install gnupg2
         gpg2 --import ./.github/keys/mosipgpgkey_pub.gpg 
@@ -96,7 +102,6 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install libxml2-utils
-
     - name: Setup the settings file for ossrh server
       run: echo "<settings> <servers>  <server>  <id>ossrh</id>    <username>${{secrets.RELEASE_USER}}</username> <password>${{secrets.RELEASE_TOKEN}}</password> </server> </servers> <profiles> <profile>     <id>ossrh</id> <activation> <activeByDefault>true</activeByDefault> </activation>  <properties> <gpg.executable>gpg2</gpg.executable> <gpg.passphrase>${{secrets.gpg_secret}}</gpg.passphrase> </properties> </profile> <profile> <id>allow-snapshots</id>       <activation><activeByDefault>true</activeByDefault></activation> <repositories> <repository>        <id>snapshots-repo</id> <url>https://oss.sonatype.org/content/repositories/snapshots</url> <releases><enabled>false</enabled></releases> <snapshots><enabled>true</enabled></snapshots> </repository>  <repository>         <id>releases-repo</id>  <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>         <releases><enabled>true</enabled></releases>         <snapshots><enabled>false</enabled></snapshots> </repository> </repositories>  </profile> <profile> <id>sonar</id> <properties>  <sonar.sources>.</sonar.sources> <sonar.host.url>https://sonarcloud.io</sonar.host.url>  </properties> <activation> <activeByDefault>false</activeByDefault> </activation> </profile> </profiles> </settings>" > $GITHUB_WORKSPACE/settings.xml
       
@@ -105,6 +110,7 @@ jobs:
         
     - name: Publish the maven package
       run: |
+        #chmod +x ./deploy.sh
         cd id-repository && mvn deploy -DskipTests -DaltDeploymentRepository=ossrh::default::${{ secrets.RELEASE_URL }} -s $GITHUB_WORKSPACE/settings.xml -f pom.xml
       env:
         GITHUB_TOKEN: ${{secrets.RELEASE_TOKEN}}
@@ -133,8 +139,7 @@ jobs:
       - name: Setup branch and GPG public key 
         run: |
           # Strip git ref prefix from version
-          echo "::set-env name=BRANCH_NAME::$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')"
-          echo ${{ env.BRANCH_NAME }}
+          echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
         
       - name: Get version info from pom
         id: getPomVersion
@@ -150,7 +155,6 @@ jobs:
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
           docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-
       - name: Log into registry
         run: echo "${{secrets.release_docker_hub}}" | docker login -u ${{secrets.actor_docker_hub}} --password-stdin
         
@@ -166,7 +170,6 @@ jobs:
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
-
   docker-id-repository-identity-service:
     needs: build
 
@@ -186,9 +189,7 @@ jobs:
       - name: Setup branch name 
         run: |
           # Strip git ref prefix from version
-          echo "::set-env name=BRANCH_NAME::$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')"
-          echo ${{ env.BRANCH_NAME }}
-
+          echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
       - name: Get version info from pom
         id: getPomVersion
         uses: mavrosxristoforos/get-xml-info@1.0
@@ -203,7 +204,6 @@ jobs:
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
           docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-
       - name: Log into registry
         run: echo "${{secrets.release_docker_hub}}" | docker login -u ${{secrets.actor_docker_hub}} --password-stdin
         
@@ -219,7 +219,6 @@ jobs:
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
-
   docker-bioextractor-service:
     needs: build
 
@@ -239,9 +238,7 @@ jobs:
       - name: Setup branch name 
         run: |
           # Strip git ref prefix from version
-          echo "::set-env name=BRANCH_NAME::$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')"
-          echo ${{ env.BRANCH_NAME }}
-
+          echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
       - name: Get version info from pom
         id: getPomVersion
         uses: mavrosxristoforos/get-xml-info@1.0
@@ -256,7 +253,6 @@ jobs:
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
           docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-
       - name: Log into registry
         run: echo "${{secrets.release_docker_hub}}" | docker login -u ${{secrets.actor_docker_hub}} --password-stdin
         
@@ -272,8 +268,6 @@ jobs:
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
-
-
   docker-credential-request-generator:
     needs: build
 
@@ -293,9 +287,7 @@ jobs:
       - name: Setup branch name 
         run: |
           # Strip git ref prefix from version
-          echo "::set-env name=BRANCH_NAME::$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')"
-          echo ${{ env.BRANCH_NAME }}
-
+          echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
       - name: Get version info from pom
         id: getPomVersion
         uses: mavrosxristoforos/get-xml-info@1.0
@@ -310,7 +302,6 @@ jobs:
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
           docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-
       - name: Log into registry
         run: echo "${{secrets.release_docker_hub}}" | docker login -u ${{secrets.actor_docker_hub}} --password-stdin
         
@@ -326,7 +317,6 @@ jobs:
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
-
   docker-credential-service:
     needs: build
 
@@ -346,9 +336,7 @@ jobs:
       - name: Setup branch name 
         run: |
           # Strip git ref prefix from version
-          echo "::set-env name=BRANCH_NAME::$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')"
-          echo ${{ env.BRANCH_NAME }}
-
+          echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
       - name: Get version info from pom
         id: getPomVersion
         uses: mavrosxristoforos/get-xml-info@1.0
@@ -363,7 +351,6 @@ jobs:
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
           docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-
       - name: Log into registry
         run: echo "${{secrets.release_docker_hub}}" | docker login -u ${{secrets.actor_docker_hub}} --password-stdin
         
@@ -379,7 +366,6 @@ jobs:
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
-
   docker-id-repository-salt-generator:
     needs: build
 
@@ -399,9 +385,7 @@ jobs:
       - name: Setup branch name 
         run: |
           # Strip git ref prefix from version
-          echo "::set-env name=BRANCH_NAME::$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')"
-          echo ${{ env.BRANCH_NAME }}
-
+          echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
       - name: Get version info from pom
         id: getPomVersion
         uses: mavrosxristoforos/get-xml-info@1.0
@@ -416,7 +400,6 @@ jobs:
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
           docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-
       - name: Log into registry
         run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         

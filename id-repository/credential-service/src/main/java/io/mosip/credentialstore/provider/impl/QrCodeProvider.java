@@ -16,15 +16,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.JsonConstants;
+import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
+import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
+import io.mosip.credentialstore.exception.DataEncryptionFailureException;
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.kernel.core.util.DateUtils;
 @Component
-public class QrCodeProvider implements CredentialProvider {
+public class QrCodeProvider extends CredentialProvider {
 
 	@Autowired
 	EncryptionUtil encryptionUtil;
@@ -42,10 +45,12 @@ public class QrCodeProvider implements CredentialProvider {
 	@Autowired
 	private ObjectMapper mapper;
 
+
+
 	@SuppressWarnings("unchecked")
 	@Override
-	public DataProviderResponse getFormattedCredentialData(	Map<String,Boolean> encryptMap,
-			CredentialServiceRequestDto credentialServiceRequestDto, Map<String, Object> sharableAttributeMap)
+	public DataProviderResponse getFormattedCredentialData(
+			CredentialServiceRequestDto credentialServiceRequestDto, Map<AllowedKycDto, Object> sharableAttributeMap)
 			throws CredentialFormatterException {
 
 		DataProviderResponse dataProviderResponse = null;
@@ -54,12 +59,12 @@ public class QrCodeProvider implements CredentialProvider {
 			String pin = credentialServiceRequestDto.getEncryptionKey();
 
 			Map<String, Object> formattedMap = new HashMap<>();
+			List<String> protectedAttributes = new ArrayList<>();
+			formattedMap.put(JsonConstants.ID, credentialServiceRequestDto.getId());
 
-			formattedMap.put(JsonConstants.ID,
-					env.getProperty("mosip.credential.service.format.credentialsubject.id") + "id");
-
-			for (Map.Entry<String, Object> entry : sharableAttributeMap.entrySet()) {
-				String key = entry.getKey();
+			for (Map.Entry<AllowedKycDto, Object> entry : sharableAttributeMap.entrySet()) {
+				AllowedKycDto allowedKycDto = entry.getKey();
+				String attributeName = allowedKycDto.getAttributeName();
 				Object value = entry.getValue();
 				String valueStr = null;
 				if (value instanceof String) {
@@ -67,13 +72,14 @@ public class QrCodeProvider implements CredentialProvider {
 				} else {
 					valueStr = mapper.writeValueAsString(value);
 				}
-				formattedMap.put(key, valueStr);
-				// TODO this is going to implement in 1.1.3 as per new policy
-				/*
-				 * if (encryptMap.get(key)) { String encryptedValue =
-				 * encryptionUtil.encryptDataWithPin(valueStr, pin); formattedMap.put(key,
-				 * encryptedValue); } else { formattedMap.put(key, valueStr); }
-				 */
+				formattedMap.put(attributeName, valueStr);
+				if (allowedKycDto.isEncrypted() || credentialServiceRequestDto.isEncrypt()) {
+					String encryptedValue = encryptionUtil.encryptDataWithPin(valueStr, pin);
+					formattedMap.put(attributeName, encryptedValue);
+					protectedAttributes.add(attributeName);
+				} else {
+					formattedMap.put(attributeName, valueStr);
+				}
 
 			}
 
@@ -87,16 +93,15 @@ public class QrCodeProvider implements CredentialProvider {
 
 			JSONObject json = new JSONObject();
 			List<String> typeList = new ArrayList<>();
-			typeList.add(JsonConstants.VERFIABLECREDENTIAL);
-			typeList.add(JsonConstants.MOSIPVERFIABLECREDENTIAL);
-			json.put(JsonConstants.ID, env.getProperty("mosip.credential.service.format.id"));
+			typeList.add(env.getProperty("mosip.credential.service.credential.schema"));
+			json.put(JsonConstants.ID, env.getProperty("mosip.credential.service.format.id") + credentialId);
 			json.put(JsonConstants.TYPE, typeList);
 			json.put(JsonConstants.ISSUER, env.getProperty("mosip.credential.service.format.issuer"));
 			json.put(JsonConstants.ISSUANCEDATE, DateUtils.formatToISOString(localdatetime));
 			json.put(JsonConstants.ISSUEDTO, credentialServiceRequestDto.getIssuer());
 			json.put(JsonConstants.CONSENT, "");
 			json.put(JsonConstants.CREDENTIALSUBJECT, formattedMap);
-
+			json.put(JsonConstants.PROTECTEDATTRIBUTES, protectedAttributes);
 			dataProviderResponse.setJSON(json);
 
 			dataProviderResponse.setCredentialId(credentialId);
@@ -104,14 +109,16 @@ public class QrCodeProvider implements CredentialProvider {
 			dataProviderResponse.setIssuanceDate(localdatetime);
 
 			return dataProviderResponse;
-		} /*
-			 * catch (DataEncryptionFailureException e) { throw new
-			 * CredentialFormatterException(e); } catch (ApiNotAccessibleException e) {
-			 * throw new CredentialFormatterException(e); }
-			 */ catch (JsonProcessingException e) {
+		} catch (DataEncryptionFailureException e) {
+			throw new CredentialFormatterException(e);
+		} catch (ApiNotAccessibleException e) {
+			throw new CredentialFormatterException(e);
+		} catch (JsonProcessingException e) {
+			throw new CredentialFormatterException(e);
+		} catch (Exception e) {
 			throw new CredentialFormatterException(e);
 		}
-
 	}
+	
 
 }

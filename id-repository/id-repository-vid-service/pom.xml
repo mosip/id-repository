@@ -1,13 +1,14 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.1.2</version>
+		<version>1.1.4</version>
 	</parent>
 	<artifactId>id-repository-vid-service</artifactId>
-	<version>1.1.2</version>
+	<version>1.1.4</version>
 	<name>vid-service</name>
 	<description>ID-Repository Virtual ID Service</description>
 
@@ -16,13 +17,13 @@
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
 		<spring.boot.version>2.0.2.RELEASE</spring.boot.version>
-		<kernel.core.version>1.1.2</kernel.core.version>
-		<kernel.idvalidator.uin.version>1.1.2</kernel.idvalidator.uin.version>
-		<kernel.idgenerator.vid.version>1.1.2</kernel.idgenerator.vid.version>
-		<kernel.idvalidator.vid.version>1.1.2</kernel.idvalidator.vid.version>
-		<kernel.dataaccess.hibernate.version>1.1.2</kernel.dataaccess.hibernate.version>
+		<kernel.core.version>1.1.4</kernel.core.version>
+		<kernel.idvalidator.uin.version>1.1.4</kernel.idvalidator.uin.version>
+		<kernel.idgenerator.vid.version>1.1.4</kernel.idgenerator.vid.version>
+		<kernel.idvalidator.vid.version>1.1.4</kernel.idvalidator.vid.version>
+		<kernel.dataaccess.hibernate.version>1.1.4</kernel.dataaccess.hibernate.version>
 		<json.schema.validator.version>2.2.10</json.schema.validator.version>
-		<kernel-websubclient-api.version>1.1.2</kernel-websubclient-api.version>
+		<kernel-websubclient-api.version>1.1.4</kernel-websubclient-api.version>
 	</properties>
 
 	<dependencies>
@@ -66,6 +67,21 @@
 			<artifactId>kernel-core</artifactId>
 			<version>${kernel.core.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+			<version>${spring.boot.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
+			<version>${spring.security.test.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-config</artifactId>
+			<version>${spring-cloud-config.version}</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -75,6 +91,7 @@
 				<version>${spring.boot.version}</version>
 				<configuration>
 					<executable>true</executable>
+					<layout>ZIP</layout>
 				</configuration>
 				<executions>
 					<execution>

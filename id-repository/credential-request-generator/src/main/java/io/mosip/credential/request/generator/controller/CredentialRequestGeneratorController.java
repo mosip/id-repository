@@ -51,8 +51,8 @@ public class CredentialRequestGeneratorController {
 	 */
 	@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
 	@PostMapping(path = "/requestgenerator", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "Get the credential issuance request id", response = CredentialIssueResponseDto.class)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Get request id successfully"),
+	@ApiOperation(value = "Create the  credential issuance request", response = CredentialIssueResponseDto.class)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Created request id successfully"),
 			@ApiResponse(code = 400, message = "Unable to get request id") })
 	public ResponseEntity<Object> credentialIssue(
 			@RequestBody  RequestWrapper<CredentialIssueRequestDto>  credentialIssueRequestDto) {
@@ -63,7 +63,7 @@ public class CredentialRequestGeneratorController {
 	}
 	@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
 	@GetMapping(path = "/cancel/{requestId}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "cancel the request", response = CredentialIssueResponseDto.class)
+	@ApiOperation(value = "cancel the credential issuance request", response = CredentialIssueResponseDto.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "cancel the request successfully"),
 	@ApiResponse(code=400,message="Unable to cancel the request"),
 			@ApiResponse(code = 500, message = "Internal Server Error") })
@@ -77,9 +77,10 @@ public class CredentialRequestGeneratorController {
 	
 	@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
 	@GetMapping(path = "/get/{requestId}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ApiOperation(value = "get request status", response = CredentialIssueResponseDto.class)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "get the status of request successfully"),
-	@ApiResponse(code=400,message="Unable to get the status of request"),
+	@ApiOperation(value = "get credential issuance request status", response = CredentialIssueResponseDto.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "get the credential issuance status of request successfully"),
+			@ApiResponse(code = 400, message = "Unable to get the status of credential issuance request"),
 			@ApiResponse(code = 500, message = "Internal Server Error") })
 	@ResponseBody
 	public ResponseEntity<Object> getCredentialRequestStatus(@PathVariable("requestId") String requestId) {
