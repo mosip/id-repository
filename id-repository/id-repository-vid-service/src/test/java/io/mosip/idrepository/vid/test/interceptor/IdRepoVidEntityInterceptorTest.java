@@ -72,7 +72,7 @@ public class IdRepoVidEntityInterceptorTest {
 
 	@Test
 	public void testOnSave() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
-		when(securityManager.encryptWithSalt(Mockito.any(),Mockito.any())).thenReturn("".getBytes());
+		when(securityManager.encryptWithSalt(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn("".getBytes());
 		Vid vid = new Vid();
 		vid.setUin("461_7329815461_7C9JlRD32RnFTzAmeTfIzg");
 		assertFalse(interceptor.onSave(vid, null, new Object[] { "461_7329815461_7C9JlRD32RnFTzAmeTfIzg" }, new String[] { "uin" }, null));
@@ -80,7 +80,7 @@ public class IdRepoVidEntityInterceptorTest {
 
 	@Test
 	public void testOnSaveEncryptionFailed() throws IdRepoAppException {
-		when(securityManager.encryptWithSalt(Mockito.any(),Mockito.any())).thenThrow(new IdRepoAppException());
+		when(securityManager.encryptWithSalt(Mockito.any(),Mockito.any(),Mockito.any())).thenThrow(new IdRepoAppException());
 		Vid vid = new Vid();
 		vid.setUin("461_7329815461_7C9JlRD32RnFTzAmeTfIzg");
 		try {
@@ -93,7 +93,7 @@ public class IdRepoVidEntityInterceptorTest {
 
 	@Test
 	public void testOnFlushDirty() throws IdRepoAppException {
-		when(securityManager.encryptWithSalt(Mockito.any(),Mockito.any())).thenReturn("".getBytes());
+		when(securityManager.encryptWithSalt(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn("".getBytes());
 		Vid vid = new Vid();
 		vid.setUin("461_7329815461_7C9JlRD32RnFTzAmeTfIzg");
 		assertFalse(interceptor.onFlushDirty(vid, null, new Object[] { "461_7329815461_7C9JlRD32RnFTzAmeTfIzg" }, null, new String[] { "uin" }, null));
@@ -101,7 +101,7 @@ public class IdRepoVidEntityInterceptorTest {
 
 	@Test
 	public void testOnFlushDirtyEncryptionFailed() throws IdRepoAppException {
-		when(securityManager.encryptWithSalt(Mockito.any(),Mockito.any())).thenThrow(new IdRepoAppException());
+		when(securityManager.encryptWithSalt(Mockito.any(),Mockito.any(),Mockito.any())).thenThrow(new IdRepoAppException());
 		Vid vid = new Vid();
 		vid.setUin("461_7329815461_7C9JlRD32RnFTzAmeTfIzg");
 		try {
