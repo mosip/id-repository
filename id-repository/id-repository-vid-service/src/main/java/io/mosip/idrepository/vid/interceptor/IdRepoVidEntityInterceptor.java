@@ -10,6 +10,7 @@ import java.util.List;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.mosip.idrepository.core.exception.IdRepoAppException;
@@ -28,6 +29,9 @@ import io.mosip.kernel.core.util.CryptoUtil;
  */
 @Component
 public class IdRepoVidEntityInterceptor extends EmptyInterceptor {
+	
+	@Value("${mosip.idrepo.crypto.appId.uin}")
+	private String uinAppId;
 
 	/** The Constant ID_REPO_ENTITY_INTERCEPTOR. */
 	private static final String ID_REPO_ENTITY_INTERCEPTOR = "IdRepoEntityInterceptor";
@@ -58,7 +62,7 @@ public class IdRepoVidEntityInterceptor extends EmptyInterceptor {
 				int uinIndex = propertyNamesList.indexOf("uin");
 				List<String> uinList = Arrays.asList(vidEntity.getUin().split(SPLITTER));
 				byte[] encryptedUinByteWithSalt = securityManager.encryptWithSalt(uinList.get(1).getBytes(),
-						CryptoUtil.decodeBase64(uinList.get(2)));
+						CryptoUtil.decodeBase64(uinList.get(2)), uinAppId);
 				String encryptedUinWithSalt = uinList.get(0) + SPLITTER + new String(encryptedUinByteWithSalt);
 				vidEntity.setUin(encryptedUinWithSalt);
 				state[uinIndex] = vidEntity.getUin();
@@ -89,7 +93,7 @@ public class IdRepoVidEntityInterceptor extends EmptyInterceptor {
 				Vid vidEntity = (Vid) entity;
 				List<String> uinList = Arrays.asList(vidEntity.getUin().split(SPLITTER));
 				byte[] encryptedUinByteWithSalt = securityManager.encryptWithSalt(uinList.get(1).getBytes(),
-						CryptoUtil.decodeBase64(uinList.get(2)));
+						CryptoUtil.decodeBase64(uinList.get(2)), uinAppId);
 				String encryptedUinWithSalt = uinList.get(0) + SPLITTER + new String(encryptedUinByteWithSalt);
 				vidEntity.setUin(encryptedUinWithSalt);
 				currentState[uinIndex] = vidEntity.getUin();

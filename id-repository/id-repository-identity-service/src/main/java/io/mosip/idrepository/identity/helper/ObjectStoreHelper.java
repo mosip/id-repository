@@ -23,6 +23,12 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
  */
 @Component
 public class ObjectStoreHelper {
+	
+	@Value("${mosip.idrepo.crypto.refId.bio-doc-data}")
+	private String bioDataRefId;
+	
+	@Value("${mosip.idrepo.crypto.refId.demo-doc-data}")
+	private String demoDataRefId;
 
 	/** The Constant SLASH. */
 	private static final String SLASH = "/";
@@ -62,19 +68,19 @@ public class ObjectStoreHelper {
 	}
 
 	public void putDemographicObject(String uinHash, String fileRefId, byte[] data) throws IdRepoAppException {
-		putObject(uinHash, false, fileRefId, data);
+		putObject(uinHash, false, fileRefId, data, demoDataRefId);
 	}
 
 	public void putBiometricObject(String uinHash, String fileRefId, byte[] data) throws IdRepoAppException {
-		putObject(uinHash, true, fileRefId, data);
+		putObject(uinHash, true, fileRefId, data, bioDataRefId);
 	}
 
 	public byte[] getDemographicObject(String uinHash, String fileRefId) throws IdRepoAppException, IOException {
-		return getObject(uinHash, false, fileRefId);
+		return getObject(uinHash, false, fileRefId, demoDataRefId);
 	}
 
 	public byte[] getBiometricObject(String uinHash, String fileRefId) throws IdRepoAppException, IOException {
-		return getObject(uinHash, true, fileRefId);
+		return getObject(uinHash, true, fileRefId, bioDataRefId);
 	}
 
 	private boolean exists(String uinHash, boolean isBio, String fileRefId) {
@@ -82,15 +88,15 @@ public class ObjectStoreHelper {
 		return objectStore.exists(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
 	}
 
-	private void putObject(String uinHash, boolean isBio, String fileRefId, byte[] data) throws IdRepoAppException {
+	private void putObject(String uinHash, boolean isBio, String fileRefId, byte[] data, String appId) throws IdRepoAppException {
 		String objectName = uinHash + SLASH + (isBio ? BIOMETRICS : DEMOGRAPHICS) + SLASH + fileRefId;
 		objectStore.putObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName,
-				new ByteArrayInputStream(securityManager.encrypt(data)));
+				new ByteArrayInputStream(securityManager.encrypt(data, appId)));
 	}
 
-	private byte[] getObject(String uinHash, boolean isBio, String fileRefId) throws IdRepoAppException, IOException {
+	private byte[] getObject(String uinHash, boolean isBio, String fileRefId, String appId) throws IdRepoAppException, IOException {
 		String objectName = uinHash + SLASH + (isBio ? BIOMETRICS : DEMOGRAPHICS) + SLASH + fileRefId;
 		return securityManager.decrypt(IOUtils.toByteArray(
-				objectStore.getObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName)));
+				objectStore.getObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName)), appId);
 	}
 }
