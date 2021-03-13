@@ -282,11 +282,11 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 							schemaVersion = String
 									.valueOf(((Map<String, Object>) requestMap.get(ROOT_PATH)).get("IDSchemaVersion"));
 							if (method.equals(CREATE)) {
-//								idObjectValidator.validateIdObject(getSchema(schemaVersion), requestMap,
-//										newRegistrationFields);
+								idObjectValidator.validateIdObject(getSchema(schemaVersion), requestMap,
+										newRegistrationFields);
 							} else {
-//								idObjectValidator.validateIdObject(getSchema(schemaVersion), requestMap,
-//										updateUinFields);
+								idObjectValidator.validateIdObject(getSchema(schemaVersion), requestMap,
+										updateUinFields);
 							}
 						}
 					}
@@ -302,26 +302,26 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					(VALIDATE_REQUEST + "IdRepoAppException " + e.getMessage()));
 			errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
 					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), ROOT_PATH));
-//		} catch (IdObjectValidationFailedException e) {
-//			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REQUEST_VALIDATOR,
-//					(VALIDATE_REQUEST + "IdObjectValidationFailedException  " + e.getMessage()));
-//			IntStream.range(0, e.getErrorTexts().size()).boxed()
-//					.forEach(index -> errors.rejectValue(REQUEST,
-//							e.getCodes().get(index).equals(IdObjectValidatorErrorConstant.INVALID_INPUT_PARAMETER
-//									.getErrorCode()) ? INVALID_INPUT_PARAMETER.getErrorCode()
-//											: MISSING_INPUT_PARAMETER.getErrorCode(),
-//							String.format(
-//									e.getCodes().get(index)
-//											.equals(IdObjectValidatorErrorConstant.INVALID_INPUT_PARAMETER
-//													.getErrorCode()) ? INVALID_INPUT_PARAMETER.getErrorMessage()
-//															: MISSING_INPUT_PARAMETER.getErrorMessage(),
-//									Arrays.asList(e.getErrorTexts().get(index).split("-")[1].trim().split("\\|"))
-//											.stream().collect(Collectors.joining(" | ")))));
-//		} catch (InvalidIdSchemaException | IdObjectIOException e) {
-//			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REQUEST_VALIDATOR,
-//					VALIDATE_REQUEST + " InvalidIdSchemaException | IdObjectIOException " + e.getMessage());
-//			errors.rejectValue(REQUEST, ID_OBJECT_PROCESSING_FAILED.getErrorCode(),
-//					ID_OBJECT_PROCESSING_FAILED.getErrorMessage());
+		} catch (IdObjectValidationFailedException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REQUEST_VALIDATOR,
+					(VALIDATE_REQUEST + "IdObjectValidationFailedException  " + e.getMessage()));
+			IntStream.range(0, e.getErrorTexts().size()).boxed()
+					.forEach(index -> errors.rejectValue(REQUEST,
+							e.getCodes().get(index).equals(IdObjectValidatorErrorConstant.INVALID_INPUT_PARAMETER
+									.getErrorCode()) ? INVALID_INPUT_PARAMETER.getErrorCode()
+											: MISSING_INPUT_PARAMETER.getErrorCode(),
+							String.format(
+									e.getCodes().get(index)
+											.equals(IdObjectValidatorErrorConstant.INVALID_INPUT_PARAMETER
+													.getErrorCode()) ? INVALID_INPUT_PARAMETER.getErrorMessage()
+															: MISSING_INPUT_PARAMETER.getErrorMessage(),
+									Arrays.asList(e.getErrorTexts().get(index).split("-")[1].trim().split("\\|"))
+											.stream().collect(Collectors.joining(" | ")))));
+		} catch (InvalidIdSchemaException | IdObjectIOException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REQUEST_VALIDATOR,
+					VALIDATE_REQUEST + " InvalidIdSchemaException | IdObjectIOException " + e.getMessage());
+			errors.rejectValue(REQUEST, ID_OBJECT_PROCESSING_FAILED.getErrorCode(),
+					ID_OBJECT_PROCESSING_FAILED.getErrorMessage());
 		}
 	}
 
@@ -406,32 +406,32 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 *            the schema version
 	 * @return the schema
 	 */
-//	private String getSchema(String schemaVersion) {
-//		if (Objects.isNull(schemaVersion) || schemaVersion.contentEquals("null")) {
-//			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "getSchema",
-//					"\n" + "schemaVersion is null");
-//			throw new IdRepoAppUncheckedException(MISSING_INPUT_PARAMETER.getErrorCode(),
-//					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(),
-//							ROOT_PATH + IdObjectValidatorConstant.PATH_SEPERATOR + "IDSchemaVersion"));
-//		}
-//		try {
-//			if (schemaMap.containsKey(schemaVersion)) {
-//				return schemaMap.get(schemaVersion);
-//			} else {
-//				RestRequestDTO restRequest;
-//				restRequest = restBuilder.buildRequest(RestServicesConstants.SYNCDATA_SERVICE, null,
-//						ResponseWrapper.class);
-//				restRequest.setUri(restRequest.getUri().concat("?schemaVersion=" + schemaVersion));
-//				ResponseWrapper<Map<String, String>> response = restHelper.requestSync(restRequest);
-//				schemaMap.put(schemaVersion, response.getResponse().get("schemaJson"));
-//				return getSchema(schemaVersion);
-//			}
-//		} catch (IdRepoDataValidationException | RestServiceException e) {
-//			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "getSchema",
-//					"\n" + e.getMessage());
-//			throw new IdRepoAppUncheckedException(IdRepoErrorConstants.SCHEMA_RETRIEVE_ERROR);
-//		}
-//	}
+	private String getSchema(String schemaVersion) {
+		if (Objects.isNull(schemaVersion) || schemaVersion.contentEquals("null")) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "getSchema",
+					"\n" + "schemaVersion is null");
+			throw new IdRepoAppUncheckedException(MISSING_INPUT_PARAMETER.getErrorCode(),
+					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(),
+							ROOT_PATH + IdObjectValidatorConstant.PATH_SEPERATOR + "IDSchemaVersion"));
+		}
+		try {
+			if (schemaMap.containsKey(schemaVersion)) {
+				return schemaMap.get(schemaVersion);
+			} else {
+				RestRequestDTO restRequest;
+				restRequest = restBuilder.buildRequest(RestServicesConstants.SYNCDATA_SERVICE, null,
+						ResponseWrapper.class);
+				restRequest.setUri(restRequest.getUri().concat("?schemaVersion=" + schemaVersion));
+				ResponseWrapper<Map<String, String>> response = restHelper.requestSync(restRequest);
+				schemaMap.put(schemaVersion, response.getResponse().get("schemaJson"));
+				return getSchema(schemaVersion);
+			}
+		} catch (IdRepoDataValidationException | RestServiceException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "getSchema",
+					"\n" + e.getMessage());
+			throw new IdRepoAppUncheckedException(IdRepoErrorConstants.SCHEMA_RETRIEVE_ERROR);
+		}
+	}
 
 	/**
 	 * Convert to map.
