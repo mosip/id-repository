@@ -30,8 +30,8 @@ import io.mosip.kernel.core.util.CryptoUtil;
 @Component
 public class IdRepoVidEntityInterceptor extends EmptyInterceptor {
 	
-	@Value("${mosip.idrepo.crypto.appId.uin}")
-	private String uinAppId;
+	@Value("${mosip.idrepo.crypto.refId.uin}")
+	private String uinRefId;
 
 	/** The Constant ID_REPO_ENTITY_INTERCEPTOR. */
 	private static final String ID_REPO_ENTITY_INTERCEPTOR = "IdRepoEntityInterceptor";
@@ -62,7 +62,7 @@ public class IdRepoVidEntityInterceptor extends EmptyInterceptor {
 				int uinIndex = propertyNamesList.indexOf("uin");
 				List<String> uinList = Arrays.asList(vidEntity.getUin().split(SPLITTER));
 				byte[] encryptedUinByteWithSalt = securityManager.encryptWithSalt(uinList.get(1).getBytes(),
-						CryptoUtil.decodeBase64(uinList.get(2)), uinAppId);
+						CryptoUtil.decodeBase64(uinList.get(2)), uinRefId);
 				String encryptedUinWithSalt = uinList.get(0) + SPLITTER + new String(encryptedUinByteWithSalt);
 				vidEntity.setUin(encryptedUinWithSalt);
 				state[uinIndex] = vidEntity.getUin();
@@ -93,7 +93,7 @@ public class IdRepoVidEntityInterceptor extends EmptyInterceptor {
 				Vid vidEntity = (Vid) entity;
 				List<String> uinList = Arrays.asList(vidEntity.getUin().split(SPLITTER));
 				byte[] encryptedUinByteWithSalt = securityManager.encryptWithSalt(uinList.get(1).getBytes(),
-						CryptoUtil.decodeBase64(uinList.get(2)), uinAppId);
+						CryptoUtil.decodeBase64(uinList.get(2)), uinRefId);
 				String encryptedUinWithSalt = uinList.get(0) + SPLITTER + new String(encryptedUinByteWithSalt);
 				vidEntity.setUin(encryptedUinWithSalt);
 				currentState[uinIndex] = vidEntity.getUin();
