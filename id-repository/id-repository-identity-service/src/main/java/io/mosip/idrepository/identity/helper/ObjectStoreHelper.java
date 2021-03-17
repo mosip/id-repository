@@ -88,15 +88,15 @@ public class ObjectStoreHelper {
 		return objectStore.exists(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
 	}
 
-	private void putObject(String uinHash, boolean isBio, String fileRefId, byte[] data, String appId) throws IdRepoAppException {
+	private void putObject(String uinHash, boolean isBio, String fileRefId, byte[] data, String refId) throws IdRepoAppException {
 		String objectName = uinHash + SLASH + (isBio ? BIOMETRICS : DEMOGRAPHICS) + SLASH + fileRefId;
 		objectStore.putObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName,
-				new ByteArrayInputStream(securityManager.encrypt(data, appId)));
+				new ByteArrayInputStream(securityManager.encrypt(data, refId)));
 	}
 
-	private byte[] getObject(String uinHash, boolean isBio, String fileRefId, String appId) throws IdRepoAppException, IOException {
+	private byte[] getObject(String uinHash, boolean isBio, String fileRefId, String refId) throws IdRepoAppException, IOException {
 		String objectName = uinHash + SLASH + (isBio ? BIOMETRICS : DEMOGRAPHICS) + SLASH + fileRefId;
 		return securityManager.decrypt(IOUtils.toByteArray(
-				objectStore.getObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName)), appId);
+				objectStore.getObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName)), refId);
 	}
 }
