@@ -1,9 +1,9 @@
 ### -- ---------------------------------------------------------------------------------------------------------
-### -- Script Name		: IDMAP DB Artifacts deploy
-### -- Deploy Module 	: MOSIP IDMAP
-### -- Purpose    		: To deploy MOSIP IDMAP Database DB Artifacts.       
+### -- Script Name		: CREDENTIAL DB Artifacts deploy
+### -- Deploy Module 	: MOSIP CREDENTIAL
+### -- Purpose    		: To deploy MOSIP CREDENTIAL Database DB Artifacts.       
 ### -- Create By   		: Sadanandegowda DM
-### -- Created Date		: 25-Oct-2019
+### -- Created Date		: Aug-2020
 ### -- 
 ### -- Modified Date        Modified By         Comments / Remarks
 ### -- -----------------------------------------------------------------------------------------------------------
@@ -43,12 +43,10 @@ echo `date "+%m/%d/%Y %H:%M:%S"` ": --------------------------------------------
 
      echo `date "+%m/%d/%Y %H:%M:%S"` ": Started sourcing the $MOSIP_DB_NAME Database scripts" | tee -a $LOG 2>&1
 #echo "date:" `date "+%m/%d/%Y %H:%M:%S"`
-     echo `date "+%m/%d/%Y %H:%M:%S"` ": Database scripts are sourcing from :$BASEPATH" | tee -a $LOG 2>&1
 
-#========================================DB Deployment process begins on IDMAP DB SERVER======================================
+#========================================DB Deployment process begins on CREDENTIAL DB SERVER======================================
 
 echo `date "+%m/%d/%Y %H:%M:%S"` ": Database deployment on $MOSIP_DB_NAME database is started...." | tee -a $LOG 2>&1
-cd /$BASEPATH/$MOSIP_DB_NAME/
 VALUE=$(PGPASSWORD=$SU_USER_PWD  psql --username=$SU_USER --host=$DB_SERVERIP --port=$DB_PORT --dbname=$DEFAULT_DB_NAME -t -c "select count(1) from pg_roles where rolname IN('sysadmin','appadmin','dbadmin')";exit; >> $LOG 2>&1)
 echo `date "+%m/%d/%Y %H:%M:%S"` ": Checking for existing users.... Count of existing users:"$VALUE | tee -a $LOG 2>&1
 if [ ${VALUE} == 0 ]
@@ -76,14 +74,14 @@ else
     echo `date "+%m/%d/%Y %H:%M:%S"` ": Active connections exist on the database server and active connection will be terminated for DB deployment." | tee -a $LOG 2>&1
 fi 
 
-MASTERCONN=$(PGPASSWORD=$SU_USER_PWD  psql --username=$SU_USER --host=$DB_SERVERIP --port=$DB_PORT --dbname=$DEFAULT_DB_NAME -t -c "select count(1) from pg_roles where rolname IN('idmapuser')";exit; >> $LOG 2>&1)
+MASTERCONN=$(PGPASSWORD=$SU_USER_PWD  psql --username=$SU_USER --host=$DB_SERVERIP --port=$DB_PORT --dbname=$DEFAULT_DB_NAME -t -c "select count(1) from pg_roles where rolname IN('credentialuser')";exit; >> $LOG 2>&1)
 
 if [ ${MASTERCONN} == 0 ]
 then
-    echo `date "+%m/%d/%Y %H:%M:%S"` ": Creating idmap database user" | tee -a $LOG 2>&1
+    echo `date "+%m/%d/%Y %H:%M:%S"` ": Creating Credential database user" | tee -a $LOG 2>&1
     PGPASSWORD=$SYSADMIN_PWD psql --username=$SYSADMIN_USER --host=$DB_SERVERIP --port=$DB_PORT --dbname=$DEFAULT_DB_NAME -f $APP_ROLE_FILENAME -v dbuserpwd=\'$DBUSER_PWD\' >> $LOG 2>&1
 else
-    echo `date "+%m/%d/%Y %H:%M:%S"` ": Idmap user already exist" | tee -a $LOG 2>&1
+    echo `date "+%m/%d/%Y %H:%M:%S"` ": credentialuser user already exist" | tee -a $LOG 2>&1
 fi
 PGPASSWORD=$SYSADMIN_PWD psql --username=$SYSADMIN_USER --host=$DB_SERVERIP --port=$DB_PORT --dbname=$DEFAULT_DB_NAME -f $DB_CREATION_FILENAME >> $LOG 2>&1
 PGPASSWORD=$SYSADMIN_PWD psql --username=$SYSADMIN_USER --host=$DB_SERVERIP --port=$DB_PORT --dbname=$DEFAULT_DB_NAME -f $ACCESS_GRANT_FILENAME >> $LOG 2>&1
