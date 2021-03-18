@@ -151,6 +151,9 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	private static final String ID_REPO_VID_SERVICE = "VidService";
 	
 	private static final String PARNER_ACTIVE_STATUS = "Active";
+	
+	@Value("${mosip.idrepo.crypto.refId.uin}")
+	private String uinRefId;
 
 	/** The env. */
 	@Autowired
@@ -714,7 +717,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(Integer.parseInt(uinDetails.get(0)));
 		String encryptedUin = uin.substring(uinDetails.get(0).length() + 1, uin.length());
 		String decryptedUin = new String(securityManager.decryptWithSalt(CryptoUtil.decodeBase64(encryptedUin),
-				CryptoUtil.decodeBase64(decryptSalt)));
+				CryptoUtil.decodeBase64(decryptSalt), uinRefId));
 		String uinHashWithSalt = uinDetails.get(0) + SPLITTER
 				+ securityManager.hashwithSalt(decryptedUin.getBytes(), CryptoUtil.decodeBase64(hashSalt));
 		if (!MessageDigest.isEqual(uinHashWithSalt.getBytes(), uinHash.getBytes())) {

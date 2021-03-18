@@ -415,7 +415,7 @@ public class VidServiceImplTest {
 		identityResponse.setResponse(response);
 		when(restHelper.requestSync(Mockito.any())).thenReturn(identityResponse);
 		try {
-			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any()))
+			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
 					.thenReturn("3920450236".getBytes());
 			VidRequestDTO request = new VidRequestDTO();
 			request.setUin("2953190571");
@@ -442,7 +442,7 @@ public class VidServiceImplTest {
 		identityResponse.setResponse(response);
 		when(restHelper.requestSync(Mockito.any())).thenReturn(identityResponse);
 		try {
-			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any()))
+			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
 					.thenReturn("3920450236".getBytes());
 			VidRequestDTO request = new VidRequestDTO();
 			request.setUin("2953190571");
@@ -574,7 +574,7 @@ public class VidServiceImplTest {
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 		String uin = "3920450236";
-		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any())).thenReturn(uin.getBytes());
+		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(uin.getBytes());
 		ResponseWrapper<VidResponseDTO> retrieveUinByVid = service.retrieveUinByVid("12345678");
 		assertEquals(uin, String.valueOf(retrieveUinByVid.getResponse().getUin()));
 	}
@@ -592,7 +592,7 @@ public class VidServiceImplTest {
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 		try {
-			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any()))
+			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
 					.thenReturn("3920450236".getBytes());
 			service.retrieveUinByVid("12345678");
 		} catch (IdRepoAppException e) {
@@ -616,7 +616,7 @@ public class VidServiceImplTest {
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 		try {
-			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any()))
+			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
 					.thenReturn("3920450236".getBytes());
 			service.retrieveUinByVid("12345678");
 		} catch (IdRepoAppException e) {
@@ -638,7 +638,7 @@ public class VidServiceImplTest {
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 		try {
-			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any()))
+			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
 					.thenReturn("3920450236".getBytes());
 			service.retrieveUinByVid("12345678");
 		} catch (IdRepoAppException e) {
@@ -674,7 +674,7 @@ public class VidServiceImplTest {
 		Mockito.when(vidRepo.retrieveUinByVid(Mockito.anyString())).thenReturn("1234567");
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any())).thenReturn("3920450236".getBytes());
+		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("3920450236".getBytes());
 		Mockito.when(securityManager.hashwithSalt(Mockito.any(), Mockito.any())).thenReturn("3920450236");
 		VidPolicy policy = new VidPolicy();
 		policy.setAllowedInstances(1);
@@ -718,10 +718,10 @@ public class VidServiceImplTest {
 		Mockito.when(vidRepo.save(Mockito.any())).thenReturn(vid);
 		Mockito.when(securityManager.hash(Mockito.any()))
 				.thenReturn("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
-		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any())).thenReturn("3920450236".getBytes());
+		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("3920450236".getBytes());
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any())).thenReturn("3920450236".getBytes());
+		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("3920450236".getBytes());
 		VidRequestDTO request = new VidRequestDTO();
 		request.setVidStatus("REVOKE");
 		RestRequestDTO restReq = new RestRequestDTO();
@@ -781,7 +781,7 @@ public class VidServiceImplTest {
 		Mockito.when(vidRepo.save(Mockito.any())).thenReturn(vid);
 		Mockito.when(securityManager.hash(Mockito.any()))
 				.thenReturn("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
-		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any())).thenReturn("3920450236".getBytes());
+		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("3920450236".getBytes());
 		RestRequestDTO restReq = new RestRequestDTO();
 		when(restBuilder.buildRequest(RestServicesConstants.VID_GENERATOR_SERVICE, null, ResponseWrapper.class)).thenReturn(restReq);
 		ResponseWrapper<Object> responseWrapper = new ResponseWrapper<>();
@@ -882,7 +882,7 @@ public class VidServiceImplTest {
 		try {
 			when(securityManager.hash(Mockito.any()))
 			.thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any()))
+			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
 					.thenReturn("3920450236".getBytes());
 			service.regenerateVid("123");
 		} catch (IdRepoAppException e) {
@@ -922,7 +922,7 @@ public class VidServiceImplTest {
 		when(securityManager.hash(Mockito.any()))
 				.thenReturn("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
 		try {
-			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any()))
+			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
 					.thenReturn("3920450236".getBytes());
 			service.regenerateVid("123");
 		} catch (IdRepoAppException e) {
@@ -936,7 +936,7 @@ public class VidServiceImplTest {
 		RestRequestDTO restRequestDTO = new RestRequestDTO();
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any()))
+		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
 		.thenReturn("3920450236".getBytes());
 		when(securityManager.hash(Mockito.any()))
 				.thenReturn("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
@@ -958,7 +958,7 @@ public class VidServiceImplTest {
 		RestRequestDTO restRequestDTO = new RestRequestDTO();
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any()))
+		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
 		.thenReturn("3920450236".getBytes());
 		when(securityManager.hash(Mockito.any()))
 				.thenReturn("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
@@ -983,7 +983,7 @@ public class VidServiceImplTest {
 		RestRequestDTO restRequestDTO = new RestRequestDTO();
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any()))
+		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
 		.thenReturn("3920450236".getBytes());
 		when(securityManager.hash(Mockito.any()))
 				.thenReturn("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
