@@ -104,6 +104,8 @@ public class IdRepoConstants {
 	
 	public static final String OBJECT_STORE_ADAPTER_NAME = "mosip.idrepo.objectstore.adapter-name";
 	
+	public static final String PREPEND_THUMPRINT_STATUS = "mosip.credential.service.share.prependThumbprint";
+	
 	/** The value. */
 	private final String value;
 

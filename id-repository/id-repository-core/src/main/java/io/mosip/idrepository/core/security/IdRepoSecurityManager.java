@@ -1,5 +1,6 @@
 package io.mosip.idrepository.core.security;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.PREPEND_THUMPRINT_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_ID;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DATETIME_PATTERN;
@@ -134,7 +135,7 @@ public class IdRepoSecurityManager {
 			request.put("timeStamp", DateUtils.formatDate(new Date(), env.getProperty(DATETIME_PATTERN)));
 			request.put("data", CryptoUtil.encodeBase64(dataToEncrypt));
 			request.put("referenceId", refId);
-			request.put("prependThumbprint", true);
+			request.put("prependThumbprint", env.getProperty(PREPEND_THUMPRINT_STATUS));
 			baseRequest.setRequest(request);
 			return encryptDecryptData(restBuilder.buildRequest(RestServicesConstants.CRYPTO_MANAGER_ENCRYPT,
 					baseRequest, ObjectNode.class));
@@ -165,7 +166,7 @@ public class IdRepoSecurityManager {
 			request.put("data", CryptoUtil.encodeBase64(dataToEncrypt));
 			request.put("salt", CryptoUtil.encodeBase64(saltToEncrypt));
 			request.put("referenceId", refId);
-			request.put("prependThumbprint", true);
+			request.put("prependThumbprint", env.getProperty(PREPEND_THUMPRINT_STATUS));
 			baseRequest.setRequest(request);
 			return encryptDecryptData(restBuilder.buildRequest(RestServicesConstants.CRYPTO_MANAGER_ENCRYPT,
 					baseRequest, ObjectNode.class));
@@ -194,7 +195,7 @@ public class IdRepoSecurityManager {
 			request.put("referenceId", refId);
 			request.put("timeStamp", DateUtils.formatDate(new Date(), env.getProperty(DATETIME_PATTERN)));
 			request.put("data", new String(dataToDecrypt));
-			request.put("prependThumbprint", true);
+			request.put("prependThumbprint", env.getProperty(PREPEND_THUMPRINT_STATUS));
 			baseRequest.setRequest(request);
 			return CryptoUtil.decodeBase64(new String(encryptDecryptData(restBuilder
 					.buildRequest(RestServicesConstants.CRYPTO_MANAGER_DECRYPT, baseRequest, ObjectNode.class))));
@@ -225,7 +226,7 @@ public class IdRepoSecurityManager {
 			request.put("timeStamp", DateUtils.formatDate(new Date(), env.getProperty(DATETIME_PATTERN)));
 			request.put("data", CryptoUtil.encodeBase64(dataToDecrypt));
 			request.put("salt", CryptoUtil.encodeBase64(saltToDecrypt));
-			request.put("prependThumbprint", true);
+			request.put("prependThumbprint", env.getProperty(PREPEND_THUMPRINT_STATUS));
 			baseRequest.setRequest(request);
 			return CryptoUtil.decodeBase64(new String(encryptDecryptData(restBuilder
 					.buildRequest(RestServicesConstants.CRYPTO_MANAGER_DECRYPT, baseRequest, ObjectNode.class))));
