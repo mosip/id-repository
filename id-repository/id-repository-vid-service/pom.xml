@@ -5,10 +5,10 @@
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.2.0-SNAPSHOT</version>
+		<version>1.1.6-SNAPSHOT</version>
 	</parent>
 	<artifactId>id-repository-vid-service</artifactId>
-	<version>1.2.0-SNAPSHOT</version>
+	<version>1.1.6-SNAPSHOT</version>
 	<name>vid-service</name>
 	<description>ID-Repository Virtual ID Service</description>
 
@@ -17,13 +17,13 @@
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
 		<spring.boot.version>2.0.2.RELEASE</spring.boot.version>
-		<kernel.core.version>1.2.0-SNAPSHOT</kernel.core.version>
-		<kernel.idvalidator.uin.version>1.2.0-SNAPSHOT</kernel.idvalidator.uin.version>
-		<kernel.idgenerator.vid.version>1.2.0-SNAPSHOT</kernel.idgenerator.vid.version>
-		<kernel.idvalidator.vid.version>1.2.0-SNAPSHOT</kernel.idvalidator.vid.version>
-		<kernel.dataaccess.hibernate.version>1.2.0-SNAPSHOT</kernel.dataaccess.hibernate.version>
+		<kernel.core.version>1.1.6-SNAPSHOT</kernel.core.version>
+		<kernel.idvalidator.uin.version>1.1.6-SNAPSHOT</kernel.idvalidator.uin.version>
+		<kernel.idgenerator.vid.version>1.1.6-SNAPSHOT</kernel.idgenerator.vid.version>
+		<kernel.idvalidator.vid.version>1.1.6-SNAPSHOT</kernel.idvalidator.vid.version>
+		<kernel.dataaccess.hibernate.version>1.1.6-SNAPSHOT</kernel.dataaccess.hibernate.version>
 		<json.schema.validator.version>2.2.10</json.schema.validator.version>
-		<kernel-websubclient-api.version>1.2.0-SNAPSHOT</kernel-websubclient-api.version>
+		<kernel-websubclient-api.version>1.1.6-SNAPSHOT</kernel-websubclient-api.version>
 	</properties>
 
 	<dependencies>
