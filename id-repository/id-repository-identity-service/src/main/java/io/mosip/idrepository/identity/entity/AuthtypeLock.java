@@ -47,7 +47,7 @@ public class AuthtypeLock {
 	@Column(name = "lock_end_datetime")
 	private LocalDateTime lockendDTtimes;
 
-	@Column(name = "lock_expiry_datetime")
+	@Column(name = "unlock_expiry_datetime")
 	private LocalDateTime unlockExpiryDTtimes;
 
 	@NotNull
