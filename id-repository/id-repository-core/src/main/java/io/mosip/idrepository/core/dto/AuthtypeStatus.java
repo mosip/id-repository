@@ -1,5 +1,7 @@
 package io.mosip.idrepository.core.dto;
 
+import java.util.Map;
+
 import lombok.Data;
 
 /**
@@ -10,8 +12,9 @@ import lombok.Data;
 @Data
 public class AuthtypeStatus {
 
-	String authType;
-	String authSubType;
-	Boolean locked;
-
+	private String authType;
+	private String authSubType;
+	private Boolean locked;
+	private Long unlockForMinutes;
+	private Map<String, Object> metadata;
 }
