@@ -2,7 +2,7 @@ package io.mosip.idrepository.core.dto;
 
 import java.util.List;
 
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
+import io.mosip.kernel.biometrics.entities.BIR;
 import lombok.Data;
 
 @Data

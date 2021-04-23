@@ -14,8 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-
+import io.mosip.commons.khazana.exception.ObjectStoreAdapterException;
 import io.mosip.idrepository.core.dto.BioExtractRequestDTO;
 import io.mosip.idrepository.core.dto.BioExtractResponseDTO;
 import io.mosip.idrepository.core.exception.BiometricExtractionException;
@@ -27,8 +26,8 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.BiometricExtractionService;
 import io.mosip.idrepository.identity.helper.BioExtractionHelper;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 
 /**
@@ -82,16 +81,15 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 			String extractionType, String extractionFormat, List<BIR> birsForModality) throws IdRepoAppException {
 		try {
 			String extractionFileName = fileName.split("\\.")[0] + DOT + getModalityForFormat(extractionType) + DOT + extractionFormat;
-			// TODO need to remove AmazonS3Exception handling
 			try {
 				if (objectStoreHelper.biometricObjectExists(uinHash, extractionFileName)) {
 					mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
 							"RETURNING EXISTING EXTRACTED BIOMETRICS FOR FORMAT: " + extractionType +" : "+ extractionFormat);
 					byte[] xmlBytes = objectStoreHelper.getBiometricObject(uinHash, extractionFileName);
-					List<BIR> existingBirs = cbeffUtil.convertBIRTypeToBIR(cbeffUtil.getBIRDataFromXML(xmlBytes));
+					List<BIR> existingBirs = cbeffUtil.getBIRDataFromXML(xmlBytes);
 					return CompletableFuture.completedFuture(existingBirs);
 				}
-			} catch (AmazonS3Exception e) {
+			} catch (ObjectStoreAdapterException e) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
 						e.getMessage());
 			}
@@ -112,8 +110,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 		} catch (IOException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE, e.getMessage());
 			throw new IdRepoAppUncheckedException(FILE_STORAGE_ACCESS_ERROR, e);
-		} catch (AmazonS3Exception e) {
-			// TODO need to remove AmazonS3Exception handling
+		} catch (ObjectStoreAdapterException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE, e.getMessage());
 			throw new IdRepoAppUncheckedException(FILE_NOT_FOUND, e);
 		} catch (Exception e) {
