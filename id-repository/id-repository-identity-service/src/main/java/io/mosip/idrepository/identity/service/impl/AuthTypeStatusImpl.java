@@ -123,10 +123,10 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 		List<Object[]> authTypeStatusRecords = fetchAuthTypeStatusRecords(individualId, idType);
 		authTypeStatusList.stream()
 				.filter(status -> Boolean.valueOf((String) authTypeStatusRecords.get(0)[1]) && !status.getLocked()
-						&& Objects.nonNull(status.getUnlockForMinutes()) && status.getUnlockForMinutes() > 0)
+						&& Objects.nonNull(status.getUnlockForSeconds()) && status.getUnlockForSeconds() > 0)
 				.forEach(status -> {
 					status.setMetadata(Collections.singletonMap(UNLOCK_EXP_TIMESTAMP,
-							DateUtils.getUTCCurrentDateTime().plusMinutes(status.getUnlockForMinutes())));
+							DateUtils.getUTCCurrentDateTime().plusSeconds(status.getUnlockForSeconds())));
 					status.setLocked(true);
 				});
 		String uin = idType == IdType.VID ? getUin(individualId) : individualId;
