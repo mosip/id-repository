@@ -14,8 +14,7 @@ import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
  */
 @SpringBootApplication(exclude = HibernateDaoConfig.class)
 @ComponentScan(basePackages = { "io.mosip.*",
-		"${mosip.auth.adapter.impl.basepackage}" }, excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
-				"io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig", "io.mosip.kernel.biometrics.*" }))
+		"${mosip.auth.adapter.impl.basepackage}" }, excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig"))
 public class VidBootApplication {
 
 	/**

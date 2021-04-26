@@ -6,20 +6,16 @@ import org.springframework.boot.actuate.autoconfigure.scheduling.ScheduledTasksE
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
 
 /**
- * The Class SaltGeneratorBootApplication - Salt generator Job is a one-time job
- * which populates salts for hashing and encrypting data.
+ * The Class SaltGeneratorBootApplication - Salt generator Job is a
+ * one-time job which populates salts for hashing and encrypting data.
  *
  * @author Manoj SP
  */
 @SpringBootApplication
 @EnableBatchProcessing
-@EnableAutoConfiguration(exclude = { ScheduledTasksEndpointAutoConfiguration.class })
-@ComponentScan(excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
-		"io.mosip.kernel.biometrics.*" }))
+@EnableAutoConfiguration(exclude={ScheduledTasksEndpointAutoConfiguration.class})  
 public class SaltGeneratorBootApplication {
 
 	/**
@@ -28,7 +24,8 @@ public class SaltGeneratorBootApplication {
 	 * @param args the arguments
 	 */
 	public static void main(String[] args) {
-		ApplicationContext applicationContext = SpringApplication.run(SaltGeneratorBootApplication.class, args);
+		ApplicationContext applicationContext = SpringApplication.run(SaltGeneratorBootApplication.class,
+				args);
 		SpringApplication.exit(applicationContext);
 	}
 
