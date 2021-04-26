@@ -46,10 +46,9 @@ import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
-import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.kernel.biometrics.entities.BDBInfo;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -302,8 +301,7 @@ public class CredentialProvider {
 			}
 		});
 
-		List<BIRType> typeList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(individualBiometricsValue));
-		List<BIR> birList = cbeffutil.convertBIRTypeToBIR(typeList);
+		List<BIR> birList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(individualBiometricsValue));
 
 		for (BIR bir : birList) {
 			BDBInfo bdbInfo = bir.getBdbInfo();
@@ -396,8 +394,8 @@ public class CredentialProvider {
 				}
 			});
 
-			List<BIRType> typeList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(individualBiometricsValue));
-			List<BIR> birList = cbeffutil.convertBIRTypeToBIR(typeList);
+			List<BIR> birList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(individualBiometricsValue));
+
 			List<BIR> filteredBIRList = new ArrayList<>();
 			for (BIR bir : birList) {
 				BDBInfo bdbInfo = bir.getBdbInfo();
