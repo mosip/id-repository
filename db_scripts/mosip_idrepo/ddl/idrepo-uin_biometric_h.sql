@@ -8,7 +8,7 @@
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
--- 
+-- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
 -- ------------------------------------------------------------------------------------------
 
 -- object: idrepo.uin_biometric_h | type: TABLE --
@@ -25,7 +25,7 @@ CREATE TABLE idrepo.uin_biometric_h(
 	cr_dtimes timestamp NOT NULL,
 	upd_by character varying(256),
 	upd_dtimes timestamp,
-	is_deleted boolean,
+	is_deleted boolean NOT NULL DEFAULT FALSE,
 	del_dtimes timestamp,
 	CONSTRAINT pk_uinbh PRIMARY KEY (uin_ref_id,biometric_file_type,eff_dtimes),
 	CONSTRAINT uk_uinbh UNIQUE (uin_ref_id,bio_file_id,eff_dtimes)

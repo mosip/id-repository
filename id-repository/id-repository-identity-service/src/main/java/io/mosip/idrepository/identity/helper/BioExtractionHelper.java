@@ -14,10 +14,9 @@ import org.springframework.stereotype.Component;
 import io.mosip.idrepository.core.exception.BiometricExtractionException;
 import io.mosip.kernel.biometrics.constant.BiometricFunction;
 import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
 import io.mosip.kernel.biosdk.provider.spi.iBioProviderApi;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 
 /**
  * The Class BioExtractionHelper.
@@ -41,12 +40,12 @@ public class BioExtractionHelper {
 	 */
 	public List<BIR> extractTemplates(List<BIR> birs, Map<String, String> extractionFormats) throws BiometricExtractionException {
 		try {
-			Map<SingleType, List<BIR>> birsByType = birs.stream().collect(Collectors.groupingBy(bir -> bir.getBdbInfo().getType().get(0)));
+			Map<BiometricType, List<BIR>> birsByType = birs.stream().collect(Collectors.groupingBy(bir -> bir.getBdbInfo().getType().get(0)));
 			
 			List<BIR> allExtractedTemplates =  new ArrayList<>();
 			
-			for (Entry<SingleType,List<BIR>> entry : birsByType.entrySet()) {
-				SingleType modality = entry.getKey();
+			for (Entry<BiometricType,List<BIR>> entry : birsByType.entrySet()) {
+				BiometricType modality = entry.getKey();
 				iBioProviderApi bioProvider = bioApiFactory.getBioProvider(BiometricType.fromValue(modality.value()),
 						BiometricFunction.EXTRACT);
 				List<BIR> extractedTemplates = bioProvider.extractTemplate(entry.getValue(), extractionFormats);

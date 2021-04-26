@@ -71,9 +71,9 @@ import io.mosip.idrepository.identity.repository.UinRepo;
 import io.mosip.idrepository.identity.service.impl.DefaultShardResolver;
 import io.mosip.idrepository.identity.service.impl.IdRepoProxyServiceImpl;
 import io.mosip.idrepository.identity.service.impl.IdRepoServiceImpl;
+import io.mosip.kernel.biometrics.constant.QualityType;
+import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.QualityType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.http.ResponseWrapper;
 

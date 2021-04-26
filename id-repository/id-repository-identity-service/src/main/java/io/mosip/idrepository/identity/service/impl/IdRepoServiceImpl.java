@@ -69,7 +69,7 @@ import io.mosip.idrepository.identity.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.identity.repository.UinHashSaltRepo;
 import io.mosip.idrepository.identity.repository.UinHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinRepo;
-import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -606,9 +606,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 								identityMap.get(bio.getBiometricFileType()).get(FILE_FORMAT_ATTRIBUTE).asText(),
 								CBEFF_FORMAT) && bio.getBioFileId().endsWith(CBEFF_FORMAT)) {
 							doc.setValue(CryptoUtil.encodeBase64(cbeffUtil.updateXML(
-									cbeffUtil.convertBIRTypeToBIR(
-											cbeffUtil.getBIRDataFromXML(CryptoUtil.decodeBase64(doc.getValue()))),
-									data)));
+									cbeffUtil.getBIRDataFromXML(CryptoUtil.decodeBase64(doc.getValue())), data)));
 						}
 					} catch (Exception e) {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateCbeff",

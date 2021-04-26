@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import io.mosip.idrepository.core.exception.IdRepoAppException;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
+import io.mosip.kernel.biometrics.entities.BIR;
 
 /**
  * The Interface BiometricExtractionService.

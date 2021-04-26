@@ -88,7 +88,7 @@ public class IdRepoSecurityManagerTest {
 				.thenReturn(new RestRequestDTO());
 		when(restHelper.requestSync(Mockito.any()))
 				.thenReturn(mapper.readValue(mapper.writeValueAsString(response), ObjectNode.class));
-		assertEquals("data", new String(securityManager.encrypt("1".getBytes())));
+		assertEquals("data", new String(securityManager.encrypt("1".getBytes(), "")));
 	}
 
 	@Test
@@ -102,7 +102,7 @@ public class IdRepoSecurityManagerTest {
 				.thenReturn(new RestRequestDTO());
 		when(restHelper.requestSync(Mockito.any()))
 				.thenReturn(mapper.readValue(mapper.writeValueAsString(response), ObjectNode.class));
-		assertEquals("data", new String(securityManager.decrypt("1".getBytes())));
+		assertEquals("data", new String(securityManager.decrypt("1".getBytes(), "")));
 	}
 
 	@Test
@@ -117,7 +117,7 @@ public class IdRepoSecurityManagerTest {
 					.thenReturn(new RestRequestDTO());
 			when(restHelper.requestSync(Mockito.any()))
 					.thenThrow(new RestServiceException(IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED));
-			assertEquals("data", new String(securityManager.encrypt("1".getBytes())));
+			assertEquals("data", new String(securityManager.encrypt("1".getBytes(), "")));
 		} catch (IdRepoAppException e) {
 			assertEquals(e.getErrorCode(), IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED.getErrorCode());
 			assertEquals(e.getErrorText(), IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED.getErrorMessage());
@@ -136,7 +136,7 @@ public class IdRepoSecurityManagerTest {
 					.thenReturn(new RestRequestDTO());
 			when(restHelper.requestSync(Mockito.any()))
 					.thenThrow(new RestServiceException(IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED));
-			assertEquals("data", new String(securityManager.decrypt("1".getBytes())));
+			assertEquals("data", new String(securityManager.decrypt("1".getBytes(), "")));
 		} catch (IdRepoAppException e) {
 			assertEquals(e.getErrorCode(), IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED.getErrorCode());
 			assertEquals(e.getErrorText(), IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED.getErrorMessage());
@@ -154,7 +154,7 @@ public class IdRepoSecurityManagerTest {
 					.thenReturn(new RestRequestDTO());
 			when(restHelper.requestSync(Mockito.any()))
 					.thenReturn(mapper.readValue(mapper.writeValueAsString(response), ObjectNode.class));
-			assertEquals("data", new String(securityManager.decrypt("1".getBytes())));
+			assertEquals("data", new String(securityManager.decrypt("1".getBytes(), "")));
 		} catch (IdRepoAppException e) {
 			assertEquals(e.getErrorCode(), IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED.getErrorCode());
 			assertEquals(e.getErrorText(), IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED.getErrorMessage());
