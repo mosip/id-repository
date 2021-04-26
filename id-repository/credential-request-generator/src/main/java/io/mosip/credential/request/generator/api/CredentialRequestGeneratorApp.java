@@ -4,10 +4,9 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.web.client.RestTemplate;
-
 
 /**
  * The Class CredentialRequestGeneratorApp.
@@ -16,19 +15,19 @@ import org.springframework.web.client.RestTemplate;
  */
 @SpringBootApplication
 @Import(value = { java.lang.String.class })
-@ComponentScan(basePackages={ "io.mosip.*" ,"${mosip.auth.adapter.impl.basepackage}"})
+@ComponentScan(basePackages = { "io.mosip.*",
+		"${mosip.auth.adapter.impl.basepackage}" }, excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
+				"io.mosip.kernel.biometrics.*" }))
 @EnableBatchProcessing
 @EnableScheduling
-public class CredentialRequestGeneratorApp 
-{
+public class CredentialRequestGeneratorApp {
 
 	/**
 	 * The main method.
 	 *
 	 * @param args the arguments
 	 */
-    public static void main( String[] args )
-    {
-    	SpringApplication.run(CredentialRequestGeneratorApp.class, args);
-    }
+	public static void main(String[] args) {
+		SpringApplication.run(CredentialRequestGeneratorApp.class, args);
+	}
 }
