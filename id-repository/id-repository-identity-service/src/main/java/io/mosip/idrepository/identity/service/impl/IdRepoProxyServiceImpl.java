@@ -81,9 +81,8 @@ import io.mosip.idrepository.identity.repository.UinHashSaltRepo;
 import io.mosip.idrepository.identity.repository.UinHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinRepo;
 import io.mosip.kernel.biometrics.constant.BiometricType;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
-import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
@@ -226,10 +225,10 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	@Value("${id-repo-ida-event-type-name:ida}")
 	private String idaEventTypeName;
-	
+
 	@Value("${id-repo-ida-credential-type:" + AUTH + "}")
 	private String credentialType;
-	
+
 	@Value("${id-repo-ida-credential-recepiant:" + IDA + "}")
 	private String credentialRecepiant;
 
@@ -242,9 +241,9 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	/** The cbeff util. */
 	@Autowired
 	private CbeffUtil cbeffUtil;
-	
+
 	@Autowired
-	private BiometricExtractionService biometricExtractionService; 
+	private BiometricExtractionService biometricExtractionService;
 
 	/*
 	 * (non-Javadoc)
@@ -548,11 +547,13 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 					byte[] data = objectStoreHelper.getBiometricObject(uinHash, bio.getBioFileId());
 					if (Objects.nonNull(data)) {
 						if (Objects.nonNull(extractionFormats) && !extractionFormats.isEmpty()) {
-							byte[] extractedData = getBiometricsForRequestedFormats(uinHash, bio.getBioFileId(), extractionFormats, data);
+							byte[] extractedData = getBiometricsForRequestedFormats(uinHash, bio.getBioFileId(),
+									extractionFormats, data);
 							if (Objects.nonNull(extractedData)) {
-								documents.add(new DocumentsDTO(bio.getBiometricFileType(), CryptoUtil.encodeBase64(extractedData)));
+								documents.add(new DocumentsDTO(bio.getBiometricFileType(),
+										CryptoUtil.encodeBase64(extractedData)));
 							}
-							
+
 						} else {
 							if (StringUtils.equals(bio.getBiometricFileHash(), securityManager.hash(data))) {
 								documents.add(
@@ -575,43 +576,42 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		});
 	}
 
-	private byte[] getBiometricsForRequestedFormats(String uinHash, String fileName, Map<String, String> extractionFormats, byte[] originalData)
-			throws IdRepoAppException {
+	private byte[] getBiometricsForRequestedFormats(String uinHash, String fileName,
+			Map<String, String> extractionFormats, byte[] originalData) throws IdRepoAppException {
 		try {
-			List<BIRType> originalBirs = cbeffUtil.getBIRDataFromXML(originalData);
+			List<BIR> originalBirs = cbeffUtil.getBIRDataFromXML(originalData);
 			List<BIR> finalBirs = new ArrayList<>();
-			
+
 			List<CompletableFuture<List<BIR>>> extractionFutures = new ArrayList<>();
 
-			for(BiometricType modality : SUPPORTED_MODALITIES) {
-				List<BIRType> birTypesForModality = originalBirs.stream()
-						.filter(bir -> bir.getBDBInfo().getType().get(0).value().equalsIgnoreCase(modality.value()))
+			for (BiometricType modality : SUPPORTED_MODALITIES) {
+				List<BIR> birTypesForModality = originalBirs.stream()
+						.filter(bir -> bir.getBdbInfo().getType().get(0).value().equalsIgnoreCase(modality.value()))
 						.collect(Collectors.toList());
-				
+
 				Optional<Entry<String, String>> extractionFormatForModality = extractionFormats.entrySet().stream()
-						.filter(ent -> ent.getKey().toLowerCase().contains(modality.value().toLowerCase()))
-						.findAny();
-				
-				if(!extractionFormatForModality.isEmpty()) {
+						.filter(ent -> ent.getKey().toLowerCase().contains(modality.value().toLowerCase())).findAny();
+
+				if (!extractionFormatForModality.isEmpty()) {
 					Entry<String, String> format = extractionFormatForModality.get();
 					CompletableFuture<List<BIR>> extractTemplateFuture = biometricExtractionService.extractTemplate(
-							uinHash, fileName, format.getKey(), format.getValue(),
-							cbeffUtil.convertBIRTypeToBIR(birTypesForModality));
+							uinHash, fileName, format.getKey(), format.getValue(), birTypesForModality);
 					extractionFutures.add(extractTemplateFuture);
-					
+
 				} else {
 					mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
 							"GETTING NON EXTRACTED FORMAT for Modality: " + modality.name());
-					finalBirs.addAll(cbeffUtil.convertBIRTypeToBIR(birTypesForModality));
+					finalBirs.addAll(birTypesForModality);
 				}
 			}
-			
-			CompletableFuture.allOf(extractionFutures.toArray(new CompletableFuture<?>[extractionFutures.size()])).join();
-			for(CompletableFuture<List<BIR>> future:  extractionFutures) {
+
+			CompletableFuture.allOf(extractionFutures.toArray(new CompletableFuture<?>[extractionFutures.size()]))
+					.join();
+			for (CompletableFuture<List<BIR>> future : extractionFutures) {
 				finalBirs.addAll(future.get());
 			}
-			
-			return  cbeffUtil.createXML(finalBirs);
+
+			return cbeffUtil.createXML(finalBirs);
 		} catch (IdRepoAppUncheckedException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
@@ -625,7 +625,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
 		}
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
