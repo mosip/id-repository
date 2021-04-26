@@ -127,10 +127,16 @@
       <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
-    	<dependency>
+		<dependency>
 			<groupId>io.mosip.idrepository</groupId>
 			<artifactId>id-repository-core</artifactId>
 			<version>${id.repository.core.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>io.mosip.kernel</groupId>
+					<artifactId>kernel-biosdk-provider</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
