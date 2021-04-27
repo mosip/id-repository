@@ -26,6 +26,7 @@ CREATE TABLE idrepo.uin_auth_lock(
 	upd_dtimes timestamp,
 	is_deleted boolean NOT NULL DEFAULT FALSE,
 	del_dtimes timestamp,
+	unlock_expiry_datetime timestamp,
 	CONSTRAINT pk_uinal PRIMARY KEY (uin_hash,auth_type_code,lock_request_datetime)
 
 );
