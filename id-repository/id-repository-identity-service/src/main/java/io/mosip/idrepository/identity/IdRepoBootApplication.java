@@ -24,7 +24,9 @@ import org.springframework.context.annotation.FilterType;
 						"io.mosip.kernel.keygenerator.*",
 						"io.mosip.kernel.cryptomanager.*",
 						"io.mosip.kernel.crypto.*",
-						"io.mosip.kernel.clientcrypto.*"
+						"io.mosip.kernel.clientcrypto.*",
+						"io.mosip.commons.khazana.impl.PosixAdapter",
+						"io.mosip.commons.khazana.util.*"
 }) })
 public class IdRepoBootApplication {
 
