@@ -19,7 +19,8 @@ public interface AuthLockRepository extends JpaRepository<AuthtypeLock, Integer>
 
 	@Query(value = "select " + 
 			"        t.auth_type_code, " + 
-			"        t.status_code  " + 
+			"        t.status_code,  " + 
+			"        t.unlock_expiry_datetime " + 
 			"    from " + 
 			"        idrepo.uin_auth_lock t  " + 
 			"    inner join " + 

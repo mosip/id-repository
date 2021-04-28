@@ -47,6 +47,9 @@ public class AuthtypeLock {
 	@Column(name = "lock_end_datetime")
 	private LocalDateTime lockendDTtimes;
 
+	@Column(name = "unlock_expiry_datetime")
+	private LocalDateTime unlockExpiryDTtimes;
+
 	@NotNull
 	@Column(name = "status_code")
 	private String statuscode;
@@ -97,9 +100,10 @@ public class AuthtypeLock {
 	 * @param authtypecode
 	 * @param statuscode
 	 */
-	public AuthtypeLock(String authtypecode,  String statuscode) {
+	public AuthtypeLock(String authtypecode,  String statuscode, LocalDateTime unlockExpiryDTtimes) {
 		this.authtypecode = authtypecode;
 		this.statuscode = statuscode;
+		this.unlockExpiryDTtimes = unlockExpiryDTtimes;
 	}
 	
 	
