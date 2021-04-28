@@ -122,7 +122,9 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 			List<AuthtypeStatus> authTypeStatusList) throws IdRepoAppException {
 		List<Object[]> authTypeStatusRecords = fetchAuthTypeStatusRecords(individualId, idType);
 		authTypeStatusList.stream()
-				.filter(status -> Boolean.valueOf((String) authTypeStatusRecords.get(0)[1]) && !status.getLocked()
+				.filter(status -> !authTypeStatusRecords.isEmpty() 
+						&& Objects.nonNull(authTypeStatusRecords.get(0)[1])
+						&& Boolean.valueOf((String) authTypeStatusRecords.get(0)[1]) && !status.getLocked()
 						&& Objects.nonNull(status.getUnlockForSeconds()) && status.getUnlockForSeconds() > 0)
 				.forEach(status -> {
 					status.setMetadata(Collections.singletonMap(UNLOCK_EXP_TIMESTAMP,
