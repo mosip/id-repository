@@ -361,9 +361,10 @@ public class IdRepoController {
 			validator.validateIdvId(authTypeStatusRequest.getIndividualId(), idType);
 			IdResponseDTO updateAuthtypeStatus = authTypeStatusService.updateAuthTypeStatus(
 					authTypeStatusRequest.getIndividualId(), idType, authTypeStatusRequest.getRequest());
+			String individualIdType = authTypeStatusRequest.getIndividualIdType();
 			auditHelper.audit(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
 					authTypeStatusRequest.getIndividualId(),
-					IdType.valueOf(authTypeStatusRequest.getIndividualIdType()),
+					individualIdType == null ? IdType.UIN : IdType.valueOf(individualIdType),
 					"auth type status update status : " + true);
 			return new ResponseEntity<>(updateAuthtypeStatus, HttpStatus.OK);
 		} catch (IdRepoAppException e) {
