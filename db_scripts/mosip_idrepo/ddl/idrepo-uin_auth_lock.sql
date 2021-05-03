@@ -9,6 +9,7 @@
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
 -- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
+-- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes
 -- ------------------------------------------------------------------------------------------
 -- object: idrepo.uin_auth_lock | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.uin_auth_lock CASCADE;
@@ -24,9 +25,8 @@ CREATE TABLE idrepo.uin_auth_lock(
 	cr_dtimes timestamp NOT NULL,
 	upd_by character varying(256),
 	upd_dtimes timestamp,
-	is_deleted boolean NOT NULL DEFAULT FALSE,
+	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
-	unlock_expiry_datetime timestamp,
 	CONSTRAINT pk_uinal PRIMARY KEY (uin_hash,auth_type_code,lock_request_datetime)
 
 );
