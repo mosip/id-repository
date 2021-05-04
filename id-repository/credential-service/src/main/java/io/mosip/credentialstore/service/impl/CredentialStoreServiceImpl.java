@@ -218,7 +218,9 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			signature = digitalSignatureUtil.sign(encodedData, credentialServiceRequestDto.getRequestId());
 			EventModel eventModel = getEventModel(dataShare, credentialServiceRequestDto,
 					jsonData, signature);
-			webSubUtil.publishSuccess(credentialServiceRequestDto.getIssuer(), eventModel);
+			String topic = credentialServiceRequestDto.getIssuer() + "/" + IDAEventType.CREDENTIAL_ISSUED;
+			webSubUtil.registerTopic(topic, credentialServiceRequestDto.getRequestId());
+			webSubUtil.publishSuccess(topic, eventModel);
 			credentialServiceResponse.setSignature(signature);
 			credentialServiceResponse.setStatus("ISSUED");
 			credentialServiceResponse.setCredentialId(dataProviderResponse.getCredentialId());

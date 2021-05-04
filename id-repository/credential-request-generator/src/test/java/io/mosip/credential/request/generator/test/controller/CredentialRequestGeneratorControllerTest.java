@@ -153,7 +153,7 @@ public class CredentialRequestGeneratorControllerTest {
 				.thenReturn(credentialIssueResponseWrapper);
 
 		mockMvc.perform(
-				MockMvcRequestBuilders.get("/retrigger/requestId").contentType(MediaType.APPLICATION_JSON_VALUE))
+				MockMvcRequestBuilders.put("/retrigger/requestId").contentType(MediaType.APPLICATION_JSON_VALUE))
 				.andExpect(status().isOk());
 
 	}

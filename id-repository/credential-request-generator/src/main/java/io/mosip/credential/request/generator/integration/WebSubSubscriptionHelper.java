@@ -50,7 +50,6 @@ public class WebSubSubscriptionHelper {
 	public void initSubsriptions() {
 		LOGGER.info(IdRepoSecurityManager.getUser(), WEBSUBSUBSCRIPTIONHEPLER, INITSUBSCRIPTION,
 				"Initializing subscribptions..");
-		registerTopic();
 		subscribeForPrintServiceEvents();
 	}
 
@@ -68,7 +67,7 @@ public class WebSubSubscriptionHelper {
 		}
 	}
 
-	private void registerTopic() {
+	public void registerTopic() {
 		try {
 			pb.registerTopic("CREDENTIAL_STATUS_UPDATE", partnerhuburl);
 		} catch (WebSubClientException e) {
