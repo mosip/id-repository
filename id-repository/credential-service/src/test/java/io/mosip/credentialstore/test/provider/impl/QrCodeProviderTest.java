@@ -3,7 +3,6 @@ package io.mosip.credentialstore.test.provider.impl;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -37,7 +36,6 @@ import io.mosip.credentialstore.dto.Source;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
 import io.mosip.credentialstore.exception.DataEncryptionFailureException;
-import io.mosip.credentialstore.exception.SignatureException;
 import io.mosip.credentialstore.provider.impl.QrCodeProvider;
 import io.mosip.credentialstore.util.DigitalSignatureUtil;
 import io.mosip.credentialstore.util.EncryptionUtil;
@@ -46,11 +44,11 @@ import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.ResponseDTO;
-import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.QualityType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
-import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.constant.QualityType;
+import io.mosip.kernel.biometrics.entities.BDBInfo;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.spi.CbeffUtil;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*" })
@@ -90,8 +88,7 @@ public class QrCodeProviderTest {
 
 
 	@Before
-	public void setUp() throws DataEncryptionFailureException, ApiNotAccessibleException, SignatureException,
-			IOException {
+	public void setUp() throws Exception {
 		PowerMockito.mockStatic(MVEL.class);
 		Mockito.when(MVEL.executeExpression(Mockito.any(), Mockito.any(), Mockito.anyMap(), Mockito.any()))
 				.thenReturn("test");
@@ -192,8 +189,8 @@ public class QrCodeProviderTest {
 		List<BIR> birList = new ArrayList<>();
 		BIR bir = new BIR();
 		BDBInfo bdbInfoFace = new BDBInfo();
-		List<SingleType> singleFaceList = new ArrayList<>();
-		singleFaceList.add(SingleType.FACE);
+		List<BiometricType> singleFaceList = new ArrayList<>();
+		singleFaceList.add(BiometricType.FACE);
 		bdbInfoFace.setType(singleFaceList);
 		bir.setBdbInfo(bdbInfoFace);
 		birList.add(bir);
@@ -201,8 +198,8 @@ public class QrCodeProviderTest {
 		BDBInfo bdbInfoRightThumb = new BDBInfo();
 		QualityType bdbInfoFingerQuality = new QualityType();
 		bdbInfoFingerQuality.setScore(60L);
-		List<SingleType> singleFingerList = new ArrayList<>();
-		singleFingerList.add(SingleType.FINGER);
+		List<BiometricType> singleFingerList = new ArrayList<>();
+		singleFingerList.add(BiometricType.FINGER);
 		bdbInfoRightThumb.setType(singleFingerList);
 		List<String> subTypeList = new ArrayList<>();
 		subTypeList.add("Right");
@@ -225,7 +222,7 @@ public class QrCodeProviderTest {
 		bdbInfoLeftThumb.setQuality(bdbInfoLeftThumbQuality);
 		birLeftThumb.setBdbInfo(bdbInfoLeftThumb);
 		birList.add(birLeftThumb);
-		Mockito.when(cbeffutil.convertBIRTypeToBIR(Mockito.any())).thenReturn(birList);
+		Mockito.when(cbeffutil.getBIRDataFromXML(Mockito.any())).thenReturn(birList);
 	}
 	
 	@Test
