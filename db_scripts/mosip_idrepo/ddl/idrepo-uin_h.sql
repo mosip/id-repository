@@ -9,6 +9,7 @@
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
 -- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
+-- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes
 -- ------------------------------------------------------------------------------------------
 
 -- object: idrepo.uin_h | type: TABLE --
@@ -28,7 +29,7 @@ CREATE TABLE idrepo.uin_h(
 	cr_dtimes timestamp NOT NULL,
 	upd_by character varying(256),
 	upd_dtimes timestamp,
-	is_deleted boolean NOT NULL DEFAULT FALSE,
+	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
 	CONSTRAINT pk_uinh PRIMARY KEY (uin_ref_id,eff_dtimes),
 	CONSTRAINT uk_uinh UNIQUE (uin,eff_dtimes)
