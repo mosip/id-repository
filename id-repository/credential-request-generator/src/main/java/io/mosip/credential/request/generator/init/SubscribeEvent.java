@@ -39,7 +39,10 @@ public class SubscribeEvent implements ApplicationListener<ApplicationReadyEvent
 		LOGGER.info(IdRepoSecurityManager.getUser(), SUBSCIRBEEVENT, ONAPPLICATIONEVENT,
 				"Scheduling event subscriptions after (milliseconds): " + taskSubsctiptionDelay);
 
-		taskScheduler.schedule(this::initSubsriptions, new Date(System.currentTimeMillis() + taskSubsctiptionDelay));
+		taskScheduler.schedule(() -> {
+			webSubSubscriptionHelper.registerTopic();
+			initSubsriptions();
+		}, new Date(System.currentTimeMillis() + taskSubsctiptionDelay));
 
 	}
 

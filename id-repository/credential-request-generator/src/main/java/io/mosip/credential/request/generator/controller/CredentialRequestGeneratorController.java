@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -127,7 +128,7 @@ public class CredentialRequestGeneratorController {
 	}
 
 	@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
-	@GetMapping(path = "/retrigger/{requestId}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PutMapping(path = "/retrigger/{requestId}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "retrigger the credential issuance request", response = CredentialIssueResponseDto.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "retrigger the  the request successfully"),
 			@ApiResponse(code = 400, message = "Unable to retrigger the request"),
