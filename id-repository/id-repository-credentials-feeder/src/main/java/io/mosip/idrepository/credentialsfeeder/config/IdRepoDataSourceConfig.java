@@ -25,7 +25,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import io.mosip.idrepository.credentialsfeeder.entity.idrepo.CredentialRequestEntity;
+import io.mosip.idrepository.credentialsfeeder.entity.idrepo.CredentialRequestStatusEntity;
 
 /**
  * The Class IdRepoDataSourceConfig
@@ -64,7 +64,7 @@ public class IdRepoDataSourceConfig {
 	   public LocalContainerEntityManagerFactoryBean identityEntityManagerFactory(EntityManagerFactoryBuilder builder) {
 	       return builder
 	               .dataSource(identityDataSource())
-	               .packages(CredentialRequestEntity.class)
+	               .packages(CredentialRequestStatusEntity.class)
 	               .properties(additionalProperties())
 	               .build();
 	   }

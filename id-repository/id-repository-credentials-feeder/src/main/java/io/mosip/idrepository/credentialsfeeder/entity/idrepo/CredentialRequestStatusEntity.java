@@ -1,0 +1,63 @@
+package io.mosip.idrepository.credentialsfeeder.entity.idrepo;
+
+import java.time.LocalDateTime;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.Table;
+
+import lombok.Data;
+
+/**
+ * The Class CredentialRequestStatusEntity {.
+ *
+ * @author Loganathan Sekar
+ */
+@Entity
+@Table(name = "credential_request_status")
+@IdClass(CredentialRequestStatusEntity.CompositeKey.class)
+@Data
+public class CredentialRequestStatusEntity {
+
+	@Id
+	@Column(name = "individual_id_hash", updatable = false, nullable = false, unique = true)
+	private String individualIdHash;
+	
+	@Id
+	@Column(name = "partner_id", updatable = false, nullable = false, unique = true)
+	private String partnerId;
+
+	@Column(name = "individual_id", updatable = false, nullable = false, unique = true)
+	private String individualId;
+	
+	@Column(name = "request_id", updatable = true, nullable = false, unique = false)
+	private String requestId;
+	
+	@Column(name = "status", updatable = true, nullable = false, unique = false)
+	private String status;
+
+	/** The created by. */
+	@Column(name = "cr_by", updatable = true, nullable = false, unique = false)
+	private String createdBy;
+
+	/** The create dtimes. */
+	@Column(name = "cr_dtimes", updatable = true, nullable = false, unique = true)
+	private LocalDateTime createDtimes;
+
+	/** The updated by. */
+	@Column(name = "upd_by", updatable = true, nullable = true, unique = false)
+	private String updatedBy;
+
+	/** The updated dtimes. */
+	@Column(name = "upd_dtimes", updatable = true, nullable = true, unique = true)
+	private LocalDateTime updatedDtimes;
+	
+	@Data
+	public static class CompositeKey {
+		private String individualIdHash;
+		private String partnerId;
+	}
+
+}
