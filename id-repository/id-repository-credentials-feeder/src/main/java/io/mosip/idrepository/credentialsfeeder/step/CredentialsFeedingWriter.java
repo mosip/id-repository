@@ -7,7 +7,7 @@ import javax.transaction.Transactional;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;
 
-import io.mosip.idrepository.credentialsfeeder.entity.idrepo.CredentialRequestEntity;
+import io.mosip.idrepository.credentialsfeeder.entity.idrepo.CredentialRequestStatusEntity;
 import io.mosip.idrepository.credentialsfeeder.logger.IdRepoLogger;
 import io.mosip.kernel.core.logger.spi.Logger;
 
@@ -18,7 +18,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
  * @author Manoj SP
  */
 @Component
-public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestEntity> {
+public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestStatusEntity> {
 
 	Logger mosipLogger = IdRepoLogger.getLogger(CredentialsFeedingWriter.class);
 
@@ -28,7 +28,7 @@ public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestEnt
 	 */
 	@Override
 	@Transactional
-	public void write(List<? extends CredentialRequestEntity> entitiesCompositeList) throws Exception {
+	public void write(List<? extends CredentialRequestStatusEntity> entitiesCompositeList) throws Exception {
 		
 	}
 

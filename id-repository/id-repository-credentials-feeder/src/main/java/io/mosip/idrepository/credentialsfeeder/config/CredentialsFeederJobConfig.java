@@ -1,5 +1,8 @@
 package io.mosip.idrepository.credentialsfeeder.config;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -13,15 +16,19 @@ import org.springframework.batch.integration.async.AsyncItemProcessor;
 import org.springframework.batch.integration.async.AsyncItemWriter;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import io.mosip.idrepository.credentialsfeeder.entity.idrepo.CredentialRequestEntity;
+import io.mosip.idrepository.credentialsfeeder.entity.idrepo.CredentialRequestStatusEntity;
+import io.mosip.idrepository.credentialsfeeder.repository.idrepo.CredentialRequestStatusRepository;
 
 /**
  * The Class CredentialsFeederJobConfig - provides configuration for Credentials Feeder Job.
@@ -46,16 +53,15 @@ public class CredentialsFeederJobConfig {
 	@Autowired
 	private JobExecutionListener listener;
 	
-	/** The reader. */
-	@Autowired
-	private ItemReader<CredentialRequestEntity> reader;
-	
 	/** The writer. */
 	@Autowired
-	private ItemWriter<CredentialRequestEntity> writer;
+	private ItemWriter<CredentialRequestStatusEntity> writer;
 
 	@Value("${" + IDREPO_CREDENTIAL_FEEDER_CHUNK_SIZE + ":10}")
-	private int credentialFeederChunkSize;
+	private int chunkSize;
+	
+	@Autowired
+	private CredentialRequestStatusRepository credentialRequestStatusRepository;
 	
 	/**
 	 * Job.
@@ -84,11 +90,23 @@ public class CredentialsFeederJobConfig {
 	public Step step() {
 		return stepBuilderFactory
 				.get("step")
-				.<CredentialRequestEntity, Future<CredentialRequestEntity>> chunk(credentialFeederChunkSize)
-				.reader(reader)
+				.<CredentialRequestStatusEntity, Future<CredentialRequestStatusEntity>> chunk(chunkSize)
+				.reader(credentialEventReader())
 				.processor(asyncItemProcessor())
 				.writer(asyncItemWriter(writer))
 				.build();
+	}
+	
+	@Bean
+	public ItemReader<CredentialRequestStatusEntity> credentialEventReader() {
+		RepositoryItemReader<CredentialRequestStatusEntity> reader = new RepositoryItemReader<>();
+		reader.setRepository(credentialRequestStatusRepository);
+		reader.setMethodName("findAllIndividualIdsWithRequestedStatus");
+		final Map<String, Sort.Direction> sorts = new HashMap<>();
+		    sorts.put("cr_dtimes", Direction.ASC); // then try processing Least failed entries first
+		reader.setSort(sorts);
+		reader.setPageSize(chunkSize);
+		return reader;
 	}
 	
 	@Bean
@@ -113,9 +131,9 @@ public class CredentialsFeederJobConfig {
 	@Bean
     public TaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(credentialFeederChunkSize);
-        executor.setMaxPoolSize(credentialFeederChunkSize);
-        executor.setQueueCapacity(credentialFeederChunkSize);
+        executor.setCorePoolSize(chunkSize);
+        executor.setMaxPoolSize(chunkSize);
+        executor.setQueueCapacity(chunkSize);
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.setThreadNamePrefix("MultiThreaded-");
         return executor;
