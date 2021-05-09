@@ -9,6 +9,7 @@ import javax.persistence.IdClass;
 import javax.persistence.Table;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * The Class CredentialRequestStatusEntity {.
@@ -19,6 +20,7 @@ import lombok.Data;
 @Table(name = "credential_request_status")
 @IdClass(CredentialRequestStatusEntity.CompositeKey.class)
 @Data
+@NoArgsConstructor
 public class CredentialRequestStatusEntity {
 
 	@Id
@@ -37,6 +39,12 @@ public class CredentialRequestStatusEntity {
 	
 	@Column(name = "status", updatable = true, nullable = false, unique = false)
 	private String status;
+	
+	@Column(name = "id_expiry_timestamp", updatable = true, nullable = true, unique = false)
+	private LocalDateTime idExpiryDtimes;
+	
+	@Column(name = "id_transaction_limit", updatable = true, nullable = true, unique = false)
+	private Integer idTransactionLimit;
 
 	/** The created by. */
 	@Column(name = "cr_by", updatable = true, nullable = false, unique = false)
@@ -53,6 +61,13 @@ public class CredentialRequestStatusEntity {
 	/** The updated dtimes. */
 	@Column(name = "upd_dtimes", updatable = true, nullable = true, unique = true)
 	private LocalDateTime updatedDtimes;
+	
+	
+	public CredentialRequestStatusEntity(String individualId, LocalDateTime idExpiryDtimes, Integer idTransactionLimit) {
+		this.individualId = individualId;
+		this.idExpiryDtimes = idExpiryDtimes;
+		this.idTransactionLimit = idTransactionLimit;
+	}
 	
 	@Data
 	public static class CompositeKey {
