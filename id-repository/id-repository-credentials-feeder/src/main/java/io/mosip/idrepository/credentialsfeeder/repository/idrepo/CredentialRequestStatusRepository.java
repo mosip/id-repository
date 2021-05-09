@@ -14,12 +14,6 @@ import io.mosip.idrepository.credentialsfeeder.entity.idrepo.CredentialRequestSt
  */
 public interface CredentialRequestStatusRepository extends JpaRepository<CredentialRequestStatusEntity, Long> {
 	
-	@Query(value = "SELECT individual_id FROM ( "
-					+ "	SELECT individual_id, MIN(individual_id_hash) "
-					+ "		FROM CREDENTIAL_REQUEST_STATUS "
-					+ "		WHERE STATUS = 'REQUESTED' "
-					+ "		GROUP BY individual_id_hash "
-					+ "		ORDER BY cr_dtimes ASC )", 
-					nativeQuery = true)
-	Page<String> findAllDistinctIndividualIdsWithRequestedStatus(Pageable pageable);
+	@Query(value = "select new CredentialRequestStatusEntity(individualId, idExpiryDtimes, idTransactionLimit) where status = 'REQUESTED' order by createDtimes")
+	Page<String> findByRequestedStatusOrderByCrdtimes(Pageable pageable);
 }
