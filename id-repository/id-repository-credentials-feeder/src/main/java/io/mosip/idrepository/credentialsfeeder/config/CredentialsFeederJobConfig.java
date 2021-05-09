@@ -1,7 +1,6 @@
 package io.mosip.idrepository.credentialsfeeder.config;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -29,6 +28,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import io.mosip.idrepository.credentialsfeeder.entity.idrepo.CredentialRequestStatusEntity;
 import io.mosip.idrepository.credentialsfeeder.repository.idrepo.CredentialRequestStatusRepository;
+import io.mosip.idrepository.credentialsfeeder.step.CredentialsFeedingWriter;
 
 /**
  * The Class CredentialsFeederJobConfig - provides configuration for Credentials Feeder Job.
@@ -55,7 +55,7 @@ public class CredentialsFeederJobConfig {
 	
 	/** The writer. */
 	@Autowired
-	private ItemWriter<CredentialRequestStatusEntity> writer;
+	private CredentialsFeedingWriter writer;
 
 	@Value("${" + IDREPO_CREDENTIAL_FEEDER_CHUNK_SIZE + ":10}")
 	private int chunkSize;
@@ -101,7 +101,7 @@ public class CredentialsFeederJobConfig {
 	public ItemReader<CredentialRequestStatusEntity> credentialEventReader() {
 		RepositoryItemReader<CredentialRequestStatusEntity> reader = new RepositoryItemReader<>();
 		reader.setRepository(credentialRequestStatusRepository);
-		reader.setMethodName("findAllIndividualIdsWithRequestedStatus");
+		reader.setMethodName("findByRequestedStatusOrderByCrdtimes");
 		final Map<String, Sort.Direction> sorts = new HashMap<>();
 		    sorts.put("cr_dtimes", Direction.ASC); // then try processing Least failed entries first
 		reader.setSort(sorts);

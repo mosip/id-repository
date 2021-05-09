@@ -15,6 +15,8 @@
 	<description>Batch Job Application for feeding IDA instances with credentials.</description>
 <properties>		
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		
+		<id.repository.core.version>${parent.version}</id.repository.core.version>
 
 		<!-- maven -->
 		<maven.compiler.source>11</maven.compiler.source>
@@ -277,6 +279,12 @@
 			<groupId>org.springframework.batch</groupId>
 			<artifactId>spring-batch-integration</artifactId>
 			<version>${spring.batch.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>io.mosip.idrepository</groupId>
+			<artifactId>id-repository-core</artifactId>
+			<version>${id.repository.core.version}</version>
 		</dependency>
 	</dependencies>
 	<build>
