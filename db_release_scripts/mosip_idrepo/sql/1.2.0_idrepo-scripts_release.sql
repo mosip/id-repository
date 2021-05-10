@@ -11,7 +11,7 @@
 
 \c mosip_idrepo sysadmin
 
-
+\ir ../ddl/idrepo-uin_auth_lock.sql
 ---------------------------------------------------------------------------------------------------
 
 ALTER TABLE idrepo.uin_auth_lock ADD COLUMN unlock_expiry_datetime timestamp;
