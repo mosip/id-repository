@@ -37,6 +37,9 @@ public class CredentialRequestStatusEntity {
 	@Column(name = "request_id", updatable = true, nullable = false, unique = false)
 	private String requestId;
 	
+	@Column(name = "token_id", updatable = true, nullable = false, unique = false)
+	private String tokenId;
+
 	@Column(name = "status", updatable = true, nullable = false, unique = false)
 	private String status;
 	
@@ -45,7 +48,7 @@ public class CredentialRequestStatusEntity {
 	
 	@Column(name = "id_transaction_limit", updatable = true, nullable = true, unique = false)
 	private Integer idTransactionLimit;
-
+	
 	/** The created by. */
 	@Column(name = "cr_by", updatable = true, nullable = false, unique = false)
 	private String createdBy;
