@@ -1,5 +1,7 @@
 package io.mosip.idrepository.core.util;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.IDREPO_DUMMY_ONLINE_VERIFICATION_PARTNER_ID;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.MOSIP_OLV_PARTNER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.WEB_SUB_PUBLISH_URL;
 
@@ -32,7 +34,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.EventType;
 import io.mosip.idrepository.core.constant.IDAEventType;
-import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
@@ -59,6 +60,12 @@ import io.mosip.kernel.core.websub.spi.PublisherClient;
 @Component
 public class CredentialRequestManager {
 	
+	private static final String REQUEST_ID_NA = "-NA-";
+
+	private static final String REQUEST_ID = "requestId";
+
+	private static final String RESPONSE = "response";
+
 	/** The Constant mosipLogger. */
 	private static final Logger mosipLogger = IdRepoLogger.getLogger(CredentialRequestManager.class);
 	
@@ -138,6 +145,9 @@ public class CredentialRequestManager {
 	/** The token ID generator. */
 	@Autowired
 	private TokenIDGenerator tokenIDGenerator;
+
+	@Value("${" + IDREPO_DUMMY_ONLINE_VERIFICATION_PARTNER_ID + ":" + MOSIP_OLV_PARTNER + "}")
+	private String dummyOLVPartnerId;
 	
 	/**
 	 * Notify uin credential.
@@ -210,15 +220,16 @@ public class CredentialRequestManager {
 	 */
 	@SuppressWarnings("unchecked")
 	private List<String> getPartnerIds() {
+		List<String> partners = Collections.emptyList();
 		try {
 			Map<String, Object> responseWrapperMap = restHelper
 					.requestSync(restBuilder.buildRequest(RestServicesConstants.PARTNER_SERVICE, null, Map.class));
-			Object response = responseWrapperMap.get("response");
+			Object response = responseWrapperMap.get(RESPONSE);
 			if (response instanceof Map) {
-				Object partners = ((Map<String, ?>) response).get("partners");
-				if (partners instanceof List) {
-					List<Map<String, Object>> partnersList = (List<Map<String, Object>>) partners;
-					return partnersList.stream()
+				Object partnersObj = ((Map<String, ?>) response).get("partners");
+				if (partnersObj instanceof List) {
+					List<Map<String, Object>> partnersList = (List<Map<String, Object>>) partnersObj;
+					partners =  partnersList.stream()
 							.filter(partner -> PARTNER_ACTIVE_STATUS.equalsIgnoreCase((String) partner.get("status")))
 							.map(partner -> (String) partner.get("partnerID")).collect(Collectors.toList());
 				}
@@ -226,7 +237,12 @@ public class CredentialRequestManager {
 		} catch (RestServiceException | IdRepoDataValidationException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "getPartnerIds", e.getMessage());
 		}
-		return Collections.emptyList();
+		 
+		if(partners.isEmpty()) {
+			return List.of(getDummyOLVPartnerId());
+		} else {
+			return partners;
+		}
 	}
 
 	/**
@@ -366,19 +382,22 @@ public class CredentialRequestManager {
 	 * @param model the model
 	 */
 	private void sendEventToIDA(EventModel model, Consumer<EventModel> idaEventModelConsumer) {
-		try {
+		String partnerId = model.getTopic().split("//")[0];
+		if(!isDummyOLVPartner(partnerId)) {
+			try {
+				mosipLogger.info(IdRepoSecurityManager.getUser(),  this.getClass().getCanonicalName(), "sendEventToIDA",
+						"Trying registering topic: " + model.getTopic());
+				pb.registerTopic(model.getTopic(), env.getProperty(WEB_SUB_PUBLISH_URL));
+			} catch (Exception e) {
+				// Exception will be there if topic already registered. Ignore that
+				mosipLogger.warn(IdRepoSecurityManager.getUser(),  this.getClass().getCanonicalName(), "sendEventToIDA",
+						"Error in registering topic: " + model.getTopic() + " : " + e.getMessage());
+			}
 			mosipLogger.info(IdRepoSecurityManager.getUser(),  this.getClass().getCanonicalName(), "sendEventToIDA",
-					"Trying registering topic: " + model.getTopic());
-			pb.registerTopic(model.getTopic(), env.getProperty(WEB_SUB_PUBLISH_URL));
-		} catch (Exception e) {
-			// Exception will be there if topic already registered. Ignore that
-			mosipLogger.warn(IdRepoSecurityManager.getUser(),  this.getClass().getCanonicalName(), "sendEventToIDA",
-					"Error in registering topic: " + model.getTopic() + " : " + e.getMessage());
+					"Publising event to topic: " + model.getTopic());
+			pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null,
+					env.getProperty(WEB_SUB_PUBLISH_URL));
 		}
-		mosipLogger.info(IdRepoSecurityManager.getUser(),  this.getClass().getCanonicalName(), "sendEventToIDA",
-				"Publising event to topic: " + model.getTopic());
-		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null,
-				env.getProperty(WEB_SUB_PUBLISH_URL));
 		
 		if(idaEventModelConsumer != null) {
 			idaEventModelConsumer.accept(model);
@@ -401,7 +420,7 @@ public class CredentialRequestManager {
 		List<CredentialIssueRequestDto> eventRequestsList = new ArrayList<>();
 		eventRequestsList.addAll(partnerIds.stream().map(partnerId -> {
 			String token = tokenIDGenerator.generateTokenID(uin, partnerId);
-			return createCredReqDto(uin, partnerId, expiryTimestamp, null, token, IdType.UIN.getIdType(),
+			return createCredReqDto(uin, partnerId, expiryTimestamp, null, token,
 					securityManager.getIdHashAndAttributes(uin, saltRetreivalFunction));
 		}).collect(Collectors.toList()));
 
@@ -412,7 +431,7 @@ public class CredentialRequestManager {
 				return partnerIds.stream().map(partnerId -> {
 					String token = tokenIDGenerator.generateTokenID(uin, partnerId);
 					return createCredReqDto(vidInfoDTO.getVid(), partnerId, vidExpiryTime,
-							vidInfoDTO.getTransactionLimit(), token, IdType.VID.getIdType(),
+							vidInfoDTO.getTransactionLimit(), token,
 							vidInfoDTO.getHashAttributes());
 				});
 			}).collect(Collectors.toList());
@@ -440,7 +459,7 @@ public class CredentialRequestManager {
 						return partnerIds.stream().map(partnerId -> {
 							String token = tokenIDGenerator.generateTokenID(uin, partnerId);
 							return createCredReqDto(vid.getVid(), partnerId,
-									expiryTimestamp, vid.getTransactionLimit(), token, IdType.VID.getIdType(), securityManager.getIdHashAndAttributes(vid.getVid(), saltRetreivalFunction));
+									expiryTimestamp, vid.getTransactionLimit(), token, securityManager.getIdHashAndAttributes(vid.getVid(), saltRetreivalFunction));
 						});
 					})
 					.collect(Collectors.toList());
@@ -464,7 +483,7 @@ public class CredentialRequestManager {
 			String eventTypeDisplayName = isUpdate ? "Update ID" : "Create ID";
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "notify",
 					"notifying Credential Service for event " + eventTypeDisplayName);
-			sendRequestToCredService(requestWrapper, credentialRequestResponseConsumer);
+			sendRequestToCredService(reqDto.getIssuer(), requestWrapper, credentialRequestResponseConsumer);
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "notify",
 					"notified Credential Service for event" + eventTypeDisplayName);
 		});
@@ -476,19 +495,28 @@ public class CredentialRequestManager {
 	 * @param requestWrapper the request wrapper
 	 * @param credentialRequestResponseConsumer the credential response consumer
 	 */
-	private void sendRequestToCredService(CredentialIssueRequestWrapperDto requestWrapper, BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
+	private void sendRequestToCredService(String partnerId, CredentialIssueRequestWrapperDto requestWrapper, BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
 		try {
-			Map<String, Object> response = restHelper.requestSync(restBuilder
-					.buildRequest(RestServicesConstants.CREDENTIAL_REQUEST_SERVICE, requestWrapper, Map.class));
-			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendRequestToCredService",
-					"Response of Credential Request: " + mapper.writeValueAsString(response));
+			if(!isDummyOLVPartner(partnerId)) {
+				Map<String, Object> response = restHelper.requestSync(restBuilder
+						.buildRequest(RestServicesConstants.CREDENTIAL_REQUEST_SERVICE, requestWrapper, Map.class));
+				mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendRequestToCredService",
+						"Response of Credential Request: " + mapper.writeValueAsString(response));
+			}
+			
 			if(credentialRequestResponseConsumer != null) {
+				Map<String, Object> response = Map.of(RESPONSE, Map.of(REQUEST_ID, REQUEST_ID_NA));
 				credentialRequestResponseConsumer.accept(requestWrapper, response);
 			}
+			
 		} catch (RestServiceException | IdRepoDataValidationException | JsonProcessingException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendRequestToCredService",
 					e.getMessage());
 		}
+	}
+
+	private boolean isDummyOLVPartner(String partnerId) {
+		return getDummyOLVPartnerId().equals(partnerId);
 	}
 
 	/**
@@ -503,8 +531,8 @@ public class CredentialRequestManager {
 	 * @param idHashAttributes the id hash attributes
 	 * @return the credential issue request dto
 	 */
-	private CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp,
-			Integer transactionLimit, String token, String idType,
+	public CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp,
+			Integer transactionLimit, String token,
 			Map<? extends String, ? extends Object> idHashAttributes) {
 		Map<String, Object> data = new HashMap<>();
 		data.putAll(idHashAttributes);
@@ -520,6 +548,10 @@ public class CredentialRequestManager {
 		credentialIssueRequestDto.setUser(IdRepoSecurityManager.getUser());
 		credentialIssueRequestDto.setAdditionalData(data);
 		return credentialIssueRequestDto;
+	}
+	
+	public String getDummyOLVPartnerId() {
+		return dummyOLVPartnerId;
 	}
 
 }
