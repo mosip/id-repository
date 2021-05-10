@@ -515,7 +515,7 @@ public class CredentialRequestManager {
 		}
 	}
 
-	private boolean isDummyOLVPartner(String partnerId) {
+	public boolean isDummyOLVPartner(String partnerId) {
 		return getDummyOLVPartnerId().equals(partnerId);
 	}
 
