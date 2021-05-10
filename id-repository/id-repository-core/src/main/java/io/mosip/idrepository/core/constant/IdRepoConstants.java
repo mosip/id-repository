@@ -106,6 +106,11 @@ public class IdRepoConstants {
 	
 	public static final String PREPEND_THUMPRINT_STATUS = "mosip.credential.service.share.prependThumbprint";
 	
+	public static final String IDREPO_DUMMY_ONLINE_VERIFICATION_PARTNER_ID = "idrepo-dummy-online-verification-partner-id";
+	
+	public static final String MOSIP_OLV_PARTNER = "MOSIP_OLV_PARTNER";
+
+	
 	/** The value. */
 	private final String value;
 
