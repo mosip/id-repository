@@ -5,36 +5,26 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MASTERDAT
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
-import javax.sql.DataSource;
 
-import org.hibernate.Interceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
-import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.orm.jpa.JpaVendorAdapter;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.exception.AuthenticationException;
@@ -52,8 +42,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
  */
 @Configuration
 @ConfigurationProperties("mosip.idrepo.identity")
-@EnableTransactionManagement
-@EnableAsync
+@Import(IdRepoDataSourceConfig.class)
 public class IdRepoConfig implements WebMvcConfigurer {
 	
 	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISH_URL + "}")
@@ -65,10 +54,6 @@ public class IdRepoConfig implements WebMvcConfigurer {
 	/** The env. */
 	@Autowired
 	private RestTemplate restTemplate;
-
-	/** The interceptor. */
-	@Autowired
-	private Interceptor interceptor;
 
 	/** The db. */
 //	If sharding is enabled, need to uncomment
@@ -89,9 +74,6 @@ public class IdRepoConfig implements WebMvcConfigurer {
 	/** The id. */
 	private Map<String, String> id;
 	
-	@Autowired
-	private Environment env;
-
 	@PostConstruct
 	public void init() {
 		restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
@@ -266,75 +248,6 @@ public class IdRepoConfig implements WebMvcConfigurer {
 		return Collections.unmodifiableList(uinStatus);
 	}
 
-	/**
-	 * Entity manager factory.
-	 *
-	 * @param dataSource
-	 *            the data source
-	 * @return the local container entity manager factory bean
-	 */
-	@Bean
-	public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
-		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-		em.setDataSource(dataSource);
-		em.setPackagesToScan("io.mosip.idrepository.identity.*");
-
-		JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-		em.setJpaVendorAdapter(vendorAdapter);
-		em.setJpaPropertyMap(additionalProperties());
-
-		return em;
-	}
-
-	/**
-	 * Additional properties.
-	 *
-	 * @return the properties
-	 */
-	private Map<String, Object> additionalProperties() {
-		Map<String, Object> jpaProperties = new HashMap<>();
-		jpaProperties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQL92Dialect");
-		jpaProperties.put("hibernate.temp.use_jdbc_metadata_defaults", Boolean.FALSE);
-		jpaProperties.put("hibernate.implicit_naming_strategy", SpringImplicitNamingStrategy.class.getName());
-		jpaProperties.put("hibernate.physical_naming_strategy", SpringPhysicalNamingStrategy.class.getName());
-		jpaProperties.put("hibernate.ejb.interceptor", interceptor);
-		return jpaProperties;
-	}
-
-	/**
-	 * Builds the data source.
-	 *
-	 * @param dataSourceValues
-	 *            the data source values
-	 * @return the data source
-	 */
-	private DataSource buildDataSource(Map<String, String> dataSourceValues) {
-		DriverManagerDataSource dataSource = new DriverManagerDataSource(dataSourceValues.get("url"));
-		dataSource.setUsername(dataSourceValues.get("username"));
-		dataSource.setPassword(dataSourceValues.get("password"));
-		dataSource.setDriverClassName(dataSourceValues.get("driverClassName"));
-		return dataSource;
-	}
-
-	/**
-	 * Data source.
-	 *
-	 * @return the data source
-	 */
-	@Bean
-	public DataSource dataSource() {
-//		If sharding is enabled, need to uncomment
-//		return buildDataSource(db.get("shard"));
-		
-//		If sharding is enabled, need to comment below code
-		Map<String, String> dbValues = new HashMap<>();
-		dbValues.put("url", env.getProperty("mosip.idrepo.identity.db.url"));
-		dbValues.put("username", env.getProperty("mosip.idrepo.identity.db.username"));
-		dbValues.put("password", env.getProperty("mosip.idrepo.identity.db.password"));
-		dbValues.put("driverClassName", env.getProperty("mosip.idrepo.identity.db.driverClassName"));
-		return buildDataSource(dbValues);
-	}
-	
 	/*
 	 * This bean is returned because for async task the security context needs to be
 	 * passed.

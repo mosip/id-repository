@@ -24,12 +24,12 @@ import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.RestServiceException;
+import io.mosip.idrepository.core.helper.IdRepoWebSubHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.AuthtypeStatusService;
 import io.mosip.idrepository.identity.entity.AuthtypeLock;
-import io.mosip.idrepository.identity.helper.IdRepoWebSubHelper;
 import io.mosip.idrepository.identity.repository.AuthLockRepository;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
@@ -138,7 +138,7 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 		partnerIds.forEach(partnerId -> {
 			String topic = partnerId + "/" + IDAEventType.AUTH_TYPE_STATUS_UPDATE.name();
 			webSubHelper.tryRegisteringTopic(topic);
-			webSubHelper.publishEvent(uin, authTypeStatusList, topic, partnerId);
+			webSubHelper.publishAuthTypeStatusUpdateEvent(uin, authTypeStatusList, topic, partnerId);
 		});
 
 		return updateAuthTypeStatus;
