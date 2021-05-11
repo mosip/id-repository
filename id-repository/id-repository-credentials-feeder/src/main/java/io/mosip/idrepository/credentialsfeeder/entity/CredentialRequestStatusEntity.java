@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
  * @author Loganathan Sekar
  */
 @Entity
-@Table(name = "credential_request_status")
+@Table(name = "credential_request_status", schema = "idrepo")
 @IdClass(CredentialRequestStatusEntity.CompositeKey.class)
 @Data
 @NoArgsConstructor
@@ -67,11 +67,12 @@ public class CredentialRequestStatusEntity {
 	private LocalDateTime updatedDtimes;
 	
 	
-	public CredentialRequestStatusEntity(String individualId, LocalDateTime idExpiryDtimes, Integer idTransactionLimit, String tokenId) {
+	public CredentialRequestStatusEntity(String individualId, LocalDateTime idExpiryDtimes, Integer idTransactionLimit, String tokenId, String partnerId) {
 		this.individualId = individualId;
 		this.idExpiryDtimes = idExpiryDtimes;
 		this.idTransactionLimit = idTransactionLimit;
 		this.tokenId = tokenId;
+		this.partnerId = partnerId;
 	}
 	
 	@Data

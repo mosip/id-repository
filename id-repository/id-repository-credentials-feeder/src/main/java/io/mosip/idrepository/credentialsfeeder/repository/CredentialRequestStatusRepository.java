@@ -15,7 +15,7 @@ import io.mosip.idrepository.credentialsfeeder.entity.CredentialRequestStatusEnt
  */
 public interface CredentialRequestStatusRepository extends JpaRepository<CredentialRequestStatusEntity, Long> {
 	
-	@Query(value = "Select new CredentialRequestStatusEntity( individualId, idExpiryDtimes, idTransactionLimit, tokenId ) "
+	@Query(value = "Select new CredentialRequestStatusEntity( individualId, idExpiryDtimes, idTransactionLimit, tokenId, partnerId ) "
 			+ "from CredentialRequestStatusEntity crs "
 			+ "where crs.status=:status")
 	Page<CredentialRequestStatusEntity> findByRequestedStatusOrderByCrdtimes(@Param("status")String status, Pageable pageable);
