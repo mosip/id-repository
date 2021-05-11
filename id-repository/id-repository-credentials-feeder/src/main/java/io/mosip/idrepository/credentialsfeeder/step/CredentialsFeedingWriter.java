@@ -3,12 +3,12 @@ package io.mosip.idrepository.credentialsfeeder.step;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
@@ -43,14 +43,24 @@ public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestSta
 	
 	@Autowired
 	private CredentialRequestManager credentialRequestManager;
+	
+	private static final Map<String, String> processedIndividualIds = new ConcurrentHashMap<>();
 
 
 	/* (non-Javadoc)
 	 * @see org.springframework.batch.item.ItemWriter#write(java.util.List)
 	 */
 	@Override
-	public void write(List<? extends CredentialRequestStatusEntity> requestIdEntitiess) throws Exception {
-		sendEventsToCredService(requestIdEntitiess, onlineVerificationPartnerIds);
+	public void write(List<? extends CredentialRequestStatusEntity> requestIdEntities) throws Exception {
+		List<? extends CredentialRequestStatusEntity> filteredEntities;
+		//Skip processing already processed individual IDs.
+		synchronized(processedIndividualIds) {
+			filteredEntities = requestIdEntities.stream()
+														.filter( entity -> !processedIndividualIds.containsKey(entity.getIndividualId()))
+														.collect(Collectors.toList());
+			processedIndividualIds.putAll(filteredEntities.stream().collect(Collectors.toMap(CredentialRequestStatusEntity::getIndividualId, CredentialRequestStatusEntity::getIndividualId)));
+		}
+		sendEventsToCredService(filteredEntities, onlineVerificationPartnerIds);
 	}
 	
 	private void sendEventsToCredService(List<? extends CredentialRequestStatusEntity> requestEntities,
