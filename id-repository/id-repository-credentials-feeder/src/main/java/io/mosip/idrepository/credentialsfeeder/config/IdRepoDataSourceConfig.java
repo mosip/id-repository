@@ -25,7 +25,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import io.mosip.idrepository.credentialsfeeder.entity.idrepo.CredentialRequestStatusEntity;
+import io.mosip.idrepository.credentialsfeeder.entity.CredentialRequestStatusEntity;
 
 /**
  * The Class IdRepoDataSourceConfig
@@ -34,7 +34,7 @@ import io.mosip.idrepository.credentialsfeeder.entity.idrepo.CredentialRequestSt
  */
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackages = "io.mosip.idrepository.credentialsfeeder.repository.idrepo",
+@EnableJpaRepositories(basePackages = "io.mosip.idrepository.credentialsfeeder.repository",
 entityManagerFactoryRef = "identityEntityManagerFactory",
 transactionManagerRef= "identityTransactionManager"
 )

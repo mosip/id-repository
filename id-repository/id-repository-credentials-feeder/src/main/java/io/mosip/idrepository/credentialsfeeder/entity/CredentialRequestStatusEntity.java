@@ -1,4 +1,4 @@
-package io.mosip.idrepository.credentialsfeeder.entity.idrepo;
+package io.mosip.idrepository.credentialsfeeder.entity;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
