@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.springframework.batch.item.ItemWriter;
@@ -12,12 +14,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
+import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.CredentialRequestManager;
 import io.mosip.idrepository.credentialsfeeder.entity.CredentialRequestStatusEntity;
-import io.mosip.idrepository.credentialsfeeder.logger.IdRepoLogger;
 import io.mosip.idrepository.credentialsfeeder.repository.UinHashSaltRepo;
-import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.DateUtils;
 
 /**
  * The Class CredentialsFeedingWriter - Class to feed credentials using credential requests.
@@ -28,10 +30,13 @@ import io.mosip.kernel.core.logger.spi.Logger;
 @Component
 public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestStatusEntity> {
 
-	private static final Logger mosipLogger = IdRepoLogger.getLogger(CredentialsFeedingWriter.class);
-	
+	private static final String SEPARATOR = ":";
+
 	@Value("${online-verification-partner-ids}")
 	private List<String> onlineVerificationPartnerIds;
+	
+	@Value("${skip-existing-credentials-for-partners:true}")
+	private boolean skipExistingCredentialsForPartners;
 	
 	/** The uin hash salt repo. */
 	@Autowired
@@ -44,7 +49,7 @@ public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestSta
 	@Autowired
 	private CredentialRequestManager credentialRequestManager;
 	
-	private static final Map<String, String> processedIndividualIds = new ConcurrentHashMap<>();
+	private static final Map<String, String> processedIndividualIsAndPartnerIds = new ConcurrentHashMap<>();
 
 
 	/* (non-Javadoc)
@@ -54,30 +59,50 @@ public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestSta
 	public void write(List<? extends CredentialRequestStatusEntity> requestIdEntities) throws Exception {
 		List<? extends CredentialRequestStatusEntity> filteredEntities;
 		//Skip processing already processed individual IDs.
-		synchronized(processedIndividualIds) {
+		synchronized(processedIndividualIsAndPartnerIds) {
 			filteredEntities = requestIdEntities.stream()
-														.filter( entity -> !processedIndividualIds.containsKey(entity.getIndividualId()))
+														.filter( entity -> !processedIndividualIsAndPartnerIds.containsKey(getKeyForIndividualIdAndPartnerId(entity)))
 														.collect(Collectors.toList());
-			processedIndividualIds.putAll(filteredEntities.stream().collect(Collectors.toMap(CredentialRequestStatusEntity::getIndividualId, CredentialRequestStatusEntity::getIndividualId)));
+			List<CredentialIssueRequestDto> eventsToCredService = sendEventsToCredService(filteredEntities, onlineVerificationPartnerIds, this::processCredentialRequestResponse);
+			processedIndividualIsAndPartnerIds.putAll(filteredEntities.stream().collect(Collectors.toMap(this::getKeyForIndividualIdAndPartnerId, this::getKeyForIndividualIdAndPartnerId)));
+			processedIndividualIsAndPartnerIds.putAll(eventsToCredService.stream().collect(Collectors.toMap(this::getKeyForIndividualIdAndPartnerId, this::getKeyForIndividualIdAndPartnerId)));
 		}
-		sendEventsToCredService(filteredEntities, onlineVerificationPartnerIds);
+	}
+
+	private String getKeyForIndividualIdAndPartnerId(CredentialRequestStatusEntity entity) {
+		return entity.getIndividualId() + SEPARATOR + entity.getPartnerId();
 	}
 	
-	private void sendEventsToCredService(List<? extends CredentialRequestStatusEntity> requestEntities,
-			 List<String> partnerIds) {
+	private String getKeyForIndividualIdAndPartnerId(CredentialIssueRequestDto event) {
+		return event.getId() + SEPARATOR + event.getIssuer();
+	}
+	
+	private List<CredentialIssueRequestDto> sendEventsToCredService(List<? extends CredentialRequestStatusEntity> requestEntities,
+			 List<String> partnerIds, BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
 		if (requestEntities != null) {
-			List<CredentialIssueRequestDto> requests = requestEntities.stream().flatMap(entity -> {
-				return partnerIds.stream().map(partnerId -> {
+			Predicate<CredentialRequestStatusEntity> isExpiredCondition = this::isExpired;
+			List<CredentialIssueRequestDto> requests = requestEntities
+					.stream()
+					.filter(isExpiredCondition.negate())
+					.flatMap(entity -> {
+				Predicate<? super String> skipExistingCredentialsForParthersCondition = partnerId -> skipExistingCredentialsForPartners
+						&& partnerId.equals(entity.getPartnerId());
+				return partnerIds.stream()
+						.filter(skipExistingCredentialsForParthersCondition.negate())
+						.map(partnerId -> {
 					return createCredReqDto(entity.getIndividualId(), partnerId, entity.getIdExpiryDtimes(),
 							entity.getIdTransactionLimit(), entity.getTokenId(),
 							securityManager.getIdHashAndAttributes(entity.getIndividualId(), uinHashSaltRepo::retrieveSaltById));
 				});
 			}).collect(Collectors.toList());
 			
-			credentialRequestManager.sendRequestToCredService(requests, false, (req, res) -> {
-				
-			});
+			credentialRequestManager.sendRequestToCredService(requests, false, credentialRequestResponseConsumer);
+			
+			return requests;
+			
 		}
+		
+		return List.of();
 		
 	}
 
@@ -85,6 +110,14 @@ public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestSta
 			Integer transactionLimit, String token,
 			Map<? extends String, ? extends Object> idHashAttributes) {
 		return credentialRequestManager.createCredReqDto(id, partnerId, expiryTimestamp, transactionLimit, token, idHashAttributes);
+	}
+
+	private boolean isExpired(CredentialRequestStatusEntity entity) {
+		return entity.getIdExpiryDtimes() != null && entity.getIdExpiryDtimes().isBefore(DateUtils.getUTCCurrentDateTime());
+	}
+	
+	private void processCredentialRequestResponse(CredentialIssueRequestWrapperDto credentialRequestResponseConsumer,Map<String, Object> response) {
+		// TODO Auto-generated method stub
 	}
 	
 	
