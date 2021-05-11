@@ -1,10 +1,10 @@
-package io.mosip.idrepository.credentialsfeeder.repository.idrepo;
+package io.mosip.idrepository.credentialsfeeder.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import io.mosip.idrepository.credentialsfeeder.entity.idrepo.UinHashSalt;
+import io.mosip.idrepository.credentialsfeeder.entity.UinHashSalt;
 
 /**
  * The Interface UinHashSaltRepo.
