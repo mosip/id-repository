@@ -60,10 +60,10 @@
 		<module>id-repository-core</module>
 		<module>id-repository-vid-service</module>
 		<module>id-repository-identity-service</module>
-		<module>bioextractor-service</module>
-        <module>credential-request-generator</module>
-        <module>credential-service</module>
-        <module>id-repository-salt-generator</module>
+<!-- 		<module>bioextractor-service</module> -->
+<!--         <module>credential-request-generator</module> -->
+<!--         <module>credential-service</module> -->
+<!--         <module>id-repository-salt-generator</module> -->
 	</modules>
 
 	<properties>	
