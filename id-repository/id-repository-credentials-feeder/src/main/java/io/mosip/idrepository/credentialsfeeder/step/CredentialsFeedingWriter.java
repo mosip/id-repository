@@ -30,12 +30,19 @@ import io.mosip.kernel.core.util.DateUtils;
 @Component
 public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestStatusEntity> {
 
+	private static final boolean DEFAULT_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS = false;
+
+	private static final String PROP_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS = "skip-requesting-existing-credentials-for-partners";
+
+	private static final String PROP_ONLINE_VERIFICATION_PARTNER_IDS = "online-verification-partner-ids";
+
 	private static final String SEPARATOR = ":";
 
-	@Value("${online-verification-partner-ids}")
+	@Value("${" + PROP_ONLINE_VERIFICATION_PARTNER_IDS + "}")
 	private List<String> onlineVerificationPartnerIds;
 	
-	@Value("${skip-existing-credentials-for-partners:true}")
+	@Value("${" + PROP_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS + ":"
+			+ DEFAULT_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS + "}")
 	private boolean skipExistingCredentialsForPartners;
 	
 	/** The uin hash salt repo. */
