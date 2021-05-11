@@ -1,4 +1,4 @@
-package io.mosip.idrepository.credentialsfeeder.entity.idrepo;
+package io.mosip.idrepository.credentialsfeeder.entity;
 
 import java.time.LocalDateTime;
 
@@ -11,15 +11,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * The Class UinHashSalt - Entity class for uin_hash_salt table.
+ * The Class UinEncryptSalt - Entity class for uin_encrypt_salt table.
  *
- * @author Prem Kumar.
+ * @author Prem Kumar
  */
+
 @Data
 @Entity
 @NoArgsConstructor
-@Table(name="uin_hash_salt")
-public class UinHashSalt {
+@Table(name = "uin_encrypt_salt")
+public class UinEncryptSalt {
 	
 	/**  The Id value. */
 	@Id

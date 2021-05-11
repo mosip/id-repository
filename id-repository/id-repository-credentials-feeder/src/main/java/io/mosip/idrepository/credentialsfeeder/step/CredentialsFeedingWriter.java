@@ -14,9 +14,9 @@ import org.springframework.stereotype.Component;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.CredentialRequestManager;
-import io.mosip.idrepository.credentialsfeeder.entity.idrepo.CredentialRequestStatusEntity;
+import io.mosip.idrepository.credentialsfeeder.entity.CredentialRequestStatusEntity;
 import io.mosip.idrepository.credentialsfeeder.logger.IdRepoLogger;
-import io.mosip.idrepository.credentialsfeeder.repository.idrepo.UinHashSaltRepo;
+import io.mosip.idrepository.credentialsfeeder.repository.UinHashSaltRepo;
 import io.mosip.kernel.core.logger.spi.Logger;
 
 /**

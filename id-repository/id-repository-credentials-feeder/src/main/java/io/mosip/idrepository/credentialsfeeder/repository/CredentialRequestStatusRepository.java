@@ -1,4 +1,4 @@
-package io.mosip.idrepository.credentialsfeeder.repository.idrepo;
+package io.mosip.idrepository.credentialsfeeder.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import io.mosip.idrepository.credentialsfeeder.entity.idrepo.CredentialRequestStatusEntity;
+import io.mosip.idrepository.credentialsfeeder.entity.CredentialRequestStatusEntity;
 
 /**
  * The Interface CredentialRequestStatusRepository.
