@@ -1,4 +1,4 @@
-package io.mosip.idrepository.core.aspect;
+package io.mosip.idrepository.core.logger;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -7,19 +7,20 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Configuration;
 
 import io.mosip.idrepository.core.dto.RestRequestDTO;
-import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 
 @Aspect
 @Configuration
-public class IdRepoAspectConfig {
+@ConditionalOnClass(name = { "io.mosip.idrepository.core.helper.RestHelper" })
+public class IdRepoAspectLogger {
 
-	private transient Logger mosipLogger = IdRepoLogger.getLogger(IdRepoAspectConfig.class);
+	private transient Logger mosipLogger = IdRepoLogger.getLogger(IdRepoAspectLogger.class);
 
 	private LocalDateTime restHelperTime;
 	private LocalDateTime websubRegister;
