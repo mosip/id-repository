@@ -25,7 +25,7 @@ import io.mosip.kernel.core.util.DateUtils;
  * The Class CredentialsFeedingWriter - Class to feed credentials using credential requests.
  * Implements {@code ItemWriter}.
  *
- * @author Manoj SP
+ * @author Loganathan Sekar
  */
 @Component
 public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestStatusEntity> {

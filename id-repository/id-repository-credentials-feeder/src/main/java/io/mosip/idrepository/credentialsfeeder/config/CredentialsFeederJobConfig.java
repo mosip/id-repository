@@ -30,6 +30,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import io.mosip.idrepository.credentialsfeeder.entity.CredentialRequestStatusEntity;
 import io.mosip.idrepository.credentialsfeeder.repository.CredentialRequestStatusRepository;
 import io.mosip.idrepository.credentialsfeeder.step.CredentialsFeedingWriter;
+import io.mosip.kernel.core.util.DateUtils;
 
 /**
  * The Class CredentialsFeederJobConfig - provides configuration for Credentials Feeder Job.
@@ -104,8 +105,8 @@ public class CredentialsFeederJobConfig {
 	public ItemReader<CredentialRequestStatusEntity> credentialEventReader() {
 		RepositoryItemReader<CredentialRequestStatusEntity> reader = new RepositoryItemReader<>();
 		reader.setRepository(credentialRequestStatusRepository);
-		reader.setMethodName("findByRequestedStatusOrderByCrdtimes");
-		reader.setArguments(List.of(STATUS_REQUESTED));
+		reader.setMethodName("findByRequestedStatusBeforeCrDtimesOrderByCrdtimes");
+		reader.setArguments(List.of(DateUtils.getUTCCurrentDateTime(), STATUS_REQUESTED));
 		final Map<String, Sort.Direction> sorts = new HashMap<>();
 		    sorts.put("createDtimes", Direction.ASC); // then try processing Least failed entries first
 		reader.setSort(sorts);

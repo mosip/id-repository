@@ -1,5 +1,7 @@
 package io.mosip.idrepository.credentialsfeeder.repository;
 
+import java.time.LocalDateTime;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,8 +17,10 @@ import io.mosip.idrepository.credentialsfeeder.entity.CredentialRequestStatusEnt
  */
 public interface CredentialRequestStatusRepository extends JpaRepository<CredentialRequestStatusEntity, Long> {
 	
-	@Query(value = "Select new CredentialRequestStatusEntity( individualId, idExpiryDtimes, idTransactionLimit, tokenId, partnerId ) "
-			+ "from CredentialRequestStatusEntity crs "
-			+ "where crs.status=:status")
-	Page<CredentialRequestStatusEntity> findByRequestedStatusOrderByCrdtimes(@Param("status")String status, Pageable pageable);
+	@Query(value = "SELECT new CredentialRequestStatusEntity( individualId, idExpiryDtimes, idTransactionLimit, tokenId, partnerId ) "
+			+ "FROM CredentialRequestStatusEntity crs "
+			+ "WHERE crs.createDtimes < :beforeCreateDtimes AND crs.status=:status")
+	Page<CredentialRequestStatusEntity> findByRequestedStatusBeforeCrDtimesOrderByCrdtimes(
+			@Param("beforeCreateDtimes") LocalDateTime beforeCreateDtimes, @Param("status") String status,
+			Pageable pageable);
 }
