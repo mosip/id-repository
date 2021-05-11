@@ -2,30 +2,19 @@ package io.mosip.idrepository.credentialsfeeder.config;
 
 import static io.mosip.idrepository.credentialsfeeder.constant.Constants.DATASOURCE_DRIVERCLASSNAME;
 import static io.mosip.idrepository.credentialsfeeder.constant.Constants.DATASOURCE_PASSWORD;
-import static io.mosip.idrepository.credentialsfeeder.constant.Constants.DATASOURCE_SCHEMA;
 import static io.mosip.idrepository.credentialsfeeder.constant.Constants.DATASOURCE_URL;
 import static io.mosip.idrepository.credentialsfeeder.constant.Constants.DATASOURCE_USERNAME;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-
-import io.mosip.idrepository.credentialsfeeder.entity.CredentialRequestStatusEntity;
 
 /**
  * The Class IdRepoDataSourceConfig
@@ -34,10 +23,7 @@ import io.mosip.idrepository.credentialsfeeder.entity.CredentialRequestStatusEnt
  */
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackages = "io.mosip.idrepository.credentialsfeeder.repository",
-entityManagerFactoryRef = "identityEntityManagerFactory",
-transactionManagerRef= "identityTransactionManager"
-)
+@EnableJpaRepositories(basePackages = "io.mosip.idrepository.credentialsfeeder.repository")
 public class IdRepoDataSourceConfig {
 	
 	private static final String MOSIP_IDREPO_IDENTITY_DB = "mosip.idrepo.identity.db";
@@ -54,38 +40,7 @@ public class IdRepoDataSourceConfig {
 		dataSource.setUsername(env.getProperty(String.format(DATASOURCE_USERNAME.getValue(), alias)));
 		dataSource.setPassword(env.getProperty(String.format(DATASOURCE_PASSWORD.getValue(), alias)));
 		dataSource.setDriverClassName(env.getProperty(String.format(DATASOURCE_DRIVERCLASSNAME.getValue(), alias)));
-		dataSource.setSchema(env.getProperty(String.format(DATASOURCE_SCHEMA.getValue(), alias)));
 		return dataSource;
 	}
-	
-	 /*Primary Entity manager*/
-	   @Primary
-	   @Bean(name = "identityEntityManagerFactory")
-	   public LocalContainerEntityManagerFactoryBean identityEntityManagerFactory(EntityManagerFactoryBuilder builder) {
-	       return builder
-	               .dataSource(identityDataSource())
-	               .packages(CredentialRequestStatusEntity.class)
-	               .properties(additionalProperties())
-	               .build();
-	   }
-	   
-	   /**
-		 * Additional properties.
-		 *
-		 * @return the map
-		 */
-		private Map<String, Object> additionalProperties() {
-			Map<String, Object> jpaProperties = new HashMap<>();
-			jpaProperties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQL92Dialect");
-			return jpaProperties;
-		}
-	   
-	   @Primary
-	   @Bean(name = "identityTransactionManager")
-	   public PlatformTransactionManager identityTransactionManager(
-	           final @Qualifier("identityEntityManagerFactory") LocalContainerEntityManagerFactoryBean memberEntityManagerFactory) {
-	       return new JpaTransactionManager(memberEntityManagerFactory.getObject());
-
-	   }
 	
 }
