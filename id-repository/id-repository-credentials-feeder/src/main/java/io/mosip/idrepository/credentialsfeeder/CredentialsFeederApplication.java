@@ -6,6 +6,13 @@ import org.springframework.boot.actuate.autoconfigure.scheduling.ScheduledTasksE
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Import;
+
+import io.mosip.idrepository.core.builder.RestRequestBuilder;
+import io.mosip.idrepository.core.helper.RestHelper;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.CredentialRequestManager;
+import io.mosip.idrepository.core.util.TokenIDGenerator;
 
 /**
  * The Class CredentialsFeederApplication - Salt generator Job is a
@@ -16,6 +23,8 @@ import org.springframework.context.ApplicationContext;
 @SpringBootApplication
 @EnableBatchProcessing
 @EnableAutoConfiguration(exclude={ScheduledTasksEndpointAutoConfiguration.class})  
+@Import({ IdRepoSecurityManager.class, CredentialRequestManager.class, RestRequestBuilder.class, RestHelper.class,
+		TokenIDGenerator.class })
 public class CredentialsFeederApplication {
 
 	/**

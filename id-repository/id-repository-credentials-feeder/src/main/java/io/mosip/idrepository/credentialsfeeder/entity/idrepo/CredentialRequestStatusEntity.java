@@ -1,5 +1,6 @@
 package io.mosip.idrepository.credentialsfeeder.entity.idrepo;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import javax.persistence.Column;
@@ -66,14 +67,20 @@ public class CredentialRequestStatusEntity {
 	private LocalDateTime updatedDtimes;
 	
 	
-	public CredentialRequestStatusEntity(String individualId, LocalDateTime idExpiryDtimes, Integer idTransactionLimit) {
+	public CredentialRequestStatusEntity(String individualId, LocalDateTime idExpiryDtimes, Integer idTransactionLimit, String tokenId) {
 		this.individualId = individualId;
 		this.idExpiryDtimes = idExpiryDtimes;
 		this.idTransactionLimit = idTransactionLimit;
+		this.tokenId = tokenId;
 	}
 	
 	@Data
-	public static class CompositeKey {
+	public static class CompositeKey implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 6021483025397857224L;
+		
 		private String individualIdHash;
 		private String partnerId;
 	}
