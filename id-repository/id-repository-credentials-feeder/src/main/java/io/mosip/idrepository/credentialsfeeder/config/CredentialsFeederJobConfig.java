@@ -1,6 +1,7 @@
 package io.mosip.idrepository.credentialsfeeder.config;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -39,6 +40,8 @@ import io.mosip.idrepository.credentialsfeeder.step.CredentialsFeedingWriter;
 @DependsOn("credentialsFeederConfig")
 public class CredentialsFeederJobConfig {
 	
+	private static final String STATUS_REQUESTED = "REQUESTED";
+
 	private static final String IDREPO_CREDENTIAL_FEEDER_CHUNK_SIZE = "idrepo-credential-feeder-chunk-size";
 
 	/** The job builder factory. */
@@ -102,8 +105,9 @@ public class CredentialsFeederJobConfig {
 		RepositoryItemReader<CredentialRequestStatusEntity> reader = new RepositoryItemReader<>();
 		reader.setRepository(credentialRequestStatusRepository);
 		reader.setMethodName("findByRequestedStatusOrderByCrdtimes");
+		reader.setArguments(List.of(STATUS_REQUESTED));
 		final Map<String, Sort.Direction> sorts = new HashMap<>();
-		    sorts.put("cr_dtimes", Direction.ASC); // then try processing Least failed entries first
+		    sorts.put("createDtimes", Direction.ASC); // then try processing Least failed entries first
 		reader.setSort(sorts);
 		reader.setPageSize(chunkSize);
 		return reader;

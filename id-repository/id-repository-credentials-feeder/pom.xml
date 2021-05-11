@@ -231,6 +231,7 @@
 		<kernel-core.version>1.1.7-SNAPSHOT</kernel-core.version>
 		<kernel-logger-logback.version>1.2.0-SNAPSHOT</kernel-logger-logback.version>
 		<postgresql.version>42.2.2</postgresql.version>
+		<kernel-websubclient-api.version>1.2.0-SNAPSHOT</kernel-websubclient-api.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -279,12 +280,23 @@
 			<groupId>org.springframework.batch</groupId>
 			<artifactId>spring-batch-integration</artifactId>
 			<version>${spring.batch.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>io.projectreactor</groupId>
+					<artifactId>reactor-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		
 		<dependency>
 			<groupId>io.mosip.idrepository</groupId>
 			<artifactId>id-repository-core</artifactId>
 			<version>${id.repository.core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-websubclient-api</artifactId>
+			<version>${kernel-websubclient-api.version}</version>
 		</dependency>
 	</dependencies>
 	<build>

@@ -6,6 +6,9 @@ import org.springframework.batch.core.configuration.annotation.BatchConfigurer;
 import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import io.mosip.idrepository.credentialsfeeder.config.filter.AuthTokenExchangeFilter;
 
 /**
  * The Class CredentialsFeederConfig - Provides configuration for credential feeder application.
@@ -41,4 +44,13 @@ public class CredentialsFeederConfig {
 		};
 	}
 	
+	@Bean
+	public AuthTokenExchangeFilter getTokenExchangeFilter() {
+		return new AuthTokenExchangeFilter();
+	}
+	
+	@Bean
+	public WebClient webClient() {
+		return WebClient.builder().filter(getTokenExchangeFilter()).build();
+	}
 }
