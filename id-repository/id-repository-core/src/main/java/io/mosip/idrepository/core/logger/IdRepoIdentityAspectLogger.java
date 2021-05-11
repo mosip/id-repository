@@ -3,11 +3,14 @@ package io.mosip.idrepository.core.logger;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import javax.annotation.PostConstruct;
+
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
@@ -17,7 +20,13 @@ import io.mosip.kernel.core.util.DateUtils;
 @Aspect
 @Configuration
 @ConditionalOnBean(name = { "s3Adapter" })
+@ConditionalOnProperty(value = "mosip.idrepo.aspect-logging.enabled", havingValue = "true", matchIfMissing = true)
 public class IdRepoIdentityAspectLogger {
+	
+	@PostConstruct
+	public void init() {
+		System.err.println("IdRepoIdentityAspectLogger");
+	}
 
 	private transient Logger mosipLogger = IdRepoLogger.getLogger(IdRepoIdentityAspectLogger.class);
 
