@@ -35,6 +35,7 @@ public class IdRepoIdentityAspectLogger {
 	private LocalDateTime objectStorePutObject;
 	private LocalDateTime idObjectValidator;
 	private LocalDateTime idObjectReferenceValidator;
+	private LocalDateTime bioExtraction;
 
 	@Before(value = "execution(* io.mosip.commons.khazana.impl.S3Adapter.exists(..))")
 	public void existsBfore(JoinPoint joinPoint) {
@@ -92,6 +93,18 @@ public class IdRepoIdentityAspectLogger {
 	@After(value = "execution(* io.mosip.kernel.idobjectvalidator.impl.IdObjectCompositeValidator.validateIdObject(..))")
 	public void idObjectRefValidatorAfter(JoinPoint joinPoint) {
 		long duration = Duration.between(idObjectReferenceValidator, DateUtils.getUTCCurrentDateTime()).toMillis();
+		mosipLogger.info(IdRepoSecurityManager.getUser(), joinPoint.getSignature().getDeclaringTypeName(),
+				joinPoint.getSignature().getName(), " Time taken to respond in ms: " + duration);
+	}
+
+	@Before(value = "execution(* io.mosip.idrepository.identity.helper.BioExtractionHelper.extractTemplates(..))")
+	public void bioExtractionBefore(JoinPoint joinPoint) {
+		bioExtraction = DateUtils.getUTCCurrentDateTime();
+	}
+
+	@After(value = "execution(* io.mosip.idrepository.identity.helper.BioExtractionHelper.extractTemplates(..))")
+	public void bioExtractionAfter(JoinPoint joinPoint) {
+		long duration = Duration.between(bioExtraction, DateUtils.getUTCCurrentDateTime()).toMillis();
 		mosipLogger.info(IdRepoSecurityManager.getUser(), joinPoint.getSignature().getDeclaringTypeName(),
 				joinPoint.getSignature().getName(), " Time taken to respond in ms: " + duration);
 	}
