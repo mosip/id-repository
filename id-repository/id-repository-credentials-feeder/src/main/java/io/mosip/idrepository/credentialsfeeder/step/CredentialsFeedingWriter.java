@@ -1,8 +1,11 @@
 package io.mosip.idrepository.credentialsfeeder.step;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
@@ -56,7 +59,7 @@ public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestSta
 	@Autowired
 	private CredentialRequestManager credentialRequestManager;
 	
-	private static final Map<String, String> processedIndividualIsAndPartnerIds = new ConcurrentHashMap<>();
+	private static final Set<String> processedIndividualIsAndPartnerIds = new LinkedHashSet<>();
 
 
 	/* (non-Javadoc)
@@ -66,13 +69,24 @@ public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestSta
 	public void write(List<? extends CredentialRequestStatusEntity> requestIdEntities) throws Exception {
 		List<? extends CredentialRequestStatusEntity> filteredEntities;
 		//Skip processing already processed individual IDs.
-		synchronized(processedIndividualIsAndPartnerIds) {
-			filteredEntities = requestIdEntities.stream()
-														.filter( entity -> !processedIndividualIsAndPartnerIds.containsKey(getKeyForIndividualIdAndPartnerId(entity)))
-														.collect(Collectors.toList());
-			List<CredentialIssueRequestDto> eventsToCredService = sendEventsToCredService(filteredEntities, onlineVerificationPartnerIds, this::processCredentialRequestResponse);
-			processedIndividualIsAndPartnerIds.putAll(filteredEntities.stream().collect(Collectors.toMap(this::getKeyForIndividualIdAndPartnerId, this::getKeyForIndividualIdAndPartnerId)));
-			processedIndividualIsAndPartnerIds.putAll(eventsToCredService.stream().collect(Collectors.toMap(this::getKeyForIndividualIdAndPartnerId, this::getKeyForIndividualIdAndPartnerId)));
+		synchronized (processedIndividualIsAndPartnerIds) {
+			filteredEntities = requestIdEntities.stream().filter(entity -> !processedIndividualIsAndPartnerIds
+					.contains(getKeyForIndividualIdAndPartnerId(entity))).collect(Collectors.toList());
+			
+			Predicate<? super CredentialIssueRequestDto> additionalFilterCondition = req -> {
+				boolean alreadyProcessed = processedIndividualIsAndPartnerIds
+						.contains(this.getKeyForIndividualIdAndPartnerId(req));
+				if(!alreadyProcessed) {
+					processedIndividualIsAndPartnerIds.add(this.getKeyForIndividualIdAndPartnerId(req));
+				}
+				return alreadyProcessed;
+			};
+			
+			sendEventsToCredService(filteredEntities,
+					onlineVerificationPartnerIds, this::processCredentialRequestResponse, additionalFilterCondition);
+			processedIndividualIsAndPartnerIds.addAll(filteredEntities.stream()
+					.map(this::getKeyForIndividualIdAndPartnerId)
+					.collect(Collectors.toSet()));
 		}
 	}
 
@@ -84,8 +98,8 @@ public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestSta
 		return event.getId() + SEPARATOR + event.getIssuer();
 	}
 	
-	private List<CredentialIssueRequestDto> sendEventsToCredService(List<? extends CredentialRequestStatusEntity> requestEntities,
-			 List<String> partnerIds, BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
+	private void sendEventsToCredService(List<? extends CredentialRequestStatusEntity> requestEntities,
+			 List<String> partnerIds, BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer, Predicate<? super CredentialIssueRequestDto> additionalFilterCondition) {
 		if (requestEntities != null) {
 			Predicate<CredentialRequestStatusEntity> isExpiredCondition = this::isExpired;
 			List<CredentialIssueRequestDto> requests = requestEntities
@@ -94,22 +108,19 @@ public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestSta
 					.flatMap(entity -> {
 				Predicate<? super String> skipExistingCredentialsForParthersCondition = partnerId -> skipExistingCredentialsForPartners
 						&& partnerId.equals(entity.getPartnerId());
+				Predicate<? super CredentialIssueRequestDto> additionalPredicate = additionalFilterCondition == null ? t -> true: additionalFilterCondition;
 				return partnerIds.stream()
 						.filter(skipExistingCredentialsForParthersCondition.negate())
 						.map(partnerId -> {
 					return createCredReqDto(entity.getIndividualId(), partnerId, entity.getIdExpiryDtimes(),
 							entity.getIdTransactionLimit(), entity.getTokenId(),
 							securityManager.getIdHashAndAttributes(entity.getIndividualId(), uinHashSaltRepo::retrieveSaltById));
-				});
+				}).filter(additionalPredicate);
 			}).collect(Collectors.toList());
 			
 			credentialRequestManager.sendRequestToCredService(requests, false, credentialRequestResponseConsumer);
 			
-			return requests;
-			
 		}
-		
-		return List.of();
 		
 	}
 
