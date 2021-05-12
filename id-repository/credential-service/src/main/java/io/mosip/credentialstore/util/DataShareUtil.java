@@ -53,12 +53,15 @@ public class DataShareUtil {
 	@Value("${mosip.data.share.protocol}")
 	private String httpProtocol;
 
+	@Value("${mosip.data.share.internal.domain.name}")
+	private String internalDomainName;
+
 	@Autowired
 	private Environment env;
 
 	@Retryable(value = { DataShareException.class,
 			ApiNotAccessibleException.class }, maxAttemptsExpression = "${mosip.credential.service.retry.maxAttempts}", backoff = @Backoff(delayExpression = "${mosip.credential.service.retry.maxDelay}"))
-	public DataShare getDataShare(byte[] data, String policyId, String partnerId, String domain, String requestId)
+	public DataShare getDataShare(byte[] data, String policyId, String partnerId, String requestId)
 			throws ApiNotAccessibleException, IOException, DataShareException {
 		long fileLengthInBytes=0;
 		try {
@@ -92,7 +95,7 @@ public class DataShareUtil {
 				protocol = httpProtocol;
 			}
 
-			dataShareUrl = new URL(protocol, domain, env.getProperty(ApiName.CREATEDATASHARE.name()));
+			dataShareUrl = new URL(protocol, internalDomainName, env.getProperty(ApiName.CREATEDATASHARE.name()));
 			url = dataShareUrl.toString();
 			url = url.replaceAll("[\\[\\]]", "");
 			String responseString = restUtil.postApi(url, pathsegments, "", "",
