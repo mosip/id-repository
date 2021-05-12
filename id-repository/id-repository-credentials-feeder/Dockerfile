@@ -82,9 +82,11 @@ ARG olv_partner_ids=mpartner-default-auth
 #Comma seperated list of Online_Verification_Partner partner IDs
 ENV olv_partner_ids_env=${olv_partner_ids}
 
+ARG skip_existing_cred_requests_for_partner=true
+
 # This is for optimization. Set to true to skip existing credential requests for the partner found in the chunk of query result.
 # Set to false if credentials to be requested again even if the request entry already exist for partner.
-ENV skip_existing_cred_requests_for_partner_env=true
+ENV skip_existing_cred_requests_for_partner_env=${skip_existing_cred_requests_for_partner}
 
 COPY ./target/id-repository-credentials-feeder-*.jar id-repository-credentials-feeder.jar
 
