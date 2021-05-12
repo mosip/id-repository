@@ -77,7 +77,14 @@ RUN mkdir -p ${loader_path}
 
 ENV loader_path_env=${loader_path}
 
-COPY ./target/id-repository-salt-generator-*.jar id-repository-salt-generator.jar
+#Comma seperated list of Online_Verification_Partner partner IDs
+ENV olv_partner_ids_env
+
+# This is for optimization. Set to true to skip existing credential requests for the partner found in the chunk of query result.
+# Set to false if credentials to be requested again even if the request entry already exist for partner.
+ENV skip_existing_cred_requests_for_partner_env=true
+
+COPY ./target/id-repository-credentials-feeder-*.jar id-repository-credentials-feeder.jar
 
 # change permissions of file inside working dir
 RUN chown -R ${container_user}:${container_user} /home/${container_user}
@@ -86,5 +93,5 @@ RUN chown -R ${container_user}:${container_user} /home/${container_user}
 USER ${container_user_uid}:${container_user_gid}
 #EXPOSE 8092
 
-CMD ["java","-jar","-Dspring.cloud.config.label=${spring_config_label_env}","-Dspring.profiles.active=${active_profile_env}","-Dspring.cloud.config.uri=${spring_config_url_env}","-Dserver.port=${spring_server_port}", "id-repository-salt-generator.jar"]
+CMD ["java","-jar","-Dspring.cloud.config.label=${spring_config_label_env}","-Dspring.profiles.active=${active_profile_env}","-Dspring.cloud.config.uri=${spring_config_url_env}","-Dserver.port=${spring_server_port}", "-Donline-verification-partner-ids=${olv_partner_ids_env}", "-Dskip-requesting-existing-credentials-for-partners=${skip_existing_cred_requests_for_partner_env}", "id-repository-credentials-feeder.jar"]
 
