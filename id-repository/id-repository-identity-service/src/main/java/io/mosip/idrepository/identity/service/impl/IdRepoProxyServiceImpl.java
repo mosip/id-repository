@@ -1,6 +1,5 @@
 package io.mosip.idrepository.identity.service.impl;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
@@ -18,7 +17,6 @@ import static io.mosip.kernel.biometrics.constant.BiometricType.FINGER;
 import static io.mosip.kernel.biometrics.constant.BiometricType.IRIS;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +43,6 @@ import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
-import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
@@ -59,7 +56,6 @@ import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.BiometricExtractionService;
 import io.mosip.idrepository.core.spi.IdRepoService;
-import io.mosip.idrepository.core.util.CredentialRequestManager;
 import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 import io.mosip.idrepository.identity.repository.UinHashSaltRepo;
@@ -73,7 +69,6 @@ import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.websub.model.EventModel;
 
 /**
  * The Class IdRepoServiceImpl - Service implementation for Identity service.
@@ -181,9 +176,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	@Autowired
 	private BiometricExtractionService biometricExtractionService;
-	
-	@Autowired
-	private CredentialRequestManager credentialRequestManager;
 
 	/*
 	 * (non-Javadoc)
@@ -201,7 +193,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				throw new IdRepoAppException(RECORD_EXISTS);
 			} else {
 				Uin uinEntity = service.addIdentity(request, uin);
-				notify(uin, null, null, false, request.getRequest().getRegistrationId());
+//				notify(uin, null, null, false, request.getRequest().getRegistrationId());
 				return constructIdResponse(this.id.get(CREATE), uinEntity, null);
 			}
 		} catch (IdRepoAppException e) {
@@ -566,14 +558,14 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 					throw new IdRepoAppException(RECORD_EXISTS);
 				}
 
-				Uin uinObject = service.updateIdentity(request, uin);
-				if (Objects.nonNull(request.getRequest().getStatus())
-						&& !env.getProperty(ACTIVE_STATUS).equalsIgnoreCase(request.getRequest().getStatus())) {
-					notify(uin, uinObject.getUpdatedDateTime(), request.getRequest().getStatus(), true,
-							request.getRequest().getRegistrationId());
-				} else {
-					notify(uin, null, null, true, request.getRequest().getRegistrationId());
-				}
+				service.updateIdentity(request, uin);
+//				if (Objects.nonNull(request.getRequest().getStatus())
+//						&& !env.getProperty(ACTIVE_STATUS).equalsIgnoreCase(request.getRequest().getStatus())) {
+////					notify(uin, uinObject.getUpdatedDateTime(), request.getRequest().getStatus(), true,
+////							request.getRequest().getRegistrationId());
+//				} else {
+////					notify(uin, null, null, true, request.getRequest().getRegistrationId());
+//				}
 				return constructIdResponse(MOSIP_ID_UPDATE, service.retrieveIdentity(uinHash, IdType.UIN, null, null),
 						null);
 			} else {
@@ -630,17 +622,17 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		}
 	}
 
-	private void notify(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate, String txnId) {
-		credentialRequestManager.notifyUinCredential(uin, expiryTimestamp, status, isUpdate, txnId,
-				uinHashSaltRepo::retrieveSaltById, this::processCredentialRequestResponse, this::processIDAEventModel);
-	}
+//	private void notify(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate, String txnId) {
+//		credentialServiceManager.notifyUinCredential(uin, expiryTimestamp, status, isUpdate, txnId,
+//				uinHashSaltRepo::retrieveSaltById, this::processCredentialRequestResponse, this::processIDAEventModel);
+//	}
 
-	private void processCredentialRequestResponse(CredentialIssueRequestWrapperDto credentialRequestResponseConsumer,Map<String, Object> response) {
-		// TODO Auto-generated method stub
-	}
-	
-	private void processIDAEventModel(EventModel idaEventModel) {
-		// TODO Auto-generated method stub
-	}
+//	private void processCredentialRequestResponse(CredentialIssueRequestWrapperDto credentialRequestResponseConsumer,Map<String, Object> response) {
+//		// TODO Auto-generated method stub
+//	}
+//	
+//	private void processIDAEventModel(EventModel idaEventModel) {
+//		// TODO Auto-generated method stub
+//	}
 
 }

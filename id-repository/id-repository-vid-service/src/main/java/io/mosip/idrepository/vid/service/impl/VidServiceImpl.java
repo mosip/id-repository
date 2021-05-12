@@ -57,9 +57,9 @@ import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.VidService;
-import io.mosip.idrepository.core.util.CredentialRequestManager;
 import io.mosip.idrepository.vid.entity.Vid;
 import io.mosip.idrepository.vid.provider.VidPolicyProvider;
 import io.mosip.idrepository.vid.repository.UinEncryptSaltRepo;
@@ -154,7 +154,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	private Map<String, String> id;
 	
 	@Autowired
-	private CredentialRequestManager credentialRequestManager;
+	private CredentialServiceManager credentialServiceManager;
 
 	/*
 	 * (non-Javadoc)
@@ -693,7 +693,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	
 	@Transactional(propagation = Propagation.NEVER)
 	private void notify(String uin, String status, List<VidInfoDTO> vids, boolean isUpdated) {
-		credentialRequestManager.notifyVIDCredential(uin, status, vids, isUpdated, uinHashSaltRepo::retrieveSaltById,
+		credentialServiceManager.notifyVIDCredential(uin, status, vids, isUpdated, uinHashSaltRepo::retrieveSaltById,
 				this::processCredentialRequestResponse, this::processIDAEventModel);
 	}
 	
