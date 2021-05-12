@@ -41,6 +41,8 @@ import io.mosip.kernel.core.util.DateUtils;
 @DependsOn("credentialsFeederConfig")
 public class CredentialsFeederJobConfig {
 	
+	private static final int DEFAULT_CHUNCK_SIZE = 10;
+
 	private static final String STATUS_REQUESTED = "REQUESTED";
 
 	private static final String IDREPO_CREDENTIAL_FEEDER_CHUNK_SIZE = "idrepo-credential-feeder-chunk-size";
@@ -61,7 +63,7 @@ public class CredentialsFeederJobConfig {
 	@Autowired
 	private CredentialsFeedingWriter writer;
 
-	@Value("${" + IDREPO_CREDENTIAL_FEEDER_CHUNK_SIZE + ":10}")
+	@Value("${" + IDREPO_CREDENTIAL_FEEDER_CHUNK_SIZE + ":" + DEFAULT_CHUNCK_SIZE + "}")
 	private int chunkSize;
 	
 	@Autowired
