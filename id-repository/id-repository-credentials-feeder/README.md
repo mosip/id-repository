@@ -4,10 +4,10 @@ Credentials Feeder Job is a one-time job which is run to populate salts to be us
 
 id-repository-credentials-feeder will take mosip_idrepo DB configurations from ID Repository properties file.
 
-** application.properties **
+**application.properties**
 
 ```
-# Read Chunk Size. Default value is set to 10.
+# Chunk Size to read Credential Requests from DB table. Default value is set to 10.
 idrepo-credential-feeder-chunk-size=<chunkSize>
 
 ```
@@ -18,6 +18,10 @@ idrepo-credential-feeder-chunk-size=<chunkSize>
 ```
 java -Dspring.cloud.config.uri=<url> -Dspring.cloud.config.label=<label> -Dspring.cloud.config.name=<name> -Dspring.profiles.active=<profile> -Donline-verification-partner-ids=<olv_partner_ids> -Dskip-requesting-existing-credentials-for-partners=true -jar id-repository-credentials-feeder.jar
 ```
+
+Note: 
+* `online-verification-partner-ids` is comma separated list of Online_Verification_Partner partner IDs to which credential needs to be re-issued.
+* `skip-requesting-existing-credentials-for-partners` is for optimization. By default it is set to `true`. Keep this to `true` to skip existing credential requests for the partner found in the chunk of query result. Set this to `false` if credentials to be requested again even if the request entry already exist for partner.
 
 **Build and Deployment commands:**
 
