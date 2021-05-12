@@ -77,8 +77,10 @@ RUN mkdir -p ${loader_path}
 
 ENV loader_path_env=${loader_path}
 
+ARG olv_partner_ids=mpartner-default-auth
+
 #Comma seperated list of Online_Verification_Partner partner IDs
-ENV olv_partner_ids_env
+ENV olv_partner_ids_env=${olv_partner_ids}
 
 # This is for optimization. Set to true to skip existing credential requests for the partner found in the chunk of query result.
 # Set to false if credentials to be requested again even if the request entry already exist for partner.
