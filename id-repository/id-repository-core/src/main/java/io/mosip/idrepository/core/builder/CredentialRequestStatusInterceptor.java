@@ -24,8 +24,8 @@ import io.mosip.kernel.core.util.CryptoUtil;
  * @author Manoj SP
  *
  */
-//@Component
-//@ConditionalOnBean(name = { "idRepoDataSource" })
+@Component
+@ConditionalOnBean(name = { "idRepoDataSource" })
 public class CredentialRequestStatusInterceptor extends EmptyInterceptor {
 
 	private static final long serialVersionUID = -8634328573011711898L;
