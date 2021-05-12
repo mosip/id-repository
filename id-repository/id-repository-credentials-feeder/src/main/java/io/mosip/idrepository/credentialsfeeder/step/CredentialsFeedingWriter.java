@@ -1,12 +1,10 @@
 package io.mosip.idrepository.credentialsfeeder.step;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -33,7 +31,7 @@ import io.mosip.kernel.core.util.DateUtils;
 @Component
 public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestStatusEntity> {
 
-	private static final boolean DEFAULT_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS = false;
+	private static final boolean DEFAULT_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS = true;
 
 	private static final String PROP_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS = "skip-requesting-existing-credentials-for-partners";
 
@@ -106,11 +104,11 @@ public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestSta
 					.stream()
 					.filter(isExpiredCondition.negate())
 					.flatMap(entity -> {
-				Predicate<? super String> skipExistingCredentialsForParthersCondition = partnerId -> skipExistingCredentialsForPartners
+				Predicate<? super String> skipExistingCredentialsForPartnersCondition = partnerId -> skipExistingCredentialsForPartners
 						&& partnerId.equals(entity.getPartnerId());
 				Predicate<? super CredentialIssueRequestDto> additionalPredicate = additionalFilterCondition == null ? t -> true: additionalFilterCondition;
 				return partnerIds.stream()
-						.filter(skipExistingCredentialsForParthersCondition.negate())
+						.filter(skipExistingCredentialsForPartnersCondition.negate())
 						.map(partnerId -> {
 					return createCredReqDto(entity.getIndividualId(), partnerId, entity.getIdExpiryDtimes(),
 							entity.getIdTransactionLimit(), entity.getTokenId(),
