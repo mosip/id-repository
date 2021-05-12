@@ -4,11 +4,15 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.PREPEND_THUMPR
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_ID;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DATETIME_PATTERN;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.IntFunction;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -43,6 +47,12 @@ import io.mosip.kernel.core.util.HMACUtils2;
  */
 @Component
 public class IdRepoSecurityManager {
+	
+	private static final String SALT = "SALT";
+
+	private static final String MODULO = "MODULO";
+
+	private static final String ID_HASH = "id_hash";
 
 	/** The mosip logger. */
 	private Logger mosipLogger = IdRepoLogger.getLogger(IdRepoSecurityManager.class);
@@ -262,5 +272,21 @@ public class IdRepoSecurityManager {
 					e.getErrorText());
 			throw new IdRepoAppException(ENCRYPTION_DECRYPTION_FAILED, e);
 		}
+	}
+	
+	public String getIdHash(String uin, IntFunction<String> saltRetreivalFunction) {
+		return getIdHashAndAttributes(uin, saltRetreivalFunction).get(ID_HASH);
+	}
+
+	public Map<String, String> getIdHashAndAttributes(String id, IntFunction<String> saltRetreivalFunction) {
+		Map<String, String> hashWithAttributes = new HashMap<>();
+		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
+		int modResult = (int) (Long.parseLong(id) % moduloValue);
+		String hashSalt = saltRetreivalFunction.apply(modResult);
+		String hash = hashwithSalt(id.getBytes(), hashSalt.getBytes());
+		hashWithAttributes.put(ID_HASH, hash);
+		hashWithAttributes.put(MODULO, String.valueOf(modResult));
+		hashWithAttributes.put(SALT, hashSalt);
+		return hashWithAttributes;
 	}
 }

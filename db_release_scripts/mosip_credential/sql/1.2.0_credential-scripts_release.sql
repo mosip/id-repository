@@ -7,5 +7,11 @@
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- -------------------------------------------------------------------------------------------------
+-- Apr-2021 		Ram Bhatt 	    status_comment column added.
+----------------------------------------------------------------------------------------------------
 
 \c mosip_credential sysadmin
+
+ALTER TABLE credential.credential_transaction ADD COLUMN status_comment character varying(512) ;
+
+---------------------------------------------------------------------------------------------------
