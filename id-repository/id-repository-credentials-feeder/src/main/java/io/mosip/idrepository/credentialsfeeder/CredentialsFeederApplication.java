@@ -8,10 +8,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
 
+import io.mosip.idrepository.core.builder.CredentialRequestStatusInterceptor;
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
+import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
+import io.mosip.idrepository.core.helper.IdRepoWebSubHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
+import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.core.util.CredentialRequestManager;
+import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.TokenIDGenerator;
 
 /**
@@ -23,8 +27,9 @@ import io.mosip.idrepository.core.util.TokenIDGenerator;
 @SpringBootApplication
 @EnableBatchProcessing
 @EnableAutoConfiguration(exclude={ScheduledTasksEndpointAutoConfiguration.class})  
-@Import({ IdRepoSecurityManager.class, CredentialRequestManager.class, RestRequestBuilder.class, RestHelper.class,
-		TokenIDGenerator.class })
+@Import({ IdRepoDataSourceConfig.class, CredentialRequestStatusInterceptor.class, IdRepoSecurityManager.class,
+		CredentialServiceManager.class, RestRequestBuilder.class, RestHelper.class, TokenIDGenerator.class,
+		IdRepoWebSubHelper.class, DummyPartnerCheckUtil.class })
 public class CredentialsFeederApplication {
 
 	/**

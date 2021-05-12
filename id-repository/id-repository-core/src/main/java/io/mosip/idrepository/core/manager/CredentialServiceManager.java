@@ -14,6 +14,7 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
+import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,6 +38,7 @@ import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.dto.VidInfoDTO;
 import io.mosip.idrepository.core.dto.VidsInfosDTO;
+import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.IdRepoWebSubHelper;
@@ -60,6 +62,10 @@ import io.mosip.kernel.core.websub.model.Type;
 @ConditionalOnBean(name = { "idRepoDataSource" })
 public class CredentialServiceManager {
 
+	private static final boolean DEFAULT_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS = false;
+
+	private static final String PROP_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS = "skip-requesting-existing-credentials-for-partners";
+	
 	private static final String REQUEST_ID_NA = "-NA-";
 
 	private static final String REQUEST_ID = "requestId";
@@ -147,6 +153,10 @@ public class CredentialServiceManager {
 
 	@Autowired
 	private DummyPartnerCheckUtil dummyCheck;
+	
+	@Value("${" + PROP_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS + ":"
+			+ DEFAULT_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS + "}")
+	private boolean skipExistingCredentialsForPartners;
 
 	@Async
 	public void triggerEventNotifications(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate,
@@ -532,6 +542,36 @@ public class CredentialServiceManager {
 		credentialIssueRequestDto.setUser(IdRepoSecurityManager.getUser());
 		credentialIssueRequestDto.setAdditionalData(data);
 		return credentialIssueRequestDto;
+	}
+	
+	public void sendEventsToCredService(List<? extends CredentialRequestStatus> requestEntities,
+			 List<String> partnerIds, BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer, Predicate<? super CredentialIssueRequestDto> additionalFilterCondition, IntFunction<String> saltRetreivalFunction) {
+		if (requestEntities != null) {
+			Predicate<CredentialRequestStatus> isExpiredCondition = this::isExpired;
+			List<CredentialIssueRequestDto> requests = requestEntities
+					.stream()
+					.filter(isExpiredCondition.negate())
+					.flatMap(entity -> {
+				Predicate<? super String> skipExistingCredentialsForPartnersCondition = partnerId -> skipExistingCredentialsForPartners
+						&& partnerId.equals(entity.getPartnerId());
+				Predicate<? super CredentialIssueRequestDto> additionalPredicate = additionalFilterCondition == null ? t -> true: additionalFilterCondition;
+				return partnerIds.stream()
+						.filter(skipExistingCredentialsForPartnersCondition.negate())
+						.map(partnerId -> {
+					return createCredReqDto(entity.getIndividualId(), partnerId, entity.getIdExpiryTimestamp(),
+							entity.getIdTransactionLimit(), entity.getTokenId(),
+							securityManager.getIdHashAndAttributes(entity.getIndividualId(), saltRetreivalFunction));
+				}).filter(additionalPredicate);
+			}).collect(Collectors.toList());
+			
+			sendRequestToCredService(requests, false, credentialRequestResponseConsumer);
+			
+		}
+		
+	}
+
+	private boolean isExpired(CredentialRequestStatus entity) {
+		return entity.getIdExpiryTimestamp() != null && !DateUtils.getUTCCurrentDateTime().isAfter(entity.getIdExpiryTimestamp());
 	}
 
 }

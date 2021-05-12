@@ -27,8 +27,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import io.mosip.idrepository.credentialsfeeder.entity.CredentialRequestStatusEntity;
-import io.mosip.idrepository.credentialsfeeder.repository.CredentialRequestStatusRepository;
+import io.mosip.idrepository.core.entity.CredentialRequestStatus;
+import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
 import io.mosip.idrepository.credentialsfeeder.step.CredentialsFeedingWriter;
 import io.mosip.kernel.core.util.DateUtils;
 
@@ -38,7 +38,7 @@ import io.mosip.kernel.core.util.DateUtils;
  * @author Manoj SP
  */
 @Configuration
-@DependsOn("credentialsFeederConfig")
+@DependsOn({"credentialsFeederConfig"})
 public class CredentialsFeederJobConfig {
 	
 	private static final int DEFAULT_CHUNCK_SIZE = 10;
@@ -67,7 +67,7 @@ public class CredentialsFeederJobConfig {
 	private int chunkSize;
 	
 	@Autowired
-	private CredentialRequestStatusRepository credentialRequestStatusRepository;
+	private CredentialRequestStatusRepo credentialRequestStatusRepo;
 	
 	/**
 	 * Job.
@@ -96,7 +96,7 @@ public class CredentialsFeederJobConfig {
 	public Step step() {
 		return stepBuilderFactory
 				.get("step")
-				.<CredentialRequestStatusEntity, Future<CredentialRequestStatusEntity>> chunk(chunkSize)
+				.<CredentialRequestStatus, Future<CredentialRequestStatus>> chunk(chunkSize)
 				.reader(credentialEventReader())
 				.processor(asyncItemProcessor())
 				.writer(asyncItemWriter(writer))
@@ -104,13 +104,13 @@ public class CredentialsFeederJobConfig {
 	}
 	
 	@Bean
-	public ItemReader<CredentialRequestStatusEntity> credentialEventReader() {
-		RepositoryItemReader<CredentialRequestStatusEntity> reader = new RepositoryItemReader<>();
-		reader.setRepository(credentialRequestStatusRepository);
-		reader.setMethodName("findByRequestedStatusBeforeCrDtimesOrderByCrdtimes");
+	public ItemReader<CredentialRequestStatus> credentialEventReader() {
+		RepositoryItemReader<CredentialRequestStatus> reader = new RepositoryItemReader<>();
+		reader.setRepository(credentialRequestStatusRepo);
+		reader.setMethodName("findByRequestedStatusBeforeCrDtimes");
 		reader.setArguments(List.of(DateUtils.getUTCCurrentDateTime(), STATUS_REQUESTED));
 		final Map<String, Sort.Direction> sorts = new HashMap<>();
-		    sorts.put("createDtimes", Direction.ASC); // then try processing Least failed entries first
+		    sorts.put("crDTimes", Direction.ASC); // then try processing Least failed entries first
 		reader.setSort(sorts);
 		reader.setPageSize(chunkSize);
 		return reader;
