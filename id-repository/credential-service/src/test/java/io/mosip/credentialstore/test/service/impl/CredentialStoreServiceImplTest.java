@@ -240,7 +240,7 @@ public class CredentialStoreServiceImplTest {
 
 				.thenReturn(dataProviderResponse);
 		DataShare dataShare=new DataShare();
-		Mockito.when(dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
+		Mockito.when(dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any()))
 				.thenReturn(dataShare);
 		Mockito.when(digitalSignatureUtil.sign(Mockito.any(), Mockito.any())).thenReturn("testdata");
@@ -418,7 +418,7 @@ public class CredentialStoreServiceImplTest {
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		DataShareException e = new DataShareException();
 		Mockito.when(
-				dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+				dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenThrow(e);
 
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
