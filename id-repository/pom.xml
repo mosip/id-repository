@@ -63,6 +63,7 @@
         <module>credential-request-generator</module>
         <module>credential-service</module>
         <module>id-repository-salt-generator</module>
+        <module>id-repository-credentials-feeder</module>
 	</modules>
 
 	<properties>	

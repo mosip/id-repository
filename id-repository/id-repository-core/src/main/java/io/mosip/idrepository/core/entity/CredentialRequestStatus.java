@@ -60,6 +60,14 @@ public class CredentialRequestStatus {
 
 	@Column(name = "del_dtimes")
 	private LocalDateTime delDTimes;
+	
+	public CredentialRequestStatus(String individualId, LocalDateTime idExpiryTimestamp,Integer idTransactionLimit, String tokenId, String partnerId ) {
+		this.individualId =  individualId;
+		this.idExpiryTimestamp = idExpiryTimestamp;
+		this.idTransactionLimit = idTransactionLimit;
+		this.tokenId = tokenId;
+		this.partnerId = partnerId;
+	}
 
 	@Data
 	static class Compositeclass implements Serializable {
