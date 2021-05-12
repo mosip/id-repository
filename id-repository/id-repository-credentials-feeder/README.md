@@ -1,6 +1,6 @@
 ## id-repository-credentials-feeder
 
-Credentials Feeder Job is a one-time job which is run to populate salts to be used to hash and encrypt data. This generic job takes below details as input and generates and populates salts in the given schema and table.
+Credentials Feeder Job is a one-time job which is run to request credentials for the specified list of partners. The partner list is specified as VM argument as comma seperated partner IDs.
 
 id-repository-credentials-feeder will take mosip_idrepo DB configurations from ID Repository properties file.
 
@@ -19,7 +19,7 @@ idrepo-credential-feeder-chunk-size=<chunkSize>
 java -Dspring.cloud.config.uri=<url> -Dspring.cloud.config.label=<label> -Dspring.cloud.config.name=<name> -Dspring.profiles.active=<profile> -Donline-verification-partner-ids=<olv_partner_ids> -Dskip-requesting-existing-credentials-for-partners=true -jar id-repository-credentials-feeder.jar
 ```
 
-Note: 
+This generic job takes below VM arguments: 
 * `online-verification-partner-ids` is comma separated list of Online_Verification_Partner partner IDs to which credential needs to be re-issued.
 * `skip-requesting-existing-credentials-for-partners` is for optimization. By default it is set to `true`. Keep this to `true` to skip existing credential requests for the partner found in the chunk of query result. Set this to `false` if credentials to be requested again even if the request entry already exist for partner.
 
