@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
 import io.mosip.idrepository.credentialsfeeder.config.filter.AuthTokenExchangeFilter;
 
 /**
@@ -16,7 +17,7 @@ import io.mosip.idrepository.credentialsfeeder.config.filter.AuthTokenExchangeFi
  * @author Manoj SP
  */
 @Configuration
-public class CredentialsFeederConfig {
+public class CredentialsFeederConfig extends IdRepoDataSourceConfig {
 	
 	/**
 	 * Batch config
