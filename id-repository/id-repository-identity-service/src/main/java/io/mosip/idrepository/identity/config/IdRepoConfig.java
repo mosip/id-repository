@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -42,8 +41,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
  */
 @Configuration
 @ConfigurationProperties("mosip.idrepo.identity")
-@Import(IdRepoDataSourceConfig.class)
-public class IdRepoConfig implements WebMvcConfigurer {
+public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfigurer {
 	
 	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISH_URL + "}")
 	public String publisherHubURL;
