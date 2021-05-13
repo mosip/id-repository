@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -20,23 +19,34 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@Configuration
+import io.mosip.idrepository.core.manager.CredentialServiceManager;
+import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
+
 @EnableTransactionManagement
 @EnableAsync
 @EnableJpaRepositories(basePackages = "io.mosip.idrepository.*")
 public class IdRepoDataSourceConfig {
-	
+
 	@Autowired
 	private Interceptor interceptor;
-	
+
 	@Autowired
 	private Environment env;
 	
+	@Bean
+	public CredentialServiceManager credentialServiceManager() {
+		return new CredentialServiceManager();
+	}
+	
+	@Bean
+	public DummyPartnerCheckUtil dummyPartnerCheckUtil() {
+		return new DummyPartnerCheckUtil();
+	}
+
 	/**
 	 * Entity manager factory.
 	 *
-	 * @param dataSource
-	 *            the data source
+	 * @param dataSource the data source
 	 * @return the local container entity manager factory bean
 	 */
 	@Bean
@@ -70,8 +80,7 @@ public class IdRepoDataSourceConfig {
 	/**
 	 * Builds the data source.
 	 *
-	 * @param dataSourceValues
-	 *            the data source values
+	 * @param dataSourceValues the data source values
 	 * @return the data source
 	 */
 	private DataSource buildDataSource(Map<String, String> dataSourceValues) {
@@ -91,7 +100,7 @@ public class IdRepoDataSourceConfig {
 	public DataSource dataSource() {
 //		If sharding is enabled, need to uncomment
 //		return buildDataSource(db.get("shard"));
-		
+
 //		If sharding is enabled, need to comment below code
 		Map<String, String> dbValues = new HashMap<>();
 		dbValues.put("url", env.getProperty("mosip.idrepo.identity.db.url"));

@@ -21,6 +21,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
+import io.mosip.idrepository.core.manager.CredentialServiceManager;
+import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
 
 /**
@@ -85,6 +87,16 @@ public class VidRepoConfig extends HibernateDaoConfig {
 	@Bean
 	public List<String> allowedStatus() {
 		return Collections.unmodifiableList(allowedStatus);
+	}
+	
+	@Bean
+	public CredentialServiceManager credentialServiceManager() {
+		return new CredentialServiceManager();
+	}
+	
+	@Bean
+	public DummyPartnerCheckUtil dummyPartnerCheckUtil() {
+		return new DummyPartnerCheckUtil();
 	}
 
 	/*
