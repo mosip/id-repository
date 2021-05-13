@@ -16,6 +16,7 @@ import io.mosip.credentialstore.provider.impl.IdAuthProvider;
 import io.mosip.credentialstore.provider.impl.QrCodeProvider;
 import io.mosip.credentialstore.util.RestUtil;
 import io.mosip.idrepository.core.helper.AuditHelper;
+import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 
 
 
@@ -28,6 +29,11 @@ import io.mosip.idrepository.core.helper.AuditHelper;
 @EnableRetry
 @PropertySource("classpath:bootstrap.properties")
 public class CredentialStoreBeanConfig {
+	
+	@Bean
+	public DummyPartnerCheckUtil dummyPartnerCheckUtil() {
+		return new DummyPartnerCheckUtil();
+	}
 
 	
 	/**
