@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
 
-import io.mosip.idrepository.core.builder.CredentialRequestStatusInterceptor;
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
 import io.mosip.idrepository.core.helper.IdRepoWebSubHelper;
@@ -27,7 +26,7 @@ import io.mosip.idrepository.core.util.TokenIDGenerator;
 @SpringBootApplication
 @EnableBatchProcessing
 @EnableAutoConfiguration(exclude={ScheduledTasksEndpointAutoConfiguration.class})  
-@Import({ IdRepoDataSourceConfig.class, CredentialRequestStatusInterceptor.class, IdRepoSecurityManager.class,
+@Import({ IdRepoDataSourceConfig.class, IdRepoSecurityManager.class,
 		CredentialServiceManager.class, RestRequestBuilder.class, RestHelper.class, TokenIDGenerator.class,
 		IdRepoWebSubHelper.class, DummyPartnerCheckUtil.class })
 public class CredentialsFeederApplication {
