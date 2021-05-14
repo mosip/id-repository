@@ -1,6 +1,6 @@
 -- -------------------------------------------------------------------------------------------------
 -- Database Name: mosip_credential
--- Release Version 	: 1.1.5
+-- Release Version 	: 1.1.5.2
 -- Purpose    		: Database Alter scripts for the release for credential DB.       
 -- Create By   		: Ram Bhatt
 -- Created Date		: Jan-2021

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.mosip.idrepository</groupId>
 	<artifactId>id-repository-parent</artifactId>
-	<version>1.1.5</version>
+	<version>1.1.5.2</version>
 	<packaging>pom</packaging>
 
 	<name>ID-Repository</name>
@@ -97,7 +97,7 @@
 		<junit.version>4.12</junit.version>
 		<mockito.version>2.22.0</mockito.version>
 
-		<kernel.logger.logback.version>1.1.5</kernel.logger.logback.version>
+		<kernel.logger.logback.version>1.1.5.2</kernel.logger.logback.version>
 	</properties>
     <dependencies>
     	<!-- JUnit -->
@@ -111,7 +111,7 @@
     	<dependency>
 			<groupId>javax.xml.bind</groupId>
 			<artifactId>jaxb-api</artifactId>
-			<version>2.3.0</version>
+			<version>2.3.1</version>
 		</dependency>
 		<dependency>
 		    <groupId>javax.activation</groupId>
@@ -121,7 +121,7 @@
 		<dependency>
 			<groupId>org.glassfish.jaxb</groupId>
 			<artifactId>jaxb-runtime</artifactId>
-			<version>2.3.0-b170127.1453</version>
+			<version>2.3.1</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.mockito</groupId>
