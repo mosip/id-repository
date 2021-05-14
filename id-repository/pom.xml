@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.mosip.idrepository</groupId>
 	<artifactId>id-repository-parent</artifactId>
-	<version>1.1.5</version>
+	<version>1.1.5.2</version>
 	<packaging>pom</packaging>
 
 	<name>ID-Repository</name>
@@ -97,7 +97,7 @@
 		<junit.version>4.12</junit.version>
 		<mockito.version>2.22.0</mockito.version>
 
-		<kernel.logger.logback.version>1.1.5</kernel.logger.logback.version>
+		<kernel.logger.logback.version>1.1.5.2</kernel.logger.logback.version>
 	</properties>
     <dependencies>
     	<!-- JUnit -->
