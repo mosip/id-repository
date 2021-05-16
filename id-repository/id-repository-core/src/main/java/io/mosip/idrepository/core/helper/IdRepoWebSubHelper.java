@@ -1,10 +1,13 @@
 package io.mosip.idrepository.core.helper;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
@@ -48,14 +51,27 @@ public class IdRepoWebSubHelper {
 	@Autowired
 	private DummyPartnerCheckUtil dummyCheck;
 	
+	private Set<String> registeredTopicCache = new HashSet<>();
+	
+	/*
+	 * Cacheable is added to execute topic registration only once per topic
+	 */
 	@Async
 	public void tryRegisteringTopic(String topic) {
-		try {
-			authTypePublisher.registerTopic(topic, publisherHubURL);
-		} catch (WebSubClientException e) {
-			mosipLogger.warn(IdRepoSecurityManager.getUser(), "IdRepoConfig", "init", e.getMessage().toUpperCase());
-		} catch (IdRepoAppUncheckedException e) {
-			mosipLogger.warn(IdRepoSecurityManager.getUser(), "IdRepoConfig", "init", e.getMessage().toUpperCase());
+		synchronized (registeredTopicCache) {
+			//Skip topic registration if already registered
+			if(registeredTopicCache.contains(topic)) {
+				return;
+			} else {
+				try {
+					authTypePublisher.registerTopic(topic, publisherHubURL);
+					registeredTopicCache.add(topic);
+				} catch (WebSubClientException e) {
+					mosipLogger.warn(IdRepoSecurityManager.getUser(), "IdRepoConfig", "init", e.getMessage().toUpperCase());
+				} catch (IdRepoAppUncheckedException e) {
+					mosipLogger.warn(IdRepoSecurityManager.getUser(), "IdRepoConfig", "init", e.getMessage().toUpperCase());
+				}
+			}
 		}
 	}
 
@@ -76,7 +92,7 @@ public class IdRepoWebSubHelper {
 	@Async
 	public void sendEventToIDA(EventModel model, Consumer<EventModel> idaEventModelConsumer) {
 		String partnerId = model.getTopic().split("//")[0];
-		if(dummyCheck.isDummyOLVPartner(partnerId)) {
+		if(!dummyCheck.isDummyOLVPartner(partnerId)) {
 			try {
 				mosipLogger.info(IdRepoSecurityManager.getUser(),  this.getClass().getCanonicalName(), "sendEventToIDA",
 						"Trying registering topic: " + model.getTopic());
