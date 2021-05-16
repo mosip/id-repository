@@ -154,7 +154,7 @@ public class CredentialServiceManager {
 			+ DEFAULT_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS + "}")
 	private boolean skipExistingCredentialsForPartners;
 
-	@Async
+	@Async("asyncThreadPoolTaskExecutor")
 	public void triggerEventNotifications(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate,
 			String txnId, IntFunction<String> saltRetreivalFunction) {
 		this.notifyUinCredential(uin, expiryTimestamp, status, isUpdate, txnId, saltRetreivalFunction, null, null);

@@ -11,12 +11,15 @@ import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import io.mosip.idrepository.core.manager.CredentialServiceManager;
@@ -108,6 +111,17 @@ public class IdRepoDataSourceConfig {
 		dbValues.put("password", env.getProperty("mosip.idrepo.identity.db.password"));
 		dbValues.put("driverClassName", env.getProperty("mosip.idrepo.identity.db.driverClassName"));
 		return buildDataSource(dbValues);
+	}
+	
+	@Bean("asyncThreadPoolTaskExecutor")
+	public TaskExecutor getAsyncExecutor() {
+	  ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+	  executor.setCorePoolSize(20);
+	  executor.setMaxPoolSize(1000);
+	  executor.setWaitForTasksToCompleteOnShutdown(true);
+	  executor.setThreadNamePrefix("Async-");
+	  executor.initialize(); // this is important, otherwise an error is thrown
+	  return new DelegatingSecurityContextAsyncTaskExecutor(executor); // use this special TaskExecuter
 	}
 
 }
