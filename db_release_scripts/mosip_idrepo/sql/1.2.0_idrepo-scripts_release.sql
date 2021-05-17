@@ -15,3 +15,8 @@
 ALTER TABLE idrepo.uin_auth_lock ADD COLUMN unlock_expiry_datetime timestamp;
 ------------------------------------------------------------------------------------------------
 
+\ir ../ddl/idrepo-credential_request_status.sql
+
+
+-------------------------------------------------------------------------------------------------
+
