@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 import javax.annotation.Resource;
 
@@ -60,6 +59,8 @@ import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
+import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
+import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.IdRepoService;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
@@ -72,8 +73,6 @@ import io.mosip.idrepository.identity.entity.UinHistory;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 import io.mosip.idrepository.identity.repository.UinBiometricHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentHistoryRepo;
-import io.mosip.idrepository.identity.repository.UinEncryptSaltRepo;
-import io.mosip.idrepository.identity.repository.UinHashSaltRepo;
 import io.mosip.idrepository.identity.repository.UinHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinRepo;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
@@ -174,7 +173,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	private CredentialRequestStatusRepo credRequestRepo;
 
 	@Autowired
-	private CredentialServiceManager credServiceManager;
+	private CredentialServiceManager credManager;
 
 	/**
 	 * Adds the identity to DB.
@@ -224,7 +223,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				uinEntity.getUinHash(), uinEntity.getUinData(), uinEntity.getUinDataHash(), uinEntity.getRegId(),
 				request.getRequest().getBiometricReferenceId(), activeStatus, env.getProperty(MOSIP_PRIMARY_LANGUAGE),
 				IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), null, null, false, null));
-		issueCredential(uin, uinHashwithSalt, activeStatus, null, false, request.getRequest().getRegistrationId());
+		issueCredential(uin, uinEntity.getUin(), uinHashwithSalt, activeStatus, null, false,
+				request.getRequest().getRegistrationId());
 		return uinEntity;
 	}
 
@@ -388,8 +388,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					request.getRequest().getBiometricReferenceId(), uinObject.getStatusCode(),
 					env.getProperty(MOSIP_PRIMARY_LANGUAGE), IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(),
 					IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), false, null));
-			issueCredential(null, uinHashwithSalt, uinObject.getStatusCode(), DateUtils.getUTCCurrentDateTime(), true,
-					request.getRequest().getRegistrationId());
+			issueCredential(uin, uinObject.getUin(), uinHashwithSalt, uinObject.getStatusCode(),
+					DateUtils.getUTCCurrentDateTime(), true, request.getRequest().getRegistrationId());
 			return uinObject;
 		} catch (JSONException | InvalidJsonException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, UPDATE_IDENTITY, e.getMessage());
@@ -622,32 +622,37 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				}));
 	}
 
-	private void issueCredential(String uin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp, boolean isUpdate,
-			String txnId) {
-		Optional<CredentialRequestStatus> credStatusOptional = credRequestRepo.findByIndividualIdHash(uinHash);
+	private void issueCredential(String uin, String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp,
+			boolean isUpdate, String txnId) {
+		List<CredentialRequestStatus> credStatusList = credRequestRepo.findByIndividualIdHash(uinHash);
 		String activeStatus = env.getProperty(ACTIVE_STATUS);
-		if (credStatusOptional.isEmpty() && uinStatus.contentEquals(activeStatus)) {
+		if (credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
 			CredentialRequestStatus credStatus = new CredentialRequestStatus();
-			credStatus.setIndividualId(uin);
+			credStatus.setIndividualId(enryptedUin);
 			credStatus.setIndividualIdHash(uinHash);
 			credStatus.setPartnerId(dummyPartner.getDummyOLVPartnerId());
 			credStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
+			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? expiryTimestamp : null);
 			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
 			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
 			credRequestRepo.save(credStatus);
-		} else if (credStatusOptional.isPresent() && uinStatus.contentEquals(activeStatus)) {
-			CredentialRequestStatus credStatus = credStatusOptional.get();
-			credStatus.setPartnerId(dummyPartner.getDummyOLVPartnerId());
-			credStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
-			credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
-			credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
-			credRequestRepo.save(credStatus);
-		} else if (credStatusOptional.isPresent() && !uinStatus.contentEquals(activeStatus)) {
-			CredentialRequestStatus credStatus = credStatusOptional.get();
-			credRequestRepo.delete(credStatus);
+		} else if (!credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
+			credStatusList.forEach(credStatus -> {
+				credStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
+				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
+				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
+				credRequestRepo.save(credStatus);
+			});
+		} else if (!credStatusList.isEmpty() && !uinStatus.contentEquals(activeStatus)) {
+			credStatusList.forEach(credStatus -> {
+				credStatus.setStatus(CredentialRequestStatusLifecycle.DELETED.toString());
+				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
+				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
+				credRequestRepo.save(credStatus);
+			});
 		}
-		credServiceManager.triggerEventNotifications(uin, uinStatus.contentEquals(activeStatus) ? expiryTimestamp : null,
-				uinStatus.contentEquals(activeStatus) ? uinStatus : null, isUpdate, txnId, uinHashSaltRepo::retrieveSaltById);
+		credManager.notifyUinCredential(uin, uinStatus.contentEquals(activeStatus) ? expiryTimestamp : null,
+				uinStatus.contentEquals(activeStatus) ? uinStatus : null, isUpdate, txnId, uinHashSaltRepo::retrieveSaltById, null, null);
 	}
 
 	/**

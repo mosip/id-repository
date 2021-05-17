@@ -109,6 +109,8 @@ public class IdRepoConstants {
 	public static final String IDREPO_DUMMY_ONLINE_VERIFICATION_PARTNER_ID = "idrepo-dummy-online-verification-partner-id";
 	
 	public static final String MOSIP_OLV_PARTNER = "MOSIP_OLV_PARTNER";
+	
+	public static final String CREDENTIAL_STATUS_JOB_DELAY = "mosip.idrepo.credential-status-update-job.fixed-delay-in-ms";
 
 	
 	/** The value. */

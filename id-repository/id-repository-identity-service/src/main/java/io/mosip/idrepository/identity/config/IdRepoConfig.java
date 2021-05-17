@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.web.client.DefaultResponseErrorHandler;
@@ -29,6 +30,7 @@ import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.exception.AuthenticationException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.manager.CredentialStatusManager;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
@@ -71,6 +73,9 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 
 	/** The id. */
 	private Map<String, String> id;
+	
+	@Autowired
+	private CredentialStatusManager credStatusManager;
 	
 	@PostConstruct
 	public void init() {
@@ -264,5 +269,10 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 		executor.setThreadNamePrefix("idrepo-");
 		executor.initialize();
 		return executor;
+	}
+	
+	@Scheduled(fixedDelayString = "${" + IdRepoConstants.CREDENTIAL_STATUS_JOB_DELAY + ":1000}")
+	public void credentialStatusHandlerJob() {
+		credStatusManager.triggerEventNotifications();
 	}
 }

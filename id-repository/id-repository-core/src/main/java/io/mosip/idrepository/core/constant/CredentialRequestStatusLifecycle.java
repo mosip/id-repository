@@ -5,5 +5,5 @@ package io.mosip.idrepository.core.constant;
  *
  */
 public enum CredentialRequestStatusLifecycle {
-	NEW, ISSUED, FAILED;
+	NEW, REQUESTED, FAILED, DELETED;
 }

@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 @ConditionalOnBean(name = { "idRepoDataSource" })
 public class CredentialRequestStatus {
 
-	public String individualId;
+	private String individualId;
 
 	@Id
 	private String individualIdHash;
