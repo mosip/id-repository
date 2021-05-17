@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.3" use-changelog="false" last-position="0,339" last-zoom="0.6" max-obj-count="21"
+<dbmodel pgmodeler-ver="0.9.3" use-changelog="false" last-position="0,296" last-zoom="0.6" max-obj-count="21"
 	 default-schema="public" default-owner="postgres">
 <role name="sysadmin"
       superuser="true"
@@ -608,6 +608,57 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</column>
 	<constraint name="pk_uinal" type="pk-constr" table="idrepo.uin_auth_lock">
 		<columns names="uin_hash,auth_type_code,lock_request_datetime" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="credential_request_status" layer="0" collapse-mode="2" max-obj-count="16" z-value="0">
+	<schema name="idrepo"/>
+	<role name="postgres"/>
+	<position x="1020" y="1020"/>
+	<column name="individual_id" not-null="true">
+		<type name="character varying" length="500"/>
+	</column>
+	<column name="individual_id_hash" not-null="true">
+		<type name="character varying" length="128"/>
+	</column>
+	<column name="partner_id" not-null="true">
+		<type name="character varying" length="36"/>
+	</column>
+	<column name="request_id">
+		<type name="character varying" length="36"/>
+	</column>
+	<column name="token_id">
+		<type name="character varying" length="128"/>
+	</column>
+	<column name="status" not-null="true">
+		<type name="character varying" length="36"/>
+	</column>
+	<column name="id_transaction_limit">
+		<type name="numeric" length="0"/>
+	</column>
+	<column name="id_expiry_timestamp">
+		<type name="timestamp" length="0"/>
+	</column>
+	<column name="cr_by" not-null="true">
+		<type name="character varying" length="256"/>
+	</column>
+	<column name="cr_dtimes" not-null="true">
+		<type name="timestamp" length="0"/>
+	</column>
+	<column name="upd_by">
+		<type name="character varying" length="256"/>
+	</column>
+	<column name="upd_dtimes">
+		<type name="timestamp" length="0"/>
+	</column>
+	<column name="is_deleted" default-value="false">
+		<type name="bool" length="0"/>
+	</column>
+	<column name="del_dtimes">
+		<type name="timestamp" length="0"/>
+	</column>
+	<constraint name="credential_request_status_pk" type="pk-constr" table="idrepo.credential_request_status">
+		<columns names="individual_id_hash,partner_id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
