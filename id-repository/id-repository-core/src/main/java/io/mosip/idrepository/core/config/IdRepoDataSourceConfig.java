@@ -30,7 +30,7 @@ import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 @EnableJpaRepositories(basePackages = "io.mosip.idrepository.*")
 public class IdRepoDataSourceConfig {
 
-	@Autowired
+	@Autowired(required = false)
 	private Interceptor interceptor;
 
 	@Autowired
