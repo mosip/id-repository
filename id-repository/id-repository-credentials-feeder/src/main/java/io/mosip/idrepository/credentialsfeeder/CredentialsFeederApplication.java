@@ -28,7 +28,7 @@ import io.mosip.idrepository.core.util.TokenIDGenerator;
 @EnableAutoConfiguration(exclude={ScheduledTasksEndpointAutoConfiguration.class})  
 @Import({ IdRepoDataSourceConfig.class, IdRepoSecurityManager.class,
 		CredentialServiceManager.class, RestRequestBuilder.class, RestHelper.class, TokenIDGenerator.class,
-		IdRepoWebSubHelper.class, DummyPartnerCheckUtil.class })
+		IdRepoWebSubHelper.class })
 public class CredentialsFeederApplication {
 
 	/**
