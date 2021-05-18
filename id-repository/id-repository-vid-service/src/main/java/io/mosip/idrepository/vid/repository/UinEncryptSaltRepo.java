@@ -3,6 +3,7 @@ package io.mosip.idrepository.vid.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import io.mosip.idrepository.vid.entity.UinEncryptSalt;
 
@@ -12,6 +13,7 @@ import io.mosip.idrepository.vid.entity.UinEncryptSalt;
  * @author Prem Kumar
  *
  */
+@Repository
 public interface UinEncryptSaltRepo extends JpaRepository<UinEncryptSalt, Integer> {
 	
 	/**

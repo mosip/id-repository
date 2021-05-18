@@ -27,7 +27,7 @@ public enum RestServicesConstants {
 
 	CREDENTIAL_REQUEST_SERVICE("mosip.idrepo.credential.request"),
 
-	CREDENTIAL_CANCEL_SERVICE("mosip.idrepo.credential.cancel"),
+	CREDENTIAL_CANCEL_SERVICE("mosip.idrepo.credential.cancel-request"),
 	
 	RETRIEVE_VIDS_BY_UIN("mosip.idrepo.vid-service"),
 	

@@ -13,12 +13,14 @@ import javax.sql.DataSource;
 
 import org.hibernate.Interceptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import io.mosip.idrepository.core.manager.CredentialServiceManager;
@@ -35,6 +37,8 @@ import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
  */
 @Configuration
 @ConfigurationProperties("mosip.idrepo.vid")
+@EnableJpaRepositories(basePackages = "io.mosip.idrepository.vid.*")
+@EntityScan(basePackages = "io.mosip.idrepository.vid.*")
 public class VidRepoConfig extends HibernateDaoConfig {
 
 	/** The env. */
