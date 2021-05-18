@@ -90,6 +90,10 @@ public class IdRepoWebSubHelper {
 	 */
 	@Async
 	public void sendEventToIDA(EventModel model, Consumer<EventModel> idaEventModelConsumer) {
+		if (idaEventModelConsumer != null) {
+			idaEventModelConsumer.accept(model);
+		}
+		
 		String partnerId = model.getTopic().split("//")[0];
 		if (!dummyCheck.isDummyOLVPartner(partnerId)) {
 			try {
@@ -104,10 +108,6 @@ public class IdRepoWebSubHelper {
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendEventToIDA",
 					"Publising event to topic: " + model.getTopic());
 			publisher.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null, publisherHubURL);
-		}
-
-		if (idaEventModelConsumer != null) {
-			idaEventModelConsumer.accept(model);
 		}
 	}
 
