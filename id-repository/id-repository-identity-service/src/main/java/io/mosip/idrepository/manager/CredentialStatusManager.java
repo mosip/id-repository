@@ -1,4 +1,4 @@
-package io.mosip.idrepository.core.manager;
+package io.mosip.idrepository.manager;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
@@ -30,6 +30,7 @@ import io.mosip.idrepository.core.entity.UinEncryptSalt;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.helper.RestHelper;
+import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
