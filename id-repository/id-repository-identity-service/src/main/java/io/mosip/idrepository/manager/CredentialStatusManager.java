@@ -173,7 +173,6 @@ public class CredentialStatusManager {
 		}
 	}
 
-	// Event to be sent to IDA for deactivation/blocked uin state
 	public void idaEventHandler(EventModel event) {
 		try {
 			List<CredentialRequestStatus> credStatusList = statusRepo
