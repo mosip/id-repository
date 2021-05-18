@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
@@ -43,6 +44,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
  */
 @Configuration
 @ConfigurationProperties("mosip.idrepo.identity")
+@EnableScheduling
 public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfigurer {
 	
 	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISH_URL + "}")

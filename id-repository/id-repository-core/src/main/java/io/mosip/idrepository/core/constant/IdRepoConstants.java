@@ -111,6 +111,20 @@ public class IdRepoConstants {
 	public static final String MOSIP_OLV_PARTNER = "MOSIP_OLV_PARTNER";
 	
 	public static final String CREDENTIAL_STATUS_JOB_DELAY = "mosip.idrepo.credential-status-update-job.fixed-delay-in-ms";
+	
+	public static final String UIN_REFID = "mosip.idrepo.crypto.refId.uin";
+	
+	public static final String UIN_DATA_REFID = "mosip.idrepo.crypto.refId.uin-data";
+	
+	public static final String BIO_DATA_REFID = "mosip.idrepo.crypto.refId.bio-doc-data";
+//	
+	public static final String DEMO_DATA_REFID = "mosip.idrepo.crypto.refId.demo-doc-data";
+	
+	public static final String  VID_EVENT_TOPIC = "mosip.idrepo.websub.vid-credential-update.topic";
+	
+	public static final String  VID_EVENT_SECRET = "mosip.idrepo.websub.vid-credential-update.secret";
+	
+	public static final String  VID_EVENT_CALLBACK_URL = "mosip.idrepo.websub.vid-credential-update.callback-url";
 
 	
 	/** The value. */

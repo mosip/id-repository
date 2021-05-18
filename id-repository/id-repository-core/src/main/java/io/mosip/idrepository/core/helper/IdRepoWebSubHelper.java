@@ -34,36 +34,36 @@ public class IdRepoWebSubHelper {
 
 	/** The mosip logger. */
 	Logger mosipLogger = IdRepoLogger.getLogger(IdRepoWebSubHelper.class);
-	
+
 	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISH_URL + "}")
 	public String publisherHubURL;
 
 	@Autowired
 	private PublisherClient<String, IDAEventDTO, HttpHeaders> authTypePublisher;
-	
-	@Autowired
-	private PublisherClient<String, EventModel, HttpHeaders> idaPublisher;
 
 	@Autowired
-	private TokenIDGenerator tokenIdGenerator; 
+	private PublisherClient<String, EventModel, HttpHeaders> publisher;
+
+	@Autowired
+	private TokenIDGenerator tokenIdGenerator;
 
 	@Autowired
 	private DummyPartnerCheckUtil dummyCheck;
-	
+
 	private Set<String> registeredTopicCache = new HashSet<>();
-	
+
 	/*
 	 * Cacheable is added to execute topic registration only once per topic
 	 */
 	@Async
 	public void tryRegisteringTopic(String topic) {
 		synchronized (registeredTopicCache) {
-			//Skip topic registration if already registered
-			if(registeredTopicCache.contains(topic)) {
+			// Skip topic registration if already registered
+			if (registeredTopicCache.contains(topic)) {
 				return;
 			} else {
 				try {
-					authTypePublisher.registerTopic(topic, publisherHubURL);
+					publisher.registerTopic(topic, publisherHubURL);
 					registeredTopicCache.add(topic);
 				} catch (WebSubClientException e) {
 					mosipLogger.warn(IdRepoSecurityManager.getUser(), "IdRepoConfig", "init", e.getMessage().toUpperCase());
@@ -82,7 +82,7 @@ public class IdRepoWebSubHelper {
 		event.setAuthTypeStatusList(authTypeStatusList);
 		authTypePublisher.publishUpdate(topic, event, MediaType.APPLICATION_JSON_UTF8_VALUE, null, publisherHubURL);
 	}
-	
+
 	/**
 	 * Send event to IDA.
 	 *
@@ -91,25 +91,29 @@ public class IdRepoWebSubHelper {
 	@Async
 	public void sendEventToIDA(EventModel model, Consumer<EventModel> idaEventModelConsumer) {
 		String partnerId = model.getTopic().split("//")[0];
-		if(!dummyCheck.isDummyOLVPartner(partnerId)) {
+		if (!dummyCheck.isDummyOLVPartner(partnerId)) {
 			try {
-				mosipLogger.info(IdRepoSecurityManager.getUser(),  this.getClass().getCanonicalName(), "sendEventToIDA",
+				mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendEventToIDA",
 						"Trying registering topic: " + model.getTopic());
 				this.tryRegisteringTopic(model.getTopic());
 			} catch (Exception e) {
 				// Exception will be there if topic already registered. Ignore that
-				mosipLogger.warn(IdRepoSecurityManager.getUser(),  this.getClass().getCanonicalName(), "sendEventToIDA",
+				mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendEventToIDA",
 						"Error in registering topic: " + model.getTopic() + " : " + e.getMessage());
 			}
-			mosipLogger.info(IdRepoSecurityManager.getUser(),  this.getClass().getCanonicalName(), "sendEventToIDA",
+			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendEventToIDA",
 					"Publising event to topic: " + model.getTopic());
-			idaPublisher.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null,
-					publisherHubURL);
+			publisher.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null, publisherHubURL);
 		}
-		
-		if(idaEventModelConsumer != null) {
+
+		if (idaEventModelConsumer != null) {
 			idaEventModelConsumer.accept(model);
 		}
 	}
 
+	@Async
+	public void publishEvent(EventModel event) {
+		this.tryRegisteringTopic(event.getTopic());
+		publisher.publishUpdate(event.getTopic(), event, MediaType.APPLICATION_JSON_VALUE, null, publisherHubURL);
+	}
 }
