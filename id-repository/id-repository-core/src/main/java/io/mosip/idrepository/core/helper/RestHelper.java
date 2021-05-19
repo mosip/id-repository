@@ -37,6 +37,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.retry.WithRetry;
+import lombok.NoArgsConstructor;
 import reactor.core.publisher.Mono;
 
 /**
@@ -44,6 +45,7 @@ import reactor.core.publisher.Mono;
  *
  * @author Manoj SP
  */
+@NoArgsConstructor
 public class RestHelper {
 
 	/** The Constant ERRORS. */
