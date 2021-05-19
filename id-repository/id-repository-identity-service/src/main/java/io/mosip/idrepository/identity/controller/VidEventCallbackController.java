@@ -45,11 +45,11 @@ public class VidEventCallbackController {
 			+ "}", callback = "/idrepository/v1/identity/callback/vid_credential_status_update", topic = "${" + VID_EVENT_TOPIC + "}")
 	public void handleVidEvent(@RequestBody EventModel eventModel) {
 		if (((String) eventModel.getEvent().getData().get("status")).contentEquals(env.getProperty(VID_ACTIVE_STATUS))) {
-			statusManager.credentialRequestResponseHandler(
+			statusManager.credentialRequestResponseConsumer(
 					mapper.convertValue(eventModel.getEvent().getData().get("request"), CredentialIssueRequestWrapperDto.class),
 					mapper.convertValue(eventModel.getEvent().getData().get("response"), Map.class));
 		} else {
-			statusManager.idaEventHandler(mapper.convertValue(eventModel.getEvent().getData().get("idaEvent"), EventModel.class));
+			statusManager.idaEventConsumer(mapper.convertValue(eventModel.getEvent().getData().get("idaEvent"), EventModel.class));
 		}
 	}
 }

@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -29,6 +30,7 @@ import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.helper.RestHelper;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.identity.entity.UinEncryptSalt;
@@ -36,6 +38,7 @@ import io.mosip.idrepository.identity.repository.CredentialRequestStatusRepo;
 import io.mosip.idrepository.identity.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.identity.repository.UinHashSaltRepo;
 import io.mosip.kernel.core.http.ResponseWrapper;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.model.EventModel;
 
@@ -45,6 +48,8 @@ import io.mosip.kernel.core.websub.model.EventModel;
  */
 @Component
 public class CredentialStatusManager {
+	
+	Logger mosipLogger = IdRepoLogger.getLogger(CredentialStatusManager.class);
 
 	@Autowired
 	private CredentialRequestStatusRepo statusRepo;
@@ -92,10 +97,10 @@ public class CredentialStatusManager {
 				String idvId = decryptUin(credentialRequestStatus.getIndividualId());
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), "BLOCKED",
 						Objects.nonNull(credentialRequestStatus.getUpdatedBy()) ? true : false, null,
-						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseHandler, this::idaEventHandler);
+						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer, this::idaEventConsumer);
 			}
 		} catch (Exception e) {
-
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleDeletedRequests", ExceptionUtils.getFullStackTrace(e));
 		}
 	}
 
@@ -108,10 +113,10 @@ public class CredentialStatusManager {
 				String idvId = decryptUin(credentialRequestStatus.getIndividualId());
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), "BLOCKED",
 						Objects.nonNull(credentialRequestStatus.getUpdatedBy()) ? true : false, null,
-						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseHandler, this::idaEventHandler);
+						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer, this::idaEventConsumer);
 			}
 		} catch (Exception e) {
-
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleExpiredRequests", ExceptionUtils.getFullStackTrace(e));
 		}
 	}
 
@@ -125,14 +130,14 @@ public class CredentialStatusManager {
 				String idvId = decryptUin(credentialRequestStatus.getIndividualId());
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), activeStatus,
 						Objects.nonNull(credentialRequestStatus.getUpdatedBy()) ? true : false, null,
-						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseHandler, this::idaEventHandler);
+						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer, this::idaEventConsumer);
 			}
 		} catch (Exception e) {
-
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleNewOrUpdatedRequests", ExceptionUtils.getFullStackTrace(e));
 		}
 	}
 
-	public void credentialRequestResponseHandler(CredentialIssueRequestWrapperDto request, Map<String, Object> response) {
+	public void credentialRequestResponseConsumer(CredentialIssueRequestWrapperDto request, Map<String, Object> response) {
 		try {
 			CredentialIssueResponse credResponse = mapper.convertValue(response.get("response"), CredentialIssueResponse.class);
 			Map<String, Object> additionalData = request.getRequest().getAdditionalData();
@@ -169,11 +174,11 @@ public class CredentialStatusManager {
 				statusRepo.save(credStatus);
 			}
 		} catch (Exception e) {
-
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "credentialRequestResponseConsumer", ExceptionUtils.getFullStackTrace(e));
 		}
 	}
 
-	public void idaEventHandler(EventModel event) {
+	public void idaEventConsumer(EventModel event) {
 		try {
 			List<CredentialRequestStatus> credStatusList = statusRepo
 					.findByIndividualIdHash((String) event.getEvent().getData().get("id_hash"));
@@ -181,7 +186,7 @@ public class CredentialStatusManager {
 				statusRepo.deleteAll(credStatusList);
 			}
 		} catch (Exception e) {
-
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "idaEventConsumer", ExceptionUtils.getFullStackTrace(e));
 		}
 	}
 

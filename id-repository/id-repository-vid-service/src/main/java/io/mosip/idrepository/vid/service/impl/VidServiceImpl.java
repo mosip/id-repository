@@ -703,10 +703,10 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	
 	@Transactional(propagation = Propagation.NEVER)
 	private void notify(String uin, String status, List<VidInfoDTO> vids, boolean isUpdated) {
-		credentialServiceManager.notifyVIDCredential(uin, status, vids, isUpdated, uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseHandler, this::idaEventHandler);
+		credentialServiceManager.notifyVIDCredential(uin, status, vids, isUpdated, uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer, this::idaEventConsumer);
 	}
 	
-	public void credentialRequestResponseHandler(CredentialIssueRequestWrapperDto request, Map<String, Object> response) {
+	public void credentialRequestResponseConsumer(CredentialIssueRequestWrapperDto request, Map<String, Object> response) {
 		EventModel eventModel = new EventModel();
 		eventModel.setTopic(vidEventTopic);
 		Event event = new Event();
@@ -718,7 +718,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		websubHelper.publishEvent(eventModel);
 	}
 	
-	public void idaEventHandler(EventModel idaEvent) {
+	public void idaEventConsumer(EventModel idaEvent) {
 		EventModel eventModel = new EventModel();
 		eventModel.setTopic(vidEventTopic);
 		Event event = new Event();
