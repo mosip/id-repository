@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
-import io.mosip.idrepository.credentialsfeeder.config.filter.AuthTokenExchangeFilter;
+import io.mosip.idrepository.core.httpfilter.AuthTokenExchangeFilter;
 
 /**
  * The Class CredentialsFeederConfig - Provides configuration for credential feeder application.

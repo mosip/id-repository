@@ -1,10 +1,10 @@
 package io.mosip.idrepository.core.security;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.PREPEND_THUMPRINT_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_ID;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DATETIME_PATTERN;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.PREPEND_THUMPRINT_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED;
 
 import java.security.NoSuchAlgorithmException;
@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -45,7 +44,6 @@ import io.mosip.kernel.core.util.HMACUtils2;
  *
  * @author Manoj SP
  */
-@Component
 public class IdRepoSecurityManager {
 	
 	private static final String SALT = "SALT";
@@ -68,7 +66,6 @@ public class IdRepoSecurityManager {
 	private RestRequestBuilder restBuilder;
 
 	/** The rest helper. */
-	@Autowired
 	private RestHelper restHelper;
 
 	/** The env. */
@@ -78,6 +75,10 @@ public class IdRepoSecurityManager {
 	/** The mapper. */
 	@Autowired
 	private ObjectMapper mapper;
+	
+	public IdRepoSecurityManager(RestHelper restHelper) {
+		this.restHelper = restHelper;
+	}
 
 	/**
 	 * Hash - provides basic hash.

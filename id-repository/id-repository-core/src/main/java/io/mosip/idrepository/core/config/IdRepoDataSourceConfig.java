@@ -38,7 +38,7 @@ public class IdRepoDataSourceConfig {
 	
 	@Bean
 	public CredentialServiceManager credentialServiceManager() {
-		return new CredentialServiceManager();
+		return new CredentialServiceManager(null);
 	}
 	
 	@Bean
