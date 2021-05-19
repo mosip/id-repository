@@ -24,6 +24,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 
+import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
@@ -107,6 +108,11 @@ public class VidRepoConfig extends HibernateDaoConfig {
 	@Bean
 	public IdRepoSecurityManager securityManager() {
 		return new IdRepoSecurityManager();
+	}
+	
+	@Bean
+	public RestHelper restHelper() {
+		return new RestHelper();
 	}
 
 	/*

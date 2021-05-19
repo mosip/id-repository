@@ -17,6 +17,7 @@ import io.mosip.credentialstore.provider.impl.QrCodeProvider;
 import io.mosip.credentialstore.util.RestUtil;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 
 
@@ -35,7 +36,11 @@ public class CredentialStoreBeanConfig {
 	public DummyPartnerCheckUtil dummyPartnerCheckUtil() {
 		return new DummyPartnerCheckUtil();
 	}
-
+	
+	@Bean
+	public IdRepoSecurityManager securityManager() {
+		return new IdRepoSecurityManager();
+	}
 	
 	/**
 	 * Gets the id auth provider.
