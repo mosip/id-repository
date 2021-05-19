@@ -3,12 +3,12 @@
 -- Table Name   : idrepo.uin_auth_lock
 -- Purpose      : UIN Authentication Lock: An individual is provided an option to lock or unlock any of the authentication types that are provided by the system. When an individual locks a particular type of authentication, any requests received by the system will be rejected. The details of the locked authentication types are stored in this table.
 --           
--- Create By    : adanandegowda DM
+-- Create By    : Sadanandegowda DM
 -- Created Date : Sep-2020
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
---  
+-- May-2021		Ram Bhatt	    Added unlock_expiry_datetime column
 -- ------------------------------------------------------------------------------------------
 -- object: idrepo.uin_auth_lock | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.uin_auth_lock CASCADE;
@@ -26,6 +26,7 @@ CREATE TABLE idrepo.uin_auth_lock(
 	upd_dtimes timestamp,
 	is_deleted boolean,
 	del_dtimes timestamp,
+	unlock_expiry_datetime timestamp,
 	CONSTRAINT pk_uinal PRIMARY KEY (uin_hash,auth_type_code,lock_request_datetime)
 
 );

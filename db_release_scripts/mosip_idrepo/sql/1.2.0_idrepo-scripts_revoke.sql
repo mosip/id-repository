@@ -10,5 +10,6 @@
 
 \c mosip_idrepo sysadmin
 
-DROP TABLE IF EXISTS idrepo.uin_auth_lock;
+ALTER TABLE idrepo.uin_auth_lock DROP COLUMN unlock_expiry_datetime;
+DROP TABLE IF EXISTS idrepo.credential_request_status;
 -----------------------------------------------------------------------------------------------------
