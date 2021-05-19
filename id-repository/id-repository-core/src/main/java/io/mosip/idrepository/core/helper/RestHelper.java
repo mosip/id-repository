@@ -12,11 +12,12 @@ import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
+import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
 import org.springframework.web.reactive.function.client.WebClient.ResponseSpec;
@@ -36,7 +37,6 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.retry.WithRetry;
-import lombok.NoArgsConstructor;
 import reactor.core.publisher.Mono;
 
 /**
@@ -44,8 +44,6 @@ import reactor.core.publisher.Mono;
  *
  * @author Manoj SP
  */
-@Component
-@NoArgsConstructor
 public class RestHelper {
 
 	/** The Constant ERRORS. */
@@ -54,6 +52,9 @@ public class RestHelper {
 	/** The mapper. */
 	@Autowired
 	private ObjectMapper mapper;
+	
+	@Autowired
+	private ApplicationContext ctx;
 
 	/** The Constant METHOD_REQUEST_SYNC. */
 	private static final String METHOD_REQUEST_SYNC = "requestSync";
@@ -79,8 +80,17 @@ public class RestHelper {
 	/** The mosipLogger. */
 	private static Logger mosipLogger = IdRepoLogger.getLogger(RestHelper.class);
 	
-	@Autowired
 	private WebClient webClient;
+	
+	public RestHelper(WebClient webClient) {
+		this.webClient = webClient;
+	}
+	
+	@PostConstruct
+	public void init() {
+		if (Objects.isNull(webClient))
+			webClient = ctx.getBean(WebClient.class);
+	}
 	
 	/**
 	 * Request to send/receive HTTP requests and return the response synchronously.

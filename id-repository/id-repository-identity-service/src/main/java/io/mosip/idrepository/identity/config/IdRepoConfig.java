@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
@@ -24,6 +25,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
@@ -31,7 +33,10 @@ import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.exception.AuthenticationException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
+import io.mosip.idrepository.core.helper.RestHelper;
+import io.mosip.idrepository.core.httpfilter.AuthTokenExchangeFilter;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.manager.CredentialStatusManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -278,5 +283,40 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	@Scheduled(fixedDelayString = "${" + IdRepoConstants.CREDENTIAL_STATUS_JOB_DELAY + ":1000}")
 	public void credentialStatusHandlerJob() {
 		credStatusManager.triggerEventNotifications();
+	}
+	
+	@Bean
+	@Override
+	public CredentialServiceManager credentialServiceManager() {
+		return new CredentialServiceManager(restHelperWithAuth());
+	}
+	
+	@Bean
+	@Primary
+	public RestHelper restHelper() {
+		return new RestHelper(null);
+	}
+	
+	@Bean
+	public AuthTokenExchangeFilter authTokenExchangeFilter() {
+		return new AuthTokenExchangeFilter();
+	}
+	
+	@Bean("restHelperWithAuth")
+	public RestHelper restHelperWithAuth() {
+		return new RestHelper(WebClient.builder().filter(authTokenExchangeFilter()).build());
+	}
+	
+	@Bean
+	public IdRepoSecurityManager securityManager() {
+		return new IdRepoSecurityManager(restHelper());
+	}
+	
+	@Bean("securityManagerWithAuth")
+	public IdRepoSecurityManager securityManagerWithAuth() {
+		RestHelper restHelperWithAuth = restHelperWithAuth();
+		System.err.println(restHelperWithAuth);
+		System.err.println(restHelper());
+		return new IdRepoSecurityManager(restHelperWithAuth);
 	}
 }

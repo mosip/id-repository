@@ -19,8 +19,11 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
 
@@ -113,7 +116,6 @@ public class CredentialServiceManager {
 	private ObjectMapper mapper;
 
 	/** The rest helper. */
-	@Autowired
 	private RestHelper restHelper;
 
 	/** The rest builder. */
@@ -150,9 +152,22 @@ public class CredentialServiceManager {
 	@Autowired
 	private DummyPartnerCheckUtil dummyCheck;
 	
+	@Autowired
+	private ApplicationContext ctx;
+	
 	@Value("${" + PROP_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS + ":"
 			+ DEFAULT_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS + "}")
 	private boolean skipExistingCredentialsForPartners;
+	
+	public CredentialServiceManager(RestHelper restHelper) {
+		this.restHelper = restHelper;
+	}
+	
+	@PostConstruct
+	public void init() {
+		if (Objects.isNull(restHelper))
+			this.restHelper = ctx.getBean(RestHelper.class);
+	}
 
 	@Async("asyncThreadPoolTaskExecutor")
 	public void triggerEventNotifications(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate,
@@ -492,8 +507,9 @@ public class CredentialServiceManager {
 	private void sendRequestToCredService(String partnerId, CredentialIssueRequestWrapperDto requestWrapper,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
 		try {
+			Map<String, Object> response = Map.of();
 			if (!dummyCheck.isDummyOLVPartner(partnerId)) {
-				Map<String, Object> response = restHelper.requestSync(
+				response = restHelper.requestSync(
 						restBuilder.buildRequest(RestServicesConstants.CREDENTIAL_REQUEST_SERVICE, requestWrapper, Map.class));
 				// TODO logging of response needs to be removed
 				mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendRequestToCredService",
@@ -501,7 +517,6 @@ public class CredentialServiceManager {
 			}
 
 			if (credentialRequestResponseConsumer != null) {
-				Map<String, Object> response = Map.of(RESPONSE, Map.of(REQUEST_ID, REQUEST_ID_NA));
 				credentialRequestResponseConsumer.accept(requestWrapper, response);
 			}
 

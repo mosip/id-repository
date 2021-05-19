@@ -5,7 +5,6 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -13,6 +12,7 @@ import java.util.Optional;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
@@ -33,13 +33,16 @@ import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.identity.entity.UinEncryptSalt;
 import io.mosip.idrepository.identity.repository.CredentialRequestStatusRepo;
 import io.mosip.idrepository.identity.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.identity.repository.UinHashSaltRepo;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.websub.model.EventModel;
 
 /**
@@ -64,6 +67,7 @@ public class CredentialStatusManager {
 	private RestRequestBuilder restBuilder;
 
 	@Autowired
+	@Qualifier("restHelperWithAuth")
 	private RestHelper restHelper;
 
 	@Autowired
@@ -76,10 +80,14 @@ public class CredentialStatusManager {
 	private UinEncryptSaltRepo uinEncryptSaltRepo;
 
 	@Autowired
+	@Qualifier("securityManagerWithAuth")
 	private IdRepoSecurityManager securityManager;
 
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
+	
+	@Autowired
+	private DummyPartnerCheckUtil dummyPartner;
 
 	@Async("asyncThreadPoolTaskExecutor")
 	public void triggerEventNotifications() {
@@ -131,6 +139,11 @@ public class CredentialStatusManager {
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), activeStatus,
 						Objects.nonNull(credentialRequestStatus.getUpdatedBy()) ? true : false, null,
 						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer, this::idaEventConsumer);
+				Optional<CredentialRequestStatus> idWithDummyPartnerOptional = statusRepo.findByIndividualIdHashAndPartnerId(
+						credentialRequestStatus.getIndividualIdHash(), dummyPartner.getDummyOLVPartnerId());
+				if (idWithDummyPartnerOptional.isPresent()) {
+					statusRepo.delete(idWithDummyPartnerOptional.get());
+				}
 			}
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleNewOrUpdatedRequests", ExceptionUtils.getFullStackTrace(e));
@@ -194,15 +207,13 @@ public class CredentialStatusManager {
 		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
 		int modResult = (int) (Long.parseLong(individualId) % moduloValue);
 		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(modResult);
-		return modResult + SPLITTER + securityManager.encryptWithSalt(individualId.getBytes(), encryptSalt.getBytes(), uinRefId);
+		return modResult + SPLITTER + new String(securityManager.encryptWithSalt(individualId.getBytes(), CryptoUtil.decodeBase64(encryptSalt), uinRefId));
 	}
 
 	private String decryptUin(String individualId) throws IdRepoAppException {
-		List<String> uinList = Arrays.asList(individualId.split(SPLITTER));
-		Optional<UinEncryptSalt> encryptSalt = uinEncryptSaltRepo.findById(Integer.valueOf(uinList.get(0)));
-		String idvId = new String(
-				securityManager.decryptWithSalt(uinList.get(1).getBytes(), encryptSalt.get().getSalt().getBytes(), uinRefId));
-		return idvId;
+		Optional<UinEncryptSalt> encryptSalt = uinEncryptSaltRepo.findById(Integer.valueOf(StringUtils.substringBefore(individualId, SPLITTER)));
+		return new String(
+				securityManager.decryptWithSalt(CryptoUtil.decodeBase64(StringUtils.substringAfter(individualId, SPLITTER)), CryptoUtil.decodeBase64(encryptSalt.get().getSalt()), uinRefId));
 	}
 
 	private void cancelIssuedRequest(String requestId) throws IdRepoDataValidationException {

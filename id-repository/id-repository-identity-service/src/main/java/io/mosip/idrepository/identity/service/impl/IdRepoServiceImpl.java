@@ -170,7 +170,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	@Autowired
 	private CredentialRequestStatusRepo credRequestRepo;
-
+	
 	/**
 	 * Adds the identity to DB.
 	 *
@@ -647,8 +647,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				credRequestRepo.save(credStatus);
 			});
 		}
-//		credManager.notifyUinCredential(uin, uinStatus.contentEquals(activeStatus) ? expiryTimestamp : null,
-//				uinStatus.contentEquals(activeStatus) ? uinStatus : null, isUpdate, txnId, uinHashSaltRepo::retrieveSaltById, null, null);
 	}
 
 	/**
