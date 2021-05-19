@@ -215,6 +215,7 @@ public class CredentialServiceManager {
 	 * @param credentialResponseConsumer the credential response consumer
 	 * @param idaEventModelConsumer
 	 */
+	@Async("asyncThreadPoolTaskExecutor")
 	public void notifyVIDCredential(String uin, String status, List<VidInfoDTO> vids, boolean isUpdated,
 			IntFunction<String> saltRetreivalFunction,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,
