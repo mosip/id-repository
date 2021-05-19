@@ -3,8 +3,6 @@ package io.mosip.idrepository.core.logger;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-import javax.annotation.PostConstruct;
-
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
@@ -24,11 +22,6 @@ import io.mosip.kernel.core.util.DateUtils;
 @ConditionalOnProperty(value = "mosip.idrepo.aspect-logging.enabled", havingValue = "true", matchIfMissing = true)
 public class IdRepoAspectLogger {
 	
-	@PostConstruct
-	public void init() {
-		System.err.println("IdRepoAspectLogger");
-	}
-
 	private transient Logger mosipLogger = IdRepoLogger.getLogger(IdRepoAspectLogger.class);
 
 	private LocalDateTime restHelperTime;

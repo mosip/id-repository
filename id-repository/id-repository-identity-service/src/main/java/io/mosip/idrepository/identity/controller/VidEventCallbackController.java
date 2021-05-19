@@ -39,10 +39,10 @@ public class VidEventCallbackController {
 	private ObjectMapper mapper;
 
 	@SuppressWarnings("unchecked")
-	@PostMapping(path = "/callback/vid_status_update", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(path = "/callback/vid_credential_status_update", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Request authenticated successfully") })
 	@PreAuthenticateContentAndVerifyIntent(secret = "${" + VID_EVENT_SECRET
-			+ "}", callback = "/idrepository/v1/identity/callback/vid_status_update", topic = "${" + VID_EVENT_TOPIC + "}")
+			+ "}", callback = "/idrepository/v1/identity/callback/vid_credential_status_update", topic = "${" + VID_EVENT_TOPIC + "}")
 	public void handleVidEvent(@RequestBody EventModel eventModel) {
 		if (((String) eventModel.getEvent().getData().get("status")).contentEquals(env.getProperty(VID_ACTIVE_STATUS))) {
 			statusManager.credentialRequestResponseHandler(
