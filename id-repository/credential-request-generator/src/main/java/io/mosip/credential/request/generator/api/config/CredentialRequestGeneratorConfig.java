@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import io.mosip.idrepository.core.helper.RestHelper;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -23,6 +24,11 @@ public class CredentialRequestGeneratorConfig {
 	@Bean
 	public RestHelper restHelper() {
 		return new RestHelper();
+	}
+	
+	@Bean
+	public IdRepoSecurityManager securityManager() {
+		return new IdRepoSecurityManager();
 	}
 	
 	@Bean
