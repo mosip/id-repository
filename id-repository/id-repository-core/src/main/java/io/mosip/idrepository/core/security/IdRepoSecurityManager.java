@@ -14,7 +14,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.IntFunction;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -36,6 +39,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.HMACUtils2;
+import lombok.NoArgsConstructor;
 
 /**
  * The Class IdRepoSecurityManager - provides security related functionalities
@@ -44,6 +48,7 @@ import io.mosip.kernel.core.util.HMACUtils2;
  *
  * @author Manoj SP
  */
+@NoArgsConstructor
 public class IdRepoSecurityManager {
 	
 	private static final String SALT = "SALT";
@@ -76,8 +81,17 @@ public class IdRepoSecurityManager {
 	@Autowired
 	private ObjectMapper mapper;
 	
+	@Autowired
+	private ApplicationContext ctx;
+	
 	public IdRepoSecurityManager(RestHelper restHelper) {
 		this.restHelper = restHelper;
+	}
+	
+	@PostConstruct
+	public void init() {
+		if (Objects.isNull(restHelper))
+			this.restHelper = ctx.getBean(RestHelper.class);
 	}
 
 	/**

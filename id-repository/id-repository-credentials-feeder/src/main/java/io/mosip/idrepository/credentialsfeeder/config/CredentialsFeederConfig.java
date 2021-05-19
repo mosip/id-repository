@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
+import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.httpfilter.AuthTokenExchangeFilter;
 
 /**
@@ -53,5 +54,10 @@ public class CredentialsFeederConfig extends IdRepoDataSourceConfig {
 	@Bean
 	public WebClient webClient() {
 		return WebClient.builder().filter(getTokenExchangeFilter()).build();
+	}
+	
+	@Bean
+	public RestHelper restHelper() {
+		return new RestHelper(webClient());
 	}
 }

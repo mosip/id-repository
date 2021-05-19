@@ -25,6 +25,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 
 import io.mosip.idrepository.core.manager.CredentialServiceManager;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
 
@@ -95,12 +96,17 @@ public class VidRepoConfig extends HibernateDaoConfig {
 	
 	@Bean
 	public CredentialServiceManager credentialServiceManager() {
-		return new CredentialServiceManager(null);
+		return new CredentialServiceManager();
 	}
 	
 	@Bean
 	public DummyPartnerCheckUtil dummyPartnerCheckUtil() {
 		return new DummyPartnerCheckUtil();
+	}
+	
+	@Bean
+	public IdRepoSecurityManager securityManager() {
+		return new IdRepoSecurityManager();
 	}
 
 	/*
