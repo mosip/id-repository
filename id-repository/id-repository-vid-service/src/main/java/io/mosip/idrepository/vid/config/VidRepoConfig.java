@@ -95,7 +95,7 @@ public class VidRepoConfig extends HibernateDaoConfig {
 	
 	@Bean
 	public CredentialServiceManager credentialServiceManager() {
-		return new CredentialServiceManager();
+		return new CredentialServiceManager(null);
 	}
 	
 	@Bean
