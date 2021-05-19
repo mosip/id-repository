@@ -91,8 +91,8 @@ public class CredentialStatusManager {
 
 	@Async("asyncThreadPoolTaskExecutor")
 	public void triggerEventNotifications() {
-//		handleDeletedRequests();
-//		handleExpiredRequests();
+		handleDeletedRequests();
+		handleExpiredRequests();
 		handleNewOrUpdatedRequests();
 	}
 
