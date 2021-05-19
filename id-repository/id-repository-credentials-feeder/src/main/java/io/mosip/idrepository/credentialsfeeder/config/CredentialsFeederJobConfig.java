@@ -28,7 +28,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
-import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
+import io.mosip.idrepository.credentialsfeeder.repository.CredentialRequestStatusRepo;
 import io.mosip.idrepository.credentialsfeeder.step.CredentialsFeedingWriter;
 import io.mosip.kernel.core.util.DateUtils;
 

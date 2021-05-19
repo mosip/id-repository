@@ -16,7 +16,7 @@ import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.manager.CredentialServiceManager;
-import io.mosip.idrepository.core.repository.UinHashSaltRepo;
+import io.mosip.idrepository.credentialsfeeder.repository.UinHashSaltRepo;
 
 /**
  * The Class CredentialsFeedingWriter - Class to feed credentials using credential requests.
