@@ -69,6 +69,8 @@ public class IdRepoEntityInterceptorTest {
 	public void setup() {
 		ReflectionTestUtils.setField(securityManager, "env", env);
 		ReflectionTestUtils.setField(securityManager, "mapper", mapper);
+		ReflectionTestUtils.setField(securityManager, "restHelper", restHelper);
+		ReflectionTestUtils.setField(securityManager, "restBuilder", restBuilder);
 		ReflectionTestUtils.setField(interceptor, "securityManager", securityManager);
 	}
 

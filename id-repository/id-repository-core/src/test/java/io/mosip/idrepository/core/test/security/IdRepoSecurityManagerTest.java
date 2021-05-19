@@ -69,6 +69,8 @@ public class IdRepoSecurityManagerTest {
 	public void setup() {
 		ReflectionTestUtils.setField(securityManager, "env", env);
 		ReflectionTestUtils.setField(securityManager, "mapper", mapper);
+		ReflectionTestUtils.setField(securityManager, "restBuilder", restBuilder);
+		ReflectionTestUtils.setField(securityManager, "restHelper", restHelper);
 	}
 
 	@Test
