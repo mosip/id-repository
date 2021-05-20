@@ -12,7 +12,9 @@ import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -33,6 +35,7 @@ import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.exception.AuthenticationException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
+import io.mosip.idrepository.core.helper.IdRepoWebSubHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.httpfilter.AuthTokenExchangeFilter;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
@@ -52,7 +55,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 @ConfigurationProperties("mosip.idrepo.identity")
 @EnableScheduling
 @EnableJpaRepositories(basePackages = "io.mosip.idrepository.*")
-public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfigurer {
+public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfigurer, ApplicationListener<ApplicationReadyEvent> {
 	
 	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISH_URL + "}")
 	public String publisherHubURL;
@@ -85,6 +88,14 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	
 	@Autowired
 	private CredentialStatusManager credStatusManager;
+	
+	@Autowired
+	private IdRepoWebSubHelper websubHelper;
+
+	@Override
+	public void onApplicationEvent(ApplicationReadyEvent event) {
+		websubHelper.subscribeForVidEvent();
+	}
 	
 	@PostConstruct
 	public void init() {
