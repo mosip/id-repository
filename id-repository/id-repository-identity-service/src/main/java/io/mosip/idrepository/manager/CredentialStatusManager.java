@@ -118,10 +118,7 @@ public class CredentialStatusManager {
 					.findByIdExpiryTimestampBefore(DateUtils.getUTCCurrentDateTime());
 			for (CredentialRequestStatus credentialRequestStatus : expiredIssueRequestList) {
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
-				String idvId = decryptUin(credentialRequestStatus.getIndividualId());
-				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), "BLOCKED",
-						Objects.nonNull(credentialRequestStatus.getUpdatedBy()) ? true : false, null,
-						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer, this::idaEventConsumer);
+				statusRepo.delete(credentialRequestStatus);
 			}
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleExpiredRequests", ExceptionUtils.getFullStackTrace(e));
@@ -162,7 +159,7 @@ public class CredentialStatusManager {
 				credStatus.setTokenId((String) additionalData.get("TOKEN"));
 				credStatus.setStatus(CredentialRequestStatusLifecycle.REQUESTED.toString());
 				credStatus.setIdTransactionLimit(Objects.nonNull(additionalData.get("transaction_limit"))
-						? Integer.valueOf((String) additionalData.get("transaction_limit"))
+						? (Integer) additionalData.get("transaction_limit")
 						: null);
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
