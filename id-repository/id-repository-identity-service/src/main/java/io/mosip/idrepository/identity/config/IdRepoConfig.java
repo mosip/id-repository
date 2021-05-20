@@ -293,7 +293,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	
 	@Scheduled(fixedDelayString = "${" + IdRepoConstants.CREDENTIAL_STATUS_JOB_DELAY + ":1000}")
 	public void credentialStatusHandlerJob() {
-//		credStatusManager.triggerEventNotifications();
+		credStatusManager.triggerEventNotifications();
 	}
 	
 	@Bean
