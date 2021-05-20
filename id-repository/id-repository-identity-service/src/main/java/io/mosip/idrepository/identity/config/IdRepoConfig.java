@@ -294,7 +294,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	@Bean
 	@Primary
 	public RestHelper restHelper() {
-		return new RestHelper(null);
+		return new RestHelper();
 	}
 	
 	@Bean
@@ -315,8 +315,6 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	@Bean("securityManagerWithAuth")
 	public IdRepoSecurityManager securityManagerWithAuth() {
 		RestHelper restHelperWithAuth = restHelperWithAuth();
-		System.err.println(restHelperWithAuth);
-		System.err.println(restHelper());
 		return new IdRepoSecurityManager(restHelperWithAuth);
 	}
 }
