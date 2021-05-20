@@ -145,7 +145,7 @@ public class VidRepoConfig extends HibernateDaoConfig {
 		return dataSource;
 	}	
 	
-	@Bean("withSecurityContext")
+	@Bean("asyncThreadPoolTaskExecutor")
 	public DelegatingSecurityContextAsyncTaskExecutor taskExecutor() {
 		return new DelegatingSecurityContextAsyncTaskExecutor(threadPoolTaskExecutor());
 	}

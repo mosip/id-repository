@@ -177,7 +177,7 @@ public class CredentialStatusManager {
 				credStatus.setTokenId((String) additionalData.get("TOKEN"));
 				credStatus.setStatus(CredentialRequestStatusLifecycle.REQUESTED.toString());
 				credStatus.setIdTransactionLimit(Objects.nonNull(additionalData.get("transaction_limit"))
-						? Integer.valueOf((String) additionalData.get("transaction_limit"))
+						? (Integer) additionalData.get("transaction_limit")
 						: null);
 				credStatus.setIdExpiryTimestamp(Objects.nonNull(additionalData.get("expiry_timestamp"))
 						? DateUtils.parseToLocalDateTime((String) additionalData.get("expiry_timestamp"))
