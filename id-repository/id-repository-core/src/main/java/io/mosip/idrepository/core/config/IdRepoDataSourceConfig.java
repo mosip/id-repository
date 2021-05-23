@@ -113,16 +113,4 @@ public class IdRepoDataSourceConfig {
 		dbValues.put("driverClassName", env.getProperty("mosip.idrepo.identity.db.driverClassName"));
 		return buildDataSource(dbValues);
 	}
-
-	@Bean("asyncThreadPoolTaskExecutor")
-	public TaskExecutor getAsyncExecutor() {
-		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(20);
-		executor.setMaxPoolSize(1000);
-		executor.setWaitForTasksToCompleteOnShutdown(true);
-		executor.setThreadNamePrefix("Async-");
-		executor.initialize(); // this is important, otherwise an error is thrown
-		return new DelegatingSecurityContextAsyncTaskExecutor(executor); // use this special TaskExecuter
-	}
-
 }

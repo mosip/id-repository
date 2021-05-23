@@ -152,7 +152,7 @@ public class VidRepoConfig {
 		return em;
 	}
 
-	@Bean("asyncThreadPoolTaskExecutor")
+	@Bean
 	public DelegatingSecurityContextAsyncTaskExecutor taskExecutor() {
 		return new DelegatingSecurityContextAsyncTaskExecutor(threadPoolTaskExecutor());
 	}

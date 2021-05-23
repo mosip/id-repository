@@ -167,7 +167,7 @@ public class CredentialServiceManager {
 			this.restHelper = ctx.getBean(RestHelper.class);
 	}
 
-	@Async("asyncThreadPoolTaskExecutor")
+	@Async
 	public void triggerEventNotifications(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate,
 			String txnId, IntFunction<String> saltRetreivalFunction) {
 		this.notifyUinCredential(uin, expiryTimestamp, status, isUpdate, txnId, saltRetreivalFunction, null, null);
@@ -228,7 +228,7 @@ public class CredentialServiceManager {
 	 * @param credentialResponseConsumer the credential response consumer
 	 * @param idaEventModelConsumer
 	 */
-	@Async("asyncThreadPoolTaskExecutor")
+	@Async
 	public void notifyVIDCredential(String uin, String status, List<VidInfoDTO> vids, boolean isUpdated,
 			IntFunction<String> saltRetreivalFunction,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,
