@@ -1,4 +1,4 @@
-package io.mosip.idrepository.manager;
+package io.mosip.idrepository.core.manager;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,17 +26,17 @@ import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
+import io.mosip.idrepository.core.entity.UinEncryptSalt;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
-import io.mosip.idrepository.core.manager.CredentialServiceManager;
+import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
+import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
+import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
-import io.mosip.idrepository.identity.entity.UinEncryptSalt;
-import io.mosip.idrepository.identity.repository.CredentialRequestStatusRepo;
-import io.mosip.idrepository.identity.repository.UinEncryptSaltRepo;
-import io.mosip.idrepository.identity.repository.UinHashSaltRepo;
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -108,7 +107,7 @@ public class CredentialStatusManager {
 						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer, this::idaEventConsumer);
 			}
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleDeletedRequests", ExceptionUtils.getFullStackTrace(e));
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleDeletedRequests", ExceptionUtils.getStackTrace(e));
 		}
 	}
 
@@ -121,7 +120,7 @@ public class CredentialStatusManager {
 				statusRepo.delete(credentialRequestStatus);
 			}
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleExpiredRequests", ExceptionUtils.getFullStackTrace(e));
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleExpiredRequests", ExceptionUtils.getStackTrace(e));
 		}
 	}
 
@@ -143,7 +142,7 @@ public class CredentialStatusManager {
 				}
 			}
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleNewOrUpdatedRequests", ExceptionUtils.getFullStackTrace(e));
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleNewOrUpdatedRequests", ExceptionUtils.getStackTrace(e));
 		}
 	}
 
@@ -184,7 +183,7 @@ public class CredentialStatusManager {
 				statusRepo.save(credStatus);
 			}
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "credentialRequestResponseConsumer", ExceptionUtils.getFullStackTrace(e));
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "credentialRequestResponseConsumer", ExceptionUtils.getStackTrace(e));
 		}
 	}
 
@@ -196,7 +195,7 @@ public class CredentialStatusManager {
 				statusRepo.deleteAll(credStatusList);
 			}
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "idaEventConsumer", ExceptionUtils.getFullStackTrace(e));
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "idaEventConsumer", ExceptionUtils.getStackTrace(e));
 		}
 	}
 
