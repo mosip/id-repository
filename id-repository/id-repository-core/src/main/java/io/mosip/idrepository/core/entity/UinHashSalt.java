@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @NoArgsConstructor
-@Table(schema = "idrepo")
+@Table
 public class UinHashSalt {
 	
 	/**  The Id value. */

@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @NoArgsConstructor
-@Table(schema = "idrepo")
+@Table
 public class UinEncryptSalt {
 	
 	/**  The Id value. */
