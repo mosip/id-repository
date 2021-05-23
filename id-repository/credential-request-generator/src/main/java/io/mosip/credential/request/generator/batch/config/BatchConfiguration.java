@@ -28,12 +28,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.repository.QueryHints;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -41,8 +39,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import io.mosip.credential.request.generator.util.RestUtil;
-import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
-import io.mosip.kernel.dataaccess.hibernate.repository.impl.HibernateRepositoryImpl;
 
 
 
@@ -53,8 +49,6 @@ import io.mosip.kernel.dataaccess.hibernate.repository.impl.HibernateRepositoryI
  */
 @Configuration
 @EnableBatchProcessing
-@Import({ HibernateDaoConfig.class })
-@EnableJpaRepositories(basePackages = "io.mosip.*", repositoryBaseClass = HibernateRepositoryImpl.class)
 public class BatchConfiguration {
 	
 

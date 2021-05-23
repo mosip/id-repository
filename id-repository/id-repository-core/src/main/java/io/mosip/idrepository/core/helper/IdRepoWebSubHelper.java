@@ -80,7 +80,7 @@ public class IdRepoWebSubHelper {
 	/*
 	 * Cacheable is added to execute topic registration only once per topic
 	 */
-	@Async("asyncThreadPoolTaskExecutor")
+	@Async
 	public void tryRegisteringTopic(String topic) {
 		synchronized (registeredTopicCache) {
 			// Skip topic registration if already registered
@@ -99,7 +99,7 @@ public class IdRepoWebSubHelper {
 		}
 	}
 
-	@Async("asyncThreadPoolTaskExecutor")
+	@Async
 	public void publishAuthTypeStatusUpdateEvent(String individualId, List<AuthtypeStatus> authTypeStatusList, String topic,
 			String partnerId) {
 		IDAEventDTO event = new IDAEventDTO();
@@ -113,7 +113,7 @@ public class IdRepoWebSubHelper {
 	 *
 	 * @param model the model
 	 */
-	@Async("asyncThreadPoolTaskExecutor")
+	@Async
 	public void sendEventToIDA(EventModel model, Consumer<EventModel> idaEventModelConsumer) {
 		if (idaEventModelConsumer != null) {
 			idaEventModelConsumer.accept(model);
@@ -154,7 +154,7 @@ public class IdRepoWebSubHelper {
 		}
 	}
 
-	@Async("asyncThreadPoolTaskExecutor")
+	@Async
 	public void publishEvent(EventModel event) {
 		this.tryRegisteringTopic(event.getTopic());
 		publisher.publishUpdate(event.getTopic(), event, MediaType.APPLICATION_JSON_VALUE, null, publisherURL);

@@ -1,17 +1,17 @@
-package io.mosip.idrepository.credentialsfeeder.repository;
+package io.mosip.idrepository.core.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import io.mosip.idrepository.credentialsfeeder.entity.UinEncryptSalt;
+import io.mosip.idrepository.core.entity.UinHashSalt;
 
 /**
- * The Interface UinEncryptSaltRepo.
+ * The Interface UinHashSaltRepo.
  *
  * @author Prem Kumar
  */
-public interface UinEncryptSaltRepo extends JpaRepository<UinEncryptSalt, Integer>{
+public interface UinHashSaltRepo extends JpaRepository<UinHashSalt, Integer> {
 	
 	/**
 	 * The Query to retrieve salt by passing id as parameter.
@@ -19,6 +19,6 @@ public interface UinEncryptSaltRepo extends JpaRepository<UinEncryptSalt, Intege
 	 * @param id the id
 	 * @return String salt
 	 */
-	@Query("select salt from UinEncryptSalt where id = :id")
+	@Query("select salt from UinHashSalt where id = :id")
 	public String retrieveSaltById(@Param("id") int id);
 }

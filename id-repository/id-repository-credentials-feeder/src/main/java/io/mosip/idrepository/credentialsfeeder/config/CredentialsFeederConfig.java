@@ -6,11 +6,13 @@ import org.springframework.batch.core.configuration.annotation.BatchConfigurer;
 import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.httpfilter.AuthTokenExchangeFilter;
+import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 
 /**
@@ -57,13 +59,13 @@ public class CredentialsFeederConfig extends IdRepoDataSourceConfig {
 		return WebClient.builder().filter(getTokenExchangeFilter()).build();
 	}
 	
-	@Bean
+	@Bean("restHelperWithAuth")
 	public RestHelper restHelper() {
 		return new RestHelper(webClient());
 	}
 	
-	@Bean
+	@Bean("securityManagerWithAuth")
 	public IdRepoSecurityManager securityManager() {
-		return new IdRepoSecurityManager();
+		return new IdRepoSecurityManager(restHelper());
 	}
 }

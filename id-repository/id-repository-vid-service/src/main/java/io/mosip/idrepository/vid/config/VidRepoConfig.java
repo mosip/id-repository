@@ -6,6 +6,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_DB_URL;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_DB_USERNAME;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,16 +20,22 @@ import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.orm.jpa.JpaVendorAdapter;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
+import org.springframework.orm.jpa.persistenceunit.PersistenceUnitPostProcessor;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 
-import io.mosip.idrepository.core.helper.RestHelper;
-import io.mosip.idrepository.core.manager.CredentialServiceManager;
-import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
-import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
+import io.mosip.idrepository.core.entity.UinEncryptSalt;
+import io.mosip.idrepository.core.entity.UinHashSalt;
+import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
+import io.mosip.idrepository.core.repository.UinHashSaltRepo;
+import io.mosip.idrepository.vid.repository.VidRepo;
 
 /**
  * The Class Vid Repo Config.
@@ -41,7 +48,8 @@ import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
 @Configuration
 @ConfigurationProperties("mosip.idrepo.vid")
 @EnableAsync
-public class VidRepoConfig extends HibernateDaoConfig {
+@EnableJpaRepositories(basePackageClasses = { VidRepo.class, UinHashSaltRepo.class, UinEncryptSaltRepo.class })
+public class VidRepoConfig {
 
 	/** The env. */
 	@Autowired
@@ -94,35 +102,14 @@ public class VidRepoConfig extends HibernateDaoConfig {
 	public List<String> allowedStatus() {
 		return Collections.unmodifiableList(allowedStatus);
 	}
-	
-	@Bean
-	public CredentialServiceManager credentialServiceManager() {
-		return new CredentialServiceManager();
-	}
-	
-	@Bean
-	public DummyPartnerCheckUtil dummyPartnerCheckUtil() {
-		return new DummyPartnerCheckUtil();
-	}
-	
-	@Bean
-	public IdRepoSecurityManager securityManager() {
-		return new IdRepoSecurityManager();
-	}
-	
-	@Bean
-	public RestHelper restHelper() {
-		return new RestHelper();
-	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see io.mosip.kernel.core.dao.config.BaseDaoConfig#jpaProperties()
 	 */
-	@Override
 	public Map<String, Object> jpaProperties() {
-		Map<String, Object> jpaProperties = super.jpaProperties();
+		Map<String, Object> jpaProperties = new HashMap<>();
 		jpaProperties.put("hibernate.implicit_naming_strategy", SpringImplicitNamingStrategy.class.getName());
 		jpaProperties.put("hibernate.physical_naming_strategy", SpringPhysicalNamingStrategy.class.getName());
 		jpaProperties.put("hibernate.ejb.interceptor", interceptor);
@@ -135,17 +122,37 @@ public class VidRepoConfig extends HibernateDaoConfig {
 	 *
 	 * @return the data source
 	 */
-	@Override
 	@Bean
 	public DataSource dataSource() {
 		DriverManagerDataSource dataSource = new DriverManagerDataSource(env.getProperty(VID_DB_URL));
 		dataSource.setUsername(env.getProperty(VID_DB_USERNAME));
 		dataSource.setPassword(env.getProperty(VID_DB_PASSWORD));
 		dataSource.setDriverClassName(env.getProperty(VID_DB_DRIVER_CLASS_NAME));
+		dataSource.setSchema("idmap");
 		return dataSource;
-	}	
-	
-	@Bean("asyncThreadPoolTaskExecutor")
+	}
+
+	@Bean
+	public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
+		em.setDataSource(dataSource());
+		em.setPackagesToScan("io.mosip.idrepository.vid.*");
+
+		JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+		em.setJpaVendorAdapter(vendorAdapter);
+		em.setJpaPropertyMap(jpaProperties());
+		em.setPersistenceUnitPostProcessors(new PersistenceUnitPostProcessor() {
+
+			@Override
+			public void postProcessPersistenceUnitInfo(MutablePersistenceUnitInfo pui) {
+				pui.addManagedClassName(UinEncryptSalt.class.getName());
+				pui.addManagedClassName(UinHashSalt.class.getName());
+			}
+		});
+		return em;
+	}
+
+	@Bean
 	public DelegatingSecurityContextAsyncTaskExecutor taskExecutor() {
 		return new DelegatingSecurityContextAsyncTaskExecutor(threadPoolTaskExecutor());
 	}

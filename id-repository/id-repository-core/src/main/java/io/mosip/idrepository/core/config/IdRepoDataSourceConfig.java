@@ -16,18 +16,21 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
+import org.springframework.orm.jpa.persistenceunit.PersistenceUnitPostProcessor;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import io.mosip.idrepository.core.manager.CredentialServiceManager;
-import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
+import io.mosip.idrepository.core.entity.UinEncryptSalt;
+import io.mosip.idrepository.core.entity.UinHashSalt;
+import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 
 @EnableTransactionManagement
 @EnableAsync
-@EnableJpaRepositories(basePackages = "io.mosip.idrepository.*")
+@EnableJpaRepositories(basePackageClasses = { UinHashSaltRepo.class })
 public class IdRepoDataSourceConfig {
 
 	@Autowired(required = false)
@@ -35,16 +38,6 @@ public class IdRepoDataSourceConfig {
 
 	@Autowired
 	private Environment env;
-	
-	@Bean
-	public CredentialServiceManager credentialServiceManager() {
-		return new CredentialServiceManager(null);
-	}
-	
-	@Bean
-	public DummyPartnerCheckUtil dummyPartnerCheckUtil() {
-		return new DummyPartnerCheckUtil();
-	}
 
 	/**
 	 * Entity manager factory.
@@ -61,7 +54,14 @@ public class IdRepoDataSourceConfig {
 		JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
 		em.setJpaVendorAdapter(vendorAdapter);
 		em.setJpaPropertyMap(additionalProperties());
+		em.setPersistenceUnitPostProcessors(new PersistenceUnitPostProcessor() {
 
+			@Override
+			public void postProcessPersistenceUnitInfo(MutablePersistenceUnitInfo pui) {
+				pui.addManagedClassName(UinEncryptSalt.class.getName());
+				pui.addManagedClassName(UinHashSalt.class.getName());
+			}
+		});
 		return em;
 	}
 
@@ -91,6 +91,7 @@ public class IdRepoDataSourceConfig {
 		dataSource.setUsername(dataSourceValues.get("username"));
 		dataSource.setPassword(dataSourceValues.get("password"));
 		dataSource.setDriverClassName(dataSourceValues.get("driverClassName"));
+		dataSource.setSchema("idrepo");
 		return dataSource;
 	}
 
@@ -112,16 +113,4 @@ public class IdRepoDataSourceConfig {
 		dbValues.put("driverClassName", env.getProperty("mosip.idrepo.identity.db.driverClassName"));
 		return buildDataSource(dbValues);
 	}
-	
-	@Bean("asyncThreadPoolTaskExecutor")
-	public TaskExecutor getAsyncExecutor() {
-	  ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-	  executor.setCorePoolSize(20);
-	  executor.setMaxPoolSize(1000);
-	  executor.setWaitForTasksToCompleteOnShutdown(true);
-	  executor.setThreadNamePrefix("Async-");
-	  executor.initialize(); // this is important, otherwise an error is thrown
-	  return new DelegatingSecurityContextAsyncTaskExecutor(executor); // use this special TaskExecuter
-	}
-
 }
