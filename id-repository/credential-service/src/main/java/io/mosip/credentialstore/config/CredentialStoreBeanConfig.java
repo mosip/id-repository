@@ -103,7 +103,7 @@ public class CredentialStoreBeanConfig {
 
 	@Bean("varres")
 	public VariableResolverFactory getVariableResolverFactory() {
-		String mvelExpression = restTemplate.getForObject(configServerFileStorageURL + mvelFile, String.class);
+		String mvelExpression = restTemplate.getForObject("https://raw.githubusercontent.com/mosip/mosip-config/develop/sandbox/credentialdata.mvel", String.class);
 		VariableResolverFactory functionFactory = new MapVariableResolverFactory();
 		MVEL.eval(mvelExpression, functionFactory);
 		return functionFactory;

@@ -99,7 +99,7 @@ public class CredentialStatusManager {
 					.findByStatus(CredentialRequestStatusLifecycle.DELETED.toString());
 			for (CredentialRequestStatus credentialRequestStatus : deletedIssueRequestList) {
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
-				String idvId = decryptUin(credentialRequestStatus.getIndividualId());
+				String idvId = decryptId(credentialRequestStatus.getIndividualId());
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), "BLOCKED",
 						Objects.nonNull(credentialRequestStatus.getUpdatedBy()) ? true : false, null,
 						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer, this::idaEventConsumer);
@@ -129,7 +129,7 @@ public class CredentialStatusManager {
 					.findByStatus(CredentialRequestStatusLifecycle.NEW.toString());
 			for (CredentialRequestStatus credentialRequestStatus : newIssueRequestList) {
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
-				String idvId = decryptUin(credentialRequestStatus.getIndividualId());
+				String idvId = decryptId(credentialRequestStatus.getIndividualId());
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), activeStatus,
 						Objects.nonNull(credentialRequestStatus.getUpdatedBy()) ? true : false, null,
 						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer, this::idaEventConsumer);
@@ -197,14 +197,14 @@ public class CredentialStatusManager {
 		}
 	}
 
-	private String encryptId(String individualId) throws IdRepoAppException {
+	public String encryptId(String individualId) throws IdRepoAppException {
 		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
 		int modResult = (int) (Long.parseLong(individualId) % moduloValue);
 		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(modResult);
 		return modResult + SPLITTER + new String(securityManager.encryptWithSalt(individualId.getBytes(), CryptoUtil.decodeBase64(encryptSalt), uinRefId));
 	}
 
-	private String decryptUin(String individualId) throws IdRepoAppException {
+	public String decryptId(String individualId) throws IdRepoAppException {
 		Optional<UinEncryptSalt> encryptSalt = uinEncryptSaltRepo.findById(Integer.valueOf(StringUtils.substringBefore(individualId, SPLITTER)));
 		return new String(
 				securityManager.decryptWithSalt(CryptoUtil.decodeBase64(StringUtils.substringAfter(individualId, SPLITTER)), CryptoUtil.decodeBase64(encryptSalt.get().getSalt()), uinRefId));
