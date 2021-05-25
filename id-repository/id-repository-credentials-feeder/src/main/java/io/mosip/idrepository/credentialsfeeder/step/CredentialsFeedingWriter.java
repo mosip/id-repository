@@ -1,5 +1,7 @@
 package io.mosip.idrepository.credentialsfeeder.step;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
+
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -15,11 +17,10 @@ import org.springframework.stereotype.Component;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
-import io.mosip.idrepository.core.exception.IdRepoAppException;
-import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.manager.CredentialStatusManager;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
+import io.mosip.kernel.core.util.StringUtils;
 
 /**
  * The Class CredentialsFeedingWriter - Class to feed credentials using
@@ -61,11 +62,7 @@ public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestSta
 		synchronized (processedIndividualIsAndPartnerIds) {
 			filteredEntities = requestIdEntities.stream()
 					.map(entity -> {
-						try {
-							entity.setIndividualId(credentialStatusManager.decryptId(entity.getIndividualId()));
-						} catch (IdRepoAppException e) {
-							throw new IdRepoAppUncheckedException(e.getErrorCode(), e.getErrorText());
-						}
+						entity.setIndividualId(StringUtils.substringBefore(entity.getIndividualId(), SPLITTER));
 						return entity;
 					})
 					.filter(entity -> !processedIndividualIsAndPartnerIds.contains(getKeyForIndividualIdAndPartnerId(entity)))
