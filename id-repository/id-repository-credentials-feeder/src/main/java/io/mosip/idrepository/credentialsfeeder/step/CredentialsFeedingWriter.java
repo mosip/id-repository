@@ -1,5 +1,6 @@
 package io.mosip.idrepository.credentialsfeeder.step;
 
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,7 @@ public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestSta
 	private static final String SEPARATOR = ":";
 
 	@Value("${" + PROP_ONLINE_VERIFICATION_PARTNER_IDS + "}")
-	private List<String> onlineVerificationPartnerIds;
+	private String[] onlineVerificationPartnerIds;
 
 	/** The uin hash salt repo. */
 	@Autowired
@@ -80,7 +81,7 @@ public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestSta
 				return !alreadyProcessed;
 			};
 
-			credentialServiceManager.sendEventsToCredService(filteredEntities, onlineVerificationPartnerIds,
+			credentialServiceManager.sendEventsToCredService(filteredEntities, Arrays.asList(onlineVerificationPartnerIds),
 					this::processCredentialRequestResponse, additionalFilterCondition, uinHashSaltRepo::retrieveSaltById);
 			processedIndividualIsAndPartnerIds
 					.addAll(filteredEntities.stream().map(this::getKeyForIndividualIdAndPartnerId).collect(Collectors.toSet()));
