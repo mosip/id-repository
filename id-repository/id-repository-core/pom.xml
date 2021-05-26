@@ -13,7 +13,7 @@
 	<description>ID-Repository core</description>
 
 	<properties>
-		<kernel-biosdk-provider.version>1.1.7-SNAPSHOT</kernel-biosdk-provider.version>
+		<kernel-biosdk-provider.version>1.2.0-SNAPSHOT</kernel-biosdk-provider.version>
 		<kernel-websubclient-api.version>1.2.0-SNAPSHOT</kernel-websubclient-api.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>11</maven.compiler.source>
