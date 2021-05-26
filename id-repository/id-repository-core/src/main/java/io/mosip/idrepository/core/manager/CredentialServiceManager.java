@@ -53,14 +53,12 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.model.Event;
 import io.mosip.kernel.core.websub.model.EventModel;
 import io.mosip.kernel.core.websub.model.Type;
-import lombok.NoArgsConstructor;
 
 /**
  * The Class CredentialServiceManager.
  * 
  * @author Loganathan Sekar
  */
-@NoArgsConstructor
 public class CredentialServiceManager {
 
 	private static final boolean DEFAULT_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS = false;
