@@ -85,7 +85,7 @@ public class CredentialStatusManager {
 	
 	@Autowired
 	private DummyPartnerCheckUtil dummyPartner;
-
+	
 	@Async
 	public void triggerEventNotifications() {
 		handleDeletedRequests();
@@ -160,7 +160,7 @@ public class CredentialStatusManager {
 						: null);
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
-				statusRepo.save(credStatus);
+				statusRepo.saveAndFlush(credStatus);
 			} else {
 				CredentialRequestStatus credStatus = new CredentialRequestStatus();
 				// Encryption is done using identity service encryption salts for all id types
@@ -178,7 +178,7 @@ public class CredentialStatusManager {
 						: null);
 				credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
-				statusRepo.save(credStatus);
+				statusRepo.saveAndFlush(credStatus);
 			}
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "credentialRequestResponseConsumer", ExceptionUtils.getStackTrace(e));

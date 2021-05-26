@@ -11,26 +11,26 @@ import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
 import org.springframework.orm.jpa.persistenceunit.PersistenceUnitPostProcessor;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.entity.UinEncryptSalt;
 import io.mosip.idrepository.core.entity.UinHashSalt;
+import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
+import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 
-@EnableTransactionManagement
 @EnableAsync
-@EnableJpaRepositories(basePackageClasses = { UinHashSaltRepo.class })
+@EnableJpaRepositories(basePackageClasses = { UinHashSaltRepo.class, UinEncryptSaltRepo.class,
+		CredentialRequestStatusRepo.class })
 public class IdRepoDataSourceConfig {
 
 	@Autowired(required = false)
@@ -46,9 +46,9 @@ public class IdRepoDataSourceConfig {
 	 * @return the local container entity manager factory bean
 	 */
 	@Bean
-	public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
+	public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
 		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-		em.setDataSource(dataSource);
+		em.setDataSource(dataSource());
 		em.setPackagesToScan("io.mosip.idrepository.*");
 
 		JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
@@ -60,9 +60,17 @@ public class IdRepoDataSourceConfig {
 			public void postProcessPersistenceUnitInfo(MutablePersistenceUnitInfo pui) {
 				pui.addManagedClassName(UinEncryptSalt.class.getName());
 				pui.addManagedClassName(UinHashSalt.class.getName());
+				pui.addManagedClassName(CredentialRequestStatus.class.getName());
 			}
 		});
 		return em;
+	}
+
+	@Bean
+	public JpaTransactionManager transactionManager() {
+		JpaTransactionManager transactionManager = new JpaTransactionManager();
+		transactionManager.setEntityManagerFactory(entityManagerFactory().getObject());
+		return transactionManager;
 	}
 
 	/**
