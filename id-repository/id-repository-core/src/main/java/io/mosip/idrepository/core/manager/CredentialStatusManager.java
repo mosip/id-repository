@@ -164,7 +164,7 @@ public class CredentialStatusManager {
 			} else {
 				CredentialRequestStatus credStatus = new CredentialRequestStatus();
 				// Encryption is done using identity service encryption salts for all id types
-				credStatus.setIndividualId(encryptId(credResponse.getId()));
+				credStatus.setIndividualId(encryptId(request.getRequest().getId()));
 				credStatus.setIndividualIdHash((String) additionalData.get("id_hash"));
 				credStatus.setPartnerId(request.getRequest().getIssuer());
 				credStatus.setRequestId(credResponse.getRequestId());
