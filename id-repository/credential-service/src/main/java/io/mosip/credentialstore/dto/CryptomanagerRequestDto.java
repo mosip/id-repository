@@ -8,15 +8,9 @@ package io.mosip.credentialstore.dto;
 
 import java.time.LocalDateTime;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 
 import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
