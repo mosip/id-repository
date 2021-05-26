@@ -64,7 +64,7 @@ public class CredentialsFeedingWriter implements ItemWriter<CredentialRequestSta
 						try {
 							entity.setIndividualId(credentialStatusManager.decryptId(entity.getIndividualId()));
 						} catch (IdRepoAppException e) {
-							throw new IdRepoAppUncheckedException(e.getErrorCode(), e.getErrorText());
+							throw new IdRepoAppUncheckedException(e.getErrorCode(), e.getErrorText(), e);
 						}
 						return entity;
 					})
