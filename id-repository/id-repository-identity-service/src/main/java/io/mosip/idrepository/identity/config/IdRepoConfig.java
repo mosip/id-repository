@@ -24,8 +24,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -270,26 +268,6 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	@Bean
 	public List<String> uinStatus() {
 		return Collections.unmodifiableList(uinStatus);
-	}
-
-	/*
-	 * This bean is returned because for async task the security context needs to be
-	 * passed.
-	 * 
-	 */
-	@Bean("withSecurityContext")
-	public DelegatingSecurityContextAsyncTaskExecutor taskExecutor() {
-		return new DelegatingSecurityContextAsyncTaskExecutor(threadPoolTaskExecutor());
-	}
-
-	private ThreadPoolTaskExecutor threadPoolTaskExecutor() {
-		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(3);
-		executor.setMaxPoolSize(3);
-		executor.setQueueCapacity(500);
-		executor.setThreadNamePrefix("idrepo-");
-		executor.initialize();
-		return executor;
 	}
 
 	@Scheduled(fixedDelayString = "${" + IdRepoConstants.CREDENTIAL_STATUS_JOB_DELAY + ":1000}")
