@@ -1,4 +1,4 @@
-package io.mosip.idrepository.credentialsfeeder.config.filter;
+package io.mosip.idrepository.core.httpfilter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -13,8 +13,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import io.mosip.idrepository.credentialsfeeder.logger.IdRepoLogger;
-import io.mosip.idrepository.credentialsfeeder.step.CredentialsFeedingWriter;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
@@ -24,7 +23,7 @@ import reactor.core.publisher.Mono;
 
 public final class AuthTokenExchangeFilter implements ExchangeFilterFunction {
 	
-	private static final Logger mosipLogger = IdRepoLogger.getLogger(CredentialsFeedingWriter.class);
+	private static final Logger mosipLogger = IdRepoLogger.getLogger(AuthTokenExchangeFilter.class);
 	
 	private String authToken;
 	

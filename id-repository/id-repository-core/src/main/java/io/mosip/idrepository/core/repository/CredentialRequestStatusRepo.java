@@ -1,4 +1,4 @@
-package io.mosip.idrepository.identity.repository;
+package io.mosip.idrepository.core.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;

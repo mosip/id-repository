@@ -1,10 +1,10 @@
 package io.mosip.idrepository.core.security;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.PREPEND_THUMPRINT_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_ID;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DATETIME_PATTERN;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.PREPEND_THUMPRINT_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED;
 
 import java.security.NoSuchAlgorithmException;
@@ -14,11 +14,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.IntFunction;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -37,6 +39,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.HMACUtils2;
+import lombok.NoArgsConstructor;
 
 /**
  * The Class IdRepoSecurityManager - provides security related functionalities
@@ -45,7 +48,7 @@ import io.mosip.kernel.core.util.HMACUtils2;
  *
  * @author Manoj SP
  */
-@Component
+@NoArgsConstructor
 public class IdRepoSecurityManager {
 	
 	private static final String SALT = "SALT";
@@ -68,7 +71,6 @@ public class IdRepoSecurityManager {
 	private RestRequestBuilder restBuilder;
 
 	/** The rest helper. */
-	@Autowired
 	private RestHelper restHelper;
 
 	/** The env. */
@@ -78,6 +80,19 @@ public class IdRepoSecurityManager {
 	/** The mapper. */
 	@Autowired
 	private ObjectMapper mapper;
+	
+	@Autowired
+	private ApplicationContext ctx;
+	
+	public IdRepoSecurityManager(RestHelper restHelper) {
+		this.restHelper = restHelper;
+	}
+	
+	@PostConstruct
+	public void init() {
+		if (Objects.isNull(restHelper))
+			this.restHelper = ctx.getBean(RestHelper.class);
+	}
 
 	/**
 	 * Hash - provides basic hash.

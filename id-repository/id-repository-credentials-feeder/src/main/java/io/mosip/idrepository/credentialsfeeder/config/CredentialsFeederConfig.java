@@ -9,7 +9,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
-import io.mosip.idrepository.credentialsfeeder.config.filter.AuthTokenExchangeFilter;
+import io.mosip.idrepository.core.helper.RestHelper;
+import io.mosip.idrepository.core.httpfilter.AuthTokenExchangeFilter;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 
 /**
  * The Class CredentialsFeederConfig - Provides configuration for credential feeder application.
@@ -53,5 +55,15 @@ public class CredentialsFeederConfig extends IdRepoDataSourceConfig {
 	@Bean
 	public WebClient webClient() {
 		return WebClient.builder().filter(getTokenExchangeFilter()).build();
+	}
+	
+	@Bean("restHelperWithAuth")
+	public RestHelper restHelper() {
+		return new RestHelper(webClient());
+	}
+	
+	@Bean("securityManagerWithAuth")
+	public IdRepoSecurityManager securityManager() {
+		return new IdRepoSecurityManager(restHelper());
 	}
 }

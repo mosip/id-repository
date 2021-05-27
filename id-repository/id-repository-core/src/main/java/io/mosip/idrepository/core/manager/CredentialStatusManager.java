@@ -1,22 +1,20 @@
-package io.mosip.idrepository.manager;
+package io.mosip.idrepository.core.manager;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -27,26 +25,28 @@ import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
+import io.mosip.idrepository.core.entity.UinEncryptSalt;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
-import io.mosip.idrepository.core.manager.CredentialServiceManager;
+import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
+import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
+import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.identity.entity.UinEncryptSalt;
-import io.mosip.idrepository.identity.repository.CredentialRequestStatusRepo;
-import io.mosip.idrepository.identity.repository.UinEncryptSaltRepo;
-import io.mosip.idrepository.identity.repository.UinHashSaltRepo;
+import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.websub.model.EventModel;
 
 /**
  * @author Manoj SP
  *
  */
-@Component
 public class CredentialStatusManager {
 	
 	Logger mosipLogger = IdRepoLogger.getLogger(CredentialStatusManager.class);
@@ -64,6 +64,7 @@ public class CredentialStatusManager {
 	private RestRequestBuilder restBuilder;
 
 	@Autowired
+	@Qualifier("restHelperWithAuth")
 	private RestHelper restHelper;
 
 	@Autowired
@@ -76,12 +77,16 @@ public class CredentialStatusManager {
 	private UinEncryptSaltRepo uinEncryptSaltRepo;
 
 	@Autowired
+	@Qualifier("securityManagerWithAuth")
 	private IdRepoSecurityManager securityManager;
 
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
-
-	@Async("asyncThreadPoolTaskExecutor")
+	
+	@Autowired
+	private DummyPartnerCheckUtil dummyPartner;
+	
+	@Async
 	public void triggerEventNotifications() {
 		handleDeletedRequests();
 		handleExpiredRequests();
@@ -94,13 +99,13 @@ public class CredentialStatusManager {
 					.findByStatus(CredentialRequestStatusLifecycle.DELETED.toString());
 			for (CredentialRequestStatus credentialRequestStatus : deletedIssueRequestList) {
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
-				String idvId = decryptUin(credentialRequestStatus.getIndividualId());
+				String idvId = decryptId(credentialRequestStatus.getIndividualId());
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), "BLOCKED",
 						Objects.nonNull(credentialRequestStatus.getUpdatedBy()) ? true : false, null,
 						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer, this::idaEventConsumer);
 			}
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleDeletedRequests", ExceptionUtils.getFullStackTrace(e));
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleDeletedRequests", ExceptionUtils.getStackTrace(e));
 		}
 	}
 
@@ -110,13 +115,10 @@ public class CredentialStatusManager {
 					.findByIdExpiryTimestampBefore(DateUtils.getUTCCurrentDateTime());
 			for (CredentialRequestStatus credentialRequestStatus : expiredIssueRequestList) {
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
-				String idvId = decryptUin(credentialRequestStatus.getIndividualId());
-				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), "BLOCKED",
-						Objects.nonNull(credentialRequestStatus.getUpdatedBy()) ? true : false, null,
-						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer, this::idaEventConsumer);
+				statusRepo.delete(credentialRequestStatus);
 			}
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleExpiredRequests", ExceptionUtils.getFullStackTrace(e));
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleExpiredRequests", ExceptionUtils.getStackTrace(e));
 		}
 	}
 
@@ -127,13 +129,18 @@ public class CredentialStatusManager {
 					.findByStatus(CredentialRequestStatusLifecycle.NEW.toString());
 			for (CredentialRequestStatus credentialRequestStatus : newIssueRequestList) {
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
-				String idvId = decryptUin(credentialRequestStatus.getIndividualId());
+				String idvId = decryptId(credentialRequestStatus.getIndividualId());
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), activeStatus,
 						Objects.nonNull(credentialRequestStatus.getUpdatedBy()) ? true : false, null,
 						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer, this::idaEventConsumer);
+				Optional<CredentialRequestStatus> idWithDummyPartnerOptional = statusRepo.findByIndividualIdHashAndPartnerId(
+						credentialRequestStatus.getIndividualIdHash(), dummyPartner.getDummyOLVPartnerId());
+				if (idWithDummyPartnerOptional.isPresent()) {
+					statusRepo.delete(idWithDummyPartnerOptional.get());
+				}
 			}
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleNewOrUpdatedRequests", ExceptionUtils.getFullStackTrace(e));
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleNewOrUpdatedRequests", ExceptionUtils.getStackTrace(e));
 		}
 	}
 
@@ -149,32 +156,32 @@ public class CredentialStatusManager {
 				credStatus.setTokenId((String) additionalData.get("TOKEN"));
 				credStatus.setStatus(CredentialRequestStatusLifecycle.REQUESTED.toString());
 				credStatus.setIdTransactionLimit(Objects.nonNull(additionalData.get("transaction_limit"))
-						? Integer.valueOf((String) additionalData.get("transaction_limit"))
+						? (Integer) additionalData.get("transaction_limit")
 						: null);
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
-				statusRepo.save(credStatus);
+				statusRepo.saveAndFlush(credStatus);
 			} else {
 				CredentialRequestStatus credStatus = new CredentialRequestStatus();
 				// Encryption is done using identity service encryption salts for all id types
-				credStatus.setIndividualId(encryptId(credResponse.getId()));
+				credStatus.setIndividualId(encryptId(request.getRequest().getId()));
 				credStatus.setIndividualIdHash((String) additionalData.get("id_hash"));
 				credStatus.setPartnerId(request.getRequest().getIssuer());
 				credStatus.setRequestId(credResponse.getRequestId());
 				credStatus.setTokenId((String) additionalData.get("TOKEN"));
 				credStatus.setStatus(CredentialRequestStatusLifecycle.REQUESTED.toString());
 				credStatus.setIdTransactionLimit(Objects.nonNull(additionalData.get("transaction_limit"))
-						? Integer.valueOf((String) additionalData.get("transaction_limit"))
+						? (Integer) additionalData.get("transaction_limit")
 						: null);
 				credStatus.setIdExpiryTimestamp(Objects.nonNull(additionalData.get("expiry_timestamp"))
 						? DateUtils.parseToLocalDateTime((String) additionalData.get("expiry_timestamp"))
 						: null);
 				credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
-				statusRepo.save(credStatus);
+				statusRepo.saveAndFlush(credStatus);
 			}
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "credentialRequestResponseConsumer", ExceptionUtils.getFullStackTrace(e));
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "credentialRequestResponseConsumer", ExceptionUtils.getStackTrace(e));
 		}
 	}
 
@@ -186,23 +193,21 @@ public class CredentialStatusManager {
 				statusRepo.deleteAll(credStatusList);
 			}
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "idaEventConsumer", ExceptionUtils.getFullStackTrace(e));
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "idaEventConsumer", ExceptionUtils.getStackTrace(e));
 		}
 	}
 
-	private String encryptId(String individualId) throws IdRepoAppException {
+	public String encryptId(String individualId) throws IdRepoAppException {
 		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
 		int modResult = (int) (Long.parseLong(individualId) % moduloValue);
 		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(modResult);
-		return modResult + SPLITTER + securityManager.encryptWithSalt(individualId.getBytes(), encryptSalt.getBytes(), uinRefId);
+		return modResult + SPLITTER + new String(securityManager.encryptWithSalt(individualId.getBytes(), CryptoUtil.decodeBase64(encryptSalt), uinRefId));
 	}
 
-	private String decryptUin(String individualId) throws IdRepoAppException {
-		List<String> uinList = Arrays.asList(individualId.split(SPLITTER));
-		Optional<UinEncryptSalt> encryptSalt = uinEncryptSaltRepo.findById(Integer.valueOf(uinList.get(0)));
-		String idvId = new String(
-				securityManager.decryptWithSalt(uinList.get(1).getBytes(), encryptSalt.get().getSalt().getBytes(), uinRefId));
-		return idvId;
+	public String decryptId(String individualId) throws IdRepoAppException {
+		Optional<UinEncryptSalt> encryptSalt = uinEncryptSaltRepo.findById(Integer.valueOf(StringUtils.substringBefore(individualId, SPLITTER)));
+		return new String(
+				securityManager.decryptWithSalt(CryptoUtil.decodeBase64(StringUtils.substringAfter(individualId, SPLITTER)), CryptoUtil.decodeBase64(encryptSalt.get().getSalt()), uinRefId));
 	}
 
 	private void cancelIssuedRequest(String requestId) throws IdRepoDataValidationException {

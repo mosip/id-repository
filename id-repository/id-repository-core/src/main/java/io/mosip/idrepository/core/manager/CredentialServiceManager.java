@@ -19,8 +19,11 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
 
@@ -45,6 +48,7 @@ import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.TokenIDGenerator;
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.model.Event;
@@ -62,10 +66,6 @@ public class CredentialServiceManager {
 
 	private static final String PROP_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS = "skip-requesting-existing-credentials-for-partners";
 	
-	private static final String REQUEST_ID_NA = "-NA-";
-
-	private static final String REQUEST_ID = "requestId";
-
 	private static final String RESPONSE = "response";
 
 	/** The Constant mosipLogger. */
@@ -113,7 +113,6 @@ public class CredentialServiceManager {
 	private ObjectMapper mapper;
 
 	/** The rest helper. */
-	@Autowired
 	private RestHelper restHelper;
 
 	/** The rest builder. */
@@ -150,11 +149,24 @@ public class CredentialServiceManager {
 	@Autowired
 	private DummyPartnerCheckUtil dummyCheck;
 	
+	@Autowired
+	private ApplicationContext ctx;
+	
 	@Value("${" + PROP_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS + ":"
 			+ DEFAULT_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS + "}")
 	private boolean skipExistingCredentialsForPartners;
+	
+	public CredentialServiceManager(RestHelper restHelper) {
+		this.restHelper = restHelper;
+	}
+	
+	@PostConstruct
+	public void init() {
+		if (Objects.isNull(restHelper))
+			this.restHelper = ctx.getBean(RestHelper.class);
+	}
 
-	@Async("asyncThreadPoolTaskExecutor")
+	@Async
 	public void triggerEventNotifications(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate,
 			String txnId, IntFunction<String> saltRetreivalFunction) {
 		this.notifyUinCredential(uin, expiryTimestamp, status, isUpdate, txnId, saltRetreivalFunction, null, null);
@@ -215,7 +227,7 @@ public class CredentialServiceManager {
 	 * @param credentialResponseConsumer the credential response consumer
 	 * @param idaEventModelConsumer
 	 */
-	@Async("asyncThreadPoolTaskExecutor")
+	@Async
 	public void notifyVIDCredential(String uin, String status, List<VidInfoDTO> vids, boolean isUpdated,
 			IntFunction<String> saltRetreivalFunction,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,
@@ -492,8 +504,9 @@ public class CredentialServiceManager {
 	private void sendRequestToCredService(String partnerId, CredentialIssueRequestWrapperDto requestWrapper,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
 		try {
+			Map<String, Object> response = Map.of();
 			if (!dummyCheck.isDummyOLVPartner(partnerId)) {
-				Map<String, Object> response = restHelper.requestSync(
+				response = restHelper.requestSync(
 						restBuilder.buildRequest(RestServicesConstants.CREDENTIAL_REQUEST_SERVICE, requestWrapper, Map.class));
 				// TODO logging of response needs to be removed
 				mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendRequestToCredService",
@@ -501,13 +514,18 @@ public class CredentialServiceManager {
 			}
 
 			if (credentialRequestResponseConsumer != null) {
-				Map<String, Object> response = Map.of(RESPONSE, Map.of(REQUEST_ID, REQUEST_ID_NA));
 				credentialRequestResponseConsumer.accept(requestWrapper, response);
 			}
 
-		} catch (RestServiceException | IdRepoDataValidationException | JsonProcessingException e) {
+		} catch (RestServiceException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendRequestToCredService",
-					e.getMessage());
+					e.getResponseBodyAsString().orElseGet(() -> ExceptionUtils.getStackTrace(e)));
+		} catch (IdRepoDataValidationException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendRequestToCredService",
+					ExceptionUtils.getStackTrace(e));
+		} catch (JsonProcessingException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendRequestToCredService",
+					ExceptionUtils.getStackTrace(e));
 		}
 	}
 
