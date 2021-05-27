@@ -22,7 +22,6 @@ import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 @ComponentScan(basePackages = { "io.mosip.*",
 "${mosip.auth.adapter.impl.basepackage}" }, excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
 				"io.mosip.idrepository.core.config.IdRepoDataSourceConfig.*" }))
-//@ComponentScan(basePackages = { "io.mosip.*", "${mosip.auth.adapter.impl.basepackage}" })
 @EnableBatchProcessing
 @EnableScheduling
 public class CredentialRequestGeneratorApp {
