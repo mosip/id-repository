@@ -188,7 +188,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			addDocuments(uinHashwithSalt, identityInfo, request.getRequest().getDocuments(), uinRefId, docList,
 					bioList);
 			uinEntity = new Uin(uinRefId, uinToEncrypt, uinHash, identityInfo, securityManager.hash(identityInfo),
-					request.getRequest().getRegistrationId(), request.getRequest().getBiometricReferenceId(),
+					request.getRequest().getRegistrationId(), null,
 					env.getProperty(ACTIVE_STATUS), env.getProperty(MOSIP_PRIMARY_LANGUAGE),
 					IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), null, null, false, null,
 					bioList, docList);
@@ -197,7 +197,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					"Record successfully saved in db with documents");
 		} else {
 			uinEntity = new Uin(uinRefId, uinToEncrypt, uinHash, identityInfo, securityManager.hash(identityInfo),
-					request.getRequest().getRegistrationId(), request.getRequest().getBiometricReferenceId(),
+					request.getRequest().getRegistrationId(), null,
 					env.getProperty(ACTIVE_STATUS), env.getProperty(MOSIP_PRIMARY_LANGUAGE),
 					IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), null, null, false, null, null,
 					null);
@@ -208,7 +208,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 		uinHistoryRepo.save(new UinHistory(uinRefId, DateUtils.getUTCCurrentDateTime(), uinEntity.getUin(),
 				uinEntity.getUinHash(), uinEntity.getUinData(), uinEntity.getUinDataHash(), uinEntity.getRegId(),
-				request.getRequest().getBiometricReferenceId(), env.getProperty(ACTIVE_STATUS),
+				null, env.getProperty(ACTIVE_STATUS),
 				env.getProperty(MOSIP_PRIMARY_LANGUAGE), IdRepoSecurityManager.getUser(),
 				DateUtils.getUTCCurrentDateTime(), null, null, false, null));
 		return uinEntity;
@@ -372,7 +372,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 			uinHistoryRepo.save(new UinHistory(uinObject.getUinRefId(), DateUtils.getUTCCurrentDateTime(),
 					uinObject.getUin(), uinObject.getUinHash(), uinObject.getUinData(), uinObject.getUinDataHash(),
-					uinObject.getRegId(), request.getRequest().getBiometricReferenceId(), uinObject.getStatusCode(),
+					uinObject.getRegId(), null, uinObject.getStatusCode(),
 					env.getProperty(MOSIP_PRIMARY_LANGUAGE), IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), false, null));
