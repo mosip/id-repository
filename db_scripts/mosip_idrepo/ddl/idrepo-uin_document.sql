@@ -37,7 +37,7 @@ CREATE TABLE idrepo.uin_document(
 	cr_dtimes timestamp NOT NULL,
 	upd_by character varying(256),
 	upd_dtimes timestamp,
-	is_deleted boolean NOT NULL DEFAULT FALSE,
+	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
 	CONSTRAINT pk_uind PRIMARY KEY (uin_ref_id,doccat_code),
 	CONSTRAINT uk_uind UNIQUE (uin_ref_id,doc_id)
