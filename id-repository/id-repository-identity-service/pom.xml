@@ -9,7 +9,7 @@
 	</parent>
 
 	<artifactId>id-repository-identity-service</artifactId>
-	<version>1.1.4</version>
+	<version>1.1.4.3</version>
 	<name>identity-service</name>
 	<description>ID-Repository Identity service</description>
 

@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.mosip.idrepository</groupId>
 	<artifactId>id-repository-parent</artifactId>
-	<version>1.1.4</version>
+	<version>1.1.4.3</version>
 	<packaging>pom</packaging>
 
 	<name>ID-Repository</name>
@@ -60,7 +60,7 @@
 
 	<modules>
 		<module>id-repository-core</module>
-		<module>id-repository-vid-service</module>
+<!-- 		<module>id-repository-vid-service</module> -->
 		<module>id-repository-identity-service</module>
 		<!-- <module>bioextractor-service</module> -->
 		<!-- <module>credential-request-generator</module> -->
