@@ -60,7 +60,7 @@
 
 	<modules>
 		<module>id-repository-core</module>
-<!-- 		<module>id-repository-vid-service</module> -->
+		<!-- <module>id-repository-vid-service</module> -->
 		<module>id-repository-identity-service</module>
 		<!-- <module>bioextractor-service</module> -->
 		<!-- <module>credential-request-generator</module> -->
@@ -103,6 +103,14 @@
 		<kernel.logger.logback.version>1.1.4</kernel.logger.logback.version>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+		</dependency>
 		<!-- JUnit -->
 		<dependency>
 			<groupId>junit</groupId>
@@ -130,6 +138,16 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-logger-logback</artifactId>
 			<version>${kernel.logger.logback.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.xml.bind</groupId>
+					<artifactId>jaxb-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.glassfish.jaxb</groupId>
+					<artifactId>jaxb-runtime</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 	</dependencies>
