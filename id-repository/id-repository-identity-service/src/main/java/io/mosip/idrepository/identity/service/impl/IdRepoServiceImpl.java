@@ -199,7 +199,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		if (Objects.nonNull(request.getRequest().getDocuments()) && !request.getRequest().getDocuments().isEmpty()) {
 			addDocuments(uinHashwithSalt, identityInfo, request.getRequest().getDocuments(), uinRefId, docList, bioList);
 			uinEntity = new Uin(uinRefId, uinToEncrypt, uinHash, identityInfo, securityManager.hash(identityInfo),
-					request.getRequest().getRegistrationId(), request.getRequest().getBiometricReferenceId(), activeStatus,
+					request.getRequest().getRegistrationId(), null, activeStatus,
 					env.getProperty(MOSIP_PRIMARY_LANGUAGE), IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(),
 					null, null, false, null, bioList, docList);
 			uinEntity = uinRepo.save(uinEntity);
@@ -207,7 +207,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					"Record successfully saved in db with documents");
 		} else {
 			uinEntity = new Uin(uinRefId, uinToEncrypt, uinHash, identityInfo, securityManager.hash(identityInfo),
-					request.getRequest().getRegistrationId(), request.getRequest().getBiometricReferenceId(), activeStatus,
+					request.getRequest().getRegistrationId(), null, activeStatus,
 					env.getProperty(MOSIP_PRIMARY_LANGUAGE), IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(),
 					null, null, false, null, null, null);
 			uinEntity = uinRepo.save(uinEntity);
@@ -217,7 +217,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 		uinHistoryRepo.save(new UinHistory(uinRefId, DateUtils.getUTCCurrentDateTime(), uinEntity.getUin(),
 				uinEntity.getUinHash(), uinEntity.getUinData(), uinEntity.getUinDataHash(), uinEntity.getRegId(),
-				request.getRequest().getBiometricReferenceId(), activeStatus, env.getProperty(MOSIP_PRIMARY_LANGUAGE),
+				null, activeStatus, env.getProperty(MOSIP_PRIMARY_LANGUAGE),
 				IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), null, null, false, null));
 		issueCredential(uin, uinEntity.getUin(), uinHashwithSalt, activeStatus, null, false,
 				request.getRequest().getRegistrationId());
@@ -381,7 +381,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 			uinHistoryRepo.save(new UinHistory(uinObject.getUinRefId(), DateUtils.getUTCCurrentDateTime(), uinObject.getUin(),
 					uinObject.getUinHash(), uinObject.getUinData(), uinObject.getUinDataHash(), uinObject.getRegId(),
-					request.getRequest().getBiometricReferenceId(), uinObject.getStatusCode(),
+					null, uinObject.getStatusCode(),
 					env.getProperty(MOSIP_PRIMARY_LANGUAGE), IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(),
 					IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), false, null));
 			issueCredential(uin, uinObject.getUin(), uinHashwithSalt, uinObject.getStatusCode(),
