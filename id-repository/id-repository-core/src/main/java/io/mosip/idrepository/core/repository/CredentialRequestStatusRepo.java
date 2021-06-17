@@ -31,7 +31,7 @@ public interface CredentialRequestStatusRepo extends JpaRepository<CredentialReq
 	List<CredentialRequestStatus> findByIndividualIdHashAndIsDeleted(String individualIdHash, boolean isDeleted);
 
 	default List<CredentialRequestStatus> findByIndividualIdHash(String individualIdHash) {
-		return this.findByIndividualIdAndIsDeleted(individualIdHash, false);
+		return this.findByIndividualIdHashAndIsDeleted(individualIdHash, false);
 	}
 
 	Optional<CredentialRequestStatus> findByIndividualIdHashAndPartnerIdAndIsDeleted(String idHash, String partnerId, boolean isDeleted);
