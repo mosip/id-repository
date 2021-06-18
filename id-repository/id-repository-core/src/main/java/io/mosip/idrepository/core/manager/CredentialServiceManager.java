@@ -36,6 +36,7 @@ import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
+import io.mosip.idrepository.core.dto.CredentialStatusUpdateEvent;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.dto.VidInfoDTO;
 import io.mosip.idrepository.core.dto.VidsInfosDTO;
@@ -597,16 +598,41 @@ public class CredentialServiceManager {
 	 * @param eventTopic
 	 */
 	public void updateEventProcessingStatus(String requestId, String status, String eventTopic) {
-		EventModel eventModel = new EventModel();
-		eventModel.setTopic(eventTopic);
-		eventModel.setPublisher(ID_REPO);
-		eventModel.setPublishedOn(DateUtils.formatToISOString(LocalDateTime.now()));
-		Event event = new Event();		
-		event.setData(Map.of(
-				"status", status,
-				"requestId", requestId, 
-				"timestamp", DateUtils.formatToISOString(LocalDateTime.now())));
+		CredentialStatusUpdateEvent credentialStatusUpdateEvent = createCredentialStatusUpdateEvent(requestId, status);
+		websubHelper.publishEvent(eventTopic,createEventModel(eventTopic, credentialStatusUpdateEvent));
+	}
+	
+	/**
+	 * Creates the event model.
+	 *
+	 * @param <T> the generic type
+	 * @param <S> the generic type
+	 * @param topic the topic
+	 * @param event the event
+	 * @return the event model
+	 */
+	public <T,S> io.mosip.idrepository.core.dto.EventModel<T> createEventModel(String topic, T event) {
+		io.mosip.idrepository.core.dto.EventModel<T> eventModel = new io.mosip.idrepository.core.dto.EventModel<>();
 		eventModel.setEvent(event);
-		websubHelper.publishEvent(eventModel);
+		eventModel.setPublisher(ID_REPO);
+		eventModel.setPublishedOn(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+		eventModel.setTopic(topic);
+		return eventModel;
+	}
+	
+	/**
+	 * Creates the credential status update event.
+	 *
+	 * @param requestId the request id
+	 * @param status the status
+	 * @param updatedTimestamp the updated timestamp
+	 * @return the credential status update event
+	 */
+	private CredentialStatusUpdateEvent createCredentialStatusUpdateEvent(String requestId, String status) {
+		CredentialStatusUpdateEvent credentialStatusUpdateEvent = new CredentialStatusUpdateEvent();
+		credentialStatusUpdateEvent.setStatus(status);
+		credentialStatusUpdateEvent.setRequestId(requestId);
+		credentialStatusUpdateEvent.setTimestamp(DateUtils.formatToISOString(LocalDateTime.now()));
+		return credentialStatusUpdateEvent;
 	}
 }

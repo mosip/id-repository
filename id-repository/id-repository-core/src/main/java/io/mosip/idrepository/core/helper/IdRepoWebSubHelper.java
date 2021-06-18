@@ -64,7 +64,7 @@ public class IdRepoWebSubHelper {
 	private PublisherClient<String, IDAEventDTO, HttpHeaders> authTypePublisher;
 
 	@Autowired
-	private PublisherClient<String, EventModel, HttpHeaders> publisher;
+	private PublisherClient<String, Object, HttpHeaders> publisher;
 
 	@Autowired
 	private TokenIDGenerator tokenIdGenerator;
@@ -158,5 +158,11 @@ public class IdRepoWebSubHelper {
 	public void publishEvent(EventModel event) {
 		this.tryRegisteringTopic(event.getTopic());
 		publisher.publishUpdate(event.getTopic(), event, MediaType.APPLICATION_JSON_VALUE, null, publisherURL);
+	}
+	
+	@Async
+	public <U> void publishEvent(String eventTopic, U eventModel) {
+		this.tryRegisteringTopic(eventTopic);
+		publisher.publishUpdate(eventTopic, eventModel, MediaType.APPLICATION_JSON_VALUE, null, publisherURL);
 	}
 }
