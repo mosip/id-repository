@@ -58,7 +58,8 @@ import io.mosip.kernel.core.websub.model.Type;
 /**
  * The Class CredentialServiceManager.
  * 
- * @author Loganathan Sekar
+ * @author Loganathan Sekar  
+ * @author Nagarjuna
  */
 public class CredentialServiceManager {
 
@@ -96,7 +97,7 @@ public class CredentialServiceManager {
 	private static final String AUTH = "auth";
 
 	/** The Constant ACTIVE. */
-	private static final String ACTIVE = "ACTIVE";
+	private static final String ACTIVATED = "ACTIVATED";
 
 	/** The Constant BLOCKED. */
 	private static final String BLOCKED = "BLOCKED";
@@ -200,7 +201,7 @@ public class CredentialServiceManager {
 
 			List<String> partnerIds = getPartnerIds();
 
-			if ((status != null && isUpdate) && (!ACTIVE.equals(status) || expiryTimestamp != null)) {
+			if ((status != null && isUpdate) && (!ACTIVATED.equals(status) || expiryTimestamp != null)) {
 				// Event to be sent to IDA for deactivation/blocked uin state
 				sendUINEventToIDA(uin, expiryTimestamp, status, vidInfoDtos, partnerIds, txnId,
 						id -> securityManager.getIdHash(id, saltRetreivalFunction), idaEventModelConsumer);
@@ -589,4 +590,21 @@ public class CredentialServiceManager {
 		return entity.getIdExpiryTimestamp() != null && !DateUtils.getUTCCurrentDateTime().isAfter(entity.getIdExpiryTimestamp());
 	}
 
+	/**
+	 * Updates the event processing status
+	 * @param requestId
+	 * @param status
+	 * @param eventTopic
+	 */
+	public void updateEventProcessingStatus(String requestId, String status, String eventTopic) {
+		EventModel eventModel = new EventModel();
+		eventModel.setTopic(eventTopic);
+		Event event = new Event();
+		event.setData(Map.of(
+				"status", status,
+				"requestId", requestId, 
+				"timestamp", DateUtils.formatToISOString(LocalDateTime.now())));
+		eventModel.setEvent(event);
+		websubHelper.publishEvent(eventModel);
+	}
 }
