@@ -599,7 +599,9 @@ public class CredentialServiceManager {
 	public void updateEventProcessingStatus(String requestId, String status, String eventTopic) {
 		EventModel eventModel = new EventModel();
 		eventModel.setTopic(eventTopic);
-		Event event = new Event();
+		eventModel.setPublisher(ID_REPO);
+		eventModel.setPublishedOn(DateUtils.formatToISOString(LocalDateTime.now()));
+		Event event = new Event();		
 		event.setData(Map.of(
 				"status", status,
 				"requestId", requestId, 
