@@ -4,7 +4,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ISSUED_REQUEST_CANCEL_TOPIC;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.ISSUED_REQUEST_INVALID_TOPIC;
 
 import java.util.List;
 import java.util.Map;
@@ -77,8 +77,8 @@ public class CredentialStatusManager {
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
 	
-	@Value("${" + ISSUED_REQUEST_CANCEL_TOPIC + "}")
-	private String issuedRequestCancellationTopic;
+	@Value("${" + ISSUED_REQUEST_INVALID_TOPIC + "}")
+	private String issuedRequestInvalidationTopic;
 	
 	@Autowired
 	private DummyPartnerCheckUtil dummyPartner;
@@ -214,8 +214,8 @@ public class CredentialStatusManager {
 	 */
 	private void cancelIssuedRequest(String requestId) throws IdRepoDataValidationException {
 		if (Objects.nonNull(requestId)) {
-			credManager.updateEventProcessingStatus(requestId, CredentialRequestStatusLifecycle.CANCELLED.toString(),
-					issuedRequestCancellationTopic);
+			credManager.updateEventProcessingStatus(requestId, CredentialRequestStatusLifecycle.INVALID.toString(),
+					issuedRequestInvalidationTopic);
 		}
 	}
 }

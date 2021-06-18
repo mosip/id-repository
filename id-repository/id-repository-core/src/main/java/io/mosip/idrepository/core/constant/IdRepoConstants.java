@@ -126,7 +126,7 @@ public class IdRepoConstants {
 	
 	public static final String  VID_EVENT_CALLBACK_URL = "mosip.idrepo.websub.vid-credential-update.callback-url";
 	
-	public static final String ISSUED_REQUEST_CANCEL_TOPIC = "mosip.idrepo.websub.issued-credential-cancel.topic";
+	public static final String ISSUED_REQUEST_INVALID_TOPIC = "mosip.idrepo.websub.issued-credential-invalid.topic";
 
 	
 	/** The value. */
