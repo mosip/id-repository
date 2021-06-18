@@ -46,6 +46,8 @@ import io.mosip.kernel.core.websub.model.EventModel;
 public class CredentialStatusManager {
 	
 	Logger mosipLogger = IdRepoLogger.getLogger(CredentialStatusManager.class);
+	
+	private static String CREDENTIAL_STATUS_UPDATE_TOPIC = "CREDENTIAL_STATUS_UPDATE";
 
 	@Autowired
 	private CredentialRequestStatusRepo statusRepo;
@@ -211,7 +213,7 @@ public class CredentialStatusManager {
 	private void cancelIssuedRequest(String requestId) throws IdRepoDataValidationException {
 		if (Objects.nonNull(requestId)) {
 			credManager.updateEventProcessingStatus(requestId, CredentialRequestStatusLifecycle.CANCELLED.toString(),
-					"CREDENTIAL_STATUS_UPDATE");
+					CREDENTIAL_STATUS_UPDATE_TOPIC);
 		}
 	}
 }
