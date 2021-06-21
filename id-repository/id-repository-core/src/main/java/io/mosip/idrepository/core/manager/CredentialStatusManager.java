@@ -4,6 +4,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.CREDENTIAL_STATUS_UPDATE_TOPIC;
 
 import java.util.List;
 import java.util.Map;
@@ -18,12 +19,9 @@ import org.springframework.scheduling.annotation.Async;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
-import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
-import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.entity.UinEncryptSalt;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
@@ -36,7 +34,6 @@ import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
@@ -61,9 +58,6 @@ public class CredentialStatusManager {
 	private ObjectMapper mapper;
 
 	@Autowired
-	private RestRequestBuilder restBuilder;
-
-	@Autowired
 	@Qualifier("restHelperWithAuth")
 	private RestHelper restHelper;
 
@@ -82,6 +76,9 @@ public class CredentialStatusManager {
 
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
+	
+	@Value("${" + CREDENTIAL_STATUS_UPDATE_TOPIC + "}")
+	private String credentailStatusUpdateTopic;
 	
 	@Autowired
 	private DummyPartnerCheckUtil dummyPartner;
@@ -210,12 +207,15 @@ public class CredentialStatusManager {
 				securityManager.decryptWithSalt(CryptoUtil.decodeBase64(StringUtils.substringAfter(individualId, SPLITTER)), CryptoUtil.decodeBase64(encryptSalt.get().getSalt()), uinRefId));
 	}
 
+	/**
+	 * 
+	 * @param requestId
+	 * @throws IdRepoDataValidationException
+	 */
 	private void cancelIssuedRequest(String requestId) throws IdRepoDataValidationException {
 		if (Objects.nonNull(requestId)) {
-			RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.CREDENTIAL_CANCEL_SERVICE, null,
-					ResponseWrapper.class);
-			restRequest.setUri(restRequest.getUri().replace("{requestId}", requestId));
-			restHelper.requestAsync(restRequest);
+			credManager.updateEventProcessingStatus(requestId, CredentialRequestStatusLifecycle.INVALID.toString(),
+					credentailStatusUpdateTopic);
 		}
 	}
 }

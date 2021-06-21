@@ -36,6 +36,7 @@ import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
+import io.mosip.idrepository.core.dto.CredentialStatusUpdateEvent;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.dto.VidInfoDTO;
 import io.mosip.idrepository.core.dto.VidsInfosDTO;
@@ -58,7 +59,8 @@ import io.mosip.kernel.core.websub.model.Type;
 /**
  * The Class CredentialServiceManager.
  * 
- * @author Loganathan Sekar
+ * @author Loganathan Sekar  
+ * @author Nagarjuna
  */
 public class CredentialServiceManager {
 
@@ -96,7 +98,7 @@ public class CredentialServiceManager {
 	private static final String AUTH = "auth";
 
 	/** The Constant ACTIVE. */
-	private static final String ACTIVE = "ACTIVE";
+	private static final String ACTIVATED = "ACTIVATED";
 
 	/** The Constant BLOCKED. */
 	private static final String BLOCKED = "BLOCKED";
@@ -200,7 +202,7 @@ public class CredentialServiceManager {
 
 			List<String> partnerIds = getPartnerIds();
 
-			if ((status != null && isUpdate) && (!ACTIVE.equals(status) || expiryTimestamp != null)) {
+			if ((status != null && isUpdate) && (!ACTIVATED.equals(status) || expiryTimestamp != null)) {
 				// Event to be sent to IDA for deactivation/blocked uin state
 				sendUINEventToIDA(uin, expiryTimestamp, status, vidInfoDtos, partnerIds, txnId,
 						id -> securityManager.getIdHash(id, saltRetreivalFunction), idaEventModelConsumer);
@@ -589,4 +591,48 @@ public class CredentialServiceManager {
 		return entity.getIdExpiryTimestamp() != null && !DateUtils.getUTCCurrentDateTime().isAfter(entity.getIdExpiryTimestamp());
 	}
 
+	/**
+	 * Updates the event processing status
+	 * @param requestId
+	 * @param status
+	 * @param eventTopic
+	 */
+	public void updateEventProcessingStatus(String requestId, String status, String eventTopic) {
+		CredentialStatusUpdateEvent credentialStatusUpdateEvent = createCredentialStatusUpdateEvent(requestId, status);
+		websubHelper.publishEvent(eventTopic,createEventModel(eventTopic, credentialStatusUpdateEvent));
+	}
+	
+	/**
+	 * Creates the event model.
+	 *
+	 * @param <T> the generic type
+	 * @param <S> the generic type
+	 * @param topic the topic
+	 * @param event the event
+	 * @return the event model
+	 */
+	public <T,S> io.mosip.idrepository.core.dto.EventModel<T> createEventModel(String topic, T event) {
+		io.mosip.idrepository.core.dto.EventModel<T> eventModel = new io.mosip.idrepository.core.dto.EventModel<>();
+		eventModel.setEvent(event);
+		eventModel.setPublisher(ID_REPO);
+		eventModel.setPublishedOn(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+		eventModel.setTopic(topic);
+		return eventModel;
+	}
+	
+	/**
+	 * Creates the credential status update event.
+	 *
+	 * @param requestId the request id
+	 * @param status the status
+	 * @param updatedTimestamp the updated timestamp
+	 * @return the credential status update event
+	 */
+	private CredentialStatusUpdateEvent createCredentialStatusUpdateEvent(String requestId, String status) {
+		CredentialStatusUpdateEvent credentialStatusUpdateEvent = new CredentialStatusUpdateEvent();
+		credentialStatusUpdateEvent.setStatus(status);
+		credentialStatusUpdateEvent.setRequestId(requestId);
+		credentialStatusUpdateEvent.setTimestamp(DateUtils.formatToISOString(LocalDateTime.now()));
+		return credentialStatusUpdateEvent;
+	}
 }
