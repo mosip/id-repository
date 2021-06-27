@@ -1,6 +1,5 @@
 package io.mosip.idrepository.identity.service.impl;
 
-import java.time.LocalDateTime;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
@@ -124,11 +123,11 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 		authTypeStatusList.stream()
 				.filter(status -> !authTypeStatusRecords.isEmpty() 
 						&& Objects.nonNull(authTypeStatusRecords.get(0)[1])
-						&& Boolean.valueOf((String) authTypeStatusRecords.get(0)[1]) && !status.getLocked()
+						&& Boolean.valueOf((String) authTypeStatusRecords.get(0)[1]) && status.getLocked()
 						&& Objects.nonNull(status.getUnlockForSeconds()) && status.getUnlockForSeconds() > 0)
 				.forEach(status -> {
-					status.setMetadata(Collections.singletonMap(UNLOCK_EXP_TIMESTAMP,
-							DateUtils.getUTCCurrentDateTime().plusSeconds(status.getUnlockForSeconds())));
+					status.setMetadata(Collections.singletonMap(UNLOCK_EXP_TIMESTAMP, DateUtils
+							.formatToISOString(DateUtils.getUTCCurrentDateTime().plusSeconds(status.getUnlockForSeconds()))));
 					status.setLocked(true);
 				});
 		String uin = idType == IdType.VID ? getUin(individualId) : individualId;
@@ -215,9 +214,9 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 		authtypeLock.setLockrequestDTtimes(DateUtils.getUTCCurrentDateTime());
 		authtypeLock.setLockstartDTtimes(DateUtils.getUTCCurrentDateTime());
 		if (Objects.nonNull(authtypeStatus.getMetadata())
-				&& authtypeStatus.getMetadata().containsKey(UNLOCK_EXP_TIMESTAMP)
-				&& authtypeStatus.getMetadata().get(UNLOCK_EXP_TIMESTAMP) instanceof LocalDateTime) {
-			authtypeLock.setUnlockExpiryDTtimes((LocalDateTime) authtypeStatus.getMetadata().get(UNLOCK_EXP_TIMESTAMP));
+				&& authtypeStatus.getMetadata().containsKey(UNLOCK_EXP_TIMESTAMP)) {
+			authtypeLock.setUnlockExpiryDTtimes(
+					DateUtils.parseUTCToLocalDateTime((String) authtypeStatus.getMetadata().get(UNLOCK_EXP_TIMESTAMP)));
 		}
 		authtypeLock.setStatuscode(Boolean.toString(authtypeStatus.getLocked()));
 		authtypeLock.setCreatedBy(env.getProperty(IdRepoConstants.APPLICATION_ID));
