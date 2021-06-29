@@ -1,12 +1,11 @@
 package io.mosip.idrepository.core.manager;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.CREDENTIAL_STATUS_UPDATE_TOPIC;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.CREDENTIAL_STATUS_UPDATE_TOPIC;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -101,7 +100,7 @@ public class CredentialStatusManager {
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), "BLOCKED",
 						Objects.nonNull(credentialRequestStatus.getUpdatedBy()) ? true : false, null,
 						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer,
-						this::idaEventConsumer, getListOfPartners(credentialRequestStatus.getPartnerId()));
+						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()));
 			}
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleDeletedRequests", ExceptionUtils.getStackTrace(e));
@@ -132,7 +131,7 @@ public class CredentialStatusManager {
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), activeStatus,
 						Objects.nonNull(credentialRequestStatus.getUpdatedBy()) ? true : false, null,
 						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer,
-						this::idaEventConsumer, getListOfPartners(credentialRequestStatus.getPartnerId()));
+						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()));
 				Optional<CredentialRequestStatus> idWithDummyPartnerOptional = statusRepo.findByIndividualIdHashAndPartnerId(
 						credentialRequestStatus.getIndividualIdHash(), dummyPartner.getDummyOLVPartnerId());
 				if (idWithDummyPartnerOptional.isPresent()) {
@@ -220,18 +219,5 @@ public class CredentialStatusManager {
 			credManager.updateEventProcessingStatus(requestId, CredentialRequestStatusLifecycle.INVALID.toString(),
 					credentailStatusUpdateTopic);
 		}
-	}
-	
-	/**
-	 * 
-	 * @param partnerId
-	 * @return
-	 */
-	private List<String> getListOfPartners(String partnerId) {
-		List<String> partnerIds = new LinkedList<String>();
-		if (partnerId != null) {
-			partnerIds.add(partnerId);
-		}
-		return partnerIds;
 	}
 }
