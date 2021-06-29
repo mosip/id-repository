@@ -171,7 +171,8 @@ public class CredentialServiceManager {
 	@Async
 	public void triggerEventNotifications(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate,
 			String txnId, IntFunction<String> saltRetreivalFunction) {
-		this.notifyUinCredential(uin, expiryTimestamp, status, isUpdate, txnId, saltRetreivalFunction, null, null);
+		this.notifyUinCredential(uin, expiryTimestamp, status, isUpdate, txnId, saltRetreivalFunction, null, null,
+				Collections.<String>emptyList());
 	}
 
 	/**
@@ -189,7 +190,7 @@ public class CredentialServiceManager {
 	public void notifyUinCredential(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate, String txnId,
 			IntFunction<String> saltRetreivalFunction,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,
-			Consumer<EventModel> idaEventModelConsumer) {
+			Consumer<EventModel> idaEventModelConsumer, List<String> notifiablePartnerIds) {
 		try {
 			List<VidInfoDTO> vidInfoDtos = null;
 			if (isUpdate) {
@@ -200,7 +201,7 @@ public class CredentialServiceManager {
 				vidInfoDtos = response.getResponse();
 			}
 
-			List<String> partnerIds = getPartnerIds();
+			List<String> partnerIds = notifiablePartnerIds.isEmpty() ? getPartnerIds() : notifiablePartnerIds;
 
 			if ((status != null && isUpdate) && (!ACTIVATED.equals(status) || expiryTimestamp != null)) {
 				// Event to be sent to IDA for deactivation/blocked uin state
