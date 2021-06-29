@@ -35,21 +35,17 @@ import lombok.ToString;
 @Entity
 @NoArgsConstructor
 @Table(schema = "idrepo")
-public class Uin implements Persistable<String>, UinInfo {
+public class UinDraft implements Persistable<String>, UinInfo {
 
-	public Uin(String uinRefId, String uin, String uinHash, byte[] uinData, String uinDataHash, String regId,
-			String bioRefId, String statusCode, String langCode, String createdBy, LocalDateTime createdDateTime,
-			String updatedBy, LocalDateTime updatedDateTime, Boolean isDeleted, LocalDateTime deletedDateTime,
-			List<UinBiometric> biometrics, List<UinDocument> documents) {
-		this.uinRefId = uinRefId;
+	public UinDraft(String uin, String uinHash, byte[] uinData, String uinDataHash, String regId, String statusCode,
+			String createdBy, LocalDateTime createdDateTime, String updatedBy, LocalDateTime updatedDateTime, Boolean isDeleted,
+			LocalDateTime deletedDateTime, List<UinBiometricDraft> biometrics, List<UinDocumentDraft> documents) {
 		this.uin = uin;
 		this.uinHash = uinHash;
 		this.uinData = uinData.clone();
 		this.uinDataHash = uinDataHash;
 		this.regId = regId;
-		this.bioRefId = bioRefId;
 		this.statusCode = statusCode;
-		this.langCode = langCode;
 		this.createdBy = createdBy;
 		this.createdDateTime = createdDateTime;
 		this.updatedBy = updatedBy;
@@ -60,14 +56,13 @@ public class Uin implements Persistable<String>, UinInfo {
 		this.documents = documents;
 	}
 
-	/** The uin ref id. */
 	@Id
 	@Column(insertable = false, updatable = false, nullable = false)
-	private String uinRefId;
+	private String regId;
 
 	/** The uin. */
 	private String uin;
-	
+
 	private String uinHash;
 
 	/** The uin data. */
@@ -81,16 +76,8 @@ public class Uin implements Persistable<String>, UinInfo {
 	/** The uin data hash. */
 	private String uinDataHash;
 
-	/** The reg id. */
-	private String regId;
-	
-	private String bioRefId;
-
 	/** The status code. */
 	private String statusCode;
-
-	/** The lang code. */
-	private String langCode;
 
 	/** The created by. */
 	@Column(name = "cr_by")
@@ -117,19 +104,20 @@ public class Uin implements Persistable<String>, UinInfo {
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "uin", cascade = CascadeType.ALL)
 	@NotFound(action = NotFoundAction.IGNORE)
-	private List<UinBiometric> biometrics;
+	private List<UinBiometricDraft> biometrics;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "uin", cascade = CascadeType.ALL)
 	@NotFound(action = NotFoundAction.IGNORE)
-	private List<UinDocument> documents;
+	private List<UinDocumentDraft> documents;
 
 	/**
 	 * Gets the uin data.
 	 *
 	 * @return the uin data
 	 */
+	@Override
 	public byte[] getUinData() {
-		return uinData.clone();
+		return uinData;
 	}
 
 	/**
@@ -137,8 +125,9 @@ public class Uin implements Persistable<String>, UinInfo {
 	 *
 	 * @param uinData the new uin data
 	 */
+	@Override
 	public void setUinData(byte[] uinData) {
-		this.uinData = uinData.clone();
+		this.uinData = uinData;
 	}
 	
 	@Override
@@ -153,7 +142,7 @@ public class Uin implements Persistable<String>, UinInfo {
 
 	@Override
 	public String getId() {
-		return uinRefId;
+		return regId;
 	}
 
 	@Override
