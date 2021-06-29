@@ -171,7 +171,8 @@ public class CredentialServiceManager {
 	@Async
 	public void triggerEventNotifications(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate,
 			String txnId, IntFunction<String> saltRetreivalFunction) {
-		this.notifyUinCredential(uin, expiryTimestamp, status, isUpdate, txnId, saltRetreivalFunction, null, null);
+		this.notifyUinCredential(uin, expiryTimestamp, status, isUpdate, txnId, saltRetreivalFunction, null, null,
+				getPartnerIds());
 	}
 
 	/**
@@ -186,10 +187,10 @@ public class CredentialServiceManager {
 	 * @param credentialResponseConsumer the credential response consumer
 	 * @param idaEventModelConsumer
 	 */
-	public void notifyUinCredential(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate, String txnId,
-			IntFunction<String> saltRetreivalFunction,
+	public void notifyUinCredential(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate,
+			String txnId, IntFunction<String> saltRetreivalFunction,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,
-			Consumer<EventModel> idaEventModelConsumer) {
+			Consumer<EventModel> idaEventModelConsumer, List<String> partnerIds) {
 		try {
 			List<VidInfoDTO> vidInfoDtos = null;
 			if (isUpdate) {
@@ -200,8 +201,6 @@ public class CredentialServiceManager {
 				vidInfoDtos = response.getResponse();
 			}
 
-			List<String> partnerIds = getPartnerIds();
-
 			if ((status != null && isUpdate) && (!ACTIVATED.equals(status) || expiryTimestamp != null)) {
 				// Event to be sent to IDA for deactivation/blocked uin state
 				sendUINEventToIDA(uin, expiryTimestamp, status, vidInfoDtos, partnerIds, txnId,
@@ -209,12 +208,13 @@ public class CredentialServiceManager {
 			} else {
 				// For create uin, or update uin with null expiry (active status), send event to
 				// credential service.
-				sendUinEventsToCredService(uin, expiryTimestamp, isUpdate, vidInfoDtos, partnerIds, saltRetreivalFunction,
-						credentialRequestResponseConsumer);
+				sendUinEventsToCredService(uin, expiryTimestamp, isUpdate, vidInfoDtos, partnerIds,
+						saltRetreivalFunction, credentialRequestResponseConsumer);
 			}
 
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "notify", e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "notify",
+					e.getMessage());
 		}
 	}
 

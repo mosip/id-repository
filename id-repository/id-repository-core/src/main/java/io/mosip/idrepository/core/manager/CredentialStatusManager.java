@@ -1,10 +1,10 @@
 package io.mosip.idrepository.core.manager;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.CREDENTIAL_STATUS_UPDATE_TOPIC;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.CREDENTIAL_STATUS_UPDATE_TOPIC;
 
 import java.util.List;
 import java.util.Map;
@@ -99,7 +99,8 @@ public class CredentialStatusManager {
 				String idvId = decryptId(credentialRequestStatus.getIndividualId());
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), "BLOCKED",
 						Objects.nonNull(credentialRequestStatus.getUpdatedBy()) ? true : false, null,
-						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer, this::idaEventConsumer);
+						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer,
+						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()));
 			}
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleDeletedRequests", ExceptionUtils.getStackTrace(e));
@@ -129,7 +130,8 @@ public class CredentialStatusManager {
 				String idvId = decryptId(credentialRequestStatus.getIndividualId());
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), activeStatus,
 						Objects.nonNull(credentialRequestStatus.getUpdatedBy()) ? true : false, null,
-						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer, this::idaEventConsumer);
+						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer,
+						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()));
 				Optional<CredentialRequestStatus> idWithDummyPartnerOptional = statusRepo.findByIndividualIdHashAndPartnerId(
 						credentialRequestStatus.getIndividualIdHash(), dummyPartner.getDummyOLVPartnerId());
 				if (idWithDummyPartnerOptional.isPresent()) {
