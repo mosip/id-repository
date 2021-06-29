@@ -81,6 +81,8 @@ public enum IdRepoErrorConstants {
 	
 	VID_SERVICE_RETRIEVAL_ERROR("IDR-IDS-010", "Failed to retrieve data from vid service"),
 	
+	UIN_GENERATION_FAILED("IDR-IDS-011","Failed to generate UIN"),
+	
 	// VID Service
 	
 	/** The invalid vid. */
@@ -105,9 +107,8 @@ public enum IdRepoErrorConstants {
 	/** The document hash mismatch. */
 	AUTHENTICATION_FAILED("IDR-IDS-012", "Authentication Failed"),
 	
-	
-	
 	INVALID_CBEFF("IDR-BIE-001", "Invalid CBEFF"),
+	
 	TECHNICAL_ERROR("IDR-BIE-001", "Technical Error in Biometric Extraction")
 	
 	;
