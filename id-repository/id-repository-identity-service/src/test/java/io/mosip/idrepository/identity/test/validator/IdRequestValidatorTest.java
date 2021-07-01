@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -76,6 +78,9 @@ public class IdRequestValidatorTest {
 
 	@InjectMocks
 	IdRequestValidator validator;
+	
+	@Mock
+	private HttpServletRequest servletRequest;
 
 	@Autowired
 	private Environment env;
@@ -128,6 +133,7 @@ public class IdRequestValidatorTest {
 
 	@Before
 	public void setup() throws RestServiceException, IdRepoDataValidationException {
+		when(servletRequest.getRequestURI()).thenReturn("");
 		uinStatus.add(env.getProperty(IdRepoConstants.ACTIVE_STATUS));
 		allowedTypes.add("bio,demo,all");
 		ReflectionTestUtils.setField(validator, "id", id);
