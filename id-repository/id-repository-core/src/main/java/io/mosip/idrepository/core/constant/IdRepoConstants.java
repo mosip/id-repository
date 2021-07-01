@@ -51,9 +51,6 @@ public class IdRepoConstants {
 	/** The application name. */
 	public static final String APPLICATION_NAME = "mosip.idrepo.application.name";
 
-	/** The mosip primary language. */
-	public static final String MOSIP_PRIMARY_LANGUAGE = "mosip.primary-language";
-
 	/** The json schema file name. */
 	public static final String JSON_SCHEMA_FILE_NAME = "mosip.idrepo.json-schema-fileName";
 	

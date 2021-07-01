@@ -64,7 +64,7 @@ import io.mosip.kernel.idobjectvalidator.constant.IdObjectValidatorConstant;
  */
 @Component
 public class IdRequestValidator extends BaseIdRepoValidator implements Validator {
-	
+
 	/** The Constant DOC_VALUE. */
 	private static final String DOC_VALUE = "value";
 
@@ -195,19 +195,20 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 				validateVersion(request.getVersion(), errors);
 			}
 
-			if (!errors.hasErrors() && Objects.nonNull(request.getId())) {
+			if (!isDraftRequest && !errors.hasErrors() && Objects.nonNull(request.getId())) {
 				if (request.getId().equals(id.get(CREATE))) {
 					validateStatus(request.getRequest().getStatus(), errors, CREATE);
 					validateRequest(request.getRequest(), errors, CREATE);
 				} else if (request.getId().equals(id.get(UPDATE))) {
 					validateStatus(request.getRequest().getStatus(), errors, UPDATE);
 					validateRequest(request.getRequest(), errors, UPDATE);
-				} else if (servletRequest.getRequestURI().endsWith("updateDraft")) {
-					validateRequest(request.getRequest(), errors, UPDATE);
 				}
-
-				validateRegId(request.getRequest().getRegistrationId(), errors);
 			}
+			if (servletRequest.getRequestURI().endsWith("updateDraft")) {
+				validateRequest(request.getRequest(), errors, UPDATE);
+			}
+
+			validateRegId(request.getRequest().getRegistrationId(), errors);
 		}
 	}
 

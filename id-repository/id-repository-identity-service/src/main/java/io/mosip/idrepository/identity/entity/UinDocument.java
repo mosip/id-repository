@@ -11,7 +11,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import lombok.AccessLevel;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,6 +31,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @IdClass(DocumentPK.class)
 @Table(schema = "idrepo")
+@JsonIgnoreProperties(value = { "uin" })
 public class UinDocument {
 
 	public UinDocument(String uinRefId, String doccatCode, String doctypCode, String docId, String docName,
@@ -103,6 +106,6 @@ public class UinDocument {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "uinRefId", insertable = false, updatable = false)
-	@Setter(value = AccessLevel.NONE)
+	@JsonBackReference
 	private Uin uin;
 }
