@@ -37,10 +37,10 @@ import lombok.ToString;
 @Table(schema = "idrepo")
 public class Uin implements Persistable<String>, UinInfo {
 
-	public Uin(String uinRefId, String uin, String uinHash, byte[] uinData, String uinDataHash, String regId,
-			String bioRefId, String statusCode, String langCode, String createdBy, LocalDateTime createdDateTime,
-			String updatedBy, LocalDateTime updatedDateTime, Boolean isDeleted, LocalDateTime deletedDateTime,
-			List<UinBiometric> biometrics, List<UinDocument> documents) {
+	public Uin(String uinRefId, String uin, String uinHash, byte[] uinData, String uinDataHash, String regId, String bioRefId,
+			String statusCode, String langCode, String createdBy, LocalDateTime createdDateTime, String updatedBy,
+			LocalDateTime updatedDateTime, Boolean isDeleted, LocalDateTime deletedDateTime, List<UinBiometric> biometrics,
+			List<UinDocument> documents) {
 		this.uinRefId = uinRefId;
 		this.uin = uin;
 		this.uinHash = uinHash;
@@ -67,7 +67,7 @@ public class Uin implements Persistable<String>, UinInfo {
 
 	/** The uin. */
 	private String uin;
-	
+
 	private String uinHash;
 
 	/** The uin data. */
@@ -83,7 +83,7 @@ public class Uin implements Persistable<String>, UinInfo {
 
 	/** The reg id. */
 	private String regId;
-	
+
 	private String bioRefId;
 
 	/** The status code. */
@@ -140,12 +140,12 @@ public class Uin implements Persistable<String>, UinInfo {
 	public void setUinData(byte[] uinData) {
 		this.uinData = uinData.clone();
 	}
-	
+
 	@Override
 	public String getUin() {
 		return uin;
 	}
-	
+
 	@Override
 	public void setUin(String uin) {
 		this.uin = uin;

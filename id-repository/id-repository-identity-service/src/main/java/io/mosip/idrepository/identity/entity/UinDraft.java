@@ -129,12 +129,12 @@ public class UinDraft implements Persistable<String>, UinInfo {
 	public void setUinData(byte[] uinData) {
 		this.uinData = uinData;
 	}
-	
+
 	@Override
 	public String getUin() {
 		return uin;
 	}
-	
+
 	@Override
 	public void setUin(String uin) {
 		this.uin = uin;

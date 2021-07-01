@@ -11,6 +11,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -100,5 +102,6 @@ public class UinDocumentDraft {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "regId", insertable = false, updatable = false)
 	@Setter(value = AccessLevel.NONE)
+	@JsonBackReference
 	private UinDraft uin;
 }

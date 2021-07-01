@@ -221,7 +221,7 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 		authtypeLock.setStatuscode(Boolean.toString(authtypeStatus.getLocked()));
 		authtypeLock.setCreatedBy(env.getProperty(IdRepoConstants.APPLICATION_ID));
 		authtypeLock.setCrDTimes(DateUtils.getUTCCurrentDateTime());
-		authtypeLock.setLangCode(env.getProperty(IdRepoConstants.MOSIP_PRIMARY_LANGUAGE));
+		authtypeLock.setLangCode("");
 		return authtypeLock;
 	}
 
