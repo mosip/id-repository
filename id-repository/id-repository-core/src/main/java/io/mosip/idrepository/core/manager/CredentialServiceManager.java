@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
@@ -33,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.EventType;
 import io.mosip.idrepository.core.constant.IDAEventType;
+import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
@@ -52,9 +52,7 @@ import io.mosip.idrepository.core.util.TokenIDGenerator;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.core.websub.model.Event;
 import io.mosip.kernel.core.websub.model.EventModel;
-import io.mosip.kernel.core.websub.model.Type;
 
 /**
  * The Class CredentialServiceManager.
@@ -72,21 +70,6 @@ public class CredentialServiceManager {
 
 	/** The Constant mosipLogger. */
 	private static final Logger mosipLogger = IdRepoLogger.getLogger(CredentialServiceManager.class);
-
-	/** The Constant TOKEN. */
-	private static final String TOKEN = "TOKEN";
-
-	/** The Constant ID_HASH. */
-	private static final String ID_HASH = "id_hash";
-
-	/** The Constant EXPIRY_TIMESTAMP. */
-	private static final String EXPIRY_TIMESTAMP = "expiry_timestamp";
-
-	/** The Constant TRANSACTION_LIMIT. */
-	private static final String TRANSACTION_LIMIT = "transaction_limit";
-
-	/** The Constant ID_REPO. */
-	private static final String ID_REPO = "ID_REPO";
 
 	/** The Constant IDA. */
 	private static final String IDA = "IDA";
@@ -124,14 +107,6 @@ public class CredentialServiceManager {
 	/** The security manager. */
 	@Autowired
 	private IdRepoSecurityManager securityManager;
-
-	/** The ida event type namespace. */
-	@Value("${id-repo-ida-event-type-namespace:mosip}")
-	private String idaEventTypeNamespace;
-
-	/** The ida event type name. */
-	@Value("${id-repo-ida-event-type-name:ida}")
-	private String idaEventTypeName;
 
 	/** The credential type. */
 	@Value("${id-repo-ida-credential-type:" + AUTH + "}")
@@ -298,13 +273,13 @@ public class CredentialServiceManager {
 		List<EventModel> eventList = new ArrayList<>();
 		EventType eventType = BLOCKED.equals(status) ? IDAEventType.REMOVE_ID : IDAEventType.DEACTIVATE_ID;
 		eventList.addAll(
-				createIdaEventModel(eventType, uin, expiryTimestamp, null, partnerIds, txnId, getIdHashFunction.apply(uin))
+				createIdaEventModel(eventType, expiryTimestamp, null, partnerIds, txnId, getIdHashFunction.apply(uin))
 						.collect(Collectors.toList()));
 
 		if (vidInfoDtos != null) {
 			List<EventModel> idaEvents = vidInfoDtos.stream()
-					.flatMap(vidInfoDTO -> createIdaEventModel(eventType, vidInfoDTO.getVid(), expiryTimestamp,
-							vidInfoDTO.getTransactionLimit(), partnerIds, txnId, vidInfoDTO.getHashAttributes().get(ID_HASH)))
+					.flatMap(vidInfoDTO -> createIdaEventModel(eventType, expiryTimestamp,
+							vidInfoDTO.getTransactionLimit(), partnerIds, txnId, vidInfoDTO.getHashAttributes().get(IdRepoConstants.ID_HASH)))
 					.collect(Collectors.toList());
 			eventList.addAll(idaEvents);
 		}
@@ -342,9 +317,8 @@ public class CredentialServiceManager {
 		}
 		String transactionId = "";// TODO
 		List<EventModel> eventDtos = vids.stream()
-				.flatMap(vid -> createIdaEventModel(eventType, vid.getVid(),
-						eventType.equals(IDAEventType.ACTIVATE_ID) ? vid.getExpiryTimestamp() : DateUtils.getUTCCurrentDateTime(),
-						vid.getTransactionLimit(), partnerIds, transactionId, vid.getHashAttributes().get(ID_HASH)))
+				.flatMap(vid -> createIdaEventModel(eventType, eventType.equals(IDAEventType.ACTIVATE_ID) ? vid.getExpiryTimestamp() : DateUtils.getUTCCurrentDateTime(),
+						vid.getTransactionLimit(), partnerIds, transactionId, vid.getHashAttributes().get(IdRepoConstants.ID_HASH)))
 				.collect(Collectors.toList());
 		sendEventsToIDA(eventDtos, eventType, idaEventModelConsumer);
 
@@ -362,53 +336,10 @@ public class CredentialServiceManager {
 	 * @param idHash           the id hash
 	 * @return the stream
 	 */
-	private Stream<EventModel> createIdaEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp,
+	private Stream<EventModel> createIdaEventModel(EventType eventType, LocalDateTime expiryTimestamp,
 			Integer transactionLimit, List<String> partnerIds, String transactionId, String idHash) {
 		return partnerIds.stream().map(
-				partner -> createEventModel(eventType, id, expiryTimestamp, transactionLimit, transactionId, partner, idHash));
-	}
-
-	/**
-	 * Creates the event model.
-	 *
-	 * @param eventType        the event type
-	 * @param id               the id
-	 * @param expiryTimestamp  the expiry timestamp
-	 * @param transactionLimit the transaction limit
-	 * @param transactionId    the transaction id
-	 * @param partner          the partner
-	 * @param idHash           the id hash
-	 * @return the event model
-	 */
-	private EventModel createEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp, Integer transactionLimit,
-			String transactionId, String partner, Object idHash) {
-		EventModel model = new EventModel();
-		model.setPublisher(ID_REPO);
-		String dateTime = DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime());
-		model.setPublishedOn(dateTime);
-		Event event = new Event();
-		event.setTimestamp(dateTime);
-		String eventId = UUID.randomUUID().toString();
-		event.setId(eventId);
-		event.setTransactionId(transactionId);
-		Type type = new Type();
-		type.setNamespace(idaEventTypeNamespace);
-		type.setName(idaEventTypeName);
-		event.setType(type);
-		Map<String, Object> data = new HashMap<>();
-		data.put(ID_HASH, idHash);
-		if (eventType.equals(IDAEventType.DEACTIVATE_ID)) {
-			data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
-		} else {
-			if (expiryTimestamp != null) {
-				data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
-			}
-		}
-		data.put(TRANSACTION_LIMIT, transactionLimit);
-		event.setData(data);
-		model.setEvent(event);
-		model.setTopic(partner + "/" + eventType.toString());
-		return model;
+				partner -> websubHelper.createEventModel(eventType, expiryTimestamp, transactionLimit, transactionId, partner, idHash));
 	}
 
 	/**
@@ -547,9 +478,9 @@ public class CredentialServiceManager {
 			Integer transactionLimit, String token, Map<? extends String, ? extends Object> idHashAttributes) {
 		Map<String, Object> data = new HashMap<>();
 		data.putAll(idHashAttributes);
-		data.put(EXPIRY_TIMESTAMP, Optional.ofNullable(expiryTimestamp).map(DateUtils::formatToISOString).orElse(null));
-		data.put(TRANSACTION_LIMIT, transactionLimit);
-		data.put(TOKEN, token);
+		data.put(IdRepoConstants.EXPIRY_TIMESTAMP, Optional.ofNullable(expiryTimestamp).map(DateUtils::formatToISOString).orElse(null));
+		data.put(IdRepoConstants.TRANSACTION_LIMIT, transactionLimit);
+		data.put(IdRepoConstants.TOKEN, token);
 
 		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
 		credentialIssueRequestDto.setId(id);
@@ -614,7 +545,7 @@ public class CredentialServiceManager {
 	public <T,S> io.mosip.idrepository.core.dto.EventModel<T> createEventModel(String topic, T event) {
 		io.mosip.idrepository.core.dto.EventModel<T> eventModel = new io.mosip.idrepository.core.dto.EventModel<>();
 		eventModel.setEvent(event);
-		eventModel.setPublisher(ID_REPO);
+		eventModel.setPublisher(IdRepoConstants.ID_REPO);
 		eventModel.setPublishedOn(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 		eventModel.setTopic(topic);
 		return eventModel;
