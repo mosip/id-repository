@@ -17,7 +17,6 @@ import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -157,9 +156,6 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	@Autowired
 	private VidValidator<String> vidValidator;
 
-	@Autowired
-	private HttpServletRequest servletRequest;
-
 	@PostConstruct
 	public void init() {
 		newRegistrationFields.remove("");
@@ -184,7 +180,10 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 */
 	@Override
 	public void validate(@Nonnull Object target, Errors errors) {
-		boolean isDraftRequest = servletRequest.getRequestURI().contains("Draft");
+		this.validate(target, errors, false, false);
+	}
+
+	public void validate(@Nonnull Object target, Errors errors, boolean isDraftRequest, boolean isUpdateDraft) {
 		if (target instanceof IdRequestDTO) {
 			IdRequestDTO request = (IdRequestDTO) target;
 
@@ -204,9 +203,8 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					validateRequest(request.getRequest(), errors, UPDATE);
 				}
 			}
-			if (servletRequest.getRequestURI().endsWith("updateDraft")) {
+			if (isUpdateDraft)
 				validateRequest(request.getRequest(), errors, UPDATE);
-			}
 
 			validateRegId(request.getRequest().getRegistrationId(), errors);
 		}

@@ -6,7 +6,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.Errors;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -59,10 +58,12 @@ public class IdRepoDraftController {
 	}
 
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@PostMapping(path = "/createDraft", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<IdResponseDTO> createDraft(@Validated @RequestBody IdRequestDTO request, @ApiIgnore Errors errors)
-			throws IdRepoAppException {
+	@PostMapping(path = "/createDraft/{registrationId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<IdResponseDTO> createDraft(@PathVariable String registrationId, @RequestBody IdRequestDTO request,
+			@ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
+			request.getRequest().setRegistrationId(registrationId);
+			validator.validate(request, errors, true, false);
 			DataValidationUtil.validate(errors);
 			return new ResponseEntity<>(draftService.createDraft(request), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
@@ -77,10 +78,12 @@ public class IdRepoDraftController {
 	}
 
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@PatchMapping(path = "/updateDraft", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<IdResponseDTO> updateDraft(@Validated @RequestBody IdRequestDTO request, @ApiIgnore Errors errors)
-			throws IdRepoAppException {
+	@PatchMapping(path = "/updateDraft/{registrationId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<IdResponseDTO> updateDraft(@PathVariable String registrationId, @RequestBody IdRequestDTO request,
+			@ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
+			request.getRequest().setRegistrationId(registrationId);
+			validator.validate(request, errors, true, true);
 			DataValidationUtil.validate(errors);
 			return new ResponseEntity<>(draftService.updateDraft(request), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
