@@ -175,6 +175,10 @@ public class CredentialServiceManager {
 				VidsInfosDTO response = restHelper.requestSync(restRequest);
 				vidInfoDtos = response.getResponse();
 			}
+			
+			if (partnerIds.isEmpty() || (partnerIds.size() == 1 && dummyCheck.isDummyOLVPartner(partnerIds.get(0)))) {
+				partnerIds = getPartnerIds();
+			}
 
 			if ((status != null && isUpdate) && (!ACTIVATED.equals(status) || expiryTimestamp != null)) {
 				// Event to be sent to IDA for deactivation/blocked uin state
