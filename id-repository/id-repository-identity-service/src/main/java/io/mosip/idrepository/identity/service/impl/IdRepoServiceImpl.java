@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 import javax.annotation.Resource;
 
@@ -252,13 +253,14 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	private void addDocuments(String uinHash, byte[] identityInfo, List<DocumentsDTO> documents, String uinRefId,
 			List<UinDocument> docList, List<UinBiometric> bioList, boolean isDraft) throws IdRepoAppException {
 		ObjectNode identityObject = (ObjectNode) convertToObject(identityInfo, ObjectNode.class);
-		documents.stream().filter(doc -> identityObject.has(doc.getCategory())).forEach(doc -> {
+		IntStream.range(0, documents.size()).filter(index -> identityObject.has(documents.get(index).getCategory())).forEach(index -> {
+			DocumentsDTO doc = documents.get(index);
 			JsonNode docType = identityObject.get(doc.getCategory());
 			try {
 				if (bioAttributes.contains(doc.getCategory())) {
-					addBiometricDocuments(uinHash, uinRefId, bioList, doc, docType, isDraft);
+					addBiometricDocuments(uinHash, uinRefId, bioList, doc, docType, isDraft, index);
 				} else {
-					addDemographicDocuments(uinHash, uinRefId, docList, doc, docType, isDraft);
+					addDemographicDocuments(uinHash, uinRefId, docList, doc, docType, isDraft, index);
 				}
 			} catch (IdRepoAppException e) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, e.getMessage());
@@ -281,7 +283,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	private void addBiometricDocuments(String uinHash, String uinRefId, List<UinBiometric> bioList, DocumentsDTO doc,
-			JsonNode docType, boolean isDraft) throws IdRepoAppException {
+			JsonNode docType, boolean isDraft, int index) throws IdRepoAppException {
 		byte[] data = null;
 		String fileRefId = UUIDUtils
 				.getUUID(UUIDUtils.NAMESPACE_OID,
@@ -289,7 +291,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				.toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
 
 		data = CryptoUtil.decodeBase64(doc.getValue());
-
+		try {
+			cbeffUtil.validateXML(data);
+		} catch (Exception e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "addBiometricDocuments", e.getMessage());
+			throw new IdRepoAppUncheckedException(INVALID_INPUT_PARAMETER.getErrorCode(),
+					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "documents/" + index + "/value"), e);
+		}
 		objectStoreHelper.putBiometricObject(uinHash, fileRefId, data);
 
 		bioList.add(new UinBiometric(uinRefId, fileRefId, doc.getCategory(), docType.get(FILE_NAME_ATTRIBUTE).asText(),
@@ -314,7 +322,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	private void addDemographicDocuments(String uinHash, String uinRefId, List<UinDocument> docList, DocumentsDTO doc,
-			JsonNode docType, boolean isDraft) throws IdRepoAppException {
+			JsonNode docType, boolean isDraft, int index) throws IdRepoAppException {
 		String fileRefId = UUIDUtils
 				.getUUID(UUIDUtils.NAMESPACE_OID,
 						docType.get(FILE_NAME_ATTRIBUTE).asText() + SPLITTER + DateUtils.getUTCCurrentDateTime())
