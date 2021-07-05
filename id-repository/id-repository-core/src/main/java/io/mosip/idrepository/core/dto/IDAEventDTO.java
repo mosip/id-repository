@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthTypeStatusEventDTO {
+public class IDAEventDTO {
 	private EventType eventType;
 	private String saltedIdHash;
 	private String tokenId;

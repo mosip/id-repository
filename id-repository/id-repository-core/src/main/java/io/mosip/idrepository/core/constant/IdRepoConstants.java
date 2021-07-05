@@ -132,21 +132,6 @@ public class IdRepoConstants {
 	/** The value. */
 	private final String value;
 
-	/** The Constant TOKEN. */
-	public static final String TOKEN = "TOKEN";
-
-	/** The Constant ID_HASH. */
-	public static final String ID_HASH = "id_hash";
-
-	/** The Constant EXPIRY_TIMESTAMP. */
-	public static final String EXPIRY_TIMESTAMP = "expiry_timestamp";
-
-	/** The Constant TRANSACTION_LIMIT. */
-	public static final String TRANSACTION_LIMIT = "transaction_limit";
-
-	/** The Constant ID_REPO. */
-	public static final String ID_REPO = "ID_REPO";
-
 	/**
 	 * Instantiates a new id repo constants.
 	 *
