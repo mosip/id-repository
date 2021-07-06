@@ -1,14 +1,22 @@
 package io.mosip.idrepository.core.helper;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.EXPIRY_TIMESTAMP;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.ID_HASH;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.ID_REPO;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.TRANSACTION_LIMIT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_EVENT_CALLBACK_URL;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_EVENT_SECRET;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_EVENT_TOPIC;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.WEB_SUB_HUB_URL;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.WEB_SUB_PUBLISH_URL;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +26,12 @@ import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.mosip.idrepository.core.constant.EventType;
+import io.mosip.idrepository.core.constant.IDAEventType;
+import io.mosip.idrepository.core.dto.AuthTypeStatusEventDTO;
 import io.mosip.idrepository.core.dto.AuthtypeStatus;
-import io.mosip.idrepository.core.dto.IDAEventDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
@@ -27,7 +39,10 @@ import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.TokenIDGenerator;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.websub.model.Event;
 import io.mosip.kernel.core.websub.model.EventModel;
+import io.mosip.kernel.core.websub.model.Type;
 import io.mosip.kernel.core.websub.spi.PublisherClient;
 import io.mosip.kernel.core.websub.spi.SubscriptionClient;
 import io.mosip.kernel.websub.api.exception.WebSubClientException;
@@ -60,9 +75,14 @@ public class IdRepoWebSubHelper {
 	@Value("${" + VID_EVENT_CALLBACK_URL + "}")
 	private String vidEventUrl;
 
-	@Autowired
-	private PublisherClient<String, IDAEventDTO, HttpHeaders> authTypePublisher;
+	/** The ida event type namespace. */
+	@Value("${id-repo-ida-event-type-namespace:mosip}")
+	private String idaEventTypeNamespace;
 
+	/** The ida event type name. */
+	@Value("${id-repo-ida-event-type-name:ida}")
+	private String idaEventTypeName;
+	
 	@Autowired
 	private PublisherClient<String, Object, HttpHeaders> publisher;
 
@@ -74,6 +94,9 @@ public class IdRepoWebSubHelper {
 
 	@Autowired
 	protected SubscriptionClient<SubscriptionChangeRequest, UnsubscriptionRequest, SubscriptionChangeResponse> subscribe;
+	
+	@Autowired
+	private ObjectMapper mapper;
 
 	private Set<String> registeredTopicCache = new HashSet<>();
 
@@ -99,13 +122,81 @@ public class IdRepoWebSubHelper {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Async
 	public void publishAuthTypeStatusUpdateEvent(String individualId, List<AuthtypeStatus> authTypeStatusList, String topic,
 			String partnerId) {
-		IDAEventDTO event = new IDAEventDTO();
+		AuthTypeStatusEventDTO event = new AuthTypeStatusEventDTO();
 		event.setTokenId(tokenIdGenerator.generateTokenID(individualId, partnerId));
 		event.setAuthTypeStatusList(authTypeStatusList);
-		authTypePublisher.publishUpdate(topic, event, MediaType.APPLICATION_JSON_UTF8_VALUE, null, publisherURL);
+		Map<String, String> dataMap = mapper.convertValue(event, Map.class);
+		EventModel eventModel = createEventModel(IDAEventType.AUTH_TYPE_STATUS_UPDATE, null, null, null, partnerId, null, dataMap );
+		this.publishEvent(eventModel);
+	}
+	
+	/**
+	 * Creates the event model.
+	 *
+	 * @param eventType        the event type
+	 * @param id               the id
+	 * @param expiryTimestamp  the expiry timestamp
+	 * @param transactionLimit the transaction limit
+	 * @param transactionId    the transaction id
+	 * @param partner          the partner
+	 * @param idHash           the id hash
+	 * @return the event model
+	 */
+	public EventModel createEventModel(EventType eventType, LocalDateTime expiryTimestamp, Integer transactionLimit,
+			String transactionId, String partner, String idHash) {
+		return createEventModel(eventType, expiryTimestamp, transactionLimit, transactionId, partner, idHash, null);
+	}
+	
+	/**
+	 * Creates the event model.
+	 *
+	 * @param eventType        the event type
+	 * @param id               the id
+	 * @param expiryTimestamp  the expiry timestamp
+	 * @param transactionLimit the transaction limit
+	 * @param transactionId    the transaction id
+	 * @param partner          the partner
+	 * @param idHash           the id hash
+	 * @return the event model
+	 */
+	public EventModel createEventModel(EventType eventType, LocalDateTime expiryTimestamp, Integer transactionLimit,
+			String transactionId, String partner, String idHash, Map<String, String> dataMap) {
+		EventModel model = new EventModel();
+		model.setPublisher(ID_REPO);
+		String dateTime = DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime());
+		model.setPublishedOn(dateTime);
+		Event event = new Event();
+		event.setTimestamp(dateTime);
+		String eventId = UUID.randomUUID().toString();
+		event.setId(eventId);
+		event.setTransactionId(transactionId);
+		Type type = new Type();
+		type.setNamespace(idaEventTypeNamespace);
+		type.setName(idaEventTypeName);
+		event.setType(type);
+		Map<String, Object> data = new HashMap<>();
+		if(dataMap != null && !dataMap.isEmpty()) {
+			data.putAll(dataMap);
+		}
+		data.put(ID_HASH, idHash);
+		if (eventType.equals(IDAEventType.DEACTIVATE_ID)) {
+			data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+		} else {
+			if (expiryTimestamp != null) {
+				data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
+			}
+		}
+		if(transactionLimit != null) {
+			data.put(TRANSACTION_LIMIT, transactionLimit);
+		}
+		event.setData(data);
+		model.setEvent(event);
+		model.setTopic(partner + "/" + eventType.toString());
+		return model;
 	}
 
 	/**
@@ -156,8 +247,7 @@ public class IdRepoWebSubHelper {
 
 	@Async
 	public void publishEvent(EventModel event) {
-		this.tryRegisteringTopic(event.getTopic());
-		publisher.publishUpdate(event.getTopic(), event, MediaType.APPLICATION_JSON_VALUE, null, publisherURL);
+		this.publishEvent(event.getTopic(), event);
 	}
 	
 	@Async
