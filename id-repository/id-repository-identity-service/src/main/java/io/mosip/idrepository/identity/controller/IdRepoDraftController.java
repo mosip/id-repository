@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.mosip.idrepository.core.constant.AuditEvents;
@@ -37,6 +39,7 @@ import springfox.documentation.annotations.ApiIgnore;
  *
  */
 @RestController
+@RequestMapping(path = "/draft")
 public class IdRepoDraftController {
 
 	private static final String ID_REPO_DRAFT_CONTROLLER = "IdRepoDraftController";
@@ -58,7 +61,7 @@ public class IdRepoDraftController {
 	}
 
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@PostMapping(path = "/createDraft/{registrationId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(path = "/create/{registrationId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> createDraft(@PathVariable String registrationId, @RequestBody IdRequestDTO request,
 			@ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
@@ -78,7 +81,7 @@ public class IdRepoDraftController {
 	}
 
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@PatchMapping(path = "/updateDraft/{registrationId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PatchMapping(path = "/update/{registrationId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> updateDraft(@PathVariable String registrationId, @RequestBody IdRequestDTO request,
 			@ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
@@ -98,7 +101,7 @@ public class IdRepoDraftController {
 	}
 
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@GetMapping(path = "/publishDraft/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(path = "/publish/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> publishDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
 			validateRegistrationId(registrationId);
@@ -115,7 +118,7 @@ public class IdRepoDraftController {
 	}
 
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@DeleteMapping(path = "/discardDraft/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@DeleteMapping(path = "/discard/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> discardDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
 			validateRegistrationId(registrationId);
@@ -132,7 +135,7 @@ public class IdRepoDraftController {
 	}
 
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@GetMapping(path = "/hasDraft/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(method = RequestMethod.HEAD, path = "/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> hasDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
 			validateRegistrationId(registrationId);
@@ -149,7 +152,7 @@ public class IdRepoDraftController {
 	}
 
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@GetMapping(path = "/getDraft/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(path = "/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> getDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
 			validateRegistrationId(registrationId);
