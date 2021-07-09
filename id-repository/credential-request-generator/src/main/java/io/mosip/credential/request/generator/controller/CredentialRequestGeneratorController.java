@@ -56,7 +56,8 @@ public class CredentialRequestGeneratorController {
 	 * @param credentialIssueRequestDto the credential issue request dto
 	 * @return the response entity
 	 */
-	@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
+	//@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostrequestgenerator())")
 	@PostMapping(path = "/requestgenerator", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "Create the  credential issuance request", response = CredentialIssueResponseDto.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Created request id successfully"),
@@ -68,7 +69,8 @@ public class CredentialRequestGeneratorController {
 				.createCredentialIssuance(credentialIssueRequestDto.getRequest());
 		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseWrapper);
 	}
-	@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
+	//@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetcancelrequestid())")
 	@GetMapping(path = "/cancel/{requestId}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "cancel the credential issuance request", response = CredentialIssueResponseDto.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "cancel the request successfully"),
@@ -82,7 +84,8 @@ public class CredentialRequestGeneratorController {
 		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseWrapper);
 	}
 	
-	@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
+	//@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetgetrequestid())")
 	@GetMapping(path = "/get/{requestId}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "get credential issuance request status", response = CredentialIssueResponseDto.class)
 	@ApiResponses(value = {
@@ -107,7 +110,8 @@ public class CredentialRequestGeneratorController {
 		return new ResponseWrapper<>();
 	}
 
-	@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
+	//@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetgetrequestids())")
 	@GetMapping(path = "/getRequestIds", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "get credential issuance request ids", response = CredentialRequestIdsDto.class)
 	@ApiResponses(value = {
@@ -127,7 +131,8 @@ public class CredentialRequestGeneratorController {
 		return responseWrapper;
 	}
 
-	@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
+	//@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPutretriggerrequestid())")
 	@PutMapping(path = "/retrigger/{requestId}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "retrigger the credential issuance request", response = CredentialIssueResponseDto.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "retrigger the  the request successfully"),
