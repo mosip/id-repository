@@ -1,6 +1,7 @@
 package io.mosip.idrepository.identity.service.impl;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
@@ -121,8 +122,8 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 		authTypeStatusList.stream().filter(
 				status -> status.getLocked() && Objects.nonNull(status.getUnlockForSeconds()) && status.getUnlockForSeconds() > 0)
 				.forEach(status -> {
-					status.setMetadata(Collections.singletonMap(UNLOCK_EXP_TIMESTAMP, DateUtils
-							.formatToISOString(DateUtils.getUTCCurrentDateTime().plusSeconds(status.getUnlockForSeconds()))));
+					status.setMetadata(Collections.singletonMap(UNLOCK_EXP_TIMESTAMP,
+							DateUtils.getUTCCurrentDateTime().plusSeconds(status.getUnlockForSeconds())));
 				});
 		String uin = idType == IdType.VID ? getUin(individualId) : individualId;
 		IdResponseDTO updateAuthTypeStatus = doUpdateAuthTypeStatus(uin, authTypeStatusList);
@@ -206,9 +207,9 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 		authtypeLock.setCrDTimes(DateUtils.getUTCCurrentDateTime());
 		authtypeLock.setLockrequestDTtimes(DateUtils.getUTCCurrentDateTime());
 		authtypeLock.setLockstartDTtimes(DateUtils.getUTCCurrentDateTime());
-		if (Objects.nonNull(authtypeStatus.getMetadata()) && authtypeStatus.getMetadata().containsKey(UNLOCK_EXP_TIMESTAMP)) {
-			authtypeLock.setUnlockExpiryDTtimes(
-					DateUtils.parseToLocalDateTime((String) authtypeStatus.getMetadata().get(UNLOCK_EXP_TIMESTAMP)));
+		if (Objects.nonNull(authtypeStatus.getMetadata()) && authtypeStatus.getMetadata().containsKey(UNLOCK_EXP_TIMESTAMP)
+				&& authtypeStatus.getMetadata().get(UNLOCK_EXP_TIMESTAMP) instanceof LocalDateTime) {
+			authtypeLock.setUnlockExpiryDTtimes((LocalDateTime) authtypeStatus.getMetadata().get(UNLOCK_EXP_TIMESTAMP));
 		}
 		authtypeLock.setStatuscode(Boolean.toString(authtypeStatus.getLocked()));
 		authtypeLock.setCreatedBy(env.getProperty(IdRepoConstants.APPLICATION_ID));
