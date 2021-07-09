@@ -14,6 +14,8 @@ public enum RestServicesConstants {
 	IDREPO_IDENTITY_SERVICE("mosip.idrepo.retrieve-by-uin"),
 	
 	VID_GENERATOR_SERVICE("mosip.idrepo.vid-generator"),
+	
+	UIN_GENERATOR_SERVICE("mosip.idrepo.uin-generator"),
 
 	CRYPTO_MANAGER_ENCRYPT("mosip.idrepo.encryptor"),
 

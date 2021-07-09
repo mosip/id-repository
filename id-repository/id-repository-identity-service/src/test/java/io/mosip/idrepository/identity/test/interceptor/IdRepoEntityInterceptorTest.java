@@ -127,7 +127,7 @@ public class IdRepoEntityInterceptorTest {
 		when(restHelper.requestSync(Mockito.any()))
 				.thenReturn(mapper.readValue("{\"value\":\"1234\"}".getBytes(), ObjectNode.class));
 		UinDocument uin = new UinDocument();
-		assertFalse(interceptor.onSave(uin, null, null, null, null));
+		assertFalse(interceptor.onSave(uin, null, null, new String[] {""}, null));
 	}
 
 	@Test

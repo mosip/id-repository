@@ -34,6 +34,7 @@ import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -284,8 +285,8 @@ public class IdRepoSecurityManager {
 			}
 		} catch (RestServiceException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SECURITY_MANAGER, ENCRYPT_DECRYPT_DATA,
-					e.getErrorText());
-			throw new IdRepoAppException(ENCRYPTION_DECRYPTION_FAILED, e);
+					ExceptionUtils.getStackTrace(e));
+			throw new IdRepoAppException(ENCRYPTION_DECRYPTION_FAILED);
 		}
 	}
 	

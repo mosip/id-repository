@@ -106,7 +106,7 @@ public class VidController {
 
 	/** The mosip logger. */
 	Logger mosipLogger = IdRepoLogger.getLogger(VidController.class);
-
+	
 	/**
 	 * Inits the binder.
 	 *
