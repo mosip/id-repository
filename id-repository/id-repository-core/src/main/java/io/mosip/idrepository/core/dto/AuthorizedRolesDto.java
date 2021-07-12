@@ -15,27 +15,7 @@ import lombok.Setter;
 @Setter
 public class AuthorizedRolesDTO {
 
-//Credential request genrator controller   
-   private List<String> postrequestgenerator;
-    
-   private List<String> getcancelrequestid;
-
-   private List<String> getgetrequestid;
-	
-   private List<String> getgetrequestids;
-   
-   private List<String> putretriggerrequestid;
-	 
-	 
-	
-//credential store controller
-	
-	private List<String> postissue;
-	
-	
-	//private List<String> getissuetypes;
-
-//Idrepo controller	
+  //Idrepo controller
 	
 	private List<String> postidrepo;
 	
@@ -47,7 +27,7 @@ public class AuthorizedRolesDTO {
 	
 	private List<String> postauthtypesstatus;
 	
-//Vid controller
+  //Vid controller
 	
 	private List<String> postvid;
 	
