@@ -1,4 +1,4 @@
-package io.mosip.idrepo.core.common.dto;
+package io.mosip.idrepository.vid.dto;
 
 import java.util.List;
 
@@ -10,23 +10,11 @@ import lombok.Setter;
 
 
 @Component("authorizedRoles")
-@ConfigurationProperties(prefix = "mosip.role.idrepo")
+@ConfigurationProperties(prefix = "mosip.role.idrepo.vid")
 @Getter
 @Setter
-public class AuthorizedRolesDTO {
+public class AuthorizedRolesDto {
 
-  //Idrepo controller
-	
-	private List<String> postidrepo;
-	
-    private List<String> getidvidid;	
-	
-	private List<String> patchidrepo; 
-	 
-	private List<String> getauthtypesstatusindividualidtypeindividualid;
-	
-	private List<String> postauthtypesstatus;
-	
   //Vid controller
 	
 	private List<String> postvid;

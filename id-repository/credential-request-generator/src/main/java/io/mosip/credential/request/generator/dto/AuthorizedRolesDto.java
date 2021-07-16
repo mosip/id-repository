@@ -1,4 +1,4 @@
-package io.mosip.idrepo.core.common.dto;
+package io.mosip.credential.request.generator.dto;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ import lombok.Setter;
 @ConfigurationProperties(prefix = "mosip.role.idrepo.credentialrequest")
 @Getter
 @Setter
-public class AuthorizedRolesDTO {
+public class AuthorizedRolesDto {
 
 //Credential request genrator controller   
    private List<String> postrequestgenerator;
