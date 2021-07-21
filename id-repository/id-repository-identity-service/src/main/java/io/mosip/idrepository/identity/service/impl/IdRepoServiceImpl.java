@@ -49,7 +49,6 @@ import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 
 import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
-import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
@@ -513,7 +512,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 */
 	@SuppressWarnings("unchecked")
 	private void updateMissingValues(DocumentContext inputData, DocumentContext dbData, JSONCompareResult comparisonResult) {
-		try {
 		String path = StringUtils.substringBefore(comparisonResult.getMessage(), OPEN_SQUARE_BRACE);
 		String key = StringUtils.substringAfterLast(path, DOT);
 		path = StringUtils.substringBeforeLast(path, DOT);
@@ -534,11 +532,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						&& inputDataList.stream().filter(inputDataMap -> inputDataMap.containsKey(LANGUAGE)).allMatch(
 								inputDataMap -> !StringUtils.equalsIgnoreCase(inputDataMap.get(LANGUAGE), map.get(LANGUAGE))))
 				.forEach(inputDataList::add);
-		} catch (StackOverflowError e) {
-			// Temp loggging of StackOverflowError
-			mosipLogger.error(ExceptionUtils.getStackTrace(ExceptionUtils.getRootCause(e)));
-			throw new IdRepoAppUncheckedException(IdRepoErrorConstants.UNKNOWN_ERROR);
-		}
 	}
 
 	/**
