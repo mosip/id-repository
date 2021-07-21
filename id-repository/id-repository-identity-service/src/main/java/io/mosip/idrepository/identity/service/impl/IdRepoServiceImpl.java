@@ -635,7 +635,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			credStatus.setIndividualIdHash(uinHash);
 			credStatus.setPartnerId(dummyPartner.getDummyOLVPartnerId());
 			credStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
-			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? expiryTimestamp : null);
+			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
 			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
 			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
 			credRequestRepo.save(credStatus);
