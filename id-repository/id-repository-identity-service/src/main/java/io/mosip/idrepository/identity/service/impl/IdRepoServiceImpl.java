@@ -530,17 +530,24 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			path = ROOT;
 		}
 
+		JsonPath jsonPath = JsonPath.compile(path + DOT + key);
 		List<Map<String, String>> dbDataList = dbData.read(path + DOT + key, List.class);
 		List<Map<String, String>> inputDataList = inputData.read(path + DOT + key, List.class);
 		inputDataList.stream()
 				.filter(map -> map.containsKey(LANGUAGE) && dbDataList.stream().filter(dbMap -> dbMap.containsKey(LANGUAGE))
 						.allMatch(dbMap -> !StringUtils.equalsIgnoreCase(dbMap.get(LANGUAGE), map.get(LANGUAGE))))
-				.forEach(dbDataList::add);
+				.forEach(value -> {
+					dbDataList.add(value);
+					dbData.add(jsonPath, value);
+				});
 		dbDataList.stream()
 				.filter(map -> map.containsKey(LANGUAGE)
 						&& inputDataList.stream().filter(inputDataMap -> inputDataMap.containsKey(LANGUAGE)).allMatch(
 								inputDataMap -> !StringUtils.equalsIgnoreCase(inputDataMap.get(LANGUAGE), map.get(LANGUAGE))))
-				.forEach(inputDataList::add);
+				.forEach(value -> {
+					inputDataList.add(value);
+					inputData.add(jsonPath, value);
+				});
 	}
 
 	/**
