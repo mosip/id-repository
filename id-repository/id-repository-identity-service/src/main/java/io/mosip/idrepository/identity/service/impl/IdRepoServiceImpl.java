@@ -407,6 +407,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 */
 	private void updateIdentityObject(DocumentContext inputData, DocumentContext dbData, JSONCompareResult comparisonResult)
 			throws JSONException, IdRepoAppException {
+		boolean isUpdateExeutedOnce = false;
 		if (comparisonResult.isMissingOnField()) {
 			updateMissingFields(dbData, comparisonResult);
 		}
@@ -417,23 +418,15 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
-		mosipLogger.error("INPUTDATA --> " + inputData.jsonString());
-		mosipLogger.error("DBDATA --> " + dbData.jsonString());
-		
-		mosipLogger.error("COMPARISON_RESULT --> " + comparisonResult);
 		if (!comparisonResult.getMessage().isEmpty()) {
 			updateMissingValues(inputData, dbData, comparisonResult);
 		}
 
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
-		
-		mosipLogger.error("INPUTDATA --> " + inputData.jsonString());
-		mosipLogger.error("DBDATA --> " + dbData.jsonString());
-		
-		mosipLogger.error("COMPARISON_RESULT --> " + comparisonResult);
-//		if (comparisonResult.failed()) {
-//			updateIdentityObject(inputData, dbData, comparisonResult);
-//		}
+		if (!isUpdateExeutedOnce && comparisonResult.failed()) {
+			isUpdateExeutedOnce = true;
+			updateIdentityObject(inputData, dbData, comparisonResult);
+		}
 	}
 
 	/**
@@ -455,7 +448,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					key = path;
 					path = ROOT;
 				}
-				mosipLogger.info("PATH ---------> " + path + DOT + key);
 				List value = dbData.read(path + DOT + key, List.class);
 				value.addAll((Collection) Collections
 						.singletonList(convertToObject(failure.getExpected().toString().getBytes(), Map.class)));
