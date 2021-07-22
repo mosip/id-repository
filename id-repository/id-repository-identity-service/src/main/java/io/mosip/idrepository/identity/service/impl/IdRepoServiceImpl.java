@@ -446,7 +446,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					key = path;
 					path = ROOT;
 				}
-				System.out.println("PATH --> " + path + DOT + key);
+				mosipLogger.info("PATH ---------> " + path + DOT + key);
 				List value = dbData.read(path + DOT + key, List.class);
 				value.addAll((Collection) Collections
 						.singletonList(convertToObject(failure.getExpected().toString().getBytes(), Map.class)));
