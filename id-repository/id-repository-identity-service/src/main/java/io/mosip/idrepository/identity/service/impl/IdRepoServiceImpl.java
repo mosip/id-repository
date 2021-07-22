@@ -422,9 +422,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
-		if (comparisonResult.failed()) {
-			updateIdentityObject(inputData, dbData, comparisonResult);
-		}
+		mosipLogger.error("COMPARISON_RESULT --> " + comparisonResult);
+//		if (comparisonResult.failed()) {
+//			updateIdentityObject(inputData, dbData, comparisonResult);
+//		}
 	}
 
 	/**
