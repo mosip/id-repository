@@ -8,6 +8,7 @@
 -- Modified Date        Modified By         Comments / Remarks
 -- -------------------------------------------------------------------------------------------------
 -- Jul-2021		Ram Bhatt	    Creation of uin biometric draft and uin draft tables
+-- Jul-2021		Ram Bhatt	    Lang Code nullable for multiple tables
 -------------------------------------------------------------------------------------------------------
 
 \c mosip_idrepo sysadmin
@@ -24,3 +25,11 @@ ALTER TABLE idrepo.uin_auth_lock ADD COLUMN unlock_expiry_datetime timestamp;
 
 -------------------------------------------------------------------------------------------------
 
+ALTER TABLE idrepo.uin ALTER COLUMN lang_code DROP NOT NULL;
+ALTER TABLE idrepo.uin_auth_lock ALTER COLUMN lang_code DROP NOT NULL;
+ALTER TABLE idrepo.uin_biometric ALTER COLUMN lang_code DROP NOT NULL;
+ALTER TABLE idrepo.uin_biometric_h ALTER COLUMN lang_code DROP NOT NULL;
+ALTER TABLE idrepo.uin_document ALTER COLUMN lang_code DROP NOT NULL;
+ALTER TABLE idrepo.uin_document_h ALTER COLUMN lang_code DROP NOT NULL;
+ALTER TABLE idrepo.uin_h ALTER COLUMN lang_code DROP NOT NULL;
+---------------------------------------------------------------------------------
