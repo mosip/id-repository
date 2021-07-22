@@ -17,3 +17,6 @@ DROP TABLE IF EXISTS idrepo.credential_request_status;
 
 DROP TABLE IF EXISTS idrepo.uin_biometric_draft;
 DROP TABLE IF EXISTS idrepo.uin_draft;
+DROP TABLE IF EXISTS idrepo.uin_document_draft;
+
+------------------------------------------------------------------------------------------------------

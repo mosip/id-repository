@@ -19,4 +19,4 @@
 
 \ir ddl/idrepo-uin_biometric_draft.sql
 \ir ddl/idrepo-uin_draft.sql
-
+\ir ddl/idrepo-uin_document_draft.sql
