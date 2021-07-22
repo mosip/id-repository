@@ -17,3 +17,6 @@
 \ir ddl/idrepo-credential_request_status.sql
 
 
+\ir ddl/idrepo-uin_biometric_draft.sql
+\ir ddl/idrepo-uin_draft.sql
+
