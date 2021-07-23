@@ -431,7 +431,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
 						"\n" + e.getMessage());
 				throw new IdRepoAppUncheckedException(e.getErrorCode(), e.getErrorText(), e);
-			} catch (IOException e) {
+			} catch (AmazonS3Exception | IOException e) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
 						"\n" + e.getMessage());
 				throw new IdRepoAppUncheckedException(FILE_STORAGE_ACCESS_ERROR, e);
@@ -481,7 +481,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				} catch (IdRepoAppException e) {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES, e.getMessage());
 					throw new IdRepoAppUncheckedException(e.getErrorCode(), e.getErrorText(), e);
-				} catch (IOException e) {
+				} catch (AmazonS3Exception| IOException e) {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES, e.getMessage());
 					throw new IdRepoAppUncheckedException(FILE_STORAGE_ACCESS_ERROR, e);
 				}
