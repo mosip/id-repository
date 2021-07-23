@@ -25,7 +25,7 @@ CREATE TABLE idrepo.uin_draft(
 	upd_by	character varying (256),			
 	upd_dtimes timestamp,			
 	is_deleted bool	DEFAULT FALSE,
-	del_dtimes timestamp FALSE,
+	del_dtimes timestamp 
 	CONSTRAINT pk_uindft_id PRIMARY KEY (reg_id),
 	CONSTRAINT unq_uin UNIQUE (uin),
 	CONSTRAINT unq_uinhsh UNIQUE (uin_hash)
