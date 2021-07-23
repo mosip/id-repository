@@ -11,6 +11,7 @@
 -- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false 
 -- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes
 -- Jul-2021		Ram Bhatt	    Lang Code is nullable
+-- Jul-2021		Manoj SP	    Addition of Anonymous Profile column
 -- ------------------------------------------------------------------------------------------
 
 -- object: idrepo.uin | type: TABLE --
