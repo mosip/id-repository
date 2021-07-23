@@ -32,4 +32,7 @@ ALTER TABLE idrepo.uin_biometric_h ALTER COLUMN lang_code DROP NOT NULL;
 ALTER TABLE idrepo.uin_document ALTER COLUMN lang_code DROP NOT NULL;
 ALTER TABLE idrepo.uin_document_h ALTER COLUMN lang_code DROP NOT NULL;
 ALTER TABLE idrepo.uin_h ALTER COLUMN lang_code DROP NOT NULL;
+ALTER TABLE idrepo.uin ADD COLUMN anonymous_profile character varying;
+ALTER TABLE idrepo.uin_h ADD COLUMN anonymous_profile character varying;
+ALTER TABLE idrepo.uin_draft ADD COLUMN anonymous_profile character varying;
 ---------------------------------------------------------------------------------
