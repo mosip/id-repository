@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.mosip.idrepository.core.constant.AuditEvents;
 import io.mosip.idrepository.core.constant.AuditModules;
-import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
@@ -71,12 +70,12 @@ public class IdRepoDraftController {
 			return new ResponseEntity<>(draftService.createDraft(request), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_DRAFT_REQUEST_RESPONSE,
-					request.getRequest().getRegistrationId(), IdType.RID, e);
+					request.getRequest().getRegistrationId(), IdType.ID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "createDraft", e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_DRAFT_REQUEST_RESPONSE,
-					request.getRequest().getRegistrationId(), IdType.RID, "Create draft requested");
+					request.getRequest().getRegistrationId(), IdType.ID, "Create draft requested");
 		}
 	}
 
@@ -91,12 +90,12 @@ public class IdRepoDraftController {
 			return new ResponseEntity<>(draftService.updateDraft(request), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_DRAFT_REQUEST_RESPONSE,
-					request.getRequest().getRegistrationId(), IdType.RID, e);
+					request.getRequest().getRegistrationId(), IdType.ID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "updateDraft", e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_DRAFT_REQUEST_RESPONSE,
-					request.getRequest().getRegistrationId(), IdType.RID, "Update draft requested");
+					request.getRequest().getRegistrationId(), IdType.ID, "Update draft requested");
 		}
 	}
 
@@ -104,16 +103,15 @@ public class IdRepoDraftController {
 	@GetMapping(path = "/publish/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> publishDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
-			validateRegistrationId(registrationId);
 			return new ResponseEntity<>(draftService.publishDraft(registrationId), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.PUBLISH_DRAFT_REQUEST_RESPONSE, registrationId,
-					IdType.RID, e);
+					IdType.ID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "publishDraft", e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_DRAFT_REQUEST_RESPONSE, registrationId,
-					IdType.RID, "Publish draft requested");
+					IdType.ID, "Publish draft requested");
 		}
 	}
 
@@ -121,16 +119,15 @@ public class IdRepoDraftController {
 	@DeleteMapping(path = "/discard/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> discardDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
-			validateRegistrationId(registrationId);
 			return new ResponseEntity<>(draftService.discardDraft(registrationId), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.DISCARD_DRAFT_REQUEST_RESPONSE, registrationId,
-					IdType.RID, e);
+					IdType.ID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "discardDraft", e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.DISCARD_DRAFT_REQUEST_RESPONSE, registrationId,
-					IdType.RID, "Discard draft requested");
+					IdType.ID, "Discard draft requested");
 		}
 	}
 
@@ -138,16 +135,15 @@ public class IdRepoDraftController {
 	@RequestMapping(method = RequestMethod.HEAD, path = "/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> hasDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
-			validateRegistrationId(registrationId);
 			return new ResponseEntity<>(draftService.hasDraft(registrationId), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.HAS_DRAFT_REQUEST_RESPONSE, registrationId,
-					IdType.RID, e);
+					IdType.ID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "hasDraft", e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.HAS_DRAFT_REQUEST_RESPONSE, registrationId,
-					IdType.RID, "Has draft requested");
+					IdType.ID, "Has draft requested");
 		}
 	}
 
@@ -155,23 +151,15 @@ public class IdRepoDraftController {
 	@GetMapping(path = "/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> getDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
-			validateRegistrationId(registrationId);
 			return new ResponseEntity<>(draftService.getDraft(registrationId), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_DRAFT_REQUEST_RESPONSE, registrationId,
-					IdType.RID, e);
+					IdType.ID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "getDraft", e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_DRAFT_REQUEST_RESPONSE, registrationId,
-					IdType.RID, "Publish draft requested");
-		}
-	}
-
-	private void validateRegistrationId(String registrationId) throws IdRepoAppException {
-		if (!validator.validateRid(registrationId)) {
-			throw new IdRepoAppException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
-					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "registrationId"));
+					IdType.ID, "Publish draft requested");
 		}
 	}
 }

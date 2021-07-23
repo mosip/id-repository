@@ -49,7 +49,6 @@ import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailed
 import io.mosip.kernel.core.idobjectvalidator.exception.InvalidIdSchemaException;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
-import io.mosip.kernel.core.idvalidator.spi.RidValidator;
 import io.mosip.kernel.core.idvalidator.spi.UinValidator;
 import io.mosip.kernel.core.idvalidator.spi.VidValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -144,10 +143,6 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	/** The schema map. */
 	private Map<String, String> schemaMap = new HashMap<>();
 
-	/** The rid validator. */
-	@Autowired
-	private RidValidator<String> ridValidator;
-
 	/** The uin validator. */
 	@Autowired
 	private UinValidator<String> uinValidator;
@@ -237,12 +232,6 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateRegId", "NULL RID");
 			errors.rejectValue(REQUEST, MISSING_INPUT_PARAMETER.getErrorCode(),
 					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), REGISTRATION_ID));
-		} else {
-			if (!validateRid(registrationId)) {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateRegId", "Invalid RID");
-				errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
-						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), REGISTRATION_ID));
-			}
 		}
 	}
 
@@ -455,20 +444,6 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	}
 
 	/**
-	 * Validate rid.
-	 *
-	 * @param registrationId the registration id
-	 * @return true, if successful
-	 */
-	public boolean validateRid(String registrationId) {
-		try {
-			return ridValidator.validateId(registrationId);
-		} catch (InvalidIDException e) {
-			return false;
-		}
-	}
-
-	/**
 	 * Validate vid.
 	 *
 	 * @param vid the vid
@@ -542,22 +517,11 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	}
 
 	public void validateIdvId(String individualId, IdType idType) throws IdRepoAppException {
-		if ((idType == IdType.UIN && !this.validateUin(individualId)) || (idType == IdType.VID && !this.validateVid(individualId))
-				|| (idType == IdType.RID && this.validateRid(individualId))) {
+		if ((idType == IdType.UIN && !this.validateUin(individualId))
+				|| (idType == IdType.VID && !this.validateVid(individualId))) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "getIdType", "Invalid ID");
 			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "individualId"));
 		}
-	}
-
-	public IdType validateIdTypeForAuthTypeStatus(String type) throws IdRepoAppException {
-		IdType idType = this.validateIdType(type);
-		if (idType == IdType.RID) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateIdTypeForAuthTypeStatus",
-					"REG ID NOT SUPPORTED");
-			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
-					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "idType"));
-		}
-		return idType;
 	}
 }

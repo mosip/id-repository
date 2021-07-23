@@ -60,7 +60,6 @@ import io.mosip.kernel.core.idobjectvalidator.exception.InvalidIdSchemaException
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.idvalidator.rid.impl.RidValidatorImpl;
 import io.mosip.kernel.idvalidator.uin.impl.UinValidatorImpl;
 
 /**
@@ -107,9 +106,6 @@ public class IdRequestValidatorTest {
 
 	@Mock
 	private IdObjectValidator idObjectValidator;
-
-	@Mock
-	private RidValidatorImpl ridValidator;
 
 	@Mock
 	private RestRequestBuilder restBuilder;
@@ -177,28 +173,6 @@ public class IdRequestValidatorTest {
 		errors.getAllErrors().forEach(error -> {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), error.getCode());
 			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "status"),
-					error.getDefaultMessage());
-			assertEquals("request", ((FieldError) error).getField());
-		});
-	}
-
-	@Test
-	public void testValidateRegIdValidRegId() {
-		when(ridValidator.validateId(Mockito.anyString())).thenReturn(true);
-		ReflectionTestUtils.invokeMethod(validator, "validateRegId", "1234", errors);
-		assertFalse(errors.hasErrors());
-	}
-
-	@Test
-	public void testValidateRegIdInvalidRegId() {
-		when(ridValidator.validateId(Mockito.anyString()))
-				.thenThrow(new InvalidIDException("errorCode", "errorMessage"));
-		ReflectionTestUtils.invokeMethod(validator, "validateRegId", "1234", errors);
-		assertTrue(errors.hasErrors());
-		errors.getAllErrors().forEach(error -> {
-			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), error.getCode());
-			assertEquals(
-					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "registrationId"),
 					error.getDefaultMessage());
 			assertEquals("request", ((FieldError) error).getField());
 		});
@@ -392,7 +366,6 @@ public class IdRequestValidatorTest {
 	public void testValidateCreate() throws JsonParseException, JsonMappingException, JsonProcessingException,
 			IOException, IdObjectIOException, IdObjectValidationFailedException, InvalidIdSchemaException {
 		Mockito.when(idObjectValidator.validateIdObject(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(true);
-		Mockito.when(ridValidator.validateId(Mockito.any())).thenReturn(true);
 		Mockito.when(uinValidator.validateId(Mockito.anyString())).thenReturn(true);
 		IdRequestDTO request = new IdRequestDTO();
 		request.setId("mosip.id.create");
@@ -416,7 +389,6 @@ public class IdRequestValidatorTest {
 	public void testValidateUpdate() throws JsonParseException, JsonMappingException, JsonProcessingException,
 			IOException, IdObjectIOException, IdObjectValidationFailedException, InvalidIdSchemaException {
 		Mockito.when(idObjectValidator.validateIdObject(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(true);
-		Mockito.when(ridValidator.validateId(Mockito.any())).thenReturn(true);
 		Mockito.when(uinValidator.validateId(Mockito.anyString())).thenReturn(true);
 		IdRequestDTO request = new IdRequestDTO();
 		request.setId("mosip.id.update");
