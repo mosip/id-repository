@@ -18,6 +18,8 @@ public class BaseRequestResponseDTO {
 
 	/** The identity. */
 	private Object identity;
+	
+	private AnonymousProfileDTO anonymousProfile;
 
 	/** The documents. */
 	private List<DocumentsDTO> documents;

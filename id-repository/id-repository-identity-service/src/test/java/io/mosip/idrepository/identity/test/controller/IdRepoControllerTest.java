@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.util.List;
 import java.util.Map;
 
 import org.assertj.core.util.Maps;
@@ -84,22 +83,18 @@ public class IdRepoControllerTest {
 	@Autowired
 	private Environment env;
 
-	List<String> allowedTypes;
-
 	@Before
 	public void before() {
 		Map<String, String> id = Maps.newHashMap("read", "mosip.id.read");
 		id.put("create", "mosip.id.create");
 		id.put("update", "mosip.id.update");
 		ReflectionTestUtils.setField(controller, "id", id);
-		ReflectionTestUtils.setField(controller, "allowedTypes", allowedTypes);
 		ReflectionTestUtils.setField(controller, "mapper", mapper);
 		ReflectionTestUtils.setField(controller, "validator", validator);
 		ReflectionTestUtils.setField(controller, "env", env);
 		ReflectionTestUtils.setField(validator, "id", id);
 		ReflectionTestUtils.setField(validator, "env", env);
 		ReflectionTestUtils.setField(validator, "allowedTypes", Lists.newArrayList("bio", "demo", "all"));
-		ReflectionTestUtils.setField(controller, "allowedTypes", Lists.newArrayList("bio", "demo", "all"));
 	}
 
 	@Test

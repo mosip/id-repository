@@ -112,10 +112,6 @@ public class IdRepoController {
 	@Resource
 	private Map<String, String> id;
 
-	/** The allowed types. */
-	@Resource
-	private List<String> allowedTypes;
-
 	/** The id repo service. */
 	@Autowired
 	private IdRepoService<IdRequestDTO, IdResponseDTO> idRepoService;
