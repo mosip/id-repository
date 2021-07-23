@@ -1,5 +1,7 @@
 package io.mosip.idrepository.identity.entity;
 
+import java.time.LocalDateTime;
+
 public interface UinInfo {
 
 	public String getUin();
@@ -13,5 +15,13 @@ public interface UinInfo {
 	public String getUinHash();
 
 	public void setUinHash(String hash);
+	
+	public String getAnonymousProfile();
+	
+	public void setAnonymousProfile(String anonymousProfile);
+	
+	public void setUpdatedBy(String updatedBy);
+	
+	public void setUpdatedDateTime(LocalDateTime updatedDTimes);
 
 }

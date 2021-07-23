@@ -11,6 +11,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
 import static io.mosip.kernel.biometrics.constant.BiometricType.FACE;
 import static io.mosip.kernel.biometrics.constant.BiometricType.FINGER;
 import static io.mosip.kernel.biometrics.constant.BiometricType.IRIS;
@@ -42,6 +43,7 @@ import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
+import io.mosip.idrepository.core.dto.AnonymousProfileDTO;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
@@ -78,6 +80,8 @@ import io.mosip.kernel.core.util.CryptoUtil;
 @Service
 public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdResponseDTO> {
 
+	private static final String METADATA = "metadata";
+
 	private static final List<BiometricType> SUPPORTED_MODALITIES = List.of(FINGER, IRIS, FACE);
 
 	/** The Constant GET_FILES. */
@@ -94,9 +98,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	/** The mosip logger. */
 	private static final Logger mosipLogger = IdRepoLogger.getLogger(IdRepoProxyServiceImpl.class);
-
-	/** The Constant TYPE. */
-	private static final String TYPE = "type";
 
 	/** The Constant RETRIEVE_IDENTITY. */
 	private static final String RETRIEVE_IDENTITY = "retrieveIdentity";
@@ -197,7 +198,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				throw new IdRepoAppException(RECORD_EXISTS);
 			} else {
 				Uin uinEntity = service.addIdentity(request, uin);
-				return constructIdResponse(this.id.get(CREATE), uinEntity, null);
+				return constructIdResponse(this.id.get(CREATE), uinEntity, null, null);
 			}
 		} catch (IdRepoAppException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, e.getErrorText());
@@ -327,27 +328,26 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 */
 	private IdResponseDTO retrieveIdentityByUinHash(String type, String uinHash, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
+		try {
 		List<DocumentsDTO> documents = new ArrayList<>();
 		Uin uinObject = service.retrieveIdentity(uinHash, IdType.UIN, type, null);
-		if (Objects.isNull(type)) {
-			mosipLogger.info(IdRepoSecurityManager.getUser(), RETRIEVE_IDENTITY, "method - " + RETRIEVE_IDENTITY,
-					"filter - null");
-			return constructIdResponse(this.id.get(READ), uinObject, null);
-		} else if (type.equalsIgnoreCase(BIO)) {
+		AnonymousProfileDTO anonymousProfile = null;
+		if (StringUtils.containsIgnoreCase(type, METADATA) || StringUtils.containsIgnoreCase(type, ALL)) {
+			anonymousProfile = Objects.nonNull(uinObject.getAnonymousProfile())
+					? mapper.readValue(uinObject.getAnonymousProfile(), AnonymousProfileDTO.class)
+					: null;
+		}
+		if (StringUtils.containsIgnoreCase(type, BIO) || StringUtils.containsIgnoreCase(type, ALL)) {
 			getFiles(uinObject, documents, extractionFormats, BIOMETRICS);
-			return constructIdResponse(this.id.get(READ), uinObject, documents);
-		} else if (type.equalsIgnoreCase(DEMO)) {
+		}
+		if (StringUtils.containsIgnoreCase(type, DEMO) || StringUtils.containsIgnoreCase(type, ALL)) {
 			getFiles(uinObject, documents, null, DEMOGRAPHICS);
-			return constructIdResponse(this.id.get(READ), uinObject, documents);
-		} else if (type.equalsIgnoreCase(ALL)) {
-			getFiles(uinObject, documents, extractionFormats, BIOMETRICS);
-			getFiles(uinObject, documents, null, DEMOGRAPHICS);
-			return constructIdResponse(this.id.get(READ), uinObject, documents);
-		} else {
+		} 
+		return constructIdResponse(this.id.get(READ), uinObject, documents, anonymousProfile);
+		} catch (IOException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
-					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), TYPE));
-			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
-					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), TYPE));
+					"\n" + e.getMessage());
+			throw new IdRepoAppException(UNKNOWN_ERROR, e);
 		}
 	}
 
@@ -547,7 +547,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 				service.updateIdentity(request, uin);
 				return constructIdResponse(MOSIP_ID_UPDATE, service.retrieveIdentity(uinHash, IdType.UIN, null, null),
-						null);
+						null, null);
 			} else {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
 						NO_RECORD_FOUND.getErrorMessage());
@@ -565,16 +565,18 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * @param id        the id
 	 * @param uin       the uin
 	 * @param documents the documents
+	 * @param anonymousProfile 
 	 * @return the id response DTO
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	private IdResponseDTO constructIdResponse(String id, Uin uin, List<DocumentsDTO> documents)
+	private IdResponseDTO constructIdResponse(String id, Uin uin, List<DocumentsDTO> documents, AnonymousProfileDTO anonymousProfile)
 			throws IdRepoAppException {
 		IdResponseDTO idResponse = new IdResponseDTO();
 		idResponse.setId(id);
 		idResponse.setVersion(env.getProperty(APPLICATION_VERSION));
 		ResponseDTO response = new ResponseDTO();
 		response.setStatus(uin.getStatusCode());
+		response.setAnonymousProfile(anonymousProfile);
 		if (id.equals(this.id.get(READ))) {
 			if (!Objects.isNull(documents)) {
 				response.setDocuments(documents);
