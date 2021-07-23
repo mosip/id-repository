@@ -17,7 +17,7 @@ CREATE TABLE idrepo.uin_document_draft(
 	reg_id character varying(39) NOT NULL,										
 	doccat_code character varying(36) NOT NULL,									
 	doctyp_code character varying(64) NOT NULL,										
-	doc_id character varying(128) NOT NULL,UNIQUE							
+	doc_id character varying(128) NOT NULL,							
 	doc_name character varying(128)	NOT NULL,								
 	docfmt_code character varying(36) NOT NULL,							
 	doc_hash character varying(64) NOT NULL,						
