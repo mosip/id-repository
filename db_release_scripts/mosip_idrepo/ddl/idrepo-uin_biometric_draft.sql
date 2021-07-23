@@ -13,7 +13,7 @@
 
 -- object: idrepo.uin_draft | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.uin_draft CASCADE;
-CREATE TABLE idrepo.uin_draft(
+CREATE TABLE idrepo.uin_biometric_draft(
 	reg_id character varying(39) NOT NULL,								
 	biometric_file_type character varying(36) NOT NULL,						
 	bio_file_id character varying(128) NOT NULL,					
