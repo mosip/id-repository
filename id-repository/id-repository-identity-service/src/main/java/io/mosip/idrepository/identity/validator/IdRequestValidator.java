@@ -129,8 +129,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	private ObjectMapper mapper;
 
 	/** The allowed types. */
-	@Resource
-	private List<String> allowedTypes;
+	private List<String> allowedTypes = List.of("bio", "demo", "metadata", "all");
 
 	/** The rest helper. */
 	@Autowired
@@ -175,21 +174,16 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 */
 	@Override
 	public void validate(@Nonnull Object target, Errors errors) {
-		this.validate(target, errors, false, false);
-	}
-
-	public void validate(@Nonnull Object target, Errors errors, boolean isDraftRequest, boolean isUpdateDraft) {
 		if (target instanceof IdRequestDTO) {
 			IdRequestDTO request = (IdRequestDTO) target;
 
-			if (!isDraftRequest)
-				validateReqTime(request.getRequesttime(), errors);
+			validateReqTime(request.getRequesttime(), errors);
 
-			if (!errors.hasErrors() && !isDraftRequest) {
+			if (!errors.hasErrors()) {
 				validateVersion(request.getVersion(), errors);
 			}
 
-			if (!isDraftRequest && !errors.hasErrors() && Objects.nonNull(request.getId())) {
+			if (!errors.hasErrors() && Objects.nonNull(request.getId())) {
 				if (request.getId().equals(id.get(CREATE))) {
 					validateStatus(request.getRequest().getStatus(), errors, CREATE);
 					validateRequest(request.getRequest(), errors, CREATE);
@@ -198,8 +192,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					validateRequest(request.getRequest(), errors, UPDATE);
 				}
 			}
-			if (isUpdateDraft)
-				validateRequest(request.getRequest(), errors, UPDATE);
+			validateRequest(request.getRequest(), errors, UPDATE);
 
 			validateRegId(request.getRequest().getRegistrationId(), errors);
 		}
@@ -227,7 +220,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 * @param registrationId the registration id
 	 * @param errors         the errors
 	 */
-	private void validateRegId(String registrationId, Errors errors) {
+	public void validateRegId(String registrationId, Errors errors) {
 		if (Objects.isNull(registrationId)) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateRegId", "NULL RID");
 			errors.rejectValue(REQUEST, MISSING_INPUT_PARAMETER.getErrorCode(),
@@ -473,7 +466,6 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), TYPE));
 			} else {
-				typeList.contains(allowedTypes.get(0));
 				if (typeList.contains(ALL) || allowedTypes.parallelStream().filter(allowedType -> !allowedType.equals(ALL))
 						.allMatch(typeList::contains)) {
 					type = ALL;

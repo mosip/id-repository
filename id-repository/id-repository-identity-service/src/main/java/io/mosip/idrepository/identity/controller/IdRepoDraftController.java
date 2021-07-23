@@ -1,5 +1,7 @@
 package io.mosip.idrepository.identity.controller;
 
+import javax.annotation.Nullable;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.mosip.idrepository.core.constant.AuditEvents;
@@ -41,6 +44,8 @@ import springfox.documentation.annotations.ApiIgnore;
 @RequestMapping(path = "/draft")
 public class IdRepoDraftController {
 
+	private static final String UIN = "UIN";
+
 	private static final String ID_REPO_DRAFT_CONTROLLER = "IdRepoDraftController";
 
 	private final Logger mosipLogger = IdRepoLogger.getLogger(IdRepoDraftController.class);
@@ -60,22 +65,20 @@ public class IdRepoDraftController {
 	}
 
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@PostMapping(path = "/create/{registrationId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<IdResponseDTO> createDraft(@PathVariable String registrationId, @RequestBody IdRequestDTO request,
-			@ApiIgnore Errors errors) throws IdRepoAppException {
+	@PostMapping(path = "/create/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<IdResponseDTO> createDraft(@PathVariable String registrationId,
+			@RequestParam(name = UIN, required = false) @Nullable String uin)
+			throws IdRepoAppException {
 		try {
-			request.getRequest().setRegistrationId(registrationId);
-			validator.validate(request, errors, true, false);
-			DataValidationUtil.validate(errors);
-			return new ResponseEntity<>(draftService.createDraft(request), HttpStatus.OK);
+			return new ResponseEntity<>(draftService.createDraft(registrationId, uin), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_DRAFT_REQUEST_RESPONSE,
-					request.getRequest().getRegistrationId(), IdType.ID, e);
+					registrationId, IdType.ID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "createDraft", e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_DRAFT_REQUEST_RESPONSE,
-					request.getRequest().getRegistrationId(), IdType.ID, "Create draft requested");
+					registrationId, IdType.ID, "Create draft requested");
 		}
 	}
 
@@ -84,18 +87,17 @@ public class IdRepoDraftController {
 	public ResponseEntity<IdResponseDTO> updateDraft(@PathVariable String registrationId, @RequestBody IdRequestDTO request,
 			@ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
-			request.getRequest().setRegistrationId(registrationId);
-			validator.validate(request, errors, true, true);
+			validator.validateRequest(request.getRequest(), errors, "update");
 			DataValidationUtil.validate(errors);
-			return new ResponseEntity<>(draftService.updateDraft(request), HttpStatus.OK);
+			return new ResponseEntity<>(draftService.updateDraft(registrationId, request), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_DRAFT_REQUEST_RESPONSE,
-					request.getRequest().getRegistrationId(), IdType.ID, e);
+					registrationId, IdType.ID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "updateDraft", e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_DRAFT_REQUEST_RESPONSE,
-					request.getRequest().getRegistrationId(), IdType.ID, "Update draft requested");
+					registrationId, IdType.ID, "Update draft requested");
 		}
 	}
 

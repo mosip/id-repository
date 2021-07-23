@@ -37,19 +37,18 @@ import lombok.ToString;
 @Table(schema = "idrepo")
 public class Uin implements Persistable<String>, UinInfo {
 
-	public Uin(String uinRefId, String uin, String uinHash, byte[] uinData, String uinDataHash, String regId, String bioRefId,
-			String statusCode, String langCode, String createdBy, LocalDateTime createdDateTime, String updatedBy,
-			LocalDateTime updatedDateTime, Boolean isDeleted, LocalDateTime deletedDateTime, List<UinBiometric> biometrics,
-			List<UinDocument> documents) {
+	public Uin(String uinRefId, String uin, String uinHash, byte[] uinData, String uinDataHash, String regId,
+			String statusCode, String anonymousProfile, String createdBy, LocalDateTime createdDateTime,
+			String updatedBy, LocalDateTime updatedDateTime, Boolean isDeleted, LocalDateTime deletedDateTime,
+			List<UinBiometric> biometrics, List<UinDocument> documents) {
 		this.uinRefId = uinRefId;
 		this.uin = uin;
 		this.uinHash = uinHash;
 		this.uinData = uinData.clone();
 		this.uinDataHash = uinDataHash;
 		this.regId = regId;
-		this.bioRefId = bioRefId;
 		this.statusCode = statusCode;
-		this.langCode = langCode;
+		this.anonymousProfile = anonymousProfile;
 		this.createdBy = createdBy;
 		this.createdDateTime = createdDateTime;
 		this.updatedBy = updatedBy;
@@ -88,9 +87,10 @@ public class Uin implements Persistable<String>, UinInfo {
 
 	/** The status code. */
 	private String statusCode;
-
-	/** The lang code. */
+	
 	private String langCode;
+
+	private String anonymousProfile;
 
 	/** The created by. */
 	@Column(name = "cr_by")

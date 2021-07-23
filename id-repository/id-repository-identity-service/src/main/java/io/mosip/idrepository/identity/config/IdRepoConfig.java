@@ -81,9 +81,6 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	/** The bio attributes. */
 	private List<String> bioAttributes;
 
-	/** The allowed types. */
-	private List<String> allowedTypes;
-
 	/** The id. */
 	private Map<String, String> id;
 
@@ -195,15 +192,6 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 		this.bioAttributes = bioAttributes;
 	}
 
-	/**
-	 * Sets the allowed types.
-	 *
-	 * @param allowedTypes the new allowed types
-	 */
-	public void setAllowedTypes(List<String> allowedTypes) {
-		this.allowedTypes = allowedTypes;
-	}
-
 	// FIXME Need to check for UIN-Reg ID scenario
 	// /**
 	// * Gets the shard data source resolver.
@@ -248,16 +236,6 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	@Bean
 	public List<String> bioAttributes() {
 		return Collections.unmodifiableList(bioAttributes);
-	}
-
-	/**
-	 * Allowed types.
-	 *
-	 * @return the list
-	 */
-	@Bean
-	public List<String> allowedTypes() {
-		return Collections.unmodifiableList(allowedTypes);
 	}
 
 	/**

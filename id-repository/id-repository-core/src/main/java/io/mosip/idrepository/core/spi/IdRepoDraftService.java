@@ -10,15 +10,15 @@ import io.mosip.idrepository.core.exception.IdRepoAppException;
  */
 public interface IdRepoDraftService<REQUEST, RESPONSE> {
 
-	public RESPONSE createDraft(REQUEST request) throws IdRepoAppException;
+	public RESPONSE createDraft(String registrationId, String uin) throws IdRepoAppException;
 	
-	public RESPONSE updateDraft(REQUEST request) throws IdRepoAppException;
+	public RESPONSE updateDraft(String registrationId, REQUEST request) throws IdRepoAppException;
 	
-	public RESPONSE publishDraft(String regId) throws IdRepoAppException;
+	public RESPONSE publishDraft(String registrationId) throws IdRepoAppException;
 	
-	public RESPONSE discardDraft(String regId) throws IdRepoAppException;
+	public RESPONSE discardDraft(String registrationId) throws IdRepoAppException;
 	
-	public RESPONSE hasDraft(String regId) throws IdRepoAppException;
+	public RESPONSE hasDraft(String registrationId) throws IdRepoAppException;
 	
-	public RESPONSE getDraft(String regId) throws IdRepoAppException;
+	public RESPONSE getDraft(String registrationId) throws IdRepoAppException;
 }

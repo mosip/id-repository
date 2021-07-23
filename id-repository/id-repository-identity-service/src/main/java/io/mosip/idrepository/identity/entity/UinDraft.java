@@ -38,14 +38,16 @@ import lombok.ToString;
 public class UinDraft implements Persistable<String>, UinInfo {
 
 	public UinDraft(String uin, String uinHash, byte[] uinData, String uinDataHash, String regId, String statusCode,
-			String createdBy, LocalDateTime createdDateTime, String updatedBy, LocalDateTime updatedDateTime, Boolean isDeleted,
-			LocalDateTime deletedDateTime, List<UinBiometricDraft> biometrics, List<UinDocumentDraft> documents) {
+			String anonymousProfile, String createdBy, LocalDateTime createdDateTime, String updatedBy,
+			LocalDateTime updatedDateTime, Boolean isDeleted, LocalDateTime deletedDateTime,
+			List<UinBiometricDraft> biometrics, List<UinDocumentDraft> documents) {
 		this.uin = uin;
 		this.uinHash = uinHash;
 		this.uinData = uinData.clone();
 		this.uinDataHash = uinDataHash;
 		this.regId = regId;
 		this.statusCode = statusCode;
+		this.anonymousProfile = anonymousProfile;
 		this.createdBy = createdBy;
 		this.createdDateTime = createdDateTime;
 		this.updatedBy = updatedBy;
@@ -78,6 +80,8 @@ public class UinDraft implements Persistable<String>, UinInfo {
 
 	/** The status code. */
 	private String statusCode;
+	
+	private String anonymousProfile;
 
 	/** The created by. */
 	@Column(name = "cr_by")
