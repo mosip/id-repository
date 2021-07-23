@@ -9,6 +9,7 @@
 -- -------------------------------------------------------------------------------------------------
 -- Jul-2021		Ram Bhatt	    Creation of uin biometric draft and uin draft tables
 -- Jul-2021		Ram Bhatt	    Lang Code nullable for multiple tables
+-- Jul-2021		Manoj SP	    Addition of anonymous profile column to tables
 -------------------------------------------------------------------------------------------------------
 
 \c mosip_idrepo sysadmin
