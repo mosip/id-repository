@@ -24,6 +24,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -282,5 +284,10 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	@Bean("securityManagerWithAuth")
 	public IdRepoSecurityManager securityManagerWithAuth() {
 		return new IdRepoSecurityManager(restHelperWithAuth());
+	}
+	
+	@Bean("AsyncWithAuth")
+	public DelegatingSecurityContextAsyncTaskExecutor taskExecutor(ThreadPoolTaskExecutor delegate) { 
+	    return new DelegatingSecurityContextAsyncTaskExecutor(delegate); 
 	}
 }
