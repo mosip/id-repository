@@ -83,7 +83,7 @@ public class CredentialStatusManager {
 	@Autowired
 	private DummyPartnerCheckUtil dummyPartner;
 	
-	@Async("AsyncWithAuth")
+	@Async
 	public void triggerEventNotifications() {
 		handleDeletedRequests();
 		handleExpiredRequests();

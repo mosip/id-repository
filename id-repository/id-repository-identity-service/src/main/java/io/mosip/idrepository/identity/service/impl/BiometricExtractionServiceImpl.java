@@ -76,7 +76,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	 * @return the completable future
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	@Async("AsyncWithAuth")
+	@Async("withSecurityContext")
 	public CompletableFuture<List<BIR>> extractTemplate(String uinHash, String fileName,
 			String extractionType, String extractionFormat, List<BIR> birsForModality) throws IdRepoAppException {
 		try {
