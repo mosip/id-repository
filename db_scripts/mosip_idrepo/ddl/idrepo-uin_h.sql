@@ -1,5 +1,5 @@
 -- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_repo
+-- Database Name: mosip_idrepo
 -- Table Name 	: idrepo.uin_h
 -- Purpose    	: UIN History : This to track changes to base table record whenever there is an INSERT/UPDATE/DELETE ( soft delete ), Effective DateTimestamp is used for identifying latest or point in time information. Refer base table description for details.
 --           
@@ -11,6 +11,7 @@
 -- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
 -- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes
 -- Jul-2021		Ram Bhatt	    Lang Code is nullable
+-- Jul-2021		Manoj SP	    Addition of Anonymous Profile column
 -- ------------------------------------------------------------------------------------------
 
 -- object: idrepo.uin_h | type: TABLE --
