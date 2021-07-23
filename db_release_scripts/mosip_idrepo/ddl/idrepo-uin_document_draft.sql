@@ -1,5 +1,5 @@
 -- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_repo
+-- Database Name: mosip_idrepo
 -- Table Name 	: idrepo.uin_document_draft
 -- Purpose    	: UIN Document Draft: 
 --           
