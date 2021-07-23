@@ -1,7 +1,7 @@
 -- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_repo
+-- Database Name: mosip_idrepo
 -- Table Name 	: idrepo.uin_draft
--- Purpose    	: UIN Hash Salt: 
+-- Purpose    	: UIN Draft 
 --           
 -- Create By   	: Ram Bhatt
 -- Created Date	: Jul-2021
