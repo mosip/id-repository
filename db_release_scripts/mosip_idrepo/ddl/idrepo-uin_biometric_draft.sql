@@ -26,8 +26,7 @@ CREATE TABLE idrepo.uin_biometric_draft(
 	is_deleted bool	DEFAULT	FALSE,
 	del_dtimes timestamp,														
 	CONSTRAINT pk_uinbiodft_id PRIMARY KEY (reg_id,biometric_file_type),
-	CONSTRAINT unq_biofileid UNIQUE (bio_file_id),
-	CONSTRAINT unq_uinhsh UNIQUE (uin_hash)
+	CONSTRAINT unq_biofileid UNIQUE (bio_file_id)
 );
 -- ddl-end --
 
