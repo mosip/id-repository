@@ -1,7 +1,7 @@
 -- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_repo
--- Table Name 	: idrepo.uin_draft
--- Purpose    	: UIN Hash Salt: 
+-- Database Name: mosip_idrepo
+-- Table Name 	: idrepo.uin_biometric_draft
+-- Purpose    	: UIN Biometric Draft
 --           
 -- Create By   	: Ram Bhatt
 -- Created Date	: Jul-2021
@@ -12,7 +12,7 @@
 -- ------------------------------------------------------------------------------------------
 
 -- object: idrepo.uin_draft | type: TABLE --
--- DROP TABLE IF EXISTS idrepo.uin_draft CASCADE;
+-- DROP TABLE IF EXISTS idrepo.uin_biometric_draft CASCADE;
 CREATE TABLE idrepo.uin_biometric_draft(
 	reg_id character varying(39) NOT NULL,								
 	biometric_file_type character varying(36) NOT NULL,						
