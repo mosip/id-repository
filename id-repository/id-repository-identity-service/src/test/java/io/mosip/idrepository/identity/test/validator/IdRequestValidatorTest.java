@@ -222,7 +222,7 @@ public class IdRequestValidatorTest {
 		errors.getAllErrors().forEach(error -> {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), error.getCode());
 			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(),
-					"individualBiometrics"), error.getDefaultMessage());
+					"documents/0/category"), error.getDefaultMessage());
 			assertEquals("request", ((FieldError) error).getField());
 		});
 	}
@@ -232,7 +232,7 @@ public class IdRequestValidatorTest {
 			IOException, IdObjectIOException, IdObjectValidationFailedException, InvalidIdSchemaException {
 		when(idObjectValidator.validateIdObject(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(true);
 		Object request = mapper.readValue(
-				"{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":795429385028},\"documents\":[{\"category\":\"individualBiometrics\",\"value\":\"\"}]}"
+				"{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":795429385028,\"individualBiometrics\": {\"format\": \"cbeff\",\"version\": 1,\"value\": \"individualBiometrics_bio_CBEFF\"}},\"documents\":[{\"category\":\"individualBiometrics\",\"value\":\"\"}]}"
 						.getBytes(),
 				Object.class);
 		ReflectionTestUtils.invokeMethod(validator, "validateRequest", request, errors, "create");
@@ -240,7 +240,7 @@ public class IdRequestValidatorTest {
 		errors.getAllErrors().forEach(error -> {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), error.getCode());
 			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(),
-					"individualBiometrics"), error.getDefaultMessage());
+					"documents/0/value"), error.getDefaultMessage());
 			assertEquals("request", ((FieldError) error).getField());
 		});
 	}
