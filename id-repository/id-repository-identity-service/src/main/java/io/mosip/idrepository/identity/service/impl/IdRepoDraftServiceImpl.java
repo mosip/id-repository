@@ -17,10 +17,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.hibernate.exception.JDBCConnectionException;
 import org.json.JSONException;
@@ -36,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
@@ -166,13 +169,11 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				uinDraftRepo.save(newDraft);
 				return constructIdResponse(null, DRAFTED, null, null);
 			} else {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT,
-						"RID ALREADY EXIST");
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT, "RID ALREADY EXIST");
 				throw new IdRepoAppException(RECORD_EXISTS);
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT,
-					e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
 		}
 	}
@@ -270,51 +271,64 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	}
 
 	private void updateBiometricAndDocumentDrafts(String regId, UinDraft draftToUpdate, Uin uinObject) {
-		List<UinBiometricDraft> bioDraftList = new ArrayList<>();
-		List<UinDocumentDraft> docDraftList = new ArrayList<>();
-		draftToUpdate.getBiometrics().forEach(bio -> bio.setRegId(regId));
-		draftToUpdate.getDocuments().forEach(bio -> bio.setRegId(regId));
-		draftToUpdate.getBiometrics().stream().forEach(bio -> {
-			Optional<UinBiometric> uinBioRecord = uinObject.getBiometrics().stream()
-					.filter(uinBio -> uinBio.getBiometricFileType().contentEquals(bio.getBiometricFileType())).findFirst();
-			if (uinBioRecord.isPresent()) {
-				UinBiometric uinBio = uinBioRecord.get();
-				if (!uinBio.getBioFileId().contentEquals(bio.getBioFileId())) {
-					bio.setRegId(regId);
-					bio.setBioFileId(uinBio.getBioFileId());
-					bio.setBiometricFileName(uinBio.getBiometricFileName());
-					bio.setBiometricFileHash(uinBio.getBiometricFileHash());
-					bio.setUpdatedBy(IdRepoSecurityManager.getUser());
-					bio.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
+		List<UinBiometric> uinBiometrics = new ArrayList<>(uinObject.getBiometrics());
+		IntStream.range(0, uinBiometrics.size()).forEach(index -> {
+			UinBiometric uinBio = uinBiometrics.get(index);
+			Optional<UinBiometricDraft> draftBioRecord = draftToUpdate.getBiometrics().stream()
+					.filter(draftBio -> uinBio.getBiometricFileType().contentEquals(draftBio.getBiometricFileType())).findFirst();
+			if (draftBioRecord.isPresent()) {
+				UinBiometricDraft draftBio = draftBioRecord.get();
+				if (!uinBio.getBioFileId().contentEquals(draftBio.getBioFileId())) {
+					draftBio.setRegId(regId);
+					draftBio.setBioFileId(uinBio.getBioFileId());
+					draftBio.setBiometricFileName(uinBio.getBiometricFileName());
+					draftBio.setBiometricFileHash(uinBio.getBiometricFileHash());
+					draftBio.setUpdatedBy(IdRepoSecurityManager.getUser());
+					draftBio.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
 				}
-			} else {
-				UinBiometricDraft bioDraft = mapper.convertValue(bio, UinBiometricDraft.class);
-				bioDraft.setRegId(regId);
-				bioDraftList.add(bioDraft);
+				ListIterator<UinBiometric> listIterator = uinObject.getBiometrics().listIterator();
+				while (listIterator.hasNext()) {
+					if (listIterator.next().getBioFileId().contentEquals(draftBio.getBioFileId()))
+						listIterator.remove();
+				}
 			}
 		});
+
+		List<UinDocument> uinDocuments = new ArrayList<>(uinObject.getDocuments());
+		IntStream.range(0, uinDocuments.size()).forEach(index -> {
+			UinDocument uinDoc = uinDocuments.get(index);
+			Optional<UinDocumentDraft> draftDocRecord = draftToUpdate.getDocuments().stream()
+					.filter(draftDoc -> uinDoc.getDoccatCode().contentEquals(draftDoc.getDoccatCode())).findFirst();
+			if (draftDocRecord.isPresent()) {
+				UinDocumentDraft draftDoc = draftDocRecord.get();
+				if (!uinDoc.getDocId().contentEquals(draftDoc.getDocId())) {
+					draftDoc.setRegId(regId);
+					draftDoc.setDocId(uinDoc.getDocId());
+					draftDoc.setDoctypCode(uinDoc.getDoctypCode());
+					draftDoc.setDocName(uinDoc.getDocName());
+					draftDoc.setDocfmtCode(uinDoc.getDocfmtCode());
+					draftDoc.setDocHash(uinDoc.getDocHash());
+					draftDoc.setUpdatedBy(IdRepoSecurityManager.getUser());
+					draftDoc.setUpdatedDateTime(uinDoc.getUpdatedDateTime());
+				}
+				ListIterator<UinDocument> listIterator = uinObject.getDocuments().listIterator();
+				while (listIterator.hasNext()) {
+					if (listIterator.next().getDocId().contentEquals(draftDoc.getDocId()))
+						listIterator.remove();
+				}
+			}
+		});
+
+		List<UinBiometricDraft> bioDraftList = mapper.convertValue(uinObject.getBiometrics(),
+				new TypeReference<List<UinBiometricDraft>>() {
+				});
+		List<UinDocumentDraft> docDraftList = mapper.convertValue(uinObject.getDocuments(),
+				new TypeReference<List<UinDocumentDraft>>() {
+				});
 		draftToUpdate.getBiometrics().addAll(bioDraftList);
-		draftToUpdate.getDocuments().stream().forEach(doc -> {
-			Optional<UinDocument> uinDocRecord = uinObject.getDocuments().stream()
-					.filter(uinDoc -> uinDoc.getDoccatCode().contentEquals(doc.getDoccatCode())).findFirst();
-			if (uinDocRecord.isPresent()) {
-				UinDocument uinDoc = uinDocRecord.get();
-				if (!uinDoc.getDocId().contentEquals(doc.getDocId())) {
-					doc.setRegId(regId);
-					doc.setDocId(uinDoc.getDocId());
-					doc.setDocName(uinDoc.getDocName());
-					doc.setDocfmtCode(uinDoc.getDocfmtCode());
-					doc.setDocHash(uinDoc.getDocHash());
-					doc.setUpdatedBy(IdRepoSecurityManager.getUser());
-					doc.setUpdatedDateTime(uinDoc.getUpdatedDateTime());
-				}
-			} else {
-				UinDocumentDraft docDraft = mapper.convertValue(doc, UinDocumentDraft.class);
-				docDraft.setRegId(regId);
-				docDraftList.add(docDraft);
-			}
-		});
 		draftToUpdate.getDocuments().addAll(docDraftList);
+		draftToUpdate.getBiometrics().forEach(bio -> bio.setRegId(regId));
+		draftToUpdate.getDocuments().forEach(doc -> doc.setRegId(regId));
 	}
 
 	@Override
@@ -358,8 +372,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			idRequest.setRequest(request);
 			return idRequest;
 		} catch (IOException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
-					e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT, e.getMessage());
 			throw new IdRepoAppException(UNKNOWN_ERROR);
 		}
 	}
@@ -414,8 +427,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		try {
 			return constructIdResponse(null, String.valueOf(uinDraftRepo.existsByRegId(regId)), null, null);
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "hasDraft",
-					e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "hasDraft", e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
 		}
 	}
@@ -432,12 +444,12 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 						? mapper.readValue(draft.getAnonymousProfile(), AnonymousProfileDTO.class)
 						: null;
 				for (UinBiometricDraft uinBiometricDraft : draft.getBiometrics()) {
-					documents.add(new DocumentsDTO(uinBiometricDraft.getBiometricFileType(), CryptoUtil.encodeBase64(
-							objectStoreHelper.getBiometricObject(uinHash, uinBiometricDraft.getBioFileId()))));
+					documents.add(new DocumentsDTO(uinBiometricDraft.getBiometricFileType(), CryptoUtil
+							.encodeBase64(objectStoreHelper.getBiometricObject(uinHash, uinBiometricDraft.getBioFileId()))));
 				}
 				for (UinDocumentDraft uinDocumentDraft : draft.getDocuments()) {
-					documents.add(new DocumentsDTO(uinDocumentDraft.getDoccatCode(), CryptoUtil.encodeBase64(
-							objectStoreHelper.getDemographicObject(uinHash, uinDocumentDraft.getDocId()))));
+					documents.add(new DocumentsDTO(uinDocumentDraft.getDoccatCode(), CryptoUtil
+							.encodeBase64(objectStoreHelper.getDemographicObject(uinHash, uinDocumentDraft.getDocId()))));
 				}
 				return constructIdResponse(draft.getUinData(), draft.getStatusCode(), documents, anonymousProfile);
 			} else {
@@ -449,13 +461,13 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
 		} catch (IOException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
-					"\n" + e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "\n" + e.getMessage());
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);
 		}
 	}
 
-	private IdResponseDTO constructIdResponse(byte[] uinData, String status, List<DocumentsDTO> documents, AnonymousProfileDTO anonymousProfile) {
+	private IdResponseDTO constructIdResponse(byte[] uinData, String status, List<DocumentsDTO> documents,
+			AnonymousProfileDTO anonymousProfile) {
 		IdResponseDTO idResponse = new IdResponseDTO();
 		ResponseDTO response = new ResponseDTO();
 		response.setStatus(status);
