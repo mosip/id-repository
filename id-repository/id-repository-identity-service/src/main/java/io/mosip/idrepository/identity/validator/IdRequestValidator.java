@@ -355,7 +355,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 									mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REQUEST_VALIDATOR,
 											(VALIDATE_REQUEST + "- empty doc value failed for " + doc.get(DOC_CAT)));
 									errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
-											String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), doc.get(DOC_CAT)));
+											String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "documents/" + index + "/" + DOC_VALUE));
 								}
 							});
 				}
