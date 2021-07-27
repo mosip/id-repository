@@ -87,6 +87,7 @@ public class IdRepoDraftController {
 	public ResponseEntity<IdResponseDTO> updateDraft(@PathVariable String registrationId, @RequestBody IdRequestDTO request,
 			@ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
+			request.getRequest().setRegistrationId(registrationId);
 			validator.validateRequest(request.getRequest(), errors, "update");
 			DataValidationUtil.validate(errors);
 			return new ResponseEntity<>(draftService.updateDraft(registrationId, request), HttpStatus.OK);
@@ -134,7 +135,7 @@ public class IdRepoDraftController {
 	}
 
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@RequestMapping(method = RequestMethod.HEAD, path = "/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(method = RequestMethod.GET, path = "/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> hasDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
 			return new ResponseEntity<>(draftService.hasDraft(registrationId), HttpStatus.OK);

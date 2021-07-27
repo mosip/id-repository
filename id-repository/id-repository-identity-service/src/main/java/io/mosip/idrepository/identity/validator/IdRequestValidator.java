@@ -8,6 +8,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_I
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -315,9 +316,10 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 			if (requestMap.containsKey(DOCUMENTS) && requestMap.containsKey(ROOT_PATH)
 					&& Objects.nonNull(requestMap.get(ROOT_PATH))) {
 				Map<String, Object> identityMap = convertToMap(requestMap.get(ROOT_PATH));
+				List<Map<String, String>> list = (List<Map<String, String>>) requestMap.get(DOCUMENTS);
 				if (Objects.nonNull(requestMap.get(DOCUMENTS)) && requestMap.get(DOCUMENTS) instanceof List
-						&& !((List<Map<String, String>>) requestMap.get(DOCUMENTS)).isEmpty()) {
-					if (!((List<Map<String, String>>) requestMap.get(DOCUMENTS)).parallelStream()
+						&& !list.isEmpty()) {
+					if (!list.parallelStream()
 							.allMatch(doc -> doc.containsKey(DOC_CAT) && Objects.nonNull(doc.get(DOC_CAT))
 									&& doc.containsKey(DOC_VALUE) && Objects.nonNull(doc.get(DOC_VALUE)))) {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateRequest",
@@ -327,14 +329,16 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					} else {
 						checkForDuplicates(requestMap, errors);
 					}
-					((List<Map<String, String>>) requestMap.get(DOCUMENTS)).parallelStream()
-							.filter(doc -> !errors.hasErrors() && doc.containsKey(DOC_CAT) && Objects.nonNull(doc.get(DOC_CAT)))
-							.forEach(doc -> {
+					IntStream.range(0, list.size())
+							.filter(index -> !errors.hasErrors() && list.get(index).containsKey(DOC_CAT)
+									&& Objects.nonNull(list.get(index).get(DOC_CAT)))
+							.forEach(index -> {
+								Map<String, String> doc = list.get(index);
 								if (!identityMap.containsKey(doc.get(DOC_CAT))) {
 									mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REQUEST_VALIDATOR,
 											(VALIDATE_REQUEST + "- validateDocuments failed for " + doc.get(DOC_CAT)));
 									errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
-											String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), doc.get(DOC_CAT)));
+											String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "documents/" + index + "/" + DOC_CAT));
 								}
 								if (StringUtils.isEmpty(doc.get(DOC_VALUE))) {
 									mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REQUEST_VALIDATOR,
@@ -361,15 +365,16 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 */
 	@SuppressWarnings("unchecked")
 	private void checkForDuplicates(Map<String, Object> requestMap, Errors errors) {
-		try {
-			((List<Map<String, String>>) requestMap.get(DOCUMENTS)).parallelStream()
-					.collect(Collectors.toMap(doc -> doc.get(DOC_CAT), doc -> doc.get(DOC_CAT)));
-		} catch (IllegalStateException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REQUEST_VALIDATOR,
-					("checkForDuplicates " + "  " + e.getMessage()));
-			errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(), String.format(
-					INVALID_INPUT_PARAMETER.getErrorMessage(),
-					DOCUMENTS + " - " + StringUtils.substringBefore(StringUtils.reverseDelimited(e.getMessage(), ' '), " ")));
+		List<Map<String, String>> docList = (List<Map<String, String>>) requestMap.get(DOCUMENTS);
+		HashSet<String> docSet = new HashSet<>();
+		for (int i = 0; i < docList.size(); i++) {
+			if (!docSet.add(docList.get(i).get(DOC_CAT))) {
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REQUEST_VALIDATOR,
+						"checkForDuplicates - Duplicate category code");
+				errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), DOCUMENTS + "/" + i + "/" + DOC_CAT));
+				break;
+			}
 		}
 	}
 
