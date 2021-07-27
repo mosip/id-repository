@@ -110,9 +110,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	/** The mosip logger. */
 	Logger mosipLogger = IdRepoLogger.getLogger(IdRepoServiceImpl.class);
 
-	/** The Constant DOCUMENTS. */
-	private static final String DOCUMENTS = "documents";
-
 	/** The Constant TYPE. */
 	private static final String TYPE = "type";
 
@@ -641,6 +638,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				.filter(docObj -> StringUtils.equals(doc.getDoccatCode(), docObj.getDoccatCode())).forEach(docObj -> {
 					docObj.setDocId(doc.getDocId());
 					docObj.setDocName(doc.getDocName());
+					docObj.setDoctypCode(doc.getDoctypCode());
 					docObj.setDocfmtCode(doc.getDocfmtCode());
 					docObj.setDocHash(doc.getDocHash());
 					docObj.setUpdatedBy(IdRepoSecurityManager.getUser());
@@ -676,25 +674,28 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	private void updateCbeff(Uin uinObject, RequestDTO requestDTO) throws IdRepoAppException {
 		ObjectNode identityMap = (ObjectNode) convertToObject(uinObject.getUinData(), ObjectNode.class);
 
-		uinObject.getBiometrics().stream().forEach(bio -> requestDTO.getDocuments().stream()
-				.filter(doc -> StringUtils.equals(bio.getBiometricFileType(), doc.getCategory())).forEach(doc -> {
-					try {
-						String uinHash = uinObject.getUinHash().split("_")[1];
-						String bioFileId = bio.getBioFileId();
-						byte[] data = objectStoreHelper.getBiometricObject(uinHash, bioFileId);
-							if (StringUtils.equalsIgnoreCase(
-									identityMap.get(bio.getBiometricFileType()).get(FILE_FORMAT_ATTRIBUTE).asText(), CBEFF_FORMAT)
-									&& bioFileId.endsWith(CBEFF_FORMAT)) {
-								doc.setValue(CryptoUtil.encodeBase64(cbeffUtil
-										.updateXML(cbeffUtil.getBIRDataFromXML(CryptoUtil.decodeBase64(doc.getValue())), data)));
-							}
-					} catch (Exception e) {
-						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateCbeff",
-								"\n" + ExceptionUtils.getStackTrace(e));
-						throw new IdRepoAppUncheckedException(INVALID_INPUT_PARAMETER.getErrorCode(),
-								String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), DOCUMENTS + " - " + doc.getCategory()));
-					}
-				}));
+		IntStream.range(0, uinObject.getBiometrics().size()).forEach(index -> {
+			UinBiometric bio = uinObject.getBiometrics().get(index);
+			requestDTO.getDocuments().stream()
+					.filter(doc -> StringUtils.equals(bio.getBiometricFileType(), doc.getCategory())).forEach(doc -> {
+						try {
+							String uinHash = uinObject.getUinHash().split("_")[1];
+							String bioFileId = bio.getBioFileId();
+							byte[] data = objectStoreHelper.getBiometricObject(uinHash, bioFileId);
+								if (StringUtils.equalsIgnoreCase(
+										identityMap.get(bio.getBiometricFileType()).get(FILE_FORMAT_ATTRIBUTE).asText(), CBEFF_FORMAT)
+										&& bioFileId.endsWith(CBEFF_FORMAT)) {
+									doc.setValue(CryptoUtil.encodeBase64(cbeffUtil
+											.updateXML(cbeffUtil.getBIRDataFromXML(CryptoUtil.decodeBase64(doc.getValue())), data)));
+								}
+						} catch (Exception e) {
+							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateCbeff",
+									"\n" + ExceptionUtils.getStackTrace(e));
+							throw new IdRepoAppUncheckedException(INVALID_INPUT_PARAMETER.getErrorCode(),
+									String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "documents/" + index + "/value"));
+						}
+					});
+		});
 	}
 
 	private void issueCredential(String uin, String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp,
