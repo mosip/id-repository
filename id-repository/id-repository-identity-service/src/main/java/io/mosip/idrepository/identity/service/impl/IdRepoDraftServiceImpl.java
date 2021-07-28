@@ -423,9 +423,9 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	}
 
 	@Override
-	public IdResponseDTO hasDraft(String regId) throws IdRepoAppException {
+	public boolean hasDraft(String regId) throws IdRepoAppException {
 		try {
-			return constructIdResponse(null, String.valueOf(uinDraftRepo.existsByRegId(regId)), null, null);
+			return uinDraftRepo.existsByRegId(regId);
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "hasDraft", e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
