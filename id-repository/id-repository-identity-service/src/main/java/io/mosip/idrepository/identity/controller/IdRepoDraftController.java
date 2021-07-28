@@ -135,10 +135,11 @@ public class IdRepoDraftController {
 	}
 
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@RequestMapping(method = RequestMethod.GET, path = "/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<IdResponseDTO> hasDraft(@PathVariable String registrationId) throws IdRepoAppException {
+	@RequestMapping(method = RequestMethod.HEAD, path = "/{registrationId}")
+	public ResponseEntity<Void> hasDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
-			return new ResponseEntity<>(draftService.hasDraft(registrationId), HttpStatus.OK);
+			HttpStatus responseStatus = draftService.hasDraft(registrationId) ? HttpStatus.OK : HttpStatus.NO_CONTENT;
+			return new ResponseEntity<Void>(responseStatus);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.HAS_DRAFT_REQUEST_RESPONSE, registrationId,
 					IdType.ID, e);
