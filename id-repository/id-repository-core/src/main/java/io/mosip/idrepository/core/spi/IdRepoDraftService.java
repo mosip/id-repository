@@ -18,7 +18,7 @@ public interface IdRepoDraftService<REQUEST, RESPONSE> {
 	
 	public RESPONSE discardDraft(String registrationId) throws IdRepoAppException;
 	
-	public RESPONSE hasDraft(String registrationId) throws IdRepoAppException;
+	public boolean hasDraft(String registrationId) throws IdRepoAppException;
 	
 	public RESPONSE getDraft(String registrationId) throws IdRepoAppException;
 }
