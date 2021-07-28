@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.json.simple.JSONArray;
@@ -85,9 +86,6 @@ public class CredentialProvider {
 	@Autowired(required = true)
 	@Qualifier("varres")
 	VariableResolverFactory functionFactory;
-
-	@Value("${mosip.primary-language}")
-	private String primaryLang;
 
 	@Value("${credential.service.dob.format}")
 	private String dobFormat;
@@ -358,25 +356,44 @@ public class CredentialProvider {
 		return subType;
 	}
 
-	private Object getFullname(JSONObject identity, String attribute) {
-		String firstName = getName(identity, "firstName");
-		String lastName = getName(identity, "lastName");
-		String middleName = getName(identity, "middleName");
-		Object fullname = formatName(firstName, lastName, middleName);
-		return fullname;
+	private JSONArray getFullname(JSONObject identity, String attribute) {
+		Map<String, Map<String, String>> languageMap = new HashMap<String, Map<String, String>>();
+		getName(identity, "firstName", languageMap);
+		getName(identity, "lastName", languageMap);
+		getName(identity, "middleName", languageMap);
+		JSONArray array = new JSONArray();
+		for (Entry<String, Map<String, String>> languageSpecificEntry : languageMap.entrySet()) {
+			Map<String, String> langSpecificfullName = new HashMap<String, String>();
+			String lang = languageSpecificEntry.getKey();
+			Map<String, String> languageSpecificValues = languageSpecificEntry.getValue();
+			String formattedName = formatName(languageSpecificValues.get("firstName"),
+					languageSpecificValues.get("lastName"),
+					languageSpecificValues.get("middleName"));
+			langSpecificfullName.put("language", lang);
+			langSpecificfullName.put("value", formattedName);
+			JSONObject jsonObject = new JSONObject(langSpecificfullName);
+			array.add(jsonObject);
+		}
+		return array;
 	}
 
-	private String getName(JSONObject identity, String attribute) {
-		String formattedObject = "";
+	private void getName(JSONObject identity, String attribute, Map<String, Map<String, String>> languageMap) {
+
 		JSONArray node = JsonUtil.getJSONArray(identity, attribute);
 		if (node != null) {
 		JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
 		for (JsonValue jsonValue : jsonValues) {
-			if (jsonValue.getLanguage().equals(primaryLang))
-				formattedObject = jsonValue.getValue();
+				Map<String, String> nameMap;
+				String lang=jsonValue.getLanguage();
+				if (languageMap.containsKey(lang)) {
+					nameMap = languageMap.get(lang);
+				} else {
+					nameMap=new HashMap<String, String>();
+				}
+				nameMap.put(attribute, jsonValue.getValue());
+				languageMap.put(lang, nameMap);
 			}
 		}
-		return formattedObject;
 	}
 
 	private String filterBiometric(String individualBiometricsValue, AllowedKycDto key) throws Exception {
@@ -476,7 +493,7 @@ public class CredentialProvider {
 		return formattedObject;
 	}
 
-	private Object formatName(String firstName, String lastName, String middleName) {
+	private String formatName(String firstName, String lastName, String middleName) {
 		Map context = new HashMap();
 		context.put("firstName", firstName);
 		context.put("lastName", lastName);
