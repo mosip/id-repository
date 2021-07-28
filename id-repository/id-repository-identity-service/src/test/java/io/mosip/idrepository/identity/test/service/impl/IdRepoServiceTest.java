@@ -47,8 +47,7 @@ import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.IDAEventDTO;
-import io.mosip.idrepository.core.dto.IDAEventsDTO;
+import io.mosip.idrepository.core.dto.AuthTypeStatusEventDTO;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.RequestDTO;
@@ -894,10 +893,8 @@ public class IdRepoServiceTest {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("http://localhost/v1/vid/{uin}");
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
-		ResponseWrapper<IDAEventsDTO> eventsResponse = new ResponseWrapper<>();
-		IDAEventsDTO IDAEventsDTO = new IDAEventsDTO();
-		IDAEventsDTO.setEvents(Collections.singletonList(new IDAEventDTO()));
-		eventsResponse.setResponse(IDAEventsDTO);
+		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
+		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
 		proxyService.updateIdentity(request, "234").getResponse().equals(obj2);
 	}
@@ -966,10 +963,8 @@ public class IdRepoServiceTest {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("http://localhost/v1/vid/{uin}");
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
-		ResponseWrapper<IDAEventsDTO> eventsResponse = new ResponseWrapper<>();
-		IDAEventsDTO IDAEventsDTO = new IDAEventsDTO();
-		IDAEventsDTO.setEvents(Collections.singletonList(new IDAEventDTO()));
-		eventsResponse.setResponse(IDAEventsDTO);
+		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
+		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
 		proxyService.updateIdentity(request, "234").getResponse().equals(obj2);
 	}
@@ -1091,10 +1086,8 @@ public class IdRepoServiceTest {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("http://localhost/v1/vid/{uin}");
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
-		ResponseWrapper<IDAEventsDTO> eventsResponse = new ResponseWrapper<>();
-		IDAEventsDTO IDAEventsDTO = new IDAEventsDTO();
-		IDAEventsDTO.setEvents(Collections.singletonList(new IDAEventDTO()));
-		eventsResponse.setResponse(IDAEventsDTO);
+		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
+		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
 		IdResponseDTO updateIdentity = proxyService.updateIdentity(request, "12343");
 		assertEquals(status, updateIdentity.getResponse().getStatus());
@@ -1194,10 +1187,8 @@ public class IdRepoServiceTest {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("http://localhost/v1/vid/{uin}");
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
-		ResponseWrapper<IDAEventsDTO> eventsResponse = new ResponseWrapper<>();
-		IDAEventsDTO IDAEventsDTO = new IDAEventsDTO();
-		IDAEventsDTO.setEvents(Collections.singletonList(new IDAEventDTO()));
-		eventsResponse.setResponse(IDAEventsDTO);
+		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
+		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(
 				mapper.readValue("{\"response\":{\"data\":\"1234\"}}".getBytes(), ObjectNode.class),
 				mapper.readValue("{\"response\":{\"data\":\"1234\"}}".getBytes(), ObjectNode.class), eventsResponse);
@@ -1242,10 +1233,8 @@ public class IdRepoServiceTest {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("http://localhost/v1/vid/{uin}");
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
-		ResponseWrapper<IDAEventsDTO> eventsResponse = new ResponseWrapper<>();
-		IDAEventsDTO IDAEventsDTO = new IDAEventsDTO();
-		IDAEventsDTO.setEvents(Collections.singletonList(new IDAEventDTO()));
-		eventsResponse.setResponse(IDAEventsDTO);
+		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
+		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(
 				mapper.readValue("{\"response\":{\"data\":\"1234\"}}".getBytes(), ObjectNode.class), eventsResponse);
 		IdResponseDTO updateIdentity = proxyService.updateIdentity(request, "1234");
@@ -1284,10 +1273,8 @@ public class IdRepoServiceTest {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("http://localhost/v1/vid/{uin}");
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
-		ResponseWrapper<IDAEventsDTO> eventsResponse = new ResponseWrapper<>();
-		IDAEventsDTO IDAEventsDTO = new IDAEventsDTO();
-		IDAEventsDTO.setEvents(Collections.singletonList(new IDAEventDTO()));
-		eventsResponse.setResponse(IDAEventsDTO);
+		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
+		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(
 				mapper.readValue("{\"response\":{\"data\":\"1234\"}}".getBytes(), ObjectNode.class), eventsResponse);
 		IdResponseDTO updateIdentity = proxyService.updateIdentity(request, "1234");
@@ -1432,10 +1419,8 @@ public class IdRepoServiceTest {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("http://localhost/v1/vid/{uin}");
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
-		ResponseWrapper<IDAEventsDTO> eventsResponse = new ResponseWrapper<>();
-		IDAEventsDTO IDAEventsDTO = new IDAEventsDTO();
-		IDAEventsDTO.setEvents(Collections.singletonList(new IDAEventDTO()));
-		eventsResponse.setResponse(IDAEventsDTO);
+		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
+		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(
 				mapper.readValue("{\"response\":{\"data\":\"1234\"}}".getBytes(), ObjectNode.class), eventsResponse);
 		IdResponseDTO updateIdentity = proxyService.updateIdentity(request, "1234");
@@ -1472,10 +1457,8 @@ public class IdRepoServiceTest {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("http://localhost/v1/vid/{uin}");
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(),  Mockito.any())).thenReturn(restReq);
-		ResponseWrapper<IDAEventsDTO> eventsResponse = new ResponseWrapper<>();
-		IDAEventsDTO IDAEventsDTO = new IDAEventsDTO();
-		IDAEventsDTO.setEvents(Collections.singletonList(new IDAEventDTO()));
-		eventsResponse.setResponse(IDAEventsDTO);
+		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
+		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(
 				mapper.readValue("{\"response\":{\"data\":\"1234\"}}".getBytes(), ObjectNode.class), eventsResponse);
 		IdResponseDTO updateIdentity = proxyService.updateIdentity(request, "1234");
@@ -1505,7 +1488,7 @@ public class IdRepoServiceTest {
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 		IdResponseDTO idResponseDTO = ReflectionTestUtils.invokeMethod(proxyService, "retrieveIdentity", ridValue,
-				IdType.RID, "demo", null);
+				IdType.ID, "demo", null);
 		assertEquals(identity, mapper.writeValueAsString(idResponseDTO.getResponse().getIdentity()));
 	}
 
@@ -1514,7 +1497,7 @@ public class IdRepoServiceTest {
 		try {
 			Mockito.when(uinRepo.getUinHashByRid(Mockito.anyString())).thenReturn(null);
 			ReflectionTestUtils.invokeMethod(proxyService, "retrieveIdentity", "27847657360002520190320095029",
-					IdType.RID, "demo", null);
+					IdType.ID, "demo", null);
 		} catch (UndeclaredThrowableException e) {
 			throw e.getCause();
 		}

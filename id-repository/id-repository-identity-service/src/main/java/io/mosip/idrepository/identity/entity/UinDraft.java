@@ -1,68 +1,46 @@
 package io.mosip.idrepository.identity.entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.IdClass;
 import javax.persistence.Lob;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.Type;
 import org.springframework.data.domain.Persistable;
 
 import lombok.AccessLevel;
-import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
- * The Class UinHistory - Entity class for uin_h table.
+ * The Class Uin -Entity class for uin table.
  *
  * @author Manoj SP
  */
-@Data
+@Getter
+@Setter
+@ToString(exclude = { "biometrics", "documents" })
 @Entity
-@Table(name = "uin_h", schema = "idrepo")
-@IdClass(HistoryPK.class)
-public class UinHistory implements Persistable<String> {
-	
-	/**
-	 * Instantiates a new uin history.
-	 */
-	public UinHistory() {
-		
-	}
+@NoArgsConstructor
+@Table(schema = "idrepo")
+public class UinDraft implements Persistable<String>, UinInfo {
 
-	/**
-	 * Instantiates a new uin history.
-	 *
-	 * @param uinRefId the uin ref id
-	 * @param effectiveDateTime the effective date time
-	 * @param uin the uin
-	 * @param uinHash the uin hash
-	 * @param uinData the uin data
-	 * @param uinDataHash the uin data hash
-	 * @param regId the reg id
-	 * @param bioRefId the bio ref id
-	 * @param statusCode the status code
-	 * @param langCode the lang code
-	 * @param createdBy the created by
-	 * @param createdDateTime the created date time
-	 * @param updatedBy the updated by
-	 * @param updatedDateTime the updated date time
-	 * @param isDeleted the is deleted
-	 * @param deletedDateTime the deleted date time
-	 */
-	public UinHistory(String uinRefId, LocalDateTime effectiveDateTime, String uin, String uinHash, byte[] uinData,
-			String uinDataHash, String regId, String statusCode, String anonymousProfile, String createdBy,
-			LocalDateTime createdDateTime, String updatedBy, LocalDateTime updatedDateTime, Boolean isDeleted,
-			LocalDateTime deletedDateTime) {
-		this.uinRefId = uinRefId;
-		this.effectiveDateTime = effectiveDateTime;
+	public UinDraft(String uin, String uinHash, byte[] uinData, String uinDataHash, String regId, String statusCode,
+			String anonymousProfile, String createdBy, LocalDateTime createdDateTime, String updatedBy,
+			LocalDateTime updatedDateTime, Boolean isDeleted, LocalDateTime deletedDateTime,
+			List<UinBiometricDraft> biometrics, List<UinDocumentDraft> documents) {
 		this.uin = uin;
 		this.uinHash = uinHash;
 		this.uinData = uinData.clone();
@@ -76,21 +54,17 @@ public class UinHistory implements Persistable<String> {
 		this.updatedDateTime = updatedDateTime;
 		this.isDeleted = isDeleted;
 		this.deletedDateTime = deletedDateTime;
+		this.biometrics = biometrics;
+		this.documents = documents;
 	}
 
-	/** The uin ref id. */
 	@Id
-	private String uinRefId;
-
-	/** The effective date time. */
-	@Id
-	@Column(name = "eff_dtimes")
-	private LocalDateTime effectiveDateTime;
+	@Column(insertable = false, updatable = false, nullable = false)
+	private String regId;
 
 	/** The uin. */
 	private String uin;
-	
-	/** The uin hash. */
+
 	private String uinHash;
 
 	/** The uin data. */
@@ -104,16 +78,8 @@ public class UinHistory implements Persistable<String> {
 	/** The uin data hash. */
 	private String uinDataHash;
 
-	/** The reg id. */
-	private String regId;
-	
-	/** The bio ref id. */
-	private String bioRefId;
-
 	/** The status code. */
 	private String statusCode;
-
-	private String langCode;
 	
 	private String anonymousProfile;
 
@@ -140,13 +106,22 @@ public class UinHistory implements Persistable<String> {
 	@Column(name = "del_dtimes")
 	private LocalDateTime deletedDateTime;
 
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "uin", cascade = CascadeType.ALL)
+	@NotFound(action = NotFoundAction.IGNORE)
+	private List<UinBiometricDraft> biometrics;
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "uin", cascade = CascadeType.ALL)
+	@NotFound(action = NotFoundAction.IGNORE)
+	private List<UinDocumentDraft> documents;
+
 	/**
 	 * Gets the uin data.
 	 *
 	 * @return the uin data
 	 */
+	@Override
 	public byte[] getUinData() {
-		return uinData.clone();
+		return uinData;
 	}
 
 	/**
@@ -154,18 +129,28 @@ public class UinHistory implements Persistable<String> {
 	 *
 	 * @param uinData the new uin data
 	 */
+	@Override
 	public void setUinData(byte[] uinData) {
-		this.uinData = uinData.clone();
+		this.uinData = uinData;
+	}
+
+	@Override
+	public String getUin() {
+		return uin;
+	}
+
+	@Override
+	public void setUin(String uin) {
+		this.uin = uin;
 	}
 
 	@Override
 	public String getId() {
-		return uinRefId;
+		return regId;
 	}
 
 	@Override
 	public boolean isNew() {
 		return true;
 	}
-
 }

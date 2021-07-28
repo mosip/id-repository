@@ -1,7 +1,7 @@
 package io.mosip.idrepository.identity.service.impl;
 
-import java.time.LocalDateTime;
 import java.sql.Timestamp;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -92,10 +92,8 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	public List<AuthtypeStatus> fetchAuthTypeStatus(String individualId, IdType idType) throws IdRepoAppException {
 		List<AuthtypeLock> authTypeLockList;
 		List<Object[]> authTypeLockObjectsList = fetchAuthTypeStatusRecords(individualId, idType);
-		authTypeLockList = authTypeLockObjectsList.stream()
-				.map(obj -> new AuthtypeLock((String) obj[0], (String) obj[1],
-						Objects.nonNull(obj[2]) ? ((Timestamp) obj[2]).toLocalDateTime() : null))
-				.collect(Collectors.toList());
+		authTypeLockList = authTypeLockObjectsList.stream().map(obj -> new AuthtypeLock((String) obj[0], (String) obj[1],
+				Objects.nonNull(obj[2]) ? ((Timestamp) obj[2]).toLocalDateTime() : null)).collect(Collectors.toList());
 		return processAuthtypeList(authTypeLockList);
 	}
 
@@ -118,18 +116,13 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	 * duration. After that duration, auth type will be re-locked.
 	 */
 	@Override
-	public IdResponseDTO updateAuthTypeStatus(String individualId, IdType idType,
-			List<AuthtypeStatus> authTypeStatusList) throws IdRepoAppException {
-		List<Object[]> authTypeStatusRecords = fetchAuthTypeStatusRecords(individualId, idType);
-		authTypeStatusList.stream()
-				.filter(status -> !authTypeStatusRecords.isEmpty() 
-						&& Objects.nonNull(authTypeStatusRecords.get(0)[1])
-						&& Boolean.valueOf((String) authTypeStatusRecords.get(0)[1]) && !status.getLocked()
-						&& Objects.nonNull(status.getUnlockForSeconds()) && status.getUnlockForSeconds() > 0)
+	public IdResponseDTO updateAuthTypeStatus(String individualId, IdType idType, List<AuthtypeStatus> authTypeStatusList)
+			throws IdRepoAppException {
+		authTypeStatusList.stream().filter(
+				status -> status.getLocked() && Objects.nonNull(status.getUnlockForSeconds()) && status.getUnlockForSeconds() > 0)
 				.forEach(status -> {
-					status.setMetadata(Collections.singletonMap(UNLOCK_EXP_TIMESTAMP,
-							DateUtils.getUTCCurrentDateTime().plusSeconds(status.getUnlockForSeconds())));
-					status.setLocked(true);
+					status.setMetadata(Collections.singletonMap(UNLOCK_EXP_TIMESTAMP, DateUtils
+							.formatToISOString(DateUtils.getUTCCurrentDateTime().plusSeconds(status.getUnlockForSeconds()))));
 				});
 		String uin = idType == IdType.VID ? getUin(individualId) : individualId;
 		IdResponseDTO updateAuthTypeStatus = doUpdateAuthTypeStatus(uin, authTypeStatusList);
@@ -160,8 +153,8 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 				}
 			}
 		} catch (RestServiceException | IdRepoDataValidationException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSuperclass().getSimpleName(),
-					"getPartnerIds", e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSuperclass().getSimpleName(), "getPartnerIds",
+					e.getMessage());
 		}
 		return Collections.emptyList();
 	}
@@ -188,8 +181,7 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	private IdResponseDTO doUpdateAuthTypeStatus(String individualId, List<AuthtypeStatus> authTypeStatusList)
 			throws IdRepoAppException {
 		List<AuthtypeLock> entities = authTypeStatusList.stream()
-				.map(authtypeStatus -> this.putAuthTypeStatus(authtypeStatus, individualId))
-				.collect(Collectors.toList());
+				.map(authtypeStatus -> this.putAuthTypeStatus(authtypeStatus, individualId)).collect(Collectors.toList());
 		authLockRepository.saveAll(entities);
 
 		return buildResponse();
@@ -214,15 +206,14 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 		authtypeLock.setCrDTimes(DateUtils.getUTCCurrentDateTime());
 		authtypeLock.setLockrequestDTtimes(DateUtils.getUTCCurrentDateTime());
 		authtypeLock.setLockstartDTtimes(DateUtils.getUTCCurrentDateTime());
-		if (Objects.nonNull(authtypeStatus.getMetadata())
-				&& authtypeStatus.getMetadata().containsKey(UNLOCK_EXP_TIMESTAMP)
-				&& authtypeStatus.getMetadata().get(UNLOCK_EXP_TIMESTAMP) instanceof LocalDateTime) {
-			authtypeLock.setUnlockExpiryDTtimes((LocalDateTime) authtypeStatus.getMetadata().get(UNLOCK_EXP_TIMESTAMP));
+		if (Objects.nonNull(authtypeStatus.getMetadata()) && authtypeStatus.getMetadata().containsKey(UNLOCK_EXP_TIMESTAMP)) {
+			authtypeLock.setUnlockExpiryDTtimes(
+					DateUtils.parseToLocalDateTime((String) authtypeStatus.getMetadata().get(UNLOCK_EXP_TIMESTAMP)));
 		}
 		authtypeLock.setStatuscode(Boolean.toString(authtypeStatus.getLocked()));
 		authtypeLock.setCreatedBy(env.getProperty(IdRepoConstants.APPLICATION_ID));
 		authtypeLock.setCrDTimes(DateUtils.getUTCCurrentDateTime());
-		authtypeLock.setLangCode(env.getProperty(IdRepoConstants.MOSIP_PRIMARY_LANGUAGE));
+		authtypeLock.setLangCode("");
 		return authtypeLock;
 	}
 
@@ -268,6 +259,9 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 		boolean isAuthTypeUnlockedTemporarily = isLocked && Objects.nonNull(authtypeLock.getUnlockExpiryDTtimes())
 				&& authtypeLock.getUnlockExpiryDTtimes().isAfter(DateUtils.getUTCCurrentDateTime());
 		authtypeStatus.setLocked(isAuthTypeUnlockedTemporarily ? false : isLocked);
+		authtypeStatus.setUnlockForSeconds(isAuthTypeUnlockedTemporarily
+				? ChronoUnit.SECONDS.between(DateUtils.getUTCCurrentDateTime(), authtypeLock.getUnlockExpiryDTtimes())
+				: null);
 		return authtypeStatus;
 	}
 
