@@ -3,7 +3,6 @@ package io.mosip.credentialstore.exception;
 
 import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
 import io.mosip.kernel.core.exception.BaseCheckedException;
-import io.mosip.kernel.core.exception.BaseUncheckedException;
 
 public class SignatureException extends BaseCheckedException {
 	/** The Constant serialVersionUID. */

@@ -1,20 +1,26 @@
 package io.mosip.idrepository.core.security;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.PREPEND_THUMPRINT_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_ID;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DATETIME_PATTERN;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.PREPEND_THUMPRINT_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.IntFunction;
+
+import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -28,11 +34,13 @@ import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.HMACUtils2;
+import lombok.NoArgsConstructor;
 
 /**
  * The Class IdRepoSecurityManager - provides security related functionalities
@@ -41,8 +49,14 @@ import io.mosip.kernel.core.util.HMACUtils2;
  *
  * @author Manoj SP
  */
-@Component
+@NoArgsConstructor
 public class IdRepoSecurityManager {
+	
+	private static final String SALT = "SALT";
+
+	private static final String MODULO = "MODULO";
+
+	private static final String ID_HASH = "id_hash";
 
 	/** The mosip logger. */
 	private Logger mosipLogger = IdRepoLogger.getLogger(IdRepoSecurityManager.class);
@@ -58,7 +72,6 @@ public class IdRepoSecurityManager {
 	private RestRequestBuilder restBuilder;
 
 	/** The rest helper. */
-	@Autowired
 	private RestHelper restHelper;
 
 	/** The env. */
@@ -68,6 +81,19 @@ public class IdRepoSecurityManager {
 	/** The mapper. */
 	@Autowired
 	private ObjectMapper mapper;
+	
+	@Autowired
+	private ApplicationContext ctx;
+	
+	public IdRepoSecurityManager(RestHelper restHelper) {
+		this.restHelper = restHelper;
+	}
+	
+	@PostConstruct
+	public void init() {
+		if (Objects.isNull(restHelper))
+			this.restHelper = ctx.getBean(RestHelper.class);
+	}
 
 	/**
 	 * Hash - provides basic hash.
@@ -259,8 +285,24 @@ public class IdRepoSecurityManager {
 			}
 		} catch (RestServiceException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SECURITY_MANAGER, ENCRYPT_DECRYPT_DATA,
-					e.getErrorText());
-			throw new IdRepoAppException(ENCRYPTION_DECRYPTION_FAILED, e);
+					ExceptionUtils.getStackTrace(e));
+			throw new IdRepoAppException(ENCRYPTION_DECRYPTION_FAILED);
 		}
+	}
+	
+	public String getIdHash(String uin, IntFunction<String> saltRetreivalFunction) {
+		return getIdHashAndAttributes(uin, saltRetreivalFunction).get(ID_HASH);
+	}
+
+	public Map<String, String> getIdHashAndAttributes(String id, IntFunction<String> saltRetreivalFunction) {
+		Map<String, String> hashWithAttributes = new HashMap<>();
+		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
+		int modResult = (int) (Long.parseLong(id) % moduloValue);
+		String hashSalt = saltRetreivalFunction.apply(modResult);
+		String hash = hashwithSalt(id.getBytes(), hashSalt.getBytes());
+		hashWithAttributes.put(ID_HASH, hash);
+		hashWithAttributes.put(MODULO, String.valueOf(modResult));
+		hashWithAttributes.put(SALT, hashSalt);
+		return hashWithAttributes;
 	}
 }

@@ -112,10 +112,6 @@ public class IdRepoController {
 	@Resource
 	private Map<String, String> id;
 
-	/** The allowed types. */
-	@Resource
-	private List<String> allowedTypes;
-
 	/** The id repo service. */
 	@Autowired
 	private IdRepoService<IdRequestDTO, IdResponseDTO> idRepoService;
@@ -179,17 +175,17 @@ public class IdRepoController {
 			return new ResponseEntity<>(idRepoService.addIdentity(request, uin), HttpStatus.OK);
 		} catch (IdRepoDataValidationException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE,
-					regId, IdType.RID, e);
+					regId, IdType.ID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(DATA_VALIDATION_FAILED, e);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE,
-					regId, IdType.RID, e);
+					regId, IdType.ID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, regId,
-					IdType.RID, "Create Identity requested");
+					IdType.ID, "Create Identity requested");
 		}
 	}
 
@@ -273,17 +269,17 @@ public class IdRepoController {
 			return new ResponseEntity<>(idRepoService.updateIdentity(request, uin), HttpStatus.OK);
 		} catch (IdRepoDataValidationException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_IDENTITY_REQUEST_RESPONSE,
-					regId, IdType.RID, e);
+					regId, IdType.ID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, UPDATE_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(DATA_VALIDATION_FAILED, e);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_IDENTITY_REQUEST_RESPONSE,
-					regId, IdType.RID, e);
+					regId, IdType.ID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_IDENTITY_REQUEST_RESPONSE, regId,
-					IdType.RID, "Update Identity requested");
+					IdType.ID, "Update Identity requested");
 		}
 	}
 
@@ -314,7 +310,7 @@ public class IdRepoController {
 		AuthtypeResponseDto authtypeResponseDto = new AuthtypeResponseDto();
 		boolean isIdTypeValid = false;
 		try {
-			IdType idType = validator.validateIdTypeForAuthTypeStatus(individualIdType);
+			IdType idType = validator.validateIdType(individualIdType);
 			isIdTypeValid = true;
 			validator.validateIdvId(individualId, idType);
 			List<AuthtypeStatus> authtypeStatusList = authTypeStatusService.fetchAuthTypeStatus(individualId, idType);
@@ -356,7 +352,7 @@ public class IdRepoController {
 			@RequestBody AuthTypeStatusRequestDto authTypeStatusRequest) throws IdRepoAppException {
 		boolean isIdTypeValid = false;
 		try {
-			IdType idType = validator.validateIdTypeForAuthTypeStatus(authTypeStatusRequest.getIndividualIdType());
+			IdType idType = validator.validateIdType(authTypeStatusRequest.getIndividualIdType());
 			isIdTypeValid = true;
 			validator.validateIdvId(authTypeStatusRequest.getIndividualId(), idType);
 			IdResponseDTO updateAuthtypeStatus = authTypeStatusService.updateAuthTypeStatus(
@@ -414,10 +410,6 @@ public class IdRepoController {
 			return IdType.UIN;
 		if (validator.validateVid(id))
 			return IdType.VID;
-		if (validator.validateRid(id))
-			return IdType.RID;
-		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "getIdType", "Invalid ID");
-		throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
-				String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "id"));
+		return IdType.ID;
 	}
 }

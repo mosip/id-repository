@@ -51,9 +51,6 @@ public class IdRepoConstants {
 	/** The application name. */
 	public static final String APPLICATION_NAME = "mosip.idrepo.application.name";
 
-	/** The mosip primary language. */
-	public static final String MOSIP_PRIMARY_LANGUAGE = "mosip.primary-language";
-
 	/** The json schema file name. */
 	public static final String JSON_SCHEMA_FILE_NAME = "mosip.idrepo.json-schema-fileName";
 	
@@ -106,8 +103,46 @@ public class IdRepoConstants {
 	
 	public static final String PREPEND_THUMPRINT_STATUS = "mosip.credential.service.share.prependThumbprint";
 	
+	public static final String IDREPO_DUMMY_ONLINE_VERIFICATION_PARTNER_ID = "idrepo-dummy-online-verification-partner-id";
+	
+	public static final String MOSIP_OLV_PARTNER = "MOSIP_OLV_PARTNER";
+	
+	public static final String CREDENTIAL_STATUS_JOB_DELAY = "mosip.idrepo.credential-status-update-job.fixed-delay-in-ms";
+	
+	public static final String UIN_REFID = "mosip.idrepo.crypto.refId.uin";
+	
+	public static final String UIN_DATA_REFID = "mosip.idrepo.crypto.refId.uin-data";
+	
+	public static final String BIO_DATA_REFID = "mosip.idrepo.crypto.refId.bio-doc-data";
+	
+	public static final String DEMO_DATA_REFID = "mosip.idrepo.crypto.refId.demo-doc-data";
+	
+	public static final String  VID_EVENT_TOPIC = "mosip.idrepo.websub.vid-credential-update.topic";
+	
+	public static final String  VID_EVENT_SECRET = "mosip.idrepo.websub.vid-credential-update.secret";
+	
+	public static final String  VID_EVENT_CALLBACK_URL = "mosip.idrepo.websub.vid-credential-update.callback-url";
+	
+	public static final String CREDENTIAL_STATUS_UPDATE_TOPIC = "mosip.idrepo.websub.credential-status-update.topic";
+
+	
 	/** The value. */
 	private final String value;
+
+	/** The Constant TOKEN. */
+	public static final String TOKEN = "TOKEN";
+
+	/** The Constant ID_HASH. */
+	public static final String ID_HASH = "id_hash";
+
+	/** The Constant EXPIRY_TIMESTAMP. */
+	public static final String EXPIRY_TIMESTAMP = "expiry_timestamp";
+
+	/** The Constant TRANSACTION_LIMIT. */
+	public static final String TRANSACTION_LIMIT = "transaction_limit";
+
+	/** The Constant ID_REPO. */
+	public static final String ID_REPO = "ID_REPO";
 
 	/**
 	 * Instantiates a new id repo constants.

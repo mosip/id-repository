@@ -5,42 +5,43 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MASTERDAT
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
-import javax.sql.DataSource;
 
-import org.hibernate.Interceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
-import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.orm.jpa.JpaVendorAdapter;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.exception.AuthenticationException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
+import io.mosip.idrepository.core.helper.IdRepoWebSubHelper;
+import io.mosip.idrepository.core.helper.RestHelper;
+import io.mosip.idrepository.core.httpfilter.AuthTokenExchangeFilter;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.manager.CredentialServiceManager;
+import io.mosip.idrepository.core.manager.CredentialStatusManager;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -52,10 +53,11 @@ import io.mosip.kernel.core.logger.spi.Logger;
  */
 @Configuration
 @ConfigurationProperties("mosip.idrepo.identity")
-@EnableTransactionManagement
-@EnableAsync
-public class IdRepoConfig implements WebMvcConfigurer {
-	
+@EnableScheduling
+@EnableJpaRepositories(basePackages = "io.mosip.idrepository.*")
+@Import({ CredentialStatusManager.class, DummyPartnerCheckUtil.class })
+public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfigurer, ApplicationListener<ApplicationReadyEvent> {
+
 	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISH_URL + "}")
 	public String publisherHubURL;
 
@@ -65,10 +67,6 @@ public class IdRepoConfig implements WebMvcConfigurer {
 	/** The env. */
 	@Autowired
 	private RestTemplate restTemplate;
-
-	/** The interceptor. */
-	@Autowired
-	private Interceptor interceptor;
 
 	/** The db. */
 //	If sharding is enabled, need to uncomment
@@ -83,14 +81,19 @@ public class IdRepoConfig implements WebMvcConfigurer {
 	/** The bio attributes. */
 	private List<String> bioAttributes;
 
-	/** The allowed types. */
-	private List<String> allowedTypes;
-
 	/** The id. */
 	private Map<String, String> id;
-	
+
 	@Autowired
-	private Environment env;
+	private CredentialStatusManager credStatusManager;
+
+	@Autowired
+	private IdRepoWebSubHelper websubHelper;
+
+	@Override
+	public void onApplicationEvent(ApplicationReadyEvent event) {
+		websubHelper.subscribeForVidEvent();
+	}
 
 	@PostConstruct
 	public void init() {
@@ -110,11 +113,12 @@ public class IdRepoConfig implements WebMvcConfigurer {
 								.getServiceErrorList(new String(super.getResponseBody(response)));
 						mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError",
 								"Throwing AuthenticationException", errorList.toString());
-						if(errorList.isEmpty()) {
-							throw new AuthenticationException(IdRepoErrorConstants.AUTHENTICATION_FAILED, response.getRawStatusCode());
+						if (errorList.isEmpty()) {
+							throw new AuthenticationException(IdRepoErrorConstants.AUTHENTICATION_FAILED,
+									response.getRawStatusCode());
 						} else {
-							throw new AuthenticationException(errorList.get(0).getErrorCode(),
-									errorList.get(0).getMessage(), response.getRawStatusCode());
+							throw new AuthenticationException(errorList.get(0).getErrorCode(), errorList.get(0).getMessage(),
+									response.getRawStatusCode());
 						}
 					} else {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError", "Rest Template logs",
@@ -145,8 +149,7 @@ public class IdRepoConfig implements WebMvcConfigurer {
 	/**
 	 * Sets the db.
 	 *
-	 * @param db
-	 *            the db
+	 * @param db the db
 	 */
 //	If sharding is enabled, need to uncomment
 //	public void setDb(Map<String, Map<String, String>> db) {
@@ -165,8 +168,7 @@ public class IdRepoConfig implements WebMvcConfigurer {
 	/**
 	 * Sets the id.
 	 *
-	 * @param id
-	 *            the id
+	 * @param id the id
 	 */
 	public void setId(Map<String, String> id) {
 		this.id = id;
@@ -175,8 +177,7 @@ public class IdRepoConfig implements WebMvcConfigurer {
 	/**
 	 * Sets the allowed bio types.
 	 *
-	 * @param allowedBioAttributes
-	 *            the new allowed bio types
+	 * @param allowedBioAttributes the new allowed bio types
 	 */
 	public void setAllowedBioAttributes(List<String> allowedBioAttributes) {
 		this.allowedBioAttributes = allowedBioAttributes;
@@ -189,15 +190,6 @@ public class IdRepoConfig implements WebMvcConfigurer {
 	 */
 	public void setBioAttributes(List<String> bioAttributes) {
 		this.bioAttributes = bioAttributes;
-	}
-
-	/**
-	 * Sets the allowed types.
-	 *
-	 * @param allowedTypes the new allowed types
-	 */
-	public void setAllowedTypes(List<String> allowedTypes) {
-		this.allowedTypes = allowedTypes;
 	}
 
 	// FIXME Need to check for UIN-Reg ID scenario
@@ -247,16 +239,6 @@ public class IdRepoConfig implements WebMvcConfigurer {
 	}
 
 	/**
-	 * Allowed types.
-	 *
-	 * @return the list
-	 */
-	@Bean
-	public List<String> allowedTypes() {
-		return Collections.unmodifiableList(allowedTypes);
-	}
-
-	/**
 	 * Status.
 	 *
 	 * @return the map
@@ -266,92 +248,39 @@ public class IdRepoConfig implements WebMvcConfigurer {
 		return Collections.unmodifiableList(uinStatus);
 	}
 
-	/**
-	 * Entity manager factory.
-	 *
-	 * @param dataSource
-	 *            the data source
-	 * @return the local container entity manager factory bean
-	 */
+	@Scheduled(fixedDelayString = "${" + IdRepoConstants.CREDENTIAL_STATUS_JOB_DELAY + ":1000}")
+	public void credentialStatusHandlerJob() {
+		credStatusManager.triggerEventNotifications();
+	}
+
 	@Bean
-	public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
-		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-		em.setDataSource(dataSource);
-		em.setPackagesToScan("io.mosip.idrepository.identity.*");
-
-		JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-		em.setJpaVendorAdapter(vendorAdapter);
-		em.setJpaPropertyMap(additionalProperties());
-
-		return em;
+	public CredentialServiceManager credentialServiceManager() {
+		return new CredentialServiceManager(restHelperWithAuth());
 	}
 
-	/**
-	 * Additional properties.
-	 *
-	 * @return the properties
-	 */
-	private Map<String, Object> additionalProperties() {
-		Map<String, Object> jpaProperties = new HashMap<>();
-		jpaProperties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQL92Dialect");
-		jpaProperties.put("hibernate.temp.use_jdbc_metadata_defaults", Boolean.FALSE);
-		jpaProperties.put("hibernate.implicit_naming_strategy", SpringImplicitNamingStrategy.class.getName());
-		jpaProperties.put("hibernate.physical_naming_strategy", SpringPhysicalNamingStrategy.class.getName());
-		jpaProperties.put("hibernate.ejb.interceptor", interceptor);
-		return jpaProperties;
-	}
-
-	/**
-	 * Builds the data source.
-	 *
-	 * @param dataSourceValues
-	 *            the data source values
-	 * @return the data source
-	 */
-	private DataSource buildDataSource(Map<String, String> dataSourceValues) {
-		DriverManagerDataSource dataSource = new DriverManagerDataSource(dataSourceValues.get("url"));
-		dataSource.setUsername(dataSourceValues.get("username"));
-		dataSource.setPassword(dataSourceValues.get("password"));
-		dataSource.setDriverClassName(dataSourceValues.get("driverClassName"));
-		return dataSource;
-	}
-
-	/**
-	 * Data source.
-	 *
-	 * @return the data source
-	 */
 	@Bean
-	public DataSource dataSource() {
-//		If sharding is enabled, need to uncomment
-//		return buildDataSource(db.get("shard"));
-		
-//		If sharding is enabled, need to comment below code
-		Map<String, String> dbValues = new HashMap<>();
-		dbValues.put("url", env.getProperty("mosip.idrepo.identity.db.url"));
-		dbValues.put("username", env.getProperty("mosip.idrepo.identity.db.username"));
-		dbValues.put("password", env.getProperty("mosip.idrepo.identity.db.password"));
-		dbValues.put("driverClassName", env.getProperty("mosip.idrepo.identity.db.driverClassName"));
-		return buildDataSource(dbValues);
-	}
-	
-	/*
-	 * This bean is returned because for async task the security context needs to be
-	 * passed.
-	 * 
-	 */
-	@Bean("withSecurityContext")
-	public DelegatingSecurityContextAsyncTaskExecutor taskExecutor() {
-		return new DelegatingSecurityContextAsyncTaskExecutor(threadPoolTaskExecutor());
+	@Primary
+	public RestHelper restHelper() {
+		return new RestHelper();
 	}
 
-	private ThreadPoolTaskExecutor threadPoolTaskExecutor() {
-		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(3);
-		executor.setMaxPoolSize(3);
-		executor.setQueueCapacity(500);
-		executor.setThreadNamePrefix("idrepo-");
-		executor.initialize();
-		return executor;
+	@Bean
+	public AuthTokenExchangeFilter authTokenExchangeFilter() {
+		return new AuthTokenExchangeFilter();
+	}
+
+	@Bean("restHelperWithAuth")
+	public RestHelper restHelperWithAuth() {
+		return new RestHelper(WebClient.builder().filter(authTokenExchangeFilter()).build());
+	}
+
+	@Bean
+	public IdRepoSecurityManager securityManager() {
+		return new IdRepoSecurityManager(restHelper());
+	}
+
+	@Bean("securityManagerWithAuth")
+	public IdRepoSecurityManager securityManagerWithAuth() {
+		return new IdRepoSecurityManager(restHelperWithAuth());
 	}
 }

@@ -69,6 +69,8 @@ public class IdRepoEntityInterceptorTest {
 	public void setup() {
 		ReflectionTestUtils.setField(securityManager, "env", env);
 		ReflectionTestUtils.setField(securityManager, "mapper", mapper);
+		ReflectionTestUtils.setField(securityManager, "restHelper", restHelper);
+		ReflectionTestUtils.setField(securityManager, "restBuilder", restBuilder);
 		ReflectionTestUtils.setField(interceptor, "securityManager", securityManager);
 	}
 
@@ -125,7 +127,7 @@ public class IdRepoEntityInterceptorTest {
 		when(restHelper.requestSync(Mockito.any()))
 				.thenReturn(mapper.readValue("{\"value\":\"1234\"}".getBytes(), ObjectNode.class));
 		UinDocument uin = new UinDocument();
-		assertFalse(interceptor.onSave(uin, null, null, null, null));
+		assertFalse(interceptor.onSave(uin, null, null, new String[] {""}, null));
 	}
 
 	@Test

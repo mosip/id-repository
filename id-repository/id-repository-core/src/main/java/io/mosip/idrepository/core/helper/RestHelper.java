@@ -12,11 +12,12 @@ import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
+import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
 import org.springframework.web.reactive.function.client.WebClient.ResponseSpec;
@@ -44,7 +45,6 @@ import reactor.core.publisher.Mono;
  *
  * @author Manoj SP
  */
-@Component
 @NoArgsConstructor
 public class RestHelper {
 
@@ -54,6 +54,9 @@ public class RestHelper {
 	/** The mapper. */
 	@Autowired
 	private ObjectMapper mapper;
+	
+	@Autowired
+	private ApplicationContext ctx;
 
 	/** The Constant METHOD_REQUEST_SYNC. */
 	private static final String METHOD_REQUEST_SYNC = "requestSync";
@@ -79,8 +82,17 @@ public class RestHelper {
 	/** The mosipLogger. */
 	private static Logger mosipLogger = IdRepoLogger.getLogger(RestHelper.class);
 	
-	@Autowired
 	private WebClient webClient;
+	
+	public RestHelper(WebClient webClient) {
+		this.webClient = webClient;
+	}
+	
+	@PostConstruct
+	public void init() {
+		if (Objects.isNull(webClient))
+			webClient = ctx.getBean(WebClient.class);
+	}
 	
 	/**
 	 * Request to send/receive HTTP requests and return the response synchronously.
@@ -109,16 +121,16 @@ public class RestHelper {
 		} catch (WebClientResponseException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_SYNC,
 					THROWING_REST_SERVICE_EXCEPTION + "- Http Status error - \n " + e.getMessage()
-							+ " \n Response Body : \n" + ExceptionUtils.getStackTrace(e));
+							+ " \n Response Body : \n" + e.getResponseBodyAsString());
 			throw handleStatusError(e, request.getResponseType());
 		} catch (RuntimeException e) {
 			if (e.getCause() != null && e.getCause().getClass().equals(TimeoutException.class)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_SYNC,
-						THROWING_REST_SERVICE_EXCEPTION + "- CONNECTION_TIMED_OUT - \n " + e.getMessage());
+						THROWING_REST_SERVICE_EXCEPTION + "- CONNECTION_TIMED_OUT - \n " + ExceptionUtils.getStackTrace(e));
 				throw new IdRepoRetryException(new RestServiceException(CONNECTION_TIMED_OUT, e));
 			} else {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, REQUEST_SYNC_RUNTIME_EXCEPTION,
-						THROWING_REST_SERVICE_EXCEPTION + "- UNKNOWN_ERROR - " + e.getMessage());
+						THROWING_REST_SERVICE_EXCEPTION + "- UNKNOWN_ERROR - " + ExceptionUtils.getStackTrace(e));
 				throw new IdRepoRetryException(new RestServiceException(UNKNOWN_ERROR, e));
 			}
 		}

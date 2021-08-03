@@ -16,6 +16,9 @@ import io.mosip.credentialstore.provider.impl.IdAuthProvider;
 import io.mosip.credentialstore.provider.impl.QrCodeProvider;
 import io.mosip.credentialstore.util.RestUtil;
 import io.mosip.idrepository.core.helper.AuditHelper;
+import io.mosip.idrepository.core.helper.RestHelper;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 
 
 
@@ -28,7 +31,16 @@ import io.mosip.idrepository.core.helper.AuditHelper;
 @EnableRetry
 @PropertySource("classpath:bootstrap.properties")
 public class CredentialStoreBeanConfig {
-
+	
+	@Bean
+	public DummyPartnerCheckUtil dummyPartnerCheckUtil() {
+		return new DummyPartnerCheckUtil();
+	}
+	
+	@Bean
+	public IdRepoSecurityManager securityManager() {
+		return new IdRepoSecurityManager();
+	}
 	
 	/**
 	 * Gets the id auth provider.
@@ -73,6 +85,11 @@ public class CredentialStoreBeanConfig {
 	public AuditHelper getAuditHelper() {
 		return new AuditHelper();
 		
+	}
+	
+	@Bean
+	public RestHelper restHelper() {
+		return new RestHelper();
 	}
 
 	@Value("${config.server.file.storage.uri}")

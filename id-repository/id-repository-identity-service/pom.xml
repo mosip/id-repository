@@ -18,12 +18,10 @@
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
 		<spring.boot.version>2.0.2.RELEASE</spring.boot.version>
-		<kernel.core.version>1.1.7-SNAPSHOT</kernel.core.version>
+		<kernel.core.version>1.2.0-SNAPSHOT</kernel.core.version>
 		<kernel.idvalidator.uin.version>1.2.0-SNAPSHOT</kernel.idvalidator.uin.version>
-		<kernel.idvalidator.rid.version>1.2.0-SNAPSHOT</kernel.idvalidator.rid.version>
-		<kernel.cbeffutil.api.version>1.1.7-SNAPSHOT</kernel.cbeffutil.api.version>
+		<kernel.cbeffutil.api.version>1.2.0-SNAPSHOT</kernel.cbeffutil.api.version>
 		<kernel.idobjectvalidator.version>1.2.0-SNAPSHOT</kernel.idobjectvalidator.version>
-		<kernel-websubclient-api.version>1.2.0-SNAPSHOT</kernel-websubclient-api.version>
 		<kernel-idvalidator-vid.version>1.2.0-SNAPSHOT</kernel-idvalidator-vid.version>
 		<kernel.khazana.version>1.2.0-SNAPSHOT</kernel.khazana.version>
 	</properties>
@@ -38,11 +36,6 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-uin</artifactId>
 			<version>${kernel.idvalidator.uin.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-idvalidator-rid</artifactId>
-			<version>${kernel.idvalidator.rid.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -67,11 +60,6 @@
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-websubclient-api</artifactId>
-			<version>${kernel-websubclient-api.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-vid</artifactId>
 			<version>${kernel-idvalidator-vid.version}</version>
 		</dependency>
@@ -86,7 +74,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-			<dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 			<version>${spring.boot.version}</version>
@@ -120,18 +108,6 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>${maven.surefire.plugin.version}</version>
-				<configuration>
-					<skip>false</skip>
-					<useFile>false</useFile>
-					<argLine>
-						--illegal-access=permit
-					</argLine>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
