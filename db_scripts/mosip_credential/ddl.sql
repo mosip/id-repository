@@ -1,4 +1,4 @@
-\c mosip_credential 
+\c mosip_credential
 
 \ir ddl/credential-credential_transaction.sql
 \ir ddl/credential-batch_job_execution.sql

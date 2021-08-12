@@ -10,6 +10,7 @@
 -- ------------------------------------------------------------------------------------------
 -- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
 -- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes
+-- Jul-2021		Ram Bhatt	    Lang Code is nullable
 -- ------------------------------------------------------------------------------------------
 
 -- NOTE: the code below contains the SQL for the selected object
@@ -32,12 +33,12 @@ CREATE TABLE idrepo.uin_document(
 	doc_name character varying(128) NOT NULL,
 	docfmt_code character varying(36) NOT NULL,
 	doc_hash character varying(64) NOT NULL,
-	lang_code character varying(3) NOT NULL,
+	lang_code character varying(3),
 	cr_by character varying(256) NOT NULL,
 	cr_dtimes timestamp NOT NULL,
 	upd_by character varying(256),
 	upd_dtimes timestamp,
-	is_deleted boolean DEFAULT FALSE,
+	is_deleted boolean NOT NULL DEFAULT FALSE,
 	del_dtimes timestamp,
 	CONSTRAINT pk_uind PRIMARY KEY (uin_ref_id,doccat_code),
 	CONSTRAINT uk_uind UNIQUE (uin_ref_id,doc_id)

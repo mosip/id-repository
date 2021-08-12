@@ -1,4 +1,4 @@
-\c mosip_idrepo 
+\c mosip_idrepo
 
 \ir ddl/idrepo-uin.sql
 \ir ddl/idrepo-uin_h.sql
@@ -10,3 +10,7 @@
 \ir ddl/idrepo-uin_encrypt_salt.sql
 \ir ddl/idrepo-uin_auth_lock.sql
 \ir ddl/idrepo-fk.sql
+\ir ddl/idrepo-credential_request_status.sql
+\ir ddl/idrepo-uin_biometric_draft.sql
+\ir ddl/idrepo-uin_draft.sql
+\ir ddl/idrepo-uin_document_draft.sql

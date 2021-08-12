@@ -10,6 +10,8 @@
 -- ------------------------------------------------------------------------------------------
 -- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
 -- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes
+-- May-2021		Ram Bhatt	    Added unlock_expiry_datetime column
+-- Jul-2021		Ram Bhatt	    Lang Code is nullable
 -- ------------------------------------------------------------------------------------------
 -- object: idrepo.uin_auth_lock | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.uin_auth_lock CASCADE;
@@ -20,13 +22,14 @@ CREATE TABLE idrepo.uin_auth_lock(
 	lock_start_datetime timestamp NOT NULL,
 	lock_end_datetime timestamp,
 	status_code character varying(36) NOT NULL,
-	lang_code character varying(3) NOT NULL,
+	lang_code character varying(3),
 	cr_by character varying(256) NOT NULL,
 	cr_dtimes timestamp NOT NULL,
 	upd_by character varying(256),
 	upd_dtimes timestamp,
 	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
+	unlock_expiry_datetime timestamp,
 	CONSTRAINT pk_uinal PRIMARY KEY (uin_hash,auth_type_code,lock_request_datetime)
 
 );

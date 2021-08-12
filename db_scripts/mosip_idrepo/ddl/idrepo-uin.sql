@@ -10,6 +10,8 @@
 -- ------------------------------------------------------------------------------------------
 -- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false 
 -- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes
+-- Jul-2021		Ram Bhatt	    Lang Code is nullable
+-- Jul-2021		Manoj SP	    Addition of Anonymous Profile column
 -- ------------------------------------------------------------------------------------------
 
 -- object: idrepo.uin | type: TABLE --
@@ -23,7 +25,8 @@ CREATE TABLE idrepo.uin(
 	reg_id character varying(39) NOT NULL,
 	bio_ref_id character varying(128),
 	status_code character varying(32) NOT NULL,
-	lang_code character varying(3) NOT NULL,
+	lang_code character varying(3),
+	anonymous_profile character varying,
 	cr_by character varying(256) NOT NULL,
 	cr_dtimes timestamp NOT NULL,
 	upd_by character varying(256),
