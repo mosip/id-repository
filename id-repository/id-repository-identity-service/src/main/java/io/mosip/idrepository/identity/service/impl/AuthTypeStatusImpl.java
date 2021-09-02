@@ -119,8 +119,9 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	public IdResponseDTO updateAuthTypeStatus(String individualId, IdType idType, List<AuthtypeStatus> authTypeStatusList)
 			throws IdRepoAppException {
 		authTypeStatusList.stream().filter(
-				status -> status.getLocked() && Objects.nonNull(status.getUnlockForSeconds()) && status.getUnlockForSeconds() > 0)
+				status -> !status.getLocked() && Objects.nonNull(status.getUnlockForSeconds()) && status.getUnlockForSeconds() > 0)
 				.forEach(status -> {
+					status.setLocked(true);
 					status.setMetadata(Collections.singletonMap(UNLOCK_EXP_TIMESTAMP, DateUtils
 							.formatToISOString(DateUtils.getUTCCurrentDateTime().plusSeconds(status.getUnlockForSeconds()))));
 				});
