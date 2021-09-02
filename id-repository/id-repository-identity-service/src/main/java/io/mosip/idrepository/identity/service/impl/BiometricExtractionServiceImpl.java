@@ -1,5 +1,7 @@
 package io.mosip.idrepository.identity.service.impl;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.DOT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_NOT_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR;
@@ -48,14 +50,8 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	@Autowired
 	private ObjectStoreHelper objectStoreHelper;
 	
-	/** The Constant DOT. */
-	private static final String DOT = ".";
-	
 	/** The Constant FORMAT_FLAG_SUFFIX. */
 	private static final String FORMAT_FLAG_SUFFIX = ".format";
-
-	/** The Constant EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX. */
-	private static final String EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX = "ExtractionFormat";
 
 	/** The bio exraction helper. */
 	@Autowired
@@ -76,7 +72,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	 * @return the completable future
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	@Async("withSecurityContext")
+	@Async
 	public CompletableFuture<List<BIR>> extractTemplate(String uinHash, String fileName,
 			String extractionType, String extractionFormat, List<BIR> birsForModality) throws IdRepoAppException {
 		try {
@@ -98,8 +94,9 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 					"EXTRATCING BIOMETRICS FOR FORMAT: " + extractionType +" : "+ extractionFormat);
 			Map<String, String> formatFlag = Map.of(getFormatFlag(extractionType), extractionFormat);
 			List<BIR> extractedBiometrics = extractBiometricTemplate(formatFlag, birsForModality);
-		
-			objectStoreHelper.putBiometricObject(uinHash, extractionFileName, cbeffUtil.createXML(extractedBiometrics));
+			if (!extractedBiometrics.isEmpty()) {
+				objectStoreHelper.putBiometricObject(uinHash, extractionFileName, cbeffUtil.createXML(extractedBiometrics));
+			}
 			return CompletableFuture.completedFuture(extractedBiometrics);
 		} catch (IdRepoDataValidationException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE, e.getMessage());
