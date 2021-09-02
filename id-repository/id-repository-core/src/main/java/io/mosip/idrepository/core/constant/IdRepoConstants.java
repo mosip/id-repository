@@ -79,7 +79,7 @@ public class IdRepoConstants {
 	
 	public static final String VID_REGENERATE_ACTIVE_STATUS = "INVALIDATED";
 	
-	public static final String SALT_KEY_LENGTH = "mosip.identity.salt.key.length";
+	public static final String MODULO_VALUE = "mosip.idrepo.modulo-value";
 	
 	public static final String SPLITTER = "_";
 	
@@ -130,8 +130,6 @@ public class IdRepoConstants {
 	public static final String IRIS_EXTRACTION_FORMAT = "irisExtractionFormat";
 
 	public static final String FINGER_EXTRACTION_FORMAT = "fingerExtractionFormat";
-	
-	public static final String CREDENTIAL_CRYPTO_REF_ID = "mosip.credential.request.crypto-ref-id";
 
 	
 	/** The value. */
@@ -155,22 +153,6 @@ public class IdRepoConstants {
 	public static final String DOT = ".";
 	
 	public static final String EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX = "ExtractionFormat";
-	
-	public static final String DRAFT_STATUS = "DRAFT";
-	
-	public static final String DEFAULT_VID_TYPE = "mosip.idrepo.draft-vid.default-type-to-create";
-	
-	public static final String VID_CREATE_ID = "mosip.idrepo.vid.id.create";
-	
-	public static final String VID_UPDATE_ID = "mosip.idrepo.vid.id.update";
-	
-	public static final int DEFAULT_SALT_KEY_LENGTH = 3;
-	
-	public static final String IDREPO_CACHE_UPDATE_INTERVAL = "mosip.idrepo.cache.update.interval.milli.seconds";
-	
-	public static final int CACHE_UPDATE_DEFAULT_INTERVAL = 7200000;
-  
-	public static final String ERRORS = "errors";
 
 	/**
 	 * Instantiates a new id repo constants.

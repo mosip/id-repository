@@ -7,12 +7,10 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executor;
 
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -26,16 +24,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
@@ -44,16 +37,15 @@ import io.mosip.idrepository.core.exception.AuthenticationException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.helper.IdRepoWebSubHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
+import io.mosip.idrepository.core.httpfilter.AuthTokenExchangeFilter;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.manager.CredentialStatusManager;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
-import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.StringUtils;
 
 /**
  * The Class IdRepoConfig.
@@ -65,8 +57,7 @@ import io.mosip.kernel.core.util.StringUtils;
 @EnableScheduling
 @EnableJpaRepositories(basePackages = "io.mosip.idrepository.*")
 @Import({ CredentialStatusManager.class, DummyPartnerCheckUtil.class })
-public class IdRepoConfig extends IdRepoDataSourceConfig
-		implements WebMvcConfigurer, ApplicationListener<ApplicationReadyEvent> {
+public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfigurer, ApplicationListener<ApplicationReadyEvent> {
 
 	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISH_URL + "}")
 	public String publisherHubURL;
@@ -99,9 +90,6 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 
 	@Autowired
 	private IdRepoWebSubHelper websubHelper;
-	
-	@Autowired
-	private ObjectMapper mapper;
 
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent event) {
@@ -110,7 +98,6 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 
 	@PostConstruct
 	public void init() {
-		mapper.registerModule(new Jdk8Module()).registerModule(new JavaTimeModule());
 		SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
 		restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
 
@@ -132,18 +119,18 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 							throw new AuthenticationException(IdRepoErrorConstants.AUTHENTICATION_FAILED,
 									response.getRawStatusCode());
 						} else {
-							throw new AuthenticationException(errorList.get(0).getErrorCode(),
-									errorList.get(0).getMessage(), response.getRawStatusCode());
+							throw new AuthenticationException(errorList.get(0).getErrorCode(), errorList.get(0).getMessage(),
+									response.getRawStatusCode());
 						}
 					} else {
-						mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError",
-								"Rest Template logs", "Status error - returning RestServiceException - CLIENT_ERROR -- "
+						mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError", "Rest Template logs",
+								"Status error - returning RestServiceException - CLIENT_ERROR -- "
 										+ new String(super.getResponseBody(response)));
 						throw new IdRepoAppUncheckedException(CLIENT_ERROR);
 					}
 				} else {
-					mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError",
-							"Rest Template logs", "Status error - returning RestServiceException - CLIENT_ERROR -- "
+					mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError", "Rest Template logs",
+							"Status error - returning RestServiceException - CLIENT_ERROR -- "
 									+ new String(super.getResponseBody(response)));
 					throw new IdRepoAppUncheckedException(MASTERDATA_RETRIEVE_ERROR);
 				}
@@ -269,88 +256,33 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 	}
 
 	@Bean
-	public CredentialServiceManager credentialServiceManager(@Qualifier("selfTokenWebClient") WebClient webClient) {
-		return new CredentialServiceManager(restHelperWithAuth(webClient));
+	public CredentialServiceManager credentialServiceManager() {
+		return new CredentialServiceManager(restHelperWithAuth());
 	}
 
-	@Bean
-	public RestHelper restHelperWithAuth(@Qualifier("selfTokenWebClient") WebClient webClient) {
-		return new RestHelper(webClient);
-	}
-
-	@Bean
-	public IdRepoSecurityManager securityManagerWithAuth(@Qualifier("selfTokenWebClient") WebClient webClient) {
-		return new IdRepoSecurityManager(restHelperWithAuth(webClient));
-	}
-	
 	@Bean
 	@Primary
-	public Executor executor() {
-	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-	    executor.setCorePoolSize(Math.floorDiv(EnvUtil.getActiveAsyncThreadCount(), 4));
-	    executor.setMaxPoolSize(EnvUtil.getActiveAsyncThreadCount());
-	    executor.setThreadNamePrefix("idrepo-identity-");
-	    executor.setWaitForTasksToCompleteOnShutdown(true);
-	    executor.initialize();
-	    return executor;
-	}
-	
-	@Bean
-	@Qualifier("webSubHelperExecutor")
-	public Executor webSubHelperExecutor() {
-	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-	    executor.setCorePoolSize(Math.floorDiv(EnvUtil.getActiveAsyncThreadCount(), 4));
-	    executor.setMaxPoolSize(EnvUtil.getActiveAsyncThreadCount());
-	    executor.setThreadNamePrefix("idrepo-websub-");
-	    executor.setWaitForTasksToCompleteOnShutdown(true);
-	    executor.initialize();
-	    return executor;
-	}
-	
-	@Bean
-	@Qualifier("credentialStatusManagerJobExecutor")
-	public Executor credentialStatusManagerJobExecutor() {
-	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-	    executor.setCorePoolSize(Math.floorDiv(EnvUtil.getActiveAsyncThreadCount(), 4));
-	    executor.setMaxPoolSize(EnvUtil.getActiveAsyncThreadCount());
-	    executor.setThreadNamePrefix("idrepo-cred-status-job-");
-	    executor.setWaitForTasksToCompleteOnShutdown(true);
-	    executor.initialize();
-	    return executor;
-	}
-	
-	@Bean
-	@Qualifier("anonymousProfileExecutor")
-	public Executor anonymousProfileExecutor() {
-	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-	    executor.setCorePoolSize(Math.floorDiv(EnvUtil.getActiveAsyncThreadCount(), 4));
-	    executor.setMaxPoolSize(EnvUtil.getActiveAsyncThreadCount());
-	    executor.setThreadNamePrefix("idrepo-identity-anonymousprofile-");
-	    executor.setWaitForTasksToCompleteOnShutdown(true);
-	    executor.initialize();
-	    return executor;
-	}
-	
-	@Scheduled(fixedRateString = "${" + "mosip.idrepo.monitor-thread-queue-in-ms" + ":10000}")
-	public void monitorThreadQueueLimit() {
-		if (StringUtils.isNotBlank(EnvUtil.getMonitorAsyncThreadQueue())) {
-			ThreadPoolTaskExecutor threadPoolTaskExecutor = (ThreadPoolTaskExecutor) executor();
-			ThreadPoolTaskExecutor webSubHelperExecutor = (ThreadPoolTaskExecutor) webSubHelperExecutor();
-			ThreadPoolTaskExecutor credentialStatusManagerJobExecutor = (ThreadPoolTaskExecutor) credentialStatusManagerJobExecutor();
-			ThreadPoolTaskExecutor anonymousProfileExecutor = (ThreadPoolTaskExecutor) anonymousProfileExecutor();
-			String monitoringLog = "Thread Name : {} Thread Active Count: {} Thread Task count: {} Thread queue count: {}";
-			logThreadQueueDetails(threadPoolTaskExecutor, threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size(), monitoringLog);
-			logThreadQueueDetails(webSubHelperExecutor, webSubHelperExecutor.getThreadPoolExecutor().getQueue().size(), monitoringLog);
-			logThreadQueueDetails(credentialStatusManagerJobExecutor, credentialStatusManagerJobExecutor.getThreadPoolExecutor().getQueue().size(), monitoringLog);
-			logThreadQueueDetails(anonymousProfileExecutor, anonymousProfileExecutor.getThreadPoolExecutor().getQueue().size(), monitoringLog);
-		}
+	public RestHelper restHelper() {
+		return new RestHelper();
 	}
 
-	private void logThreadQueueDetails(ThreadPoolTaskExecutor threadPoolTaskExecutor, int threadPoolQueueSize,
-			String monitoringLog) {
-		if (threadPoolQueueSize > EnvUtil.getAsyncThreadQueueThreshold())
-			mosipLogger.info(monitoringLog, threadPoolTaskExecutor.getThreadNamePrefix(),
-					threadPoolTaskExecutor.getActiveCount(),
-					threadPoolTaskExecutor.getThreadPoolExecutor().getTaskCount(), threadPoolQueueSize);
+	@Bean
+	public AuthTokenExchangeFilter authTokenExchangeFilter() {
+		return new AuthTokenExchangeFilter();
+	}
+
+	@Bean("restHelperWithAuth")
+	public RestHelper restHelperWithAuth() {
+		return new RestHelper(WebClient.builder().filter(authTokenExchangeFilter()).build());
+	}
+
+	@Bean
+	public IdRepoSecurityManager securityManager() {
+		return new IdRepoSecurityManager(restHelper());
+	}
+
+	@Bean("securityManagerWithAuth")
+	public IdRepoSecurityManager securityManagerWithAuth() {
+		return new IdRepoSecurityManager(restHelperWithAuth());
 	}
 }
