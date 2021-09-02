@@ -21,4 +21,6 @@ public interface IdRepoDraftService<REQUEST, RESPONSE> {
 	public boolean hasDraft(String registrationId) throws IdRepoAppException;
 	
 	public RESPONSE getDraft(String registrationId) throws IdRepoAppException;
+	
+	public RESPONSE extractBiometrics(String registractionId) throws IdRepoAppException;
 }
