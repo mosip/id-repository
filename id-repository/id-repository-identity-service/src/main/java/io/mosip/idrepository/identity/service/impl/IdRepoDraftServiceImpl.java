@@ -466,6 +466,30 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		}
 	}
 
+	@Override
+	public IdResponseDTO extractBiometrics(String registractionId) throws IdRepoAppException {
+		try {
+		Optional<UinDraft> draftOpt = uinDraftRepo.findByRegId(registractionId);
+		if (draftOpt.isPresent()) {
+			UinDraft draft = draftOpt.get();
+			draft.getBiometrics();
+		} else {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+					"DRAFT RECORD NOT FOUND");
+			throw new IdRepoAppException(NO_RECORD_FOUND);
+		}
+		return null;
+
+		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
+			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
+		} 
+//		catch (IOException e) {
+//			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "\n" + e.getMessage());
+//			throw new IdRepoAppException(UNKNOWN_ERROR, e);
+//		}
+	}
+
 	private IdResponseDTO constructIdResponse(byte[] uinData, String status, List<DocumentsDTO> documents,
 			AnonymousProfileDTO anonymousProfile) {
 		IdResponseDTO idResponse = new IdResponseDTO();
