@@ -93,6 +93,13 @@ public class ObjectStoreHelper {
 		}
 		return getObject(uinHash, true, fileRefId, bioDataRefId);
 	}
+	
+	public void deleteBiometricObject(String uinHash, String fileRefId) {
+		if (this.biometricObjectExists(uinHash, fileRefId)) {
+			String objectName = uinHash + SLASH + BIOMETRICS + SLASH + fileRefId;
+			objectStore.deleteObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
+		}
+	}
 
 	private boolean exists(String uinHash, boolean isBio, String fileRefId) {
 		String objectName = uinHash + SLASH + (isBio ? BIOMETRICS : DEMOGRAPHICS) + SLASH + fileRefId;

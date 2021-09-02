@@ -124,6 +124,12 @@ public class IdRepoConstants {
 	public static final String  VID_EVENT_CALLBACK_URL = "mosip.idrepo.websub.vid-credential-update.callback-url";
 	
 	public static final String CREDENTIAL_STATUS_UPDATE_TOPIC = "mosip.idrepo.websub.credential-status-update.topic";
+	
+	public static final String FACE_EXTRACTION_FORMAT = "faceExtractionFormat";
+
+	public static final String IRIS_EXTRACTION_FORMAT = "irisExtractionFormat";
+
+	public static final String FINGER_EXTRACTION_FORMAT = "fingerExtractionFormat";
 
 	
 	/** The value. */
@@ -143,6 +149,10 @@ public class IdRepoConstants {
 
 	/** The Constant ID_REPO. */
 	public static final String ID_REPO = "ID_REPO";
+	
+	public static final String DOT = ".";
+	
+	public static final String EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX = "ExtractionFormat";
 
 	/**
 	 * Instantiates a new id repo constants.
