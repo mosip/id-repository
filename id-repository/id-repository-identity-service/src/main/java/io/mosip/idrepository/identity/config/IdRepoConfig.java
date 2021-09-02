@@ -24,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -97,6 +98,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 
 	@PostConstruct
 	public void init() {
+		SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
 		restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
 
 			@Override

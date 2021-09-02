@@ -1,5 +1,8 @@
 package io.mosip.idrepository.identity.controller;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.FACE_EXTRACTION_FORMAT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.FINGER_EXTRACTION_FORMAT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.IRIS_EXTRACTION_FORMAT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MOSIP_KERNEL_IDREPO_JSON_PATH;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATA_VALIDATION_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
@@ -72,12 +75,6 @@ import springfox.documentation.annotations.ApiIgnore;
  */
 @RestController
 public class IdRepoController {
-
-	private static final String FACE_EXTRACTION_FORMAT = "faceExtractionFormat";
-
-	private static final String IRIS_EXTRACTION_FORMAT = "irisExtractionFormat";
-
-	private static final String FINGER_EXTRACTION_FORMAT = "fingerExtractionFormat";
 
 	private static final String ID_TYPE = "idType";
 
