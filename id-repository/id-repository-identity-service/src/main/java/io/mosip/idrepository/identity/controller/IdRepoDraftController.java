@@ -1,21 +1,7 @@
 package io.mosip.idrepository.identity.controller;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.FACE_EXTRACTION_FORMAT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.FINGER_EXTRACTION_FORMAT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.IRIS_EXTRACTION_FORMAT;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-
 import javax.annotation.Nullable;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -56,7 +42,6 @@ import springfox.documentation.annotations.ApiIgnore;
  *
  */
 @RestController
-@Tag(name = "id-repo-draft-controller", description = "Id Repo Draft Controller")
 @RequestMapping(path = "/draft")
 public class IdRepoDraftController {
 
@@ -74,22 +59,14 @@ public class IdRepoDraftController {
 
 	@Autowired
 	private AuditHelper auditHelper;
-	
+
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
 		binder.addValidators(validator);
 	}
-	
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostdraftcreateregistrationId())")
-	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+
+	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
 	@PostMapping(path = "/create/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "createDraft", description = "createDraft", tags = { "id-repo-draft-controller" })
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "OK"),
-			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<IdResponseDTO> createDraft(@PathVariable String registrationId,
 			@RequestParam(name = UIN, required = false) @Nullable String uin)
 			throws IdRepoAppException {
@@ -106,15 +83,8 @@ public class IdRepoDraftController {
 		}
 	}
 
-	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getPatchdraftupdateregistrationId())")
+	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
 	@PatchMapping(path = "/update/{registrationId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "updateDraft", description = "updateDraft", tags = { "id-repo-draft-controller" })
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "OK"),
-			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<IdResponseDTO> updateDraft(@PathVariable String registrationId, @RequestBody IdRequestDTO request,
 			@ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
@@ -133,15 +103,8 @@ public class IdRepoDraftController {
 		}
 	}
 
-	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetdraftpublishregistrationId())")
+	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
 	@GetMapping(path = "/publish/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "publishDraft", description = "publishDraft", tags = { "id-repo-draft-controller" })
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "OK"),
-			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<IdResponseDTO> publishDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
 			return new ResponseEntity<>(draftService.publishDraft(registrationId), HttpStatus.OK);
@@ -156,16 +119,8 @@ public class IdRepoDraftController {
 		}
 	}
 
-	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getDeletedraftdiscardregistrationId())")
+	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
 	@DeleteMapping(path = "/discard/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "discardDraft", description = "discardDraft", tags = { "id-repo-draft-controller" })
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "OK"),
-			@ApiResponse(responseCode = "204", description = "No Content" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<IdResponseDTO> discardDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
 			return new ResponseEntity<>(draftService.discardDraft(registrationId), HttpStatus.OK);
@@ -180,20 +135,12 @@ public class IdRepoDraftController {
 		}
 	}
 
-	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getDraftregistrationId())")
+	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
 	@RequestMapping(method = RequestMethod.HEAD, path = "/{registrationId}")
-	@Operation(summary = "hasDraft", description = "hasDraft", tags = { "id-repo-draft-controller" })
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "OK"),
-			@ApiResponse(responseCode = "204", description = "No Content" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
-			})
 	public ResponseEntity<Void> hasDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
 			HttpStatus responseStatus = draftService.hasDraft(registrationId) ? HttpStatus.OK : HttpStatus.NO_CONTENT;
-			return new ResponseEntity<>(responseStatus);
+			return new ResponseEntity<Void>(responseStatus);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.HAS_DRAFT_REQUEST_RESPONSE, registrationId,
 					IdType.ID, e);
@@ -205,25 +152,11 @@ public class IdRepoDraftController {
 		}
 	}
 
-	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetdraftregistrationId())")
+	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
 	@GetMapping(path = "/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "getDraft", description = "getDraft", tags = { "id-repo-draft-controller" })
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "OK"),
-			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true))),
-	})
-	public ResponseEntity<IdResponseDTO> getDraft(@PathVariable String registrationId,
-			@RequestParam(name = FINGER_EXTRACTION_FORMAT, required = false) @Nullable String fingerExtractionFormat,
-			@RequestParam(name = IRIS_EXTRACTION_FORMAT, required = false) @Nullable String irisExtractionFormat,
-			@RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat)
-			throws IdRepoAppException {
+	public ResponseEntity<IdResponseDTO> getDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
-			return new ResponseEntity<>(draftService.getDraft(registrationId,
-					buildExtractionFormatMap(fingerExtractionFormat, irisExtractionFormat, faceExtractionFormat)),
-					HttpStatus.OK);
+			return new ResponseEntity<>(draftService.getDraft(registrationId), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_DRAFT_REQUEST_RESPONSE, registrationId,
 					IdType.ID, e);
@@ -235,25 +168,11 @@ public class IdRepoDraftController {
 		}
 	}
 	
-	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getPutdraftextractbiometricsregistrationId())")
+	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
 	@PutMapping(path = "/extractbiometrics/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "extractBiometrics", description = "extractBiometrics", tags = { "id-repo-draft-controller" })
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "OK"),
-			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true))),
-	})
-	public ResponseEntity<IdResponseDTO> extractBiometrics(@PathVariable String registrationId,
-			@RequestParam(name = FINGER_EXTRACTION_FORMAT, required = false) @Nullable String fingerExtractionFormat,
-			@RequestParam(name = IRIS_EXTRACTION_FORMAT, required = false) @Nullable String irisExtractionFormat,
-			@RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat) throws IdRepoAppException {
+	public ResponseEntity<IdResponseDTO> extractBiometrics(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
-			return new ResponseEntity<>(draftService.extractBiometrics(registrationId,
-					buildExtractionFormatMap(fingerExtractionFormat, irisExtractionFormat, faceExtractionFormat)),
-					HttpStatus.OK);
+			return new ResponseEntity<>(draftService.extractBiometrics(registrationId), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.EXTRACT_BIOMETRICS_DRAFT_REQUEST_RESPONSE, registrationId,
 					IdType.ID, e);
@@ -263,22 +182,6 @@ public class IdRepoDraftController {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.EXTRACT_BIOMETRICS_DRAFT_REQUEST_RESPONSE, registrationId,
 					IdType.ID, "Extract Biometrics draft requested");
 		}
-	}
-
-	private Map<String, String> buildExtractionFormatMap(String fingerExtractionFormat, String irisExtractionFormat,
-			String faceExtractionFormat) {
-		Map<String, String> extractionFormats = new HashMap<>();
-		if(Objects.nonNull(fingerExtractionFormat)) {
-			extractionFormats.put(FINGER_EXTRACTION_FORMAT, fingerExtractionFormat);
-		}
-		if(Objects.nonNull(irisExtractionFormat)) {
-			extractionFormats.put(IRIS_EXTRACTION_FORMAT, irisExtractionFormat);
-		}
-		if(Objects.nonNull(faceExtractionFormat)) {
-			extractionFormats.put(FACE_EXTRACTION_FORMAT, faceExtractionFormat);
-		}
-		extractionFormats.remove(null);
-		return extractionFormats;
 	}
 	
 }
