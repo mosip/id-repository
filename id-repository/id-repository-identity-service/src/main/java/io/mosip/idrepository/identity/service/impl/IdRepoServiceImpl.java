@@ -59,6 +59,7 @@ import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.manager.CredentialStatusManager;
 import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
@@ -171,6 +172,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	@Autowired
 	private CredentialRequestStatusRepo credRequestRepo;
+	
+	@Autowired
+	private CredentialStatusManager credStatusManager;
 	
 	/**
 	 * Adds the identity to DB.
@@ -727,6 +731,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				credRequestRepo.save(credStatus);
 			});
 		}
+		credStatusManager.triggerEventNotifications();
 	}
 
 	/**
