@@ -13,6 +13,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EX
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_GENERATION_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_HASH_MISMATCH;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -68,6 +70,7 @@ import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.spi.BiometricExtractionService;
 import io.mosip.idrepository.core.spi.IdRepoDraftService;
 import io.mosip.idrepository.core.util.DataValidationUtil;
 import io.mosip.idrepository.identity.entity.Uin;
@@ -80,6 +83,7 @@ import io.mosip.idrepository.identity.repository.UinBiometricRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentRepo;
 import io.mosip.idrepository.identity.repository.UinDraftRepo;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
+import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -140,7 +144,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	private UinDocumentRepo uinDocumentRepo;
 	
 	@Autowired
-	private IdRepoProxyServiceImpl proxyService;
+	private BiometricExtractionService biometricExtractionService;
 
 	@Override
 	public IdResponseDTO createDraft(String registrationId, String uin) throws IdRepoAppException {
@@ -481,21 +485,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			try {
 				Optional<UinDraft> draftOpt = uinDraftRepo.findByRegId(registrationId);
 				if (draftOpt.isPresent()) {
-					UinDraft draft = draftOpt.get();
-					String uinHash = draft.getUinHash().split("_")[1];
-
-					// Delete existing extracted data
-					extractionFormats.entrySet()
-							.forEach(extractionFormat -> draft.getBiometrics()
-									.forEach(bio -> super.objectStoreHelper.deleteBiometricObject(uinHash,
-											buildExtractionFileName(extractionFormat, bio.getBioFileId()))));
-
-					// Extract new data
-					for (UinBiometricDraft bioDraft : draft.getBiometrics()) {
-						proxyService.getBiometricsForRequestedFormats(uinHash, bioDraft.getBioFileId(),
-								extractionFormats,
-								super.objectStoreHelper.getBiometricObject(uinHash, bioDraft.getBioFileId()));
-					}
+					extractBiometricsDraft(extractionFormats, draftOpt.get());
 				} else {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
 							"DRAFT RECORD NOT FOUND");
@@ -504,13 +494,53 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
 						e.getMessage());
-				throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
-			} catch (AmazonS3Exception e) {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
-						e.getMessage());
-				throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR);
+				throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 			}
 		return constructIdResponse(null, DRAFTED, null, null);
+	}
+
+	private void extractBiometricsDraft(Map<String, String> extractionFormats, UinDraft draft)
+			throws IdRepoAppException {
+		try {
+			String uinHash = draft.getUinHash().split("_")[1];
+			for (UinBiometricDraft bioDraft : draft.getBiometrics()) {
+				deleteExistingExtractedBioData(extractionFormats, uinHash, bioDraft);
+				beginExtraction(uinHash, bioDraft.getBioFileId(), extractionFormats);
+			}
+		} catch (AmazonS3Exception e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+					e.getMessage());
+			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR, e);
+		} catch (Exception e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
+			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
+		}
+	}
+
+	private void deleteExistingExtractedBioData(Map<String, String> extractionFormats, String uinHash, UinBiometricDraft bioDraft) {
+		extractionFormats.entrySet()
+				.forEach(extractionFormat -> super.objectStoreHelper.deleteBiometricObject(uinHash,
+						buildExtractionFileName(extractionFormat, bioDraft.getBioFileId())));
+	}
+
+	private void beginExtraction(String uinHash, String bioFileId, Map<String, String> extractionFormats)
+			throws Exception, IdRepoAppException {
+		List<BIR> originalBirs = cbeffUtil
+				.getBIRDataFromXML(super.objectStoreHelper.getBiometricObject(uinHash, bioFileId));
+		List<CompletableFuture<List<BIR>>> extractionFutures = new ArrayList<>();
+		if (!extractionFormats.isEmpty()) {
+			for (Entry<String, String> format : extractionFormats.entrySet()) {
+				List<BIR> birTypesForModality = originalBirs.stream().filter(bir -> {
+					return format.getKey().startsWith(bir.getBdbInfo().getType().get(0).value().toLowerCase());
+				}).collect(Collectors.toList());
+				if (!birTypesForModality.isEmpty()) {
+					CompletableFuture<List<BIR>> extractTemplateFuture = biometricExtractionService.extractTemplate(
+							uinHash, bioFileId, format.getKey(), format.getValue(), birTypesForModality);
+					extractionFutures.add(extractTemplateFuture);
+				}
+			}
+		}
+		CompletableFuture.allOf(extractionFutures.toArray(new CompletableFuture<?>[extractionFutures.size()])).join();
 	}
 
 	private String buildExtractionFileName(Entry<String, String> extractionFormat, String bioFileId) {
