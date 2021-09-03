@@ -1,7 +1,10 @@
 package io.mosip.idrepository.core.manager;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_ACTIVE_STATUS;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +23,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,10 +46,8 @@ import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.IdRepoWebSubHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
-import io.mosip.idrepository.core.manager.partner.PartnerServiceManager;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
-import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.core.util.TokenIDGenerator;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -60,21 +62,20 @@ import io.mosip.kernel.core.websub.model.EventModel;
  */
 public class CredentialServiceManager {
 
-	private static final String SEND_REQUEST_TO_CRED_SERVICE = "sendRequestToCredService";
-
-	private static final String GET_PARTNER_IDS = "getPartnerIds";
-
-	private static final String NOTIFY = "notify";
-
 	private static final boolean DEFAULT_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS = false;
 
 	private static final String PROP_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS = "skip-requesting-existing-credentials-for-partners";
 	
+	private static final String RESPONSE = "response";
+
 	/** The Constant mosipLogger. */
 	private static final Logger mosipLogger = IdRepoLogger.getLogger(CredentialServiceManager.class);
 
 	/** The Constant IDA. */
 	private static final String IDA = "IDA";
+
+	/** The Constant PARTNER_ACTIVE_STATUS. */
+	private static final String PARTNER_ACTIVE_STATUS = "Active";
 
 	/** The Constant AUTH. */
 	private static final String AUTH = "auth";
@@ -87,6 +88,10 @@ public class CredentialServiceManager {
 
 	/** The Constant REVOKED. */
 	private static final String REVOKED = "REVOKED";
+
+	/** The env. */
+	@Autowired
+	private Environment env;
 
 	/** The mapper. */
 	@Autowired
@@ -110,9 +115,6 @@ public class CredentialServiceManager {
 	/** The credential recepiant. */
 	@Value("${id-repo-ida-credential-recepiant:" + IDA + "}")
 	private String credentialRecepiant;
-	
-	@Value("$mosip.idrepo.vid.active-status}")
-	private String vidActiveStatus;
 
 	/** The token ID generator. */
 	@Autowired
@@ -126,9 +128,6 @@ public class CredentialServiceManager {
 	
 	@Autowired
 	private ApplicationContext ctx;
-	
-	@Autowired
-	private PartnerServiceManager partnerServiceManager;
 	
 	@Value("${" + PROP_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS + ":"
 			+ DEFAULT_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS + "}")
@@ -148,7 +147,7 @@ public class CredentialServiceManager {
 	public void triggerEventNotifications(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate,
 			String txnId, IntFunction<String> saltRetreivalFunction) {
 		this.notifyUinCredential(uin, expiryTimestamp, status, isUpdate, txnId, saltRetreivalFunction, null, null,
-				partnerServiceManager.getOLVPartnerIds());
+				getPartnerIds());
 	}
 
 	/**
@@ -178,13 +177,13 @@ public class CredentialServiceManager {
 			}
 			
 			if (partnerIds.isEmpty() || (partnerIds.size() == 1 && dummyCheck.isDummyOLVPartner(partnerIds.get(0)))) {
-				partnerIds = partnerServiceManager.getOLVPartnerIds();
+				partnerIds = getPartnerIds();
 			}
 
 			if ((status != null && isUpdate) && (!ACTIVATED.equals(status) || expiryTimestamp != null)) {
 				// Event to be sent to IDA for deactivation/blocked uin state
 				sendUINEventToIDA(uin, expiryTimestamp, status, vidInfoDtos, partnerIds, txnId,
-						id -> securityManager.getIdHashWithSaltModuloByPlainIdHash(id, saltRetreivalFunction), idaEventModelConsumer);
+						id -> securityManager.getIdHash(id, saltRetreivalFunction), idaEventModelConsumer);
 			} else {
 				// For create uin, or update uin with null expiry (active status), send event to
 				// credential service.
@@ -193,7 +192,7 @@ public class CredentialServiceManager {
 			}
 
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "notify",
 					e.getMessage());
 		}
 	}
@@ -215,7 +214,7 @@ public class CredentialServiceManager {
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,
 			Consumer<EventModel> idaEventModelConsumer) {
 		try {
-			List<String> partnerIds = partnerServiceManager.getOLVPartnerIds();
+			List<String> partnerIds = getPartnerIds();
 			if (isUpdated) {
 				sendVIDEventsToIDA(status, vids, partnerIds, idaEventModelConsumer);
 			} else {
@@ -223,11 +222,45 @@ public class CredentialServiceManager {
 						credentialRequestResponseConsumer);
 			}
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), GET_PARTNER_IDS, e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "getPartnerIds", e.getMessage());
 		}
 	}
 
-	
+	/**
+	 * Gets the partner ids.
+	 *
+	 * @return the partner ids
+	 */
+	@SuppressWarnings("unchecked")
+	private List<String> getPartnerIds() {
+		List<String> partners = Collections.emptyList();
+		try {
+			Map<String, Object> responseWrapperMap = restHelper
+					.requestSync(restBuilder.buildRequest(RestServicesConstants.PARTNER_SERVICE, null, Map.class));
+			Object response = responseWrapperMap.get(RESPONSE);
+			if (response instanceof Map) {
+				Object partnersObj = ((Map<String, ?>) response).get("partners");
+				if (partnersObj instanceof List) {
+					List<Map<String, Object>> partnersList = (List<Map<String, Object>>) partnersObj;
+					partners = partnersList.stream()
+							.filter(partner -> PARTNER_ACTIVE_STATUS.equalsIgnoreCase((String) partner.get("status")))
+							.map(partner -> (String) partner.get("partnerID")).collect(Collectors.toList());
+				}
+			}
+		} catch (RestServiceException | IdRepoDataValidationException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "getPartnerIds",
+					e.getMessage());
+		}
+
+		mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "getPartnerIds",
+				"PARTNERS_IDENTIFIED: " + partners.size());
+
+		if (partners.isEmpty()) {
+			return List.of(dummyCheck.getDummyOLVPartnerId());
+		} else {
+			return partners;
+		}
+	}
 
 	/**
 	 * Send UIN event to IDA.
@@ -263,10 +296,10 @@ public class CredentialServiceManager {
 
 	private void sendEventsToIDA(List<EventModel> eventList, EventType eventType, Consumer<EventModel> idaEventModelConsumer) {
 		eventList.forEach(eventDto -> {
-			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
+			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "notify",
 					"notifying IDA for event" + eventType.toString());
 			websubHelper.sendEventToIDA(eventDto, idaEventModelConsumer);
-			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
+			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "notify",
 					"notified IDA for event" + eventType.toString());
 		});
 	}
@@ -282,7 +315,7 @@ public class CredentialServiceManager {
 	private void sendVIDEventsToIDA(String status, List<VidInfoDTO> vids, List<String> partnerIds,
 			Consumer<EventModel> idaEventModelConsumer) {
 		EventType eventType;
-		if (vidActiveStatus.equals(status)) {
+		if (env.getProperty(VID_ACTIVE_STATUS).equals(status)) {
 			eventType = IDAEventType.ACTIVATE_ID;
 		} else if (REVOKED.equals(status)) {
 			eventType = IDAEventType.REMOVE_ID;
@@ -334,7 +367,7 @@ public class CredentialServiceManager {
 		eventRequestsList.addAll(partnerIds.stream().map(partnerId -> {
 			String token = tokenIDGenerator.generateTokenID(uin, partnerId);
 			return createCredReqDto(uin, partnerId, expiryTimestamp, null, token,
-					securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(uin, saltRetreivalFunction));
+					securityManager.getIdHashAndAttributes(uin, saltRetreivalFunction));
 		}).collect(Collectors.toList()));
 
 		if (vidInfoDtos != null) {
@@ -367,12 +400,12 @@ public class CredentialServiceManager {
 			List<String> partnerIds, IntFunction<String> saltRetreivalFunction,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
 		List<CredentialIssueRequestDto> eventRequestsList = vids.stream().flatMap(vid -> {
-			LocalDateTime expiryTimestamp = status.equals(EnvUtil.getVidActiveStatus()) ? vid.getExpiryTimestamp()
+			LocalDateTime expiryTimestamp = status.equals(env.getProperty(VID_ACTIVE_STATUS)) ? vid.getExpiryTimestamp()
 					: DateUtils.getUTCCurrentDateTime();
 			return partnerIds.stream().map(partnerId -> {
 				String token = tokenIDGenerator.generateTokenID(uin, partnerId);
 				return createCredReqDto(vid.getVid(), partnerId, expiryTimestamp, vid.getTransactionLimit(), token,
-						securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(vid.getVid(), saltRetreivalFunction));
+						securityManager.getIdHashAndAttributes(vid.getVid(), saltRetreivalFunction));
 			});
 		}).collect(Collectors.toList());
 
@@ -394,10 +427,10 @@ public class CredentialServiceManager {
 			requestWrapper.setRequest(reqDto);
 			requestWrapper.setRequesttime(DateUtils.getUTCCurrentDateTime());
 			String eventTypeDisplayName = isUpdate ? "Update ID" : "Create ID";
-			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
+			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "notify",
 					"notifying Credential Service for event " + eventTypeDisplayName);
 			sendRequestToCredService(reqDto.getIssuer(), requestWrapper, credentialRequestResponseConsumer);
-			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
+			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "notify",
 					"notified Credential Service for event" + eventTypeDisplayName);
 		});
 	}
@@ -412,20 +445,26 @@ public class CredentialServiceManager {
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
 		try {
 			Map<String, Object> response = Map.of();
+			if (!dummyCheck.isDummyOLVPartner(partnerId)) {
 				response = restHelper.requestSync(
 						restBuilder.buildRequest(RestServicesConstants.CREDENTIAL_REQUEST_SERVICE, requestWrapper, Map.class));
-				mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_REQUEST_TO_CRED_SERVICE,
+				// TODO logging of response needs to be removed
+				mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendRequestToCredService",
 						"Response of Credential Request: " + mapper.writeValueAsString(response));
+			}
 
 			if (credentialRequestResponseConsumer != null) {
 				credentialRequestResponseConsumer.accept(requestWrapper, response);
 			}
 
 		} catch (RestServiceException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_REQUEST_TO_CRED_SERVICE,
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendRequestToCredService",
 					e.getResponseBodyAsString().orElseGet(() -> ExceptionUtils.getStackTrace(e)));
-		} catch (IdRepoDataValidationException | JsonProcessingException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_REQUEST_TO_CRED_SERVICE,
+		} catch (IdRepoDataValidationException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendRequestToCredService",
+					ExceptionUtils.getStackTrace(e));
+		} catch (JsonProcessingException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendRequestToCredService",
 					ExceptionUtils.getStackTrace(e));
 		}
 	}
@@ -473,10 +512,11 @@ public class CredentialServiceManager {
 				Predicate<? super CredentialIssueRequestDto> additionalPredicate = additionalFilterCondition == null ? t -> true: additionalFilterCondition;
 				return partnerIds.stream()
 						.filter(skipExistingCredentialsForPartnersCondition.negate())
-						.map(partnerId -> createCredReqDto(entity.getIndividualId(), partnerId, entity.getIdExpiryTimestamp(),
-								entity.getIdTransactionLimit(), entity.getTokenId(),
-								securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(entity.getIndividualId(), saltRetreivalFunction)))
-						.filter(additionalPredicate);
+						.map(partnerId -> {
+					return createCredReqDto(entity.getIndividualId(), partnerId, entity.getIdExpiryTimestamp(),
+							entity.getIdTransactionLimit(), entity.getTokenId(),
+							securityManager.getIdHashAndAttributes(entity.getIndividualId(), saltRetreivalFunction));
+				}).filter(additionalPredicate);
 			}).collect(Collectors.toList());
 			
 			sendRequestToCredService(requests, false, credentialRequestResponseConsumer);
@@ -509,7 +549,7 @@ public class CredentialServiceManager {
 	 * @param event the event
 	 * @return the event model
 	 */
-	public <T> io.mosip.idrepository.core.dto.EventModel<T> createEventModel(String topic, T event) {
+	public <T,S> io.mosip.idrepository.core.dto.EventModel<T> createEventModel(String topic, T event) {
 		io.mosip.idrepository.core.dto.EventModel<T> eventModel = new io.mosip.idrepository.core.dto.EventModel<>();
 		eventModel.setEvent(event);
 		eventModel.setPublisher(IdRepoConstants.ID_REPO);
