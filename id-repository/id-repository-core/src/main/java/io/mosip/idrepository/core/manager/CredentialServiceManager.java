@@ -252,6 +252,9 @@ public class CredentialServiceManager {
 					e.getMessage());
 		}
 
+		mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "getPartnerIds",
+				"PARTNERS_IDENTIFIED: " + partners.size());
+
 		if (partners.isEmpty()) {
 			return List.of(dummyCheck.getDummyOLVPartnerId());
 		} else {

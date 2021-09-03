@@ -250,7 +250,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 		return Collections.unmodifiableList(uinStatus);
 	}
 
-	@Scheduled(fixedDelayString = "${" + IdRepoConstants.CREDENTIAL_STATUS_JOB_DELAY + ":1000}")
+//	@Scheduled(fixedDelayString = "${" + IdRepoConstants.CREDENTIAL_STATUS_JOB_DELAY + ":1000}")
 	public void credentialStatusHandlerJob() {
 		credStatusManager.triggerEventNotifications();
 	}

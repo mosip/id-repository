@@ -134,7 +134,8 @@ public class CredentialStatusManager {
 						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()));
 				Optional<CredentialRequestStatus> idWithDummyPartnerOptional = statusRepo.findByIndividualIdHashAndPartnerId(
 						credentialRequestStatus.getIndividualIdHash(), dummyPartner.getDummyOLVPartnerId());
-				if (idWithDummyPartnerOptional.isPresent()) {
+				if (idWithDummyPartnerOptional.isPresent() && !idWithDummyPartnerOptional.get().getStatus()
+						.contentEquals(CredentialRequestStatusLifecycle.FAILED.toString())) {
 					statusRepo.delete(idWithDummyPartnerOptional.get());
 				}
 			}
@@ -151,9 +152,11 @@ public class CredentialStatusManager {
 					.findByIndividualIdHashAndPartnerId((String) additionalData.get("id_hash"), request.getRequest().getIssuer());
 			if (credStatusOptional.isPresent()) {
 				CredentialRequestStatus credStatus = credStatusOptional.get();
-				credStatus.setRequestId(credResponse.getRequestId());
+				if (Objects.nonNull(credResponse))
+					credStatus.setRequestId(credResponse.getRequestId());
 				credStatus.setTokenId((String) additionalData.get("TOKEN"));
-				credStatus.setStatus(CredentialRequestStatusLifecycle.REQUESTED.toString());
+				credStatus.setStatus(Objects.isNull(credResponse) ? CredentialRequestStatusLifecycle.FAILED.toString()
+						: CredentialRequestStatusLifecycle.REQUESTED.toString());
 				credStatus.setIdTransactionLimit(Objects.nonNull(additionalData.get("transaction_limit"))
 						? (Integer) additionalData.get("transaction_limit")
 						: null);
@@ -166,9 +169,11 @@ public class CredentialStatusManager {
 				credStatus.setIndividualId(encryptId(request.getRequest().getId()));
 				credStatus.setIndividualIdHash((String) additionalData.get("id_hash"));
 				credStatus.setPartnerId(request.getRequest().getIssuer());
-				credStatus.setRequestId(credResponse.getRequestId());
+				if (Objects.nonNull(credResponse))
+					credStatus.setRequestId(credResponse.getRequestId());
 				credStatus.setTokenId((String) additionalData.get("TOKEN"));
-				credStatus.setStatus(CredentialRequestStatusLifecycle.REQUESTED.toString());
+				credStatus.setStatus(Objects.isNull(credResponse) ? CredentialRequestStatusLifecycle.FAILED.toString()
+						: CredentialRequestStatusLifecycle.REQUESTED.toString());
 				credStatus.setIdTransactionLimit(Objects.nonNull(additionalData.get("transaction_limit"))
 						? (Integer) additionalData.get("transaction_limit")
 						: null);
