@@ -475,7 +475,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		});
 	}
 
-	private byte[] getBiometricsForRequestedFormats(String uinHash, String fileName,
+	protected byte[] getBiometricsForRequestedFormats(String uinHash, String fileName,
 			Map<String, String> extractionFormats, byte[] originalData) throws IdRepoAppException {
 		try {
 			List<BIR> originalBirs = cbeffUtil.getBIRDataFromXML(originalData);
