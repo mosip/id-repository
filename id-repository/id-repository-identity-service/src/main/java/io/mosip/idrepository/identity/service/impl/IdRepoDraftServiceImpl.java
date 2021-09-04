@@ -445,7 +445,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	}
 
 	@Override
-	public IdResponseDTO getDraft(String regId) throws IdRepoAppException {
+	public IdResponseDTO getDraft(String regId, Map<String, String> extractionFormats) throws IdRepoAppException {
 		try {
 			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
 			if (uinDraft.isPresent()) {
@@ -456,8 +456,10 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 						? mapper.readValue(draft.getAnonymousProfile(), AnonymousProfileDTO.class)
 						: null;
 				for (UinBiometricDraft uinBiometricDraft : draft.getBiometrics()) {
+					byte[] cbeff = objectStoreHelper.getBiometricObject(uinHash, uinBiometricDraft.getBioFileId());
+					cbeff = getExtractedBioData(extractionFormats, uinHash, uinBiometricDraft, cbeff);
 					documents.add(new DocumentsDTO(uinBiometricDraft.getBiometricFileType(), CryptoUtil
-							.encodeBase64(objectStoreHelper.getBiometricObject(uinHash, uinBiometricDraft.getBioFileId()))));
+							.encodeBase64(cbeff)));
 				}
 				for (UinDocumentDraft uinDocumentDraft : draft.getDocuments()) {
 					documents.add(new DocumentsDTO(uinDocumentDraft.getDoccatCode(), CryptoUtil
@@ -475,6 +477,23 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		} catch (IOException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "\n" + e.getMessage());
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);
+		}
+	}
+
+	private byte[] getExtractedBioData(Map<String, String> extractionFormats, String uinHash,
+			UinBiometricDraft uinBiometricDraft, byte[] cbeff) throws IdRepoAppException {
+		try {
+			if (Objects.nonNull(extractionFormats) && !extractionFormats.isEmpty()) {
+				for (Entry<String, String> format : extractionFormats.entrySet()) {
+					byte[] extractedData = objectStoreHelper.getBiometricObject(uinHash,
+							buildExtractionFileName(format, uinBiometricDraft.getBioFileId()));
+					cbeff = super.cbeffUtil.updateXML(cbeffUtil.getBIRDataFromXML(extractedData), cbeff);
+				}
+			}
+			return cbeff;
+		} catch (Exception e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
+			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR, e);
 		}
 	}
 
