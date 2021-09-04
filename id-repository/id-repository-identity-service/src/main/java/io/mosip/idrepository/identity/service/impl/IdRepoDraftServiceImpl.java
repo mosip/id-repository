@@ -1,10 +1,14 @@
 package io.mosip.idrepository.identity.service.impl;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.DOT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MOSIP_KERNEL_IDREPO_JSON_PATH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_GENERATION_FAILED;
@@ -19,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
 
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.Configuration;
@@ -133,6 +139,9 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 
 	@Autowired
 	private UinDocumentRepo uinDocumentRepo;
+	
+	@Autowired
+	private IdRepoProxyServiceImpl proxyService;
 
 	@Override
 	public IdResponseDTO createDraft(String registrationId, String uin) throws IdRepoAppException {
@@ -433,7 +442,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	}
 
 	@Override
-	public IdResponseDTO getDraft(String regId) throws IdRepoAppException {
+	public IdResponseDTO getDraft(String regId, Map<String, String> extractionFormats) throws IdRepoAppException {
 		try {
 			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
 			if (uinDraft.isPresent()) {
@@ -444,8 +453,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 						? mapper.readValue(draft.getAnonymousProfile(), AnonymousProfileDTO.class)
 						: null;
 				for (UinBiometricDraft uinBiometricDraft : draft.getBiometrics()) {
-					documents.add(new DocumentsDTO(uinBiometricDraft.getBiometricFileType(), CryptoUtil
-							.encodeBase64(objectStoreHelper.getBiometricObject(uinHash, uinBiometricDraft.getBioFileId()))));
+					documents.add(new DocumentsDTO(uinBiometricDraft.getBiometricFileType(), CryptoUtil.encodeBase64(
+							extractAndGetCombinedCbeff(uinHash, uinBiometricDraft.getBioFileId(), extractionFormats))));
 				}
 				for (UinDocumentDraft uinDocumentDraft : draft.getDocuments()) {
 					documents.add(new DocumentsDTO(uinDocumentDraft.getDoccatCode(), CryptoUtil
@@ -464,6 +473,66 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "\n" + e.getMessage());
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);
 		}
+	}
+
+	@Override
+	public IdResponseDTO extractBiometrics(String registrationId, Map<String, String> extractionFormats)
+			throws IdRepoAppException {
+		if (!extractionFormats.isEmpty())
+			try {
+				Optional<UinDraft> draftOpt = uinDraftRepo.findByRegId(registrationId);
+				if (draftOpt.isPresent()) {
+					extractBiometricsDraft(extractionFormats, draftOpt.get());
+				} else {
+					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+							"DRAFT RECORD NOT FOUND");
+					throw new IdRepoAppException(NO_RECORD_FOUND);
+				}
+			} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+						e.getMessage());
+				throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
+			}
+		return constructIdResponse(null, DRAFTED, null, null);
+	}
+
+	private void extractBiometricsDraft(Map<String, String> extractionFormats, UinDraft draft)
+			throws IdRepoAppException {
+		try {
+			String uinHash = draft.getUinHash().split("_")[1];
+			for (UinBiometricDraft bioDraft : draft.getBiometrics()) {
+				deleteExistingExtractedBioData(extractionFormats, uinHash, bioDraft);
+				extractAndGetCombinedCbeff(uinHash, bioDraft.getBioFileId(), extractionFormats);
+			}
+		} catch (AmazonS3Exception e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+					e.getMessage());
+			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR, e);
+		} catch (Exception e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
+			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
+		}
+	}
+
+	private void deleteExistingExtractedBioData(Map<String, String> extractionFormats, String uinHash, UinBiometricDraft bioDraft) {
+		extractionFormats.entrySet()
+				.forEach(extractionFormat -> super.objectStoreHelper.deleteBiometricObject(uinHash,
+						buildExtractionFileName(extractionFormat, bioDraft.getBioFileId())));
+	}
+
+	private byte[] extractAndGetCombinedCbeff(String uinHash, String bioFileId, Map<String, String> extractionFormats)
+			throws IdRepoAppException {
+		return proxyService.getBiometricsForRequestedFormats(uinHash, bioFileId, extractionFormats,
+				super.objectStoreHelper.getBiometricObject(uinHash, bioFileId));
+	}
+
+	private String buildExtractionFileName(Entry<String, String> extractionFormat, String bioFileId) {
+		return bioFileId.split("\\.")[0].concat(DOT).concat(getModalityForFormat(extractionFormat.getKey())).concat(DOT)
+				.concat(extractionFormat.getValue());
+	}
+	
+	private String getModalityForFormat(String formatQueryParam) {
+		return formatQueryParam.replace(EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX, "");
 	}
 
 	private IdResponseDTO constructIdResponse(byte[] uinData, String status, List<DocumentsDTO> documents,

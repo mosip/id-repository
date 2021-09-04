@@ -1,5 +1,13 @@
 package io.mosip.idrepository.identity.controller;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.FACE_EXTRACTION_FORMAT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.FINGER_EXTRACTION_FORMAT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.IRIS_EXTRACTION_FORMAT;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 import javax.annotation.Nullable;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +23,7 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -153,9 +162,15 @@ public class IdRepoDraftController {
 
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
 	@GetMapping(path = "/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<IdResponseDTO> getDraft(@PathVariable String registrationId) throws IdRepoAppException {
+	public ResponseEntity<IdResponseDTO> getDraft(@PathVariable String registrationId,
+			@RequestParam(name = FINGER_EXTRACTION_FORMAT, required = false) @Nullable String fingerExtractionFormat,
+			@RequestParam(name = IRIS_EXTRACTION_FORMAT, required = false) @Nullable String irisExtractionFormat,
+			@RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat)
+			throws IdRepoAppException {
 		try {
-			return new ResponseEntity<>(draftService.getDraft(registrationId), HttpStatus.OK);
+			return new ResponseEntity<>(draftService.getDraft(registrationId,
+					buildExtractionFormatMap(fingerExtractionFormat, irisExtractionFormat, faceExtractionFormat)),
+					HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_DRAFT_REQUEST_RESPONSE, registrationId,
 					IdType.ID, e);
@@ -166,4 +181,42 @@ public class IdRepoDraftController {
 					IdType.ID, "Publish draft requested");
 		}
 	}
+	
+	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	@PutMapping(path = "/extractbiometrics/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<IdResponseDTO> extractBiometrics(@PathVariable String registrationId,
+			@RequestParam(name = FINGER_EXTRACTION_FORMAT, required = false) @Nullable String fingerExtractionFormat,
+			@RequestParam(name = IRIS_EXTRACTION_FORMAT, required = false) @Nullable String irisExtractionFormat,
+			@RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat) throws IdRepoAppException {
+		try {
+			return new ResponseEntity<>(draftService.extractBiometrics(registrationId,
+					buildExtractionFormatMap(fingerExtractionFormat, irisExtractionFormat, faceExtractionFormat)),
+					HttpStatus.OK);
+		} catch (IdRepoAppException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.EXTRACT_BIOMETRICS_DRAFT_REQUEST_RESPONSE, registrationId,
+					IdType.ID, e);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "extractBiometrics", e.getMessage());
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		} finally {
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.EXTRACT_BIOMETRICS_DRAFT_REQUEST_RESPONSE, registrationId,
+					IdType.ID, "Extract Biometrics draft requested");
+		}
+	}
+
+	private Map<String, String> buildExtractionFormatMap(String fingerExtractionFormat, String irisExtractionFormat,
+			String faceExtractionFormat) {
+		Map<String, String> extractionFormats = new HashMap<>();
+		if(Objects.nonNull(fingerExtractionFormat)) {
+			extractionFormats.put(FINGER_EXTRACTION_FORMAT, fingerExtractionFormat);
+		}
+		if(Objects.nonNull(irisExtractionFormat)) {
+			extractionFormats.put(IRIS_EXTRACTION_FORMAT, irisExtractionFormat);
+		}
+		if(Objects.nonNull(faceExtractionFormat)) {
+			extractionFormats.put(FACE_EXTRACTION_FORMAT, faceExtractionFormat);
+		}
+		extractionFormats.remove(null);
+		return extractionFormats;
+	}
+	
 }
