@@ -731,7 +731,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				credRequestRepo.save(credStatus);
 			});
 		}
-		credStatusManager.triggerEventNotifications();
 	}
 
 	/**
