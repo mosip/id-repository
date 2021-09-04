@@ -6,6 +6,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.MOSIP_KERNEL_I
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
@@ -13,7 +14,6 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EX
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_GENERATION_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_HASH_MISMATCH;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.CompletableFuture;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -70,7 +69,6 @@ import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.core.spi.BiometricExtractionService;
 import io.mosip.idrepository.core.spi.IdRepoDraftService;
 import io.mosip.idrepository.core.util.DataValidationUtil;
 import io.mosip.idrepository.identity.entity.Uin;
@@ -83,7 +81,6 @@ import io.mosip.idrepository.identity.repository.UinBiometricRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentRepo;
 import io.mosip.idrepository.identity.repository.UinDraftRepo;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
-import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -144,7 +141,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	private UinDocumentRepo uinDocumentRepo;
 	
 	@Autowired
-	private BiometricExtractionService biometricExtractionService;
+	private IdRepoProxyServiceImpl proxyService;
 
 	@Override
 	public IdResponseDTO createDraft(String registrationId, String uin) throws IdRepoAppException {
@@ -456,10 +453,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 						? mapper.readValue(draft.getAnonymousProfile(), AnonymousProfileDTO.class)
 						: null;
 				for (UinBiometricDraft uinBiometricDraft : draft.getBiometrics()) {
-					byte[] cbeff = objectStoreHelper.getBiometricObject(uinHash, uinBiometricDraft.getBioFileId());
-					cbeff = getExtractedBioData(extractionFormats, uinHash, uinBiometricDraft, cbeff);
-					documents.add(new DocumentsDTO(uinBiometricDraft.getBiometricFileType(), CryptoUtil
-							.encodeBase64(cbeff)));
+					documents.add(new DocumentsDTO(uinBiometricDraft.getBiometricFileType(), CryptoUtil.encodeBase64(
+							extractAndGetCombinedCbeff(uinHash, uinBiometricDraft.getBioFileId(), extractionFormats))));
 				}
 				for (UinDocumentDraft uinDocumentDraft : draft.getDocuments()) {
 					documents.add(new DocumentsDTO(uinDocumentDraft.getDoccatCode(), CryptoUtil
@@ -477,23 +472,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		} catch (IOException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "\n" + e.getMessage());
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);
-		}
-	}
-
-	private byte[] getExtractedBioData(Map<String, String> extractionFormats, String uinHash,
-			UinBiometricDraft uinBiometricDraft, byte[] cbeff) throws IdRepoAppException {
-		try {
-			if (Objects.nonNull(extractionFormats) && !extractionFormats.isEmpty()) {
-				for (Entry<String, String> format : extractionFormats.entrySet()) {
-					byte[] extractedData = objectStoreHelper.getBiometricObject(uinHash,
-							buildExtractionFileName(format, uinBiometricDraft.getBioFileId()));
-					cbeff = super.cbeffUtil.updateXML(cbeffUtil.getBIRDataFromXML(extractedData), cbeff);
-				}
-			}
-			return cbeff;
-		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
-			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR, e);
 		}
 	}
 
@@ -524,7 +502,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			String uinHash = draft.getUinHash().split("_")[1];
 			for (UinBiometricDraft bioDraft : draft.getBiometrics()) {
 				deleteExistingExtractedBioData(extractionFormats, uinHash, bioDraft);
-				beginExtraction(uinHash, bioDraft.getBioFileId(), extractionFormats);
+				extractAndGetCombinedCbeff(uinHash, bioDraft.getBioFileId(), extractionFormats);
 			}
 		} catch (AmazonS3Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
@@ -542,24 +520,10 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 						buildExtractionFileName(extractionFormat, bioDraft.getBioFileId())));
 	}
 
-	private void beginExtraction(String uinHash, String bioFileId, Map<String, String> extractionFormats)
-			throws Exception, IdRepoAppException {
-		List<BIR> originalBirs = cbeffUtil
-				.getBIRDataFromXML(super.objectStoreHelper.getBiometricObject(uinHash, bioFileId));
-		List<CompletableFuture<List<BIR>>> extractionFutures = new ArrayList<>();
-		if (!extractionFormats.isEmpty()) {
-			for (Entry<String, String> format : extractionFormats.entrySet()) {
-				List<BIR> birTypesForModality = originalBirs.stream().filter(bir -> {
-					return format.getKey().startsWith(bir.getBdbInfo().getType().get(0).value().toLowerCase());
-				}).collect(Collectors.toList());
-				if (!birTypesForModality.isEmpty()) {
-					CompletableFuture<List<BIR>> extractTemplateFuture = biometricExtractionService.extractTemplate(
-							uinHash, bioFileId, format.getKey(), format.getValue(), birTypesForModality);
-					extractionFutures.add(extractTemplateFuture);
-				}
-			}
-		}
-		CompletableFuture.allOf(extractionFutures.toArray(new CompletableFuture<?>[extractionFutures.size()])).join();
+	private byte[] extractAndGetCombinedCbeff(String uinHash, String bioFileId, Map<String, String> extractionFormats)
+			throws IdRepoAppException {
+		return proxyService.getBiometricsForRequestedFormats(uinHash, bioFileId, extractionFormats,
+				super.objectStoreHelper.getBiometricObject(uinHash, bioFileId));
 	}
 
 	private String buildExtractionFileName(Entry<String, String> extractionFormat, String bioFileId) {
