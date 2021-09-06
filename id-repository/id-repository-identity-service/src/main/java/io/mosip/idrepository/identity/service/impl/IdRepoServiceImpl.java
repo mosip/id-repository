@@ -145,7 +145,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	/** The cbeff util. */
 	@Autowired
-	private CbeffUtil cbeffUtil;
+	protected CbeffUtil cbeffUtil;
 
 	/** The security manager. */
 	@Autowired
