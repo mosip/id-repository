@@ -164,11 +164,11 @@ public class IdRepoController {
 			String uin = getUin(request.getRequest());
 			validator.validateId(request.getId(), CREATE);
 			DataValidationUtil.validate(errors);
-//			if (!validator.validateUin(uin)) {
-//				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "addIdentity", "Invalid uin");
-//				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
-//						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
-//			}
+			if (!validator.validateUin(uin)) {
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "addIdentity", "Invalid uin");
+				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
+			}
 			return new ResponseEntity<>(idRepoService.addIdentity(request, uin), HttpStatus.OK);
 		} catch (IdRepoDataValidationException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE,

@@ -249,12 +249,6 @@ public class ChannelInfoHelper {
 	private String emailAsNumber(String email) {
 		String emailAsNumber = email.chars().boxed().map(String::valueOf).collect(Collectors.joining());
 		return emailAsNumber.substring(emailAsNumber.length() - 3, emailAsNumber.length());
-//		Arrays.asList(email.chars()).stream().map(c -> ((int) c));
-//		String emailAsNumber = "";
-//		for (char c : email.toCharArray()) {
-//			emailAsNumber = emailAsNumber.concat(String.valueOf(((int) c)));
-//		}
-//		return emailAsNumber;
 	}
 
 	private int getModValue(String number) {
