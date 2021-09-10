@@ -230,7 +230,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					.filter(doc -> doc.getCategory().contentEquals(IdentityIssuanceProfileBuilder
 							.getIdentityMapping().getIdentity().getIndividualBiometrics().getValue()))
 					.findFirst().orElse(new DocumentsDTO()).getValue())
-			.setOldUinData(uinEntity.getUinData())
+			.setOldUinData(identityInfo)
 			.setVerifiedAttributes(request.getRequest().getVerifiedAttributes())
 			.buildAndsaveProfile();
 		return uinEntity;
