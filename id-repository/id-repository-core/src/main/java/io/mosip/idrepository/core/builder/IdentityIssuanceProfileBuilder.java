@@ -25,6 +25,7 @@ import io.mosip.idrepository.core.dto.Exceptions;
 import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.kernel.biometrics.commons.CbeffValidator;
 import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.util.CryptoUtil;
 import lombok.Data;
 
@@ -145,9 +146,9 @@ public class IdentityIssuanceProfileBuilder {
 		if (Objects.nonNull(bioData))
 			return bioData.stream()
 					.filter(bir -> bir.getOthers().stream().filter(others -> others.getKey().contentEquals("EXCEPTION"))
-							.findFirst().isPresent())
+							.findAny().isPresent())
 					.filter(bir -> bir.getOthers().stream().filter(others -> others.getKey().contentEquals("EXCEPTION"))
-							.findFirst().get().getValue().contentEquals("true"))
+							.findAny().get().getValue().contentEquals("true"))
 					.map(bir -> Exceptions.builder()
 							.type(bir.getBdbInfo().getType().stream().map(type -> type.value())
 									.collect(Collectors.joining(" ")))
@@ -164,22 +165,24 @@ public class IdentityIssuanceProfileBuilder {
 		if (Objects.nonNull(biometrics))
 			Streams.stream(biometrics).filter(bir -> Objects.nonNull(bir.getOthers())
 					&& Objects.nonNull(bir.getBdbInfo()) && Objects.nonNull(bir.getBdbInfo().getQuality())).map(bir -> {
-						String payload = bir.getOthers().stream()
-								.filter(others -> others.getKey().contentEquals("PAYLOAD")).findFirst().get()
-								.getValue();
-						Map<String, String> digitalIdEncoded = mapper.readValue(payload,
-								new TypeReference<Map<String, String>>() {
-								});
-						String digitalId = new String(
-								CryptoUtil.decodeBase64(digitalIdEncoded.get("digitalId").split("\\.")[1]));
+						Optional<Entry> payload = bir.getOthers().stream()
+								.filter(others -> others.getKey().contentEquals("PAYLOAD")).findAny();
+						String digitalId = null;
+						if (payload.isPresent()) {
+							Map<String, String> digitalIdEncoded = mapper.readValue(payload.get().getValue(),
+									new TypeReference<Map<String, String>>() {
+									});
+							digitalId = new String(
+									CryptoUtil.decodeBase64(digitalIdEncoded.get("digitalId").split("\\.")[1]));
+						}
 						return BiometricInfo.builder()
 								.type(bir.getBdbInfo().getType().stream().map(type -> type.value())
 										.collect(Collectors.joining(" ")))
 								.subType(String.join(" ", bir.getBdbInfo().getSubtype()))
 								.qualityScore(bir.getBdbInfo().getQuality().getScore())
 								.attempts(bir.getOthers().stream()
-										.filter(others -> others.getKey().contentEquals("RETRIES")).findFirst().get()
-										.getValue())
+										.filter(others -> others.getKey().contentEquals("RETRIES")).findAny()
+										.orElseGet(() -> new Entry()).getValue())
 								.digitalId(digitalId).build();
 					}).collect(Collectors.toList());
 		return null;
