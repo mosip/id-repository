@@ -23,7 +23,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
@@ -90,14 +89,14 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 
 	@Autowired
 	private IdRepoWebSubHelper websubHelper;
-
+	
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent event) {
 		websubHelper.subscribeForVidEvent();
 	}
 
 	@PostConstruct
-	public void init() {
+	public void init() throws IOException {
 		SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
 		restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
 
@@ -250,7 +249,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 		return Collections.unmodifiableList(uinStatus);
 	}
 
-	@Scheduled(fixedDelayString = "${" + IdRepoConstants.CREDENTIAL_STATUS_JOB_DELAY + ":1000}")
+//	@Scheduled(fixedDelayString = "${" + IdRepoConstants.CREDENTIAL_STATUS_JOB_DELAY + ":1000}")
 	public void credentialStatusHandlerJob() {
 		credStatusManager.triggerEventNotifications();
 	}
