@@ -18,10 +18,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
@@ -49,8 +51,8 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 
+import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
-import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
@@ -71,7 +73,7 @@ import io.mosip.idrepository.identity.entity.UinBiometricHistory;
 import io.mosip.idrepository.identity.entity.UinDocument;
 import io.mosip.idrepository.identity.entity.UinDocumentHistory;
 import io.mosip.idrepository.identity.entity.UinHistory;
-import io.mosip.idrepository.identity.entity.UinInfo;
+import io.mosip.idrepository.identity.helper.AnonymousProfileHelper;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 import io.mosip.idrepository.identity.repository.UinBiometricHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentHistoryRepo;
@@ -172,6 +174,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	@Autowired
 	private CredentialRequestStatusRepo credRequestRepo;
 	
+	@Autowired
+	private AnonymousProfileHelper anonymousProfileHelper;
+	
 	/**
 	 * Adds the identity to DB.
 	 *
@@ -182,54 +187,53 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 */
 	@Override
 	public Uin addIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
-		try {
-			String uinRefId = UUIDUtils
-					.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils.getUTCCurrentDateTime()).toString();
-			byte[] identityInfo = convertToBytes(request.getRequest().getIdentity());
-			int modResult = getModValue(uin);
-			String uinHash = getUinHash(uin, modResult);
-			String uinHashWithSalt = uinHash.split(SPLITTER)[1];
-			String uinToEncrypt = getUinToEncrypt(uin, modResult);
+		String uinRefId = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils.getUTCCurrentDateTime())
+				.toString();
+		byte[] identityInfo = convertToBytes(request.getRequest().getIdentity());
+		int modResult = getModValue(uin);
+		String uinHash = getUinHash(uin, modResult);
+		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
+		String uinToEncrypt = getUinToEncrypt(uin, modResult);
 
-			List<UinDocument> docList = new ArrayList<>();
-			List<UinBiometric> bioList = new ArrayList<>();
-			Uin uinEntity;
-			String activeStatus = env.getProperty(ACTIVE_STATUS);
-			String anonymousProfile = Objects.nonNull(request.getRequest().getAnonymousProfile())
-					? mapper.writeValueAsString(request.getRequest().getAnonymousProfile())
-					: null;
-			if (Objects.nonNull(request.getRequest().getDocuments())
-					&& !request.getRequest().getDocuments().isEmpty()) {
-				addDocuments(uinHashWithSalt, identityInfo, request.getRequest().getDocuments(), uinRefId, docList,
-						bioList, false);
-				uinEntity = new Uin(uinRefId, uinToEncrypt, uinHash, identityInfo, securityManager.hash(identityInfo),
-						request.getRequest().getRegistrationId(), activeStatus, anonymousProfile,
-						IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), null, null, false, null,
-						bioList, docList);
-				uinEntity = uinRepo.save(uinEntity);
-				mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
-						"Record successfully saved in db with documents");
-			} else {
-				uinEntity = new Uin(uinRefId, uinToEncrypt, uinHash, identityInfo, securityManager.hash(identityInfo),
-						request.getRequest().getRegistrationId(), activeStatus, anonymousProfile,
-						IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), null, null, false, null,
-						null, null);
-				uinEntity = uinRepo.save(uinEntity);
-				mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
-						"Record successfully saved in db without documents");
-			}
-
-			uinHistoryRepo.save(new UinHistory(uinRefId, DateUtils.getUTCCurrentDateTime(), uinEntity.getUin(),
-					uinEntity.getUinHash(), uinEntity.getUinData(), uinEntity.getUinDataHash(), uinEntity.getRegId(),
-					activeStatus, anonymousProfile, IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(),
-					null, null, false, null));
-			issueCredential(uin, uinEntity.getUin(), uinHashWithSalt, activeStatus, null, false,
-					request.getRequest().getRegistrationId());
-			return uinEntity;
-		} catch (JsonProcessingException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, e.getMessage());
-			throw new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR);
+		List<UinDocument> docList = new ArrayList<>();
+		List<UinBiometric> bioList = new ArrayList<>();
+		Uin uinEntity;
+		String activeStatus = env.getProperty(ACTIVE_STATUS);
+		if (Objects.nonNull(request.getRequest().getDocuments()) && !request.getRequest().getDocuments().isEmpty()) {
+			addDocuments(uinHashWithSalt, identityInfo, request.getRequest().getDocuments(), uinRefId, docList, bioList,
+					false);
+			uinEntity = new Uin(uinRefId, uinToEncrypt, uinHash, identityInfo, securityManager.hash(identityInfo),
+					request.getRequest().getRegistrationId(), activeStatus, IdRepoSecurityManager.getUser(),
+					DateUtils.getUTCCurrentDateTime(), null, null, false, null, bioList, docList);
+			uinEntity = uinRepo.save(uinEntity);
+			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
+					"Record successfully saved in db with documents");
+		} else {
+			uinEntity = new Uin(uinRefId, uinToEncrypt, uinHash, identityInfo, securityManager.hash(identityInfo),
+					request.getRequest().getRegistrationId(), activeStatus, IdRepoSecurityManager.getUser(),
+					DateUtils.getUTCCurrentDateTime(), null, null, false, null, null, null);
+			uinEntity = uinRepo.save(uinEntity);
+			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
+					"Record successfully saved in db without documents");
 		}
+
+		uinHistoryRepo.save(
+				new UinHistory(uinRefId, DateUtils.getUTCCurrentDateTime(), uinEntity.getUin(), uinEntity.getUinHash(),
+						uinEntity.getUinData(), uinEntity.getUinDataHash(), uinEntity.getRegId(), activeStatus,
+						IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), null, null, false, null));
+		issueCredential(uin, uinEntity.getUin(), uinHashWithSalt, activeStatus, null, false,
+				request.getRequest().getRegistrationId());
+		anonymousProfileHelper
+			.setRegId(request.getRequest().getRegistrationId())
+			.setOldCbeff(Optional.ofNullable(request.getRequest().getDocuments()).stream()
+					.flatMap(list -> list.stream())
+					.filter(doc -> doc.getCategory().contentEquals(IdentityIssuanceProfileBuilder
+							.getIdentityMapping().getIdentity().getIndividualBiometrics().getValue()))
+					.findFirst().orElse(new DocumentsDTO()).getValue())
+			.setOldUinData(identityInfo)
+			.setVerifiedAttributes(request.getRequest().getVerifiedAttributes())
+			.buildAndsaveProfile();
+		return uinEntity;
 	}
 
 	protected int getModValue(String uin) {
@@ -245,7 +249,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	protected String getUinHash(String uin, int modResult) {
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
-		//TODO hash salt should be decoded instead of getByte()
 		return modResult + SPLITTER + securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
 	}
 
@@ -374,6 +377,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 */
 	@Override
 	public Uin updateIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
+		anonymousProfileHelper.setRegId(request.getRequest().getRegistrationId());
 		int modResult = getModValue(uin);
 		String uinHash = getUinHash(uin, modResult);
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
@@ -386,7 +390,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
 				uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
 			}
-			String anonymousProfile = updateAnonymousProfile(request, uinObject);
 			if (Objects.nonNull(request.getRequest()) && Objects.nonNull(request.getRequest().getIdentity())) {
 				RequestDTO requestDTO = request.getRequest();
 				Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
@@ -395,6 +398,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				DocumentContext dbData = JsonPath.using(configuration).parse(new String(uinObject.getUinData()));
 				JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(),
 						dbData.jsonString(), JSONCompareMode.LENIENT);
+				anonymousProfileHelper.setOldUinData(dbData.jsonString().getBytes());
 
 				if (comparisonResult.failed()) {
 					updateJsonObject(inputData, dbData, comparisonResult);
@@ -405,6 +409,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				}
 
 				if (Objects.nonNull(requestDTO.getDocuments()) && !requestDTO.getDocuments().isEmpty()) {
+					anonymousProfileHelper
+							.setNewCbeff(request.getRequest().getDocuments().stream()
+									.filter(doc -> doc.getCategory().contentEquals(IdentityIssuanceProfileBuilder
+											.getIdentityMapping().getIdentity().getIndividualBiometrics().getValue()))
+									.findFirst().get().getValue());
 					updateDocuments(uinHashWithSalt, uinObject, requestDTO, false);
 					uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
 					uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
@@ -412,14 +421,15 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			}
 
 			uinObject = uinRepo.save(uinObject);
-
+			anonymousProfileHelper.setNewUinData(uinObject.getUinData());
 			uinHistoryRepo.save(new UinHistory(uinObject.getUinRefId(), DateUtils.getUTCCurrentDateTime(),
 					uinObject.getUin(), uinObject.getUinHash(), uinObject.getUinData(), uinObject.getUinDataHash(),
-					uinObject.getRegId(), uinObject.getStatusCode(), anonymousProfile, IdRepoSecurityManager.getUser(),
+					uinObject.getRegId(), uinObject.getStatusCode(), IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), false, null));
 			issueCredential(uin, uinObject.getUin(), uinHashWithSalt, uinObject.getStatusCode(),
 					DateUtils.getUTCCurrentDateTime(), true, request.getRequest().getRegistrationId());
+			anonymousProfileHelper.buildAndsaveProfile();
 			return uinObject;
 		} catch (JSONException | InvalidJsonException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, UPDATE_IDENTITY, e.getMessage());
@@ -428,39 +438,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, UPDATE_IDENTITY,
 					"\n" + e.getErrorText());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
-		}
-	}
-
-	protected String updateAnonymousProfile(IdRequestDTO request, UinInfo uinObject)
-			throws IdRepoAppException {
-		try {
-			String anonymousProfile = null;
-			if (Objects.nonNull(request.getRequest()) && Objects.nonNull(request.getRequest().getAnonymousProfile())) {
-				Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
-						.mappingProvider(new JacksonMappingProvider()).build();
-				String anonymousProfileAsString = mapper.writeValueAsString(request.getRequest().getAnonymousProfile());
-				if (StringUtils.isNotBlank(uinObject.getAnonymousProfile())) {
-					DocumentContext inputData = JsonPath.using(configuration)
-							.parse(anonymousProfileAsString);
-					DocumentContext dbData = JsonPath.using(configuration).parse(uinObject.getAnonymousProfile());
-					JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(),
-							dbData.jsonString(), JSONCompareMode.LENIENT);
-					if (comparisonResult.failed()) {
-						updateJsonObject(inputData, dbData, comparisonResult);
-						anonymousProfile = dbData.jsonString();
-						uinObject.setAnonymousProfile(anonymousProfile);
-						uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
-						uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
-					}
-				} else {
-					anonymousProfile = anonymousProfileAsString;
-					uinObject.setAnonymousProfile(anonymousProfile);
-				}
-			}
-			return anonymousProfile;
-		} catch (JSONException | IOException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, e.getMessage());
-			throw new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR);
 		}
 	}
 
@@ -547,9 +524,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 			String path = StringUtils.substringBeforeLast(failure.getField(), DOT);
 			if (StringUtils.contains(path, OPEN_SQUARE_BRACE)) {
-				path = StringUtils.replaceAll(path, "\\[", "\\[\\?\\(\\@\\.");
-				path = StringUtils.replaceAll(path, "=", "=='");
-				path = StringUtils.replaceAll(path, "\\]", "'\\)\\]");
+				path = RegExUtils.replaceAll(path, "\\[", "\\[\\?\\(\\@\\.");
+				path = RegExUtils.replaceAll(path, "=", "=='");
+				path = RegExUtils.replaceAll(path, "\\]", "'\\)\\]");
 			}
 
 			String key = StringUtils.substringAfterLast(failure.getField(), DOT);
@@ -673,7 +650,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 */
 	private void updateCbeff(Uin uinObject, RequestDTO requestDTO) throws IdRepoAppException {
 		ObjectNode identityMap = (ObjectNode) convertToObject(uinObject.getUinData(), ObjectNode.class);
-
 		IntStream.range(0, uinObject.getBiometrics().size()).forEach(index -> {
 			UinBiometric bio = uinObject.getBiometrics().get(index);
 			requestDTO.getDocuments().stream()
@@ -685,8 +661,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 								if (StringUtils.equalsIgnoreCase(
 										identityMap.get(bio.getBiometricFileType()).get(FILE_FORMAT_ATTRIBUTE).asText(), CBEFF_FORMAT)
 										&& bioFileId.endsWith(CBEFF_FORMAT)) {
+									byte[] decodedBioData = CryptoUtil.decodeBase64(doc.getValue());
+									anonymousProfileHelper.setOldCbeff(doc.getValue());
 									doc.setValue(CryptoUtil.encodeBase64(cbeffUtil
-											.updateXML(cbeffUtil.getBIRDataFromXML(CryptoUtil.decodeBase64(doc.getValue())), data)));
+											.updateXML(cbeffUtil.getBIRDataFromXML(decodedBioData), data)));
 								}
 						} catch (Exception e) {
 							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateCbeff",

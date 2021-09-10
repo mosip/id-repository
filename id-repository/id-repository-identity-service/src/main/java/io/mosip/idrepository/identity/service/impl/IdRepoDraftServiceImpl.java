@@ -15,7 +15,6 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_GENER
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_HASH_MISMATCH;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -55,7 +54,6 @@ import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
-import io.mosip.idrepository.core.dto.AnonymousProfileDTO;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
@@ -176,7 +174,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				newDraft.setCreatedBy(IdRepoSecurityManager.getUser());
 				newDraft.setCreatedDateTime(DateUtils.getUTCCurrentDateTime());
 				uinDraftRepo.save(newDraft);
-				return constructIdResponse(null, DRAFTED, null, null);
+				return constructIdResponse(null, DRAFTED, null);
 			} else {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT, "RID ALREADY EXIST");
 				throw new IdRepoAppException(RECORD_EXISTS);
@@ -227,7 +225,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 					draftToUpdate.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
 					uinDraftRepo.save(draftToUpdate);
 				} else {
-					super.updateAnonymousProfile(request, draftToUpdate);
 					updateDemographicData(request, draftToUpdate);
 					updateDocuments(request.getRequest(), draftToUpdate);
 
@@ -245,7 +242,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
 		}
-		return constructIdResponse(null, DRAFTED, null, null);
+		return constructIdResponse(null, DRAFTED, null);
 	}
 
 	private void updateDemographicData(IdRequestDTO request, UinDraft draftToUpdate) throws JSONException, IdRepoAppException {
@@ -361,7 +358,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				}
 				publishDocuments(draft, uinObject);
 				this.discardDraft(regId);
-				return constructIdResponse(null, uinObject.getStatusCode(), null, null);
+				return constructIdResponse(null, uinObject.getStatusCode(), null);
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT, e.getMessage());
@@ -370,20 +367,12 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	}
 
 	private IdRequestDTO buildRequest(String regId, UinDraft draft) throws IdRepoAppException {
-		try {
-			IdRequestDTO idRequest = new IdRequestDTO();
-			RequestDTO request = new RequestDTO();
-			request.setRegistrationId(regId);
-			request.setAnonymousProfile(Objects.nonNull(draft.getAnonymousProfile())
-					? mapper.readValue(draft.getAnonymousProfile(), AnonymousProfileDTO.class)
-					: null);
-			request.setIdentity(convertToObject(draft.getUinData(), Object.class));
-			idRequest.setRequest(request);
-			return idRequest;
-		} catch (IOException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT, e.getMessage());
-			throw new IdRepoAppException(UNKNOWN_ERROR);
-		}
+		IdRequestDTO idRequest = new IdRequestDTO();
+		RequestDTO request = new RequestDTO();
+		request.setRegistrationId(regId);
+		request.setIdentity(convertToObject(draft.getUinData(), Object.class));
+		idRequest.setRequest(request);
+		return idRequest;
 	}
 
 	private void validateRequest(RequestDTO request) throws IdRepoDataValidationException {
@@ -424,7 +413,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	public IdResponseDTO discardDraft(String regId) throws IdRepoAppException {
 		try {
 			uinDraftRepo.findByRegId(regId).ifPresent(uinDraftRepo::delete);
-			return constructIdResponse(null, "DISCARDED", null, null);
+			return constructIdResponse(null, "DISCARDED", null);
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, DISCARD_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
@@ -449,9 +438,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				UinDraft draft = uinDraft.get();
 				List<DocumentsDTO> documents = new ArrayList<>();
 				String uinHash = draft.getUinHash().split(SPLITTER)[1];
-				AnonymousProfileDTO anonymousProfile = Objects.nonNull(draft.getAnonymousProfile())
-						? mapper.readValue(draft.getAnonymousProfile(), AnonymousProfileDTO.class)
-						: null;
 				for (UinBiometricDraft uinBiometricDraft : draft.getBiometrics()) {
 					documents.add(new DocumentsDTO(uinBiometricDraft.getBiometricFileType(), CryptoUtil.encodeBase64(
 							extractAndGetCombinedCbeff(uinHash, uinBiometricDraft.getBioFileId(), extractionFormats))));
@@ -460,7 +446,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 					documents.add(new DocumentsDTO(uinDocumentDraft.getDoccatCode(), CryptoUtil
 							.encodeBase64(objectStoreHelper.getDemographicObject(uinHash, uinDocumentDraft.getDocId()))));
 				}
-				return constructIdResponse(draft.getUinData(), draft.getStatusCode(), documents, anonymousProfile);
+				return constructIdResponse(draft.getUinData(), draft.getStatusCode(), documents);
 			} else {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
 						"DRAFT RECORD NOT FOUND");
@@ -469,9 +455,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
-		} catch (IOException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, "\n" + e.getMessage());
-			throw new IdRepoAppException(UNKNOWN_ERROR, e);
 		}
 	}
 
@@ -493,7 +476,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 						e.getMessage());
 				throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 			}
-		return constructIdResponse(null, DRAFTED, null, null);
+		return constructIdResponse(null, DRAFTED, null);
 	}
 
 	private void extractBiometricsDraft(Map<String, String> extractionFormats, UinDraft draft)
@@ -535,12 +518,10 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		return formatQueryParam.replace(EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX, "");
 	}
 
-	private IdResponseDTO constructIdResponse(byte[] uinData, String status, List<DocumentsDTO> documents,
-			AnonymousProfileDTO anonymousProfile) {
+	private IdResponseDTO constructIdResponse(byte[] uinData, String status, List<DocumentsDTO> documents) {
 		IdResponseDTO idResponse = new IdResponseDTO();
 		ResponseDTO response = new ResponseDTO();
 		response.setStatus(status);
-		response.setAnonymousProfile(anonymousProfile);
 		if (Objects.nonNull(documents))
 			response.setDocuments(documents);
 		if (Objects.nonNull(uinData))
