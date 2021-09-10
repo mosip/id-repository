@@ -20,3 +20,7 @@ DROP TABLE IF EXISTS idrepo.uin_draft;
 DROP TABLE IF EXISTS idrepo.uin_document_draft;
 
 ------------------------------------------------------------------------------------------------------
+
+DROP TABLE IF EXISTS idrepo.anonymous_profile;
+DROP TABLE IF EXISTS idrepo.channel_info;
+------------------------------------------------------------------------------------------------------
