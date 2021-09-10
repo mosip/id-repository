@@ -111,9 +111,9 @@ public class IdentityIssuanceProfileBuilder {
 
 	private List<String> getLocation(JsonNode identity) {
 		if (Objects.nonNull(identityMapping.getIdentity())
-				&& Objects.nonNull(identityMapping.getIdentity().getAddressHierarchy())
-				&& Objects.nonNull(identityMapping.getIdentity().getAddressHierarchy().getValue()))
-			return identityMapping.getIdentity().getAddressHierarchy().getValueList().stream()
+				&& Objects.nonNull(identityMapping.getIdentity().getLocationHierarchyForProfiling())
+				&& Objects.nonNull(identityMapping.getIdentity().getLocationHierarchyForProfiling().getValue()))
+			return identityMapping.getIdentity().getLocationHierarchyForProfiling().getValueList().stream()
 					.map(value -> extractValue(identity.get(value)).orElse("")).filter(StringUtils::isNotBlank)
 					.collect(Collectors.toList());
 		return null;
