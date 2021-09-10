@@ -20,7 +20,7 @@ CREATE TABLE idrepo.anonymous_profile(
 	cr_dtimes timestamp NOT NULL,
 	upd_by character varying(256),
 	upd_dtimes timestamp,
-	is_deleted boolean DEFAULT FALSE,
+	is_deleted boolean,
 	del_dtimes timestamp,
 	CONSTRAINT pk_profile PRIMARY KEY (id)
 );
