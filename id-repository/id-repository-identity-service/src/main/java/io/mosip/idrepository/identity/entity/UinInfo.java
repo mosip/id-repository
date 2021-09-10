@@ -16,10 +16,6 @@ public interface UinInfo {
 
 	public void setUinHash(String hash);
 	
-	public String getAnonymousProfile();
-	
-	public void setAnonymousProfile(String anonymousProfile);
-	
 	public void setUpdatedBy(String updatedBy);
 	
 	public void setUpdatedDateTime(LocalDateTime updatedDTimes);
