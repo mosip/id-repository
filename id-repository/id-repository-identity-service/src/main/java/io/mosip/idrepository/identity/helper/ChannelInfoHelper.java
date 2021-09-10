@@ -67,7 +67,7 @@ public class ChannelInfoHelper {
 				}
 			} else {
 				// Update NO_PHONE is email not present
-				updateNoChannel("NO_EMAIL", 1);
+				updateNoChannel("NO_EMAIL", "email", 1);
 			}
 		}
 
@@ -80,7 +80,7 @@ public class ChannelInfoHelper {
 			if (!hashedOldEmailOpt.isPresent() && hashedNewEmailOpt.isPresent()) {
 				
 				// update NO_EMAIL if email is updated
-				updateNoChannel("NO_EMAIL", -1);
+				updateNoChannel("NO_EMAIL", "email", -1);
 				String hashedNewEmail = hashedNewEmailOpt.get();
 				Optional<ChannelInfo> newChannelInfoOpt = channelInfoRepo.findById(hashedNewEmail);
 				if (newChannelInfoOpt.isPresent()) {
@@ -145,7 +145,7 @@ public class ChannelInfoHelper {
 				}
 			} else {
 				// Update NO_PHONE is phone number not present
-				updateNoChannel("NO_PHONE", 1);
+				updateNoChannel("NO_PHONE", "phone", 1);
 			}
 		}
 
@@ -156,7 +156,7 @@ public class ChannelInfoHelper {
 			
 			//Old has no phone. new has phone.
 			if (!hashedOldPhoneNumberOpt.isPresent() && hashedNewPhoneNumberOpt.isPresent()) {
-				updateNoChannel("NO_PHONE", -1);
+				updateNoChannel("NO_PHONE", "phone", -1);
 				String hashedNewPhoneNumber = hashedNewPhoneNumberOpt.get();
 				Optional<ChannelInfo> newChannelInfoOpt = channelInfoRepo.findById(hashedNewPhoneNumber);
 				if (newChannelInfoOpt.isPresent()) {
@@ -197,10 +197,19 @@ public class ChannelInfoHelper {
 		}
 	}
 
-	private void updateNoChannel(String channel, Integer value) {
+	private void updateNoChannel(String channel, String channelType, Integer value) {
 		Optional<ChannelInfo> noChannelOpt = channelInfoRepo.findById(channel);
 		if (noChannelOpt.isPresent())
 			updateNoOfRecords(noChannelOpt, value);
+		else
+			channelInfoRepo
+			.save(ChannelInfo.builder()
+					.hashedChannel(channel)
+					.channelType(channelType)
+					.noOfRecords(1)
+					.createdBy(IdRepoSecurityManager.getUser())
+					.crDTimes(DateUtils.getUTCCurrentDateTime())
+					.build());
 	}
 
 	private void updateNoOfRecords(Optional<ChannelInfo> ChannelInfoOpt, Integer value) {
