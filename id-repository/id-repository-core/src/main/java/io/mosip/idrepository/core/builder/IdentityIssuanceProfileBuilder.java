@@ -145,6 +145,7 @@ public class IdentityIssuanceProfileBuilder {
 	private List<Exceptions> getExceptions(List<BIR> bioData) {
 		if (Objects.nonNull(bioData))
 			return bioData.stream()
+					.filter(bir -> Objects.nonNull(bir.getOthers()))
 					.filter(bir -> bir.getOthers().stream().filter(others -> others.getKey().contentEquals("EXCEPTION"))
 							.findAny().isPresent())
 					.filter(bir -> bir.getOthers().stream().filter(others -> others.getKey().contentEquals("EXCEPTION"))
@@ -163,8 +164,10 @@ public class IdentityIssuanceProfileBuilder {
 
 	private List<BiometricInfo> getBiometricInfo(List<BIR> biometrics) {
 		if (Objects.nonNull(biometrics))
-			Streams.stream(biometrics).filter(bir -> Objects.nonNull(bir.getOthers())
-					&& Objects.nonNull(bir.getBdbInfo()) && Objects.nonNull(bir.getBdbInfo().getQuality())).map(bir -> {
+			Streams.stream(biometrics)
+				.filter(bir -> Objects.nonNull(bir.getOthers())
+					&& Objects.nonNull(bir.getBdbInfo()) && Objects.nonNull(bir.getBdbInfo().getQuality()))
+				.map(bir -> {
 						Optional<Entry> payload = bir.getOthers().stream()
 								.filter(others -> others.getKey().contentEquals("PAYLOAD")).findAny();
 						String digitalId = null;
