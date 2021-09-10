@@ -10,6 +10,8 @@
 -- Jul-2021		Ram Bhatt	    Creation of uin biometric draft and uin draft tables
 -- Jul-2021		Ram Bhatt	    Lang Code nullable for multiple tables
 -- Jul-2021		Manoj SP	    Addition of anonymous profile column to tables
+-- Sep-2021		Manoj SP	    Removed Anonymous Profile alter scripts
+-- Sep-2021		Manoj SP	    Added anonymous_profile and channel_info tables.
 -------------------------------------------------------------------------------------------------------
 
 \c mosip_idrepo sysadmin
@@ -23,6 +25,8 @@ ALTER TABLE idrepo.uin_auth_lock ADD COLUMN unlock_expiry_datetime timestamp;
 \ir ../ddl/idrepo-uin_biometric_draft.sql
 \ir ../ddl/idrepo-uin_draft.sql
 \ir ../ddl/idrepo-uin_document_draft.sql
+\ir ../ddl/idrepo-anonymous_profile.sql
+\ir ../ddl/idrepo-channel_info.sql
 
 -------------------------------------------------------------------------------------------------
 
@@ -33,7 +37,4 @@ ALTER TABLE idrepo.uin_biometric_h ALTER COLUMN lang_code DROP NOT NULL;
 ALTER TABLE idrepo.uin_document ALTER COLUMN lang_code DROP NOT NULL;
 ALTER TABLE idrepo.uin_document_h ALTER COLUMN lang_code DROP NOT NULL;
 ALTER TABLE idrepo.uin_h ALTER COLUMN lang_code DROP NOT NULL;
-ALTER TABLE idrepo.uin ADD COLUMN anonymous_profile character varying;
-ALTER TABLE idrepo.uin_h ADD COLUMN anonymous_profile character varying;
-ALTER TABLE idrepo.uin_draft ADD COLUMN anonymous_profile character varying;
 ---------------------------------------------------------------------------------

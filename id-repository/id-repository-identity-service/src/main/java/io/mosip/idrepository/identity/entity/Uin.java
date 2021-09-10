@@ -38,7 +38,7 @@ import lombok.ToString;
 public class Uin implements Persistable<String>, UinInfo {
 
 	public Uin(String uinRefId, String uin, String uinHash, byte[] uinData, String uinDataHash, String regId,
-			String statusCode, String anonymousProfile, String createdBy, LocalDateTime createdDateTime,
+			String statusCode, String createdBy, LocalDateTime createdDateTime,
 			String updatedBy, LocalDateTime updatedDateTime, Boolean isDeleted, LocalDateTime deletedDateTime,
 			List<UinBiometric> biometrics, List<UinDocument> documents) {
 		this.uinRefId = uinRefId;
@@ -48,7 +48,6 @@ public class Uin implements Persistable<String>, UinInfo {
 		this.uinDataHash = uinDataHash;
 		this.regId = regId;
 		this.statusCode = statusCode;
-		this.anonymousProfile = anonymousProfile;
 		this.createdBy = createdBy;
 		this.createdDateTime = createdDateTime;
 		this.updatedBy = updatedBy;
@@ -89,8 +88,6 @@ public class Uin implements Persistable<String>, UinInfo {
 	private String statusCode;
 	
 	private String langCode;
-
-	private String anonymousProfile;
 
 	/** The created by. */
 	@Column(name = "cr_by")

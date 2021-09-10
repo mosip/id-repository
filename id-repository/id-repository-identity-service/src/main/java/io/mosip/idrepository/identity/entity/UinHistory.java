@@ -58,7 +58,7 @@ public class UinHistory implements Persistable<String> {
 	 * @param deletedDateTime the deleted date time
 	 */
 	public UinHistory(String uinRefId, LocalDateTime effectiveDateTime, String uin, String uinHash, byte[] uinData,
-			String uinDataHash, String regId, String statusCode, String anonymousProfile, String createdBy,
+			String uinDataHash, String regId, String statusCode, String createdBy,
 			LocalDateTime createdDateTime, String updatedBy, LocalDateTime updatedDateTime, Boolean isDeleted,
 			LocalDateTime deletedDateTime) {
 		this.uinRefId = uinRefId;
@@ -69,7 +69,6 @@ public class UinHistory implements Persistable<String> {
 		this.uinDataHash = uinDataHash;
 		this.regId = regId;
 		this.statusCode = statusCode;
-		this.anonymousProfile = anonymousProfile;
 		this.createdBy = createdBy;
 		this.createdDateTime = createdDateTime;
 		this.updatedBy = updatedBy;
@@ -115,8 +114,6 @@ public class UinHistory implements Persistable<String> {
 
 	private String langCode;
 	
-	private String anonymousProfile;
-
 	/** The created by. */
 	@Column(name = "cr_by")
 	private String createdBy;

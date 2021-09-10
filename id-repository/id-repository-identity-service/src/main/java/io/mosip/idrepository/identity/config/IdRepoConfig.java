@@ -90,7 +90,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 
 	@Autowired
 	private IdRepoWebSubHelper websubHelper;
-
+	
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent event) {
 		websubHelper.subscribeForVidEvent();
