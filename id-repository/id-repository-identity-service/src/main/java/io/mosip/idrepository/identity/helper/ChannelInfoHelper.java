@@ -1,14 +1,16 @@
 package io.mosip.idrepository.identity.helper;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
+
 import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,19 +18,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.idrepository.identity.entity.ChannelInfo;
 import io.mosip.idrepository.identity.repository.ChannelInfoRepo;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 
 @Component
-@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class ChannelInfoHelper {
-
-	private static final String PHONE = "phone";
-
-	private static final String EMAIL = "email";
 
 	@Autowired
 	private ChannelInfoRepo channelInfoRepo;
@@ -37,36 +34,40 @@ public class ChannelInfoHelper {
 	private UinHashSaltRepo saltRepo;
 
 	@Autowired
+	private Environment env;
+
+	@Autowired
 	private IdRepoSecurityManager securityManager;
 
 	@Autowired
 	private ObjectMapper mapper;
 	
-	public void updateEmailChannelInfo(byte[] oldUinData, byte[] newUinData) {
+	@Async
+	public void updateEmailChannelInfo(byte[] oldUinData, byte[] newUinData) throws IOException {
 
 		// addIdentity
-		if (Objects.isNull(oldUinData) && Objects.nonNull(newUinData)) {
-			Optional<String> hashedOldEmailOpt = getHashedEmail(newUinData);
+		if (Objects.nonNull(oldUinData) && Objects.isNull(newUinData)) {
+			Optional<String> hashedOldEmailOpt = getHashedEmail(oldUinData);
 			if (hashedOldEmailOpt.isPresent()) {
 				String hashedOldEmail = hashedOldEmailOpt.get();
 				Optional<ChannelInfo> oldChannelInfoOpt = channelInfoRepo.findById(hashedOldEmail);
 				if (oldChannelInfoOpt.isPresent()) {
 					// Update count if phone number present
-					updateNoOfRecords(oldChannelInfoOpt.get(), 1);
+					updateNoOfRecords(oldChannelInfoOpt, 1);
 				} else {
 					// create record if record not present
 					channelInfoRepo
 							.save(ChannelInfo.builder()
 									.hashedChannel(hashedOldEmail)
 									.noOfRecords(1)
-									.channelType(EMAIL)
+									.channelType("email")
 									.createdBy(IdRepoSecurityManager.getUser())
 									.crDTimes(DateUtils.getUTCCurrentDateTime())
 									.build());
 				}
 			} else {
 				// Update NO_PHONE is email not present
-				updateNoChannel("NO_EMAIL", EMAIL, 1);
+				updateNoChannel("NO_EMAIL", 1);
 			}
 		}
 
@@ -79,17 +80,17 @@ public class ChannelInfoHelper {
 			if (!hashedOldEmailOpt.isPresent() && hashedNewEmailOpt.isPresent()) {
 				
 				// update NO_EMAIL if email is updated
-				updateNoChannel("NO_EMAIL", EMAIL, -1);
+				updateNoChannel("NO_EMAIL", -1);
 				String hashedNewEmail = hashedNewEmailOpt.get();
 				Optional<ChannelInfo> newChannelInfoOpt = channelInfoRepo.findById(hashedNewEmail);
 				if (newChannelInfoOpt.isPresent()) {
-					updateNoOfRecords(newChannelInfoOpt.get(), 1);
+					updateNoOfRecords(newChannelInfoOpt, 1);
 				} else {
 					channelInfoRepo
 							.save(ChannelInfo.builder()
 									.hashedChannel(hashedNewEmail)
 									.noOfRecords(1)
-									.channelType(EMAIL)
+									.channelType("email")
 									.createdBy(IdRepoSecurityManager.getUser())
 									.crDTimes(DateUtils.getUTCCurrentDateTime())
 									.build());
@@ -109,42 +110,42 @@ public class ChannelInfoHelper {
 						.save(ChannelInfo.builder()
 								.hashedChannel(hashedNewEmail)
 								.noOfRecords(0)
-								.channelType(EMAIL)
+								.channelType("email")
 								.createdBy(IdRepoSecurityManager.getUser())
 								.crDTimes(DateUtils.getUTCCurrentDateTime())
 								.build())));
-				if (oldChannelInfoOpt.isPresent())
-					updateNoOfRecords(oldChannelInfoOpt.get(), -1);
-				updateNoOfRecords(newChannelInfoOpt.get(), 1);
+					updateNoOfRecords(oldChannelInfoOpt, -1);
+					updateNoOfRecords(newChannelInfoOpt, 1);
 				}
 			}
 		}
 	}
 
-	public void updatePhoneChannelInfo(byte[] oldUinData, byte[] newUinData) {
+	@Async
+	public void updatePhoneChannelInfo(byte[] oldUinData, byte[] newUinData) throws IOException {
 
 		// addIdentity
-		if (Objects.isNull(oldUinData) && Objects.nonNull(newUinData)) {
-			Optional<String> hashedOldPhoneNumberOpt = getHashedPhoneNumber(newUinData);
+		if (Objects.nonNull(oldUinData) && Objects.isNull(newUinData)) {
+			Optional<String> hashedOldPhoneNumberOpt = getHashedPhoneNumber(oldUinData);
 			if (hashedOldPhoneNumberOpt.isPresent()) {
 				String hashedOldPhoneNumber = hashedOldPhoneNumberOpt.get();
 				Optional<ChannelInfo> oldChannelInfoOpt = channelInfoRepo.findById(hashedOldPhoneNumber);
 				if (oldChannelInfoOpt.isPresent()) {
 					// Update count if phone number present
-					updateNoOfRecords(oldChannelInfoOpt.get(), 1);
+					updateNoOfRecords(oldChannelInfoOpt, 1);
 				} else {
 					// create record if record not present
 					channelInfoRepo.save(ChannelInfo.builder()
 							.hashedChannel(hashedOldPhoneNumber)
 							.noOfRecords(1)
-							.channelType(PHONE)
+							.channelType("phone")
 							.createdBy(IdRepoSecurityManager.getUser())
 							.crDTimes(DateUtils.getUTCCurrentDateTime())
 							.build());
 				}
 			} else {
 				// Update NO_PHONE is phone number not present
-				updateNoChannel("NO_PHONE", PHONE, 1);
+				updateNoChannel("NO_PHONE", 1);
 			}
 		}
 
@@ -155,16 +156,16 @@ public class ChannelInfoHelper {
 			
 			//Old has no phone. new has phone.
 			if (!hashedOldPhoneNumberOpt.isPresent() && hashedNewPhoneNumberOpt.isPresent()) {
-				updateNoChannel("NO_PHONE", PHONE, -1);
+				updateNoChannel("NO_PHONE", -1);
 				String hashedNewPhoneNumber = hashedNewPhoneNumberOpt.get();
 				Optional<ChannelInfo> newChannelInfoOpt = channelInfoRepo.findById(hashedNewPhoneNumber);
 				if (newChannelInfoOpt.isPresent()) {
-					updateNoOfRecords(newChannelInfoOpt.get(), 1);
+					updateNoOfRecords(newChannelInfoOpt, 1);
 				} else {
 					channelInfoRepo
 							.save(ChannelInfo.builder()
 									.hashedChannel(hashedNewPhoneNumber)
-									.channelType(PHONE)
+									.channelType("phone")
 									.noOfRecords(1)
 									.createdBy(IdRepoSecurityManager.getUser())
 									.crDTimes(DateUtils.getUTCCurrentDateTime())
@@ -184,35 +185,26 @@ public class ChannelInfoHelper {
 				newChannelInfoOpt = Optional.of(newChannelInfoOpt.orElseGet(() -> channelInfoRepo
 						.save(ChannelInfo.builder()
 								.hashedChannel(hashedNewPhoneNumber)
-								.channelType(PHONE)
+								.channelType("phone")
 								.noOfRecords(0)
 								.createdBy(IdRepoSecurityManager.getUser())
 								.crDTimes(DateUtils.getUTCCurrentDateTime())
 								.build())));
-				if (oldChannelInfoOpt.isPresent())
-					updateNoOfRecords(oldChannelInfoOpt.get(), -1);
-				updateNoOfRecords(newChannelInfoOpt.get(), 1);
+					updateNoOfRecords(oldChannelInfoOpt, -1);
+					updateNoOfRecords(newChannelInfoOpt, 1);
 				}
 			}
 		}
 	}
 
-	private void updateNoChannel(String channel, String channelType, Integer value) {
+	private void updateNoChannel(String channel, Integer value) {
 		Optional<ChannelInfo> noChannelOpt = channelInfoRepo.findById(channel);
 		if (noChannelOpt.isPresent())
-			updateNoOfRecords(noChannelOpt.get(), value);
-		else
-			channelInfoRepo
-			.save(ChannelInfo.builder()
-					.hashedChannel(channel)
-					.channelType(channelType)
-					.noOfRecords(1)
-					.createdBy(IdRepoSecurityManager.getUser())
-					.crDTimes(DateUtils.getUTCCurrentDateTime())
-					.build());
+			updateNoOfRecords(noChannelOpt, value);
 	}
 
-	private void updateNoOfRecords(ChannelInfo channelInfo, Integer value) {
+	private void updateNoOfRecords(Optional<ChannelInfo> ChannelInfoOpt, Integer value) {
+		ChannelInfo channelInfo = ChannelInfoOpt.get();
 		channelInfo.setNoOfRecords(channelInfo.getNoOfRecords() + value);
 		channelInfo.setUpdatedBy(IdRepoSecurityManager.getUser());
 		channelInfo.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
@@ -222,8 +214,8 @@ public class ChannelInfoHelper {
 	private Optional<String> getHashedPhoneNumber(byte[] uinData) {
 		try {
 			String phoneNumber = getPhoneNumber(uinData);
-			String salt = saltRepo.retrieveSaltById(securityManager.getSaltKeyForId(phoneNumber));
-			return Optional.of(securityManager.hashwithSalt(phoneNumber.getBytes(), CryptoUtil.decodePlainBase64(salt)));
+			String salt = saltRepo.retrieveSaltById(getModValue(phoneNumber));
+			return Optional.of(securityManager.hashwithSalt(phoneNumber.getBytes(), CryptoUtil.decodeBase64(salt)));
 		} catch (Exception e) {
 			return Optional.empty();
 		}
@@ -240,8 +232,8 @@ public class ChannelInfoHelper {
 		try {
 			String email = getEmail(uinData);
 			String emailAsNumber = emailAsNumber(email);
-			String salt = saltRepo.retrieveSaltById(securityManager.getSaltKeyForId(emailAsNumber));
-			return Optional.of(securityManager.hashwithSalt(email.getBytes(), CryptoUtil.decodePlainBase64(salt)));
+			String salt = saltRepo.retrieveSaltById(getModValue(emailAsNumber));
+			return Optional.of(securityManager.hashwithSalt(email.getBytes(), CryptoUtil.decodeBase64(salt)));
 		} catch (Exception e) {
 			return Optional.empty();
 		}
@@ -257,6 +249,17 @@ public class ChannelInfoHelper {
 	private String emailAsNumber(String email) {
 		String emailAsNumber = email.chars().boxed().map(String::valueOf).collect(Collectors.joining());
 		return emailAsNumber.substring(emailAsNumber.length() - 3, emailAsNumber.length());
+//		Arrays.asList(email.chars()).stream().map(c -> ((int) c));
+//		String emailAsNumber = "";
+//		for (char c : email.toCharArray()) {
+//			emailAsNumber = emailAsNumber.concat(String.valueOf(((int) c)));
+//		}
+//		return emailAsNumber;
 	}
 
+	private int getModValue(String number) {
+		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
+		int modResult = (int) (Long.parseLong(number) % moduloValue);
+		return modResult;
+	}
 }

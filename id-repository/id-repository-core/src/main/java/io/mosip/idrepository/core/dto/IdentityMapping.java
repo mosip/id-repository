@@ -27,7 +27,7 @@ public class IdentityMapping {
 		private IDSchemaVersion iDSchemaVersion;
 		private Name name;
 		private Gender gender;
-		private LocationHierarchyForProfiling locationHierarchyForProfiling;
+		private AddressHierarchy addressHierarchy;
 		private Dob dob;
 		private Age age;
 		private PreferredLanguages preferredLanguage;
@@ -54,7 +54,7 @@ public class IdentityMapping {
 
 	@Data
 	@NoArgsConstructor
-	public static class LocationHierarchyForProfiling {
+	public static class AddressHierarchy {
 		private String value;
 
 		public List<String> getValueList() {
