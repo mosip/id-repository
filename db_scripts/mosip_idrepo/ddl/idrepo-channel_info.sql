@@ -8,7 +8,7 @@
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
--- Sep-2021				Manoj SP	    Created channel_info table 
+-- Sep-2021             Manoj SP            Created channel_info table 
 -- ------------------------------------------------------------------------------------------
 
 -- object: idrepo.channel_info | type: TABLE --
@@ -21,7 +21,7 @@ CREATE TABLE idrepo.channel_info(
 	cr_dtimes timestamp NOT NULL,
 	upd_by character varying(256),
 	upd_dtimes timestamp,
-	is_deleted boolean,
+	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
 	CONSTRAINT pk_channel_info PRIMARY KEY (hashed_channel)
 );
