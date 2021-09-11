@@ -13,7 +13,18 @@
 
 -- object: idrepo.channel_info | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.channel_info CASCADE;
-         
+CREATE TABLE idrepo.channel_info(
+	hashed_channel character varying(128) NOT NULL,
+	channel_type character varying(5) NOT NULL,
+	no_of_records numeric NOT null default 0,
+	cr_by character varying(256) NOT NULL,
+	cr_dtimes timestamp NOT NULL,
+	upd_by character varying(256),
+	upd_dtimes timestamp,
+	is_deleted boolean DEFAULT FALSE,
+	del_dtimes timestamp,
+	CONSTRAINT pk_channel_info PRIMARY KEY (hashed_channel)
+); 
 -- ddl-end --
 COMMENT ON TABLE idrepo.channel_info IS 'channel_info: Anonymous profiling information for reporting purpose.';
 -- ddl-end --
