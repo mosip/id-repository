@@ -8,22 +8,12 @@
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
--- Sep-2021				Manoj SP	    Created channel_info table 
+-- Sep-2021             Manoj SP            Created channel_info table 
 -- ------------------------------------------------------------------------------------------
 
 -- object: idrepo.channel_info | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.channel_info CASCADE;
-CREATE TABLE idrepo.channel_info(
-	id character varying(36) NOT NULL,
-	profile character varying NOT NULL,
-	cr_by character varying(256) NOT NULL,
-	cr_dtimes timestamp NOT NULL,
-	upd_by character varying(256),
-	upd_dtimes timestamp,
-	is_deleted boolean DEFAULT FALSE,
-	del_dtimes timestamp,
-	CONSTRAINT pk_profile PRIMARY KEY (id)
-);
+         
 -- ddl-end --
 COMMENT ON TABLE idrepo.channel_info IS 'channel_info: Anonymous profiling information for reporting purpose.';
 -- ddl-end --
