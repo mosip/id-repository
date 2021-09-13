@@ -164,11 +164,10 @@ public class IdentityIssuanceProfileBuilder {
 
 	private List<BiometricInfo> getBiometricInfo(List<BIR> biometrics) {
 		if (Objects.nonNull(biometrics))
-			Streams.stream(biometrics)
-				.filter(bir -> Objects.nonNull(bir.getOthers())
-					&& Objects.nonNull(bir.getBdbInfo()) && Objects.nonNull(bir.getBdbInfo().getQuality()))
+			return Streams.stream(biometrics)
 				.map(bir -> {
-						Optional<Entry> payload = bir.getOthers().stream()
+						Optional<Entry> payload = Optional.ofNullable(bir.getOthers()).stream()
+								.flatMap(birs -> birs.stream())
 								.filter(others -> others.getKey().contentEquals("PAYLOAD")).findAny();
 						String digitalId = null;
 						if (payload.isPresent()) {
@@ -183,9 +182,10 @@ public class IdentityIssuanceProfileBuilder {
 										.collect(Collectors.joining(" ")))
 								.subType(String.join(" ", bir.getBdbInfo().getSubtype()))
 								.qualityScore(bir.getBdbInfo().getQuality().getScore())
-								.attempts(bir.getOthers().stream()
-										.filter(others -> others.getKey().contentEquals("RETRIES")).findAny()
-										.orElseGet(() -> new Entry()).getValue())
+								.attempts(Objects.nonNull(bir.getOthers()) ? bir.getOthers().stream()
+										.filter(others -> others.getKey().contentEquals("RETRIES"))
+										.findAny()
+										.orElseGet(() -> new Entry()).getValue() : null)
 								.digitalId(digitalId).build();
 					}).collect(Collectors.toList());
 		return null;
