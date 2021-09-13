@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.stream.Streams;
@@ -24,6 +25,7 @@ import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.Exceptions;
 import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.kernel.biometrics.commons.CbeffValidator;
+import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -164,11 +166,10 @@ public class IdentityIssuanceProfileBuilder {
 
 	private List<BiometricInfo> getBiometricInfo(List<BIR> biometrics) {
 		if (Objects.nonNull(biometrics))
-			Streams.stream(biometrics)
-				.filter(bir -> Objects.nonNull(bir.getOthers())
-					&& Objects.nonNull(bir.getBdbInfo()) && Objects.nonNull(bir.getBdbInfo().getQuality()))
+			return Streams.stream(biometrics)
 				.map(bir -> {
-						Optional<Entry> payload = bir.getOthers().stream()
+						Optional<Entry> payload = Optional.ofNullable(bir.getOthers()).stream()
+								.flatMap(birs -> birs.stream())
 								.filter(others -> others.getKey().contentEquals("PAYLOAD")).findAny();
 						String digitalId = null;
 						if (payload.isPresent()) {
@@ -183,9 +184,10 @@ public class IdentityIssuanceProfileBuilder {
 										.collect(Collectors.joining(" ")))
 								.subType(String.join(" ", bir.getBdbInfo().getSubtype()))
 								.qualityScore(bir.getBdbInfo().getQuality().getScore())
-								.attempts(bir.getOthers().stream()
-										.filter(others -> others.getKey().contentEquals("RETRIES")).findAny()
-										.orElseGet(() -> new Entry()).getValue())
+								.attempts(Objects.nonNull(bir.getOthers()) ? bir.getOthers().stream()
+										.filter(others -> others.getKey().contentEquals("RETRIES"))
+										.findAny()
+										.orElseGet(() -> new Entry()).getValue() : null)
 								.digitalId(digitalId).build();
 					}).collect(Collectors.toList());
 		return null;
