@@ -17,6 +17,7 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -43,8 +44,12 @@ import io.mosip.kernel.dataaccess.hibernate.repository.impl.HibernateRepositoryI
 @Import({ HibernateDaoConfig.class })
 @EnableJpaRepositories(basePackages = "io.mosip.*", repositoryBaseClass = HibernateRepositoryImpl.class)
 public class BatchConfiguration {
-	
 
+	@Value("${credential.batch.page.size}")
+	private int pageSize;
+
+	@Value("${credential.batch.chunk.size}")
+	private int chunkSize;
 
 	/** The job builder factory. */
 	@Autowired
@@ -115,12 +120,12 @@ public class BatchConfiguration {
 		methodArgs.add("NEW");
 		reader.setArguments(methodArgs);
 		reader.setSort(sorts);
-		reader.setPageSize(10);
+		reader.setPageSize(pageSize);
 	
 		RepositoryItemWriter<CredentialEntity> writer = new RepositoryItemWriter<>();
 		writer.setRepository(crdentialRepo);
 		writer.setMethodName("update");
-		return stepBuilderFactory.get("credentialProcessStep").<CredentialEntity, CredentialEntity>chunk(10)
+		return stepBuilderFactory.get("credentialProcessStep").<CredentialEntity, CredentialEntity>chunk(chunkSize)
 				.reader(reader)
 				.processor(processor())
 				.writer(writer).build();
