@@ -45,10 +45,10 @@ import io.mosip.kernel.dataaccess.hibernate.repository.impl.HibernateRepositoryI
 @EnableJpaRepositories(basePackages = "io.mosip.*", repositoryBaseClass = HibernateRepositoryImpl.class)
 public class BatchConfiguration {
 
-	@Value("${credential.batch.page.size}")
+	@Value("${credential.batch.page.size:100}")
 	private int pageSize;
 
-	@Value("${credential.batch.chunk.size}")
+	@Value("${credential.batch.chunk.size:100}")
 	private int chunkSize;
 
 	/** The job builder factory. */
