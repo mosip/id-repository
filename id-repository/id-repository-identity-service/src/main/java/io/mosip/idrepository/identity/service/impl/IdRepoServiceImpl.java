@@ -225,12 +225,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				request.getRequest().getRegistrationId());
 		anonymousProfileHelper
 			.setRegId(request.getRequest().getRegistrationId())
-			.setOldCbeff(Optional.ofNullable(request.getRequest().getDocuments()).stream()
+			.setNewCbeff(Optional.ofNullable(request.getRequest().getDocuments()).stream()
 					.flatMap(list -> list.stream())
 					.filter(doc -> doc.getCategory().contentEquals(IdentityIssuanceProfileBuilder
 							.getIdentityMapping().getIdentity().getIndividualBiometrics().getValue()))
 					.findFirst().orElse(new DocumentsDTO()).getValue())
-			.setOldUinData(identityInfo)
+			.setNewUinData(identityInfo)
 			.setVerifiedAttributes(request.getRequest().getVerifiedAttributes())
 			.buildAndsaveProfile();
 		return uinEntity;
