@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -189,7 +190,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	public Uin addIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
 		String uinRefId = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils.getUTCCurrentDateTime())
 				.toString();
-		byte[] identityInfo = convertToBytes(request.getRequest().getIdentity());
+		ObjectNode identityObject = mapper.convertValue(request.getRequest().getIdentity(), ObjectNode.class);
+		identityObject.putPOJO("verifiedAttributes", request.getRequest().getVerifiedAttributes());
+		byte[] identityInfo = convertToBytes(identityObject);
 		int modResult = getModValue(uin);
 		String uinHash = getUinHash(uin, modResult);
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
@@ -225,13 +228,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				request.getRequest().getRegistrationId());
 		anonymousProfileHelper
 			.setRegId(request.getRequest().getRegistrationId())
-			.setOldCbeff(Optional.ofNullable(request.getRequest().getDocuments()).stream()
+			.setNewCbeff(Optional.ofNullable(request.getRequest().getDocuments()).stream()
 					.flatMap(list -> list.stream())
 					.filter(doc -> doc.getCategory().contentEquals(IdentityIssuanceProfileBuilder
 							.getIdentityMapping().getIdentity().getIndividualBiometrics().getValue()))
 					.findFirst().orElse(new DocumentsDTO()).getValue())
-			.setOldUinData(identityInfo)
-			.setVerifiedAttributes(request.getRequest().getVerifiedAttributes())
+			.setNewUinData(identityInfo)
 			.buildAndsaveProfile();
 		return uinEntity;
 	}
@@ -303,7 +305,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						docType.get(FILE_NAME_ATTRIBUTE).asText() + SPLITTER + DateUtils.getUTCCurrentDateTime())
 				.toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
 
-		data = CryptoUtil.decodeBase64(doc.getValue());
+		data = CryptoUtil.decodePlainBase64(doc.getValue());
 		try {
 			cbeffUtil.validateXML(data);
 		} catch (Exception e) {
@@ -341,7 +343,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						docType.get(FILE_NAME_ATTRIBUTE).asText() + SPLITTER + DateUtils.getUTCCurrentDateTime())
 				.toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
 
-		byte[] data = CryptoUtil.decodeBase64(doc.getValue());
+		byte[] data = CryptoUtil.decodePlainBase64(doc.getValue());
 		objectStoreHelper.putDemographicObject(uinHash, fileRefId, data);
 
 		docList.add(new UinDocument(uinRefId, doc.getCategory(), docType.get(TYPE).asText(), fileRefId,
@@ -396,17 +398,18 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						.mappingProvider(new JacksonMappingProvider()).build();
 				DocumentContext inputData = JsonPath.using(configuration).parse(requestDTO.getIdentity());
 				DocumentContext dbData = JsonPath.using(configuration).parse(new String(uinObject.getUinData()));
+				anonymousProfileHelper.setOldUinData(dbData.jsonString().getBytes());
+				updateVerifiedAttributes(requestDTO, inputData, dbData);
 				JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(),
 						dbData.jsonString(), JSONCompareMode.LENIENT);
-				anonymousProfileHelper.setOldUinData(dbData.jsonString().getBytes());
 
 				if (comparisonResult.failed()) {
 					updateJsonObject(inputData, dbData, comparisonResult);
-					uinObject.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
-					uinObject.setUinDataHash(securityManager.hash(uinObject.getUinData()));
-					uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
-					uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
 				}
+				uinObject.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
+				uinObject.setUinDataHash(securityManager.hash(uinObject.getUinData()));
+				uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
+				uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
 
 				if (Objects.nonNull(requestDTO.getDocuments()) && !requestDTO.getDocuments().isEmpty()) {
 					anonymousProfileHelper
@@ -439,6 +442,22 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					"\n" + e.getErrorText());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		}
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private void updateVerifiedAttributes(RequestDTO requestDTO, DocumentContext inputData, DocumentContext dbData) {
+		List dbVerifiedAttributes = (List) dbData.read(".verifiedAttributes");
+		dbVerifiedAttributes.remove(null);
+		if (dbVerifiedAttributes.isEmpty()) {
+			dbVerifiedAttributes.add(new ArrayList<>());
+		}
+		List verifiedAttributeList = (List) dbVerifiedAttributes.get(0);
+		if (Objects.nonNull(requestDTO.getVerifiedAttributes())) {
+			verifiedAttributeList.addAll(requestDTO.getVerifiedAttributes());
+		}
+		HashSet<String> verifiedAttributesSet = new HashSet<>(verifiedAttributeList);
+		inputData.put("$", "verifiedAttributes", verifiedAttributesSet);
+		dbData.put("$", "verifiedAttributes", verifiedAttributesSet);
 	}
 
 	/**
@@ -661,9 +680,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 								if (StringUtils.equalsIgnoreCase(
 										identityMap.get(bio.getBiometricFileType()).get(FILE_FORMAT_ATTRIBUTE).asText(), CBEFF_FORMAT)
 										&& bioFileId.endsWith(CBEFF_FORMAT)) {
-									byte[] decodedBioData = CryptoUtil.decodeBase64(doc.getValue());
+									byte[] decodedBioData = CryptoUtil.decodePlainBase64(doc.getValue());
 									anonymousProfileHelper.setOldCbeff(doc.getValue());
-									doc.setValue(CryptoUtil.encodeBase64(cbeffUtil
+									doc.setValue(CryptoUtil.encodeToPlainBase64(cbeffUtil
 											.updateXML(cbeffUtil.getBIRDataFromXML(decodedBioData), data)));
 								}
 						} catch (Exception e) {
