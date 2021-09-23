@@ -59,8 +59,6 @@ public class AnonymousProfileHelper {
 
 	private String newCbeff;
 
-	private List<String> verifiedAttributes;
-	
 	@PostConstruct
 	public void init() throws MalformedURLException, IOException {
 		try (InputStream xsdBytes = new URL(identityMappingJson).openStream()) {
@@ -88,12 +86,11 @@ public class AnonymousProfileHelper {
 						.getIndividualBiometrics().getValue(), newCbeff));
 			String id = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, new String(regId)).toString();
 			IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
-					.setProcessName(Objects.isNull(newUinData) ? "New" : "Update")
+					.setProcessName(Objects.isNull(oldUinData) ? "New" : "Update")
 					.setOldIdentity(oldUinData)
 					.setOldDocuments(oldDocList)
 					.setNewIdentity(newUinData)
 					.setNewDocuments(newDocList)
-					.setVerifiedAttributes(verifiedAttributes)
 					.build();
 			AnonymousProfileEntity anonymousProfile = AnonymousProfileEntity.builder()
 					.id(id)
@@ -127,11 +124,6 @@ public class AnonymousProfileHelper {
 		return this;
 	}
 
-	public AnonymousProfileHelper setVerifiedAttributes(List<String> verifiedAttributes) {
-		this.verifiedAttributes = verifiedAttributes;
-		return this;
-	}
-	
 	public AnonymousProfileHelper setRegId(String regId) {
 		resetData();
 		this.regId = regId;
@@ -143,7 +135,6 @@ public class AnonymousProfileHelper {
 		this.newUinData = null;
 		this.oldCbeff = null;
 		this.newCbeff = null;
-		this.verifiedAttributes = null;
 		this.regId = null;
 	}
 }
