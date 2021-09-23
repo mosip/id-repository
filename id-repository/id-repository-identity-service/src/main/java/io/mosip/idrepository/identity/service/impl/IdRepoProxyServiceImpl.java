@@ -37,6 +37,7 @@ import org.springframework.transaction.TransactionException;
 
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
@@ -404,7 +405,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				String uinHash = uinObject.getUinHash().split("_")[1];
 				byte[] data = objectStoreHelper.getDemographicObject(uinHash, demo.getDocId());
 				if (demo.getDocHash().equals(securityManager.hash(data))) {
-					documents.add(new DocumentsDTO(demo.getDoccatCode(), CryptoUtil.encodeBase64(data)));
+					documents.add(new DocumentsDTO(demo.getDoccatCode(), CryptoUtil.encodeToPlainBase64(data)));
 				} else {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
 							DOCUMENT_HASH_MISMATCH.getErrorMessage());
@@ -438,13 +439,13 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 									extractionFormats, data);
 							if (Objects.nonNull(extractedData)) {
 								documents.add(new DocumentsDTO(bio.getBiometricFileType(),
-										CryptoUtil.encodeBase64(extractedData)));
+										CryptoUtil.encodeToPlainBase64(extractedData)));
 							}
 
 						} else {
 							if (StringUtils.equals(bio.getBiometricFileHash(), securityManager.hash(data))) {
 								documents.add(
-										new DocumentsDTO(bio.getBiometricFileType(), CryptoUtil.encodeBase64(data)));
+										new DocumentsDTO(bio.getBiometricFileType(), CryptoUtil.encodeToPlainBase64(data)));
 							} else {
 								mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
 										DOCUMENT_HASH_MISMATCH.getErrorMessage());
@@ -554,6 +555,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * @return the id response DTO
 	 * @throws IdRepoAppException the id repo app exception
 	 */
+	@SuppressWarnings("unchecked")
 	private IdResponseDTO constructIdResponse(String id, Uin uin, List<DocumentsDTO> documents)
 			throws IdRepoAppException {
 		IdResponseDTO idResponse = new IdResponseDTO();
@@ -565,7 +567,10 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			if (!Objects.isNull(documents)) {
 				response.setDocuments(documents);
 			}
-			response.setIdentity(convertToObject(uin.getUinData(), Object.class));
+			ObjectNode identityObject = convertToObject(uin.getUinData(), ObjectNode.class);
+			response.setVerifiedAttributes(mapper.convertValue(identityObject.get("verifiedAttributes"), List.class));
+			identityObject.remove("verifiedAttributes");
+			response.setIdentity(identityObject);
 		}
 		idResponse.setResponse(response);
 		return idResponse;
@@ -579,7 +584,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * @return the object
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	private Object convertToObject(byte[] identity, Class<?> clazz) throws IdRepoAppException {
+	private <T> T convertToObject(byte[] identity, Class<T> clazz) throws IdRepoAppException {
 		try {
 			return mapper.readValue(identity, clazz);
 		} catch (IOException e) {
