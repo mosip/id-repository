@@ -155,6 +155,12 @@ public class IdRepoConstants {
 	public static final String EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX = "ExtractionFormat";
 	
 	public static final String DRAFT_STATUS = "DRAFT";
+	
+	public static final String DEFAULT_VID_TYPE = "mosip.idrepo.draft-vid.default-type-to-create";
+	
+	public static final String VID_CREATE_ID = "mosip.idrepo.vid.id.create";
+	
+	public static final String VID_UPDATE_ID = "mosip.idrepo.vid.id.update";
 
 	/**
 	 * Instantiates a new id repo constants.
