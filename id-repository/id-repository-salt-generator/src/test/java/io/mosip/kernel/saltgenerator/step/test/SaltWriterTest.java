@@ -1,8 +1,5 @@
 package io.mosip.kernel.saltgenerator.step.test;
 
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
-
 //@RunWith(MockitoJUnitRunner.class)
 public class SaltWriterTest {
 
