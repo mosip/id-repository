@@ -5,9 +5,9 @@
 -- Create By   		: Ram Bhatt
 -- Created Date		: Apr-2021
 -- 
--- Modified Date        Modified By         Comments / Remarks
+-- Modified Date       Modified By       Comments / Remarks
 -- -------------------------------------------------------------------------------------------------
--- Sep 2021				Manoj SP			Added anonymous_profile and channel_info tables
+-- Sep 2021            Manoj SP           Added anonymous_profile and channel_info tables
 -----------------------------------------------------------------------------------------------------
 
 \c mosip_idrepo sysadmin

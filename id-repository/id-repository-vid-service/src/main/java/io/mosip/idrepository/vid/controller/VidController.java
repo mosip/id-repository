@@ -1,5 +1,6 @@
 package io.mosip.idrepository.vid.controller;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.DRAFT_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATA_VALIDATION_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 
@@ -147,6 +148,15 @@ public class VidController {
 					"Create VID requested for " + vidType);
 		}
 	}
+	
+	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	@PostMapping(path = "/draft/vid", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<ResponseWrapper<VidResponseDTO>> createDraftVid(
+			@Validated @RequestBody RequestWrapper<VidRequestDTO> request, @ApiIgnore Errors errors)
+			throws IdRepoAppException {
+		request.getRequest().setVidStatus(DRAFT_STATUS);
+		return createVid(request, errors);
+	}
 
 	/**
 	 * This method will accepts vid as parameter, if vid is valid it will return
@@ -217,7 +227,7 @@ public class VidController {
 	 * @return the response entity
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	@PreAuthorize("hasAnyRole('ID_AUTHENTICATION')")
+	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR','ID_AUTHENTICATION')")
 	@PatchMapping(path = "/vid/{VID}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseWrapper<VidResponseDTO>> updateVidStatus(@PathVariable("VID") String vid,
 			@Validated @RequestBody RequestWrapper<VidRequestDTO> request, @ApiIgnore Errors errors)
