@@ -7,6 +7,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.IRIS_EXTRACTIO
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 
@@ -41,6 +42,7 @@ import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.IdRepoDraftService;
 import io.mosip.idrepository.core.util.DataValidationUtil;
+import io.mosip.idrepository.identity.helper.VidDraftHelper;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 import springfox.documentation.annotations.ApiIgnore;
@@ -67,6 +69,9 @@ public class IdRepoDraftController {
 
 	@Autowired
 	private AuditHelper auditHelper;
+	
+	@Autowired
+	private VidDraftHelper vidDraftHelper;
 
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
@@ -111,11 +116,16 @@ public class IdRepoDraftController {
 		}
 	}
 
+	@SuppressWarnings({ "unchecked" })
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
 	@GetMapping(path = "/publish/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> publishDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
-			return new ResponseEntity<>(draftService.publishDraft(registrationId), HttpStatus.OK);
+			IdResponseDTO publishDraftResponse = draftService.publishDraft(registrationId);
+			Map<String, Optional<String>> metadata = (Map<String, Optional<String>>) publishDraftResponse.getMetadata();
+			String vid = ((Optional<String>) metadata.get("vid")).orElse(null);
+			vidDraftHelper.activateDraftVid(Objects.nonNull(vid) ? (String) vid : null);
+			return new ResponseEntity<>(publishDraftResponse, HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.PUBLISH_DRAFT_REQUEST_RESPONSE, registrationId,
 					IdType.ID, e);
