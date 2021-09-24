@@ -153,6 +153,8 @@ public class IdRepoConstants {
 	public static final String DOT = ".";
 	
 	public static final String EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX = "ExtractionFormat";
+	
+	public static final String DRAFT_STATUS = "DRAFT";
 
 	/**
 	 * Instantiates a new id repo constants.
