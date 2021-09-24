@@ -444,7 +444,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				}
 				for (UinDocumentDraft uinDocumentDraft : draft.getDocuments()) {
 					documents.add(new DocumentsDTO(uinDocumentDraft.getDoccatCode(), CryptoUtil
-							.encodeToURLSafeBase64(objectStoreHelper.getDemographicObject(uinHash, uinDocumentDraft.getDocId()))));
+							.encodeToPlainBase64(objectStoreHelper.getDemographicObject(uinHash, uinDocumentDraft.getDocId()))));
 				}
 				return constructIdResponse(draft.getUinData(), draft.getStatusCode(), documents);
 			} else {
