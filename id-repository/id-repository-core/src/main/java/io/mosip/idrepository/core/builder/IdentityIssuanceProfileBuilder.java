@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.stream.Streams;
@@ -25,7 +24,6 @@ import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.Exceptions;
 import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.kernel.biometrics.commons.CbeffValidator;
-import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -39,7 +37,6 @@ public class IdentityIssuanceProfileBuilder {
 	private JsonNode newIdentity;
 	private List<DocumentsDTO> oldDocuments;
 	private List<DocumentsDTO> newDocuments;
-	private List<String> verifiedAttributes;
 	private AnonymousProfile oldProfile;
 	private AnonymousProfile newProfile;
 	private static String filterLanguage;
@@ -71,14 +68,13 @@ public class IdentityIssuanceProfileBuilder {
 		Optional<BIR> birListOpt = buildBirList(newDocuments);
 		if (Objects.nonNull(newIdentity))
 			this.setNewProfile(buildProfile(newIdentity, birListOpt.isPresent() ? birListOpt.get().getBirs() : null));
-
 	}
 
 	private Optional<BIR> buildBirList(List<DocumentsDTO> documents) {
 		return Streams.stream(documents)
 				.filter(doc -> Objects.nonNull(doc.getCategory()) && doc.getCategory()
 						.contentEquals(identityMapping.getIdentity().getIndividualBiometrics().getValue()))
-				.map(doc -> CbeffValidator.getBIRFromXML(CryptoUtil.decodeBase64(doc.getValue()))).stream().findAny();
+				.map(doc -> CbeffValidator.getBIRFromXML(CryptoUtil.decodePlainBase64(doc.getValue()))).stream().findAny();
 	}
 
 	private AnonymousProfile buildProfile(JsonNode identity, List<BIR> bioData) {
@@ -89,7 +85,7 @@ public class IdentityIssuanceProfileBuilder {
 				.preferredLanguage(this.getPreferredLanguage(identity))
 				.channel(this.getChannel(identity))
 				.exceptions(this.getExceptions(bioData))
-				.verified(this.getVerified())
+				.verified(this.getVerified(identity))
 				.biometricInfo(this.getBiometricInfo(bioData))
 				.documents(this.getDocuments(identity))
 				.build();
@@ -160,8 +156,10 @@ public class IdentityIssuanceProfileBuilder {
 		return null;
 	}
 
-	private List<String> getVerified() {
-		return verifiedAttributes;
+	private List<String> getVerified(JsonNode identity) {
+		return Objects.isNull(identity.get("verifiedAttributes")) || identity.get("verifiedAttributes").isNull() ? null
+				: mapper.convertValue(identity.get("verifiedAttributes"), new TypeReference<List<String>>() {
+				});
 	}
 
 	private List<BiometricInfo> getBiometricInfo(List<BIR> biometrics) {
@@ -177,7 +175,7 @@ public class IdentityIssuanceProfileBuilder {
 									new TypeReference<Map<String, String>>() {
 									});
 							digitalId = new String(
-									CryptoUtil.decodeBase64(digitalIdEncoded.get("digitalId").split("\\.")[1]));
+									CryptoUtil.decodePlainBase64(digitalIdEncoded.get("digitalId").split("\\.")[1]));
 						}
 						return BiometricInfo.builder()
 								.type(bir.getBdbInfo().getType().stream().map(type -> type.value())
@@ -220,7 +218,8 @@ public class IdentityIssuanceProfileBuilder {
 
 	public IdentityIssuanceProfileBuilder setOldIdentity(byte[] identity) {
 		try {
-			this.oldIdentity = mapper.readTree(identity);
+			if (Objects.nonNull(identity))
+				this.oldIdentity = mapper.readTree(identity);
 		} catch (IOException e) {
 			// this block should never be executed
 			e.printStackTrace();
@@ -246,11 +245,6 @@ public class IdentityIssuanceProfileBuilder {
 
 	public IdentityIssuanceProfileBuilder setNewDocuments(List<DocumentsDTO> newDocuments) {
 		this.newDocuments = newDocuments;
-		return this;
-	}
-
-	public IdentityIssuanceProfileBuilder setVerifiedAttributes(List<String> verifiedAttributes) {
-		this.verifiedAttributes = verifiedAttributes;
 		return this;
 	}
 

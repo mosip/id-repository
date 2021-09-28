@@ -13,7 +13,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
@@ -34,7 +34,6 @@ import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.util.CryptoUtil;
 
@@ -45,7 +44,6 @@ import io.mosip.kernel.core.util.CryptoUtil;
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
 @WebMvcTest
-@Import(EnvUtil.class)
 @ActiveProfiles("test")
 public class IdRepoSecurityManagerTest {
 
@@ -56,6 +54,10 @@ public class IdRepoSecurityManagerTest {
 	@Mock
 	private RestHelper restHelper;
 
+	/** The env. */
+	@Autowired
+	private Environment env;
+
 	/** The mapper. */
 	@Autowired
 	private ObjectMapper mapper;
@@ -65,7 +67,7 @@ public class IdRepoSecurityManagerTest {
 
 	@Before
 	public void setup() {
-		EnvUtil.setDateTimePattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		ReflectionTestUtils.setField(securityManager, "env", env);
 		ReflectionTestUtils.setField(securityManager, "mapper", mapper);
 		ReflectionTestUtils.setField(securityManager, "restBuilder", restBuilder);
 		ReflectionTestUtils.setField(securityManager, "restHelper", restHelper);
@@ -96,7 +98,7 @@ public class IdRepoSecurityManagerTest {
 			throws IdRepoAppException, JsonParseException, JsonMappingException, JsonProcessingException, IOException {
 		ResponseWrapper<ObjectNode> response = new ResponseWrapper<>();
 		ObjectNode responseNode = mapper.createObjectNode();
-		responseNode.put("data", CryptoUtil.encodeToURLSafeBase64("data".getBytes()));
+		responseNode.put("data", CryptoUtil.encodeToPlainBase64("data".getBytes()));
 		response.setResponse(responseNode);
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any(Class.class)))
 				.thenReturn(new RestRequestDTO());

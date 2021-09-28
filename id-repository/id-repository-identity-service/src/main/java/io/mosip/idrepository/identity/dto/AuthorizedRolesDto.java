@@ -26,5 +26,19 @@ public class AuthorizedRolesDto {
 	private List<String> getauthtypesstatusindividualidtypeindividualid;
 	
 	private List<String> postauthtypesstatus;
-	
+
+	private List<String> postdraftcreateregistrationId;
+
+	private List<String> patchdraftupdateregistrationId;
+
+	private List<String> getdraftpublishregistrationId;
+
+	private List<String> deletedraftdiscardregistrationId;
+
+	private List<String> draftregistrationId;
+
+	private List<String> getdraftregistrationId;
+
+	private List<String> putdraftextractbiometricsregistrationId;
+
 }

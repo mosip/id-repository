@@ -28,8 +28,8 @@ public class AuthorizedRolesDto {
 	private List<String> postvidregenerate;
 	
 	private List<String> postviddeactivate;
-	
+
 	private List<String> postvidreactivate;
-	
-	
+
+	private List<String> postdraftvid;
 }
