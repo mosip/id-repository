@@ -107,7 +107,7 @@ public class VidController {
 
 	/** The mosip logger. */
 	Logger mosipLogger = IdRepoLogger.getLogger(VidController.class);
-	
+
 	/**
 	 * Inits the binder.
 	 *
@@ -126,7 +126,8 @@ public class VidController {
 	 * @return the response entity
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR','RESIDENT')")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR','RESIDENT')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostvid())")
 	@PostMapping(path = "/vid", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseWrapper<VidResponseDTO>> createVid(
 			@Validated @RequestBody RequestWrapper<VidRequestDTO> request, @ApiIgnore Errors errors)
@@ -148,8 +149,9 @@ public class VidController {
 					"Create VID requested for " + vidType);
 		}
 	}
-	
-	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+
+	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostdraftvid())")
 	@PostMapping(path = "/draft/vid", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseWrapper<VidResponseDTO>> createDraftVid(
 			@Validated @RequestBody RequestWrapper<VidRequestDTO> request, @ApiIgnore Errors errors)
@@ -167,7 +169,8 @@ public class VidController {
 	 * @return the response entity
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR','ID_AUTHENTICATION','RESIDENT')")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR','ID_AUTHENTICATION','RESIDENT')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetvid())")
 	@GetMapping(path = "/vid/{VID}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseWrapper<VidResponseDTO>> retrieveUinByVid(@PathVariable("VID") String vid)
 			throws IdRepoAppException {
@@ -196,7 +199,8 @@ public class VidController {
 	 * @return the response entity
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetviduin())")
 	@GetMapping(path = "/vid/uin/{UIN}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseWrapper<List<VidInfoDTO>>> retrieveVidsByUin(@PathVariable("UIN") String uin)
 			throws IdRepoAppException {
@@ -227,7 +231,8 @@ public class VidController {
 	 * @return the response entity
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR','ID_AUTHENTICATION')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPatchvid())")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR','ID_AUTHENTICATION')")
 	@PatchMapping(path = "/vid/{VID}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseWrapper<VidResponseDTO>> updateVidStatus(@PathVariable("VID") String vid,
 			@Validated @RequestBody RequestWrapper<VidRequestDTO> request, @ApiIgnore Errors errors)
@@ -266,7 +271,8 @@ public class VidController {
 	 * @return the response entity
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	@PreAuthorize("hasAnyRole('RESIDENT')")
+	//@PreAuthorize("hasAnyRole('RESIDENT')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostvidregenerate())")
 	@PostMapping(path = "/vid/{VID}/regenerate", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseWrapper<VidResponseDTO>> regenerateVid(@PathVariable("VID") String vid)
 			throws IdRepoAppException {
@@ -298,7 +304,8 @@ public class VidController {
 	 * @return the response entity
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	@PreAuthorize("hasAnyRole('RESIDENT')")
+	//@PreAuthorize("hasAnyRole('RESIDENT')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostviddeactivate())")
 	@PostMapping(path = "/vid/deactivate", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseWrapper<VidResponseDTO>> deactivateVIDsForUIN(
 			@Validated @RequestBody RequestWrapper<VidRequestDTO> request, @ApiIgnore Errors errors)
@@ -335,7 +342,8 @@ public class VidController {
 	 * @return the response entity
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	@PreAuthorize("hasAnyRole('RESIDENT')")
+	//@PreAuthorize("hasAnyRole('RESIDENT')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostvidreactivate())")
 	@PostMapping(path = "/vid/reactivate", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ResponseWrapper<VidResponseDTO>> reactivateVIDsForUIN(
 			@Validated @RequestBody RequestWrapper<VidRequestDTO> request, @ApiIgnore Errors errors)
