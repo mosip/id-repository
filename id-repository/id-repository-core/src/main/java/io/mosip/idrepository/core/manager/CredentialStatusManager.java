@@ -213,7 +213,7 @@ public class CredentialStatusManager {
 		Optional<UinEncryptSalt> encryptSalt = uinEncryptSaltRepo
 				.findById(Integer.valueOf(StringUtils.substringBefore(individualId, SPLITTER)));
 		return new String(securityManager.decryptWithSalt(
-				CryptoUtil.decodePlainBase64(StringUtils.substringAfter(individualId, SPLITTER)),
+				CryptoUtil.decodeURLSafeBase64(StringUtils.substringAfter(individualId, SPLITTER)),
 				CryptoUtil.decodePlainBase64(encryptSalt.get().getSalt()), uinRefId));
 	}
 
