@@ -20,7 +20,6 @@
 		<spring.boot.version>2.0.2.RELEASE</spring.boot.version>
 		<kernel.core.version>1.2.0-SNAPSHOT</kernel.core.version>
 		<kernel.idvalidator.uin.version>1.2.0-SNAPSHOT</kernel.idvalidator.uin.version>
-		<kernel.idvalidator.rid.version>1.2.0-SNAPSHOT</kernel.idvalidator.rid.version>
 		<kernel.cbeffutil.api.version>1.2.0-SNAPSHOT</kernel.cbeffutil.api.version>
 		<kernel.idobjectvalidator.version>1.2.0-SNAPSHOT</kernel.idobjectvalidator.version>
 		<kernel-idvalidator-vid.version>1.2.0-SNAPSHOT</kernel-idvalidator-vid.version>
@@ -32,16 +31,17 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-core</artifactId>
 			<version>${kernel.core.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-lang3</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-uin</artifactId>
 			<version>${kernel.idvalidator.uin.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-idvalidator-rid</artifactId>
-			<version>${kernel.idvalidator.rid.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -80,7 +80,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-			<dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 			<version>${spring.boot.version}</version>

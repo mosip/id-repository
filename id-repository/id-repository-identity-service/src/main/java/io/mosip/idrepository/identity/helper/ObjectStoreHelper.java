@@ -5,6 +5,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.DEMO_DATA_REFI
 import static io.mosip.idrepository.core.constant.IdRepoConstants.OBJECT_STORE_ACCOUNT_NAME;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.OBJECT_STORE_ADAPTER_NAME;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.OBJECT_STORE_BUCKET_NAME;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_NOT_FOUND;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -16,7 +17,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
+import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 
 /**
@@ -77,12 +80,25 @@ public class ObjectStoreHelper {
 		putObject(uinHash, true, fileRefId, data, bioDataRefId);
 	}
 
-	public byte[] getDemographicObject(String uinHash, String fileRefId) throws IdRepoAppException, IOException {
+	public byte[] getDemographicObject(String uinHash, String fileRefId) throws IdRepoAppException {
+		if (!this.demographicObjectExists(uinHash, fileRefId)) {
+			throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
+		}
 		return getObject(uinHash, false, fileRefId, demoDataRefId);
 	}
 
-	public byte[] getBiometricObject(String uinHash, String fileRefId) throws IdRepoAppException, IOException {
+	public byte[] getBiometricObject(String uinHash, String fileRefId) throws IdRepoAppException {
+		if (!this.biometricObjectExists(uinHash, fileRefId)) {
+			throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
+		}
 		return getObject(uinHash, true, fileRefId, bioDataRefId);
+	}
+	
+	public void deleteBiometricObject(String uinHash, String fileRefId) {
+		if (this.biometricObjectExists(uinHash, fileRefId)) {
+			String objectName = uinHash + SLASH + BIOMETRICS + SLASH + fileRefId;
+			objectStore.deleteObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
+		}
 	}
 
 	private boolean exists(String uinHash, boolean isBio, String fileRefId) {
@@ -96,9 +112,13 @@ public class ObjectStoreHelper {
 				new ByteArrayInputStream(securityManager.encrypt(data, refId)));
 	}
 
-	private byte[] getObject(String uinHash, boolean isBio, String fileRefId, String refId) throws IdRepoAppException, IOException {
+	private byte[] getObject(String uinHash, boolean isBio, String fileRefId, String refId) throws IdRepoAppException {
+		try {
 		String objectName = uinHash + SLASH + (isBio ? BIOMETRICS : DEMOGRAPHICS) + SLASH + fileRefId;
 		return securityManager.decrypt(IOUtils.toByteArray(
 				objectStore.getObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName)), refId);
+		} catch (IOException e) {
+			throw new IdRepoAppUncheckedException(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR);
+		}
 	}
 }

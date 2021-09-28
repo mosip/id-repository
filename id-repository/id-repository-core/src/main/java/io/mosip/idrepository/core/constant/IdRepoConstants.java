@@ -51,9 +51,6 @@ public class IdRepoConstants {
 	/** The application name. */
 	public static final String APPLICATION_NAME = "mosip.idrepo.application.name";
 
-	/** The mosip primary language. */
-	public static final String MOSIP_PRIMARY_LANGUAGE = "mosip.primary-language";
-
 	/** The json schema file name. */
 	public static final String JSON_SCHEMA_FILE_NAME = "mosip.idrepo.json-schema-fileName";
 	
@@ -127,6 +124,12 @@ public class IdRepoConstants {
 	public static final String  VID_EVENT_CALLBACK_URL = "mosip.idrepo.websub.vid-credential-update.callback-url";
 	
 	public static final String CREDENTIAL_STATUS_UPDATE_TOPIC = "mosip.idrepo.websub.credential-status-update.topic";
+	
+	public static final String FACE_EXTRACTION_FORMAT = "faceExtractionFormat";
+
+	public static final String IRIS_EXTRACTION_FORMAT = "irisExtractionFormat";
+
+	public static final String FINGER_EXTRACTION_FORMAT = "fingerExtractionFormat";
 
 	
 	/** The value. */
@@ -146,6 +149,18 @@ public class IdRepoConstants {
 
 	/** The Constant ID_REPO. */
 	public static final String ID_REPO = "ID_REPO";
+	
+	public static final String DOT = ".";
+	
+	public static final String EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX = "ExtractionFormat";
+	
+	public static final String DRAFT_STATUS = "DRAFT";
+	
+	public static final String DEFAULT_VID_TYPE = "mosip.idrepo.draft-vid.default-type-to-create";
+	
+	public static final String VID_CREATE_ID = "mosip.idrepo.vid.id.create";
+	
+	public static final String VID_UPDATE_ID = "mosip.idrepo.vid.id.update";
 
 	/**
 	 * Instantiates a new id repo constants.

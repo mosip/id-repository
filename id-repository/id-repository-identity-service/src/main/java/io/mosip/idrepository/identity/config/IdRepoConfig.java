@@ -24,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -81,9 +82,6 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	/** The bio attributes. */
 	private List<String> bioAttributes;
 
-	/** The allowed types. */
-	private List<String> allowedTypes;
-
 	/** The id. */
 	private Map<String, String> id;
 
@@ -92,7 +90,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 
 	@Autowired
 	private IdRepoWebSubHelper websubHelper;
-
+	
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent event) {
 		websubHelper.subscribeForVidEvent();
@@ -100,6 +98,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 
 	@PostConstruct
 	public void init() {
+		SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
 		restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
 
 			@Override
@@ -195,15 +194,6 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 		this.bioAttributes = bioAttributes;
 	}
 
-	/**
-	 * Sets the allowed types.
-	 *
-	 * @param allowedTypes the new allowed types
-	 */
-	public void setAllowedTypes(List<String> allowedTypes) {
-		this.allowedTypes = allowedTypes;
-	}
-
 	// FIXME Need to check for UIN-Reg ID scenario
 	// /**
 	// * Gets the shard data source resolver.
@@ -248,16 +238,6 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	@Bean
 	public List<String> bioAttributes() {
 		return Collections.unmodifiableList(bioAttributes);
-	}
-
-	/**
-	 * Allowed types.
-	 *
-	 * @return the list
-	 */
-	@Bean
-	public List<String> allowedTypes() {
-		return Collections.unmodifiableList(allowedTypes);
 	}
 
 	/**

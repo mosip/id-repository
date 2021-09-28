@@ -19,6 +19,7 @@ import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -28,11 +29,13 @@ import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
 import org.springframework.orm.jpa.persistenceunit.PersistenceUnitPostProcessor;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import io.mosip.idrepository.core.entity.UinEncryptSalt;
 import io.mosip.idrepository.core.entity.UinHashSalt;
+import io.mosip.idrepository.core.helper.RestHelper;
+import io.mosip.idrepository.core.httpfilter.AuthTokenExchangeFilter;
+import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.vid.repository.VidRepo;
@@ -151,19 +154,25 @@ public class VidRepoConfig {
 		});
 		return em;
 	}
-
+	
 	@Bean
-	public DelegatingSecurityContextAsyncTaskExecutor taskExecutor() {
-		return new DelegatingSecurityContextAsyncTaskExecutor(threadPoolTaskExecutor());
+	@Primary
+	public RestHelper restHelper() {
+		return new RestHelper();
 	}
 
-	private ThreadPoolTaskExecutor threadPoolTaskExecutor() {
-		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(3);
-		executor.setMaxPoolSize(3);
-		executor.setQueueCapacity(500);
-		executor.setThreadNamePrefix("idrepo-");
-		executor.initialize();
-		return executor;
+	@Bean
+	public CredentialServiceManager credentialServiceManager() {
+		return new CredentialServiceManager(restHelperWithAuth());
+	}
+	
+	@Bean("restHelperWithAuth")
+	public RestHelper restHelperWithAuth() {
+		return new RestHelper(WebClient.builder().filter(authTokenExchangeFilter()).build());
+	}
+	
+	@Bean
+	public AuthTokenExchangeFilter authTokenExchangeFilter() {
+		return new AuthTokenExchangeFilter();
 	}
 }

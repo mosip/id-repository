@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,7 +60,6 @@ import io.mosip.kernel.core.idobjectvalidator.exception.InvalidIdSchemaException
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.idvalidator.rid.impl.RidValidatorImpl;
 import io.mosip.kernel.idvalidator.uin.impl.UinValidatorImpl;
 
 /**
@@ -76,6 +77,9 @@ public class IdRequestValidatorTest {
 
 	@InjectMocks
 	IdRequestValidator validator;
+	
+	@Mock
+	private HttpServletRequest servletRequest;
 
 	@Autowired
 	private Environment env;
@@ -104,9 +108,6 @@ public class IdRequestValidatorTest {
 	private IdObjectValidator idObjectValidator;
 
 	@Mock
-	private RidValidatorImpl ridValidator;
-
-	@Mock
 	private RestRequestBuilder restBuilder;
 
 	@Mock
@@ -128,6 +129,7 @@ public class IdRequestValidatorTest {
 
 	@Before
 	public void setup() throws RestServiceException, IdRepoDataValidationException {
+		when(servletRequest.getRequestURI()).thenReturn("");
 		uinStatus.add(env.getProperty(IdRepoConstants.ACTIVE_STATUS));
 		allowedTypes.add("bio,demo,all");
 		ReflectionTestUtils.setField(validator, "id", id);
@@ -177,28 +179,6 @@ public class IdRequestValidatorTest {
 	}
 
 	@Test
-	public void testValidateRegIdValidRegId() {
-		when(ridValidator.validateId(Mockito.anyString())).thenReturn(true);
-		ReflectionTestUtils.invokeMethod(validator, "validateRegId", "1234", errors);
-		assertFalse(errors.hasErrors());
-	}
-
-	@Test
-	public void testValidateRegIdInvalidRegId() {
-		when(ridValidator.validateId(Mockito.anyString()))
-				.thenThrow(new InvalidIDException("errorCode", "errorMessage"));
-		ReflectionTestUtils.invokeMethod(validator, "validateRegId", "1234", errors);
-		assertTrue(errors.hasErrors());
-		errors.getAllErrors().forEach(error -> {
-			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), error.getCode());
-			assertEquals(
-					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "registrationId"),
-					error.getDefaultMessage());
-			assertEquals("request", ((FieldError) error).getField());
-		});
-	}
-
-	@Test
 	public void testValidateRegIdNullRegId() {
 		ReflectionTestUtils.invokeMethod(validator, "validateRegId", null, errors);
 		assertTrue(errors.hasErrors());
@@ -242,7 +222,7 @@ public class IdRequestValidatorTest {
 		errors.getAllErrors().forEach(error -> {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), error.getCode());
 			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(),
-					"individualBiometrics"), error.getDefaultMessage());
+					"documents/0/category"), error.getDefaultMessage());
 			assertEquals("request", ((FieldError) error).getField());
 		});
 	}
@@ -252,7 +232,7 @@ public class IdRequestValidatorTest {
 			IOException, IdObjectIOException, IdObjectValidationFailedException, InvalidIdSchemaException {
 		when(idObjectValidator.validateIdObject(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(true);
 		Object request = mapper.readValue(
-				"{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":795429385028},\"documents\":[{\"category\":\"individualBiometrics\",\"value\":\"\"}]}"
+				"{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":795429385028,\"individualBiometrics\": {\"format\": \"cbeff\",\"version\": 1,\"value\": \"individualBiometrics_bio_CBEFF\"}},\"documents\":[{\"category\":\"individualBiometrics\",\"value\":\"\"}]}"
 						.getBytes(),
 				Object.class);
 		ReflectionTestUtils.invokeMethod(validator, "validateRequest", request, errors, "create");
@@ -260,7 +240,7 @@ public class IdRequestValidatorTest {
 		errors.getAllErrors().forEach(error -> {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), error.getCode());
 			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(),
-					"individualBiometrics"), error.getDefaultMessage());
+					"documents/0/value"), error.getDefaultMessage());
 			assertEquals("request", ((FieldError) error).getField());
 		});
 	}
@@ -386,7 +366,6 @@ public class IdRequestValidatorTest {
 	public void testValidateCreate() throws JsonParseException, JsonMappingException, JsonProcessingException,
 			IOException, IdObjectIOException, IdObjectValidationFailedException, InvalidIdSchemaException {
 		Mockito.when(idObjectValidator.validateIdObject(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(true);
-		Mockito.when(ridValidator.validateId(Mockito.any())).thenReturn(true);
 		Mockito.when(uinValidator.validateId(Mockito.anyString())).thenReturn(true);
 		IdRequestDTO request = new IdRequestDTO();
 		request.setId("mosip.id.create");
@@ -410,7 +389,6 @@ public class IdRequestValidatorTest {
 	public void testValidateUpdate() throws JsonParseException, JsonMappingException, JsonProcessingException,
 			IOException, IdObjectIOException, IdObjectValidationFailedException, InvalidIdSchemaException {
 		Mockito.when(idObjectValidator.validateIdObject(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(true);
-		Mockito.when(ridValidator.validateId(Mockito.any())).thenReturn(true);
 		Mockito.when(uinValidator.validateId(Mockito.anyString())).thenReturn(true);
 		IdRequestDTO request = new IdRequestDTO();
 		request.setId("mosip.id.update");

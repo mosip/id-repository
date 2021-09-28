@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.util.List;
 import java.util.Map;
 
 import org.assertj.core.util.Maps;
@@ -84,22 +83,18 @@ public class IdRepoControllerTest {
 	@Autowired
 	private Environment env;
 
-	List<String> allowedTypes;
-
 	@Before
 	public void before() {
 		Map<String, String> id = Maps.newHashMap("read", "mosip.id.read");
 		id.put("create", "mosip.id.create");
 		id.put("update", "mosip.id.update");
 		ReflectionTestUtils.setField(controller, "id", id);
-		ReflectionTestUtils.setField(controller, "allowedTypes", allowedTypes);
 		ReflectionTestUtils.setField(controller, "mapper", mapper);
 		ReflectionTestUtils.setField(controller, "validator", validator);
 		ReflectionTestUtils.setField(controller, "env", env);
 		ReflectionTestUtils.setField(validator, "id", id);
 		ReflectionTestUtils.setField(validator, "env", env);
 		ReflectionTestUtils.setField(validator, "allowedTypes", Lists.newArrayList("bio", "demo", "all"));
-		ReflectionTestUtils.setField(controller, "allowedTypes", Lists.newArrayList("bio", "demo", "all"));
 	}
 
 	@Test
@@ -352,7 +347,6 @@ public class IdRepoControllerTest {
 	@Test
 	public void testRetrieveIdentityByRidInvalidUin() throws Throwable {
 		when(validator.validateUin(null)).thenThrow(new InvalidIDException(null, null));
-		when(validator.validateRid(anyString())).thenThrow(new InvalidIDException(null, null));
 		try {
 			when(idRepoService.retrieveIdentity(any(), any(), any(), any()))
 					.thenThrow(new IdRepoAppException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
@@ -368,7 +362,6 @@ public class IdRepoControllerTest {
 	@Test
 	public void testRetrieveIdentityByRidMultipleInvalidType() throws Throwable {
 		try {
-			when(validator.validateRid(anyString())).thenReturn(true);
 			when(idRepoService.retrieveIdentity(any(), any(), any(), any()))
 					.thenThrow(new IdRepoAppException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
 							String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), TYPE)));
@@ -383,7 +376,6 @@ public class IdRepoControllerTest {
 	@Test
 	public void testRetrieveIdentityByRidInvalidType() throws Throwable {
 		try {
-			when(validator.validateRid(anyString())).thenReturn(true);
 			when(idRepoService.retrieveIdentity(any(), any(), any(), any()))
 					.thenThrow(new IdRepoAppException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
 							String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), TYPE)));
@@ -398,7 +390,6 @@ public class IdRepoControllerTest {
 	@Test
 	public void testRetrieveIdentityByRidMultipleValidType() throws IdRepoAppException {
 		IdResponseDTO response = new IdResponseDTO();
-		when(validator.validateRid(anyString())).thenReturn(true);
 		when(idRepoService.retrieveIdentity(any(), any(), any(), any())).thenReturn(response);
 		ResponseEntity<IdResponseDTO> responseEntity = controller.retrieveIdentity("1234", "demo,all,bio",
 				"RegistrationId", null, null, null);
@@ -409,9 +400,6 @@ public class IdRepoControllerTest {
 	@Test
 	public void testRetrieveIdentityByRidNullId() throws Throwable {
 		try {
-			when(validator.validateRid(null)).thenThrow(new InvalidIDException(
-					IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
-					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), REGISTRATION_ID)));
 			controller.retrieveIdentity(null, null, "RegistrationId", null, null, null);
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());

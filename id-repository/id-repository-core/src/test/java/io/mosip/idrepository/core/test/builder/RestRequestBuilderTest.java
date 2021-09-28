@@ -67,7 +67,7 @@ public class RestRequestBuilderTest {
 	@Test
 	public void testBuildRequest() throws IdRepoDataValidationException {
 		RequestWrapper<AuditRequestDTO> auditRequest = auditBuilder.buildRequest(AuditModules.ID_REPO_CORE_SERVICE,
-				AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",IdType.RID, "desc");
+				AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",IdType.ID, "desc");
 		auditRequest.getRequest().setActionTimeStamp(null);
 
 		RestRequestDTO request = restBuilder.buildRequest(RestServicesConstants.AUDIT_MANAGER_SERVICE, auditRequest,
@@ -104,7 +104,7 @@ public class RestRequestBuilderTest {
 
 		ReflectionTestUtils.setField(restBuilder, "env", environment);
 		RequestWrapper<AuditRequestDTO> auditRequest = auditBuilder.buildRequest(AuditModules.ID_REPO_CORE_SERVICE,
-				AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",IdType.RID, "desc");
+				AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",IdType.ID, "desc");
 		auditRequest.getRequest().setActionTimeStamp(null);
 
 		restBuilder.buildRequest(RestServicesConstants.AUDIT_MANAGER_SERVICE, auditRequest,
@@ -122,7 +122,7 @@ public class RestRequestBuilderTest {
 		ReflectionTestUtils.setField(restBuilder, "env", environment);
 
 		restBuilder.buildRequest(RestServicesConstants.AUDIT_MANAGER_SERVICE, auditBuilder
-				.buildRequest(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",IdType.RID, "desc"),
+				.buildRequest(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",IdType.ID, "desc"),
 				AuditResponseDTO.class);
 	}
 
@@ -135,7 +135,7 @@ public class RestRequestBuilderTest {
 		ReflectionTestUtils.setField(restBuilder, "env", environment);
 
 		restBuilder.buildRequest(RestServicesConstants.AUDIT_MANAGER_SERVICE, auditBuilder
-				.buildRequest(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id", IdType.RID,"desc"),
+				.buildRequest(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id", IdType.ID,"desc"),
 				AuditResponseDTO.class);
 	}
 
@@ -149,7 +149,7 @@ public class RestRequestBuilderTest {
 		ReflectionTestUtils.setField(restBuilder, "env", environment);
 
 		restBuilder.buildRequest(RestServicesConstants.AUDIT_MANAGER_SERVICE, auditBuilder
-				.buildRequest(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",IdType.RID, "desc"),
+				.buildRequest(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",IdType.ID, "desc"),
 				AuditResponseDTO.class);
 	}
 
@@ -157,7 +157,7 @@ public class RestRequestBuilderTest {
 	public void testBuildRequestEmptyResponseType() throws IdRepoDataValidationException {
 
 		restBuilder.buildRequest(RestServicesConstants.AUDIT_MANAGER_SERVICE, auditBuilder.buildRequest(
-				AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id", IdType.RID,"desc"), null);
+				AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id", IdType.ID,"desc"), null);
 	}
 	
 	@Test
@@ -183,7 +183,7 @@ public class RestRequestBuilderTest {
 		ReflectionTestUtils.setField(restBuilder, "env", environment);
 
 		restBuilder.buildRequest(RestServicesConstants.AUDIT_MANAGER_SERVICE, auditBuilder
-				.buildRequest(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",IdType.RID, "desc"),
+				.buildRequest(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",IdType.ID, "desc"),
 				AuditResponseDTO.class);
 	}
 
@@ -197,7 +197,7 @@ public class RestRequestBuilderTest {
 		ReflectionTestUtils.setField(restBuilder, "env", environment);
 
 		restBuilder.buildRequest(RestServicesConstants.AUDIT_MANAGER_SERVICE, auditBuilder
-				.buildRequest(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",IdType.RID, "desc"),
+				.buildRequest(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",IdType.ID, "desc"),
 				AuditResponseDTO.class);
 	}
 

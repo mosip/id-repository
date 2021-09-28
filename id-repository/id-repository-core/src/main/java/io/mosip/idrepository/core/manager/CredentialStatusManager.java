@@ -134,7 +134,8 @@ public class CredentialStatusManager {
 						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()));
 				Optional<CredentialRequestStatus> idWithDummyPartnerOptional = statusRepo.findByIndividualIdHashAndPartnerId(
 						credentialRequestStatus.getIndividualIdHash(), dummyPartner.getDummyOLVPartnerId());
-				if (idWithDummyPartnerOptional.isPresent()) {
+				if (idWithDummyPartnerOptional.isPresent() && !idWithDummyPartnerOptional.get().getStatus()
+						.contentEquals(CredentialRequestStatusLifecycle.FAILED.toString())) {
 					statusRepo.delete(idWithDummyPartnerOptional.get());
 				}
 			}
@@ -151,9 +152,11 @@ public class CredentialStatusManager {
 					.findByIndividualIdHashAndPartnerId((String) additionalData.get("id_hash"), request.getRequest().getIssuer());
 			if (credStatusOptional.isPresent()) {
 				CredentialRequestStatus credStatus = credStatusOptional.get();
-				credStatus.setRequestId(credResponse.getRequestId());
+				if (Objects.nonNull(credResponse))
+					credStatus.setRequestId(credResponse.getRequestId());
 				credStatus.setTokenId((String) additionalData.get("TOKEN"));
-				credStatus.setStatus(CredentialRequestStatusLifecycle.REQUESTED.toString());
+				credStatus.setStatus(Objects.isNull(credResponse) ? CredentialRequestStatusLifecycle.FAILED.toString()
+						: CredentialRequestStatusLifecycle.REQUESTED.toString());
 				credStatus.setIdTransactionLimit(Objects.nonNull(additionalData.get("transaction_limit"))
 						? (Integer) additionalData.get("transaction_limit")
 						: null);
@@ -166,9 +169,11 @@ public class CredentialStatusManager {
 				credStatus.setIndividualId(encryptId(request.getRequest().getId()));
 				credStatus.setIndividualIdHash((String) additionalData.get("id_hash"));
 				credStatus.setPartnerId(request.getRequest().getIssuer());
-				credStatus.setRequestId(credResponse.getRequestId());
+				if (Objects.nonNull(credResponse))
+					credStatus.setRequestId(credResponse.getRequestId());
 				credStatus.setTokenId((String) additionalData.get("TOKEN"));
-				credStatus.setStatus(CredentialRequestStatusLifecycle.REQUESTED.toString());
+				credStatus.setStatus(Objects.isNull(credResponse) ? CredentialRequestStatusLifecycle.FAILED.toString()
+						: CredentialRequestStatusLifecycle.REQUESTED.toString());
 				credStatus.setIdTransactionLimit(Objects.nonNull(additionalData.get("transaction_limit"))
 						? (Integer) additionalData.get("transaction_limit")
 						: null);
@@ -200,13 +205,16 @@ public class CredentialStatusManager {
 		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
 		int modResult = (int) (Long.parseLong(individualId) % moduloValue);
 		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(modResult);
-		return modResult + SPLITTER + new String(securityManager.encryptWithSalt(individualId.getBytes(), CryptoUtil.decodeBase64(encryptSalt), uinRefId));
+		return modResult + SPLITTER + new String(securityManager.encryptWithSalt(individualId.getBytes(),
+				CryptoUtil.decodePlainBase64(encryptSalt), uinRefId));
 	}
 
 	public String decryptId(String individualId) throws IdRepoAppException {
-		Optional<UinEncryptSalt> encryptSalt = uinEncryptSaltRepo.findById(Integer.valueOf(StringUtils.substringBefore(individualId, SPLITTER)));
-		return new String(
-				securityManager.decryptWithSalt(CryptoUtil.decodeBase64(StringUtils.substringAfter(individualId, SPLITTER)), CryptoUtil.decodeBase64(encryptSalt.get().getSalt()), uinRefId));
+		Optional<UinEncryptSalt> encryptSalt = uinEncryptSaltRepo
+				.findById(Integer.valueOf(StringUtils.substringBefore(individualId, SPLITTER)));
+		return new String(securityManager.decryptWithSalt(
+				CryptoUtil.decodePlainBase64(StringUtils.substringAfter(individualId, SPLITTER)),
+				CryptoUtil.decodePlainBase64(encryptSalt.get().getSalt()), uinRefId));
 	}
 
 	/**

@@ -75,7 +75,7 @@ public class AuditHelperTest {
 	@Test
 	public void testAudit() throws IdRepoDataValidationException {
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",
-				IdType.RID, "desc");
+				IdType.ID, "desc");
 	}
 
 	@Test
@@ -83,13 +83,13 @@ public class AuditHelperTest {
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenThrow(new IdRepoDataValidationException());
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",
-				IdType.RID, "desc");
+				IdType.ID, "desc");
 	}
 
 	@Test
 	public void testAuditError() throws IdRepoDataValidationException {
 		auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",
-				IdType.RID, new IdRepoAppException(IdRepoErrorConstants.AUTHORIZATION_FAILED));
+				IdType.ID, new IdRepoAppException(IdRepoErrorConstants.AUTHORIZATION_FAILED));
 	}
 
 	@SuppressWarnings("serial")
@@ -100,7 +100,7 @@ public class AuditHelperTest {
 		});
 		ReflectionTestUtils.setField(auditHelper, "mapper", mapperMock);
 		auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",
-				IdType.RID, new IdRepoAppException(IdRepoErrorConstants.AUTHORIZATION_FAILED));
+				IdType.ID, new IdRepoAppException(IdRepoErrorConstants.AUTHORIZATION_FAILED));
 		ReflectionTestUtils.setField(auditHelper, "mapper", new ObjectMapper());
 	}
 

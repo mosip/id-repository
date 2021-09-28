@@ -18,7 +18,9 @@ public class BaseRequestResponseDTO {
 
 	/** The identity. */
 	private Object identity;
-
+	
 	/** The documents. */
 	private List<DocumentsDTO> documents;
+	
+	private List<String> verifiedAttributes;
 }
