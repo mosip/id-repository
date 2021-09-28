@@ -45,6 +45,7 @@ import org.springframework.validation.Errors;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.InvalidJsonException;
@@ -75,6 +76,7 @@ import io.mosip.idrepository.identity.entity.UinBiometricDraft;
 import io.mosip.idrepository.identity.entity.UinDocument;
 import io.mosip.idrepository.identity.entity.UinDocumentDraft;
 import io.mosip.idrepository.identity.entity.UinDraft;
+import io.mosip.idrepository.identity.helper.AnonymousProfileHelper;
 import io.mosip.idrepository.identity.helper.VidDraftHelper;
 import io.mosip.idrepository.identity.repository.UinBiometricRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentRepo;
@@ -144,6 +146,9 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	
 	@Autowired
 	private VidDraftHelper vidDraftHelper;
+	
+	@Autowired
+	private AnonymousProfileHelper anonymousProfileHelper;
 	
 	@Override
 	public IdResponseDTO createDraft(String registrationId, String uin) throws IdRepoAppException {
@@ -221,6 +226,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			if (uinDraft.isPresent()) {
 				UinDraft draftToUpdate = uinDraft.get();
 				if (Objects.isNull(draftToUpdate.getUinData())) {
+					ObjectNode identityObject = mapper.convertValue(request.getRequest().getIdentity(), ObjectNode.class);
+					identityObject.putPOJO("verifiedAttributes", request.getRequest().getVerifiedAttributes());
 					byte[] uinData = super.convertToBytes(request.getRequest().getIdentity());
 					draftToUpdate.setUinData(uinData);
 					draftToUpdate.setUinDataHash(securityManager.hash(uinData));
@@ -258,16 +265,17 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			DocumentContext dbData = JsonPath.using(configuration).parse(new String(draftToUpdate.getUinData()));
 			JsonPath uinJsonPath = JsonPath.compile(uinPath.replace(ROOT_PATH, "$"));
 			inputData.set(uinJsonPath, dbData.read(uinJsonPath));
+			super.updateVerifiedAttributes(requestDTO, inputData, dbData);
 			JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(),
 					JSONCompareMode.LENIENT);
 
 			if (comparisonResult.failed()) {
 				super.updateJsonObject(inputData, dbData, comparisonResult);
-				draftToUpdate.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
-				draftToUpdate.setUinDataHash(securityManager.hash(draftToUpdate.getUinData()));
-				draftToUpdate.setUpdatedBy(IdRepoSecurityManager.getUser());
-				draftToUpdate.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
 			}
+			draftToUpdate.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
+			draftToUpdate.setUinDataHash(securityManager.hash(draftToUpdate.getUinData()));
+			draftToUpdate.setUpdatedBy(IdRepoSecurityManager.getUser());
+			draftToUpdate.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
 		}
 	}
 
@@ -343,6 +351,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 
 	@Override
 	public IdResponseDTO publishDraft(String regId) throws IdRepoAppException {
+		anonymousProfileHelper.setRegId(regId).setIsDraft(true);
 		try {
 			String draftVid = null;
 			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
@@ -362,6 +371,14 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 					draftVid = vidDraftHelper.generateDraftVid(uin);
 					uinObject = super.addIdentity(idRequest, uin);
 				}
+				anonymousProfileHelper
+				.setNewCbeff(draft.getUinHash().split("_")[1],
+						!anonymousProfileHelper.isNewCbeffPresent() && Objects.nonNull(draft.getBiometrics())
+								&& !draft.getBiometrics().isEmpty()
+										? draft.getBiometrics().get(draft.getBiometrics().size() - 1).getBioFileId()
+										: null)
+				.setIsDraft(false)
+				.buildAndsaveProfile();
 				publishDocuments(draft, uinObject);
 				this.discardDraft(regId);
 				return constructIdResponse(null, uinObject.getStatusCode(), null, draftVid);
@@ -372,11 +389,25 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		}
 	}
 
+	/**
+	 * Builds the request.
+	 *
+	 * @param regId the reg id
+	 * @param draft the draft
+	 * @return the id request DTO
+	 * @throws IdRepoAppException the id repo app exception
+	 */
+	@SuppressWarnings("unchecked")
 	private IdRequestDTO buildRequest(String regId, UinDraft draft) throws IdRepoAppException {
 		IdRequestDTO idRequest = new IdRequestDTO();
 		RequestDTO request = new RequestDTO();
 		request.setRegistrationId(regId);
-		request.setIdentity(convertToObject(draft.getUinData(), Object.class));
+		Map<String, Object> identityData = (Map<String, Object>) convertToObject(draft.getUinData(), Map.class);
+		request.setVerifiedAttributes(
+				mapper.convertValue(identityData.get("verifiedAttributes"), new TypeReference<List<String>>() {
+				}));
+		identityData.remove("verifiedAttributes");
+		request.setIdentity(identityData);
 		idRequest.setRequest(request);
 		return idRequest;
 	}
@@ -524,17 +555,21 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		return formatQueryParam.replace(EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX, "");
 	}
 
+	@SuppressWarnings("unchecked")
 	private IdResponseDTO constructIdResponse(byte[] uinData, String status, List<DocumentsDTO> documents, String vid) {
 		IdResponseDTO idResponse = new IdResponseDTO();
 		ResponseDTO response = new ResponseDTO();
 		response.setStatus(status);
 		if (Objects.nonNull(documents))
 			response.setDocuments(documents);
-		if (Objects.nonNull(uinData))
-			response.setIdentity(convertToObject(uinData, Object.class));
+		if (Objects.nonNull(uinData)) {
+			ObjectNode identityObject = convertToObject(uinData, ObjectNode.class);
+			response.setIdentity(identityObject);
+			response.setVerifiedAttributes(mapper.convertValue(identityObject.get("verifiedAttributes"), List.class));
+			identityObject.remove("verifiedAttributes");
+		}
 		idResponse.setResponse(response);
 		idResponse.setMetadata(Map.of("vid", Optional.ofNullable(vid)));
 		return idResponse;
 	}
-
 }
