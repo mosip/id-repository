@@ -226,15 +226,18 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), null, null, false, null));
 		issueCredential(uin, uinEntity.getUin(), uinHashWithSalt, activeStatus, null, false,
 				request.getRequest().getRegistrationId());
-		anonymousProfileHelper
-			.setRegId(request.getRequest().getRegistrationId())
-			.setNewCbeff(Optional.ofNullable(request.getRequest().getDocuments()).stream()
-					.flatMap(list -> list.stream())
-					.filter(doc -> doc.getCategory().contentEquals(IdentityIssuanceProfileBuilder
-							.getIdentityMapping().getIdentity().getIndividualBiometrics().getValue()))
-					.findFirst().orElse(new DocumentsDTO()).getValue())
-			.setNewUinData(identityInfo)
-			.buildAndsaveProfile();
+		anonymousProfileHelper.setRegId(request.getRequest().getRegistrationId())
+				.setNewCbeff(
+						Optional.ofNullable(request.getRequest().getDocuments()).stream().flatMap(list -> list.stream())
+								.filter(doc -> doc.getCategory()
+										.contentEquals(IdentityIssuanceProfileBuilder.getIdentityMapping().getIdentity()
+												.getIndividualBiometrics().getValue()))
+								.findFirst().orElse(new DocumentsDTO()).getValue())
+				.setNewCbeff(uinEntity.getUinHash().split("_")[1], !anonymousProfileHelper.isNewCbeffPresent()
+						&& uinEntity.getBiometrics() != null && !uinEntity.getBiometrics().isEmpty()
+								? uinEntity.getBiometrics().get(uinEntity.getBiometrics().size() - 1).getBioFileId()
+								: null)
+				.setNewUinData(identityInfo).buildAndsaveProfile();
 		return uinEntity;
 	}
 
@@ -385,6 +388,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
 		try {
 			Uin uinObject = retrieveIdentity(uinHash, IdType.UIN, null, null);
+			anonymousProfileHelper.setOldCbeff(uinHash,
+					!anonymousProfileHelper.isOldCbeffPresent() && Objects.nonNull(uinObject.getBiometrics())
+							&& !uinObject.getBiometrics().isEmpty()
+									? uinObject.getBiometrics().get(uinObject.getBiometrics().size() - 1).getBioFileId()
+									: null);
 			uinObject.setRegId(request.getRequest().getRegistrationId());
 			if (Objects.nonNull(request.getRequest().getStatus())
 					&& !StringUtils.equals(uinObject.getStatusCode(), request.getRequest().getStatus())) {
@@ -416,7 +424,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 							.setNewCbeff(request.getRequest().getDocuments().stream()
 									.filter(doc -> doc.getCategory().contentEquals(IdentityIssuanceProfileBuilder
 											.getIdentityMapping().getIdentity().getIndividualBiometrics().getValue()))
-									.findFirst().get().getValue());
+									.findFirst().get().getValue())
+							.setNewCbeff(uinObject.getUinHash(),
+									!anonymousProfileHelper.isNewCbeffPresent() &&
+									Objects.nonNull(uinObject.getBiometrics()) && !uinObject.getBiometrics().isEmpty()
+											? uinObject.getBiometrics().get(uinObject.getBiometrics().size() - 1).getBioFileId()
+											: null);
 					updateDocuments(uinHashWithSalt, uinObject, requestDTO, false);
 					uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
 					uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
@@ -445,7 +458,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void updateVerifiedAttributes(RequestDTO requestDTO, DocumentContext inputData, DocumentContext dbData) {
+	protected void updateVerifiedAttributes(RequestDTO requestDTO, DocumentContext inputData, DocumentContext dbData) {
 		List dbVerifiedAttributes = (List) dbData.read(".verifiedAttributes");
 		dbVerifiedAttributes.remove(null);
 		if (dbVerifiedAttributes.isEmpty()) {
@@ -734,7 +747,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @return the object
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	protected Object convertToObject(byte[] identity, Class<?> clazz) {
+	protected <T> T convertToObject(byte[] identity, Class<T> clazz) {
 		try {
 			return mapper.readValue(identity, clazz);
 		} catch (IOException e) {
