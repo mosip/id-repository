@@ -147,7 +147,7 @@ public class IdRepoDraftController {
 	}
 
 	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getdraftregistrationId())")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getDraftregistrationId())")
 	@RequestMapping(method = RequestMethod.HEAD, path = "/{registrationId}")
 	public ResponseEntity<Void> hasDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
