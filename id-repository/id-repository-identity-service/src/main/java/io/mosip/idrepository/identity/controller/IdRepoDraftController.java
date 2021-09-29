@@ -7,7 +7,6 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.IRIS_EXTRACTIO
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 import javax.annotation.Nullable;
 
@@ -42,7 +41,6 @@ import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.IdRepoDraftService;
 import io.mosip.idrepository.core.util.DataValidationUtil;
-import io.mosip.idrepository.identity.helper.VidDraftHelper;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 import springfox.documentation.annotations.ApiIgnore;
@@ -70,15 +68,12 @@ public class IdRepoDraftController {
 	@Autowired
 	private AuditHelper auditHelper;
 	
-	@Autowired
-	private VidDraftHelper vidDraftHelper;
-
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
 		binder.addValidators(validator);
 	}
-
-	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostdraftcreateregistrationId())")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
 	@PostMapping(path = "/create/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> createDraft(@PathVariable String registrationId,
 			@RequestParam(name = UIN, required = false) @Nullable String uin)
@@ -96,7 +91,8 @@ public class IdRepoDraftController {
 		}
 	}
 
-	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPatchdraftupdateregistrationId())")
 	@PatchMapping(path = "/update/{registrationId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> updateDraft(@PathVariable String registrationId, @RequestBody IdRequestDTO request,
 			@ApiIgnore Errors errors) throws IdRepoAppException {
@@ -116,16 +112,12 @@ public class IdRepoDraftController {
 		}
 	}
 
-	@SuppressWarnings({ "unchecked" })
-	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetdraftpublishregistrationId())")
 	@GetMapping(path = "/publish/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> publishDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
-			IdResponseDTO publishDraftResponse = draftService.publishDraft(registrationId);
-			Map<String, Optional<String>> metadata = (Map<String, Optional<String>>) publishDraftResponse.getMetadata();
-			String vid = ((Optional<String>) metadata.get("vid")).orElse(null);
-			vidDraftHelper.activateDraftVid(Objects.nonNull(vid) ? (String) vid : null);
-			return new ResponseEntity<>(publishDraftResponse, HttpStatus.OK);
+			return new ResponseEntity<>(draftService.publishDraft(registrationId), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.PUBLISH_DRAFT_REQUEST_RESPONSE, registrationId,
 					IdType.ID, e);
@@ -137,7 +129,8 @@ public class IdRepoDraftController {
 		}
 	}
 
-	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getDeletedraftdiscardregistrationId())")
 	@DeleteMapping(path = "/discard/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> discardDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
@@ -153,7 +146,8 @@ public class IdRepoDraftController {
 		}
 	}
 
-	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getdraftregistrationId())")
 	@RequestMapping(method = RequestMethod.HEAD, path = "/{registrationId}")
 	public ResponseEntity<Void> hasDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
@@ -170,7 +164,8 @@ public class IdRepoDraftController {
 		}
 	}
 
-	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetdraftregistrationId())")
 	@GetMapping(path = "/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> getDraft(@PathVariable String registrationId,
 			@RequestParam(name = FINGER_EXTRACTION_FORMAT, required = false) @Nullable String fingerExtractionFormat,
@@ -192,7 +187,8 @@ public class IdRepoDraftController {
 		}
 	}
 	
-	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPutdraftextractbiometricsregistrationId())")
 	@PutMapping(path = "/extractbiometrics/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> extractBiometrics(@PathVariable String registrationId,
 			@RequestParam(name = FINGER_EXTRACTION_FORMAT, required = false) @Nullable String fingerExtractionFormat,
