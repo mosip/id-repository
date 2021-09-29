@@ -74,7 +74,7 @@ public class IdentityIssuanceProfileBuilder {
 		return Streams.stream(documents)
 				.filter(doc -> Objects.nonNull(doc.getCategory()) && doc.getCategory()
 						.contentEquals(identityMapping.getIdentity().getIndividualBiometrics().getValue()))
-				.map(doc -> CbeffValidator.getBIRFromXML(CryptoUtil.decodePlainBase64(doc.getValue()))).stream().findAny();
+				.map(doc -> CbeffValidator.getBIRFromXML(CryptoUtil.decodeBase64(doc.getValue()))).stream().findAny();
 	}
 
 	private AnonymousProfile buildProfile(JsonNode identity, List<BIR> bioData) {
@@ -175,7 +175,7 @@ public class IdentityIssuanceProfileBuilder {
 									new TypeReference<Map<String, String>>() {
 									});
 							digitalId = new String(
-									CryptoUtil.decodePlainBase64(digitalIdEncoded.get("digitalId").split("\\.")[1]));
+									CryptoUtil.decodeBase64(digitalIdEncoded.get("digitalId").split("\\.")[1]));
 						}
 						return BiometricInfo.builder()
 								.type(bir.getBdbInfo().getType().stream().map(type -> type.value())

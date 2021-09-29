@@ -439,8 +439,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	private String decryptUin(String encryptedUin, String uinHash) throws IdRepoAppException {
 		String salt = uinEncryptSaltRepo.getOne(Integer.valueOf(encryptedUin.split(SPLITTER)[0])).getSalt();
 		String uin = new String(securityManager.decryptWithSalt(
-				CryptoUtil.decodeURLSafeBase64(StringUtils.substringAfter((String) encryptedUin, SPLITTER)),
-				CryptoUtil.decodePlainBase64(salt), uinRefId));
+				CryptoUtil.decodeBase64(StringUtils.substringAfter((String) encryptedUin, SPLITTER)),
+				CryptoUtil.decodeBase64(salt), uinRefId));
 		if (!StringUtils.equals(super.getUinHash(uin, super.getModValue(uin)), uinHash)) {
 			throw new IdRepoAppUncheckedException(UIN_HASH_MISMATCH);
 		}
@@ -477,7 +477,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				List<DocumentsDTO> documents = new ArrayList<>();
 				String uinHash = draft.getUinHash().split(SPLITTER)[1];
 				for (UinBiometricDraft uinBiometricDraft : draft.getBiometrics()) {
-					documents.add(new DocumentsDTO(uinBiometricDraft.getBiometricFileType(), CryptoUtil.encodeToPlainBase64(
+					documents.add(new DocumentsDTO(uinBiometricDraft.getBiometricFileType(), CryptoUtil.encodeBase64(
 							extractAndGetCombinedCbeff(uinHash, uinBiometricDraft.getBioFileId(), extractionFormats))));
 				}
 				for (UinDocumentDraft uinDocumentDraft : draft.getDocuments()) {

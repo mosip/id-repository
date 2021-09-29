@@ -224,7 +224,7 @@ public class ChannelInfoHelper {
 		try {
 			String phoneNumber = getPhoneNumber(uinData);
 			String salt = saltRepo.retrieveSaltById(getModValue(phoneNumber));
-			return Optional.of(securityManager.hashwithSalt(phoneNumber.getBytes(), CryptoUtil.decodePlainBase64(salt)));
+			return Optional.of(securityManager.hashwithSalt(phoneNumber.getBytes(), CryptoUtil.decodeBase64(salt)));
 		} catch (Exception e) {
 			return Optional.empty();
 		}
@@ -242,7 +242,7 @@ public class ChannelInfoHelper {
 			String email = getEmail(uinData);
 			String emailAsNumber = emailAsNumber(email);
 			String salt = saltRepo.retrieveSaltById(getModValue(emailAsNumber));
-			return Optional.of(securityManager.hashwithSalt(email.getBytes(), CryptoUtil.decodePlainBase64(salt)));
+			return Optional.of(securityManager.hashwithSalt(email.getBytes(), CryptoUtil.decodeBase64(salt)));
 		} catch (Exception e) {
 			return Optional.empty();
 		}
