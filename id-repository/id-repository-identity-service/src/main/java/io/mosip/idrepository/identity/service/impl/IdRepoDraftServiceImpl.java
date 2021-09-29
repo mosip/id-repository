@@ -370,6 +370,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				} else {
 					draftVid = vidDraftHelper.generateDraftVid(uin);
 					uinObject = super.addIdentity(idRequest, uin);
+					vidDraftHelper.activateDraftVid(draftVid);
 				}
 				anonymousProfileHelper
 				.setNewCbeff(draft.getUinHash().split("_")[1],
@@ -569,7 +570,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			identityObject.remove("verifiedAttributes");
 		}
 		idResponse.setResponse(response);
-		idResponse.setMetadata(Map.of("vid", Optional.ofNullable(vid)));
+		if(Objects.nonNull(vid))
+			idResponse.setMetadata(Map.of("vid", vid));
 		return idResponse;
 	}
 }

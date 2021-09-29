@@ -419,9 +419,6 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			checkStatus(vidObject.getStatusCode());
 			checkExpiry(vidObject.getExpiryDTimes());
 			String decryptedUin = decryptUin(vidObject.getUin(), vidObject.getUinHash());
-			if (vidObject.getStatusCode().contentEquals(DRAFT_STATUS)) {
-				checkUinStatus(decryptedUin.split("_")[1]);
-			}
 			VidPolicy policy = policyProvider.getPolicy(vidObject.getVidTypeCode());
 			VidResponseDTO response = updateVidStatus(vidStatus, vidObject, decryptedUin, policy);
 			return buildResponse(response, id.get("update"));
