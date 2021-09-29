@@ -10,6 +10,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.VID_GENER
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -62,8 +63,8 @@ public class VidDraftHelper {
 				return vidResponse.getResponse().get("VID");
 			}
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), "VidDraftHelper", "generateDraftVid", e.getMessage());
-			throw new IdRepoAppException(VID_GENERATION_FAILED, e);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), "VidDraftHelper", "generateDraftVid", ExceptionUtils.getStackTrace(e));
+			throw new IdRepoAppException(VID_GENERATION_FAILED);
 		}
 		return null;
 	}
@@ -84,8 +85,8 @@ public class VidDraftHelper {
 				this.restHelper.requestSync(restRequest);
 			}
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), "VidDraftHelper", "activateDraftVid", e.getMessage());
-			throw new IdRepoAppException(VID_GENERATION_FAILED, e);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), "VidDraftHelper", "activateDraftVid", ExceptionUtils.getStackTrace(e));
+			throw new IdRepoAppException(VID_GENERATION_FAILED);
 		}
 	}
 }
