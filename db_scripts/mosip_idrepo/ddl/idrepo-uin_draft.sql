@@ -8,7 +8,7 @@
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
--- 
+-- Sep-2021		Manoj SP	    Removed Anonymous Profile column
 -- ------------------------------------------------------------------------------------------
 
 -- object: idrepo.uin_draft | type: TABLE --
@@ -20,7 +20,6 @@ CREATE TABLE idrepo.uin_draft(
 	uin_data bytea,		
 	uin_data_hash character varying (64),			
 	status_code character varying (32) NOT NULL,
-	anonymous_profile character varying,
 	cr_by character varying (256) NOT NULL,		
 	cr_dtimes timestamp NOT NULL,		
 	upd_by	character varying (256),			

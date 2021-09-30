@@ -14,3 +14,5 @@
 \ir ddl/idrepo-uin_biometric_draft.sql
 \ir ddl/idrepo-uin_draft.sql
 \ir ddl/idrepo-uin_document_draft.sql
+\ir ddl/idrepo-anonymous_profile.sql
+\ir ddl/idrepo-channel_info.sql
