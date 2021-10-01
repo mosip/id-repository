@@ -11,6 +11,7 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -37,7 +38,6 @@ import io.mosip.idrepository.core.exception.AuthenticationException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.helper.IdRepoWebSubHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
-import io.mosip.idrepository.core.httpfilter.AuthTokenExchangeFilter;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.manager.CredentialStatusManager;
@@ -57,7 +57,8 @@ import io.mosip.kernel.core.logger.spi.Logger;
 @EnableScheduling
 @EnableJpaRepositories(basePackages = "io.mosip.idrepository.*")
 @Import({ CredentialStatusManager.class, DummyPartnerCheckUtil.class })
-public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfigurer, ApplicationListener<ApplicationReadyEvent> {
+public class IdRepoConfig extends IdRepoDataSourceConfig
+		implements WebMvcConfigurer, ApplicationListener<ApplicationReadyEvent> {
 
 	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISH_URL + "}")
 	public String publisherHubURL;
@@ -90,7 +91,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 
 	@Autowired
 	private IdRepoWebSubHelper websubHelper;
-	
+
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent event) {
 		websubHelper.subscribeForVidEvent();
@@ -119,18 +120,18 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 							throw new AuthenticationException(IdRepoErrorConstants.AUTHENTICATION_FAILED,
 									response.getRawStatusCode());
 						} else {
-							throw new AuthenticationException(errorList.get(0).getErrorCode(), errorList.get(0).getMessage(),
-									response.getRawStatusCode());
+							throw new AuthenticationException(errorList.get(0).getErrorCode(),
+									errorList.get(0).getMessage(), response.getRawStatusCode());
 						}
 					} else {
-						mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError", "Rest Template logs",
-								"Status error - returning RestServiceException - CLIENT_ERROR -- "
+						mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError",
+								"Rest Template logs", "Status error - returning RestServiceException - CLIENT_ERROR -- "
 										+ new String(super.getResponseBody(response)));
 						throw new IdRepoAppUncheckedException(CLIENT_ERROR);
 					}
 				} else {
-					mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError", "Rest Template logs",
-							"Status error - returning RestServiceException - CLIENT_ERROR -- "
+					mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError",
+							"Rest Template logs", "Status error - returning RestServiceException - CLIENT_ERROR -- "
 									+ new String(super.getResponseBody(response)));
 					throw new IdRepoAppUncheckedException(MASTERDATA_RETRIEVE_ERROR);
 				}
@@ -256,8 +257,8 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	}
 
 	@Bean
-	public CredentialServiceManager credentialServiceManager() {
-		return new CredentialServiceManager(restHelperWithAuth());
+	public CredentialServiceManager credentialServiceManager(@Qualifier("selfTokenWebClient") WebClient webClient) {
+		return new CredentialServiceManager(restHelperWithAuth(webClient));
 	}
 
 	@Bean
@@ -266,14 +267,9 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 		return new RestHelper();
 	}
 
-	@Bean
-	public AuthTokenExchangeFilter authTokenExchangeFilter() {
-		return new AuthTokenExchangeFilter();
-	}
-
 	@Bean("restHelperWithAuth")
-	public RestHelper restHelperWithAuth() {
-		return new RestHelper(WebClient.builder().filter(authTokenExchangeFilter()).build());
+	public RestHelper restHelperWithAuth(@Qualifier("selfTokenWebClient") WebClient webClient) {
+		return new RestHelper(webClient);
 	}
 
 	@Bean
@@ -282,7 +278,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	}
 
 	@Bean("securityManagerWithAuth")
-	public IdRepoSecurityManager securityManagerWithAuth() {
-		return new IdRepoSecurityManager(restHelperWithAuth());
+	public IdRepoSecurityManager securityManagerWithAuth(@Qualifier("selfTokenWebClient") WebClient webClient) {
+		return new IdRepoSecurityManager(restHelperWithAuth(webClient));
 	}
 }
