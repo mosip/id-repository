@@ -91,7 +91,7 @@ public class RestHelper {
 	@PostConstruct
 	public void init() {
 		if (Objects.isNull(webClient))
-			webClient = ctx.getBean(WebClient.class);
+			webClient = ctx.getBean("webClient", WebClient.class);
 	}
 	
 	/**
