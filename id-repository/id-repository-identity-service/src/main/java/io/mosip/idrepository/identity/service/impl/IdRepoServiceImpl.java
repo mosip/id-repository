@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.annotation.Resource;
@@ -80,6 +81,7 @@ import io.mosip.idrepository.identity.repository.UinBiometricHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinRepo;
+import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -421,10 +423,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 				if (Objects.nonNull(requestDTO.getDocuments()) && !requestDTO.getDocuments().isEmpty()) {
 					anonymousProfileHelper
-							.setNewCbeff(request.getRequest().getDocuments().stream()
-									.filter(doc -> doc.getCategory().contentEquals(IdentityIssuanceProfileBuilder
-											.getIdentityMapping().getIdentity().getIndividualBiometrics().getValue()))
-									.findFirst().get().getValue())
 							.setNewCbeff(uinObject.getUinHash(),
 									!anonymousProfileHelper.isNewCbeffPresent() &&
 									Objects.nonNull(uinObject.getBiometrics()) && !uinObject.getBiometrics().isEmpty()
@@ -694,9 +692,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 										identityMap.get(bio.getBiometricFileType()).get(FILE_FORMAT_ATTRIBUTE).asText(), CBEFF_FORMAT)
 										&& bioFileId.endsWith(CBEFF_FORMAT)) {
 									byte[] decodedBioData = CryptoUtil.decodePlainBase64(doc.getValue());
-									anonymousProfileHelper.setOldCbeff(doc.getValue());
-									doc.setValue(CryptoUtil.encodeToPlainBase64(cbeffUtil
-											.updateXML(cbeffUtil.getBIRDataFromXML(decodedBioData), data)));
+									anonymousProfileHelper.setOldCbeff(CryptoUtil.encodeToPlainBase64(data));
+								doc.setValue(CryptoUtil.encodeToPlainBase64(this.updateXML(decodedBioData, data)));
 								}
 						} catch (Exception e) {
 							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateCbeff",
@@ -706,6 +703,23 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						}
 					});
 		});
+	}
+
+	private byte[] updateXML(byte[] inputBioData, byte[] existingBioData) throws Exception {
+		List<BIR> existingBIRData = cbeffUtil.getBIRDataFromXML(existingBioData);
+		List<BIR> inputBIRData = cbeffUtil.getBIRDataFromXML(inputBioData);
+		Map<String, BIR> inputBIRDataMap = inputBIRData.stream()
+				.collect(Collectors.toMap(bir -> bir.getBdbInfo().getType().stream().map(bioType -> bioType.value())
+						.collect(Collectors.joining())
+						.concat(bir.getBdbInfo().getSubtype().stream().collect(Collectors.joining())), bir -> bir));
+		Map<String, BIR> existingBIRDataMap = existingBIRData.stream()
+				.collect(Collectors.toMap(bir -> bir.getBdbInfo().getType().stream().map(bioType -> bioType.value())
+						.collect(Collectors.joining())
+						.concat(bir.getBdbInfo().getSubtype().stream().collect(Collectors.joining())), bir -> bir));
+		inputBIRDataMap.entrySet().forEach(entry -> existingBIRDataMap.replace(entry.getKey(), entry.getValue()));
+		byte[] updatedCbeff = cbeffUtil.createXML(new ArrayList<>(existingBIRDataMap.values()));
+		anonymousProfileHelper.setNewCbeff(CryptoUtil.encodeToPlainBase64(updatedCbeff));
+		return updatedCbeff;
 	}
 
 	private void issueCredential(String uin, String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp,
