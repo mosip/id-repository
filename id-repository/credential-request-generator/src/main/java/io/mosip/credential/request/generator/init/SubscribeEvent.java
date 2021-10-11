@@ -2,6 +2,7 @@ package io.mosip.credential.request.generator.init;
 
 import java.util.Date;
 
+import io.mosip.credential.request.generator.constants.SubscriptionMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -23,6 +24,8 @@ public class SubscribeEvent implements ApplicationListener<ApplicationReadyEvent
 	@Value("${subscription-delay-secs:60000}")
 	private int taskSubsctiptionDelay;
 
+	private static boolean isSubscriptionStarted = false;
+
 	@Autowired
 	private WebSubSubscriptionHelper webSubSubscriptionHelper;
 
@@ -39,8 +42,16 @@ public class SubscribeEvent implements ApplicationListener<ApplicationReadyEvent
 		LOGGER.info(IdRepoSecurityManager.getUser(), SUBSCIRBEEVENT, ONAPPLICATIONEVENT,
 				"Scheduling event subscriptions after (milliseconds): " + taskSubsctiptionDelay);
 
-		taskScheduler.schedule(this::initSubsriptions, new Date(System.currentTimeMillis() + taskSubsctiptionDelay));
+		scheduleSubscription();
+	}
 
+	public String scheduleSubscription() {
+		if (!isSubscriptionStarted) {
+			taskScheduler.schedule(this::initSubsriptions, new Date(System.currentTimeMillis() + taskSubsctiptionDelay));
+			isSubscriptionStarted = true;
+			return SubscriptionMessage.SUCCESS;
+		} else
+			return SubscriptionMessage.ALREADY_SUBSCRIBED;
 	}
 
 	private void initSubsriptions() {

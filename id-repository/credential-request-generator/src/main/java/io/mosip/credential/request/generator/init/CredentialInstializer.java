@@ -3,6 +3,7 @@ package io.mosip.credential.request.generator.init;
 import java.time.Duration;
 import java.time.Instant;
 
+import io.mosip.credential.request.generator.constants.SubscriptionMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -22,6 +23,8 @@ public class CredentialInstializer implements ApplicationListener<ApplicationRea
 
 	@Value("${resubscription-delay-secs:0}")
 	private int reSubscriptionDelaySecs;
+
+	private static boolean isSubscriptionStarted = false;
 
 	@Autowired
 	private WebSubSubscriptionHelper webSubSubscriptionHelper;
@@ -54,13 +57,21 @@ public class CredentialInstializer implements ApplicationListener<ApplicationRea
 		}
 	}
 
-	private void scheduleRetrySubscriptions() {
+	public String scheduleRetrySubscriptions() {
 		LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIALINSTIALIZER, ONAPPLICATIONEVENT,
 				"Scheduling re-subscription every " + reSubscriptionDelaySecs + " seconds");
 
-
-		taskScheduler.scheduleAtFixedRate(this::retrySubscriptions, Instant.now().plusSeconds(reSubscriptionDelaySecs),
-				Duration.ofSeconds(reSubscriptionDelaySecs));
+		if (!isSubscriptionStarted) {
+			taskScheduler.scheduleAtFixedRate(this::retrySubscriptions, Instant.now().plusSeconds(reSubscriptionDelaySecs),
+					Duration.ofSeconds(reSubscriptionDelaySecs));
+			isSubscriptionStarted = true;
+			return SubscriptionMessage.SUCCESS;
+		}
+		else {
+			LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIALINSTIALIZER, ONAPPLICATIONEVENT,
+					"Already instantiated");
+			return SubscriptionMessage.ALREADY_SUBSCRIBED;
+		}
 	}
 
 	private void retrySubscriptions() {

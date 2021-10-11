@@ -1,5 +1,17 @@
 package io.mosip.credential.request.generator.controller;
 
+import io.mosip.credential.request.generator.init.CredentialInstializer;
+import io.mosip.credential.request.generator.init.SubscribeEvent;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.JsonUtils;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobParameter;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,6 +39,9 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  * The Class CredentialRequestGeneratorController.
@@ -36,10 +51,24 @@ import io.swagger.annotations.ApiResponses;
 @RestController
 @Api(tags = "Credential Request Renerator")
 public class CredentialRequestGeneratorController {
-	
+
+	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialRequestGeneratorController.class);
+
 	/** The credential request service. */
 	@Autowired
 	private CredentialRequestService credentialRequestService;
+
+	@Autowired
+	private CredentialInstializer credentialInstializer;
+
+	@Autowired
+	private SubscribeEvent subscribeEvent;
+
+	@Autowired
+	JobLauncher jobLauncher;
+
+	@Autowired
+	Job job;
 
 
 
@@ -74,7 +103,7 @@ public class CredentialRequestGeneratorController {
 				.cancelCredentialRequest(requestId);
 		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseWrapper);
 	}
-	
+
 	@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
 	@GetMapping(path = "/get/{requestId}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "get credential issuance request status", response = CredentialIssueResponseDto.class)
@@ -89,8 +118,8 @@ public class CredentialRequestGeneratorController {
 				.getCredentialRequestStatus(requestId);
 		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseWrapper);
 	}
-	
-	
+
+
 
 	@PostMapping(path = "/callback/notifyStatus", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Request authenticated successfully") })
@@ -98,6 +127,32 @@ public class CredentialRequestGeneratorController {
 	public ResponseWrapper<?> handleSubscribeEvent( @RequestBody CredentialStatusEvent credentialStatusEvent) throws CredentialrRequestGeneratorException {
 		credentialRequestService.updateCredentialStatus(credentialStatusEvent);
 		return new ResponseWrapper<>();
+	}
+
+	@GetMapping(path = "/scheduleRetrySubscription")
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Request authenticated successfully") })
+	public String handleReSubscribeEvent() {
+		return credentialInstializer.scheduleRetrySubscriptions();
+	}
+
+	@GetMapping(path = "/scheduleWebsubSubscription")
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Request authenticated successfully") })
+	public String handleSubscribeEvent() {
+		return subscribeEvent.scheduleSubscription();
+	}
+
+	@GetMapping(path = "/startCredentialBatch")
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Request authenticated successfully") })
+	public String handleCredentialBatchEvent() {
+		try {
+			Map<String, JobParameter> parameters = new HashMap<>();
+			JobExecution jobExecution = jobLauncher.run(job, new JobParameters(parameters));
+			return JsonUtils.javaObjectToJsonString(jobExecution);
+		} catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), "/startCredentialBatch",
+					"Error calling startCredentialBatch API", ExceptionUtils.getStackTrace(e));
+			return "Error occured. Check logs for more details";
+		}
 	}
 
 }
