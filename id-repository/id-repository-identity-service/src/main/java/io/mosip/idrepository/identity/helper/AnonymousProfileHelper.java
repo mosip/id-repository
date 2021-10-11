@@ -24,7 +24,6 @@ import io.mosip.idrepository.core.builder.IdentityIssuanceProfile;
 import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdentityMapping;
-import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.identity.entity.AnonymousProfileEntity;
@@ -98,10 +97,10 @@ public class AnonymousProfileHelper {
 				List<DocumentsDTO> newDocList = List.of(new DocumentsDTO());
 				try {
 					if (Objects.isNull(oldCbeff) && Objects.nonNull(oldCbeffRefId))
-						this.oldCbeff = CryptoUtil.encodeBase64(objectStoreHelper.getBiometricObject(uinHash, oldCbeffRefId));
+						this.oldCbeff = CryptoUtil.encodeToPlainBase64(objectStoreHelper.getBiometricObject(uinHash, oldCbeffRefId));
 					if (Objects.isNull(newCbeff) && Objects.nonNull(newCbeffRefId))
-						this.newCbeff = CryptoUtil.encodeBase64(objectStoreHelper.getBiometricObject(uinHash, newCbeffRefId));
-				} catch (IdRepoAppException e) {
+						this.newCbeff = CryptoUtil.encodeToPlainBase64(objectStoreHelper.getBiometricObject(uinHash, newCbeffRefId));
+				} catch (Exception e) {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "buildAndsaveProfile",
 							e.getMessage());
 				}
