@@ -98,9 +98,9 @@ public class AnonymousProfileHelper {
 				List<DocumentsDTO> newDocList = List.of(new DocumentsDTO());
 				try {
 					if (Objects.isNull(oldCbeff) && Objects.nonNull(oldCbeffRefId))
-						this.oldCbeff = CryptoUtil.encodeToPlainBase64(objectStoreHelper.getBiometricObject(uinHash, oldCbeffRefId));
+						this.oldCbeff = CryptoUtil.encodeToURLSafeBase64(objectStoreHelper.getBiometricObject(uinHash, oldCbeffRefId));
 					if (Objects.isNull(newCbeff) && Objects.nonNull(newCbeffRefId))
-						this.newCbeff = CryptoUtil.encodeToPlainBase64(objectStoreHelper.getBiometricObject(uinHash, newCbeffRefId));
+						this.newCbeff = CryptoUtil.encodeToURLSafeBase64(objectStoreHelper.getBiometricObject(uinHash, newCbeffRefId));
 				} catch (Exception e) {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "buildAndsaveProfile",
 							e.getMessage());
