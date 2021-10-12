@@ -310,7 +310,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						docType.get(FILE_NAME_ATTRIBUTE).asText() + SPLITTER + DateUtils.getUTCCurrentDateTime())
 				.toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
 
-		data = CryptoUtil.decodePlainBase64(doc.getValue());
+		data = CryptoUtil.decodeURLSafeBase64(doc.getValue());
 		try {
 			cbeffUtil.validateXML(data);
 		} catch (Exception e) {
@@ -348,7 +348,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						docType.get(FILE_NAME_ATTRIBUTE).asText() + SPLITTER + DateUtils.getUTCCurrentDateTime())
 				.toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
 
-		byte[] data = CryptoUtil.decodePlainBase64(doc.getValue());
+		byte[] data = CryptoUtil.decodeURLSafeBase64(doc.getValue());
 		objectStoreHelper.putDemographicObject(uinHash, fileRefId, data);
 
 		docList.add(new UinDocument(uinRefId, doc.getCategory(), docType.get(TYPE).asText(), fileRefId,
@@ -691,9 +691,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 								if (StringUtils.equalsIgnoreCase(
 										identityMap.get(bio.getBiometricFileType()).get(FILE_FORMAT_ATTRIBUTE).asText(), CBEFF_FORMAT)
 										&& bioFileId.endsWith(CBEFF_FORMAT)) {
-									byte[] decodedBioData = CryptoUtil.decodePlainBase64(doc.getValue());
-									anonymousProfileHelper.setOldCbeff(CryptoUtil.encodeToPlainBase64(data));
-								doc.setValue(CryptoUtil.encodeToPlainBase64(this.updateXML(decodedBioData, data)));
+									byte[] decodedBioData = CryptoUtil.decodeURLSafeBase64(doc.getValue());
+									anonymousProfileHelper.setOldCbeff(CryptoUtil.encodeToURLSafeBase64(data));
+									doc.setValue(CryptoUtil.encodeToURLSafeBase64(this.updateXML(decodedBioData, data)));
 								}
 						} catch (Exception e) {
 							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateCbeff",
