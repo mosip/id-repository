@@ -55,8 +55,8 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 	@Override
 	public CredentialEntity process(CredentialEntity credential) {
         try {
-        	LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
-					"started processing item");
+        	LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
+					"started processing item : " + credential.getCredentialId());
 		CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class);
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
 		credentialServiceRequestDto.setCredentialType(credentialIssueRequestDto.getCredentialType());
@@ -92,7 +92,7 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 			}
 			credential.setUpdatedBy(CREDENTIAL_USER);
 			LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
-					"ended processing item");
+					"ended processing item : " + credential.getCredentialId());
 		} catch (ApiNotAccessibleException e) {
 
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
