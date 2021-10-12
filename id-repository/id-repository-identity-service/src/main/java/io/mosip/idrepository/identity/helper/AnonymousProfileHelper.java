@@ -103,9 +103,9 @@ public class AnonymousProfileHelper {
 					System.err.println("newCbeffRefId" + newCbeffRefId);
 					System.err.println(uinHash);
 					if (Objects.isNull(oldCbeff) && Objects.nonNull(oldCbeffRefId))
-						this.oldCbeff = CryptoUtil.encodeToPlainBase64(objectStoreHelper.getBiometricObject(uinHash, oldCbeffRefId));
+						this.oldCbeff = CryptoUtil.encodeToURLSafeBase64(objectStoreHelper.getBiometricObject(uinHash, oldCbeffRefId));
 					if (Objects.isNull(newCbeff) && Objects.nonNull(newCbeffRefId))
-						this.newCbeff = CryptoUtil.encodeToPlainBase64(objectStoreHelper.getBiometricObject(uinHash, newCbeffRefId));
+						this.newCbeff = CryptoUtil.encodeToURLSafeBase64(objectStoreHelper.getBiometricObject(uinHash, newCbeffRefId));
 				} catch (IdRepoAppException e) {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "buildAndsaveProfile",
 							e.getMessage());
