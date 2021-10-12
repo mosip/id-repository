@@ -19,7 +19,7 @@ import io.mosip.idrepository.saltgenerator.entity.idrepo.IdentityEncryptSaltEnti
 import io.mosip.idrepository.saltgenerator.entity.idrepo.IdentityHashSaltEntity;
 import io.mosip.idrepository.saltgenerator.logger.SaltGeneratorLogger;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.HMACUtils2;
 
