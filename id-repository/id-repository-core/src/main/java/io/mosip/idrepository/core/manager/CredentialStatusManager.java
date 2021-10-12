@@ -35,7 +35,7 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.websub.model.EventModel;
@@ -206,15 +206,15 @@ public class CredentialStatusManager {
 		int modResult = (int) (Long.parseLong(individualId) % moduloValue);
 		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(modResult);
 		return modResult + SPLITTER + new String(securityManager.encryptWithSalt(individualId.getBytes(),
-				CryptoUtil.decodeBase64(encryptSalt), uinRefId));
+				CryptoUtil.decodeURLSafeBase64(encryptSalt), uinRefId));
 	}
 
 	public String decryptId(String individualId) throws IdRepoAppException {
 		Optional<UinEncryptSalt> encryptSalt = uinEncryptSaltRepo
 				.findById(Integer.valueOf(StringUtils.substringBefore(individualId, SPLITTER)));
 		return new String(securityManager.decryptWithSalt(
-				CryptoUtil.decodeBase64(StringUtils.substringAfter(individualId, SPLITTER)),
-				CryptoUtil.decodeBase64(encryptSalt.get().getSalt()), uinRefId));
+				CryptoUtil.decodeURLSafeBase64(StringUtils.substringAfter(individualId, SPLITTER)),
+				CryptoUtil.decodeURLSafeBase64(encryptSalt.get().getSalt()), uinRefId));
 	}
 
 	/**

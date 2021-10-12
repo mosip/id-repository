@@ -58,7 +58,7 @@ import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.model.Event;
 import io.mosip.kernel.core.websub.model.EventModel;
@@ -199,7 +199,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			String signature = null;
 			String encodedData = null;
 			jsonData = JsonUtil.objectMapperObjectToJson(dataProviderResponse.getJSON());
-			encodedData = CryptoUtil.encodeBase64(jsonData.getBytes());
+			encodedData = CryptoUtil.encodeToURLSafeBase64(jsonData.getBytes());
 			if (policyDetailResponseDto.getPolicies().getDataSharePolicies().getTypeOfShare()
 					.equalsIgnoreCase(DATASHARE)) {
 

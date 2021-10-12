@@ -20,7 +20,7 @@ import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.vid.entity.Vid;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.util.CryptoUtil;
 
 /**
  * The Class IdRepoEntityInterceptor - Interceptor for repository calls and
@@ -63,7 +63,7 @@ public class IdRepoVidEntityInterceptor extends EmptyInterceptor {
 				int uinIndex = propertyNamesList.indexOf("uin");
 				List<String> uinList = Arrays.asList(vidEntity.getUin().split(SPLITTER));
 				byte[] encryptedUinByteWithSalt = securityManager.encryptWithSalt(uinList.get(1).getBytes(),
-						CryptoUtil.decodeBase64(uinList.get(2)), uinRefId);
+						CryptoUtil.decodeURLSafeBase64(uinList.get(2)), uinRefId);
 				String encryptedUinWithSalt = uinList.get(0) + SPLITTER + new String(encryptedUinByteWithSalt);
 				vidEntity.setUin(encryptedUinWithSalt);
 				state[uinIndex] = vidEntity.getUin();
@@ -94,7 +94,7 @@ public class IdRepoVidEntityInterceptor extends EmptyInterceptor {
 				Vid vidEntity = (Vid) entity;
 				List<String> uinList = Arrays.asList(vidEntity.getUin().split(SPLITTER));
 				byte[] encryptedUinByteWithSalt = securityManager.encryptWithSalt(uinList.get(1).getBytes(),
-						CryptoUtil.decodeBase64(uinList.get(2)), uinRefId);
+						CryptoUtil.decodeURLSafeBase64(uinList.get(2)), uinRefId);
 				String encryptedUinWithSalt = uinList.get(0) + SPLITTER + new String(encryptedUinByteWithSalt);
 				vidEntity.setUin(encryptedUinWithSalt);
 				currentState[uinIndex] = vidEntity.getUin();

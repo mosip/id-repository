@@ -73,7 +73,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.UUIDUtils;
 import io.mosip.kernel.core.websub.model.Event;
@@ -219,7 +219,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
 		String uinToEncrypt = modResult + SPLITTER + uin + SPLITTER + encryptSalt;
 		String uinHash = String.valueOf(modResult) + SPLITTER
-				+ securityManager.hashwithSalt(uin.getBytes(), CryptoUtil.decodeBase64(hashSalt));
+				+ securityManager.hashwithSalt(uin.getBytes(), CryptoUtil.decodeURLSafeBase64(hashSalt));
 		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime();
 		List<Vid> vidDetails = vidRepo.findByUinHashAndStatusCodeAndVidTypeCodeAndExpiryDTimesAfter(uinHash, vidStatus,
 				vidType, currentTime);
@@ -377,7 +377,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			int modResult = (int) (Long.parseLong(uin) % moduloValue);
 			String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
 			String uinHash = String.valueOf(modResult) + SPLITTER
-					+ securityManager.hashwithSalt(uin.getBytes(), CryptoUtil.decodeBase64(hashSalt));
+					+ securityManager.hashwithSalt(uin.getBytes(), CryptoUtil.decodeURLSafeBase64(hashSalt));
 			List<Vid> vidList = vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(uinHash,
 					env.getProperty(VID_ACTIVE_STATUS), DateUtils.getUTCCurrentDateTime());
 			// Get the salted ID Hash before modifiying the vid entity, otherwise result in
@@ -564,7 +564,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
 		String hashSalt = uinHashSaltRepo.retrieveSaltById((int) (Long.parseLong(uin) % moduloValue));
 		String uinHash = String.valueOf((Long.parseLong(uin) % moduloValue)) + SPLITTER
-				+ securityManager.hashwithSalt(uin.getBytes(), CryptoUtil.decodeBase64(hashSalt));
+				+ securityManager.hashwithSalt(uin.getBytes(), CryptoUtil.decodeURLSafeBase64(hashSalt));
 		List<Vid> vidList = vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(uinHash, vidStatusToRetrieveVIDList,
 				DateUtils.getUTCCurrentDateTime());
 		if (!vidList.isEmpty()) {
@@ -689,10 +689,10 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		String decryptSalt = uinEncryptSaltRepo.retrieveSaltById(Integer.parseInt(uinDetails.get(0)));
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(Integer.parseInt(uinDetails.get(0)));
 		String encryptedUin = uin.substring(uinDetails.get(0).length() + 1, uin.length());
-		String decryptedUin = new String(securityManager.decryptWithSalt(CryptoUtil.decodeBase64(encryptedUin),
-				CryptoUtil.decodeBase64(decryptSalt), uinRefId));
+		String decryptedUin = new String(securityManager.decryptWithSalt(CryptoUtil.decodeURLSafeBase64(encryptedUin),
+				CryptoUtil.decodeURLSafeBase64(decryptSalt), uinRefId));
 		String uinHashWithSalt = uinDetails.get(0) + SPLITTER
-				+ securityManager.hashwithSalt(decryptedUin.getBytes(), CryptoUtil.decodeBase64(hashSalt));
+				+ securityManager.hashwithSalt(decryptedUin.getBytes(), CryptoUtil.decodeURLSafeBase64(hashSalt));
 		if (!MessageDigest.isEqual(uinHashWithSalt.getBytes(), uinHash.getBytes())) {
 			throw new IdRepoAppUncheckedException(UIN_HASH_MISMATCH);
 		}

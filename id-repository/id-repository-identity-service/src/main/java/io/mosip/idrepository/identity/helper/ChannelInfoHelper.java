@@ -20,7 +20,7 @@ import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.identity.entity.ChannelInfo;
 import io.mosip.idrepository.identity.repository.ChannelInfoRepo;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 
@@ -224,7 +224,7 @@ public class ChannelInfoHelper {
 		try {
 			String phoneNumber = getPhoneNumber(uinData);
 			String salt = saltRepo.retrieveSaltById(getModValue(phoneNumber));
-			return Optional.of(securityManager.hashwithSalt(phoneNumber.getBytes(), CryptoUtil.decodeBase64(salt)));
+			return Optional.of(securityManager.hashwithSalt(phoneNumber.getBytes(), CryptoUtil.decodeURLSafeBase64(salt)));
 		} catch (Exception e) {
 			return Optional.empty();
 		}
@@ -242,7 +242,7 @@ public class ChannelInfoHelper {
 			String email = getEmail(uinData);
 			String emailAsNumber = emailAsNumber(email);
 			String salt = saltRepo.retrieveSaltById(getModValue(emailAsNumber));
-			return Optional.of(securityManager.hashwithSalt(email.getBytes(), CryptoUtil.decodeBase64(salt)));
+			return Optional.of(securityManager.hashwithSalt(email.getBytes(), CryptoUtil.decodeURLSafeBase64(salt)));
 		} catch (Exception e) {
 			return Optional.empty();
 		}

@@ -84,7 +84,7 @@ import io.mosip.idrepository.identity.repository.UinDraftRepo;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 
@@ -439,8 +439,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	private String decryptUin(String encryptedUin, String uinHash) throws IdRepoAppException {
 		String salt = uinEncryptSaltRepo.getOne(Integer.valueOf(encryptedUin.split(SPLITTER)[0])).getSalt();
 		String uin = new String(securityManager.decryptWithSalt(
-				CryptoUtil.decodeBase64(StringUtils.substringAfter((String) encryptedUin, SPLITTER)),
-				CryptoUtil.decodeBase64(salt), uinRefId));
+				CryptoUtil.decodeURLSafeBase64(StringUtils.substringAfter((String) encryptedUin, SPLITTER)),
+				CryptoUtil.decodeURLSafeBase64(salt), uinRefId));
 		if (!StringUtils.equals(super.getUinHash(uin, super.getModValue(uin)), uinHash)) {
 			throw new IdRepoAppUncheckedException(UIN_HASH_MISMATCH);
 		}
@@ -477,12 +477,12 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				List<DocumentsDTO> documents = new ArrayList<>();
 				String uinHash = draft.getUinHash().split(SPLITTER)[1];
 				for (UinBiometricDraft uinBiometricDraft : draft.getBiometrics()) {
-					documents.add(new DocumentsDTO(uinBiometricDraft.getBiometricFileType(), CryptoUtil.encodeBase64(
+					documents.add(new DocumentsDTO(uinBiometricDraft.getBiometricFileType(), CryptoUtil.encodeToURLSafeBase64(
 							extractAndGetCombinedCbeff(uinHash, uinBiometricDraft.getBioFileId(), extractionFormats))));
 				}
 				for (UinDocumentDraft uinDocumentDraft : draft.getDocuments()) {
 					documents.add(new DocumentsDTO(uinDocumentDraft.getDoccatCode(), CryptoUtil
-							.encodeToPlainBase64(objectStoreHelper.getDemographicObject(uinHash, uinDocumentDraft.getDocId()))));
+							.encodeToURLSafeBase64(objectStoreHelper.getDemographicObject(uinHash, uinDocumentDraft.getDocId()))));
 				}
 				return constructIdResponse(draft.getUinData(), draft.getStatusCode(), documents, null);
 			} else {

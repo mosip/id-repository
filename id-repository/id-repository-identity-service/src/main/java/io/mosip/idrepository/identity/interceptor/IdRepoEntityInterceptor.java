@@ -27,7 +27,7 @@ import io.mosip.idrepository.identity.entity.UinDraft;
 import io.mosip.idrepository.identity.entity.UinHistory;
 import io.mosip.idrepository.identity.entity.UinInfo;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.util.CryptoUtil;
 
 /**
  * The Class IdRepoEntityInterceptor - Interceptor for repository calls and
@@ -97,7 +97,7 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 
 		List<String> uinList = Arrays.asList(uinEntity.getUin().split(SPLITTER));
 		byte[] encryptedUinByteWithSalt = securityManager.encryptWithSalt(uinList.get(1).getBytes(),
-				CryptoUtil.decodeBase64(uinList.get(2)), uinRefId);
+				CryptoUtil.decodeURLSafeBase64(uinList.get(2)), uinRefId);
 		String encryptedUinWithSalt = uinList.get(0) + SPLITTER + new String(encryptedUinByteWithSalt);
 		uinEntity.setUin(encryptedUinWithSalt);
 
