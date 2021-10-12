@@ -223,7 +223,7 @@ public class IdRepoSecurityManager {
 			request.put("data", new String(dataToDecrypt));
 			request.put("prependThumbprint", env.getProperty(PREPEND_THUMPRINT_STATUS));
 			baseRequest.setRequest(request);
-			return CryptoUtil.decodeBase64(new String(encryptDecryptData(restBuilder
+			return CryptoUtil.decodeURLSafeBase64(new String(encryptDecryptData(restBuilder
 					.buildRequest(RestServicesConstants.CRYPTO_MANAGER_DECRYPT, baseRequest, ObjectNode.class))));
 		} catch (IdRepoAppException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SECURITY_MANAGER, ENCRYPT_DECRYPT_DATA,
@@ -254,7 +254,7 @@ public class IdRepoSecurityManager {
 			request.put("salt", CryptoUtil.encodeToURLSafeBase64(saltToDecrypt));
 			request.put("prependThumbprint", env.getProperty(PREPEND_THUMPRINT_STATUS));
 			baseRequest.setRequest(request);
-			return CryptoUtil.decodeBase64(new String(encryptDecryptData(restBuilder
+			return CryptoUtil.decodeURLSafeBase64(new String(encryptDecryptData(restBuilder
 					.buildRequest(RestServicesConstants.CRYPTO_MANAGER_DECRYPT, baseRequest, ObjectNode.class))));
 		} catch (IdRepoAppException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SECURITY_MANAGER, ENCRYPT_DECRYPT_DATA,

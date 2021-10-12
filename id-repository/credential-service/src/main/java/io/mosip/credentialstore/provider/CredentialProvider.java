@@ -299,7 +299,7 @@ public class CredentialProvider {
 			}
 		});
 
-		List<BIR> birList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(individualBiometricsValue));
+		List<BIR> birList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeURLSafeBase64(individualBiometricsValue));
 
 		for (BIR bir : birList) {
 			BDBInfo bdbInfo = bir.getBdbInfo();
@@ -411,7 +411,7 @@ public class CredentialProvider {
 				}
 			});
 
-			List<BIR> birList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(individualBiometricsValue));
+			List<BIR> birList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeURLSafeBase64(individualBiometricsValue));
 
 			List<BIR> filteredBIRList = new ArrayList<>();
 			for (BIR bir : birList) {
