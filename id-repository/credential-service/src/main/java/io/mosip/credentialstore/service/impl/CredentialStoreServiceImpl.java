@@ -199,7 +199,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			String signature = null;
 			String encodedData = null;
 			jsonData = JsonUtil.objectMapperObjectToJson(dataProviderResponse.getJSON());
-			encodedData = CryptoUtil.encodeBase64(jsonData.getBytes());
+			encodedData = CryptoUtil.encodeToURLSafeBase64(jsonData.getBytes());
 			if (policyDetailResponseDto.getPolicies().getDataSharePolicies().getTypeOfShare()
 					.equalsIgnoreCase(DATASHARE)) {
 
