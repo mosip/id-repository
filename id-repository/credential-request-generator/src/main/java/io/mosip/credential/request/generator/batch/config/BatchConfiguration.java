@@ -120,7 +120,7 @@ public class BatchConfiguration {
 		methodArgs.add("NEW");
 		reader.setArguments(methodArgs);
 		reader.setSort(sorts);
-		//reader.setPageSize(pageSize);
+		reader.setPageSize(pageSize);
 		reader.setMaxItemCount(pageSize);
 
 		RepositoryItemWriter<CredentialEntity> writer = new RepositoryItemWriter<>();
