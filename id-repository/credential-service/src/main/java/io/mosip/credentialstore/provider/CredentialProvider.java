@@ -431,7 +431,7 @@ public class CredentialProvider {
 			}
 			if (!filteredBIRList.isEmpty()) {
 				byte[] cBEFFByte = cbeffutil.createXML(filteredBIRList);
-				return CryptoUtil.encodeBase64(cBEFFByte);
+				return CryptoUtil.encodeToURLSafeBase64(cBEFFByte);
 
 			} else {
 				return individualBiometricsValue;

@@ -98,7 +98,7 @@ public class IdRepoSecurityManagerTest {
 			throws IdRepoAppException, JsonParseException, JsonMappingException, JsonProcessingException, IOException {
 		ResponseWrapper<ObjectNode> response = new ResponseWrapper<>();
 		ObjectNode responseNode = mapper.createObjectNode();
-		responseNode.put("data", CryptoUtil.encodeBase64("data".getBytes()));
+		responseNode.put("data", CryptoUtil.encodeToURLSafeBase64("data".getBytes()));
 		response.setResponse(responseNode);
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any(Class.class)))
 				.thenReturn(new RestRequestDTO());
