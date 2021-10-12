@@ -38,8 +38,8 @@ public interface CredentialRepositary<T extends CredentialEntity, E> extends Bas
 	 * @return the page
 	 */
 	@Transactional
-	@Lock(value = LockModeType.PESSIMISTIC_WRITE) // adds 'FOR UPDATE' statement
-	@QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "-2") }) // -2 = LockOptions.SKIP_LOCKED
+	//@Lock(value = LockModeType.PESSIMISTIC_WRITE) // adds 'FOR UPDATE' statement
+	//@QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "-2") }) // -2 = LockOptions.SKIP_LOCKED
 	@Query("SELECT crdn FROM CredentialEntity crdn WHERE crdn.statusCode=:statusCode")
 	Page<CredentialEntity> findCredentialByStatusCode(@Param("statusCode")String statusCode, Pageable pageable);
 }
