@@ -52,7 +52,7 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 
 
@@ -299,7 +299,7 @@ public class CredentialProvider {
 			}
 		});
 
-		List<BIR> birList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(individualBiometricsValue));
+		List<BIR> birList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeURLSafeBase64(individualBiometricsValue));
 
 		for (BIR bir : birList) {
 			BDBInfo bdbInfo = bir.getBdbInfo();
@@ -411,7 +411,7 @@ public class CredentialProvider {
 				}
 			});
 
-			List<BIR> birList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(individualBiometricsValue));
+			List<BIR> birList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeURLSafeBase64(individualBiometricsValue));
 
 			List<BIR> filteredBIRList = new ArrayList<>();
 			for (BIR bir : birList) {
@@ -431,7 +431,7 @@ public class CredentialProvider {
 			}
 			if (!filteredBIRList.isEmpty()) {
 				byte[] cBEFFByte = cbeffutil.createXML(filteredBIRList);
-				return CryptoUtil.encodeBase64(cBEFFByte);
+				return CryptoUtil.encodeToURLSafeBase64(cBEFFByte);
 
 			} else {
 				return individualBiometricsValue;

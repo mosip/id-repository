@@ -85,7 +85,7 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.UUIDUtils;
 
@@ -692,9 +692,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 										identityMap.get(bio.getBiometricFileType()).get(FILE_FORMAT_ATTRIBUTE).asText(), CBEFF_FORMAT)
 										&& bioFileId.endsWith(CBEFF_FORMAT)) {
 									byte[] decodedBioData = CryptoUtil.decodeURLSafeBase64(doc.getValue());
-									anonymousProfileHelper.setOldCbeff(doc.getValue());
-									doc.setValue(CryptoUtil.encodeToURLSafeBase64(cbeffUtil
-											.updateXML(cbeffUtil.getBIRDataFromXML(decodedBioData), data)));
+									anonymousProfileHelper.setOldCbeff(CryptoUtil.encodeToURLSafeBase64(data));
+									doc.setValue(CryptoUtil.encodeToURLSafeBase64(this.updateXML(decodedBioData, data)));
 								}
 						} catch (Exception e) {
 							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateCbeff",
@@ -719,7 +718,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						.concat(bir.getBdbInfo().getSubtype().stream().collect(Collectors.joining())), bir -> bir));
 		inputBIRDataMap.entrySet().forEach(entry -> existingBIRDataMap.replace(entry.getKey(), entry.getValue()));
 		byte[] updatedCbeff = cbeffUtil.createXML(new ArrayList<>(existingBIRDataMap.values()));
-		anonymousProfileHelper.setNewCbeff(CryptoUtil.encodeToPlainBase64(updatedCbeff));
+		anonymousProfileHelper.setNewCbeff(CryptoUtil.encodeToURLSafeBase64(updatedCbeff));
 		return updatedCbeff;
 	}
 

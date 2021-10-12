@@ -27,7 +27,7 @@ import io.mosip.idrepository.identity.entity.UinDraft;
 import io.mosip.idrepository.identity.entity.UinHistory;
 import io.mosip.idrepository.identity.entity.UinInfo;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.util.CryptoUtil;
 
 /**
  * The Class IdRepoEntityInterceptor - Interceptor for repository calls and
