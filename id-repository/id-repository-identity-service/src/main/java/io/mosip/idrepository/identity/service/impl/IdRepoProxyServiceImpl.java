@@ -405,7 +405,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				String uinHash = uinObject.getUinHash().split("_")[1];
 				byte[] data = objectStoreHelper.getDemographicObject(uinHash, demo.getDocId());
 				if (demo.getDocHash().equals(securityManager.hash(data))) {
-					documents.add(new DocumentsDTO(demo.getDoccatCode(), CryptoUtil.encodeBase64(data)));
+					documents.add(new DocumentsDTO(demo.getDoccatCode(), CryptoUtil.encodeToURLSafeBase64(data)));
 				} else {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
 							DOCUMENT_HASH_MISMATCH.getErrorMessage());
@@ -439,13 +439,13 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 									extractionFormats, data);
 							if (Objects.nonNull(extractedData)) {
 								documents.add(new DocumentsDTO(bio.getBiometricFileType(),
-										CryptoUtil.encodeBase64(extractedData)));
+										CryptoUtil.encodeToURLSafeBase64(extractedData)));
 							}
 
 						} else {
 							if (StringUtils.equals(bio.getBiometricFileHash(), securityManager.hash(data))) {
 								documents.add(
-										new DocumentsDTO(bio.getBiometricFileType(), CryptoUtil.encodeBase64(data)));
+										new DocumentsDTO(bio.getBiometricFileType(), CryptoUtil.encodeToURLSafeBase64(data)));
 							} else {
 								mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
 										DOCUMENT_HASH_MISMATCH.getErrorMessage());
