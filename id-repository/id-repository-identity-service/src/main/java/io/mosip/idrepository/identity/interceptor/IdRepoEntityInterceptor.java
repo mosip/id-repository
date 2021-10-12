@@ -97,7 +97,7 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 
 		List<String> uinList = Arrays.asList(uinEntity.getUin().split(SPLITTER));
 		byte[] encryptedUinByteWithSalt = securityManager.encryptWithSalt(uinList.get(1).getBytes(),
-				CryptoUtil.decodeBase64(uinList.get(2)), uinRefId);
+				CryptoUtil.decodeURLSafeBase64(uinList.get(2)), uinRefId);
 		String encryptedUinWithSalt = uinList.get(0) + SPLITTER + new String(encryptedUinByteWithSalt);
 		uinEntity.setUin(encryptedUinWithSalt);
 
