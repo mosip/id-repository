@@ -146,19 +146,13 @@ public class IdAuthProvider extends CredentialProvider {
 				additionalData.put(DEMO_ENCRYPTED_RANDOM_KEY, demoEncryptZkResponseDto.getEncryptedRandomKey());
 				additionalData.put(DEMO_ENCRYPTED_RANDOM_INDEX, demoEncryptZkResponseDto.getRankomKeyIndex());
 			}
-			if(!bioZkDataAttributes.isEmpty()) {
-				for (ZkDataAttribute attribute : bioZkDataAttributes) {
-					formattedMap.put(attribute.getIdentifier(), attribute.getValue());
-				}
+			if (!bioZkDataAttributes.isEmpty()) {
+				EncryptZkResponseDto bioEncryptZkResponseDto = encryptionUtil
+						.encryptDataWithZK(credentialServiceRequestDto.getId(), bioZkDataAttributes, requestId);
+				addToFormatter(bioEncryptZkResponseDto, formattedMap);
+				additionalData.put(BIO_ENCRYPTED_RANDOM_KEY, bioEncryptZkResponseDto.getEncryptedRandomKey());
+				additionalData.put(BIO_ENCRYPTED_RANDOM_INDEX, bioEncryptZkResponseDto.getRankomKeyIndex());
 			}
-			
-//			if (!bioZkDataAttributes.isEmpty()) {
-//				EncryptZkResponseDto bioEncryptZkResponseDto = encryptionUtil
-//						.encryptDataWithZK(credentialServiceRequestDto.getId(), bioZkDataAttributes, requestId);
-//				addToFormatter(bioEncryptZkResponseDto, formattedMap);
-//				additionalData.put(BIO_ENCRYPTED_RANDOM_KEY, bioEncryptZkResponseDto.getEncryptedRandomKey());
-//				additionalData.put(BIO_ENCRYPTED_RANDOM_INDEX, bioEncryptZkResponseDto.getRankomKeyIndex());
-//			}
 
 			String credentialId = utilities.generateId();
 
