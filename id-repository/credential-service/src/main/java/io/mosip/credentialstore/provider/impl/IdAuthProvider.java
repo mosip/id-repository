@@ -234,7 +234,7 @@ public class IdAuthProvider extends CredentialProvider {
 			}
 		}
 		List<BIR> faceBirList = birList.stream()
-				.filter(bir -> bir.getBdbInfo().getType().get(0).value().startsWith(BiometricType.FACE.toString()))
+				.filter(bir -> bir.getBdbInfo().getType().get(0).value().startsWith(BiometricType.FACE.value().toString()))
 				.collect(Collectors.toList());
 		if (!faceBirList.isEmpty()) {
 			ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
@@ -243,7 +243,7 @@ public class IdAuthProvider extends CredentialProvider {
 			zkDataAttributes.add(zkDataAttribute);
 		}
 		List<BIR> fingerBirList = birList.stream()
-				.filter(bir -> bir.getBdbInfo().getType().get(0).value().startsWith(BiometricType.FINGER.toString()))
+				.filter(bir -> bir.getBdbInfo().getType().get(0).value().startsWith(BiometricType.FINGER.value().toString()))
 				.collect(Collectors.toList());
 		if (!fingerBirList.isEmpty()) {
 			ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
@@ -252,7 +252,7 @@ public class IdAuthProvider extends CredentialProvider {
 			zkDataAttributes.add(zkDataAttribute);
 		}
 		List<BIR> irisBirList = birList.stream()
-				.filter(bir -> bir.getBdbInfo().getType().get(0).value().startsWith(BiometricType.IRIS.toString()))
+				.filter(bir -> bir.getBdbInfo().getType().get(0).value().startsWith(BiometricType.IRIS.value().toString()))
 				.collect(Collectors.toList());
 		if (!irisBirList.isEmpty()) {
 			ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
