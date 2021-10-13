@@ -1,107 +1,57 @@
 package io.mosip.idrepository.identity.config;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.servers.Server;
 
-/**
- * To expose the documentation for entire API.
- *
- * @author Manoj SP
- */
-@Configuration(value = "idrepo_swagger_config")
-@EnableSwagger2
+@Configuration
 public class SwaggerConfig {
 
-	/** The local env. */
-	@Value("${application.env.local:false}")
-	private Boolean localEnv;
+	private static final Logger logger = LoggerFactory.getLogger(SwaggerConfig.class);
 
-	/** The swagger url. */
-	@Value("${swagger.base-url:#{null}}")
-	private String swaggerUrl;
+	@Autowired
+	private OpenApiProperties openApiProperties;
 
-	/** The server port. */
-	@Value("${server.port:8080}")
-	private int serverPort;
-
-	/** The proto. */
-	String proto = "http";
-	
-	/** The host. */
-	String host = "localhost";
-	
-	/** The port. */
-	int port = -1;
-	
-	/** The host with port. */
-	String hostWithPort = "localhost:8080";
-
-	/**
-	 * Gets the api info.
-	 *
-	 * @return the api info
-	 */
-	ApiInfo getApiInfo() {
-		return new ApiInfoBuilder().title("Id Repository Identity Service").description("Id Repository Identity Service").build();
-	}
-
-	/**
-	 * Api.
-	 *
-	 * @return the docket
-	 * @throws MalformedURLException the malformed URL exception
-	 */
 	@Bean
-	public Docket api() throws MalformedURLException {
-		boolean targetSwagger = false;
-		if (!localEnv && swaggerUrl != null && !swaggerUrl.isEmpty()) {
-			try {
-				proto = new URL(swaggerUrl).getProtocol();
-				host = new URL(swaggerUrl).getHost();
-				port = new URL(swaggerUrl).getPort();
-				if (port == -1) {
-					hostWithPort = host;
-				} else {
-					hostWithPort = host + ":" + port;
-				}
-				targetSwagger = true;
-			} catch (MalformedURLException e) {
-				throw e;
+	public OpenAPI openApi() {
+		String msg = "Swagger open api, ";
+		OpenAPI api = new OpenAPI()
+				.components(new Components());
+		if (null != openApiProperties.getInfo()) {
+			api.info(new Info()
+					.title(openApiProperties.getInfo().getTitle())
+					.version(openApiProperties.getInfo().getVersion())
+					.description(openApiProperties.getInfo().getDescription()));
+			if (null != openApiProperties.getInfo().getLicense()) {
+				api.getInfo().license(new License()
+						.name(openApiProperties.getInfo().getLicense().getName())
+						.url(openApiProperties.getInfo().getLicense().getUrl()));
+				logger.info(msg + "info license property is added");
+			} else {
+				logger.error(msg + "info license property is empty");
 			}
-		}
-		Docket docket = new Docket(DocumentationType.SWAGGER_2).select()
-				.apis(RequestHandlerSelectors.basePackage("io.mosip.idrepository.identity.controller"))
-				.paths(PathSelectors.regex("(?!/(error|actuator).*).*")).build().apiInfo(getApiInfo());
-
-		if (targetSwagger) {
-			docket.protocols(protocols()).host(hostWithPort);
+			logger.info(msg + "info property is added");
+		} else {
+			logger.error(msg + "info property is empty");
 		}
 
-		return docket;
+		if (null != openApiProperties.getIdRepoIdentityServiceServer().getServers()) {
+			openApiProperties.getIdRepoIdentityServiceServer().getServers().forEach(server -> {
+				api.addServersItem(new Server().description(server.getDescription()).url(server.getUrl()));
+			});
+			logger.info(msg + "server property is added");
+		} else {
+			logger.error(msg + "server property is empty");
+		}
+		return api;
 	}
 
-	/**
-	 * Protocols.
-	 *
-	 * @return the sets the
-	 */
-	private Set<String> protocols() {
-		Set<String> protocols = new HashSet<>();
-		protocols.add(proto);
-		return protocols;
-	}
 }
