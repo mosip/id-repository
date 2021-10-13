@@ -462,7 +462,8 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			vidObject.setUin(decryptedUin);
 			vidRepo.saveAndFlush(vidObject);
 			VidInfoDTO vidInfo = createVidInfo(vidObject, idHashAndAttributes);
-			notify(decryptedUin, vidStatus, Collections.singletonList(vidInfo), true);
+			notify(decryptedUin, vidStatus, Collections.singletonList(vidInfo),
+					env.getProperty(VID_ACTIVE_STATUS).contentEquals(vidStatus) ? false : true);
 		}
 		VidResponseDTO response = new VidResponseDTO();
 		response.setVidStatus(vidObject.getStatusCode());
