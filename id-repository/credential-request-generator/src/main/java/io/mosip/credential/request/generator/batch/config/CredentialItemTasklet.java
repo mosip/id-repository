@@ -22,6 +22,7 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -71,10 +72,10 @@ public class CredentialItemTasklet implements Tasklet {
 				"Inside CredentialItemTasklet.execute() method");
 		List<CredentialEntity> credentialEntities = credentialDao.getCredentials();
 
-		credentialEntities.forEach(credential -> {
+		credentialEntities.parallelStream().forEach(credential -> {
 			try {
 				LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
-						"started processing item : " + credential.getCredentialId());
+						"started processing item : " + credential.getRequestId());
 				CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class);
 				CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
 				credentialServiceRequestDto.setCredentialType(credentialIssueRequestDto.getCredentialType());
@@ -87,8 +88,15 @@ public class CredentialItemTasklet implements Tasklet {
 				credentialServiceRequestDto.setEncrypt(credentialIssueRequestDto.isEncrypt());
 				credentialServiceRequestDto.setEncryptionKey(credentialIssueRequestDto.getEncryptionKey());
 				credentialServiceRequestDto.setAdditionalData(credentialIssueRequestDto.getAdditionalData());
+
+				LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
+						"Calling CRDENTIALSERVICE : " + credential.getRequestId());
+
 				String responseString = restUtil.postApi(ApiName.CRDENTIALSERVICE, null, "", "",
 						MediaType.APPLICATION_JSON, credentialServiceRequestDto, String.class);
+
+				LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
+						"Received response from CRDENTIALSERVICE : " + credential.getRequestId());
 
 				CredentialServiceResponseDto responseObject = mapper.readValue(responseString, CredentialServiceResponseDto.class);
 
@@ -110,7 +118,7 @@ public class CredentialItemTasklet implements Tasklet {
 				}
 				credential.setUpdatedBy(CREDENTIAL_USER);
 				LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
-						"ended processing item : " + credential.getCredentialId());
+						"ended processing item : " + credential.getRequestId());
 			} catch (ApiNotAccessibleException e) {
 
 				LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
@@ -126,10 +134,10 @@ public class CredentialItemTasklet implements Tasklet {
 				LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, PROCESS,
 						ExceptionUtils.getStackTrace(e));
 				credential.setStatusCode("FAILED");
-			} finally {
-				credentialDao.update(credential);
 			}
 		});
+		if (!CollectionUtils.isEmpty(credentialEntities))
+			credentialDao.update(credentialEntities);
 
 		return RepeatStatus.FINISHED;
 	}

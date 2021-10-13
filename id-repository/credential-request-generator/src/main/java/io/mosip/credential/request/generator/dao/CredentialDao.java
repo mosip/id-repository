@@ -29,10 +29,10 @@ public class CredentialDao {
     private CredentialRepositary<CredentialEntity, String> crdentialRepo;
 
 
-    public void update(CredentialEntity credentialEntity) {
-        crdentialRepo.update(credentialEntity);
-        LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", credentialEntity.getCredentialId(),
-                "Record updated successfully");
+    public void update(List<CredentialEntity> credentialEntities) {
+        crdentialRepo.saveAll(credentialEntities);
+        LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "Record updated successfully",
+                "Total records : " + credentialEntities.size());
     }
 
 
