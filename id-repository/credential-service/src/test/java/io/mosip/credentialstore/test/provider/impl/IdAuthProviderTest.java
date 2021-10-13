@@ -84,18 +84,18 @@ public class IdAuthProviderTest {
 		sourceList.add(source1);
 		kyc1.setSource(sourceList);
 
-		AllowedKycDto kyc2 = new AllowedKycDto();
-		kyc2.setAttributeName("biomterics");
-		kyc2.setEncrypted(true);
-		kyc2.setGroup("CBEFF");
-		List<Source> sourceList1 = new ArrayList<>();
-		Source source2 = new Source();
-		source2.setAttribute("individualBiometrics");
+//		AllowedKycDto kyc2 = new AllowedKycDto();
+//		kyc2.setAttributeName("biomterics");
+//		kyc2.setEncrypted(true);
+//		kyc2.setGroup("CBEFF");
+//		List<Source> sourceList1 = new ArrayList<>();
+//		Source source2 = new Source();
+//		source2.setAttribute("individualBiometrics");
 
-		sourceList1.add(source2);
-		kyc2.setSource(sourceList1);
+//		sourceList1.add(source2);
+//		kyc2.setSource(sourceList1);
 		sharableAttributes.put(kyc1, "testname");
-		sharableAttributes.put(kyc2, "biomtericencodedcbeffstring");
+//		sharableAttributes.put(kyc2, "biomtericencodedcbeffstring");
 		DataProviderResponse dataProviderResponse = idAuthProvider
 				.getFormattedCredentialData(credentialServiceRequestDto, sharableAttributes);
 		assertNotNull(dataProviderResponse);
