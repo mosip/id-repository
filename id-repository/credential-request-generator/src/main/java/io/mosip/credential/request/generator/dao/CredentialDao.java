@@ -29,15 +29,15 @@ public class CredentialDao {
     private CredentialRepositary<CredentialEntity, String> crdentialRepo;
 
 
-    public void update(List<CredentialEntity> credentialEntities) {
+    public void update(String batchId, List<CredentialEntity> credentialEntities) {
         crdentialRepo.saveAll(credentialEntities);
-        LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "Record updated successfully",
-                "Total records : " + credentialEntities.size());
+        LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
+                "Record updated successfully. Total records : " + credentialEntities.size());
     }
 
 
-    public List<CredentialEntity> getCredentials() {
-        LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "getCredentials()",
+    public List<CredentialEntity> getCredentials(String batchId) {
+        LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
                 "Inside getCredentials() method");
 
         Map<String, Object> params = new HashMap<>();
@@ -48,7 +48,7 @@ public class CredentialDao {
 
         List<CredentialEntity> credentialEntities = crdentialRepo.createQuerySelect(queryStr, params, pageSize);
 
-        LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "getCredentials()",
+        LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
                 "Total records picked from credential_transaction table for processing is " + credentialEntities.size());
 
         return credentialEntities;
