@@ -1,11 +1,18 @@
 package io.mosip.idrepository.vid.controller;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.DRAFT_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATA_VALIDATION_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 
 import java.util.List;
 import java.util.Optional;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -51,6 +58,7 @@ import springfox.documentation.annotations.ApiIgnore;
  * @author Prem Kumar
  */
 @RestController
+@Tag(name = "vid-controller", description = "Vid Controller")
 public class VidController {
 
 	/** The Constant REACTIVATE. */
@@ -128,6 +136,13 @@ public class VidController {
 	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR','RESIDENT')")
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostvid())")
 	@PostMapping(path = "/vid", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "createVid", description = "createVid", tags = { "vid-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<ResponseWrapper<VidResponseDTO>> createVid(
 			@Validated @RequestBody RequestWrapper<VidRequestDTO> request, @ApiIgnore Errors errors)
 			throws IdRepoAppException {
@@ -149,6 +164,23 @@ public class VidController {
 		}
 	}
 
+	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostdraftvid())")
+	@PostMapping(path = "/draft/vid", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "createDraftVid", description = "createDraftVid", tags = { "vid-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
+	public ResponseEntity<ResponseWrapper<VidResponseDTO>> createDraftVid(
+			@Validated @RequestBody RequestWrapper<VidRequestDTO> request, @ApiIgnore Errors errors)
+			throws IdRepoAppException {
+		request.getRequest().setVidStatus(DRAFT_STATUS);
+		return createVid(request, errors);
+	}
+
 	/**
 	 * This method will accepts vid as parameter, if vid is valid it will return
 	 * respective uin. This service will retrieve associated decrypted UIN for a given 
@@ -161,6 +193,12 @@ public class VidController {
 	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR','ID_AUTHENTICATION','RESIDENT')")
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetvid())")
 	@GetMapping(path = "/vid/{VID}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "retrieveUinByVid", description = "retrieveUinByVid", tags = { "vid-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<ResponseWrapper<VidResponseDTO>> retrieveUinByVid(@PathVariable("VID") String vid)
 			throws IdRepoAppException {
 		try {
@@ -191,6 +229,12 @@ public class VidController {
 	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetviduin())")
 	@GetMapping(path = "/vid/uin/{UIN}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "retrieveVidsByUin", description = "retrieveVidsByUin", tags = { "vid-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<ResponseWrapper<List<VidInfoDTO>>> retrieveVidsByUin(@PathVariable("UIN") String uin)
 			throws IdRepoAppException {
 		try {
@@ -220,9 +264,16 @@ public class VidController {
 	 * @return the response entity
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	//@PreAuthorize("hasAnyRole('ID_AUTHENTICATION')")
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getPatchvid())")
+	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR','ID_AUTHENTICATION')")
 	@PatchMapping(path = "/vid/{VID}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "updateVidStatus", description = "updateVidStatus", tags = { "vid-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "204", description = "No Content" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			})
 	public ResponseEntity<ResponseWrapper<VidResponseDTO>> updateVidStatus(@PathVariable("VID") String vid,
 			@Validated @RequestBody RequestWrapper<VidRequestDTO> request, @ApiIgnore Errors errors)
 			throws IdRepoAppException {
@@ -263,6 +314,13 @@ public class VidController {
 	//@PreAuthorize("hasAnyRole('RESIDENT')")
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostvidregenerate())")
 	@PostMapping(path = "/vid/{VID}/regenerate", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "regenerateVid", description = "regenerateVid", tags = { "vid-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<ResponseWrapper<VidResponseDTO>> regenerateVid(@PathVariable("VID") String vid)
 			throws IdRepoAppException {
 		try {
@@ -296,6 +354,13 @@ public class VidController {
 	//@PreAuthorize("hasAnyRole('RESIDENT')")
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostviddeactivate())")
 	@PostMapping(path = "/vid/deactivate", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "deactivateVIDsForUIN", description = "deactivateVIDsForUIN", tags = { "vid-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<ResponseWrapper<VidResponseDTO>> deactivateVIDsForUIN(
 			@Validated @RequestBody RequestWrapper<VidRequestDTO> request, @ApiIgnore Errors errors)
 			throws IdRepoAppException {
@@ -334,6 +399,13 @@ public class VidController {
 	//@PreAuthorize("hasAnyRole('RESIDENT')")
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostvidreactivate())")
 	@PostMapping(path = "/vid/reactivate", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "reactivateVIDsForUIN", description = "reactivateVIDsForUIN", tags = { "vid-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<ResponseWrapper<VidResponseDTO>> reactivateVIDsForUIN(
 			@Validated @RequestBody RequestWrapper<VidRequestDTO> request, @ApiIgnore Errors errors)
 			throws IdRepoAppException {
