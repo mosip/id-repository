@@ -234,7 +234,7 @@ public class IdAuthProvider extends CredentialProvider {
 			if (subType != null) {
 				ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
 				zkDataAttribute.setIdentifier(type + "_" + subType);
-				zkDataAttribute.setValue(new String(cbeffutil.createXML(birs)));
+				zkDataAttribute.setValue(CryptoUtil.encodeToURLSafeBase64(cbeffutil.createXML(birs)));
 				zkDataAttributes.add(zkDataAttribute);
 			}
 		}
@@ -245,7 +245,7 @@ public class IdAuthProvider extends CredentialProvider {
 		if (!faceBirList.isEmpty()) {
 			ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
 			zkDataAttribute.setIdentifier(BiometricType.FACE.value());
-			zkDataAttribute.setValue(new String(cbeffutil.createXML(faceBirList)));
+			zkDataAttribute.setValue(CryptoUtil.encodeToURLSafeBase64(cbeffutil.createXML(faceBirList)));
 			zkDataAttributes.add(zkDataAttribute);
 		}
 //		List<BIR> fingerBirList = birList.stream()
