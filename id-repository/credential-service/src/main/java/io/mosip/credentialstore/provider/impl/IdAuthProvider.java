@@ -232,18 +232,17 @@ public class IdAuthProvider extends CredentialProvider {
 				ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
 				zkDataAttribute.setIdentifier(type + "_" + subType);
 				zkDataAttribute.setValue(CryptoUtil.encodeToURLSafeBase64(cbeffutil.createXML(birs)));
-				writeToFile(zkDataAttribute.getIdentifier(),zkDataAttribute.getValue());
 				zkDataAttributes.add(zkDataAttribute);
 			}
 		}
+		
 		List<BIR> faceBirList = birList.stream()
 				.filter(bir -> bir.getBdbInfo().getType().get(0).value().startsWith(BiometricType.FACE.value().toString()))
 				.collect(Collectors.toList());
 		if (!faceBirList.isEmpty()) {
 			ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
-			zkDataAttribute.setIdentifier(BiometricType.FACE.value() + "_" + "UNKNOWN");
+			zkDataAttribute.setIdentifier(BiometricType.FACE.value());
 			zkDataAttribute.setValue(CryptoUtil.encodeToURLSafeBase64(cbeffutil.createXML(faceBirList)));
-			writeToFile(zkDataAttribute.getIdentifier(),zkDataAttribute.getValue());
 			zkDataAttributes.add(zkDataAttribute);
 		}
 		List<BIR> fingerBirList = birList.stream()
@@ -253,7 +252,6 @@ public class IdAuthProvider extends CredentialProvider {
 			ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
 			zkDataAttribute.setIdentifier(BiometricType.FINGER.value() + "_" + "UNKNOWN");
 			zkDataAttribute.setValue(CryptoUtil.encodeToURLSafeBase64(cbeffutil.createXML(fingerBirList)));
-			writeToFile(zkDataAttribute.getIdentifier(),zkDataAttribute.getValue());
 			zkDataAttributes.add(zkDataAttribute);
 		}
 		List<BIR> irisBirList = birList.stream()
@@ -263,7 +261,6 @@ public class IdAuthProvider extends CredentialProvider {
 			ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
 			zkDataAttribute.setIdentifier(BiometricType.IRIS.value() + "_" + "UNKNOWN");
 			zkDataAttribute.setValue(CryptoUtil.encodeToURLSafeBase64(cbeffutil.createXML(irisBirList)));
-			writeToFile(zkDataAttribute.getIdentifier(),zkDataAttribute.getValue());
 			zkDataAttributes.add(zkDataAttribute);
 		}
 		return zkDataAttributes;
@@ -281,17 +278,6 @@ public class IdAuthProvider extends CredentialProvider {
 		} catch (Exception e) {
 			return null;
 		}
-	}
-	
-	private void writeToFile(String fileName, String data) {
-//		try {
-////			BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\ " + fileName));
-////			writer.write(data);
-////			writer.close();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
 	}
 
 }
