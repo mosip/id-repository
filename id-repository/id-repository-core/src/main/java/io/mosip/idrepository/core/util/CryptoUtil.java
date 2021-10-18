@@ -28,4 +28,8 @@ public class CryptoUtil {
 			return io.mosip.kernel.core.util.CryptoUtil.decodePlainBase64(data);
 		}
 	}
+	
+	public static byte[] decodePlainBase64(String data) {
+		return io.mosip.kernel.core.util.CryptoUtil.decodePlainBase64(data);
+	}
 }
