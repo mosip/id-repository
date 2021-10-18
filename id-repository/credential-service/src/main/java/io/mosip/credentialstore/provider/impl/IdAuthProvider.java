@@ -76,6 +76,9 @@ public class IdAuthProvider extends CredentialProvider {
 
 	/** The Constant DATETIME_PATTERN. */
 	public static final String DATETIME_PATTERN = "mosip.credential.service.datetime.pattern";
+	
+	/** The Constant unknown. */
+	private static final String UNKNOWN="UNKNOWN";
 
 	/** The encryption util. */
 	@Autowired
@@ -231,7 +234,7 @@ public class IdAuthProvider extends CredentialProvider {
 			if (subType != null) {
 				ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
 				zkDataAttribute.setIdentifier(type + "_" + subType);
-				zkDataAttribute.setValue(CryptoUtil.encodeToURLSafeBase64(cbeffutil.createXML(birs)));
+				zkDataAttribute.setValue(new String(cbeffutil.createXML(birs)));
 				zkDataAttributes.add(zkDataAttribute);
 			}
 		}
@@ -242,27 +245,27 @@ public class IdAuthProvider extends CredentialProvider {
 		if (!faceBirList.isEmpty()) {
 			ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
 			zkDataAttribute.setIdentifier(BiometricType.FACE.value());
-			zkDataAttribute.setValue(CryptoUtil.encodeToURLSafeBase64(cbeffutil.createXML(faceBirList)));
+			zkDataAttribute.setValue(new String(cbeffutil.createXML(faceBirList)));
 			zkDataAttributes.add(zkDataAttribute);
 		}
-		List<BIR> fingerBirList = birList.stream()
-				.filter(bir -> bir.getBdbInfo().getType().get(0).value().startsWith(BiometricType.FINGER.value().toString()))
-				.collect(Collectors.toList());
-		if (!fingerBirList.isEmpty()) {
-			ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
-			zkDataAttribute.setIdentifier(BiometricType.FINGER.value() + "_" + "UNKNOWN");
-			zkDataAttribute.setValue(CryptoUtil.encodeToURLSafeBase64(cbeffutil.createXML(fingerBirList)));
-			zkDataAttributes.add(zkDataAttribute);
-		}
-		List<BIR> irisBirList = birList.stream()
-				.filter(bir -> bir.getBdbInfo().getType().get(0).value().startsWith(BiometricType.IRIS.value().toString()))
-				.collect(Collectors.toList());
-		if (!irisBirList.isEmpty()) {
-			ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
-			zkDataAttribute.setIdentifier(BiometricType.IRIS.value() + "_" + "UNKNOWN");
-			zkDataAttribute.setValue(CryptoUtil.encodeToURLSafeBase64(cbeffutil.createXML(irisBirList)));
-			zkDataAttributes.add(zkDataAttribute);
-		}
+//		List<BIR> fingerBirList = birList.stream()
+//				.filter(bir -> bir.getBdbInfo().getType().get(0).value().startsWith(BiometricType.FINGER.value().toString()))
+//				.collect(Collectors.toList());
+//		if (!fingerBirList.isEmpty()) {
+//			ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
+//			zkDataAttribute.setIdentifier(BiometricType.FINGER.value() + "_" + UNKNOWN);
+//			zkDataAttribute.setValue(new String(cbeffutil.createXML(fingerBirList)));
+//			zkDataAttributes.add(zkDataAttribute);
+//		}
+//		List<BIR> irisBirList = birList.stream()
+//				.filter(bir -> bir.getBdbInfo().getType().get(0).value().startsWith(BiometricType.IRIS.value().toString()))
+//				.collect(Collectors.toList());
+//		if (!irisBirList.isEmpty()) {
+//			ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
+//			zkDataAttribute.setIdentifier(BiometricType.IRIS.value() + "_" + UNKNOWN);
+//			zkDataAttribute.setValue(CryptoUtil.encodeToURLSafeBase64(cbeffutil.createXML(irisBirList)));
+//			zkDataAttributes.add(zkDataAttribute);
+//		}
 		return zkDataAttributes;
 	}
 
