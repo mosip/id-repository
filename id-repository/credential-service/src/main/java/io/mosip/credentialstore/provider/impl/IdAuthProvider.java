@@ -1,7 +1,5 @@
 package io.mosip.credentialstore.provider.impl;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -76,9 +74,6 @@ public class IdAuthProvider extends CredentialProvider {
 
 	/** The Constant DATETIME_PATTERN. */
 	public static final String DATETIME_PATTERN = "mosip.credential.service.datetime.pattern";
-	
-	/** The Constant unknown. */
-	private static final String UNKNOWN="UNKNOWN";
 
 	/** The encryption util. */
 	@Autowired
@@ -248,24 +243,6 @@ public class IdAuthProvider extends CredentialProvider {
 			zkDataAttribute.setValue(CryptoUtil.encodeToURLSafeBase64(cbeffutil.createXML(faceBirList)));
 			zkDataAttributes.add(zkDataAttribute);
 		}
-//		List<BIR> fingerBirList = birList.stream()
-//				.filter(bir -> bir.getBdbInfo().getType().get(0).value().startsWith(BiometricType.FINGER.value().toString()))
-//				.collect(Collectors.toList());
-//		if (!fingerBirList.isEmpty()) {
-//			ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
-//			zkDataAttribute.setIdentifier(BiometricType.FINGER.value() + "_" + UNKNOWN);
-//			zkDataAttribute.setValue(new String(cbeffutil.createXML(fingerBirList)));
-//			zkDataAttributes.add(zkDataAttribute);
-//		}
-//		List<BIR> irisBirList = birList.stream()
-//				.filter(bir -> bir.getBdbInfo().getType().get(0).value().startsWith(BiometricType.IRIS.value().toString()))
-//				.collect(Collectors.toList());
-//		if (!irisBirList.isEmpty()) {
-//			ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
-//			zkDataAttribute.setIdentifier(BiometricType.IRIS.value() + "_" + UNKNOWN);
-//			zkDataAttribute.setValue(CryptoUtil.encodeToURLSafeBase64(cbeffutil.createXML(irisBirList)));
-//			zkDataAttributes.add(zkDataAttribute);
-//		}
 		return zkDataAttributes;
 	}
 
