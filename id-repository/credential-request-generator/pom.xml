@@ -36,6 +36,7 @@
 		<io.micrometer.prometheus.version>1.4.2</io.micrometer.prometheus.version>
 		<kernel.websubclient.version>1.2.0-rc2-SNAPSHOT</kernel.websubclient.version>
 		<spring.batch.integration.version>4.0.1.RELEASE</spring.batch.integration.version>
+		<springdoc.version>1.5.10</springdoc.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -204,6 +205,17 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-jdbc</artifactId>
 			<version>4.3.8.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>${springdoc.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<version>${spring.boot.version}</version>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 	<build>
