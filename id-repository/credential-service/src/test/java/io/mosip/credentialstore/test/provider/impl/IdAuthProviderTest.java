@@ -112,6 +112,7 @@ public class IdAuthProviderTest {
 		birLeftThumb.setBdbInfo(bdbInfoLeftThumb);
 		birList.add(birLeftThumb);
 		Mockito.when(cbeffutil.getBIRDataFromXML(Mockito.any())).thenReturn(birList);
+		Mockito.when(cbeffutil.createXML(Mockito.any())).thenReturn("".getBytes());
 
 	}
 	@Test
