@@ -11,6 +11,7 @@ import java.util.Objects;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -157,7 +158,7 @@ public class AnonymousProfileHelper {
 
 	public AnonymousProfileHelper setOldCbeff(String uinHash, String fileRefId) {
 		if (Objects.isNull(oldCbeff)) {
-			this.uinHash = uinHash;
+			this.uinHash = StringUtils.substringAfter(uinHash, "_");
 			this.oldCbeffRefId = fileRefId;
 		}
 		return this;
@@ -165,7 +166,7 @@ public class AnonymousProfileHelper {
 
 	public AnonymousProfileHelper setNewCbeff(String uinHash, String fileRefId) {
 		if (Objects.isNull(newCbeff)) {
-			this.uinHash = uinHash;
+			this.uinHash = StringUtils.substringAfter(uinHash, "_");
 			this.newCbeffRefId = fileRefId;
 		}
 		return this;
