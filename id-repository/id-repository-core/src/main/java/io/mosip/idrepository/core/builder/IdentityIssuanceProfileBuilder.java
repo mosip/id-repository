@@ -125,7 +125,7 @@ public class IdentityIssuanceProfileBuilder {
 			return identityMapping.getIdentity().getLocationHierarchyForProfiling().getValueList().stream()
 					.map(value -> extractValue(identity.get(value)).orElse("")).filter(StringUtils::isNotBlank)
 					.collect(Collectors.toList());
-		return null;
+		return List.of();
 	}
 
 	private String getPreferredLanguage(JsonNode identity) {
@@ -163,11 +163,11 @@ public class IdentityIssuanceProfileBuilder {
 									.collect(Collectors.joining(" ")))
 							.subType(String.join(" ", bir.getBdbInfo().getSubtype())).build())
 					.collect(Collectors.toList());
-		return null;
+		return List.of();
 	}
 
 	private List<String> getVerified(JsonNode identity) {
-		return Objects.isNull(identity.get("verifiedAttributes")) || identity.get("verifiedAttributes").isNull() ? null
+		return Objects.isNull(identity.get("verifiedAttributes")) || identity.get("verifiedAttributes").isNull() ? List.of()
 				: mapper.convertValue(identity.get("verifiedAttributes"), new TypeReference<List<String>>() {
 				});
 	}
@@ -199,7 +199,7 @@ public class IdentityIssuanceProfileBuilder {
 										: null)
 						.digitalId(digitalId).build();
 			}).collect(Collectors.toList());
-		return null;
+		return List.of();
 	}
 
 	private List<String> getDocuments(JsonNode identity) {
