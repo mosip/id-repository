@@ -32,6 +32,7 @@
 	    <kernel.cbeffutil.version>1.2.0-rc2-SNAPSHOT</kernel.cbeffutil.version>
 	    <kernel.websubclient.version>1.2.0-rc2-SNAPSHOT</kernel.websubclient.version>
         <io.micrometer.prometheus.version>1.4.2</io.micrometer.prometheus.version>
+        <springdoc.version>1.5.10</springdoc.version>
   </properties>
    <dependencyManagement>
 		<dependencies>
@@ -175,6 +176,17 @@
 			<version>${powermock.beta.version}</version>
 			<scope>test</scope>
 		</dependency>
+      <dependency>
+          <groupId>org.springdoc</groupId>
+          <artifactId>springdoc-openapi-ui</artifactId>
+          <version>${springdoc.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-configuration-processor</artifactId>
+          <version>${spring.boot.version}</version>
+          <optional>true</optional>
+      </dependency>
   </dependencies>
   <build>
 		<plugins>
