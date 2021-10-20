@@ -263,6 +263,7 @@ public class IdentityIssuanceProfileBuilder {
 		if (Objects.isNull(jsonNode)) {
 			return Optional.empty();
 		}
+		Optional<String> valueOpt = Optional.empty();
 		if (jsonNode.isValueNode()) {
 			return Optional.of(jsonNode.asText());
 		} else if (jsonNode.isArray()) {
@@ -272,17 +273,21 @@ public class IdentityIssuanceProfileBuilder {
 						new TypeReference<Map<String, String>>() {
 						});
 				if (valueMap.get("language").contentEquals(filterLanguage)) {
-					return Optional.of(valueMap.get("value"));
+					valueOpt = Optional.of(valueMap.get("value"));
 				}
 			}
+			if (valueOpt.isEmpty())
+				valueOpt = Optional.ofNullable(jsonNode.iterator().next().get("value").asText());
 		} else if (jsonNode.isObject()) {
 			Map<String, String> valueMap = mapper.convertValue(jsonNode, new TypeReference<Map<String, String>>() {
 			});
 			if (valueMap.get("language").contentEquals(filterLanguage)) {
-				return Optional.of(valueMap.get("value"));
+				valueOpt = Optional.of(valueMap.get("value"));
 			}
+			if (valueOpt.isEmpty())
+				valueOpt = Optional.ofNullable(valueMap.get("value"));
 		}
-		return Optional.empty();
+		return valueOpt;
 	}
 
 	public static void setDateFormat(String dateFormat) {
