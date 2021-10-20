@@ -240,7 +240,7 @@ public class IdAuthProvider extends CredentialProvider {
 		}
 		
 		List<BIR> faceBirList = birList.stream()
-				.filter(bir -> bir.getBdbInfo().getType().get(0).value().startsWith(BiometricType.FACE.value().toString()))
+				.filter(bir -> bir.getBdbInfo().getType().get(0).value().toLowerCase().startsWith(BiometricType.FACE.value().toLowerCase()))
 				.collect(Collectors.toList());
 		if (!faceBirList.isEmpty()) {
 			ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
