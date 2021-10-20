@@ -24,6 +24,7 @@
 		<kernel.idobjectvalidator.version>1.2.0-rc2-SNAPSHOT</kernel.idobjectvalidator.version>
 		<kernel-idvalidator-vid.version>1.2.0-rc2-SNAPSHOT</kernel-idvalidator-vid.version>
 		<kernel.khazana.version>1.2.0-rc2-SNAPSHOT</kernel.khazana.version>
+		<springdoc.version>1.5.10</springdoc.version>
 	</properties>
 
 	<dependencies>
@@ -53,7 +54,6 @@
 			<artifactId>kernel-cbeffutil-api</artifactId>
 			<version>${kernel.cbeffutil.api.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>io.mosip.idrepository</groupId>
 			<artifactId>id-repository-core</artifactId>
@@ -94,6 +94,17 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-config</artifactId>
 			<version>${spring-cloud-config.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>${springdoc.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<version>${spring.boot.version}</version>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 	<build>

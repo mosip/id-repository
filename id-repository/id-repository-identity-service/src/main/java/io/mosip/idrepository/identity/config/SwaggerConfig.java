@@ -2,6 +2,7 @@ package io.mosip.idrepository.identity.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,8 +17,11 @@ public class SwaggerConfig {
 
 	private static final Logger logger = LoggerFactory.getLogger(SwaggerConfig.class);
 
+	@Autowired
+	private OpenApiProperties openApiProperties;
+
 	@Bean
-	public OpenAPI openApi(OpenApiProperties openApiProperties) {
+	public OpenAPI openApi() {
 		String msg = "Swagger open api, ";
 		OpenAPI api = new OpenAPI()
 				.components(new Components());
