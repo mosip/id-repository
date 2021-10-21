@@ -440,7 +440,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		String salt = uinEncryptSaltRepo.getOne(Integer.valueOf(encryptedUin.split(SPLITTER)[0])).getSalt();
 		String uin = new String(securityManager.decryptWithSalt(
 				CryptoUtil.decodeURLSafeBase64(StringUtils.substringAfter((String) encryptedUin, SPLITTER)),
-				CryptoUtil.decodeURLSafeBase64(salt), uinRefId));
+				CryptoUtil.decodePlainBase64(salt), uinRefId));
 		if (!StringUtils.equals(super.getUinHash(uin, super.getModValue(uin)), uinHash)) {
 			throw new IdRepoAppUncheckedException(UIN_HASH_MISMATCH);
 		}
