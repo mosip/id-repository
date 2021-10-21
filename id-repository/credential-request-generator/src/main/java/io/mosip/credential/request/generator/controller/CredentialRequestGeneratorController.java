@@ -1,5 +1,7 @@
 package io.mosip.credential.request.generator.controller;
 
+import javax.annotation.Nullable;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,11 +22,14 @@ import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
 import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
+import io.mosip.idrepository.core.dto.CredentialRequestIdsDto;
+import io.mosip.idrepository.core.dto.PageDto;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.websub.api.annotation.PreAuthenticateContentAndVerifyIntent;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
@@ -100,4 +106,37 @@ public class CredentialRequestGeneratorController {
 		return new ResponseWrapper<>();
 	}
 
+	@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
+	@GetMapping(path = "/getRequestIds", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@ApiOperation(value = "get credential issuance request ids", response = CredentialRequestIdsDto.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "get credential issuance request ids successfully"),
+			@ApiResponse(code = 400, message = "Unable to get credential issuance request ids"),
+			@ApiResponse(code = 500, message = "Internal Server Error") })
+	@ResponseBody
+	public ResponseWrapper<PageDto<CredentialRequestIdsDto>> getRequestIds(
+			@RequestParam(value = "statusCode", defaultValue = "FAILED") @ApiParam(value = "get the requested data with statuscode", defaultValue = "FAILED") String statusCode,
+			@RequestParam(value = "effectivedtimes") @ApiParam(value = "Effective date time") @Nullable String effectivedtimes,
+			@RequestParam(value = "pageNumber", defaultValue = "0") @ApiParam(value = "page number for the requested data", defaultValue = "0") int page,
+			@RequestParam(value = "pageSize", defaultValue = "1") @ApiParam(value = "page size for the request data", defaultValue = "1") int size,
+			@RequestParam(value = "orderBy", defaultValue = "upd_dtimes") @ApiParam(value = "sort the requested data based on param value", defaultValue = "updateDateTime") String orderBy,
+			@RequestParam(value = "direction", defaultValue = "DESC") @ApiParam(value = "order the requested data based on param", defaultValue = "ASC") String direction) {
+		ResponseWrapper<PageDto<CredentialRequestIdsDto>> responseWrapper =
+				credentialRequestService.getRequestIds(statusCode, effectivedtimes, page, size, orderBy, direction);
+		return responseWrapper;
+	}
+
+	@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
+	@GetMapping(path = "/retrigger/{requestId}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@ApiOperation(value = "retrigger the credential issuance request", response = CredentialIssueResponseDto.class)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "retrigger the  the request successfully"),
+			@ApiResponse(code = 400, message = "Unable to retrigger the request"),
+			@ApiResponse(code = 500, message = "Internal Server Error") })
+	@ResponseBody
+	public ResponseEntity<Object> reprocessCredentialRequest(@PathVariable("requestId") String requestId) {
+
+		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = credentialRequestService
+				.retriggerCredentialRequest(requestId);
+		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseWrapper);
+	}
 }

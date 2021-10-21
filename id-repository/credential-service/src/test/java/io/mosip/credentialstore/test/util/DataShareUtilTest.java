@@ -55,14 +55,18 @@ public class DataShareUtilTest {
 	
 	DataShare dataShare;
 
+
+
+	String dataShareResponse;
+
 	@Mock
 	private Environment env;
 
-	String dataShareResponse;
 	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() throws Exception{
-		Mockito.when(env.getProperty("CREATEDATASHARE")).thenReturn("/v1/datashare/create");
+		Mockito.when(env.getProperty("CREATEDATASHARE"))
+				.thenReturn("/v1/datashare/create");
 		dataShareResponseDto = new DataShareResponseDto();
          dataShare = new DataShare();
 		dataShare.setUrl("testurl");
@@ -79,7 +83,8 @@ public class DataShareUtilTest {
 		String test = "testdata";
 		byte[] sample = test.getBytes();
 		
-		DataShare dataShareResponse = dataShareUtil.getDataShare(sample, "policyId", "partnerId", "datashare-service");
+		DataShare dataShareResponse = dataShareUtil.getDataShare(sample, "policyId", "partnerId",
+				"datashare-service", "requestId");
 		 assertEquals(dataShareResponse.getUrl(),dataShare.getUrl());
 		
 
@@ -90,7 +95,8 @@ public class DataShareUtilTest {
 		String test = "testdata";
 		byte[] sample = test.getBytes();
 		Mockito.when(objectMapper.readValue(dataShareResponse, DataShareResponseDto.class)).thenReturn(null);
-		DataShare dataShareResponse = dataShareUtil.getDataShare(sample, "policyId", "partnerId", "datashare-service");
+		DataShare dataShareResponse = dataShareUtil.getDataShare(sample, "policyId", "partnerId",
+				"datashare-service", "requestId");
 		 assertEquals(dataShareResponse.getUrl(),dataShare.getUrl());
 		
 
@@ -106,7 +112,7 @@ public class DataShareUtilTest {
 		errors.add(error);
 		dataShareResponseDto.setErrors(errors);
 		
-		dataShareUtil.getDataShare(sample, "policyId", "partnerId", "datashare-service");
+		dataShareUtil.getDataShare(sample, "policyId", "partnerId", "datashare-service", "requestId");
 
 	}
 	@SuppressWarnings("unchecked")
@@ -119,7 +125,7 @@ public class DataShareUtilTest {
 		byte[] sample = test.getBytes();
 		Mockito.when(restUtil.postApi(Mockito.anyString(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any())).thenThrow(e);
-		dataShareUtil.getDataShare(sample, "policyId", "partnerId", "datashare-service");
+		dataShareUtil.getDataShare(sample, "policyId", "partnerId", "datashare-service", "requestId");
 	}
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
@@ -131,6 +137,6 @@ public class DataShareUtilTest {
 		byte[] sample = test.getBytes();
 		Mockito.when(restUtil.postApi(Mockito.anyString(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any())).thenThrow(e);
-		dataShareUtil.getDataShare(sample, "policyId", "partnerId", "datashare-service");
+		dataShareUtil.getDataShare(sample, "policyId", "partnerId", "datashare-service", "requestId");
 	}
 }

@@ -33,11 +33,6 @@ import io.mosip.credentialstore.dto.CryptomanagerResponseDto;
 import io.mosip.credentialstore.dto.EncryptResponseDto;
 import io.mosip.credentialstore.dto.EncryptWithPinResponseDto;
 import io.mosip.credentialstore.dto.EncryptZkResponseDto;
-import io.mosip.credentialstore.dto.KeyManagerGetCertificateResponseDto;
-import io.mosip.credentialstore.dto.KeyManagerUploadCertificateResponseDto;
-import io.mosip.credentialstore.dto.PartnerCertDownloadResponeDto;
-import io.mosip.credentialstore.dto.PartnerGetCertificateResponseDto;
-import io.mosip.credentialstore.dto.UploadCertificateResponseDto;
 import io.mosip.credentialstore.dto.ZkDataAttribute;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.DataEncryptionFailureException;
@@ -74,9 +69,7 @@ public class EncryptionUtilTest {
 	List<ZkDataAttribute> zkDataAttributeList ;
 	
 	private CryptomanagerResponseDto cryptomanagerResponseDto;
-	private KeyManagerGetCertificateResponseDto certificateResponseobj;
-	private KeyManagerUploadCertificateResponseDto uploadCertificateResponseobj;
-	private PartnerGetCertificateResponseDto partnerCertificateResponseObj;
+
 
 	@SuppressWarnings("unchecked")
 	@Before
@@ -105,20 +98,10 @@ public class EncryptionUtilTest {
 		EncryptResponseDto responseData = new EncryptResponseDto();
 		responseData.setData(test);
 		cryptomanagerResponseDto.setResponse(responseData);
-		certificateResponseobj = new KeyManagerGetCertificateResponseDto();
+
 		ServiceError error = new ServiceError("KER-KMS-002", "ApplicationId not found in Key Policy");
 		List<ServiceError> errors = new ArrayList<>();
 		errors.add(error);
-		certificateResponseobj.setErrors(errors);
-		uploadCertificateResponseobj = new KeyManagerUploadCertificateResponseDto();
-		UploadCertificateResponseDto uploadCertificateResponseDto = new UploadCertificateResponseDto();
-		uploadCertificateResponseDto.setStatus("uploaded");
-		uploadCertificateResponseobj.setResponse(uploadCertificateResponseDto);
-		partnerCertificateResponseObj = new PartnerGetCertificateResponseDto();
-		PartnerCertDownloadResponeDto partnerCertDownloadResponeDto = new PartnerCertDownloadResponeDto();
-		partnerCertDownloadResponeDto.setCertificateData(test);
-		partnerCertificateResponseObj.setResponse(partnerCertDownloadResponeDto);
-
 
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(),
@@ -129,19 +112,14 @@ public class EncryptionUtilTest {
 
 		Mockito.when(objectMapper.readValue(cryptoResponse, CryptomanagerResponseDto.class))
 				.thenReturn(cryptomanagerResponseDto);
-		Mockito.when(objectMapper.readValue(cryptoResponse, KeyManagerGetCertificateResponseDto.class))
-				.thenReturn(certificateResponseobj);
-		Mockito.when(objectMapper.readValue(cryptoResponse, KeyManagerUploadCertificateResponseDto.class))
-				.thenReturn(uploadCertificateResponseobj);
-		Mockito.when(objectMapper.readValue(cryptoResponse, PartnerGetCertificateResponseDto.class))
-				.thenReturn(partnerCertificateResponseObj);
+
 
 	}
 	
 	@Test
 	public void encryptionWithPinSuccessTest() throws IOException, ApiNotAccessibleException, SignatureException, DataEncryptionFailureException {
 		Mockito.when(objectMapper.readValue(cryptoResponse, CryptoWithPinResponseDto.class)).thenReturn(cryptoWithPinResponseDto);
-	    String encryptedData = encryptionUtil.encryptDataWithPin(test, "test123");
+		String encryptedData = encryptionUtil.encryptDataWithPin("attributename", test, "test123", "requestId");
 		assertEquals(test, encryptedData);
 
 	}
@@ -154,14 +132,14 @@ public class EncryptionUtilTest {
 		errors.add(error);
 		cryptoWithPinResponseDto.setErrors(errors);
 		Mockito.when(objectMapper.readValue(cryptoResponse, CryptoWithPinResponseDto.class)).thenReturn(cryptoWithPinResponseDto);
-	    encryptionUtil.encryptDataWithPin(test, "test123");
+		encryptionUtil.encryptDataWithPin("attributename", test, "test123", "requestId");
 	}
 	@Test(expected = DataEncryptionFailureException.class)
 	public void testEncryptionIOException() throws JsonParseException, JsonMappingException, IOException,
 			ApiNotAccessibleException, SignatureException, DataEncryptionFailureException {
 
 		Mockito.when(objectMapper.readValue(cryptoResponse, CryptoWithPinResponseDto.class)).thenThrow(new IOException());
-		encryptionUtil.encryptDataWithPin(test, "test123");
+		encryptionUtil.encryptDataWithPin("attributename", test, "test123", "requestId");
 	}
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
@@ -171,7 +149,7 @@ public class EncryptionUtilTest {
 	
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpClientErrorException);
-		encryptionUtil.encryptDataWithPin(test, "test123");
+		encryptionUtil.encryptDataWithPin("attributename", test, "test123", "requestId");
 	}
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
@@ -181,13 +159,14 @@ public class EncryptionUtilTest {
 	
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpServerErrorException);
-		encryptionUtil.encryptDataWithPin(test, "test123");
+		encryptionUtil.encryptDataWithPin("attributename", test, "test123", "requestId");
 	}
 	
 	@Test
 	public void encryptionWithZkSuccessTest() throws IOException, ApiNotAccessibleException, SignatureException, DataEncryptionFailureException {
 		Mockito.when(objectMapper.readValue(cryptoResponse, CryptoZkResponseDto.class)).thenReturn(cryptoZkResponseDto);
-	    EncryptZkResponseDto encryptZkResponseDto= encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList);
+		EncryptZkResponseDto encryptZkResponseDto = encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList,
+				"requestId");
 		assertEquals(zkDataAttributeList, encryptZkResponseDto.getZkDataAttributes());
 
 	}
@@ -200,13 +179,13 @@ public class EncryptionUtilTest {
 		errors.add(error);
 		cryptoZkResponseDto.setErrors(errors);
 		Mockito.when(objectMapper.readValue(cryptoResponse, CryptoZkResponseDto.class)).thenReturn(cryptoZkResponseDto);
-		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList);
+		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList, "requestId");
 	}
 	@Test(expected = DataEncryptionFailureException.class)
 	public void encryptionWithZktestIOException() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException, SignatureException, DataEncryptionFailureException {
 
 		Mockito.when(objectMapper.readValue(cryptoResponse, CryptoWithPinResponseDto.class)).thenThrow(new IOException());
-		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList);
+		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList, "requestId");
 	}
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
@@ -217,7 +196,7 @@ public class EncryptionUtilTest {
 		Exception e=new Exception(httpClientErrorException);
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
-		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList);
+		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList, "requestId");
 	}
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
@@ -227,13 +206,13 @@ public class EncryptionUtilTest {
 		Exception e=new Exception(httpServerErrorException);
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
-		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList);
+		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList, "requestId");
 	}
 
 	@Test
 	public void encryptionSuccessTest() throws IOException, DataEncryptionFailureException, ApiNotAccessibleException {
 
-		String encryptedData = encryptionUtil.encryptData(test, "112");
+		String encryptedData = encryptionUtil.encryptData(test, "112", "requestId");
 
 		assertEquals(test, encryptedData);
 
@@ -246,9 +225,9 @@ public class EncryptionUtilTest {
 			DataEncryptionFailureException, ApiNotAccessibleException {
 		Mockito.when(objectMapper.readValue(cryptoResponse, CryptomanagerResponseDto.class))
 				.thenThrow(new IOException());
-		encryptionUtil.encryptData(test, "");
+		encryptionUtil.encryptData(test, "", "requestId");
 
-		String encryptedData = encryptionUtil.encryptData(test, "");
+		String encryptedData = encryptionUtil.encryptData(test, "", "requestId");
 
 		assertEquals(test, encryptedData);
 
@@ -264,7 +243,7 @@ public class EncryptionUtilTest {
 		errors.add(error);
 		cryptomanagerResponseDto.setErrors(errors);
 
-		encryptionUtil.encryptData(test, "");
+		encryptionUtil.encryptData(test, "", "requestId");
 	}
 	
 }

@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -17,6 +19,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.ApiName;
+import io.mosip.credentialstore.constants.LoggerFileConstant;
 import io.mosip.credentialstore.dto.CryptoWithPinRequestDto;
 import io.mosip.credentialstore.dto.CryptoWithPinResponseDto;
 import io.mosip.credentialstore.dto.CryptoZkResponseDto;
@@ -40,10 +43,7 @@ public class EncryptionUtil {
 
 	
 	private static final Logger LOGGER = IdRepoLogger.getLogger(EncryptionUtil.class); 
-	
-	private static final String ENCRYPTDATA = "encryptData";
-	
-	private static final String ENCRYPTIONUTIL = "EncryptionUtil";
+
 	
 	/** The Constant DATETIME_PATTERN. */
 	private static final String DATETIME_PATTERN = "mosip.credential.service.datetime.pattern";
@@ -70,9 +70,10 @@ public class EncryptionUtil {
 	@Value("${credential.service.application.id:PARTNER}")
 	private String applicationId;
 
-	public String encryptDataWithPin(String data, String pin) throws DataEncryptionFailureException, ApiNotAccessibleException {
-		LOGGER.debug(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
-				"started encrypting data");
+	public String encryptDataWithPin(String attributeName, String data, String pin, String requestId)
+			throws DataEncryptionFailureException, ApiNotAccessibleException {
+		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+				"started encrypting data using pin");
 
 		String encryptedData = null;
 		try {
@@ -96,19 +97,22 @@ public class EncryptionUtil {
 
 			if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
 				ServiceError error = responseObject.getErrors().get(0);
+				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						"encrypted failed for attribute  " + attributeName);
 				throw new DataEncryptionFailureException(error.getMessage());
 			}
 			encryptedData = responseObject.getResponse().getData();
-			LOGGER.info(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
-					"Encryption done successfully");
-			LOGGER.debug(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA, "EncryptionUtil::encryptData()::exit");
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Pin Based Encryption done successfully");
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"ended encrypting data using pin");
 		} catch (IOException e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
-					"EncryptionUtil::encryptData():: error with error message" + ExceptionUtils.getStackTrace(e));
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"encrypted failed for attribute  " + attributeName + ExceptionUtils.getStackTrace(e));
 			throw new DataEncryptionFailureException(IO_EXCEPTION, e);
 		} catch (Exception e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
-					"EncryptionUtil::encryptData():: error with error message" + ExceptionUtils.getStackTrace(e));
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"encrypted failed for attribute  " + attributeName + ExceptionUtils.getStackTrace(e));
 			if (e instanceof HttpClientErrorException) {
 				HttpClientErrorException httpClientException = (HttpClientErrorException) e;
 				throw new ApiNotAccessibleException(httpClientException.getResponseBodyAsString());
@@ -123,9 +127,11 @@ public class EncryptionUtil {
 		return encryptedData;
     	
     }
-	public EncryptZkResponseDto encryptDataWithZK(String id, List<ZkDataAttribute> zkDataAttributes) throws DataEncryptionFailureException, ApiNotAccessibleException {
-		LOGGER.debug(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
-				"started encrypting data");
+
+	public EncryptZkResponseDto encryptDataWithZK(String id, List<ZkDataAttribute> zkDataAttributes, String requestId)
+			throws DataEncryptionFailureException, ApiNotAccessibleException {
+		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+				"started encrypting data using ZK encryption");
 
 		EncryptZkResponseDto encryptedData = null;
 		try {
@@ -148,20 +154,23 @@ public class EncryptionUtil {
 					CryptoZkResponseDto.class);
 
 			if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
+				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						"ZK encryption failed");
 				ServiceError error = responseObject.getErrors().get(0);
 				throw new DataEncryptionFailureException(error.getMessage());
 			}
 			encryptedData = responseObject.getResponse();
-			LOGGER.info(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
-					"Encryption done successfully");
-			LOGGER.debug(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA, "EncryptionUtil::encryptData()::exit");
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"ZK Encryption done successfully");
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"ended encrypting data using ZK encryption");
 		} catch (IOException e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
-					"EncryptionUtil::encryptData():: error with error message" + ExceptionUtils.getStackTrace(e));
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"ZK encryption error with error message" + ExceptionUtils.getStackTrace(e));
 			throw new DataEncryptionFailureException(IO_EXCEPTION, e);
 		}  catch (Exception e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
-					"EncryptionUtil::encryptData():: error with error message" + ExceptionUtils.getStackTrace(e));
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"ZK encryption error with error message" + ExceptionUtils.getStackTrace(e));
 			if (e.getCause() instanceof HttpClientErrorException) {
 				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
 				throw new ApiNotAccessibleException(httpClientException.getResponseBodyAsString());
@@ -177,11 +186,12 @@ public class EncryptionUtil {
 		
 	}
 
-
-	public String encryptData(String dataToBeEncrypted, String partnerId)
+	@Retryable(value = { DataEncryptionFailureException.class,
+			ApiNotAccessibleException.class }, maxAttemptsExpression = "${mosip.credential.service.retry.maxAttempts}", backoff = @Backoff(delayExpression = "${mosip.credential.service.retry.maxDelay}"))
+	public String encryptData(String dataToBeEncrypted, String partnerId, String requestId)
 			throws DataEncryptionFailureException, ApiNotAccessibleException {
-		LOGGER.debug(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
-				"started encrypting data");
+		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+				"started encrypting data using partner certificate");
 	
 
 		String encryptedPacket = null;
@@ -209,25 +219,27 @@ public class EncryptionUtil {
 			CryptomanagerResponseDto responseObject = mapper.readValue(response, CryptomanagerResponseDto.class);
 
 			if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
+				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						"credential encryption failed");
 				ServiceError error = responseObject.getErrors().get(0);
 				throw new DataEncryptionFailureException(error.getMessage());
 			}
 			encryptedPacket = responseObject.getResponse().getData();
-			LOGGER.info(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
-					"Encryption done successfully");
-			LOGGER.debug(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
-					"EncryptionUtil::encryptData()::exit");
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Credential Data Encryption done successfully");
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"ended encrypting data using partner certificate");
 		} catch (IOException e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
-					"EncryptionUtil::encryptData():: error with error message" + ExceptionUtils.getStackTrace(e));
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Credential Data Encryption error with error message" + ExceptionUtils.getStackTrace(e));
 			throw new DataEncryptionFailureException(IO_EXCEPTION, e);
 		} catch (DateTimeParseException e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
-					"EncryptionUtil::encryptData():: error with error message" + ExceptionUtils.getStackTrace(e));
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Credential Data Encryption error with error message" + ExceptionUtils.getStackTrace(e));
 			throw new DataEncryptionFailureException(DATE_TIME_EXCEPTION);
 		} catch (Exception e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), ENCRYPTIONUTIL, ENCRYPTDATA,
-					"EncryptionUtil::encryptData():: error with error message" + ExceptionUtils.getStackTrace(e));
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Credential Data Encryption error with error message" + ExceptionUtils.getStackTrace(e));
 			if (e.getCause() instanceof HttpClientErrorException) {
 				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
 				throw new ApiNotAccessibleException(httpClientException.getResponseBodyAsString());
@@ -242,7 +254,6 @@ public class EncryptionUtil {
 		return encryptedPacket;
 
 	}
-
 
 
 

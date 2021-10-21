@@ -16,6 +16,10 @@ import org.springframework.web.client.RestTemplate;
 
 import io.mosip.credentialstore.dto.Issuer;
 import io.mosip.credentialstore.dto.Type;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
 
 @Component
 public class Utilities {
@@ -25,6 +29,10 @@ public class Utilities {
 	private static final String DESCRIPTION = "description";
 	private static final String ISSUERS = "issuers";
 	private static final String CODE = "code";
+	private static final String UTILITIES = "Utilities";
+	private static final String GETTYPES = "getTypes";
+
+	private static final Logger LOGGER = IdRepoLogger.getLogger(Utilities.class);
 
 	@Autowired
 	private RestTemplate restTemplate;
@@ -55,7 +63,8 @@ public class Utilities {
 				typeList.add(type);
 			}
 		} catch (IOException e) {
-			// log error
+			LOGGER.error(IdRepoSecurityManager.getUser(), UTILITIES, GETTYPES,
+					"error while getting types" + ExceptionUtils.getStackTrace(e));
 		}
 
 

@@ -40,7 +40,6 @@ import com.google.gson.Gson;
 
 import io.mosip.credentialstore.constants.ApiName;
 import io.mosip.idrepository.core.dto.Metadata;
-import io.mosip.idrepository.core.dto.PasswordRequest;
 import io.mosip.idrepository.core.dto.SecretKeyRequest;
 import io.mosip.idrepository.core.dto.TokenRequestDTO;
 import io.mosip.kernel.core.util.DateUtils;
@@ -257,14 +256,6 @@ public class RestUtil {
         return request;
     }
 
-    private PasswordRequest setPasswordRequestDTO() {
-        PasswordRequest request = new PasswordRequest();
-		request.setAppId(environment.getProperty("credential.service.token.request.appid"));
-		request.setPassword(environment.getProperty("credential.service.token.request.password"));
-		request.setUserName(environment.getProperty("credential.service.token.request.username"));
-        return request;
-    }
-
 	@SuppressWarnings("unchecked")
 	public <T> T postApi(String url, List<String> pathsegments, String queryParamName, String queryParamValue,
 			MediaType mediaType, Object requestType, Class<?> responseClass) throws Exception {
@@ -305,4 +296,5 @@ public class RestUtil {
 		}
 		return result;
 	}
+
 }
