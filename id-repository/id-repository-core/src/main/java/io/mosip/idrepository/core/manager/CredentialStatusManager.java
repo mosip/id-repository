@@ -206,15 +206,15 @@ public class CredentialStatusManager {
 		int modResult = (int) (Long.parseLong(individualId) % moduloValue);
 		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(modResult);
 		return modResult + SPLITTER + new String(securityManager.encryptWithSalt(individualId.getBytes(),
-				CryptoUtil.decodeURLSafeBase64(encryptSalt), uinRefId));
+				CryptoUtil.decodePlainBase64(encryptSalt), uinRefId));
 	}
 
 	public String decryptId(String individualId) throws IdRepoAppException {
-		Optional<UinEncryptSalt> encryptSalt = uinEncryptSaltRepo
-				.findById(Integer.valueOf(StringUtils.substringBefore(individualId, SPLITTER)));
+		String encryptSalt = uinEncryptSaltRepo
+				.retrieveSaltById(Integer.valueOf(StringUtils.substringBefore(individualId, SPLITTER)));
 		return new String(securityManager.decryptWithSalt(
 				CryptoUtil.decodeURLSafeBase64(StringUtils.substringAfter(individualId, SPLITTER)),
-				CryptoUtil.decodeURLSafeBase64(encryptSalt.get().getSalt()), uinRefId));
+				CryptoUtil.decodePlainBase64(encryptSalt), uinRefId));
 	}
 
 	/**

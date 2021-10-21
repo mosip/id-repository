@@ -42,12 +42,11 @@ public class ChannelInfoHelper {
 	@Autowired
 	private ObjectMapper mapper;
 	
-	@Async
 	public void updateEmailChannelInfo(byte[] oldUinData, byte[] newUinData) throws IOException {
 
 		// addIdentity
-		if (Objects.nonNull(oldUinData) && Objects.isNull(newUinData)) {
-			Optional<String> hashedOldEmailOpt = getHashedEmail(oldUinData);
+		if (Objects.isNull(oldUinData) && Objects.nonNull(newUinData)) {
+			Optional<String> hashedOldEmailOpt = getHashedEmail(newUinData);
 			if (hashedOldEmailOpt.isPresent()) {
 				String hashedOldEmail = hashedOldEmailOpt.get();
 				Optional<ChannelInfo> oldChannelInfoOpt = channelInfoRepo.findById(hashedOldEmail);
@@ -121,12 +120,11 @@ public class ChannelInfoHelper {
 		}
 	}
 
-	@Async
 	public void updatePhoneChannelInfo(byte[] oldUinData, byte[] newUinData) throws IOException {
 
 		// addIdentity
-		if (Objects.nonNull(oldUinData) && Objects.isNull(newUinData)) {
-			Optional<String> hashedOldPhoneNumberOpt = getHashedPhoneNumber(oldUinData);
+		if (Objects.isNull(oldUinData) && Objects.nonNull(newUinData)) {
+			Optional<String> hashedOldPhoneNumberOpt = getHashedPhoneNumber(newUinData);
 			if (hashedOldPhoneNumberOpt.isPresent()) {
 				String hashedOldPhoneNumber = hashedOldPhoneNumberOpt.get();
 				Optional<ChannelInfo> oldChannelInfoOpt = channelInfoRepo.findById(hashedOldPhoneNumber);
@@ -224,7 +222,7 @@ public class ChannelInfoHelper {
 		try {
 			String phoneNumber = getPhoneNumber(uinData);
 			String salt = saltRepo.retrieveSaltById(getModValue(phoneNumber));
-			return Optional.of(securityManager.hashwithSalt(phoneNumber.getBytes(), CryptoUtil.decodeURLSafeBase64(salt)));
+			return Optional.of(securityManager.hashwithSalt(phoneNumber.getBytes(), CryptoUtil.decodePlainBase64(salt)));
 		} catch (Exception e) {
 			return Optional.empty();
 		}
@@ -242,7 +240,7 @@ public class ChannelInfoHelper {
 			String email = getEmail(uinData);
 			String emailAsNumber = emailAsNumber(email);
 			String salt = saltRepo.retrieveSaltById(getModValue(emailAsNumber));
-			return Optional.of(securityManager.hashwithSalt(email.getBytes(), CryptoUtil.decodeURLSafeBase64(salt)));
+			return Optional.of(securityManager.hashwithSalt(email.getBytes(), CryptoUtil.decodePlainBase64(salt)));
 		} catch (Exception e) {
 			return Optional.empty();
 		}
