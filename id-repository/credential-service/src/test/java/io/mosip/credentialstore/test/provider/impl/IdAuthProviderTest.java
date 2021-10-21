@@ -64,7 +64,8 @@ public class IdAuthProviderTest {
 			zkDataAttribute.setValue("test");
 			zkDataAttributeList.add(zkDataAttribute);
 			encryptZkResponseDto.setZkDataAttributes(zkDataAttributeList);
-		Mockito.when(encryptionUtil.encryptDataWithZK(Mockito.any(), Mockito.any())).thenReturn(encryptZkResponseDto);
+		Mockito.when(encryptionUtil.encryptDataWithZK(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn(encryptZkResponseDto);
 	}
 	@Test
 	public void testGetFormattedCredentialDataSuccess() throws CredentialFormatterException {
@@ -130,7 +131,7 @@ public class IdAuthProviderTest {
 		kyc2.setSource(sourceList1);
 		sharableAttributes.put(kyc1, "testname");
 		sharableAttributes.put(kyc2, "biomtericencodedcbeffstring");
-		Mockito.when(encryptionUtil.encryptDataWithZK(Mockito.any(), Mockito.any()))
+		Mockito.when(encryptionUtil.encryptDataWithZK(Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenThrow(new DataEncryptionFailureException());
 		idAuthProvider.getFormattedCredentialData(credentialServiceRequestDto, sharableAttributes);
 
@@ -165,7 +166,7 @@ public class IdAuthProviderTest {
 		kyc2.setSource(sourceList1);
 		sharableAttributes.put(kyc1, "testname");
 		sharableAttributes.put(kyc2, "biomtericencodedcbeffstring");
-		Mockito.when(encryptionUtil.encryptDataWithZK(Mockito.any(), Mockito.any()))
+		Mockito.when(encryptionUtil.encryptDataWithZK(Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenThrow(new ApiNotAccessibleException());
 		idAuthProvider.getFormattedCredentialData(credentialServiceRequestDto, sharableAttributes);
 

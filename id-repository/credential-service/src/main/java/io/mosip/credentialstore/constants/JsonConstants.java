@@ -28,4 +28,5 @@ public class JsonConstants {
 	public static final String CREDENTIALTYPE = "credentialType";
 
 	public static final String PROTECTIONKEY = "protectionKey";
+
 }

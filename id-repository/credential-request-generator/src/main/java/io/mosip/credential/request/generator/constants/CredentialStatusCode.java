@@ -6,5 +6,5 @@ package io.mosip.credential.request.generator.constants;
  *
  */
 public enum CredentialStatusCode {
-	NEW, CANCELLED, ISSUED, FAILED;
+	NEW, CANCELLED, ISSUED, FAILED, RETRY;
 }

@@ -1,7 +1,6 @@
 package io.mosip.idrepository.core.logger;
 
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.logger.logback.appender.RollingFileAppender;
 import io.mosip.kernel.logger.logback.factory.Logfactory;
 
 /**

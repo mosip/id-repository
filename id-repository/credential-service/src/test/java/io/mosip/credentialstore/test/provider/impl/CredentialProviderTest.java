@@ -26,8 +26,8 @@ import org.springframework.web.context.WebApplicationContext;
 
 import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
-import io.mosip.credentialstore.dto.PolicyAttributesDto;
 import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
+import io.mosip.credentialstore.dto.PolicyAttributesDto;
 import io.mosip.credentialstore.dto.Source;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
@@ -75,7 +75,8 @@ public class CredentialProviderTest {
 	public void setUp() throws DataEncryptionFailureException, ApiNotAccessibleException, SignatureException {
 		Mockito.when(environment.getProperty("mosip.credential.service.datetime.pattern"))
 		.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any())).thenReturn("testdata");
+		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn("testdata");
 		
 
 		Mockito.when(utilities.generateId()).thenReturn("test123");
@@ -165,7 +166,7 @@ public class CredentialProviderTest {
 
 		credentialServiceRequestDto.setEncrypt(true);
 		credentialServiceRequestDto.setEncryptionKey("te1234");
-		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any()))
+		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenThrow(new DataEncryptionFailureException());
 		Map<AllowedKycDto, Object> sharableAttributes = new HashMap<>();
 
@@ -227,7 +228,7 @@ public class CredentialProviderTest {
 		kyc2.setSource(sourceList1);
 		sharableAttributes.put(kyc1, "testname");
 		sharableAttributes.put(kyc2, "biomtericencodedcbeffstring");
-		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any()))
+		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenThrow(new ApiNotAccessibleException());
 		credentialDefaultProvider.getFormattedCredentialData(credentialServiceRequestDto,
 				sharableAttributes);

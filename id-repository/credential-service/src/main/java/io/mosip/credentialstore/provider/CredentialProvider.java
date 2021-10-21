@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -26,7 +27,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.constants.JsonConstants;
+import io.mosip.credentialstore.constants.LoggerFileConstant;
 import io.mosip.credentialstore.dto.AllowedKycDto;
+import io.mosip.credentialstore.dto.BestFingerDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.Filter;
 import io.mosip.credentialstore.dto.JsonValue;
@@ -41,10 +44,14 @@ import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 
@@ -85,6 +92,8 @@ public class CredentialProvider {
 
 	@Value("${credential.service.dob.format}")
 	private String dobFormat;
+
+	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialProvider.class);
 	/**
 	 * Gets the formatted credential data.
 	 *
@@ -98,10 +107,11 @@ public class CredentialProvider {
 	public DataProviderResponse getFormattedCredentialData(
 			CredentialServiceRequestDto credentialServiceRequestDto, Map<AllowedKycDto, Object> sharableAttributeMap)
 			throws CredentialFormatterException{
-
+		String requestId = credentialServiceRequestDto.getRequestId();
 		DataProviderResponse dataProviderResponse=null;
 		try {
-			
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Formatting credential data");
 			String pin = credentialServiceRequestDto.getEncryptionKey();
 			List<String> protectedAttributes = new ArrayList<>();
 			 Map<String, Object> formattedMap=new HashMap<>();
@@ -119,9 +129,11 @@ public class CredentialProvider {
 				}
 				formattedMap.put(attributeName, valueStr);
 				if (allowedKycDto.isEncrypted() || credentialServiceRequestDto.isEncrypt()) {
-					String encryptedValue = encryptionUtil.encryptDataWithPin(valueStr, pin);
+					if (!valueStr.isEmpty()) {
+					String encryptedValue = encryptionUtil.encryptDataWithPin(attributeName, valueStr, pin, requestId);
 					formattedMap.put(attributeName, encryptedValue);
 					protectedAttributes.add(attributeName);
+					}
 				} else {
 					formattedMap.put(attributeName, valueStr);
 				}
@@ -149,13 +161,24 @@ public class CredentialProvider {
 			dataProviderResponse.setCredentialId(credentialId);
 			dataProviderResponse.setIssuanceDate(localdatetime);
 			dataProviderResponse.setJSON(json);
-
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"end formatting credential data");
 			return dataProviderResponse;
 		} catch (DataEncryptionFailureException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
 			throw new CredentialFormatterException(e);
 		} catch (ApiNotAccessibleException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
 			throw new CredentialFormatterException(e);
 		} catch (JsonProcessingException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
+			throw new CredentialFormatterException(e);
+		} catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
 			throw new CredentialFormatterException(e);
 		}
 
@@ -164,7 +187,10 @@ public class CredentialProvider {
 	public Map<AllowedKycDto, Object> prepareSharableAttributes(IdResponseDTO idResponseDto,
 			PartnerCredentialTypePolicyDto policyResponseDto, CredentialServiceRequestDto credentialServiceRequestDto)
 			throws CredentialFormatterException {
+		String requestId = credentialServiceRequestDto.getRequestId();
 		try {
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Preparing demo and bio sharable attributes");
 		Map<AllowedKycDto, Object> attributesMap = new HashMap<>();
 		JSONObject identity = new JSONObject((Map) idResponseDto.getResponse().getIdentity());
 
@@ -175,6 +201,8 @@ public class CredentialProvider {
 			Map<String, Object> additionalData = credentialServiceRequestDto.getAdditionalData();
 
 			if (userRequestedAttributes != null && !userRequestedAttributes.isEmpty()) {
+				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						"preparing sharable attributes from user requested if attributes available in policy");
 				sharableAttributeList.forEach(dto -> {
 
 					if (userRequestedAttributes.contains(dto.getAttributeName())) {
@@ -190,7 +218,10 @@ public class CredentialProvider {
 
 
 				});
+
 			} else {
+				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						"preparing  sharable attributes from policy");
 				sharableAttributeList.forEach(dto -> {
 					if (dto.getGroup() == null) {
 
@@ -208,7 +239,7 @@ public class CredentialProvider {
 			String attribute = key.getSource().get(0).getAttribute();
 
 			Object object = identity.get(attribute);
-			if (object != null) {
+				if (object != null) {
 					Object formattedObject = filterAndFormat(key, object, identity);
 					attributesMap.put(key, formattedObject);
 				} else {
@@ -233,16 +264,100 @@ public class CredentialProvider {
 				}
 			}
 			if (individualBiometricsValue != null) {
+					if ((key.getFormat() != null)
+							&& CredentialConstants.BESTTWOFINGERS.equalsIgnoreCase(key.getFormat())) {
+						List<BestFingerDto> bestFingerList = getBestTwoFingers(individualBiometricsValue, key);
+						attributesMap.put(key, bestFingerList);
+					} else {
 					String cbeff = filterBiometric(individualBiometricsValue, key);
 					attributesMap.put(key, cbeff);
+					}
+			}
+
+		}
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"end preparing demo and bio sharable attributes");
+		return attributesMap;
+		} catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
+			throw new CredentialFormatterException(e);
+		}
+	}
+
+	private List<BestFingerDto> getBestTwoFingers(String individualBiometricsValue, AllowedKycDto key)
+			throws Exception {
+		List<BestFingerDto> bestFingerList = new ArrayList<>();
+		Map<String, Long> subTypeScoreMap = new HashMap<String, Long>();
+		Source source = key.getSource().get(0);
+
+		List<Filter> filterList = source.getFilter();
+
+		Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
+		filterList.forEach(filter -> {
+			if (filter.getSubType() != null && !filter.getSubType().isEmpty()) {
+				typeAndSubTypeMap.put(filter.getType(), filter.getSubType());
+			} else {
+				typeAndSubTypeMap.put(filter.getType(), null);
+			}
+		});
+
+		List<BIRType> typeList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(individualBiometricsValue));
+		List<BIR> birList = cbeffutil.convertBIRTypeToBIR(typeList);
+
+		for (BIR bir : birList) {
+			BDBInfo bdbInfo = bir.getBdbInfo();
+			String type = bdbInfo.getType().get(0).value();
+			if (typeAndSubTypeMap.containsKey(type) && typeAndSubTypeMap.get(type) == null) {
+
+				List<String> bdbSubTypeList = bdbInfo.getSubtype();
+				String subType;
+				if (bdbSubTypeList != null) {
+					subType = getSubType(bdbSubTypeList);
+					subTypeScoreMap.put(subType, bdbInfo.getQuality().getScore());
+				}
+
+			} else if (typeAndSubTypeMap.containsKey(type) && typeAndSubTypeMap.get(type) != null) {
+				List<String> subTypeList = typeAndSubTypeMap.get(type);
+				List<String> bdbSubTypeList = bdbInfo.getSubtype();
+				String subType;
+				if (bdbSubTypeList != null) {
+					subType = getSubType(bdbSubTypeList);
+					if (subTypeList.contains(subType)) {
+						subTypeScoreMap.put(subType, bdbInfo.getQuality().getScore());
+
+					}
+				}
+			}
+		}
+		if (!subTypeScoreMap.isEmpty()) {
+			if (subTypeScoreMap.size() == 1) {
+				String firstBestFinger = Collections.max(subTypeScoreMap.entrySet(), Map.Entry.comparingByValue())
+						.getKey();
+				bestFingerList.add(new BestFingerDto(firstBestFinger, 1));
+			} else {
+				String firstBestFinger = Collections.max(subTypeScoreMap.entrySet(), Map.Entry.comparingByValue())
+						.getKey();
+				subTypeScoreMap.remove(firstBestFinger);
+				String secondBestFinger = Collections.max(subTypeScoreMap.entrySet(), Map.Entry.comparingByValue())
+						.getKey();
+				bestFingerList.add(new BestFingerDto(firstBestFinger, 1));
+				bestFingerList.add(new BestFingerDto(secondBestFinger, 2));
 			}
 
 		}
 
-		return attributesMap;
-		} catch (Exception e) {
-			throw new CredentialFormatterException(e);
+		return bestFingerList;
+	}
+
+	private String getSubType(List<String> bdbSubTypeList) {
+		String subType;
+		if (bdbSubTypeList.size() == 1) {
+			subType = bdbSubTypeList.get(0);
+		} else {
+			subType = bdbSubTypeList.get(0) + " " + bdbSubTypeList.get(1);
 		}
+		return subType;
 	}
 
 	private Object getFullname(JSONObject identity, String attribute) {
@@ -256,10 +371,12 @@ public class CredentialProvider {
 	private String getName(JSONObject identity, String attribute) {
 		String formattedObject = "";
 		JSONArray node = JsonUtil.getJSONArray(identity, attribute);
+		if (node != null) {
 		JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
 		for (JsonValue jsonValue : jsonValues) {
 			if (jsonValue.getLanguage().equals(primaryLang))
 				formattedObject = jsonValue.getValue();
+			}
 		}
 		return formattedObject;
 	}
@@ -291,11 +408,7 @@ public class CredentialProvider {
 					List<String> subTypeList = typeAndSubTypeMap.get(type);
 					List<String> bdbSubTypeList = bdbInfo.getSubtype();
 					String subType;
-					if (bdbSubTypeList.size() == 1) {
-						subType = bdbSubTypeList.get(0);
-					} else {
-						subType = bdbSubTypeList.get(0) + " " + bdbSubTypeList.get(1);
-					}
+					subType = getSubType(bdbSubTypeList);
 					if (subTypeList.contains(subType)) {
 						filteredBIRList.add(bir);
 					}
