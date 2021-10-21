@@ -42,12 +42,11 @@ public class ChannelInfoHelper {
 	@Autowired
 	private ObjectMapper mapper;
 	
-	@Async
 	public void updateEmailChannelInfo(byte[] oldUinData, byte[] newUinData) throws IOException {
 
 		// addIdentity
-		if (Objects.nonNull(oldUinData) && Objects.isNull(newUinData)) {
-			Optional<String> hashedOldEmailOpt = getHashedEmail(oldUinData);
+		if (Objects.isNull(oldUinData) && Objects.nonNull(newUinData)) {
+			Optional<String> hashedOldEmailOpt = getHashedEmail(newUinData);
 			if (hashedOldEmailOpt.isPresent()) {
 				String hashedOldEmail = hashedOldEmailOpt.get();
 				Optional<ChannelInfo> oldChannelInfoOpt = channelInfoRepo.findById(hashedOldEmail);
@@ -121,12 +120,11 @@ public class ChannelInfoHelper {
 		}
 	}
 
-	@Async
 	public void updatePhoneChannelInfo(byte[] oldUinData, byte[] newUinData) throws IOException {
 
 		// addIdentity
-		if (Objects.nonNull(oldUinData) && Objects.isNull(newUinData)) {
-			Optional<String> hashedOldPhoneNumberOpt = getHashedPhoneNumber(oldUinData);
+		if (Objects.isNull(oldUinData) && Objects.nonNull(newUinData)) {
+			Optional<String> hashedOldPhoneNumberOpt = getHashedPhoneNumber(newUinData);
 			if (hashedOldPhoneNumberOpt.isPresent()) {
 				String hashedOldPhoneNumber = hashedOldPhoneNumberOpt.get();
 				Optional<ChannelInfo> oldChannelInfoOpt = channelInfoRepo.findById(hashedOldPhoneNumber);
