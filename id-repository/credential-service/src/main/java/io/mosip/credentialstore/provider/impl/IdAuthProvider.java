@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +32,15 @@ import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
+import io.mosip.kernel.core.cbeffutil.entity.BIR;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
+import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
-
-
-
 
 
 /**
@@ -83,6 +87,9 @@ public class IdAuthProvider extends CredentialProvider {
 
 	@Autowired
 	private ObjectMapper mapper;
+	
+	@Autowired
+	private CbeffUtil cbeffutil;
 
 
 	/* (non-Javadoc)
@@ -120,7 +127,7 @@ public class IdAuthProvider extends CredentialProvider {
 					zkDataAttribute.setValue(valueStr);
 					if (allowedKycDto.getGroup() != null
 							&& allowedKycDto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)) {
-						bioZkDataAttributes.add(zkDataAttribute);
+						bioZkDataAttributes.addAll(splitCbeff(zkDataAttribute.getValue()));
 					} else {
 						demoZkDataAttributes.add(zkDataAttribute);
 					}
@@ -206,9 +213,63 @@ public class IdAuthProvider extends CredentialProvider {
 		List<ZkDataAttribute> zkDataAttributes= demoEncryptZkResponseDto.getZkDataAttributes();
 		for(ZkDataAttribute attribute:zkDataAttributes) {
 			formattedMap.put(attribute.getIdentifier(), attribute.getValue());
+		}		
+	}
+	
+	/**
+	 * Split the cbeff file based on type and subType
+	 * 
+	 * @param individualBiometricsValue
+	 * @return
+	 * @throws Exception
+	 */
+	private List<ZkDataAttribute> splitCbeff(String individualBiometricsValue) throws Exception {
+		List<ZkDataAttribute> zkDataAttributes = new ArrayList<>();
+		List<BIRType> typeList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(individualBiometricsValue));
+		List<BIR> birList = cbeffutil.convertBIRTypeToBIR(typeList);
+		for (BIR bir : birList) {
+			List<BIR> birs = new ArrayList<>();
+			birs.add(bir);
+			BDBInfo bdbInfo = bir.getBdbInfo();
+			String type = bdbInfo.getType().get(0).value();
+			String subType = getSubType(bdbInfo.getSubtype());
+			if (subType != null) {
+				ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
+				zkDataAttribute.setIdentifier(type + "_" + subType);
+				zkDataAttribute.setValue(new String(cbeffutil.createXML(birs)));
+				zkDataAttributes.add(zkDataAttribute);
+			}
 		}
-
 		
+		List<BIR> faceBirList = birList.stream()
+				.filter(bir -> bir.getBdbInfo().getType().get(0).value().toLowerCase().startsWith(SingleType.FACE.value().toLowerCase()))
+				.collect(Collectors.toList());
+		if (!faceBirList.isEmpty()) {
+			ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
+			zkDataAttribute.setIdentifier(SingleType.FACE.value());
+			zkDataAttribute.setValue(new String(cbeffutil.createXML(faceBirList)));
+			zkDataAttributes.add(zkDataAttribute);
+		}
+		return zkDataAttributes;
+	}
+	
+	/**
+	 * 
+	 * @param bdbSubTypeList
+	 * @return
+	 */
+	private String getSubType(List<String> bdbSubTypeList) {
+		String subType;
+		try {
+			if (bdbSubTypeList.size() == 1) {
+				subType = bdbSubTypeList.get(0);
+			} else {
+				subType = bdbSubTypeList.get(0) + " " + bdbSubTypeList.get(1);
+			}
+			return subType;
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 }

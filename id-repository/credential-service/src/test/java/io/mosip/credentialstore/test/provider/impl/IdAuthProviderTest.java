@@ -32,6 +32,11 @@ import io.mosip.credentialstore.provider.impl.IdAuthProvider;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
+import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
+import io.mosip.kernel.core.cbeffutil.entity.BIR;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.QualityType;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
+import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest
@@ -53,8 +58,11 @@ public class IdAuthProviderTest {
 	@InjectMocks
 	private IdAuthProvider idAuthProvider;
 	
+	@Mock
+	private CbeffUtil cbeffutil;
+	
 	@Before
-	public void setUp() throws DataEncryptionFailureException, ApiNotAccessibleException {
+	public void setUp() throws Exception {
 		Mockito.when(env.getProperty("mosip.credential.service.datetime.pattern"))
 		.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		encryptZkResponseDto=new EncryptZkResponseDto();
@@ -66,6 +74,46 @@ public class IdAuthProviderTest {
 			encryptZkResponseDto.setZkDataAttributes(zkDataAttributeList);
 		Mockito.when(encryptionUtil.encryptDataWithZK(Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenReturn(encryptZkResponseDto);
+		
+		List<BIR> birList = new ArrayList<>();
+		BIR bir = new BIR();
+		BDBInfo bdbInfoFace = new BDBInfo();
+		List<SingleType> singleFaceList = new ArrayList<>();
+		singleFaceList.add(SingleType.FACE);
+		bdbInfoFace.setType(singleFaceList);
+		bir.setBdbInfo(bdbInfoFace);
+		birList.add(bir);
+		BIR birFinger = new BIR();
+		BDBInfo bdbInfoRightThumb = new BDBInfo();
+		QualityType bdbInfoFingerQuality = new QualityType();
+		bdbInfoFingerQuality.setScore(60L);
+		List<SingleType> singleFingerList = new ArrayList<>();
+		singleFingerList.add(SingleType.FINGER);
+		bdbInfoRightThumb.setType(singleFingerList);
+		List<String> subTypeList = new ArrayList<>();
+		subTypeList.add("Right");
+		subTypeList.add("Thumb");
+		bdbInfoRightThumb.setSubtype(subTypeList);
+		bdbInfoRightThumb.setQuality(bdbInfoFingerQuality);
+		birFinger.setBdbInfo(bdbInfoRightThumb);
+		birList.add(birFinger);
+
+		BIR birLeftThumb = new BIR();
+		BDBInfo bdbInfoLeftThumb = new BDBInfo();
+		QualityType bdbInfoLeftThumbQuality = new QualityType();
+		bdbInfoLeftThumbQuality.setScore(58L);
+
+		bdbInfoLeftThumb.setType(singleFingerList);
+		List<String> subTypeListLeftThumb = new ArrayList<>();
+		subTypeListLeftThumb.add("Left");
+		subTypeListLeftThumb.add("Thumb");
+		bdbInfoLeftThumb.setSubtype(subTypeListLeftThumb);
+		bdbInfoLeftThumb.setQuality(bdbInfoLeftThumbQuality);
+		birLeftThumb.setBdbInfo(bdbInfoLeftThumb);
+		birList.add(birLeftThumb);
+		Mockito.when(cbeffutil.getBIRDataFromXML(Mockito.any())).thenReturn(new ArrayList<>());
+		Mockito.when(cbeffutil.createXML(Mockito.any())).thenReturn("".getBytes());
+
 	}
 	@Test
 	public void testGetFormattedCredentialDataSuccess() throws CredentialFormatterException {
