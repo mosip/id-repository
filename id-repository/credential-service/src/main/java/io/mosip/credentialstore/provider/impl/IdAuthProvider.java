@@ -32,13 +32,14 @@ import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.core.util.CryptoUtil;
-import io.mosip.kernel.biometrics.constant.BiometricType;
-import io.mosip.kernel.biometrics.entities.BDBInfo;
-import io.mosip.kernel.biometrics.entities.BIR;
-import io.mosip.kernel.biometrics.spi.CbeffUtil;
+import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
+import io.mosip.kernel.core.cbeffutil.entity.BIR;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
+import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 
 
@@ -224,7 +225,8 @@ public class IdAuthProvider extends CredentialProvider {
 	 */
 	private List<ZkDataAttribute> splitCbeff(String individualBiometricsValue) throws Exception {
 		List<ZkDataAttribute> zkDataAttributes = new ArrayList<>();
-		List<BIR> birList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeURLSafeBase64(individualBiometricsValue));
+		List<BIRType> typeList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeBase64(individualBiometricsValue));
+		List<BIR> birList = cbeffutil.convertBIRTypeToBIR(typeList);
 		for (BIR bir : birList) {
 			List<BIR> birs = new ArrayList<>();
 			birs.add(bir);
@@ -240,11 +242,11 @@ public class IdAuthProvider extends CredentialProvider {
 		}
 		
 		List<BIR> faceBirList = birList.stream()
-				.filter(bir -> bir.getBdbInfo().getType().get(0).value().toLowerCase().startsWith(BiometricType.FACE.value().toLowerCase()))
+				.filter(bir -> bir.getBdbInfo().getType().get(0).value().toLowerCase().startsWith(SingleType.FACE.value().toLowerCase()))
 				.collect(Collectors.toList());
 		if (!faceBirList.isEmpty()) {
 			ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
-			zkDataAttribute.setIdentifier(BiometricType.FACE.value());
+			zkDataAttribute.setIdentifier(SingleType.FACE.value());
 			zkDataAttribute.setValue(new String(cbeffutil.createXML(faceBirList)));
 			zkDataAttributes.add(zkDataAttribute);
 		}

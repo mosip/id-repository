@@ -5,11 +5,11 @@
   <parent>
     <groupId>io.mosip.idrepository</groupId>
     <artifactId>id-repository-parent</artifactId>
-    <version>1.1.5.3</version>
+    <version>1.1.5.5</version>
   </parent>
   <groupId>io.mosip.idrepository</groupId>
   <artifactId>credential-service</artifactId>
-  <version>1.1.5.3</version>
+  <version>1.1.5.5</version>
   <name>credential-service</name>
   <url>http://maven.apache.org</url>
   <properties>

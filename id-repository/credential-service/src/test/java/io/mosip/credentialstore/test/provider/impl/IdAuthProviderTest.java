@@ -32,11 +32,11 @@ import io.mosip.credentialstore.provider.impl.IdAuthProvider;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
-import io.mosip.kernel.biometrics.constant.BiometricType;
-import io.mosip.kernel.biometrics.constant.QualityType;
-import io.mosip.kernel.biometrics.entities.BDBInfo;
-import io.mosip.kernel.biometrics.entities.BIR;
-import io.mosip.kernel.biometrics.spi.CbeffUtil;
+import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
+import io.mosip.kernel.core.cbeffutil.entity.BIR;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.QualityType;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
+import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest
@@ -78,8 +78,8 @@ public class IdAuthProviderTest {
 		List<BIR> birList = new ArrayList<>();
 		BIR bir = new BIR();
 		BDBInfo bdbInfoFace = new BDBInfo();
-		List<BiometricType> singleFaceList = new ArrayList<>();
-		singleFaceList.add(BiometricType.FACE);
+		List<SingleType> singleFaceList = new ArrayList<>();
+		singleFaceList.add(SingleType.FACE);
 		bdbInfoFace.setType(singleFaceList);
 		bir.setBdbInfo(bdbInfoFace);
 		birList.add(bir);
@@ -87,8 +87,8 @@ public class IdAuthProviderTest {
 		BDBInfo bdbInfoRightThumb = new BDBInfo();
 		QualityType bdbInfoFingerQuality = new QualityType();
 		bdbInfoFingerQuality.setScore(60L);
-		List<BiometricType> singleFingerList = new ArrayList<>();
-		singleFingerList.add(BiometricType.FINGER);
+		List<SingleType> singleFingerList = new ArrayList<>();
+		singleFingerList.add(SingleType.FINGER);
 		bdbInfoRightThumb.setType(singleFingerList);
 		List<String> subTypeList = new ArrayList<>();
 		subTypeList.add("Right");
@@ -111,7 +111,7 @@ public class IdAuthProviderTest {
 		bdbInfoLeftThumb.setQuality(bdbInfoLeftThumbQuality);
 		birLeftThumb.setBdbInfo(bdbInfoLeftThumb);
 		birList.add(birLeftThumb);
-		Mockito.when(cbeffutil.getBIRDataFromXML(Mockito.any())).thenReturn(birList);
+		Mockito.when(cbeffutil.getBIRDataFromXML(Mockito.any())).thenReturn(new ArrayList<>());
 		Mockito.when(cbeffutil.createXML(Mockito.any())).thenReturn("".getBytes());
 
 	}
