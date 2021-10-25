@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,14 +32,13 @@ import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.core.util.EnvUtil;
+import io.mosip.idrepository.core.util.CryptoUtil;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 
 
@@ -54,6 +54,11 @@ public class IdAuthProvider extends CredentialProvider {
 	/** The utilities. */
 	@Autowired
     Utilities utilities;	
+	
+	/** The env. */
+	@Autowired
+	Environment env;
+
 	
 	/** The Constant MODULO_VALUE. */
 	public static final String MODULO_VALUE = "mosip.credential.service.modulo-value";
@@ -104,6 +109,7 @@ public class IdAuthProvider extends CredentialProvider {
 			
 			List<ZkDataAttribute> demoZkDataAttributes=new ArrayList<>();
             Map<String, Object> formattedMap=new HashMap<>();
+			formattedMap.put(JsonConstants.ID, credentialServiceRequestDto.getId());
 			for (Map.Entry<AllowedKycDto, Object> entry : sharableAttributeMap.entrySet()) {
 				AllowedKycDto allowedKycDto = entry.getKey();
 				String attributeName = allowedKycDto.getAttributeName();
@@ -153,16 +159,16 @@ public class IdAuthProvider extends CredentialProvider {
 		    credentialServiceRequestDto.setAdditionalData(additionalData);
 
 
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
 			JSONObject json = new JSONObject();
 			List<String> typeList = new ArrayList<>();
-			typeList.add(EnvUtil.getCredServiceSchema());
+			typeList.add(env.getProperty("mosip.credential.service.credential.schema"));
 
-			json.put(JsonConstants.ID, EnvUtil.getCredServiceFormatId() + credentialId);
+			json.put(JsonConstants.ID, env.getProperty("mosip.credential.service.format.id") + credentialId);
 			json.put(JsonConstants.TYPE, typeList);
-			json.put(JsonConstants.ISSUER, EnvUtil.getCredServiceFormatIssuer());
+			json.put(JsonConstants.ISSUER, env.getProperty("mosip.credential.service.format.issuer"));
 			json.put(JsonConstants.ISSUANCEDATE, DateUtils.formatToISOString(localdatetime));
 			json.put(JsonConstants.ISSUEDTO, credentialServiceRequestDto.getIssuer());
 			json.put(JsonConstants.CONSENT, "");
@@ -224,7 +230,7 @@ public class IdAuthProvider extends CredentialProvider {
 			birs.add(bir);
 			BDBInfo bdbInfo = bir.getBdbInfo();
 			String type = bdbInfo.getType().get(0).value();
-			String subType = super.getSubType(bdbInfo.getSubtype());
+			String subType = getSubType(bdbInfo.getSubtype());
 			if (subType != null) {
 				ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
 				zkDataAttribute.setIdentifier(type + "_" + subType);
@@ -245,4 +251,23 @@ public class IdAuthProvider extends CredentialProvider {
 		return zkDataAttributes;
 	}
 	
+	/**
+	 * 
+	 * @param bdbSubTypeList
+	 * @return
+	 */
+	private String getSubType(List<String> bdbSubTypeList) {
+		String subType;
+		try {
+			if (bdbSubTypeList.size() == 1) {
+				subType = bdbSubTypeList.get(0);
+			} else {
+				subType = bdbSubTypeList.get(0) + " " + bdbSubTypeList.get(1);
+			}
+			return subType;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
 }
