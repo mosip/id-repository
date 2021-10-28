@@ -5,11 +5,11 @@
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.1.5.3</version>
+		<version>1.1.5.4</version>
 	</parent>
 
 	<artifactId>id-repository-identity-service</artifactId>
-	<version>1.1.5.3</version>
+	<version>1.1.5.4</version>
 	<name>identity-service</name>
 	<description>ID-Repository Identity service</description>
 
@@ -18,15 +18,16 @@
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
 		<spring.boot.version>2.0.2.RELEASE</spring.boot.version>
-		<kernel.core.version>1.1.5.2</kernel.core.version>
+		<kernel.core.version>1.1.5.5-SNAPSHOT</kernel.core.version>
 		<kernel.idvalidator.uin.version>1.1.5.4</kernel.idvalidator.uin.version>
-		<kernel.idvalidator.rid.version>1.1.5.2</kernel.idvalidator.rid.version>
-		<kernel.cbeffutil.api.version>1.1.5.2</kernel.cbeffutil.api.version>
-		<kernel.idobjectvalidator.version>1.1.5.2</kernel.idobjectvalidator.version>
-		<kernel-websubclient-api.version>1.1.5.2</kernel-websubclient-api.version>
-		<kernel-idvalidator-vid.version>1.1.5.2</kernel-idvalidator-vid.version>
-		<kernel.khazana.version>1.1.5.2</kernel.khazana.version>
-		<kernel-biosdk-provider.version>1.1.5.2</kernel-biosdk-provider.version>
+		<kernel.idvalidator.rid.version>1.1.5.3</kernel.idvalidator.rid.version>
+		<kernel.cbeffutil.api.version>1.1.5.3</kernel.cbeffutil.api.version>
+		<kernel.idobjectvalidator.version>1.1.5.3</kernel.idobjectvalidator.version>
+		<kernel-websubclient-api.version>1.1.5.5-SNAPSHOT</kernel-websubclient-api.version>
+		<kernel-idvalidator-vid.version>1.1.5.3</kernel-idvalidator-vid.version>
+		<kernel.khazana.version>1.1.5.5-SNAPSHOT</kernel.khazana.version>
+		<kernel-biosdk-provider.version>1.1.5.3</kernel-biosdk-provider.version>
+		<id.repository.core.version>1.1.5.4</id.repository.core.version>
 	</properties>
 
 	<dependencies>
@@ -34,6 +35,12 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-core</artifactId>
 			<version>${kernel.core.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-lang3</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
@@ -81,7 +88,7 @@
 			<artifactId>khazana</artifactId>
 			<version>${kernel.khazana.version}</version>
 		</dependency>
-			<dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 			<version>${spring.boot.version}</version>
@@ -97,9 +104,9 @@
 			<version>${spring-cloud-config.version}</version>
 		</dependency>
 		<dependency>
-		  <groupId>io.mosip.kernel</groupId>
-		  <artifactId>kernel-biosdk-provider</artifactId>
-		  <version>${kernel-biosdk-provider.version}</version>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-biosdk-provider</artifactId>
+			<version>${kernel-biosdk-provider.version}</version>
 		</dependency>
 	</dependencies>
 	<build>
