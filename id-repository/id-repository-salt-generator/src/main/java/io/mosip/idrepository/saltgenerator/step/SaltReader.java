@@ -59,7 +59,7 @@ public class SaltReader implements ItemReader<IdRepoSaltEntitiesComposite> {
 	@Override
 	public IdRepoSaltEntitiesComposite read() {
 		if (startSeq <= endSeq) {
-			String idHshSalt = CryptoUtil.encodeToURLSafeBase64(HMACUtils2.generateSalt());
+			String idHshSalt = CryptoUtil.encodeToPlainBase64(HMACUtils2.generateSalt());
 			String vidHshSalt = idHshSalt;
 			LocalDateTime currentDateTime = DateUtils.getUTCCurrentDateTime();
 			
@@ -75,7 +75,7 @@ public class SaltReader implements ItemReader<IdRepoSaltEntitiesComposite> {
 			vidHashSalt.setCreatedBy("System");
 			vidHashSalt.setCreateDtimes(currentDateTime);
 			
-			String idEncSalt = CryptoUtil.encodeToURLSafeBase64(HMACUtils2.generateSalt());
+			String idEncSalt = CryptoUtil.encodeToPlainBase64(HMACUtils2.generateSalt());
 
 			IdentityEncryptSaltEntity identityEncryptSalt = new IdentityEncryptSaltEntity();
 			identityEncryptSalt.setId(startSeq);
@@ -83,7 +83,7 @@ public class SaltReader implements ItemReader<IdRepoSaltEntitiesComposite> {
 			identityEncryptSalt.setCreatedBy("System");
 			identityEncryptSalt.setCreateDtimes(currentDateTime);
 			
-			String vidEncSalt = CryptoUtil.encodeToURLSafeBase64(HMACUtils2.generateSalt());
+			String vidEncSalt = CryptoUtil.encodeToPlainBase64(HMACUtils2.generateSalt());
 			
 			VidEncryptSaltEntity vidEncryptSalt = new VidEncryptSaltEntity();
 			vidEncryptSalt.setId(startSeq);
