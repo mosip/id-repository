@@ -115,7 +115,7 @@ public class IdentityIssuanceProfileBuilder {
 			return identityMapping.getIdentity().getLocationHierarchyForProfiling().getValueList().stream()
 					.map(value -> extractValue(identity.get(value)).orElse("")).filter(StringUtils::isNotBlank)
 					.collect(Collectors.toList());
-		return null;
+		return List.of();
 	}
 
 	private String getPreferredLanguage(JsonNode identity) {
@@ -153,11 +153,11 @@ public class IdentityIssuanceProfileBuilder {
 									.collect(Collectors.joining(" ")))
 							.subType(String.join(" ", bir.getBdbInfo().getSubtype())).build())
 					.collect(Collectors.toList());
-		return null;
+		return List.of();
 	}
 
 	private List<String> getVerified(JsonNode identity) {
-		return Objects.isNull(identity.get("verifiedAttributes")) || identity.get("verifiedAttributes").isNull() ? null
+		return Objects.isNull(identity.get("verifiedAttributes")) || identity.get("verifiedAttributes").isNull() ? List.of()
 				: mapper.convertValue(identity.get("verifiedAttributes"), new TypeReference<List<String>>() {
 				});
 	}
@@ -188,7 +188,7 @@ public class IdentityIssuanceProfileBuilder {
 										.orElseGet(() -> new Entry()).getValue() : null)
 								.digitalId(digitalId).build();
 					}).collect(Collectors.toList());
-		return null;
+		return List.of();
 	}
 
 	private List<String> getDocuments(JsonNode identity) {
@@ -252,6 +252,7 @@ public class IdentityIssuanceProfileBuilder {
 		if (Objects.isNull(jsonNode)) {
 			return Optional.empty();
 		}
+		Optional<String> valueOpt = Optional.empty();
 		if (jsonNode.isValueNode()) {
 			return Optional.of(jsonNode.asText());
 		} else if (jsonNode.isArray()) {
@@ -261,17 +262,21 @@ public class IdentityIssuanceProfileBuilder {
 						new TypeReference<Map<String, String>>() {
 						});
 				if (valueMap.get("language").contentEquals(filterLanguage)) {
-					return Optional.of(valueMap.get("value"));
+					valueOpt = Optional.of(valueMap.get("value"));
 				}
 			}
+			if (valueOpt.isEmpty())
+				valueOpt = Optional.ofNullable(jsonNode.iterator().next().get("value").asText());
 		} else if (jsonNode.isObject()) {
 			Map<String, String> valueMap = mapper.convertValue(jsonNode, new TypeReference<Map<String, String>>() {
 			});
 			if (valueMap.get("language").contentEquals(filterLanguage)) {
-				return Optional.of(valueMap.get("value"));
+				valueOpt = Optional.of(valueMap.get("value"));
 			}
+			if (valueOpt.isEmpty())
+				valueOpt = Optional.ofNullable(valueMap.get("value"));
 		}
-		return Optional.empty();
+		return valueOpt;
 	}
 
 	public static void setDateFormat(String dateFormat) {
