@@ -450,10 +450,18 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	@Override
 	public IdResponseDTO discardDraft(String regId) throws IdRepoAppException {
 		try {
-			uinDraftRepo.findByRegId(regId).ifPresent(uinDraftRepo::delete);
-			return constructIdResponse(null, "DISCARDED", null, null);
+			Optional<UinDraft> draftOptional = uinDraftRepo.findByRegId(regId);
+			if (draftOptional.isPresent()) {
+				uinDraftRepo.delete(draftOptional.get());
+				return constructIdResponse(null, "DISCARDED", null, null);
+			} else {
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT,
+						"RID NOT FOUND IN DB");
+				throw new IdRepoAppException(NO_RECORD_FOUND);
+			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, DISCARD_DRAFT, e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, DISCARD_DRAFT,
+					e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
 		}
 	}
