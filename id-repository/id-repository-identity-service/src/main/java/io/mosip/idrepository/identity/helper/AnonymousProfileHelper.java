@@ -31,7 +31,7 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.identity.entity.AnonymousProfileEntity;
 import io.mosip.idrepository.identity.repository.AnonymousProfileRepo;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.idrepository.core.util.CryptoUtil;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.UUIDUtils;
 
@@ -99,10 +99,10 @@ public class AnonymousProfileHelper {
 				List<DocumentsDTO> newDocList = List.of(new DocumentsDTO());
 				if (Objects.isNull(oldCbeff) && Objects.nonNull(oldCbeffRefId))
 					this.oldCbeff = CryptoUtil
-							.encodeToURLSafeBase64(objectStoreHelper.getBiometricObject(uinHash, oldCbeffRefId));
+							.encodeBase64(objectStoreHelper.getBiometricObject(uinHash, oldCbeffRefId));
 				if (Objects.isNull(newCbeff) && Objects.nonNull(newCbeffRefId))
 					this.newCbeff = CryptoUtil
-							.encodeToURLSafeBase64(objectStoreHelper.getBiometricObject(uinHash, newCbeffRefId));
+							.encodeBase64(objectStoreHelper.getBiometricObject(uinHash, newCbeffRefId));
 				if (Objects.nonNull(oldCbeff))
 					oldDocList = List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
 							.getIdentity().getIndividualBiometrics().getValue(), oldCbeff));
