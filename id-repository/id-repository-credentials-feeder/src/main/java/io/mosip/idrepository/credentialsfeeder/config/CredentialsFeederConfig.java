@@ -4,6 +4,7 @@ import javax.sql.DataSource;
 
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer;
 import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -46,23 +47,13 @@ public class CredentialsFeederConfig extends IdRepoDataSourceConfig {
 		};
 	}
 	
-	@Bean
-	public AuthTokenExchangeFilter getTokenExchangeFilter() {
-		return new AuthTokenExchangeFilter();
-	}
-	
-	@Bean
-	public WebClient webClient() {
-		return WebClient.builder().filter(getTokenExchangeFilter()).build();
-	}
-	
 	@Bean("restHelperWithAuth")
-	public RestHelper restHelper() {
-		return new RestHelper(webClient());
+	public RestHelper restHelper(@Qualifier("selfTokenWebClient") WebClient webClient) {
+		return new RestHelper(webClient);
 	}
 	
 	@Bean("securityManagerWithAuth")
-	public IdRepoSecurityManager securityManager() {
-		return new IdRepoSecurityManager(restHelper());
+	public IdRepoSecurityManager securityManager(@Qualifier("selfTokenWebClient") WebClient webClient) {
+		return new IdRepoSecurityManager(restHelper(webClient));
 	}
 }
