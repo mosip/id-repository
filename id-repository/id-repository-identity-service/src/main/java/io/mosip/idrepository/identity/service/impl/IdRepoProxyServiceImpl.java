@@ -248,13 +248,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			throws IdRepoAppException {
 		try {
 			String uinHash = retrieveUinHash(uin);
-			if (uinRepo.existsByUinHash(uinHash)) {
-				return retrieveIdentityByUinHash(type, uinHash, extractionFormats);
-			} else {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
-						NO_RECORD_FOUND.getErrorMessage());
-				throw new IdRepoAppException(NO_RECORD_FOUND);
-			}
+			return retrieveIdentityByUinHash(type, uinHash, extractionFormats);
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
 					"\n" + e.getMessage());
