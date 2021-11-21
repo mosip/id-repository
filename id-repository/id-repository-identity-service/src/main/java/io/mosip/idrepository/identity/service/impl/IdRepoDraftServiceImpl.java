@@ -157,8 +157,9 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				UinDraft newDraft;
 				if (Objects.nonNull(uin)) {
 					int modValue = getModValue(uin);
-					if (super.uinRepo.existsByUinHash(super.getUinHash(uin, modValue))) {
-						Uin uinObject = super.uinRepo.findByUinHash(super.getUinHash(uin, modValue));
+					Optional<Uin> uinObjectOptional = super.uinRepo.findByUinHash(super.getUinHash(uin, modValue));
+					if (uinObjectOptional.isPresent()) {
+						Uin uinObject = uinObjectOptional.get();
 						newDraft = mapper.convertValue(uinObject, UinDraft.class);
 						updateBiometricAndDocumentDrafts(registrationId, newDraft, uinObject);
 						newDraft.setRegId(registrationId);
