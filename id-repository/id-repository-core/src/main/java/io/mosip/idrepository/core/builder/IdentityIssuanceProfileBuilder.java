@@ -170,7 +170,7 @@ public class IdentityIssuanceProfileBuilder {
 								.flatMap(birs -> birs.stream())
 								.filter(others -> others.getKey().contentEquals("PAYLOAD")).findAny();
 						String digitalId = null;
-						if (payload.isPresent()) {
+						if (payload.isPresent() && StringUtils.isNotBlank(payload.get().getValue())) {
 							Map<String, String> digitalIdEncoded = mapper.readValue(payload.get().getValue(),
 									new TypeReference<Map<String, String>>() {
 									});
