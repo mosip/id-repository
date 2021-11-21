@@ -54,7 +54,6 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 
-import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
@@ -231,18 +230,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), null, null, false, null));
 		issueCredential(uin, uinEntity.getUin(), uinHashWithSalt, activeStatus, null, false,
 				request.getRequest().getRegistrationId());
-		anonymousProfileHelper.setRegId(request.getRequest().getRegistrationId())
-				.setNewCbeff(
-						Optional.ofNullable(request.getRequest().getDocuments()).stream().flatMap(list -> list.stream())
-								.filter(doc -> doc.getCategory()
-										.contentEquals(IdentityIssuanceProfileBuilder.getIdentityMapping().getIdentity()
-												.getIndividualBiometrics().getValue()))
-								.findFirst().orElse(new DocumentsDTO()).getValue())
-				.setNewCbeff(uinEntity.getUinHash().split("_")[1], !anonymousProfileHelper.isNewCbeffPresent()
-						&& uinEntity.getBiometrics() != null && !uinEntity.getBiometrics().isEmpty()
-								? uinEntity.getBiometrics().get(uinEntity.getBiometrics().size() - 1).getBioFileId()
-								: null)
-				.setNewUinData(identityInfo).buildAndsaveProfile();
+		anonymousProfileHelper
+			.setRegId(request.getRequest().getRegistrationId())
+			.setNewUinData(identityInfo)
+			.buildAndsaveProfile(false);
 		return uinEntity;
 	}
 
@@ -282,6 +273,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			try {
 				if (bioAttributes.contains(doc.getCategory())) {
 					addBiometricDocuments(uinHash, uinRefId, bioList, doc, docType, isDraft, index);
+					anonymousProfileHelper.setNewCbeff(doc.getValue());
 				} else {
 					addDemographicDocuments(uinHash, uinRefId, docList, doc, docType, isDraft, index);
 				}
@@ -434,9 +426,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				if (Objects.nonNull(requestDTO.getDocuments()) && !requestDTO.getDocuments().isEmpty()) {
 					anonymousProfileHelper
 							.setNewCbeff(uinObject.getUinHash(),
-									!anonymousProfileHelper.isNewCbeffPresent() &&
-									Objects.nonNull(uinObject.getBiometrics()) && !uinObject.getBiometrics().isEmpty()
-											? uinObject.getBiometrics().get(uinObject.getBiometrics().size() - 1).getBioFileId()
+									!anonymousProfileHelper.isNewCbeffPresent() ?
+									uinObject.getBiometrics().get(uinObject.getBiometrics().size() - 1).getBioFileId()
 											: null);
 					updateDocuments(uinHashWithSalt, uinObject, requestDTO, false);
 					uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
@@ -453,7 +444,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					DateUtils.getUTCCurrentDateTime(), false, null));
 			issueCredential(uin, uinObject.getUin(), uinHashWithSalt, uinObject.getStatusCode(),
 					DateUtils.getUTCCurrentDateTime(), true, request.getRequest().getRegistrationId());
-			anonymousProfileHelper.buildAndsaveProfile();
+			anonymousProfileHelper.buildAndsaveProfile(false);
 			return uinObject;
 		} catch (JSONException | InvalidJsonException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, UPDATE_IDENTITY, e.getMessage());
