@@ -352,7 +352,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 
 	@Override
 	public IdResponseDTO publishDraft(String regId) throws IdRepoAppException {
-		anonymousProfileHelper.setRegId(regId).setIsDraft(true);
+		anonymousProfileHelper.setRegId(regId);
 		try {
 			String draftVid = null;
 			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
@@ -379,8 +379,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 								&& !draft.getBiometrics().isEmpty()
 										? draft.getBiometrics().get(draft.getBiometrics().size() - 1).getBioFileId()
 										: null)
-				.setIsDraft(false)
-				.buildAndsaveProfile();
+				.buildAndsaveProfile(true);
 				publishDocuments(draft, uinObject);
 				this.discardDraft(regId);
 				return constructIdResponse(null, uinObject.getStatusCode(), null, draftVid);
