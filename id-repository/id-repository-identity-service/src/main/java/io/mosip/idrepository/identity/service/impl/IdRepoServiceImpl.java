@@ -9,6 +9,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -123,6 +124,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	/** The Constant ID_REPO_SERVICE_IMPL. */
 	private static final String ID_REPO_SERVICE_IMPL = "IdRepoServiceImpl";
+	
+	private static final String RETRIEVE_IDENTITY = "retrieveIdentity";
 
 	/** The env. */
 	@Autowired
@@ -373,7 +376,14 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	@Override
 	public Uin retrieveIdentity(String id, IdType idType, String type, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
-		return uinRepo.findByUinHash(id);
+		Optional<Uin> uinObjOptional = uinRepo.findByUinHash(id);
+		if (uinObjOptional.isPresent()) {
+			return uinObjOptional.get();
+		} else {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
+					NO_RECORD_FOUND.getErrorMessage());
+			throw new IdRepoAppException(NO_RECORD_FOUND);
+		}
 	}
 
 	/*

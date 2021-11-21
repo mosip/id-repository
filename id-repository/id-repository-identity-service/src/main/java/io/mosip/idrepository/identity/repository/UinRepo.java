@@ -1,5 +1,7 @@
 package io.mosip.idrepository.identity.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -48,7 +50,7 @@ public interface UinRepo extends JpaRepository<Uin, String> {
 	 * @param uinHash the uin hash
 	 * @return the uin
 	 */
-	Uin findByUinHash(String uinHash);
+	Optional<Uin> findByUinHash(String uinHash);
 	
 	
 	/**
