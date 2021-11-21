@@ -1,0 +1,504 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"description": "PhilSys ID Schema",
+	"additionalProperties": false,
+	"title": "PhilSys ID Schema",
+	"type": "object",
+	"definitions": {
+		"simpleType": {
+			"uniqueItems": true,
+			"additionalItems": false,
+			"type": "array",
+			"items": {
+				"additionalProperties": false,
+				"type": "object",
+				"required": ["language", "value"],
+				"properties": {
+					"language": {
+						"type": "string"
+					},
+					"value": {
+						"type": "string"
+					}
+				}
+			}
+		},
+		"documentType": {
+			"additionalProperties": false,
+			"type": "object",
+			"required": ["format", "type", "value"],
+			"properties": {
+				"refNumber": {
+					"type": "string"
+				},
+				"format": {
+					"type": "string"
+				},
+				"type": {
+					"type": "string"
+				},
+				"value": {
+					"type": "string"
+				}
+			}
+		},
+		"biometricsType": {
+			"additionalProperties": false,
+			"type": "object",
+			"properties": {
+				"format": {
+					"type": "string"
+				},
+				"version": {
+					"type": "number",
+					"minimum": 0
+				},
+				"value": {
+					"type": "string"
+				}
+			}
+		}
+	},
+	"properties": {
+		"identity": {
+			"additionalProperties": false,
+			"type": "object",
+			"required": ["IDSchemaVersion", "firstName", "middleName", "lastName", "dateOfBirth", "pobCountry", "pobprovince", "pobcity", "gender", "addressLine1", "addressLine2", "addressLine3", "addressLine4", "province", "City", "Barangay", "postalCode", "proofOfIdentity", "individualBiometrics"],
+			"properties": {
+				"lastName": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{3,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"pobCountry": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{0,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"proofOfAddress": {
+					"bioAttributes": [],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/documentType"
+				},
+				"gender": {
+					"bioAttributes": [],
+					"fieldCategory": "pvt",
+					"format": "",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"modeOfClaim": {
+					"bioAttributes": [],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "dynamic",
+					"$ref": "#/definitions/simpleType"
+				},
+				"proofOfConsent": {
+					"bioAttributes": [],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/documentType"
+				},
+				"postalCode": {
+					"bioAttributes": [],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"cprovince": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{0,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"suffix": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{3,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"bloodType": {
+					"bioAttributes": [],
+					"fieldCategory": "pvt",
+					"format": "",
+					"fieldType": "dynamic",
+					"$ref": "#/definitions/simpleType"
+				},
+				"pobprovince": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{0,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"individualBiometrics": {
+					"bioAttributes": ["leftEye", "rightEye", "rightIndex", "rightLittle", "rightRing", "rightMiddle", "leftIndex", "leftLittle", "leftRing", "leftMiddle", "leftThumb", "rightThumb", "face"],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/biometricsType"
+				},
+				"province": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{0,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"caddressLine4": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{3,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"caddressLine3": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{3,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"caddressLine2": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{3,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"proofOfDateOfBirth": {
+					"bioAttributes": [],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/documentType"
+				},
+				"caddressLine1": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{0,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"pobcity": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{0,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"addressLine1": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{0,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"residenceStatus": {
+					"bioAttributes": [],
+					"fieldCategory": "kyc",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"addressLine2": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{3,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"addressLine3": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{3,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"addressLine4": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{3,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"email": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^[A-Za-z0-9_-]+(.[A-Za-z0-9_]+)*@[A-Za-z0-9_-]+(.[A-Za-z0-9_]+)*(.[a-zA-Z]{2,})$",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"type": "string",
+					"fieldType": "default"
+				},
+				"Barangay": {
+					"bioAttributes": [],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"parentOrGuardianRID": {
+					"bioAttributes": [],
+					"fieldCategory": "evidence",
+					"format": "none",
+					"type": "string",
+					"fieldType": "default"
+				},
+				"parentOrGuardianBiometrics": {
+					"bioAttributes": ["leftEye", "rightEye", "rightIndex", "rightLittle", "rightRing", "rightMiddle", "leftIndex", "leftLittle", "leftRing", "leftMiddle", "leftThumb", "rightThumb", "face"],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/biometricsType"
+				},
+				"dateOfBirth": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(1869|18[7-9][0-9]|19[0-9][0-9]|20[0-9][0-9])/([0][1-9]|1[0-2])/([0][1-9]|[1-2][0-9]|3[01])$",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"type": "string",
+					"fieldType": "default"
+				},
+				"City": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{0,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"individualAuthBiometrics": {
+					"bioAttributes": ["leftEye", "rightEye", "rightIndex", "rightLittle", "rightRing", "rightMiddle", "leftIndex", "leftLittle", "leftRing", "leftMiddle", "leftThumb", "rightThumb", "face"],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/biometricsType"
+				},
+				"ccity": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{0,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"firstName": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{3,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"parentOrGuardianUIN": {
+					"bioAttributes": [],
+					"fieldCategory": "evidence",
+					"format": "none",
+					"type": "string",
+					"fieldType": "default"
+				},
+				"proofOfIdentity": {
+					"bioAttributes": [],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/documentType"
+				},
+				"IDSchemaVersion": {
+					"bioAttributes": [],
+					"fieldCategory": "none",
+					"format": "none",
+					"type": "number",
+					"fieldType": "default",
+					"minimum": 0
+				},
+				"proofOfException": {
+					"bioAttributes": [],
+					"fieldCategory": "evidence",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/documentType"
+				},
+				"phone": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^[+]*([0-9]{1})([0-9]{9})$",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"type": "string",
+					"fieldType": "default"
+				},
+				"registrationType": {
+					"bioAttributes": [],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "dynamic",
+					"$ref": "#/definitions/simpleType"
+				},
+				"cPostalCode": {
+					"bioAttributes": [],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"parentOrGuardianName": {
+					"bioAttributes": [],
+					"fieldCategory": "evidence",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"middleName": {
+					"bioAttributes": [],
+					"validators": [{
+						"validator": "^(?=.{3,50}$).*",
+						"arguments": [],
+						"type": "regex"
+					}],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"proofOfRelationship": {
+					"bioAttributes": [],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/documentType"
+				},
+				"UIN": {
+					"bioAttributes": [],
+					"fieldCategory": "none",
+					"format": "none",
+					"type": "string",
+					"fieldType": "default"
+				},
+				"cbarangay": {
+					"bioAttributes": [],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "default",
+					"$ref": "#/definitions/simpleType"
+				},
+				"maritalStatus": {
+					"bioAttributes": [],
+					"fieldCategory": "pvt",
+					"format": "none",
+					"fieldType": "dynamic",
+					"$ref": "#/definitions/simpleType"
+				}
+			}
+		}
+	}
+}
