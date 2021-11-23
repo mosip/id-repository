@@ -31,7 +31,7 @@ import io.mosip.idrepository.core.util.TokenIDGenerator;
 		RestRequestBuilder.class, TokenIDGenerator.class, IdRepoWebSubHelper.class, CredentialStatusManager.class,
 		DummyPartnerCheckUtil.class })
 @ComponentScan(basePackages = {
-		"io.mosip.idrepository.credentialsfeeder.*" }, excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
+		"io.mosip.idrepository.credentialsfeeder.*", "${mosip.auth.adapter.impl.basepackage}" }, excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
 				"io.mosip.idrepository.core.entity", "io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig" }))
 public class CredentialsFeederApplication {
 

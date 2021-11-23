@@ -14,6 +14,7 @@ import javax.sql.DataSource;
 
 import org.hibernate.Interceptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
@@ -34,7 +35,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import io.mosip.idrepository.core.entity.UinEncryptSalt;
 import io.mosip.idrepository.core.entity.UinHashSalt;
 import io.mosip.idrepository.core.helper.RestHelper;
-import io.mosip.idrepository.core.httpfilter.AuthTokenExchangeFilter;
 import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
@@ -162,17 +162,13 @@ public class VidRepoConfig {
 	}
 
 	@Bean
-	public CredentialServiceManager credentialServiceManager() {
-		return new CredentialServiceManager(restHelperWithAuth());
+	public CredentialServiceManager credentialServiceManager(@Qualifier("selfTokenWebClient") WebClient webClient) {
+		return new CredentialServiceManager(restHelperWithAuth(webClient));
 	}
 	
 	@Bean("restHelperWithAuth")
-	public RestHelper restHelperWithAuth() {
-		return new RestHelper(WebClient.builder().filter(authTokenExchangeFilter()).build());
+	public RestHelper restHelperWithAuth(@Qualifier("selfTokenWebClient") WebClient webClient) {
+		return new RestHelper(webClient);
 	}
 	
-	@Bean
-	public AuthTokenExchangeFilter authTokenExchangeFilter() {
-		return new AuthTokenExchangeFilter();
-	}
 }
