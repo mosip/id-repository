@@ -180,7 +180,7 @@ public class IdRepoDraftController {
 	}
 
 	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getDraftregistrationId())")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getdraftregistrationId())")
 	@RequestMapping(method = RequestMethod.HEAD, path = "/{registrationId}")
 	@Operation(summary = "hasDraft", description = "hasDraft", tags = { "id-repo-draft-controller" })
 	@ApiResponses(value = {

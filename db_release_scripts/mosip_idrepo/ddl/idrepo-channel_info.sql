@@ -24,7 +24,7 @@ CREATE TABLE idrepo.channel_info(
 	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
 	CONSTRAINT pk_channel_info PRIMARY KEY (hashed_channel)
-); 
+);
 -- ddl-end --
 COMMENT ON TABLE idrepo.channel_info IS 'channel_info: Anonymous profiling information for reporting purpose.';
 -- ddl-end --
