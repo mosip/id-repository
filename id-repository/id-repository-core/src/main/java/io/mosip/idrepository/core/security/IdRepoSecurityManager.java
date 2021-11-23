@@ -297,12 +297,16 @@ public class IdRepoSecurityManager {
 	public Map<String, String> getIdHashAndAttributes(String id, IntFunction<String> saltRetreivalFunction) {
 		Map<String, String> hashWithAttributes = new HashMap<>();
 		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
-		int modResult = (int) (Long.parseLong(id) % moduloValue);
+		int modResult = getModulo(id, moduloValue);
 		String hashSalt = saltRetreivalFunction.apply(modResult);
 		String hash = hashwithSalt(id.getBytes(), hashSalt.getBytes());
 		hashWithAttributes.put(ID_HASH, hash);
 		hashWithAttributes.put(MODULO, String.valueOf(modResult));
 		hashWithAttributes.put(SALT, hashSalt);
 		return hashWithAttributes;
+	}
+
+	private int getModulo(String id, Integer moduloValue) {
+		return (int) (Long.parseLong(id) % moduloValue);
 	}
 }
