@@ -75,8 +75,6 @@ public class AnonymousProfileHelper {
 	
 	private String newCbeffRefId;
 	
-	private boolean isDraft;
-
 	@PostConstruct
 	public void init() throws MalformedURLException, IOException {
 		try (InputStream xsdBytes = new URL(identityMappingJson).openStream()) {
@@ -90,7 +88,7 @@ public class AnonymousProfileHelper {
 	}
 
 	@Async
-	public void buildAndsaveProfile() {
+	public void buildAndsaveProfile(boolean isDraft) {
 		if (!isDraft)
 			try {
 				channelInfoHelper.updatePhoneChannelInfo(oldUinData, newUinData);
@@ -181,11 +179,10 @@ public class AnonymousProfileHelper {
 		this.newUinData = null;
 		this.oldCbeff = null;
 		this.newCbeff = null;
+		this.uinHash = null;
+		this.newCbeffRefId = null;
+		this.oldCbeffRefId = null;
 		this.regId = null;
 	}
 
-	public AnonymousProfileHelper setIsDraft(boolean isDraft) {
-		this.isDraft = isDraft;
-		return this;
-	}
 }
