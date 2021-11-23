@@ -47,12 +47,12 @@ public class CredentialsFeederConfig extends IdRepoDataSourceConfig {
 		};
 	}
 	
-	@Bean
+	@Bean("restHelperWithAuth")
 	public RestHelper restHelper(@Qualifier("selfTokenWebClient") WebClient webClient) {
 		return new RestHelper(webClient);
 	}
 	
-	@Bean
+	@Bean("securityManagerWithAuth")
 	public IdRepoSecurityManager securityManager(@Qualifier("selfTokenWebClient") WebClient webClient) {
 		return new IdRepoSecurityManager(restHelper(webClient));
 	}
