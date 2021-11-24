@@ -114,6 +114,7 @@ public class AnonymousProfileHelper {
 				IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
 						.setProcessName(Objects.isNull(oldUinData) ? "New" : "Update").setOldIdentity(oldUinData)
 						.setOldDocuments(oldDocList).setNewIdentity(newUinData).setNewDocuments(newDocList).build();
+				mosipLogger.info("PROFILE --->>> " + profile);
 				AnonymousProfileEntity anonymousProfile = AnonymousProfileEntity.builder().id(id)
 						.profile(mapper.writeValueAsString(profile)).createdBy(IdRepoSecurityManager.getUser())
 						.crDTimes(DateUtils.getUTCCurrentDateTime()).build();
