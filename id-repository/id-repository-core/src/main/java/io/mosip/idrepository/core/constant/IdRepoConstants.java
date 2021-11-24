@@ -79,8 +79,6 @@ public class IdRepoConstants {
 	
 	public static final String VID_REGENERATE_ACTIVE_STATUS = "INVALIDATED";
 	
-	public static final String SALT_KEY_LENGTH = "mosip.identity.salt.key.length";
-	
 	public static final String SPLITTER = "_";
 	
 	public static final String VID_DEACTIVATED = "mosip.idrepo.vid.deactive-status";
@@ -161,8 +159,6 @@ public class IdRepoConstants {
 	public static final String VID_CREATE_ID = "mosip.idrepo.vid.id.create";
 	
 	public static final String VID_UPDATE_ID = "mosip.idrepo.vid.id.update";
-	
-	public static final int DEFAULT_SALT_KEY_LENGTH = 3;
 	
 	public static final String ERRORS = "errors";
 
