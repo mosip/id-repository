@@ -2,7 +2,7 @@ package io.mosip.idrepository.core.manager;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.CREDENTIAL_STATUS_UPDATE_TOPIC;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.SALT_KEY_LENGTH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
 
@@ -202,10 +202,9 @@ public class CredentialStatusManager {
 	}
 
 	public String encryptId(String individualId) throws IdRepoAppException {
-		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
-		int modResult = (int) (Long.parseLong(individualId) % moduloValue);
-		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(modResult);
-		return modResult + SPLITTER + new String(securityManager.encryptWithSalt(individualId.getBytes(),
+		int saltId = securityManager.getSaltKeyForId(individualId);
+		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(saltId);
+		return saltId + SPLITTER + new String(securityManager.encryptWithSalt(individualId.getBytes(),
 				CryptoUtil.decodePlainBase64(encryptSalt), uinRefId));
 	}
 

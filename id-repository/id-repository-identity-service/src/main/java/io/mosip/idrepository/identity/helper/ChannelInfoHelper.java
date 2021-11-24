@@ -1,6 +1,6 @@
 package io.mosip.idrepository.identity.helper;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.SALT_KEY_LENGTH;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -221,7 +221,7 @@ public class ChannelInfoHelper {
 	private Optional<String> getHashedPhoneNumber(byte[] uinData) {
 		try {
 			String phoneNumber = getPhoneNumber(uinData);
-			String salt = saltRepo.retrieveSaltById(getModValue(phoneNumber));
+			String salt = saltRepo.retrieveSaltById(securityManager.getSaltKeyForId(phoneNumber));
 			return Optional.of(securityManager.hashwithSalt(phoneNumber.getBytes(), CryptoUtil.decodePlainBase64(salt)));
 		} catch (Exception e) {
 			return Optional.empty();
@@ -239,7 +239,7 @@ public class ChannelInfoHelper {
 		try {
 			String email = getEmail(uinData);
 			String emailAsNumber = emailAsNumber(email);
-			String salt = saltRepo.retrieveSaltById(getModValue(emailAsNumber));
+			String salt = saltRepo.retrieveSaltById(securityManager.getSaltKeyForId(emailAsNumber));
 			return Optional.of(securityManager.hashwithSalt(email.getBytes(), CryptoUtil.decodePlainBase64(salt)));
 		} catch (Exception e) {
 			return Optional.empty();
@@ -258,9 +258,4 @@ public class ChannelInfoHelper {
 		return emailAsNumber.substring(emailAsNumber.length() - 3, emailAsNumber.length());
 	}
 
-	private int getModValue(String number) {
-		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
-		int modResult = (int) (Long.parseLong(number) % moduloValue);
-		return modResult;
-	}
 }
