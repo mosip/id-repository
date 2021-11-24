@@ -118,7 +118,7 @@ public class RestHelper {
 			if(!String.class.equals(request.getResponseType())) {
 				checkErrorResponse(response, request.getResponseType());
 				if(response != null && RestUtil.containsError(response.toString(), mapper)) {
-					mosipLogger.debug("Error in response %s", response);
+					mosipLogger.debug("Error in response %s", response.toString());
 				}
 			}	
 			checkErrorResponse(response, request.getResponseType());
