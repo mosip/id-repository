@@ -79,6 +79,8 @@ public class IdRepoConstants {
 	
 	public static final String VID_REGENERATE_ACTIVE_STATUS = "INVALIDATED";
 	
+	public static final String MODULO_VALUE = "mosip.idrepo.modulo-value";
+	
 	public static final String SPLITTER = "_";
 	
 	public static final String VID_DEACTIVATED = "mosip.idrepo.vid.deactive-status";
