@@ -121,7 +121,6 @@ public class RestHelper {
 					mosipLogger.debug("Error in response %s", response.toString());
 				}
 			}	
-			checkErrorResponse(response, request.getResponseType());
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_SYNC,
 					"Received valid response");
 			return (T) response;
