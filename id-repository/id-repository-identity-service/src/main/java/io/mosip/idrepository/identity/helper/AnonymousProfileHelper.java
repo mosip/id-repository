@@ -12,6 +12,7 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -74,8 +75,6 @@ public class AnonymousProfileHelper {
 	
 	private String newCbeffRefId;
 	
-	private boolean isDraft;
-
 	@PostConstruct
 	public void init() throws MalformedURLException, IOException {
 		try (InputStream xsdBytes = new URL(identityMappingJson).openStream()) {
@@ -89,22 +88,19 @@ public class AnonymousProfileHelper {
 	}
 
 	@Async
-	public void buildAndsaveProfile() {
+	public void buildAndsaveProfile(boolean isDraft) {
 		if (!isDraft)
 			try {
 				channelInfoHelper.updatePhoneChannelInfo(oldUinData, newUinData);
 				channelInfoHelper.updateEmailChannelInfo(oldUinData, newUinData);
 				List<DocumentsDTO> oldDocList = List.of(new DocumentsDTO());
 				List<DocumentsDTO> newDocList = List.of(new DocumentsDTO());
-				try {
-					if (Objects.isNull(oldCbeff) && Objects.nonNull(oldCbeffRefId))
-						this.oldCbeff = CryptoUtil.encodeToURLSafeBase64(objectStoreHelper.getBiometricObject(uinHash, oldCbeffRefId));
-					if (Objects.isNull(newCbeff) && Objects.nonNull(newCbeffRefId))
-						this.newCbeff = CryptoUtil.encodeToURLSafeBase64(objectStoreHelper.getBiometricObject(uinHash, newCbeffRefId));
-				} catch (Exception e) {
-					mosipLogger.error(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "buildAndsaveProfile",
-							e.getMessage());
-				}
+				if (Objects.isNull(oldCbeff) && Objects.nonNull(oldCbeffRefId))
+					this.oldCbeff = CryptoUtil
+							.encodeToURLSafeBase64(objectStoreHelper.getBiometricObject(uinHash, oldCbeffRefId));
+				if (Objects.isNull(newCbeff) && Objects.nonNull(newCbeffRefId))
+					this.newCbeff = CryptoUtil
+							.encodeToURLSafeBase64(objectStoreHelper.getBiometricObject(uinHash, newCbeffRefId));
 				if (Objects.nonNull(oldCbeff))
 					oldDocList = List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
 							.getIdentity().getIndividualBiometrics().getValue(), oldCbeff));
@@ -120,7 +116,8 @@ public class AnonymousProfileHelper {
 						.crDTimes(DateUtils.getUTCCurrentDateTime()).build();
 				anonymousProfileRepo.save(anonymousProfile);
 			} catch (Exception e) {
-				e.printStackTrace();
+				mosipLogger.warn(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "buildAndsaveProfile",
+						ExceptionUtils.getStackTrace(e));
 			}
 	}
 
@@ -154,7 +151,8 @@ public class AnonymousProfileHelper {
 
 	public AnonymousProfileHelper setOldCbeff(String uinHash, String fileRefId) {
 		if (Objects.isNull(oldCbeff)) {
-			this.uinHash = StringUtils.substringAfter(uinHash, "_");
+			String substringHash = StringUtils.substringAfter(uinHash, "_");
+			this.uinHash = StringUtils.isBlank(substringHash) ? uinHash : substringHash;
 			this.oldCbeffRefId = fileRefId;
 		}
 		return this;
@@ -162,7 +160,8 @@ public class AnonymousProfileHelper {
 
 	public AnonymousProfileHelper setNewCbeff(String uinHash, String fileRefId) {
 		if (Objects.isNull(newCbeff)) {
-			this.uinHash = StringUtils.substringAfter(uinHash, "_");
+			String substringHash = StringUtils.substringAfter(uinHash, "_");
+			this.uinHash = StringUtils.isBlank(substringHash) ? uinHash : substringHash;
 			this.newCbeffRefId = fileRefId;
 		}
 		return this;
@@ -180,11 +179,10 @@ public class AnonymousProfileHelper {
 		this.newUinData = null;
 		this.oldCbeff = null;
 		this.newCbeff = null;
+		this.uinHash = null;
+		this.newCbeffRefId = null;
+		this.oldCbeffRefId = null;
 		this.regId = null;
 	}
 
-	public AnonymousProfileHelper setIsDraft(boolean isDraft) {
-		this.isDraft = isDraft;
-		return this;
-	}
 }

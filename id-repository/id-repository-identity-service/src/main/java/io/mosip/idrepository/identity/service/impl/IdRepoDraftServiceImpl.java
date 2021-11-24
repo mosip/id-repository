@@ -157,8 +157,9 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				UinDraft newDraft;
 				if (Objects.nonNull(uin)) {
 					int modValue = getModValue(uin);
-					if (super.uinRepo.existsByUinHash(super.getUinHash(uin, modValue))) {
-						Uin uinObject = super.uinRepo.findByUinHash(super.getUinHash(uin, modValue));
+					Optional<Uin> uinObjectOptional = super.uinRepo.findByUinHash(super.getUinHash(uin, modValue));
+					if (uinObjectOptional.isPresent()) {
+						Uin uinObject = uinObjectOptional.get();
 						newDraft = mapper.convertValue(uinObject, UinDraft.class);
 						updateBiometricAndDocumentDrafts(registrationId, newDraft, uinObject);
 						newDraft.setRegId(registrationId);
@@ -351,7 +352,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 
 	@Override
 	public IdResponseDTO publishDraft(String regId) throws IdRepoAppException {
-		anonymousProfileHelper.setRegId(regId).setIsDraft(true);
+		anonymousProfileHelper.setRegId(regId);
 		try {
 			String draftVid = null;
 			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
@@ -378,8 +379,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 								&& !draft.getBiometrics().isEmpty()
 										? draft.getBiometrics().get(draft.getBiometrics().size() - 1).getBioFileId()
 										: null)
-				.setIsDraft(false)
-				.buildAndsaveProfile();
+				.buildAndsaveProfile(true);
 				publishDocuments(draft, uinObject);
 				this.discardDraft(regId);
 				return constructIdResponse(null, uinObject.getStatusCode(), null, draftVid);
@@ -450,10 +450,18 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	@Override
 	public IdResponseDTO discardDraft(String regId) throws IdRepoAppException {
 		try {
-			uinDraftRepo.findByRegId(regId).ifPresent(uinDraftRepo::delete);
-			return constructIdResponse(null, "DISCARDED", null, null);
+			Optional<UinDraft> draftOptional = uinDraftRepo.findByRegId(regId);
+			if (draftOptional.isPresent()) {
+				uinDraftRepo.delete(draftOptional.get());
+				return constructIdResponse(null, "DISCARDED", null, null);
+			} else {
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT,
+						"RID NOT FOUND IN DB");
+				throw new IdRepoAppException(NO_RECORD_FOUND);
+			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, DISCARD_DRAFT, e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, DISCARD_DRAFT,
+					e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
 		}
 	}

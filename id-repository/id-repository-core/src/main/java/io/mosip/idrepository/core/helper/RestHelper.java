@@ -146,7 +146,7 @@ public class RestHelper {
 		mosipLogger.debug(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_ASYNC,
 				PREFIX_REQUEST + request.getUri());
 		Mono<?> sendRequest = request(request);
-		sendRequest.subscribe();
+		//sendRequest.subscribe();
 		return () -> sendRequest.block();
 	}
 
