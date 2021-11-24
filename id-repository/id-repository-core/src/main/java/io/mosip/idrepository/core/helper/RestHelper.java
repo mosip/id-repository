@@ -33,6 +33,7 @@ import io.mosip.idrepository.core.exception.IdRepoRetryException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.RestUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -114,6 +115,12 @@ public class RestHelper {
 			} else {
 				response = request(request).block();
 			}
+			if(!String.class.equals(request.getResponseType())) {
+				checkErrorResponse(response, request.getResponseType());
+				if(response != null && RestUtil.containsError(response.toString(), mapper)) {
+					mosipLogger.debug("Error in response %s", response.toString());
+				}
+			}	
 			checkErrorResponse(response, request.getResponseType());
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_SYNC,
 					"Received valid response");
