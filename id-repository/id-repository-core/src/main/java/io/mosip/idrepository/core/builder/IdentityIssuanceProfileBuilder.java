@@ -23,9 +23,11 @@ import io.mosip.idrepository.core.dto.BiometricInfo;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.Exceptions;
 import io.mosip.idrepository.core.dto.IdentityMapping;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.kernel.biometrics.commons.CbeffValidator;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.Entry;
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.idrepository.core.util.CryptoUtil;
 import lombok.Data;
 
@@ -45,16 +47,22 @@ public class IdentityIssuanceProfileBuilder {
 	private static String dateFormat;
 
 	public IdentityIssuanceProfile build() {
-		if (StringUtils.isBlank(filterLanguage))
-			filterLanguage = this.getPreferredLanguage(oldIdentity);
-		buildOldProfile();
-		buildNewProfile();
-		IdentityIssuanceProfile profile = new IdentityIssuanceProfile();
-		profile.setProcessName(processName);
-		profile.setDate(LocalDate.now());
-		profile.setOldProfile(oldProfile);
-		profile.setNewProfile(newProfile);
-		return profile;
+		try {
+			if (StringUtils.isBlank(filterLanguage))
+				filterLanguage = this.getPreferredLanguage(oldIdentity);
+			buildOldProfile();
+			buildNewProfile();
+			IdentityIssuanceProfile profile = new IdentityIssuanceProfile();
+			profile.setProcessName(processName);
+			profile.setDate(LocalDate.now());
+			profile.setOldProfile(oldProfile);
+			profile.setNewProfile(newProfile);
+			return profile;
+		} catch (Exception e) {
+			IdRepoLogger.getLogger(IdentityIssuanceProfileBuilder.class)
+					.info("EXCEPTION --->>> " + ExceptionUtils.getStackTrace(e));
+			return new IdentityIssuanceProfile();
+		}
 	}
 
 	private void buildOldProfile() {
@@ -163,12 +171,15 @@ public class IdentityIssuanceProfileBuilder {
 	}
 
 	private List<BiometricInfo> getBiometricInfo(List<BIR> biometrics) {
+		IdRepoLogger.getLogger(IdentityIssuanceProfileBuilder.class).info("BIO_INFO_PRESENT --->>> " + Objects.nonNull(biometrics));
 		if (Objects.nonNull(biometrics))
 			return Streams.stream(biometrics)
 				.map(bir -> {
 						Optional<Entry> payload = Optional.ofNullable(bir.getOthers()).stream()
 								.flatMap(birs -> birs.stream())
 								.filter(others -> others.getKey().contentEquals("PAYLOAD")).findAny();
+						IdRepoLogger.getLogger(IdentityIssuanceProfileBuilder.class).info("PAYLOAD --->>> " + payload);
+						
 						String digitalId = null;
 						if (payload.isPresent() && StringUtils.isNotBlank(payload.get().getValue())) {
 							Map<String, String> digitalIdEncoded = mapper.readValue(payload.get().getValue(),
@@ -177,6 +188,8 @@ public class IdentityIssuanceProfileBuilder {
 							digitalId = new String(
 									CryptoUtil.decodeURLSafeBase64(digitalIdEncoded.get("digitalId").split("\\.")[1]));
 						}
+						IdRepoLogger.getLogger(IdentityIssuanceProfileBuilder.class).info("DIGITAL_ID --->>> " + digitalId);
+						
 						return BiometricInfo.builder()
 								.type(bir.getBdbInfo().getType().stream().map(type -> type.value())
 										.collect(Collectors.joining(" ")))
