@@ -156,14 +156,14 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			if (!super.uinHistoryRepo.existsByRegId(registrationId) && !uinDraftRepo.existsByRegId(registrationId)) {
 				UinDraft newDraft;
 				if (Objects.nonNull(uin)) {
-					int modValue = getModValue(uin);
+					int modValue = securityManager.getSaltKeyForId(uin);
 					Optional<Uin> uinObjectOptional = super.uinRepo.findByUinHash(super.getUinHash(uin, modValue));
 					if (uinObjectOptional.isPresent()) {
 						Uin uinObject = uinObjectOptional.get();
 						newDraft = mapper.convertValue(uinObject, UinDraft.class);
 						updateBiometricAndDocumentDrafts(registrationId, newDraft, uinObject);
 						newDraft.setRegId(registrationId);
-						newDraft.setUin(super.getUinToEncrypt(uin, super.getModValue(uin)));
+						newDraft.setUin(super.getUinToEncrypt(uin, securityManager.getSaltKeyForId(uin)));
 					} else {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT,
 								"UIN NOT EXIST");
@@ -172,7 +172,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				} else {
 					newDraft = new UinDraft();
 					uin = generateUin();
-					int modValue = getModValue(uin);
+					int modValue = securityManager.getSaltKeyForId(uin);
 					newDraft.setUin(super.getUinToEncrypt(uin, modValue));
 					newDraft.setUinHash(super.getUinHash(uin, modValue));
 					byte[] uinData = convertToBytes(generateIdentityObject(uin));
@@ -441,7 +441,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		String uin = new String(securityManager.decryptWithSalt(
 				CryptoUtil.decodeURLSafeBase64(StringUtils.substringAfter((String) encryptedUin, SPLITTER)),
 				CryptoUtil.decodePlainBase64(salt), uinRefId));
-		if (!StringUtils.equals(super.getUinHash(uin, super.getModValue(uin)), uinHash)) {
+		if (!StringUtils.equals(super.getUinHash(uin, securityManager.getSaltKeyForId(uin)), uinHash)) {
 			throw new IdRepoAppUncheckedException(UIN_HASH_MISMATCH);
 		}
 		return uin;

@@ -3,8 +3,9 @@ package io.mosip.idrepository.core.security;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_ID;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DATETIME_PATTERN;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.DEFAULT_SALT_KEY_LENGTH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.PREPEND_THUMPRINT_STATUS;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.SALT_KEY_LENGTH;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED;
 
 import java.security.NoSuchAlgorithmException;
@@ -34,10 +35,11 @@ import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.util.CryptoUtil;
+import io.mosip.idrepository.core.util.SaltUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.idrepository.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.HMACUtils2;
 import lombok.NoArgsConstructor;
@@ -296,17 +298,17 @@ public class IdRepoSecurityManager {
 
 	public Map<String, String> getIdHashAndAttributes(String id, IntFunction<String> saltRetreivalFunction) {
 		Map<String, String> hashWithAttributes = new HashMap<>();
-		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
-		int modResult = getModulo(id, moduloValue);
-		String hashSalt = saltRetreivalFunction.apply(modResult);
+		int saltId = getSaltKeyForId(id);
+		String hashSalt = saltRetreivalFunction.apply(saltId);
 		String hash = hashwithSalt(id.getBytes(), hashSalt.getBytes());
 		hashWithAttributes.put(ID_HASH, hash);
-		hashWithAttributes.put(MODULO, String.valueOf(modResult));
+		hashWithAttributes.put(MODULO, String.valueOf(saltId));
 		hashWithAttributes.put(SALT, hashSalt);
 		return hashWithAttributes;
 	}
 
-	private int getModulo(String id, Integer moduloValue) {
-		return (int) (Long.parseLong(id) % moduloValue);
+	public int getSaltKeyForId(String id) {
+		Integer saltKeyLength = env.getProperty(SALT_KEY_LENGTH, Integer.class, DEFAULT_SALT_KEY_LENGTH);
+		return SaltUtil.getIdvidModulo(id, saltKeyLength);
 	}
 }
