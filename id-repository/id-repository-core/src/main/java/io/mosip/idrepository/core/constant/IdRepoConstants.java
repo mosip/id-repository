@@ -163,6 +163,8 @@ public class IdRepoConstants {
 	public static final String VID_UPDATE_ID = "mosip.idrepo.vid.id.update";
 	
 	public static final int DEFAULT_SALT_KEY_LENGTH = 3;
+  
+	public static final String ERRORS = "errors";
 
 	/**
 	 * Instantiates a new id repo constants.
