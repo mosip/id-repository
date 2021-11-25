@@ -2,7 +2,7 @@ package io.mosip.idrepository.identity.service.impl;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.SALT_KEY_LENGTH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.WEB_SUB_PUBLISH_URL;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
@@ -376,28 +376,25 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * @return the string
 	 */
 	private String retrieveUinHash(String uin) {
-		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
-		int modResult = (int) (Long.parseLong(uin) % moduloValue);
-		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
+		int saltId = securityManager.getSaltKeyForId(uin);
+		String hashSalt = uinHashSaltRepo.retrieveSaltById(saltId);
 		String hashwithSalt = securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
-		return modResult + SPLITTER + hashwithSalt;
+		return saltId + SPLITTER + hashwithSalt;
 	}
 
 	private String getIdHash(String uin) {
-		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
-		int modResult = (int) (Long.parseLong(uin) % moduloValue);
-		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
+			int saltId = securityManager.getSaltKeyForId(uin);
+		String hashSalt = uinHashSaltRepo.retrieveSaltById(saltId);
 		return securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
 	}
 
 	private Map<String, String> getIdHashAndAttributes(String id) {
 		Map<String, String> hashWithAttributes = new HashMap<>();
-		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
-		int modResult = (int) (Long.parseLong(id) % moduloValue);
-		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
+		int saltId = securityManager.getSaltKeyForId(uin);
+		String hashSalt = uinHashSaltRepo.retrieveSaltById(saltId);
 		String hash = securityManager.hashwithSalt(id.getBytes(), hashSalt.getBytes());
 		hashWithAttributes.put(ID_HASH, hash);
-		hashWithAttributes.put(MODULO, String.valueOf(modResult));
+		hashWithAttributes.put(MODULO, String.valueOf(saltId));
 		hashWithAttributes.put(SALT, hashSalt);
 		return hashWithAttributes;
 	}

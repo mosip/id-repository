@@ -249,12 +249,11 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	 */
 	private Vid generateVid(String uin, String vidType) throws IdRepoAppException {
 		checkUinStatus(uin);
-		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
-		int modResult = (int) (Long.parseLong(uin) % moduloValue);
-		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(modResult);
-		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
-		String uinToEncrypt = modResult + SPLITTER + uin + SPLITTER + encryptSalt;
-		String uinHash = String.valueOf(modResult) + SPLITTER
+		int saltId = securityManager.getSaltKeyForId(uin);
+		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(saltId);
+		String hashSalt = uinHashSaltRepo.retrieveSaltById(saltId);
+		String uinToEncrypt = saltId + SPLITTER + uin + SPLITTER + encryptSalt;
+		String uinHash = String.valueOf(saltId) + SPLITTER
 				+ securityManager.hashwithSalt(uin.getBytes(), CryptoUtil.decodeBase64(hashSalt));
 		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime();
 		List<Vid> vidDetails = vidRepo.findByUinHashAndStatusCodeAndVidTypeCodeAndExpiryDTimesAfter(uinHash,
@@ -405,9 +404,9 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	@Override
 	public VidsInfosDTO retrieveVidsByUin(String uin) throws IdRepoAppException {
 		try {
-			Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
-			int modResult = (int) (Long.parseLong(uin) % moduloValue);
-			String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
+			int saltId = securityManager.getSaltKeyForId(uin);
+			String hashSalt = uinHashSaltRepo.retrieveSaltById(saltId);
+			String uinHash = String.valueOf(saltId) + SPLITTER
 			String uinHash = String.valueOf(modResult) + SPLITTER
 					+ securityManager.hashwithSalt(uin.getBytes(), CryptoUtil.decodeBase64(hashSalt));
 			List<Vid> vidList = vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(uinHash,
@@ -589,9 +588,9 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	 */
 	private ResponseWrapper<VidResponseDTO> applyVIDStatus(String uin, String status, String idType,
 			String vidStatusToRetrieveVIDList) throws IdRepoAppException {
-		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
-		String hashSalt = uinHashSaltRepo.retrieveSaltById((int) (Long.parseLong(uin) % moduloValue));
-		String uinHash = String.valueOf((Long.parseLong(uin) % moduloValue)) + SPLITTER
+		int saltId = securityManager.getSaltKeyForId(uin);
+		String hashSalt = uinHashSaltRepo.retrieveSaltById(saltId);
+		String uinHash = String.valueOf(saltId) + SPLITTER
 				+ securityManager.hashwithSalt(uin.getBytes(), CryptoUtil.decodeBase64(hashSalt));
 		List<Vid> vidList = vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(uinHash, vidStatusToRetrieveVIDList,
 				DateUtils.getUTCCurrentDateTime());
@@ -832,12 +831,11 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	
 	private Map<String, String> getIdHashAndAttributes(String id) {
 		Map<String, String> hashWithAttributes = new HashMap<>();
-		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
-		int modResult = (int) (Long.parseLong(id) % moduloValue);
-		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
+		int saltId = securityManager.getSaltKeyForId(uin);
+		String hashSalt = uinHashSaltRepo.retrieveSaltById(saltId);
 		String hash = securityManager.hashwithSalt(id.getBytes(), hashSalt.getBytes());
 		hashWithAttributes.put(ID_HASH, hash);
-		hashWithAttributes.put(MODULO, String.valueOf(modResult));
+		hashWithAttributes.put(MODULO, String.valueOf(saltId));
 		hashWithAttributes.put(SALT, hashSalt);
 		return hashWithAttributes;
 	}
