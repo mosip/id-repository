@@ -4,7 +4,6 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION_VID;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.IDA_NOTIFY_REQ_ID;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.IDA_NOTIFY_REQ_VER;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_DEACTIVATED;
@@ -407,7 +406,6 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			int saltId = securityManager.getSaltKeyForId(uin);
 			String hashSalt = uinHashSaltRepo.retrieveSaltById(saltId);
 			String uinHash = String.valueOf(saltId) + SPLITTER
-			String uinHash = String.valueOf(modResult) + SPLITTER
 					+ securityManager.hashwithSalt(uin.getBytes(), CryptoUtil.decodeBase64(hashSalt));
 			List<Vid> vidList = vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(uinHash,
 					env.getProperty(VID_ACTIVE_STATUS), DateUtils.getUTCCurrentDateTime());
@@ -831,7 +829,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	
 	private Map<String, String> getIdHashAndAttributes(String id) {
 		Map<String, String> hashWithAttributes = new HashMap<>();
-		int saltId = securityManager.getSaltKeyForId(uin);
+		int saltId = securityManager.getSaltKeyForId(id);
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(saltId);
 		String hash = securityManager.hashwithSalt(id.getBytes(), hashSalt.getBytes());
 		hashWithAttributes.put(ID_HASH, hash);
