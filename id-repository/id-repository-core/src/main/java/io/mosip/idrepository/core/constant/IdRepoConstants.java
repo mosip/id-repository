@@ -82,7 +82,7 @@ public class IdRepoConstants {
 	
 	public static final String VID_REGENERATE_ACTIVE_STATUS = "INVALIDATED";
 	
-	public static final String MODULO_VALUE = "mosip.idrepo.modulo-value";
+	public static final String SALT_KEY_LENGTH = "mosip.identity.salt.key.length";
 	
 	public static final String SPLITTER = "_";
 	
@@ -106,6 +106,9 @@ public class IdRepoConstants {
 	
 	/** The value. */
 	private final String value;
+	
+	public static final int DEFAULT_SALT_KEY_LENGTH = 3;
+  
 
 	/**
 	 * Instantiates a new id repo constants.

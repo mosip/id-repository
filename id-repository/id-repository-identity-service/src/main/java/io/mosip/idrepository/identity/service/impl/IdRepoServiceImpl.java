@@ -4,7 +4,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.CBEFF_FORMAT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_FORMAT_ATTRIBUTE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_NAME_ATTRIBUTE;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.SALT_KEY_LENGTH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MOSIP_PRIMARY_LANGUAGE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_NOT_FOUND;
@@ -173,8 +173,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		String uinRefId = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils.getUTCCurrentDateTime())
 				.toString();
 		byte[] identityInfo = convertToBytes(request.getRequest().getIdentity());
-		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
-		int modResult = (int) (Long.parseLong(uin) % moduloValue);
+		int modResult = securityManager.getSaltKeyForId(uin);
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
 		String uinHashwithSalt = securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
 		String uinHash = modResult + SPLITTER + uinHashwithSalt;
@@ -330,8 +329,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 */
 	@Override
 	public Uin updateIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
-		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
-		int modResult = (int) (Long.parseLong(uin) % moduloValue);
+		int modResult = securityManager.getSaltKeyForId(uin);
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
 		String uinHashwithSalt = securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
 		String uinHash = modResult + SPLITTER + uinHashwithSalt;
