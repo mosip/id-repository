@@ -161,6 +161,8 @@ public class IdRepoConstants {
 	public static final String VID_CREATE_ID = "mosip.idrepo.vid.id.create";
 	
 	public static final String VID_UPDATE_ID = "mosip.idrepo.vid.id.update";
+	
+	public static final String ERRORS = "errors";
 
 	/**
 	 * Instantiates a new id repo constants.
