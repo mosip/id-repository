@@ -230,7 +230,7 @@ public class IdAuthProvider extends CredentialProvider {
 			birs.add(bir);
 			BDBInfo bdbInfo = bir.getBdbInfo();
 			String type = bdbInfo.getType().get(0).value();
-			String subType = getSubType(bdbInfo.getSubtype());
+			String subType = super.getSubType(bdbInfo.getSubtype());
 			if (subType != null) {
 				ZkDataAttribute zkDataAttribute = new ZkDataAttribute();
 				zkDataAttribute.setIdentifier(type + "_" + subType);
@@ -251,23 +251,4 @@ public class IdAuthProvider extends CredentialProvider {
 		return zkDataAttributes;
 	}
 	
-	/**
-	 * 
-	 * @param bdbSubTypeList
-	 * @return
-	 */
-	private String getSubType(List<String> bdbSubTypeList) {
-		String subType;
-		try {
-			if (bdbSubTypeList.size() == 1) {
-				subType = bdbSubTypeList.get(0);
-			} else {
-				subType = bdbSubTypeList.get(0) + " " + bdbSubTypeList.get(1);
-			}
-			return subType;
-		} catch (Exception e) {
-			return null;
-		}
-	}
-
 }
