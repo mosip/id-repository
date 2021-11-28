@@ -57,6 +57,8 @@ import io.mosip.kernel.websub.api.model.UnsubscriptionRequest;
 @Component
 public class IdRepoWebSubHelper {
 
+	private static final String SEND_EVENT_TO_IDA = "sendEventToIDA";
+
 	/** The mosip logger. */
 	Logger mosipLogger = IdRepoLogger.getLogger(IdRepoWebSubHelper.class);
 
@@ -113,9 +115,7 @@ public class IdRepoWebSubHelper {
 				try {
 					publisher.registerTopic(topic, publisherURL);
 					registeredTopicCache.add(topic);
-				} catch (WebSubClientException e) {
-					mosipLogger.warn(IdRepoSecurityManager.getUser(), "IdRepoConfig", "init", e.getMessage().toUpperCase());
-				} catch (IdRepoAppUncheckedException e) {
+				} catch (WebSubClientException | IdRepoAppUncheckedException e) {
 					mosipLogger.warn(IdRepoSecurityManager.getUser(), "IdRepoConfig", "init", e.getMessage().toUpperCase());
 				}
 			}
@@ -213,15 +213,15 @@ public class IdRepoWebSubHelper {
 		String partnerId = model.getTopic().split("//")[0];
 		if (!dummyCheck.isDummyOLVPartner(partnerId)) {
 			try {
-				mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendEventToIDA",
+				mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_EVENT_TO_IDA,
 						"Trying registering topic: " + model.getTopic());
 				this.tryRegisteringTopic(model.getTopic());
 			} catch (Exception e) {
 				// Exception will be there if topic already registered. Ignore that
-				mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendEventToIDA",
+				mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_EVENT_TO_IDA,
 						"Error in registering topic: " + model.getTopic() + " : " + e.getMessage());
 			}
-			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendEventToIDA",
+			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_EVENT_TO_IDA,
 					"Publising event to topic: " + model.getTopic());
 			publisher.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null, publisherURL);
 		}
@@ -239,7 +239,6 @@ public class IdRepoWebSubHelper {
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "subscribeForVidEvent",
 					"subscribed event topic: " + vidEventTopic);
 		} catch (Exception e) {
-			System.err.println(ExceptionUtils.getStackTrace(e));
 			mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "subscribeForVidEvent",
 					"Error subscribing topic: " + vidEventTopic + "\n" + e.getMessage());
 		}

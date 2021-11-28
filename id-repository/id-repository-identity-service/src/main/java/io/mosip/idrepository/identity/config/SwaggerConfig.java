@@ -17,11 +17,8 @@ public class SwaggerConfig {
 
 	private static final Logger logger = LoggerFactory.getLogger(SwaggerConfig.class);
 
-	@Autowired
-	private OpenApiProperties openApiProperties;
-
 	@Bean
-	public OpenAPI openApi() {
+	public OpenAPI openApi(OpenApiProperties openApiProperties) {
 		String msg = "Swagger open api, ";
 		OpenAPI api = new OpenAPI()
 				.components(new Components());
