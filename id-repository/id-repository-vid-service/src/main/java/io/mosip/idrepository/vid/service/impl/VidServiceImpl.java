@@ -40,7 +40,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionException;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
@@ -88,6 +87,10 @@ import io.mosip.kernel.core.websub.model.EventModel;
 @Transactional
 public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper<VidResponseDTO>, ResponseWrapper<List<VidInfoDTO>>> {
 	
+	private static final String THROWING_NO_RECORD_FOUND_VID = "throwing NO_RECORD_FOUND_VID";
+
+	private static final String CHECK_UIN_STATUS = "checkUinStatus";
+
 	/** The Constant VID. */
 	private static final String VID = "vid";
 
@@ -123,6 +126,12 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	
 	@Value("${" + VID_EVENT_TOPIC + "}")
 	private String vidEventTopic;
+	
+	@Value("${ " + VID_ACTIVE_STATUS + "}")
+	private String vidActiveStatus;
+	
+	@Value("${" + VID_REGENERATE_ALLOWED_STATUS + "}")
+	private String allowedStatus;
 
 	/** The env. */
 	@Autowired
@@ -239,7 +248,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 						Collections.singletonList(createVidInfo(vidEntity, getIdHashAndAttributes(vidEntity.getVid()))),
 						false);
 			return vidRepo.save(vidEntity);
-		} else if (vidDetails.size() == policy.getAllowedInstances() && policy.getAutoRestoreAllowed()) {
+		} else if (vidDetails.size() == policy.getAllowedInstances() && Boolean.TRUE.equals(policy.getAutoRestoreAllowed())) {
 			Vid vidObject = vidDetails.get(0);
 			Map<String, String> idHashAndAttributes = getIdHashAndAttributes(vidObject.getVid());
 			vidObject.setStatusCode(policy.getRestoreOnAction());
@@ -305,23 +314,23 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 						String.format(INVALID_UIN.getErrorMessage(), uinStatus));
 			}
 		} catch (RestServiceException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, "checkUinStatus",
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CHECK_UIN_STATUS,
 					"\n" + e.getMessage());
 			List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(
-					e.getResponseBodyAsString().isPresent() ? e.getResponseBodyAsString().get() : null);
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, "checkUinStatus", "\n" + errorList);
+					e.getResponseBodyAsString().orElse(null));
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CHECK_UIN_STATUS, "\n" + errorList);
 			if (Objects.nonNull(errorList) && !errorList.isEmpty()
 					&& errorList.get(0).getErrorCode().equals(NO_RECORD_FOUND.getErrorCode())) {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, "checkUinStatus",
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CHECK_UIN_STATUS,
 						"throwing no record found");
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			} else {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, "checkUinStatus",
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CHECK_UIN_STATUS,
 						"throwing UIN_RETRIEVAL_FAILED");
 				throw new IdRepoAppException(UIN_RETRIEVAL_FAILED);
 			}
 		} catch (IdRepoDataValidationException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, "checkUinStatus",
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, CHECK_UIN_STATUS,
 					"\n" + e.getMessage());
 			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorText());
 		}
@@ -348,7 +357,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 				return buildResponse(resDTO, id.get("read"));
 			} else {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
-						"throwing NO_RECORD_FOUND_VID");
+						THROWING_NO_RECORD_FOUND_VID);
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
 		} catch (IdRepoAppUncheckedException e) {
@@ -410,7 +419,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			Vid vidObject = retrieveVidEntity(vid);
 			if (Objects.isNull(vidObject)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, UPDATE_VID,
-						"throwing NO_RECORD_FOUND_VID");
+						THROWING_NO_RECORD_FOUND_VID);
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
 			checkStatus(vidObject.getStatusCode());
@@ -460,11 +469,11 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			vidRepo.saveAndFlush(vidObject);
 			VidInfoDTO vidInfo = createVidInfo(vidObject, idHashAndAttributes);
 			notify(decryptedUin, vidStatus, Collections.singletonList(vidInfo),
-					env.getProperty(VID_ACTIVE_STATUS).contentEquals(vidStatus) ? false : true);
+					!vidActiveStatus.contentEquals(vidStatus));
 		}
 		VidResponseDTO response = new VidResponseDTO();
 		response.setVidStatus(vidObject.getStatusCode());
-		if (policy.getAutoRestoreAllowed() && policy.getRestoreOnAction().equals(vidStatus)) {
+		if (Boolean.TRUE.equals(policy.getAutoRestoreAllowed()) && policy.getRestoreOnAction().equals(vidStatus)) {
 			Vid createVidResponse = generateVidWithActiveUin(uin, vidObject.getVidTypeCode());
 			VidResponseDTO restoredVidDTO = new VidResponseDTO();
 			restoredVidDTO.setVid(createVidResponse.getVid());
@@ -490,11 +499,11 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			Vid vidObject = retrieveVidEntity(vid);
 			if (Objects.isNull(vidObject)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, REGENERATE_VID,
-						"throwing NO_RECORD_FOUND_VID");
+						THROWING_NO_RECORD_FOUND_VID);
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
 			VidPolicy policy = policyProvider.getPolicy(vidObject.getVidTypeCode());
-			if (policy.getAutoRestoreAllowed()) {
+			if (Boolean.TRUE.equals(policy.getAutoRestoreAllowed())) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, REGENERATE_VID,
 						"throwing Vid Regeneration Failed");
 				throw new IdRepoAppException(VID_POLICY_FAILED);
@@ -582,17 +591,13 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			});
 			
 			vidRepo.saveAll(vidList);
-			if (idType.contentEquals(DEACTIVATE)) {
-				notify(uin, status, vidInfos, true);
-			} else {
-				notify(uin, status, vidInfos, false);
-			}
+			notify(uin, status, vidInfos, idType.contentEquals(DEACTIVATE));
 			VidResponseDTO response = new VidResponseDTO();
 			response.setVidStatus(status);
 			return buildResponse(response, id.get(idType));
 		} else {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, "deactivateVIDsForUIN",
-					"throwing NO_RECORD_FOUND_VID");
+					THROWING_NO_RECORD_FOUND_VID);
 			throw new IdRepoAppException(NO_RECORD_FOUND);
 		}
 	}
@@ -614,7 +619,6 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	 *             the id repo app exception
 	 */
 	private void checkRegenerateStatus(String statusCode) throws IdRepoAppException {
-		String allowedStatus = env.getProperty(VID_REGENERATE_ALLOWED_STATUS);
 		List<String> allowedStatusList = Arrays.asList(allowedStatus.split(","));
 		if (!allowedStatusList.contains(statusCode)) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, "checkRegenerateStatus",
@@ -714,7 +718,6 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		return responseDto;
 	}
 	
-	@Transactional(propagation = Propagation.NEVER)
 	private void notify(String uin, String status, List<VidInfoDTO> vids, boolean isUpdated) {
 		credentialServiceManager.notifyVIDCredential(uin, status, vids, isUpdated, uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer, this::idaEventConsumer);
 	}
