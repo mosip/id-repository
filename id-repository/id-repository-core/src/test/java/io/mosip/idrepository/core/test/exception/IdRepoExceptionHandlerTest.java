@@ -49,7 +49,6 @@ import io.mosip.kernel.core.exception.ServiceError;
  *
  * @author Manoj SP
  */
-@Ignore
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @WebMvcTest

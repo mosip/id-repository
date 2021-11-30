@@ -479,7 +479,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 */
 	protected void updateJsonObject(DocumentContext inputData, DocumentContext dbData, JSONCompareResult comparisonResult)
 			throws JSONException, IdRepoAppException {
-		boolean isUpdateExeutedOnce = false;
 		if (comparisonResult.isMissingOnField()) {
 			updateMissingFields(dbData, comparisonResult);
 		}
@@ -495,8 +494,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
-		if (!isUpdateExeutedOnce && comparisonResult.failed()) {
-			isUpdateExeutedOnce = true;
+		if (comparisonResult.failed()) {
 			updateJsonObject(inputData, dbData, comparisonResult);
 		}
 	}
@@ -602,9 +600,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		List<Map<String, String>> inputDataList = inputData.read(path + DOT + key, List.class);
 		inputDataList.stream()
 				.filter(map -> map.containsKey(LANGUAGE) && dbDataList.stream().filter(dbMap -> dbMap.containsKey(LANGUAGE))
-						.allMatch(dbMap -> !StringUtils.equalsIgnoreCase(dbMap.get(LANGUAGE), map.get(LANGUAGE))))
+						.allMatch(dbMap -> {
+							return !StringUtils.equalsIgnoreCase(dbMap.get(LANGUAGE), map.get(LANGUAGE));
+						}))
 				.forEach(value -> {
-					dbDataList.add(value);
+//					dbDataList.add(value);
 					dbData.add(jsonPath, value);
 				});
 		dbDataList.stream()
@@ -612,7 +612,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						&& inputDataList.stream().filter(inputDataMap -> inputDataMap.containsKey(LANGUAGE)).allMatch(
 								inputDataMap -> !StringUtils.equalsIgnoreCase(inputDataMap.get(LANGUAGE), map.get(LANGUAGE))))
 				.forEach(value -> {
-					inputDataList.add(value);
+//					inputDataList.add(value);
 					inputData.add(jsonPath, value);
 				});
 	}
@@ -691,9 +691,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 									anonymousProfileHelper.setOldCbeff(CryptoUtil.encodeToURLSafeBase64(data));
 									doc.setValue(CryptoUtil.encodeToURLSafeBase64(this.updateXML(decodedBioData, data)));
 								}
+						} catch (IdRepoAppUncheckedException e) {
+							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateCbeff",
+									ExceptionUtils.getStackTrace(e));
+							throw new IdRepoAppUncheckedException(e.getErrorCode(), e.getErrorText(), e);
 						} catch (Exception e) {
 							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateCbeff",
-									"\n" + ExceptionUtils.getStackTrace(e));
+									ExceptionUtils.getStackTrace(e));
 							throw new IdRepoAppUncheckedException(INVALID_INPUT_PARAMETER.getErrorCode(),
 									String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "documents/" + index + "/value"));
 						}
