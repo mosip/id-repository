@@ -1,8 +1,8 @@
-package io.mosip.idrepository.core.builder;
+package io.mosip.idrepository.core.dto;
 
 import java.time.LocalDate;
 
-import io.mosip.idrepository.core.dto.AnonymousProfile;
+import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import lombok.Data;
 
 @Data
