@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -22,16 +23,22 @@ import io.mosip.idrepository.core.dto.AnonymousProfile;
 import io.mosip.idrepository.core.dto.BiometricInfo;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.Exceptions;
+import io.mosip.idrepository.core.dto.IdentityIssuanceProfile;
 import io.mosip.idrepository.core.dto.IdentityMapping;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.util.CryptoUtil;
 import io.mosip.kernel.biometrics.commons.CbeffValidator;
+import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.Entry;
-import io.mosip.idrepository.core.util.CryptoUtil;
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import lombok.Data;
 
 @Data
 public class IdentityIssuanceProfileBuilder {
 
+	private static final String VALUE = "value";
+	private static final String VERIFIED_ATTRIBUTES = "verifiedAttributes";
 	private String processName;
 	private JsonNode oldIdentity;
 	private JsonNode newIdentity;
@@ -39,22 +46,28 @@ public class IdentityIssuanceProfileBuilder {
 	private List<DocumentsDTO> newDocuments;
 	private AnonymousProfile oldProfile;
 	private AnonymousProfile newProfile;
-	private static String filterLanguage;
+	private String filterLanguage;
 	private static IdentityMapping identityMapping;
 	private static ObjectMapper mapper = new ObjectMapper();
 	private static String dateFormat;
 
 	public IdentityIssuanceProfile build() {
-		if (StringUtils.isBlank(filterLanguage))
-			filterLanguage = this.getPreferredLanguage(oldIdentity);
-		buildOldProfile();
-		buildNewProfile();
-		IdentityIssuanceProfile profile = new IdentityIssuanceProfile();
-		profile.setProcessName(processName);
-		profile.setDate(LocalDate.now());
-		profile.setOldProfile(oldProfile);
-		profile.setNewProfile(newProfile);
-		return profile;
+		try {
+			if (StringUtils.isBlank(filterLanguage))
+				this.setFilterLanguage(this.getPreferredLanguage(newIdentity));
+			buildOldProfile();
+			buildNewProfile();
+			IdentityIssuanceProfile profile = new IdentityIssuanceProfile();
+			profile.setProcessName(processName);
+			profile.setDate(LocalDate.now());
+			profile.setOldProfile(oldProfile);
+			profile.setNewProfile(newProfile);
+			return profile;
+		} catch (Exception e) {
+			IdRepoLogger.getLogger(IdentityIssuanceProfileBuilder.class)
+					.warn("EXCEPTION --->>> " + ExceptionUtils.getStackTrace(e));
+			return new IdentityIssuanceProfile();
+		}
 	}
 
 	private void buildOldProfile() {
@@ -73,10 +86,20 @@ public class IdentityIssuanceProfileBuilder {
 	}
 
 	private Optional<BIR> buildBirList(List<DocumentsDTO> documents) {
-		return Streams.stream(documents)
-				.filter(doc -> Objects.nonNull(doc.getCategory()) && doc.getCategory()
-						.contentEquals(identityMapping.getIdentity().getIndividualBiometrics().getValue()))
-				.map(doc -> CbeffValidator.getBIRFromXML(CryptoUtil.decodeURLSafeBase64(doc.getValue()))).stream().findAny();
+		try {
+			if (Objects.isNull(documents) || documents.isEmpty())
+				return Optional.empty();
+			else
+				return Streams.stream(documents)
+						.filter(doc -> Objects.nonNull(doc.getCategory()) && doc.getCategory()
+								.contentEquals(getIdentityMapping().getIdentity().getIndividualBiometrics().getValue()))
+						.map(doc -> CbeffValidator.getBIRFromXML(CryptoUtil.decodeURLSafeBase64(doc.getValue())))
+						.stream().findAny();
+		} catch (Exception e) {
+			IdRepoLogger.getLogger(IdentityIssuanceProfileBuilder.class)
+			.warn("EXCEPTION --->>> " + ExceptionUtils.getStackTrace(e));
+			return Optional.empty();
+		}
 	}
 
 	private AnonymousProfile buildProfile(JsonNode identity, List<BIR> bioData) {
@@ -94,8 +117,8 @@ public class IdentityIssuanceProfileBuilder {
 	}
 
 	private String getYearOfBirth(JsonNode identity) {
-		if (Objects.nonNull(identityMapping.getIdentity().getDob().getValue())) {
-			Optional<String> dobObj = extractValue(identity.get(identityMapping.getIdentity().getDob().getValue()));
+		if (Objects.nonNull(getIdentityMapping().getIdentity().getDob().getValue())) {
+			Optional<String> dobObj = extractValue(identity.get(getIdentityMapping().getIdentity().getDob().getValue()));
 			if (dobObj.isPresent()) {
 				return String.valueOf(LocalDate.parse(dobObj.get(), DateTimeFormatter.ofPattern(dateFormat)).getYear());
 			}
@@ -104,28 +127,29 @@ public class IdentityIssuanceProfileBuilder {
 	}
 
 	private String getGender(JsonNode identity) {
-		if (Objects.nonNull(identityMapping.getIdentity().getGender().getValue())) {
-			return extractValue(identity.get(identityMapping.getIdentity().getGender().getValue())).orElse(null);
+		if (Objects.nonNull(getIdentityMapping().getIdentity().getGender().getValue())) {
+			return extractValue(identity.get(getIdentityMapping().getIdentity().getGender().getValue())).orElse(null);
 		}
 		return null;
 	}
 
 	private List<String> getLocation(JsonNode identity) {
-		if (Objects.nonNull(identityMapping.getIdentity())
-				&& Objects.nonNull(identityMapping.getIdentity().getLocationHierarchyForProfiling())
-				&& Objects.nonNull(identityMapping.getIdentity().getLocationHierarchyForProfiling().getValue()))
-			return identityMapping.getIdentity().getLocationHierarchyForProfiling().getValueList().stream()
+		if (Objects.nonNull(getIdentityMapping().getIdentity())
+				&& Objects.nonNull(getIdentityMapping().getIdentity().getLocationHierarchyForProfiling())
+				&& Objects.nonNull(getIdentityMapping().getIdentity().getLocationHierarchyForProfiling().getValue()))
+			return getIdentityMapping().getIdentity().getLocationHierarchyForProfiling().getValueList().stream()
 					.map(value -> extractValue(identity.get(value)).orElse("")).filter(StringUtils::isNotBlank)
 					.collect(Collectors.toList());
 		return List.of();
 	}
 
 	private String getPreferredLanguage(JsonNode identity) {
-		if (Objects.nonNull(identityMapping.getIdentity())
-				&& Objects.nonNull(identityMapping.getIdentity().getPreferredLanguage())
-				&& Objects.nonNull(identityMapping.getIdentity().getPreferredLanguage().getValue())
-				&& Objects.nonNull(identity.get(identityMapping.getIdentity().getPreferredLanguage().getValue())))
-			return extractValue(identity.get(identityMapping.getIdentity().getPreferredLanguage().getValue()))
+		if (Objects.nonNull(getIdentityMapping().getIdentity())
+				&& Objects.nonNull(getIdentityMapping().getIdentity().getPreferredLanguage())
+				&& Objects.nonNull(getIdentityMapping().getIdentity().getPreferredLanguage().getValue())
+				&& Objects.nonNull(identity)
+				&& Objects.nonNull(identity.get(getIdentityMapping().getIdentity().getPreferredLanguage().getValue())))
+			return extractValue(identity.get(getIdentityMapping().getIdentity().getPreferredLanguage().getValue()))
 					.orElse(null);
 		return null;
 	}
@@ -133,10 +157,10 @@ public class IdentityIssuanceProfileBuilder {
 	private List<String> getChannel(JsonNode identity) {
 		List<String> channelList = new ArrayList<>();
 		channelList.add(
-				extractValue(identity.get(identityMapping.getIdentity().getPhone().getValue())).isPresent() ? "PHONE"
+				extractValue(identity.get(getIdentityMapping().getIdentity().getPhone().getValue())).isPresent() ? "PHONE"
 						: null);
 		channelList.add(
-				extractValue(identity.get(identityMapping.getIdentity().getEmail().getValue())).isPresent() ? "EMAIL"
+				extractValue(identity.get(getIdentityMapping().getIdentity().getEmail().getValue())).isPresent() ? "EMAIL"
 						: null);
 		channelList.removeIf(Objects::isNull);
 		return channelList;
@@ -144,14 +168,13 @@ public class IdentityIssuanceProfileBuilder {
 
 	private List<Exceptions> getExceptions(List<BIR> bioData) {
 		if (Objects.nonNull(bioData))
-			return bioData.stream()
-					.filter(bir -> Objects.nonNull(bir.getOthers()))
-					.filter(bir -> bir.getOthers().stream().filter(others -> others.getKey().contentEquals("EXCEPTION"))
-							.findAny().isPresent())
+			return bioData.stream().filter(bir -> Objects.nonNull(bir.getOthers()))
+					.filter(bir -> bir.getOthers().stream()
+							.anyMatch(others -> others.getKey().contentEquals("EXCEPTION")))
 					.filter(bir -> bir.getOthers().stream().filter(others -> others.getKey().contentEquals("EXCEPTION"))
 							.findAny().get().getValue().contentEquals("true"))
 					.map(bir -> Exceptions.builder()
-							.type(bir.getBdbInfo().getType().stream().map(type -> type.value())
+							.type(bir.getBdbInfo().getType().stream().map(BiometricType::value)
 									.collect(Collectors.joining(" ")))
 							.subType(String.join(" ", bir.getBdbInfo().getSubtype())).build())
 					.collect(Collectors.toList());
@@ -159,8 +182,8 @@ public class IdentityIssuanceProfileBuilder {
 	}
 
 	private List<String> getVerified(JsonNode identity) {
-		return Objects.isNull(identity.get("verifiedAttributes")) || identity.get("verifiedAttributes").isNull() ? List.of()
-				: mapper.convertValue(identity.get("verifiedAttributes"), new TypeReference<List<String>>() {
+		return Objects.isNull(identity.get(VERIFIED_ATTRIBUTES)) || identity.get(VERIFIED_ATTRIBUTES).isNull() ? List.of()
+				: mapper.convertValue(identity.get(VERIFIED_ATTRIBUTES), new TypeReference<List<String>>() {
 				});
 	}
 
@@ -169,8 +192,9 @@ public class IdentityIssuanceProfileBuilder {
 			return Streams.stream(biometrics)
 				.map(bir -> {
 						Optional<Entry> payload = Optional.ofNullable(bir.getOthers()).stream()
-								.flatMap(birs -> birs.stream())
+								.flatMap(Collection::stream)
 								.filter(others -> others.getKey().contentEquals("PAYLOAD")).findAny();
+						
 						String digitalId = null;
 						if (payload.isPresent() && StringUtils.isNotBlank(payload.get().getValue())) {
 							Map<String, String> digitalIdEncoded = mapper.readValue(payload.get().getValue(),
@@ -179,22 +203,23 @@ public class IdentityIssuanceProfileBuilder {
 							digitalId = new String(
 									CryptoUtil.decodeURLSafeBase64(digitalIdEncoded.get("digitalId").split("\\.")[1]));
 						}
+						
 						return BiometricInfo.builder()
-								.type(bir.getBdbInfo().getType().stream().map(type -> type.value())
+								.type(bir.getBdbInfo().getType().stream().map(BiometricType::value)
 										.collect(Collectors.joining(" ")))
 								.subType(String.join(" ", bir.getBdbInfo().getSubtype()))
 								.qualityScore(bir.getBdbInfo().getQuality().getScore())
 								.attempts(Objects.nonNull(bir.getOthers()) ? bir.getOthers().stream()
 										.filter(others -> others.getKey().contentEquals("RETRIES"))
 										.findAny()
-										.orElseGet(() -> new Entry()).getValue() : null)
+										.orElseGet(Entry::new).getValue() : null)
 								.digitalId(digitalId).build();
 					}).collect(Collectors.toList());
 		return List.of();
 	}
 
 	private List<String> getDocuments(JsonNode identity) {
-		return identityMapping.getDocuments().getValueList().stream()
+		return getIdentityMapping().getDocuments().getValueList().stream()
 				.filter(docCategory -> Objects.nonNull(identity.get(docCategory)))
 				.filter(docCategory -> Objects.nonNull(identity.get(docCategory).get("type")))
 				.map(docCategory -> identity.get(docCategory).get("type").asText()).filter(StringUtils::isNotBlank)
@@ -209,8 +234,9 @@ public class IdentityIssuanceProfileBuilder {
 		IdentityIssuanceProfileBuilder.identityMapping = identityMapping;
 	}
 
-	public static void setFilterLanguage(String filterLanguage) {
-		IdentityIssuanceProfileBuilder.filterLanguage = filterLanguage;
+	public IdentityIssuanceProfileBuilder setFilterLanguage(String filterLanguage) {
+		this.filterLanguage = filterLanguage;
+		return this;
 	}
 
 	public IdentityIssuanceProfileBuilder setProcessName(String processName) {
@@ -263,20 +289,20 @@ public class IdentityIssuanceProfileBuilder {
 				Map<String, String> valueMap = mapper.convertValue(iterator.next(),
 						new TypeReference<Map<String, String>>() {
 						});
-				if (valueMap.get("language").contentEquals(filterLanguage)) {
-					valueOpt = Optional.of(valueMap.get("value"));
+				if (StringUtils.isNotBlank(filterLanguage) && valueMap.get("language").contentEquals(filterLanguage)) {
+					valueOpt = Optional.of(valueMap.get(VALUE));
 				}
 			}
 			if (valueOpt.isEmpty())
-				valueOpt = Optional.ofNullable(jsonNode.iterator().next().get("value").asText());
+				valueOpt = Optional.ofNullable(jsonNode.iterator().next().get(VALUE).asText());
 		} else if (jsonNode.isObject()) {
 			Map<String, String> valueMap = mapper.convertValue(jsonNode, new TypeReference<Map<String, String>>() {
 			});
-			if (valueMap.get("language").contentEquals(filterLanguage)) {
-				valueOpt = Optional.of(valueMap.get("value"));
+			if (StringUtils.isNotBlank(filterLanguage) && valueMap.get("language").contentEquals(filterLanguage)) {
+				valueOpt = Optional.of(valueMap.get(VALUE));
 			}
 			if (valueOpt.isEmpty())
-				valueOpt = Optional.ofNullable(valueMap.get("value"));
+				valueOpt = Optional.ofNullable(valueMap.get(VALUE));
 		}
 		return valueOpt;
 	}
