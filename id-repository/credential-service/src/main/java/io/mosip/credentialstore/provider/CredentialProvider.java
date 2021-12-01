@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 
 import org.json.simple.JSONArray;
@@ -53,7 +54,6 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.idrepository.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 
 
@@ -338,10 +338,12 @@ public class CredentialProvider {
 
 	protected String getSubType(List<String> bdbSubTypeList) {
 		String subType = null;
-		if (bdbSubTypeList.size() == 1) {
-			subType = bdbSubTypeList.get(0);
-		} else {
-			subType = bdbSubTypeList.get(0) + " " + bdbSubTypeList.get(1);
+		if (Objects.nonNull(bdbSubTypeList)) {
+			if (bdbSubTypeList.size() == 1) {
+				subType = bdbSubTypeList.get(0);
+			} else {
+				subType = bdbSubTypeList.get(0) + " " + bdbSubTypeList.get(1);
+			}
 		}
 		return subType;
 	}
