@@ -81,8 +81,6 @@ public class AnonymousProfileHelper {
 					IdentityMapping.class);
 			IdentityIssuanceProfileBuilder.setIdentityMapping(identityMapping);
 		}
-		IdentityIssuanceProfileBuilder
-				.setFilterLanguage(env.getProperty("mosip.mandatory-languages", "").split(",")[0]);
 		IdentityIssuanceProfileBuilder.setDateFormat(env.getProperty("mosip.kernel.idobjectvalidator.date-format"));
 	}
 
@@ -111,6 +109,7 @@ public class AnonymousProfileHelper {
 							.getIdentity().getIndividualBiometrics().getValue(), newCbeff));
 				String id = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, regId).toString();
 				IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
+						.setFilterLanguage(env.getProperty("mosip.mandatory-languages", "").split(",")[0])
 						.setProcessName(Objects.isNull(oldUinData) ? "New" : "Update").setOldIdentity(oldUinData)
 						.setOldDocuments(oldDocList).setNewIdentity(newUinData).setNewDocuments(newDocList).build();
 				AnonymousProfileEntity anonymousProfile = AnonymousProfileEntity.builder().id(id)
