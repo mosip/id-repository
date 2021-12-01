@@ -293,18 +293,17 @@ public class VidControllerTest {
 
 	@Test
 	public void testData() throws JsonParseException, JsonMappingException, IOException {
-		String s = "{\"ara\":[\"MDDR\",\"أكدال\",\"منَسرَ \",\"QRHS\",\"حي الرياض\",\"HARD\",\"علال التازي\",\"مڭرن\",\"العصام\",\"سيدي الطيبي\",\"مدينة العرفان\",\"ASSM\",\"اولاد اوجيه\",\"ELYF\",\"SDTB\",\"SOUS\",\"OLOJ\",\"بن منصور\",\"مدينة\",\"اليوسفية\",\"مهدية\",\"MOGR\",\"السويسي\",\"BNMR\",\"MEHD\",\"AGDL\",\"SATZ\",\"MNAS\",\"حي حسان\",\"MADI\"],\"fra\":[\"Mograne\",\"MDDR\",\"Mnasra\",\"Assam\",\"EL YOUSSOUFIA\",\"Sidi Allal Tazi\",\"Souissi\",\"QRHS\",\"HARD\",\"Agdal\",\"Quartier Hassan\",\"ASSM\",\"ELYF\",\"Médina de Rabat\",\"SDTB\",\"Ouled Oujih\",\"SOUS\",\"OLOJ\",\"MOGR\",\"Mehdia\",\"BNMR\",\"Hay Riad\",\"MEHD\",\"AGDL\",\"SATZ\",\"Sidi Taibi\",\"MNAS\",\"Ben Mansour\",\"MADI\",\"Madinat Al Irfane\"],\"eng\":[\"Mograne\",\"MDDR\",\"Mnasra\",\"Assam\",\"EL YOUSSOUFIA\",\"Sidi Allal Tazi\",\"Souissi\",\"QRHS\",\"HARD\",\"Agdal\",\"Quartier Hassan\",\"ASSM\",\"ELYF\",\"SDTB\",\"Ouled Oujih\",\"SOUS\",\"OLOJ\",\"MOGR\",\"Mehdia\",\"BNMR\",\"Hay Riad\",\"MEHD\",\"AGDL\",\"SATZ\",\"Sidi Taibi\",\"MNAS\",\"Ben Mansour\",\"MADI\",\"Madinat Al Irfane\",\"Medina de Rabat\"]}";
+		String s = "{\"ara\":[\"MDDR\",\"Ø£ÙƒØ¯Ø§Ù„\",\"Ù…Ù†ÙŽØ³Ø±ÙŽ \",\"QRHS\",\"Ø­ÙŠ Ø§Ù„Ø±ÙŠØ§Ø¶\",\"HARD\",\"Ø¹Ù„Ø§Ù„ Ø§Ù„ØªØ§Ø²ÙŠ\",\"Ù…Ú­Ø±Ù†\",\"Ø§Ù„Ø¹ØµØ§Ù…\",\"Ø³ÙŠØ¯ÙŠ Ø§Ù„Ø·ÙŠØ¨ÙŠ\",\"Ù…Ø¯ÙŠÙ†Ø© Ø§Ù„Ø¹Ø±Ù�Ø§Ù†\",\"ASSM\",\"Ø§ÙˆÙ„Ø§Ø¯ Ø§ÙˆØ¬ÙŠÙ‡\",\"ELYF\",\"SDTB\",\"SOUS\",\"OLOJ\",\"Ø¨Ù† Ù…Ù†ØµÙˆØ±\",\"Ù…Ø¯ÙŠÙ†Ø©\",\"Ø§Ù„ÙŠÙˆØ³Ù�ÙŠØ©\",\"Ù…Ù‡Ø¯ÙŠØ©\",\"MOGR\",\"Ø§Ù„Ø³ÙˆÙŠØ³ÙŠ\",\"BNMR\",\"MEHD\",\"AGDL\",\"SATZ\",\"MNAS\",\"Ø­ÙŠ Ø­Ø³Ø§Ù†\",\"MADI\"],\"fra\":[\"Mograne\",\"MDDR\",\"Mnasra\",\"Assam\",\"EL YOUSSOUFIA\",\"Sidi Allal Tazi\",\"Souissi\",\"QRHS\",\"HARD\",\"Agdal\",\"Quartier Hassan\",\"ASSM\",\"ELYF\",\"MÃ©dina de Rabat\",\"SDTB\",\"Ouled Oujih\",\"SOUS\",\"OLOJ\",\"MOGR\",\"Mehdia\",\"BNMR\",\"Hay Riad\",\"MEHD\",\"AGDL\",\"SATZ\",\"Sidi Taibi\",\"MNAS\",\"Ben Mansour\",\"MADI\",\"Madinat Al Irfane\"],\"eng\":[\"Mograne\",\"MDDR\",\"Mnasra\",\"Assam\",\"EL YOUSSOUFIA\",\"Sidi Allal Tazi\",\"Souissi\",\"QRHS\",\"HARD\",\"Agdal\",\"Quartier Hassan\",\"ASSM\",\"ELYF\",\"SDTB\",\"Ouled Oujih\",\"SOUS\",\"OLOJ\",\"MOGR\",\"Mehdia\",\"BNMR\",\"Hay Riad\",\"MEHD\",\"AGDL\",\"SATZ\",\"Sidi Taibi\",\"MNAS\",\"Ben Mansour\",\"MADI\",\"Madinat Al Irfane\",\"Medina de Rabat\"]}";
 		Map<String, Set<String>> locationDetails = new ObjectMapper().readValue(s,
 				new TypeReference<Map<String, Set<String>>>() {
 				});
-		String req = "منسر ";
+		String req = "Ù…Ù†Ø³Ø± ";
 
 		for (Entry<String, Set<String>> location : locationDetails.entrySet()) {
 			Set<String> set = location.getValue();
 			/*
 			 * for(String str : set) { if(str.equals(req)) { System.out.println(true); } }
 			 */
-			System.err.println(set.contains(req));
 		}
 
 	}

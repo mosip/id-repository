@@ -2,9 +2,8 @@ package io.mosip.idrepository.identity.helper;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 
@@ -22,16 +21,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.idrepository.core.builder.IdentityIssuanceProfile;
 import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
+import io.mosip.idrepository.core.dto.IdentityIssuanceProfile;
 import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.CryptoUtil;
 import io.mosip.idrepository.identity.entity.AnonymousProfileEntity;
 import io.mosip.idrepository.identity.repository.AnonymousProfileRepo;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.idrepository.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.UUIDUtils;
 
@@ -76,9 +75,9 @@ public class AnonymousProfileHelper {
 	private String newCbeffRefId;
 	
 	@PostConstruct
-	public void init() throws MalformedURLException, IOException {
+	public void init() throws IOException {
 		try (InputStream xsdBytes = new URL(identityMappingJson).openStream()) {
-			IdentityMapping identityMapping = mapper.readValue(IOUtils.toString(xsdBytes, Charset.forName("UTF-8")),
+			IdentityMapping identityMapping = mapper.readValue(IOUtils.toString(xsdBytes, StandardCharsets.UTF_8),
 					IdentityMapping.class);
 			IdentityIssuanceProfileBuilder.setIdentityMapping(identityMapping);
 		}
@@ -107,7 +106,7 @@ public class AnonymousProfileHelper {
 				if (Objects.nonNull(newCbeff))
 					newDocList = List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
 							.getIdentity().getIndividualBiometrics().getValue(), newCbeff));
-				String id = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, new String(regId)).toString();
+				String id = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, regId).toString();
 				IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
 						.setProcessName(Objects.isNull(oldUinData) ? "New" : "Update").setOldIdentity(oldUinData)
 						.setOldDocuments(oldDocList).setNewIdentity(newUinData).setNewDocuments(newDocList).build();
