@@ -337,17 +337,13 @@ public class CredentialProvider {
 	}
 
 	protected String getSubType(List<String> bdbSubTypeList) {
-		try {
-			String subType;
-			if (bdbSubTypeList.size() == 1) {
-				subType = bdbSubTypeList.get(0);
-			} else {
-				subType = bdbSubTypeList.get(0) + " " + bdbSubTypeList.get(1);
-			}
-			return subType;
-		} catch (Exception e) {
-			return null;
+		String subType = null;
+		if (bdbSubTypeList.size() == 1) {
+			subType = bdbSubTypeList.get(0);
+		} else {
+			subType = bdbSubTypeList.get(0) + " " + bdbSubTypeList.get(1);
 		}
+		return subType;
 	}
 
 	@SuppressWarnings("unchecked")
