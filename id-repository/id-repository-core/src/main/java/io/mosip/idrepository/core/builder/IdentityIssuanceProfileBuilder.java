@@ -71,16 +71,18 @@ public class IdentityIssuanceProfileBuilder {
 	}
 
 	private void buildOldProfile() {
-		Optional<BIR> birListOpt = buildBirList(oldDocuments);
-		if (Objects.nonNull(oldIdentity))
+		if (Objects.nonNull(oldIdentity)) {
+			Optional<BIR> birListOpt = buildBirList(oldDocuments);
 			this.setOldProfile(buildProfile(oldIdentity, birListOpt.isPresent() ? birListOpt.get().getBirs() : null));
+		}
 
 	}
 
 	private void buildNewProfile() {
-		Optional<BIR> birListOpt = buildBirList(newDocuments);
-		if (Objects.nonNull(newIdentity))
+		if (Objects.nonNull(newIdentity)) {
+			Optional<BIR> birListOpt = buildBirList(newDocuments);
 			this.setNewProfile(buildProfile(newIdentity, birListOpt.isPresent() ? birListOpt.get().getBirs() : null));
+		}
 	}
 
 	private Optional<BIR> buildBirList(List<DocumentsDTO> documents) {
