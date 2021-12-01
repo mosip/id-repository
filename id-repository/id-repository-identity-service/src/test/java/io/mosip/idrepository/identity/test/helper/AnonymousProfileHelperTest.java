@@ -89,7 +89,6 @@ public class AnonymousProfileHelperTest {
 						StandardCharsets.UTF_8),
 				IdentityMapping.class);
 		IdentityIssuanceProfileBuilder.setIdentityMapping(identityMapping);
-		IdentityIssuanceProfileBuilder.setFilterLanguage("eng");
 		IdentityIssuanceProfileBuilder.setDateFormat("uuuu/MM/dd");
 	}
 
@@ -105,6 +104,7 @@ public class AnonymousProfileHelperTest {
 		AnonymousProfileEntity expectedData = new AnonymousProfileEntity();
 		expectedData.setId(UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, "1").toString());
 		IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
+				.setFilterLanguage("eng")
 				.setProcessName("Update")
 				.setOldIdentity(identityData.getBytes())
 				.setOldDocuments(List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
@@ -135,6 +135,7 @@ public class AnonymousProfileHelperTest {
 		AnonymousProfileEntity expectedData = new AnonymousProfileEntity();
 		expectedData.setId(UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, "1").toString());
 		IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
+				.setFilterLanguage("eng")
 				.setProcessName("Update")
 				.setOldIdentity(identityData.getBytes())
 				.setOldDocuments(List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
@@ -170,6 +171,7 @@ public class AnonymousProfileHelperTest {
 		AnonymousProfileEntity expectedData = new AnonymousProfileEntity();
 		expectedData.setId(UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, "1").toString());
 		IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
+				.setFilterLanguage("eng")
 				.setProcessName("Update")
 				.setOldIdentity(identityData.getBytes())
 				.setOldDocuments(List.of())

@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.CredentialConstants;
@@ -35,7 +36,9 @@ import io.mosip.credentialstore.dto.Filter;
 import io.mosip.credentialstore.dto.JsonValue;
 import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
 import io.mosip.credentialstore.dto.Source;
+import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
+import io.mosip.credentialstore.exception.DataEncryptionFailureException;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.JsonUtil;
 import io.mosip.credentialstore.util.Utilities;
@@ -159,7 +162,7 @@ public class CredentialProvider {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"end formatting credential data");
 			return dataProviderResponse;
-		} catch (Exception e) {
+		} catch (JsonProcessingException | ApiNotAccessibleException | DataEncryptionFailureException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					ExceptionUtils.getStackTrace(e));
 			throw new CredentialFormatterException(e);
