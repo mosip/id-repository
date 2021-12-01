@@ -46,7 +46,7 @@ public class IdentityIssuanceProfileBuilder {
 	private List<DocumentsDTO> newDocuments;
 	private AnonymousProfile oldProfile;
 	private AnonymousProfile newProfile;
-	private static String filterLanguage;
+	private String filterLanguage;
 	private static IdentityMapping identityMapping;
 	private static ObjectMapper mapper = new ObjectMapper();
 	private static String dateFormat;
@@ -54,7 +54,7 @@ public class IdentityIssuanceProfileBuilder {
 	public IdentityIssuanceProfile build() {
 		try {
 			if (StringUtils.isBlank(filterLanguage))
-				IdentityIssuanceProfileBuilder.setFilterLanguage(this.getPreferredLanguage(newIdentity));
+				this.setFilterLanguage(this.getPreferredLanguage(newIdentity));
 			buildOldProfile();
 			buildNewProfile();
 			IdentityIssuanceProfile profile = new IdentityIssuanceProfile();
@@ -71,16 +71,18 @@ public class IdentityIssuanceProfileBuilder {
 	}
 
 	private void buildOldProfile() {
-		Optional<BIR> birListOpt = buildBirList(oldDocuments);
-		if (Objects.nonNull(oldIdentity))
+		if (Objects.nonNull(oldIdentity)) {
+			Optional<BIR> birListOpt = buildBirList(oldDocuments);
 			this.setOldProfile(buildProfile(oldIdentity, birListOpt.isPresent() ? birListOpt.get().getBirs() : null));
+		}
 
 	}
 
 	private void buildNewProfile() {
-		Optional<BIR> birListOpt = buildBirList(newDocuments);
-		if (Objects.nonNull(newIdentity))
+		if (Objects.nonNull(newIdentity)) {
+			Optional<BIR> birListOpt = buildBirList(newDocuments);
 			this.setNewProfile(buildProfile(newIdentity, birListOpt.isPresent() ? birListOpt.get().getBirs() : null));
+		}
 	}
 
 	private Optional<BIR> buildBirList(List<DocumentsDTO> documents) {
@@ -145,6 +147,7 @@ public class IdentityIssuanceProfileBuilder {
 		if (Objects.nonNull(getIdentityMapping().getIdentity())
 				&& Objects.nonNull(getIdentityMapping().getIdentity().getPreferredLanguage())
 				&& Objects.nonNull(getIdentityMapping().getIdentity().getPreferredLanguage().getValue())
+				&& Objects.nonNull(identity)
 				&& Objects.nonNull(identity.get(getIdentityMapping().getIdentity().getPreferredLanguage().getValue())))
 			return extractValue(identity.get(getIdentityMapping().getIdentity().getPreferredLanguage().getValue()))
 					.orElse(null);
@@ -231,8 +234,9 @@ public class IdentityIssuanceProfileBuilder {
 		IdentityIssuanceProfileBuilder.identityMapping = identityMapping;
 	}
 
-	public static void setFilterLanguage(String filterLanguage) {
-		IdentityIssuanceProfileBuilder.filterLanguage = filterLanguage;
+	public IdentityIssuanceProfileBuilder setFilterLanguage(String filterLanguage) {
+		this.filterLanguage = filterLanguage;
+		return this;
 	}
 
 	public IdentityIssuanceProfileBuilder setProcessName(String processName) {
