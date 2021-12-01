@@ -1,5 +1,6 @@
 package io.mosip.idrepository.identity.entity;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -35,7 +36,12 @@ import lombok.ToString;
 @Entity
 @NoArgsConstructor
 @Table(schema = "idrepo")
-public class UinDraft implements Persistable<String>, UinInfo {
+public class UinDraft implements Persistable<String>, UinInfo, Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8675162242795264386L;
 
 	public UinDraft(String uin, String uinHash, byte[] uinData, String uinDataHash, String regId, String statusCode,
 			String createdBy, LocalDateTime createdDateTime, String updatedBy, LocalDateTime updatedDateTime,

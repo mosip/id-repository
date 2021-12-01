@@ -95,5 +95,5 @@ public class UinBiometricDraft implements Serializable {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "regId", insertable = false, updatable = false)
 	@JsonBackReference
-	private transient UinDraft uin;
+	private UinDraft uin;
 }

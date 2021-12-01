@@ -16,7 +16,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.core.env.Environment;
@@ -49,7 +48,6 @@ import io.mosip.kernel.core.util.UUIDUtils;
 @RunWith(SpringRunner.class)
 @WebMvcTest
 @ActiveProfiles("test")
-@PrepareForTest({ AnonymousProfileHelper.class })
 public class AnonymousProfileHelperTest {
 
 	@InjectMocks
