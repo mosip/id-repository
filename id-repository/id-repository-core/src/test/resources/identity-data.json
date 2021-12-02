@@ -1,0 +1,96 @@
+{
+	"verifiedAttributes" : ["x", "y"],
+	"IDSchemaVersion": 0.1,
+	"UIN": "2419762130",
+	"proofOfAddress": {
+		"format": "pdf",
+		"type": "DOC015",
+		"value": "proofOfAddress"
+	},
+	"gender": {
+		"language": "eng",
+		"value": "Male"
+	},
+	"city": [{
+		"language": "eng",
+		"value": "KNT"
+	}, {
+		"language": "ara",
+		"value": "KNT"
+	}],
+	"postalCode": "14022",
+	"fullName": [{
+		"language": "ara",
+		"value": "name"
+	}, {
+		"language": "eng",
+		"value": "name"
+	}],
+	"dateOfBirth": "1972\/05\/07",
+	"referenceIdentityNumber": "455074550745507",
+	"proofOfIdentity": {
+		"format": "pdf",
+		"type": "DOC006",
+		"value": "proofOfIdentity"
+	},
+	"individualBiometrics": {
+		"format": "cbeff",
+		"version": 1,
+		"value": "individualBiometrics_bio_CBEFF"
+	},
+	"province": [{
+		"language": "ara",
+		"value": "KTA"
+	}, {
+		"language": "eng",
+		"value": "KTA"
+	}],
+	"zone": {
+		"language": "ara",
+		"value": "BNMR"
+	},
+	"region": [{
+		"language": "eng",
+		"value": "RSK"
+	}],
+	"phone": "9395910872",
+	"addressLine1": [{
+		"language": "ara",
+		"value": "#991, 47 Street, 6 block"
+	}, {
+		"language": "eng",
+		"value": "#٩٩١، ٤٧ سترِِت، ٦ بلُكك"
+	}],
+	"addressLine2": [{
+		"language": "ara",
+		"value": "#477, 30 Street, 4 block"
+	}, {
+		"language": "eng",
+		"value": "#٤٧٧، ٣٠ سترِِت، ٤ بلُكك"
+	}],
+	"residenceStatus": [{
+		"language": "ara",
+		"value": "Foreigner"
+	}, {
+		"language": "eng",
+		"value": "Foreigner"
+	}],
+	"proofOfRelationship": {
+		"format": "pdf",
+		"type": "DOC025",
+		"value": "proofOfRelationship"
+	},
+	"addressLine3": [{
+		"language": "ara",
+		"value": "#570, 53 Street, 4 block"
+	}, {
+		"language": "eng",
+		"value": "#٥٧٠، ٥٣ سترِِت، ٤ بلُكك"
+	}],
+	"email": "test@mosip.net",
+	"proofOfException": {
+		"format": "pdf",
+		"type": "COE",
+		"value": "proofOfException"
+	}
+}
