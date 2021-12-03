@@ -17,7 +17,6 @@ import org.springframework.batch.integration.async.AsyncItemWriter;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemReader;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,27 +46,8 @@ public class CredentialsFeederJobConfig {
 
 	private static final String IDREPO_CREDENTIAL_FEEDER_CHUNK_SIZE = "idrepo-credential-feeder-chunk-size";
 
-	/** The job builder factory. */
-	@Autowired
-	private JobBuilderFactory jobBuilderFactory;
-
-	/** The step builder factory. */
-	@Autowired
-	private StepBuilderFactory stepBuilderFactory;
-	
-	/** The listener. */
-	@Autowired
-	private JobExecutionListener listener;
-	
-	/** The writer. */
-	@Autowired
-	private CredentialsFeedingWriter writer;
-
 	@Value("${" + IDREPO_CREDENTIAL_FEEDER_CHUNK_SIZE + ":" + DEFAULT_CHUNCK_SIZE + "}")
 	private int chunkSize;
-	
-	@Autowired
-	private CredentialRequestStatusRepo credentialRequestStatusRepo;
 	
 	/**
 	 * Job.
@@ -76,7 +56,7 @@ public class CredentialsFeederJobConfig {
 	 * @return the job
 	 */
 	@Bean
-	public Job job(Step step) {
+	public Job job(Step step, JobBuilderFactory jobBuilderFactory, JobExecutionListener listener) {
 		return jobBuilderFactory
 				.get("job")
 				.incrementer(new RunIdIncrementer())
@@ -93,18 +73,18 @@ public class CredentialsFeederJobConfig {
 	 * @return the step
 	 */
 	@Bean
-	public Step step() {
+	public Step step(StepBuilderFactory stepBuilderFactory, CredentialsFeedingWriter writer, CredentialRequestStatusRepo credentialRequestStatusRepo) {
 		return stepBuilderFactory
 				.get("step")
 				.<CredentialRequestStatus, Future<CredentialRequestStatus>> chunk(chunkSize)
-				.reader(credentialEventReader())
+				.reader(credentialEventReader(credentialRequestStatusRepo))
 				.processor(asyncItemProcessor())
 				.writer(asyncItemWriter(writer))
 				.build();
 	}
 	
 	@Bean
-	public ItemReader<CredentialRequestStatus> credentialEventReader() {
+	public ItemReader<CredentialRequestStatus> credentialEventReader(CredentialRequestStatusRepo credentialRequestStatusRepo) {
 		RepositoryItemReader<CredentialRequestStatus> reader = new RepositoryItemReader<>();
 		reader.setRepository(credentialRequestStatusRepo);
 		reader.setMethodName("findByRequestedStatusBeforeCrDtimes");

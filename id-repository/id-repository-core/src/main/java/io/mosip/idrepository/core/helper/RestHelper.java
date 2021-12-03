@@ -33,6 +33,7 @@ import io.mosip.idrepository.core.exception.IdRepoRetryException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.RestUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -47,6 +48,10 @@ import reactor.core.publisher.Mono;
  */
 @NoArgsConstructor
 public class RestHelper {
+
+	private static final String CHECK_ERROR_RESPONSE = "checkErrorResponse";
+
+	private static final String UNKNOWN_ERROR_LOG = "- UNKNOWN_ERROR - ";
 
 	/** The Constant ERRORS. */
 	private static final String ERRORS = "errors";
@@ -114,7 +119,12 @@ public class RestHelper {
 			} else {
 				response = request(request).block();
 			}
-			checkErrorResponse(response, request.getResponseType());
+			if(!String.class.equals(request.getResponseType())) {
+				checkErrorResponse(response, request.getResponseType());
+				if(RestUtil.containsError(response.toString(), mapper)) {
+					mosipLogger.debug("Error in response %s", response.toString());
+				}
+			}	
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_SYNC,
 					"Received valid response");
 			return (T) response;
@@ -130,7 +140,7 @@ public class RestHelper {
 				throw new IdRepoRetryException(new RestServiceException(CONNECTION_TIMED_OUT, e));
 			} else {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, REQUEST_SYNC_RUNTIME_EXCEPTION,
-						THROWING_REST_SERVICE_EXCEPTION + "- UNKNOWN_ERROR - " + ExceptionUtils.getStackTrace(e));
+						THROWING_REST_SERVICE_EXCEPTION + UNKNOWN_ERROR_LOG + ExceptionUtils.getStackTrace(e));
 				throw new IdRepoRetryException(new RestServiceException(UNKNOWN_ERROR, e));
 			}
 		}
@@ -146,8 +156,7 @@ public class RestHelper {
 		mosipLogger.debug(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_ASYNC,
 				PREFIX_REQUEST + request.getUri());
 		Mono<?> sendRequest = request(request);
-		//sendRequest.subscribe();
-		return () -> sendRequest.block();
+		return sendRequest::block;
 	}
 
 	/**
@@ -211,20 +220,20 @@ public class RestHelper {
 				ObjectNode responseNode = mapper.readValue(mapper.writeValueAsBytes(response), ObjectNode.class);
 				if (responseNode.has(ERRORS) && !responseNode.get(ERRORS).isNull() && responseNode.get(ERRORS).isArray()
 						&& responseNode.get(ERRORS).size() > 0) {
-					mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, "checkErrorResponse",
-							THROWING_REST_SERVICE_EXCEPTION + "- UNKNOWN_ERROR - "
+					mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, CHECK_ERROR_RESPONSE,
+							THROWING_REST_SERVICE_EXCEPTION + UNKNOWN_ERROR_LOG
 									+ responseNode.get(ERRORS).toString());
 					throw new RestServiceException(CLIENT_ERROR, responseNode.toString(),
 							mapper.readValue(responseNode.toString().getBytes(), responseType));
 				}
 			} else {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, "checkErrorResponse",
-						THROWING_REST_SERVICE_EXCEPTION + "- UNKNOWN_ERROR - " + "Response is null");
+				mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, CHECK_ERROR_RESPONSE,
+						THROWING_REST_SERVICE_EXCEPTION + UNKNOWN_ERROR_LOG + "Response is null");
 				throw new RestServiceException(CLIENT_ERROR);
 			}
 		} catch (IOException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, "checkErrorResponse",
-					THROWING_REST_SERVICE_EXCEPTION + "- UNKNOWN_ERROR - " + e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, CHECK_ERROR_RESPONSE,
+					THROWING_REST_SERVICE_EXCEPTION + UNKNOWN_ERROR_LOG + e.getMessage());
 			throw new RestServiceException(UNKNOWN_ERROR, e);
 		}
 	}

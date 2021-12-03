@@ -96,6 +96,10 @@ import io.mosip.kernel.core.util.StringUtils;
 @Transactional(rollbackFor = { IdRepoAppException.class, IdRepoAppUncheckedException.class })
 public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoDraftService<IdRequestDTO, IdResponseDTO> {
 
+	private static final String DRAFT_RECORD_NOT_FOUND = "DRAFT RECORD NOT FOUND";
+
+	private static final String VERIFIED_ATTRIBUTES = "verifiedAttributes";
+
 	private static final String GET_DRAFT = "getDraft";
 
 	private static final String DISCARD_DRAFT = "discardDraft";
@@ -112,7 +116,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 
 	private static final String ID_REPO_DRAFT_SERVICE_IMPL = "IdRepoDraftServiceImpl";
 
-	private static final Logger mosipLogger = IdRepoLogger.getLogger(IdRepoDraftServiceImpl.class);
+	private static final Logger idrepoDraftLogger = IdRepoLogger.getLogger(IdRepoDraftServiceImpl.class);
 
 	@Value("${" + MOSIP_KERNEL_IDREPO_JSON_PATH + "}")
 	private String uinPath;
@@ -156,23 +160,23 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			if (!super.uinHistoryRepo.existsByRegId(registrationId) && !uinDraftRepo.existsByRegId(registrationId)) {
 				UinDraft newDraft;
 				if (Objects.nonNull(uin)) {
-					int modValue = getModValue(uin);
+					int modValue = securityManager.getSaltKeyForId(uin);
 					Optional<Uin> uinObjectOptional = super.uinRepo.findByUinHash(super.getUinHash(uin, modValue));
 					if (uinObjectOptional.isPresent()) {
 						Uin uinObject = uinObjectOptional.get();
 						newDraft = mapper.convertValue(uinObject, UinDraft.class);
 						updateBiometricAndDocumentDrafts(registrationId, newDraft, uinObject);
 						newDraft.setRegId(registrationId);
-						newDraft.setUin(super.getUinToEncrypt(uin, super.getModValue(uin)));
+						newDraft.setUin(super.getUinToEncrypt(uin, securityManager.getSaltKeyForId(uin)));
 					} else {
-						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT,
+						idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT,
 								"UIN NOT EXIST");
 						throw new IdRepoAppException(NO_RECORD_FOUND);
 					}
 				} else {
 					newDraft = new UinDraft();
 					uin = generateUin();
-					int modValue = getModValue(uin);
+					int modValue = securityManager.getSaltKeyForId(uin);
 					newDraft.setUin(super.getUinToEncrypt(uin, modValue));
 					newDraft.setUinHash(super.getUinHash(uin, modValue));
 					byte[] uinData = convertToBytes(generateIdentityObject(uin));
@@ -186,11 +190,11 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				uinDraftRepo.save(newDraft);
 				return constructIdResponse(null, DRAFTED, null, null);
 			} else {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT, "RID ALREADY EXIST");
+				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT, "RID ALREADY EXIST");
 				throw new IdRepoAppException(RECORD_EXISTS);
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT, e.getMessage());
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
 		}
 	}
@@ -212,10 +216,10 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			ResponseWrapper<Map<String, String>> response = restHelper.requestSync(restRequest);
 			return response.getResponse().get("uin");
 		} catch (IdRepoDataValidationException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GENERATE_UIN, e.getMessage());
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GENERATE_UIN, e.getMessage());
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);
 		} catch (RestServiceException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GENERATE_UIN, e.getMessage());
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GENERATE_UIN, e.getMessage());
 			throw new IdRepoAppException(UIN_GENERATION_FAILED, e);
 		}
 	}
@@ -228,7 +232,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				UinDraft draftToUpdate = uinDraft.get();
 				if (Objects.isNull(draftToUpdate.getUinData())) {
 					ObjectNode identityObject = mapper.convertValue(request.getRequest().getIdentity(), ObjectNode.class);
-					identityObject.putPOJO("verifiedAttributes", request.getRequest().getVerifiedAttributes());
+					identityObject.putPOJO(VERIFIED_ATTRIBUTES, request.getRequest().getVerifiedAttributes());
 					byte[] uinData = super.convertToBytes(request.getRequest().getIdentity());
 					draftToUpdate.setUinData(uinData);
 					draftToUpdate.setUinDataHash(securityManager.hash(uinData));
@@ -243,15 +247,15 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 					uinDraftRepo.save(draftToUpdate);
 				}
 			} else {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT,
+				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT,
 						"RID NOT FOUND IN DB");
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
 		} catch (JSONException | InvalidJsonException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT, e.getMessage());
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT, e.getMessage());
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT, e.getMessage());
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
 		}
 		return constructIdResponse(null, DRAFTED, null, null);
@@ -357,8 +361,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			String draftVid = null;
 			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
 			if (uinDraft.isEmpty()) {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
-						"DRAFT RECORD NOT FOUND");
+				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+						DRAFT_RECORD_NOT_FOUND);
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			} else {
 				UinDraft draft = uinDraft.get();
@@ -385,7 +389,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				return constructIdResponse(null, uinObject.getStatusCode(), null, draftVid);
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT, e.getMessage());
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
 		}
 	}
@@ -399,15 +403,15 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	@SuppressWarnings("unchecked")
-	private IdRequestDTO buildRequest(String regId, UinDraft draft) throws IdRepoAppException {
+	private IdRequestDTO buildRequest(String regId, UinDraft draft) {
 		IdRequestDTO idRequest = new IdRequestDTO();
 		RequestDTO request = new RequestDTO();
 		request.setRegistrationId(regId);
-		Map<String, Object> identityData = (Map<String, Object>) convertToObject(draft.getUinData(), Map.class);
+		Map<String, Object> identityData = convertToObject(draft.getUinData(), Map.class);
 		request.setVerifiedAttributes(
-				mapper.convertValue(identityData.get("verifiedAttributes"), new TypeReference<List<String>>() {
+				mapper.convertValue(identityData.get(VERIFIED_ATTRIBUTES), new TypeReference<List<String>>() {
 				}));
-		identityData.remove("verifiedAttributes");
+		identityData.remove(VERIFIED_ATTRIBUTES);
 		request.setIdentity(identityData);
 		idRequest.setRequest(request);
 		return idRequest;
@@ -439,9 +443,9 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	private String decryptUin(String encryptedUin, String uinHash) throws IdRepoAppException {
 		String salt = uinEncryptSaltRepo.getOne(Integer.valueOf(encryptedUin.split(SPLITTER)[0])).getSalt();
 		String uin = new String(securityManager.decryptWithSalt(
-				CryptoUtil.decodeURLSafeBase64(StringUtils.substringAfter((String) encryptedUin, SPLITTER)),
+				CryptoUtil.decodeURLSafeBase64(StringUtils.substringAfter(encryptedUin, SPLITTER)),
 				CryptoUtil.decodePlainBase64(salt), uinRefId));
-		if (!StringUtils.equals(super.getUinHash(uin, super.getModValue(uin)), uinHash)) {
+		if (!StringUtils.equals(super.getUinHash(uin, securityManager.getSaltKeyForId(uin)), uinHash)) {
 			throw new IdRepoAppUncheckedException(UIN_HASH_MISMATCH);
 		}
 		return uin;
@@ -455,12 +459,12 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				uinDraftRepo.delete(draftOptional.get());
 				return constructIdResponse(null, "DISCARDED", null, null);
 			} else {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT,
+				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT,
 						"RID NOT FOUND IN DB");
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, DISCARD_DRAFT,
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, DISCARD_DRAFT,
 					e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
 		}
@@ -471,7 +475,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		try {
 			return uinDraftRepo.existsByRegId(regId);
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "hasDraft", e.getMessage());
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "hasDraft", e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
 		}
 	}
@@ -494,12 +498,12 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				}
 				return constructIdResponse(draft.getUinData(), draft.getStatusCode(), documents, null);
 			} else {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
-						"DRAFT RECORD NOT FOUND");
+				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+						DRAFT_RECORD_NOT_FOUND);
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
 		}
 	}
@@ -513,12 +517,12 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				if (draftOpt.isPresent()) {
 					extractBiometricsDraft(extractionFormats, draftOpt.get());
 				} else {
-					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
-							"DRAFT RECORD NOT FOUND");
+					idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+							DRAFT_RECORD_NOT_FOUND);
 					throw new IdRepoAppException(NO_RECORD_FOUND);
 				}
 			} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
 						e.getMessage());
 				throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 			}
@@ -534,11 +538,11 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				extractAndGetCombinedCbeff(uinHash, bioDraft.getBioFileId(), extractionFormats);
 			}
 		} catch (AmazonS3Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
 					e.getMessage());
 			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR, e);
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
 			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
 		}
 	}
@@ -574,8 +578,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		if (Objects.nonNull(uinData)) {
 			ObjectNode identityObject = convertToObject(uinData, ObjectNode.class);
 			response.setIdentity(identityObject);
-			response.setVerifiedAttributes(mapper.convertValue(identityObject.get("verifiedAttributes"), List.class));
-			identityObject.remove("verifiedAttributes");
+			response.setVerifiedAttributes(mapper.convertValue(identityObject.get(VERIFIED_ATTRIBUTES), List.class));
+			identityObject.remove(VERIFIED_ATTRIBUTES);
 		}
 		idResponse.setResponse(response);
 		if(Objects.nonNull(vid))

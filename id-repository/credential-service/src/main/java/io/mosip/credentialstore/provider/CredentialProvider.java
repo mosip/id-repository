@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 
 import org.json.simple.JSONArray;
@@ -47,12 +48,12 @@ import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.CryptoUtil;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.idrepository.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 
 
@@ -161,19 +162,7 @@ public class CredentialProvider {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"end formatting credential data");
 			return dataProviderResponse;
-		} catch (DataEncryptionFailureException e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					ExceptionUtils.getStackTrace(e));
-			throw new CredentialFormatterException(e);
-		} catch (ApiNotAccessibleException e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					ExceptionUtils.getStackTrace(e));
-			throw new CredentialFormatterException(e);
-		} catch (JsonProcessingException e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					ExceptionUtils.getStackTrace(e));
-			throw new CredentialFormatterException(e);
-		} catch (Exception e) {
+		} catch (JsonProcessingException | ApiNotAccessibleException | DataEncryptionFailureException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					ExceptionUtils.getStackTrace(e));
 			throw new CredentialFormatterException(e);
@@ -181,6 +170,7 @@ public class CredentialProvider {
 
 	}
 
+	@SuppressWarnings("rawtypes")
 	public Map<AllowedKycDto, Object> prepareSharableAttributes(IdResponseDTO idResponseDto,
 			PartnerCredentialTypePolicyDto policyResponseDto, CredentialServiceRequestDto credentialServiceRequestDto)
 			throws CredentialFormatterException {
@@ -241,7 +231,7 @@ public class CredentialProvider {
 					attributesMap.put(key, formattedObject);
 				} else {
 					if (attribute.equalsIgnoreCase(CredentialConstants.FULLNAME)) {
-						Object formattedObject = getFullname(identity, attribute);
+						Object formattedObject = getFullname(identity);
 						attributesMap.put(key, formattedObject);
 					} else if (attribute.equalsIgnoreCase(CredentialConstants.ENCRYPTIONKEY)) {
 						additionalData.put(key.getAttributeName(), credentialServiceRequestDto.getEncryptionKey());
@@ -285,7 +275,7 @@ public class CredentialProvider {
 	private List<BestFingerDto> getBestTwoFingers(String individualBiometricsValue, AllowedKycDto key)
 			throws Exception {
 		List<BestFingerDto> bestFingerList = new ArrayList<>();
-		Map<String, Long> subTypeScoreMap = new HashMap<String, Long>();
+		Map<String, Long> subTypeScoreMap = new HashMap<>();
 		Source source = key.getSource().get(0);
 
 		List<Filter> filterList = source.getFilter();
@@ -346,24 +336,28 @@ public class CredentialProvider {
 		return bestFingerList;
 	}
 
-	private String getSubType(List<String> bdbSubTypeList) {
-		String subType;
-		if (bdbSubTypeList.size() == 1) {
-			subType = bdbSubTypeList.get(0);
-		} else {
-			subType = bdbSubTypeList.get(0) + " " + bdbSubTypeList.get(1);
+	protected String getSubType(List<String> bdbSubTypeList) {
+		String subType = null;
+		if (Objects.nonNull(bdbSubTypeList)) {
+			if (bdbSubTypeList.size() == 1) {
+				subType = bdbSubTypeList.get(0);
+			} else {
+				subType = bdbSubTypeList.get(0) + " " + bdbSubTypeList.get(1);
+			}
 		}
 		return subType;
 	}
-
-	private JSONArray getFullname(JSONObject identity, String attribute) {
-		Map<String, Map<String, String>> languageMap = new HashMap<String, Map<String, String>>();
+	
+	@SuppressWarnings("unchecked")
+	private JSONArray getFullname(JSONObject identity) {
+		Map<String, Map<String, String>> languageMap = new HashMap<>();
+		//TODO remove harding of below attributes
 		getName(identity, "firstName", languageMap);
 		getName(identity, "lastName", languageMap);
 		getName(identity, "middleName", languageMap);
 		JSONArray array = new JSONArray();
 		for (Entry<String, Map<String, String>> languageSpecificEntry : languageMap.entrySet()) {
-			Map<String, String> langSpecificfullName = new HashMap<String, String>();
+			Map<String, String> langSpecificfullName = new HashMap<>();
 			String lang = languageSpecificEntry.getKey();
 			Map<String, String> languageSpecificValues = languageSpecificEntry.getValue();
 			String formattedName = formatName(languageSpecificValues.get("firstName"),
@@ -388,7 +382,7 @@ public class CredentialProvider {
 				if (languageMap.containsKey(lang)) {
 					nameMap = languageMap.get(lang);
 				} else {
-					nameMap=new HashMap<String, String>();
+					nameMap=new HashMap<>();
 				}
 				nameMap.put(attribute, jsonValue.getValue());
 				languageMap.put(lang, nameMap);
@@ -469,39 +463,34 @@ public class CredentialProvider {
 		return formattedObject;
 	}
 
-	@SuppressWarnings("unchecked")
 	private Object maskData(Object object) {
-		Map context = new HashMap();
+		Map<String, String> context = new HashMap<>();
 		context.put("value", String.valueOf(object));
 		VariableResolverFactory myVarFactory = new MapVariableResolverFactory(context);
 		myVarFactory.setNextFactory(functionFactory);
 		Serializable serializable = MVEL.compileExpression("convertToMaskData(value);");
-		String formattedObject = MVEL.executeExpression(serializable, context, myVarFactory, String.class);
-		return formattedObject;
+		return MVEL.executeExpression(serializable, context, myVarFactory, String.class);
 	}
 
-	@SuppressWarnings("unchecked")
 	private Object formatDate(Object object, String format) {
-		Map context = new HashMap();
+		Map<String, String> context = new HashMap<>();
 		context.put("value", String.valueOf(object));
 		context.put("inputformat", dobFormat);
 		context.put("outputformat", format);
 		VariableResolverFactory myVarFactory = new MapVariableResolverFactory(context);
 		myVarFactory.setNextFactory(functionFactory);
 		Serializable serializable = MVEL.compileExpression("convertDateFormat(value, inputformat, outputformat);");
-		String formattedObject = MVEL.executeExpression(serializable, context, myVarFactory, String.class);
-		return formattedObject;
+		return MVEL.executeExpression(serializable, context, myVarFactory, String.class);
 	}
 
 	private String formatName(String firstName, String lastName, String middleName) {
-		Map context = new HashMap();
+		Map<String, String> context = new HashMap<>();
 		context.put("firstName", firstName);
 		context.put("lastName", lastName);
 		context.put("middleName", middleName);
 		VariableResolverFactory myVarFactory = new MapVariableResolverFactory(context);
 		myVarFactory.setNextFactory(functionFactory);
 		Serializable serializable = MVEL.compileExpression("formatName(firstName,middleName,lastName);");
-		String formattedObject = MVEL.executeExpression(serializable, context, myVarFactory, String.class);
-		return formattedObject;
+		return MVEL.executeExpression(serializable, context, myVarFactory, String.class);
 	}
 }
