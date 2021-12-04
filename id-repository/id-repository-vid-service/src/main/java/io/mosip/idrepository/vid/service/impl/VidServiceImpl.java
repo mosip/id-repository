@@ -127,7 +127,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	@Value("${" + VID_EVENT_TOPIC + "}")
 	private String vidEventTopic;
 	
-	@Value("${ " + VID_ACTIVE_STATUS + "}")
+	@Value("${" + VID_ACTIVE_STATUS + "}")
 	private String vidActiveStatus;
 	
 	@Value("${" + VID_REGENERATE_ALLOWED_STATUS + "}")
