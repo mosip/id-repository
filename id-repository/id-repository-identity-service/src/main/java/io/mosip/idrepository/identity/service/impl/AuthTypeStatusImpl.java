@@ -168,19 +168,14 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 			ResponseWrapper<Map<String, String>> response = restHelper.requestSync(request);
 			return response.getResponse().get("UIN");
 		} catch (RestServiceException e) {
-			if (e.getResponseBodyAsString().isPresent()) {
-				List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(e.getResponseBodyAsString().get());
-				mosipLogger.error(IdRepoSecurityManager.getUser(), AUTH_TYPE_STATUS_IMPL, "getUin", "\n" + errorList);
-				throw new IdRepoAppException(errorList.get(0).getErrorCode(), errorList.get(0).getMessage());
-			} else {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), AUTH_TYPE_STATUS_IMPL, "getUin", e.getMessage());
-				throw new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR);
-			}
+			List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(e.getResponseBodyAsString()
+					.orElseThrow(() -> new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR)));
+			mosipLogger.error(IdRepoSecurityManager.getUser(), AUTH_TYPE_STATUS_IMPL, "getUin", "\n" + errorList);
+			throw new IdRepoAppException(errorList.get(0).getErrorCode(), errorList.get(0).getMessage());
 		}
 	}
 
-	private IdResponseDTO doUpdateAuthTypeStatus(String individualId, List<AuthtypeStatus> authTypeStatusList)
-			throws IdRepoAppException {
+	private IdResponseDTO doUpdateAuthTypeStatus(String individualId, List<AuthtypeStatus> authTypeStatusList) {
 		List<AuthtypeLock> entities = authTypeStatusList.stream()
 				.map(authtypeStatus -> this.putAuthTypeStatus(authtypeStatus, individualId)).collect(Collectors.toList());
 		authLockRepository.saveAll(entities);
@@ -259,7 +254,7 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 		boolean isLocked = authtypeLock.getStatuscode().equalsIgnoreCase(Boolean.TRUE.toString());
 		boolean isAuthTypeUnlockedTemporarily = isLocked && Objects.nonNull(authtypeLock.getUnlockExpiryDTtimes())
 				&& authtypeLock.getUnlockExpiryDTtimes().isAfter(DateUtils.getUTCCurrentDateTime());
-		authtypeStatus.setLocked(isAuthTypeUnlockedTemporarily ? false : isLocked);
+		authtypeStatus.setLocked(!isAuthTypeUnlockedTemporarily && isLocked);
 		authtypeStatus.setUnlockForSeconds(isAuthTypeUnlockedTemporarily
 				? ChronoUnit.SECONDS.between(DateUtils.getUTCCurrentDateTime(), authtypeLock.getUnlockExpiryDTtimes())
 				: null);

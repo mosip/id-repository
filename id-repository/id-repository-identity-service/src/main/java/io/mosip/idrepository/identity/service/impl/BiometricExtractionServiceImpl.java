@@ -3,11 +3,8 @@ package io.mosip.idrepository.identity.service.impl;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DOT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_NOT_FOUND;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -21,8 +18,6 @@ import io.mosip.idrepository.core.dto.BioExtractRequestDTO;
 import io.mosip.idrepository.core.dto.BioExtractResponseDTO;
 import io.mosip.idrepository.core.exception.BiometricExtractionException;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
-import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
-import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.BiometricExtractionService;
@@ -98,18 +93,9 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 				objectStoreHelper.putBiometricObject(uinHash, extractionFileName, cbeffUtil.createXML(extractedBiometrics));
 			}
 			return CompletableFuture.completedFuture(extractedBiometrics);
-		} catch (IdRepoDataValidationException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE, e.getMessage());
-			throw new IdRepoAppException(UNKNOWN_ERROR, e);
 		} catch (BiometricExtractionException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE, e.getMessage());
 			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
-		} catch (IOException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE, e.getMessage());
-			throw new IdRepoAppUncheckedException(FILE_STORAGE_ACCESS_ERROR, e);
-		} catch (ObjectStoreAdapterException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE, e.getMessage());
-			throw new IdRepoAppUncheckedException(FILE_NOT_FOUND, e);
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE, e.getMessage());
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);
