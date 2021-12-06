@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -33,6 +34,7 @@ import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
  */
 @Configuration
 @ConfigurationProperties("mosip.idrepo.vid")
+@EnableCaching
 public class VidRepoConfig extends HibernateDaoConfig {
 
 	/** The env. */

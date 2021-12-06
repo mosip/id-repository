@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -54,6 +55,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 @ConfigurationProperties("mosip.idrepo.identity")
 @EnableTransactionManagement
 @EnableAsync
+@EnableCaching
 public class IdRepoConfig implements WebMvcConfigurer {
 	
 	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISH_URL + "}")
