@@ -253,7 +253,9 @@ public class CredentialServiceManager {
 					List<Map<String, Object>> partnersList = (List<Map<String, Object>>) partnersObj;
 					partners = partnersList.stream()
 							.filter(partner -> PARTNER_ACTIVE_STATUS.equalsIgnoreCase((String) partner.get("status")))
-							.map(partner -> (String) partner.get("partnerID")).collect(Collectors.toList());
+							.map(partner -> (String) partner.get("partnerID"))
+							.filter(Predicate.not(dummyCheck::isDummyOLVPartner))
+							.collect(Collectors.toList());
 				}
 			}
 		} catch (RestServiceException | IdRepoDataValidationException e) {
@@ -454,12 +456,10 @@ public class CredentialServiceManager {
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
 		try {
 			Map<String, Object> response = Map.of();
-			if (!dummyCheck.isDummyOLVPartner(partnerId)) {
 				response = restHelper.requestSync(
 						restBuilder.buildRequest(RestServicesConstants.CREDENTIAL_REQUEST_SERVICE, requestWrapper, Map.class));
 				mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_REQUEST_TO_CRED_SERVICE,
 						"Response of Credential Request: " + mapper.writeValueAsString(response));
-			}
 
 			if (credentialRequestResponseConsumer != null) {
 				credentialRequestResponseConsumer.accept(requestWrapper, response);

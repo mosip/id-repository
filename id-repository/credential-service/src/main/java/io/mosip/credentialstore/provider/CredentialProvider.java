@@ -347,7 +347,7 @@ public class CredentialProvider {
 		}
 		return subType;
 	}
-
+	
 	@SuppressWarnings("unchecked")
 	private JSONArray getFullname(JSONObject identity) {
 		Map<String, Map<String, String>> languageMap = new HashMap<>();
