@@ -9,6 +9,7 @@ import org.hibernate.Interceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -31,6 +32,7 @@ import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 @EnableAsync
 @EnableJpaRepositories(basePackageClasses = { UinHashSaltRepo.class, UinEncryptSaltRepo.class,
 		CredentialRequestStatusRepo.class })
+@EnableCaching
 public class IdRepoDataSourceConfig {
 
 	@Autowired(required = false)
