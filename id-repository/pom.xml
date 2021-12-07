@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.mosip.idrepository</groupId>
 	<artifactId>id-repository-parent</artifactId>
-	<version>1.2.0-SNAPSHOT</version>
+	<version>1.2.0-rc2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>ID-Repository</name>
@@ -107,7 +107,7 @@
 		<junit.version>4.12</junit.version>
 		<mockito.version>2.22.0</mockito.version>
 
-		<kernel.logger.logback.version>1.2.0-SNAPSHOT</kernel.logger.logback.version>
+		<kernel.logger.logback.version>1.2.0-rc2-SNAPSHOT</kernel.logger.logback.version>
 	</properties>
     <dependencies>
     	<!-- JUnit -->
@@ -448,7 +448,7 @@
 						</executions>
 						<configuration>
 							<apiDocsUrl>http://localhost:8090/app/generic/v3/api-docs</apiDocsUrl>
-							<outputFileName>${name}-openapi.json</outputFileName>
+							<outputFileName>openapi.json</outputFileName>
 							<outputDir>${project.build.directory}</outputDir>
 							<skip>false</skip>
 						</configuration>
