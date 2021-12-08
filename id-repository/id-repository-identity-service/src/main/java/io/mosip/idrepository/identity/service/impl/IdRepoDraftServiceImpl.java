@@ -366,6 +366,12 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			} else {
 				UinDraft draft = uinDraft.get();
+				anonymousProfileHelper
+				.setNewCbeff(draft.getUinHash().split("_")[1],
+						!anonymousProfileHelper.isNewCbeffPresent() && Objects.nonNull(draft.getBiometrics())
+						&& !draft.getBiometrics().isEmpty()
+						? draft.getBiometrics().get(draft.getBiometrics().size() - 1).getBioFileId()
+								: null);
 				IdRequestDTO idRequest = buildRequest(regId, draft);
 				validateRequest(idRequest.getRequest());
 				String uin = decryptUin(draft.getUin(), draft.getUinHash());
@@ -377,13 +383,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 					uinObject = super.addIdentity(idRequest, uin);
 					vidDraftHelper.activateDraftVid(draftVid);
 				}
-				anonymousProfileHelper
-				.setNewCbeff(draft.getUinHash().split("_")[1],
-						!anonymousProfileHelper.isNewCbeffPresent() && Objects.nonNull(draft.getBiometrics())
-								&& !draft.getBiometrics().isEmpty()
-										? draft.getBiometrics().get(draft.getBiometrics().size() - 1).getBioFileId()
-										: null)
-				.buildAndsaveProfile(true);
+				anonymousProfileHelper.buildAndsaveProfile(true);
 				publishDocuments(draft, uinObject);
 				this.discardDraft(regId);
 				return constructIdResponse(null, uinObject.getStatusCode(), null, draftVid);
