@@ -338,7 +338,7 @@ public class CredentialProvider {
 
 	protected String getSubType(List<String> bdbSubTypeList) {
 		String subType = null;
-		if (Objects.nonNull(bdbSubTypeList)) {
+		if (Objects.nonNull(bdbSubTypeList) && !bdbSubTypeList.isEmpty()) {
 			if (bdbSubTypeList.size() == 1) {
 				subType = bdbSubTypeList.get(0);
 			} else {
