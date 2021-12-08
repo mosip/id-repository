@@ -10,6 +10,8 @@ import java.util.Map;
 
 import javax.persistence.QueryHint;
 
+import io.mosip.credential.request.generator.entity.CredentialFailedEntity;
+import io.mosip.credential.request.generator.repositary.CredentialFailedRepository;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -35,8 +37,6 @@ import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-
-import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
@@ -71,6 +71,10 @@ public class BatchConfiguration {
 	@Autowired
 	private CredentialRepositary<CredentialEntity, String> crdentialRepo;
 
+	/** The crdential repo. */
+	@Autowired
+	private CredentialFailedRepository<CredentialFailedEntity, String> crdentialFailedRepo;
+
 	/** The credential process job. */
 	@Autowired
 	private Job credentialProcessJob;
@@ -78,7 +82,9 @@ public class BatchConfiguration {
 	/** The credential re process job. */
 	@Autowired
 	private Job credentialReProcessJob;
-	
+
+
+
 	/**
 	 * Process job.
 	 */
@@ -161,10 +167,9 @@ public class BatchConfiguration {
 		RepositoryItemReader<CredentialEntity> reader = new RepositoryItemReader<>();
 		List<Object> methodArgs = new ArrayList<Object>();
 		reader.setRepository(crdentialRepo);
-		reader.setMethodName("findCredentialByStatusCode");
+		reader.setMethodName("findCredential");
 		 final Map<String, Sort.Direction> sorts = new HashMap<>();
 		    sorts.put("createDateTime", Direction.ASC);
-		methodArgs.add("NEW");
 		reader.setArguments(methodArgs);
 		reader.setSort(sorts);
 		reader.setPageSize(propertyLoader().pageSize);
@@ -206,24 +211,22 @@ public class BatchConfiguration {
 	@Bean
 	@DependsOn("alterAnnotation")
 	public Step credentialReProcessStep() throws Exception {
-		RepositoryItemReader<CredentialEntity> reader = new RepositoryItemReader<>();
+		RepositoryItemReader<CredentialFailedEntity> reader = new RepositoryItemReader<>();
 		List<Object> methodArgs = new ArrayList<Object>();
-		reader.setRepository(crdentialRepo);
-		reader.setMethodName("findCredentialByStatusCodes");
+		reader.setRepository(crdentialFailedRepo);
+		reader.setMethodName("findFailedCredential");
 		final Map<String, Sort.Direction> sorts = new HashMap<>();
 		sorts.put("updateDateTime", Direction.ASC);
-		String[] statusCodes = propertyLoader().reprocessStatusCodes.split(",");
-		methodArgs.add(statusCodes);
 		methodArgs.add(propertyLoader().credentialRequestType);
 		reader.setArguments(methodArgs);
 		reader.setSort(sorts);
 		reader.setPageSize(propertyLoader().pageSize);
 
-		RepositoryItemWriter<CredentialEntity> writer = new RepositoryItemWriter<>();
-		writer.setRepository(crdentialRepo);
-		writer.setMethodName("update");
+		RepositoryItemWriter<CredentialFailedEntity> writer = new RepositoryItemWriter<>();
+		writer.setRepository(crdentialFailedRepo);
+		writer.setMethodName("add");
 		return stepBuilderFactory.get("credentialReProcessStep")
-				.<CredentialEntity, CredentialEntity>chunk(propertyLoader().chunkSize)
+				.<CredentialFailedEntity, CredentialFailedEntity>chunk(propertyLoader().chunkSize)
 				.reader(reader).processor((ItemProcessor) asyncItemReProcessor()).writer(asyncItemWReprocessWriter())
 				.build();
 
@@ -253,7 +256,7 @@ public class BatchConfiguration {
 	}
 
 	@Bean
-	public AsyncItemProcessor<CredentialEntity, CredentialEntity> asyncItemReProcessor() throws Exception {
+	public AsyncItemProcessor<CredentialFailedEntity, CredentialFailedEntity> asyncItemReProcessor() throws Exception {
 
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		executor.setCorePoolSize(propertyLoader().corePoolSize);
@@ -262,7 +265,7 @@ public class BatchConfiguration {
 		executor.setThreadNamePrefix("CredentialReProcessing-");
 		executor.afterPropertiesSet();
 
-		AsyncItemProcessor<CredentialEntity, CredentialEntity> asyncProcessor = new AsyncItemProcessor<>();
+		AsyncItemProcessor<CredentialFailedEntity, CredentialFailedEntity> asyncProcessor = new AsyncItemProcessor<>();
 		asyncProcessor.setDelegate(reProcessor());
 		asyncProcessor.setTaskExecutor(executor);
 		asyncProcessor.afterPropertiesSet();
@@ -279,8 +282,8 @@ public class BatchConfiguration {
 	}
 
 	@Bean
-	public AsyncItemWriter<CredentialEntity> asyncItemWReprocessWriter() {
-		AsyncItemWriter<CredentialEntity> asyncWriter = new AsyncItemWriter<>();
+	public AsyncItemWriter<CredentialFailedEntity> asyncItemWReprocessWriter() {
+		AsyncItemWriter<CredentialFailedEntity> asyncWriter = new AsyncItemWriter<>();
 		asyncWriter.setDelegate(reProcesswriter());
 
 		return asyncWriter;
@@ -295,9 +298,9 @@ public class BatchConfiguration {
 	}
 
 	@Bean
-	public RepositoryItemWriter<CredentialEntity> reProcesswriter() {
-		RepositoryItemWriter<CredentialEntity> writer = new RepositoryItemWriter<>();
-		writer.setRepository(crdentialRepo);
+	public RepositoryItemWriter<CredentialFailedEntity> reProcesswriter() {
+		RepositoryItemWriter<CredentialFailedEntity> writer = new RepositoryItemWriter<>();
+		writer.setRepository(crdentialFailedRepo);
 		writer.setMethodName("update");
 		return writer;
 	}
@@ -305,38 +308,30 @@ public class BatchConfiguration {
 	@Bean(name = "alterAnnotation")
 	public String alterAnnotation() throws Exception {
 
-		Method findCredentialByStatusCode = CredentialRepositary.class.getDeclaredMethod("findCredentialByStatusCode",
-				String.class, Pageable.class);
-		findCredentialByStatusCode.setAccessible(true);
-		QueryHints queryHints = findCredentialByStatusCode.getDeclaredAnnotation(QueryHints.class);
+		Method findCredential = CredentialRepositary.class.getDeclaredMethod("findCredential", Pageable.class);
+		findCredential.setAccessible(true);
+		QueryHints queryHints = findCredential.getDeclaredAnnotation(QueryHints.class);
 		QueryHint queryHint = (QueryHint) queryHints.value()[0];
 		java.lang.reflect.InvocationHandler invocationHandler = Proxy.getInvocationHandler(queryHint);
 		Field memberValues = invocationHandler.getClass().getDeclaredField("memberValues");
 		memberValues.setAccessible(true);
 		Map<String, Object> values = (Map<String, Object>) memberValues.get(invocationHandler);
 		values.put("value", propertyLoader().processLockTimeout);
-		findCredentialByStatusCode.setAccessible(false);
+		findCredential.setAccessible(false);
 
-		Method findCredentialByStatusCodes = CredentialRepositary.class.getDeclaredMethod("findCredentialByStatusCodes",
-				String[].class, String.class, Pageable.class);
-		findCredentialByStatusCodes.setAccessible(true);
-		QueryHints queryHintsReprocess = findCredentialByStatusCodes.getDeclaredAnnotation(QueryHints.class);
-		QueryHint queryHintReprocess = (QueryHint) queryHintsReprocess.value()[0];
-		java.lang.reflect.InvocationHandler invocationHandlerReprocess = Proxy.getInvocationHandler(queryHintReprocess);
-		Field memberValuesReprocess = invocationHandlerReprocess.getClass().getDeclaredField("memberValues");
-		memberValuesReprocess.setAccessible(true);
-		Map<String, Object> valuesReprocess = (Map<String, Object>) memberValuesReprocess
-				.get(invocationHandlerReprocess);
-
-		valuesReprocess.put("value", propertyLoader().reProcessLockTimeout);
-		findCredentialByStatusCodes.setAccessible(false);
+		Method findFailedCredential = CredentialFailedRepository.class.getDeclaredMethod("findFailedCredential",
+				String.class, Pageable.class);
+		findFailedCredential.setAccessible(true);
+		QueryHints queryHintsFailed = findFailedCredential.getDeclaredAnnotation(QueryHints.class);
+		QueryHint queryHintFailed = (QueryHint) queryHintsFailed.value()[0];
+		java.lang.reflect.InvocationHandler invocationHandlerFailed = Proxy.getInvocationHandler(queryHintFailed);
+		Field memberValuesFailed = invocationHandlerFailed.getClass().getDeclaredField("memberValues");
+		memberValuesFailed.setAccessible(true);
+		Map<String, Object> valuesFailed = (Map<String, Object>) memberValuesFailed.get(invocationHandlerFailed);
+		valuesFailed.put("value", propertyLoader().processLockTimeout);
+		findFailedCredential.setAccessible(false);
 
 		return "";
 
-	}
-	
-	@Bean
-	public AfterburnerModule afterburnerModule() {
-		return new AfterburnerModule();
 	}
 }

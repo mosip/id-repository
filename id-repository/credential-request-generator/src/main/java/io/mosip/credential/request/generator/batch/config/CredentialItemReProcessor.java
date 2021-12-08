@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+import io.mosip.credential.request.generator.entity.CredentialIssuedEntity;
+import io.mosip.credential.request.generator.repositary.CredentialFailedRepository;
+import io.mosip.credential.request.generator.repositary.CredentialIssuedRepository;
+import io.mosip.credential.request.generator.util.CredentialUtilityConverter;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +22,7 @@ import io.mosip.credential.request.generator.constants.ApiName;
 import io.mosip.credential.request.generator.constants.CredentialRequestErrorCodes;
 import io.mosip.credential.request.generator.constants.CredentialStatusCode;
 import io.mosip.credential.request.generator.constants.LoggerFileConstant;
-import io.mosip.credential.request.generator.entity.CredentialEntity;
+import io.mosip.credential.request.generator.entity.CredentialFailedEntity;
 import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.credential.request.generator.util.TrimExceptionMessage;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
@@ -37,7 +41,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
  * @author Sowmya
  */
 @Component
-public class CredentialItemReProcessor implements ItemProcessor<CredentialEntity, CredentialEntity> {
+public class CredentialItemReProcessor implements ItemProcessor<CredentialFailedEntity, CredentialFailedEntity> {
 
 	/** The mapper. */
 	@Autowired
@@ -46,6 +50,12 @@ public class CredentialItemReProcessor implements ItemProcessor<CredentialEntity
 	/** The rest util. */
 	@Autowired
 	private RestUtil restUtil;
+
+	@Autowired
+	private CredentialFailedRepository credentialFailedRepository;
+
+	@Autowired
+	private CredentialIssuedRepository credentialIssuedRepository;
 
 	/** The retry max count. */
 	@Value("${credential.request.retry.max.count}")
@@ -63,7 +73,7 @@ public class CredentialItemReProcessor implements ItemProcessor<CredentialEntity
 	 * @see org.springframework.batch.item.ItemProcessor#process(java.lang.Object)
 	 */
 	@Override
-	public CredentialEntity process(CredentialEntity credential) {
+	public CredentialFailedEntity process(CredentialFailedEntity credential) {
 		int retryCount = credential.getRetryCount() != null ? credential.getRetryCount() : 0;
 		TrimExceptionMessage trimMessage = new TrimExceptionMessage();
 		LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
@@ -149,6 +159,12 @@ public class CredentialItemReProcessor implements ItemProcessor<CredentialEntity
 		finally {
 			credential.setUpdatedBy(CREDENTIAL_USER);
 			credential.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+			// move issued credentials to table and delete existing credential from credential_transaction_failed table
+			if (credential.getStatusCode().equalsIgnoreCase(CredentialStatusCode.ISSUED.name())) {
+				CredentialIssuedEntity issuedEntity = CredentialUtilityConverter.convertFailedToIssued(credential);
+				credentialIssuedRepository.save(issuedEntity);
+				credentialFailedRepository.delete(credential);
+			}
 		}
 		return credential;
 	}

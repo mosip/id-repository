@@ -2,9 +2,14 @@ package io.mosip.credential.request.generator.test.batch.config;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.credential.request.generator.repositary.CredentialFailedRepository;
+import io.mosip.credential.request.generator.repositary.CredentialIssuedRepository;
+import io.mosip.credential.request.generator.repositary.CredentialRepositary;
+import io.mosip.credential.request.generator.util.CredentialUtilityConverter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,7 +17,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
@@ -22,21 +26,19 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.context.WebApplicationContext;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credential.request.generator.batch.config.CredentialItemReProcessor;
 import io.mosip.credential.request.generator.constants.ApiName;
-import io.mosip.credential.request.generator.entity.CredentialEntity;
+import io.mosip.credential.request.generator.entity.CredentialFailedEntity;
 import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialServiceResponse;
 import io.mosip.idrepository.core.dto.CredentialServiceResponseDto;
 import io.mosip.idrepository.core.dto.ErrorDTO;
-import io.mosip.idrepository.core.util.EnvUtil;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest @Import(EnvUtil.class)
+@WebMvcTest
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 public class CredentialItemReProcessorTest {
 
@@ -46,7 +48,16 @@ public class CredentialItemReProcessorTest {
 
 
 	@Mock
-	CredentialEntity credentialEntity;
+	CredentialFailedEntity CredentialFailedEntity;
+
+	@Mock
+	private CredentialRepositary credentialRepository;
+
+	@Mock
+	private CredentialFailedRepository credentialFailedRepository;
+
+	@Mock
+	private CredentialIssuedRepository credentialIssuedRepository;
 
 
 	@Mock
@@ -61,7 +72,7 @@ public class CredentialItemReProcessorTest {
 
 	CredentialServiceResponseDto credentialServiceResponseDto;
 
-	CredentialEntity credential;
+	CredentialFailedEntity credential;
 
 	@Before
 	public void setUp() {
@@ -72,11 +83,12 @@ public class CredentialItemReProcessorTest {
 		credentialIssueRequestDto.setEncrypt(true);
 		responseString = "response";
 		credentialServiceResponseDto = new CredentialServiceResponseDto();
-		credential = new CredentialEntity();
+		credential = new CredentialFailedEntity();
 		credential.setRequestId("test123");
 		credential.setRetryCount(1);
 		credential.setRequest("request");
 		credential.setStatusCode("FAILED");
+		Mockito.when(credentialIssuedRepository.save(Mockito.any())).thenReturn(CredentialUtilityConverter.convertFailedToIssued(credential));
 
 	}
 
@@ -94,7 +106,7 @@ public class CredentialItemReProcessorTest {
 		credentialServiceResponse.setCredentialId("testcredentialid");
 		credentialServiceResponse.setStatus("ISSUED");;
 		credentialServiceResponseDto.setResponse(credentialServiceResponse);
-		CredentialEntity updatedCredential = credentialItemReProcessor.process(credential);
+		CredentialFailedEntity updatedCredential = credentialItemReProcessor.process(credential);
 		assertEquals("ISSUED", updatedCredential.getStatusCode());
 	}
 
@@ -113,7 +125,7 @@ public class CredentialItemReProcessorTest {
 		error.setMessage("Failed to get policy details");
 		errors.add(error);
 		credentialServiceResponseDto.setErrors(errors);
-		CredentialEntity updatedCredential = credentialItemReProcessor.process(credential);
+		CredentialFailedEntity updatedCredential = credentialItemReProcessor.process(credential);
 		assertEquals("FAILED", updatedCredential.getStatusCode());
 	}
 
@@ -122,9 +134,9 @@ public class CredentialItemReProcessorTest {
 
 		Mockito.when(mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class))
 				.
-				thenThrow(new JsonMappingException("mapping exception"));
+				thenThrow(new IOException("mapping exception"));
 
-		CredentialEntity updatedCredential = credentialItemReProcessor.process(credential);
+		CredentialFailedEntity updatedCredential = credentialItemReProcessor.process(credential);
 		assertEquals("FAILED", updatedCredential.getStatusCode());
 	}
 
@@ -141,7 +153,7 @@ public class CredentialItemReProcessorTest {
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 
-		CredentialEntity updatedCredential = credentialItemReProcessor.process(credential);
+		CredentialFailedEntity updatedCredential = credentialItemReProcessor.process(credential);
 		assertEquals("FAILED", updatedCredential.getStatusCode());
 	}
 
@@ -159,7 +171,7 @@ public class CredentialItemReProcessorTest {
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 
-		CredentialEntity updatedCredential = credentialItemReProcessor.process(credential);
+		CredentialFailedEntity updatedCredential = credentialItemReProcessor.process(credential);
 		assertEquals("FAILED", updatedCredential.getStatusCode());
 	}
 }

@@ -2,9 +2,14 @@ package io.mosip.credential.request.generator.test.batch.config;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.credential.request.generator.repositary.CredentialFailedRepository;
+import io.mosip.credential.request.generator.repositary.CredentialIssuedRepository;
+import io.mosip.credential.request.generator.repositary.CredentialRepositary;
+import io.mosip.credential.request.generator.util.CredentialUtilityConverter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,7 +17,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
@@ -21,7 +25,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.context.WebApplicationContext;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credential.request.generator.batch.config.CredentialItemProcessor;
@@ -32,10 +35,9 @@ import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialServiceResponse;
 import io.mosip.idrepository.core.dto.CredentialServiceResponseDto;
 import io.mosip.idrepository.core.dto.ErrorDTO;
-import io.mosip.idrepository.core.util.EnvUtil;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest @Import(EnvUtil.class)
+@WebMvcTest
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 public class CredentialItemProcessorTest {
 
@@ -46,6 +48,15 @@ public class CredentialItemProcessorTest {
 
 	@Mock
 	CredentialEntity credentialEntity;
+
+	@Mock
+	private CredentialRepositary credentialRepository;
+
+	@Mock
+	private CredentialFailedRepository credentialFailedRepository;
+
+	@Mock
+	private CredentialIssuedRepository credentialIssuedRepository;
 
 
 	@Mock
@@ -74,6 +85,8 @@ public class CredentialItemProcessorTest {
 		credential.setRequestId("test123");
 		credential.setRetryCount(0);
 		credential.setRequest("request");
+		Mockito.when(credentialFailedRepository.save(Mockito.any())).thenReturn(CredentialUtilityConverter.convertFailed(credential));
+		Mockito.when(credentialIssuedRepository.save(Mockito.any())).thenReturn(CredentialUtilityConverter.convertIssued(credential));
 
 	}
 
@@ -119,7 +132,7 @@ public class CredentialItemProcessorTest {
 
 		Mockito.when(mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class))
 				.
-				thenThrow(new JsonMappingException("mapping exception"));
+				thenThrow(new IOException("mapping exception"));
 
 		CredentialEntity updatedCredential = credentialItemProcessor.process(credential);
 		assertEquals("FAILED", updatedCredential.getStatusCode());
