@@ -6,10 +6,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.mosip.credential.request.generator.repositary.CredentialFailedRepository;
-import io.mosip.credential.request.generator.repositary.CredentialIssuedRepository;
-import io.mosip.credential.request.generator.repositary.CredentialRepositary;
-import io.mosip.credential.request.generator.util.CredentialUtilityConverter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credential.request.generator.batch.config.CredentialItemReProcessor;
 import io.mosip.credential.request.generator.constants.ApiName;
-import io.mosip.credential.request.generator.entity.CredentialFailedEntity;
+import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialServiceResponse;
@@ -48,16 +44,7 @@ public class CredentialItemReProcessorTest {
 
 
 	@Mock
-	CredentialFailedEntity CredentialFailedEntity;
-
-	@Mock
-	private CredentialRepositary credentialRepository;
-
-	@Mock
-	private CredentialFailedRepository credentialFailedRepository;
-
-	@Mock
-	private CredentialIssuedRepository credentialIssuedRepository;
+	CredentialEntity credentialEntity;
 
 
 	@Mock
@@ -72,7 +59,7 @@ public class CredentialItemReProcessorTest {
 
 	CredentialServiceResponseDto credentialServiceResponseDto;
 
-	CredentialFailedEntity credential;
+	CredentialEntity credential;
 
 	@Before
 	public void setUp() {
@@ -83,12 +70,11 @@ public class CredentialItemReProcessorTest {
 		credentialIssueRequestDto.setEncrypt(true);
 		responseString = "response";
 		credentialServiceResponseDto = new CredentialServiceResponseDto();
-		credential = new CredentialFailedEntity();
+		credential = new CredentialEntity();
 		credential.setRequestId("test123");
 		credential.setRetryCount(1);
 		credential.setRequest("request");
 		credential.setStatusCode("FAILED");
-		Mockito.when(credentialIssuedRepository.save(Mockito.any())).thenReturn(CredentialUtilityConverter.convertFailedToIssued(credential));
 
 	}
 
@@ -106,7 +92,7 @@ public class CredentialItemReProcessorTest {
 		credentialServiceResponse.setCredentialId("testcredentialid");
 		credentialServiceResponse.setStatus("ISSUED");;
 		credentialServiceResponseDto.setResponse(credentialServiceResponse);
-		CredentialFailedEntity updatedCredential = credentialItemReProcessor.process(credential);
+		CredentialEntity updatedCredential = credentialItemReProcessor.process(credential);
 		assertEquals("ISSUED", updatedCredential.getStatusCode());
 	}
 
@@ -125,7 +111,7 @@ public class CredentialItemReProcessorTest {
 		error.setMessage("Failed to get policy details");
 		errors.add(error);
 		credentialServiceResponseDto.setErrors(errors);
-		CredentialFailedEntity updatedCredential = credentialItemReProcessor.process(credential);
+		CredentialEntity updatedCredential = credentialItemReProcessor.process(credential);
 		assertEquals("FAILED", updatedCredential.getStatusCode());
 	}
 
@@ -136,7 +122,7 @@ public class CredentialItemReProcessorTest {
 				.
 				thenThrow(new IOException("mapping exception"));
 
-		CredentialFailedEntity updatedCredential = credentialItemReProcessor.process(credential);
+		CredentialEntity updatedCredential = credentialItemReProcessor.process(credential);
 		assertEquals("FAILED", updatedCredential.getStatusCode());
 	}
 
@@ -153,7 +139,7 @@ public class CredentialItemReProcessorTest {
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 
-		CredentialFailedEntity updatedCredential = credentialItemReProcessor.process(credential);
+		CredentialEntity updatedCredential = credentialItemReProcessor.process(credential);
 		assertEquals("FAILED", updatedCredential.getStatusCode());
 	}
 
@@ -171,7 +157,7 @@ public class CredentialItemReProcessorTest {
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 
-		CredentialFailedEntity updatedCredential = credentialItemReProcessor.process(credential);
+		CredentialEntity updatedCredential = credentialItemReProcessor.process(credential);
 		assertEquals("FAILED", updatedCredential.getStatusCode());
 	}
 }

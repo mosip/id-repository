@@ -4,12 +4,6 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
-import io.mosip.credential.request.generator.entity.CredentialFailedEntity;
-import io.mosip.credential.request.generator.entity.CredentialIssuedEntity;
-import io.mosip.credential.request.generator.repositary.CredentialFailedRepository;
-import io.mosip.credential.request.generator.repositary.CredentialIssuedRepository;
-import io.mosip.credential.request.generator.repositary.CredentialRepositary;
-import io.mosip.credential.request.generator.util.CredentialUtilityConverter;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -50,15 +44,6 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 	
 	@Autowired
 	private RestUtil restUtil;
-
-	@Autowired
-	private CredentialRepositary credentialRepository;
-
-	@Autowired
-	private CredentialFailedRepository credentialFailedRepository;
-
-	@Autowired
-	private CredentialIssuedRepository credentialIssuedRepository;
 	
 
 	/** The Constant LOGGER. */
@@ -122,7 +107,7 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					credential.getRequestId(),
 					ExceptionUtils.getStackTrace(e));
-			credential.setStatusCode(CredentialStatusCode.FAILED.name());
+			credential.setStatusCode("FAILED");
 			credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
 			retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
 		} catch (Exception e) {
@@ -140,7 +125,7 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					credential.getRequestId(),
 					ExceptionUtils.getStackTrace(e));
-			credential.setStatusCode(CredentialStatusCode.FAILED.name());
+			credential.setStatusCode("FAILED");
 			credential.setStatusComment(trimMessage.trimExceptionMessage(errorMessage));
 			retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
 		} finally {
@@ -148,16 +133,6 @@ public class CredentialItemProcessor implements ItemProcessor<CredentialEntity, 
 			credential.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 			if (retryCount != 0) {
 				credential.setRetryCount(retryCount);
-			}
-			// move failed and issued credentials to tables and delete existing credential from credential_transaction table
-			if (credential.getStatusCode().equalsIgnoreCase(CredentialStatusCode.FAILED.name())) {
-				CredentialFailedEntity failedEntity = CredentialUtilityConverter.convertFailed(credential);
-				credentialFailedRepository.save(failedEntity);
-				credentialRepository.delete(credential);
-			} else if (credential.getStatusCode().equalsIgnoreCase(CredentialStatusCode.ISSUED.name())) {
-				CredentialIssuedEntity issuedEntity = CredentialUtilityConverter.convertIssued(credential);
-				credentialIssuedRepository.save(issuedEntity);
-				credentialRepository.delete(credential);
 			}
 		}
 		return credential;
