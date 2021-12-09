@@ -6,10 +6,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.mosip.credential.request.generator.repositary.CredentialFailedRepository;
-import io.mosip.credential.request.generator.repositary.CredentialIssuedRepository;
-import io.mosip.credential.request.generator.repositary.CredentialRepositary;
-import io.mosip.credential.request.generator.util.CredentialUtilityConverter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,15 +45,6 @@ public class CredentialItemProcessorTest {
 	@Mock
 	CredentialEntity credentialEntity;
 
-	@Mock
-	private CredentialRepositary credentialRepository;
-
-	@Mock
-	private CredentialFailedRepository credentialFailedRepository;
-
-	@Mock
-	private CredentialIssuedRepository credentialIssuedRepository;
-
 
 	@Mock
 	private ObjectMapper mapper;
@@ -85,8 +72,6 @@ public class CredentialItemProcessorTest {
 		credential.setRequestId("test123");
 		credential.setRetryCount(0);
 		credential.setRequest("request");
-		Mockito.when(credentialFailedRepository.save(Mockito.any())).thenReturn(CredentialUtilityConverter.convertFailed(credential));
-		Mockito.when(credentialIssuedRepository.save(Mockito.any())).thenReturn(CredentialUtilityConverter.convertIssued(credential));
 
 	}
 
