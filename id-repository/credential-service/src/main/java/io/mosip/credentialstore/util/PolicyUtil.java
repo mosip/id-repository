@@ -36,9 +36,6 @@ public class PolicyUtil {
 	@Autowired
 	RestUtil restUtil;
 
-	Map<String, PartnerCredentialTypePolicyDto> policyMap = new HashMap();
-	Map<String, PartnerExtractorResponse> extractorMap = new HashMap();
-
 	private static final Logger LOGGER = IdRepoLogger.getLogger(PolicyUtil.class);
 
 	/** The mapper. */
@@ -55,28 +52,18 @@ public class PolicyUtil {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					requestId,
 					"started fetching the policy data");
+			Map<String, String> pathsegments = new HashMap<>();
+			pathsegments.put("partnerId", subscriberId);
+			pathsegments.put("credentialType", credentialType);
+			String responseString = restUtil.getApi(ApiName.PARTNER_POLICY, pathsegments, String.class);
 
-			String policyMapKey = credentialType + " " + subscriberId;
-			PartnerCredentialTypePolicyDto policyResponseDto = null;
-
-			if (policyMap.get(policyMapKey) == null) {
-				Map<String, String> pathsegments = new HashMap<>();
-				pathsegments.put("partnerId", subscriberId);
-				pathsegments.put("credentialType", credentialType);
-				String responseString = restUtil.getApi(ApiName.PARTNER_POLICY, pathsegments, String.class);
-
-				PolicyManagerResponseDto responseObject = mapper.readValue(responseString,
-						PolicyManagerResponseDto.class);
-				if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
-					ServiceError error = responseObject.getErrors().get(0);
-					throw new PolicyException(error.getMessage());
-				}
-				policyResponseDto = responseObject.getResponse();
-				// caching response object
-				policyMap.put(policyMapKey, policyResponseDto);
-			} else
-				policyResponseDto = policyMap.get(policyMapKey);
-
+			PolicyManagerResponseDto responseObject = mapper.readValue(responseString,
+					PolicyManagerResponseDto.class);
+			if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
+				ServiceError error = responseObject.getErrors().get(0);
+				throw new PolicyException(error.getMessage());
+			}
+			PartnerCredentialTypePolicyDto policyResponseDto = responseObject.getResponse();
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					requestId,
 					"Fetched policy details successfully");
@@ -113,30 +100,27 @@ public class PolicyUtil {
 				"started fetching the partner extraction policy data");
 		PartnerExtractorResponse partnerExtractorResponse = null;
 		try {
-			String extractorKey = policyId + " " + subscriberId;
+			Map<String, String> pathsegments = new HashMap<>();
 
-			if (extractorMap.get(extractorKey) == null) {
-				Map<String, String> pathsegments = new HashMap<>();
-				pathsegments.put("partnerId", subscriberId);
-				pathsegments.put("policyId", policyId);
-				String responseString = restUtil.getApi(ApiName.PARTNER_EXTRACTION_POLICY, pathsegments, String.class);
-				mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-				PartnerExtractorResponseDto responseObject = mapper.readValue(responseString,
-						PartnerExtractorResponseDto.class);
-				if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
-					ServiceError error = responseObject.getErrors().get(0);
-					if (error.getErrorCode().equalsIgnoreCase("PMS_PRT_064")) {
-						return null;
-					} else {
-						throw new PartnerException(error.getMessage());
-					}
+			pathsegments.put("partnerId", subscriberId);
+			pathsegments.put("policyId", policyId);
+			String responseString = restUtil.getApi(ApiName.PARTNER_EXTRACTION_POLICY, pathsegments, String.class);
+			mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+			PartnerExtractorResponseDto responseObject = mapper.readValue(responseString,
+					PartnerExtractorResponseDto.class);
+			if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
+				ServiceError error = responseObject.getErrors().get(0);
+				if (error.getErrorCode().equalsIgnoreCase("PMS_PRT_064")) {
+					return null;
+				} else {
+					LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+							error.getMessage());
+					throw new PartnerException(error.getMessage());
 				}
-				partnerExtractorResponse = responseObject.getResponse();
-				// caching response
-				extractorMap.put(extractorKey, partnerExtractorResponse);
-			} else
-				partnerExtractorResponse = extractorMap.get(extractorKey);
 
+			}
+
+			partnerExtractorResponse = responseObject.getResponse();
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Fetched partner extraction policy details successfully");
 
