@@ -22,6 +22,7 @@ import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdentityIssuanceProfile;
 import io.mosip.idrepository.core.dto.IdentityMapping;
+import io.mosip.kernel.core.util.CryptoUtil;
 
 public class IdentityIssuanceProfileBuilderTest {
 
@@ -30,7 +31,7 @@ public class IdentityIssuanceProfileBuilderTest {
 	String cbeff;
 
 	ObjectMapper mapper = new ObjectMapper();
-	
+
 	IdentityMapping identityMapping;
 
 	@Before
@@ -50,9 +51,18 @@ public class IdentityIssuanceProfileBuilderTest {
 
 	@Test
 	public void testNewProfileSuccessBuild() {
-		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder().setProcessName("New")
-				.setNewIdentity(identityData.getBytes()).setOldDocuments(List.of(new DocumentsDTO()))
-				.setNewDocuments(List.of(new DocumentsDTO("individualBiometrics", cbeff))).build();
+		IdentityIssuanceProfileBuilder builder = IdentityIssuanceProfile.builder().setProcessName("New");
+		assertEquals("New", builder.getProcessName());
+		assertEquals(null, builder.getOldIdentity());
+		assertEquals(null, builder.getNewIdentity());
+		assertEquals(null, builder.getOldDocuments());
+		assertEquals(null, builder.getNewDocuments());
+		assertEquals(null, builder.getOldProfile());
+		assertEquals(null, builder.getNewProfile());
+		assertEquals(null, builder.getFilterLanguage());
+		builder.setNewIdentity(identityData.getBytes()).setOldDocuments(List.of(new DocumentsDTO()))
+		.setNewDocuments(List.of(new DocumentsDTO("individualBiometrics", cbeff)));
+		IdentityIssuanceProfile newProfile = builder.build();
 		assertEquals(LocalDate.now(), newProfile.getDate());
 		assertEquals("New", newProfile.getProcessName());
 		assertNull(newProfile.getOldProfile());
@@ -117,13 +127,10 @@ public class IdentityIssuanceProfileBuilderTest {
 	public void testNewProfileSuccessWithPrefLanguage() throws IOException {
 		ObjectNode identityDataAsObjectNode = mapper.readValue(identityData, ObjectNode.class);
 		identityDataAsObjectNode.put("preferredLang", "eng");
-		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder()
-				.setFilterLanguage("eng")
-				.setProcessName("New")
-				.setNewIdentity(identityDataAsObjectNode.toString().getBytes())
+		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder().setFilterLanguage("eng")
+				.setProcessName("New").setNewIdentity(identityDataAsObjectNode.toString().getBytes())
 				.setOldDocuments(List.of(new DocumentsDTO()))
-				.setNewDocuments(List.of(new DocumentsDTO("individualBiometrics", cbeff)))
-				.build();
+				.setNewDocuments(List.of(new DocumentsDTO("individualBiometrics", cbeff))).build();
 		assertEquals(LocalDate.now(), newProfile.getDate());
 		assertEquals("New", newProfile.getProcessName());
 		assertNull(newProfile.getOldProfile());
@@ -137,16 +144,13 @@ public class IdentityIssuanceProfileBuilderTest {
 		assertEquals(13, newProfile.getNewProfile().getBiometricInfo().size());
 		assertEquals(List.of("DOC015", "DOC006", "DOC025", "COE"), newProfile.getNewProfile().getDocuments());
 	}
-	
+
 	@Test
 	public void testNewProfileSuccessWithoutPrefLanguageAndMandatoryLang() throws IOException {
-		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder()
-				.setFilterLanguage("eng")
-				.setProcessName("New")
-				.setNewIdentity(identityData.getBytes())
+		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder().setFilterLanguage("eng")
+				.setProcessName("New").setNewIdentity(identityData.getBytes())
 				.setOldDocuments(List.of(new DocumentsDTO()))
-				.setNewDocuments(List.of(new DocumentsDTO("individualBiometrics", cbeff)))
-				.build();
+				.setNewDocuments(List.of(new DocumentsDTO("individualBiometrics", cbeff))).build();
 		assertEquals(LocalDate.now(), newProfile.getDate());
 		assertEquals("New", newProfile.getProcessName());
 		assertNull(newProfile.getOldProfile());
@@ -165,10 +169,9 @@ public class IdentityIssuanceProfileBuilderTest {
 	public void testNewProfileSuccessWithoutDOB() throws IOException {
 		ObjectNode identityDataAsObjectNode = mapper.readValue(identityData, ObjectNode.class);
 		identityDataAsObjectNode.remove(identityMapping.getIdentity().getDob().getValue());
-		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder()
-				.setFilterLanguage("eng")
-				.setProcessName("New")
-				.setNewIdentity(identityDataAsObjectNode.toString().getBytes()).setOldDocuments(List.of(new DocumentsDTO()))
+		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder().setFilterLanguage("eng")
+				.setProcessName("New").setNewIdentity(identityDataAsObjectNode.toString().getBytes())
+				.setOldDocuments(List.of(new DocumentsDTO()))
 				.setNewDocuments(List.of(new DocumentsDTO("individualBiometrics", cbeff))).build();
 		assertEquals(LocalDate.now(), newProfile.getDate());
 		assertEquals("New", newProfile.getProcessName());
@@ -189,10 +192,9 @@ public class IdentityIssuanceProfileBuilderTest {
 		identityMapping.getIdentity().getGender().setValue(null);
 		ObjectNode identityDataAsObjectNode = mapper.readValue(identityData, ObjectNode.class);
 		identityDataAsObjectNode.remove(identityMapping.getIdentity().getGender().getValue());
-		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder()
-				.setFilterLanguage("eng")
-				.setProcessName("New")
-				.setNewIdentity(identityDataAsObjectNode.toString().getBytes()).setOldDocuments(List.of(new DocumentsDTO()))
+		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder().setFilterLanguage("eng")
+				.setProcessName("New").setNewIdentity(identityDataAsObjectNode.toString().getBytes())
+				.setOldDocuments(List.of(new DocumentsDTO()))
 				.setNewDocuments(List.of(new DocumentsDTO("individualBiometrics", cbeff))).build();
 		assertEquals(LocalDate.now(), newProfile.getDate());
 		assertEquals("New", newProfile.getProcessName());
@@ -210,13 +212,14 @@ public class IdentityIssuanceProfileBuilderTest {
 
 	@Test
 	public void testNewProfileSuccessWithoutLocation() throws IOException {
-		IdentityIssuanceProfileBuilder.getIdentityMapping().getIdentity().getLocationHierarchyForProfiling().setValue(null);
+		IdentityIssuanceProfileBuilder.getIdentityMapping().getIdentity().getLocationHierarchyForProfiling()
+				.setValue(null);
 		ObjectNode identityDataAsObjectNode = mapper.readValue(identityData, ObjectNode.class);
-		IdentityIssuanceProfileBuilder.getIdentityMapping().getIdentity().getLocationHierarchyForProfiling().getValueList()
-		.forEach(identityDataAsObjectNode::remove);
+		IdentityIssuanceProfileBuilder.getIdentityMapping().getIdentity().getLocationHierarchyForProfiling()
+				.getValueList().forEach(identityDataAsObjectNode::remove);
 		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder().setProcessName("New")
-				.setFilterLanguage("eng")
-				.setNewIdentity(identityDataAsObjectNode.toString().getBytes()).setOldDocuments(List.of(new DocumentsDTO()))
+				.setFilterLanguage("eng").setNewIdentity(identityDataAsObjectNode.toString().getBytes())
+				.setOldDocuments(List.of(new DocumentsDTO()))
 				.setNewDocuments(List.of(new DocumentsDTO("individualBiometrics", cbeff))).build();
 		assertEquals(LocalDate.now(), newProfile.getDate());
 		assertEquals("New", newProfile.getProcessName());
@@ -238,8 +241,8 @@ public class IdentityIssuanceProfileBuilderTest {
 		identityDataAsObjectNode.remove(identityMapping.getIdentity().getPhone().getValue());
 		identityDataAsObjectNode.remove(identityMapping.getIdentity().getEmail().getValue());
 		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder().setProcessName("New")
-				.setFilterLanguage("eng")
-				.setNewIdentity(identityDataAsObjectNode.toString().getBytes()).setOldDocuments(List.of(new DocumentsDTO()))
+				.setFilterLanguage("eng").setNewIdentity(identityDataAsObjectNode.toString().getBytes())
+				.setOldDocuments(List.of(new DocumentsDTO()))
 				.setNewDocuments(List.of(new DocumentsDTO("individualBiometrics", cbeff))).build();
 		assertEquals(LocalDate.now(), newProfile.getDate());
 		assertEquals("New", newProfile.getProcessName());
@@ -258,13 +261,9 @@ public class IdentityIssuanceProfileBuilderTest {
 	@Test
 	public void testNewProfileSuccessWithoutExceptions() throws IOException {
 		ObjectNode identityDataAsObjectNode = mapper.readValue(identityData, ObjectNode.class);
-		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder()
-				.setFilterLanguage("eng")
-				.setProcessName("New")
-				.setNewIdentity(identityDataAsObjectNode.toString().getBytes())
-				.setOldDocuments(List.of(new DocumentsDTO()))
-				.setNewDocuments(List.of(new DocumentsDTO()))
-				.build();
+		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder().setFilterLanguage("eng")
+				.setProcessName("New").setNewIdentity(identityDataAsObjectNode.toString().getBytes())
+				.setOldDocuments(List.of(new DocumentsDTO())).setNewDocuments(List.of(new DocumentsDTO())).build();
 		assertEquals(LocalDate.now(), newProfile.getDate());
 		assertEquals("New", newProfile.getProcessName());
 		assertNull(newProfile.getOldProfile());
@@ -278,5 +277,53 @@ public class IdentityIssuanceProfileBuilderTest {
 		assertTrue(newProfile.getNewProfile().getBiometricInfo().isEmpty());
 		assertEquals(List.of("DOC015", "DOC006", "DOC025", "COE"), newProfile.getNewProfile().getDocuments());
 	}
-	
+
+	@Test
+	public void testNewProfileSuccessBuildException() {
+		IdentityIssuanceProfileBuilder.setIdentityMapping(null);
+		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder().setProcessName("New")
+				.setNewIdentity(identityData.getBytes()).setOldDocuments(List.of(new DocumentsDTO()))
+				.setNewDocuments(List.of(new DocumentsDTO("individualBiometrics", cbeff))).build();
+		assertEquals(new IdentityIssuanceProfile(), newProfile);
+	}
+
+	@Test
+	public void testNewProfileSuccessBuildWithoutBioDocuments() {
+		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder().setProcessName("New")
+				.setNewIdentity(identityData.getBytes()).build();
+		assertEquals(LocalDate.now(), newProfile.getDate());
+		assertEquals("New", newProfile.getProcessName());
+		assertNull(newProfile.getOldProfile());
+		assertEquals("1972", newProfile.getNewProfile().getYearOfBirth());
+		assertEquals("Male", newProfile.getNewProfile().getGender());
+		assertEquals(List.of("BNMR", "14022", "RSK", "KTA"), newProfile.getNewProfile().getLocation());
+		assertNull(newProfile.getNewProfile().getPreferredLanguage());
+		assertEquals(List.of("PHONE", "EMAIL"), newProfile.getNewProfile().getChannel());
+		assertEquals(0, newProfile.getNewProfile().getExceptions().size());
+		assertEquals(List.of("x", "y"), newProfile.getNewProfile().getVerified());
+		assertEquals(0, newProfile.getNewProfile().getBiometricInfo().size());
+		assertEquals(List.of("DOC015", "DOC006", "DOC025", "COE"), newProfile.getNewProfile().getDocuments());
+	}
+
+	@Test
+	public void testNewProfileSuccessBuildInvalidBioDocuments() {
+		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder().setProcessName("New")
+				.setNewIdentity(identityData.getBytes()).setOldDocuments(List.of(new DocumentsDTO()))
+				.setNewDocuments(List
+						.of(new DocumentsDTO("individualBiometrics", CryptoUtil.encodeToPlainBase64("".getBytes()))))
+				.build();
+		assertEquals(LocalDate.now(), newProfile.getDate());
+		assertEquals("New", newProfile.getProcessName());
+		assertNull(newProfile.getOldProfile());
+		assertEquals("1972", newProfile.getNewProfile().getYearOfBirth());
+		assertEquals("Male", newProfile.getNewProfile().getGender());
+		assertEquals(List.of("BNMR", "14022", "RSK", "KTA"), newProfile.getNewProfile().getLocation());
+		assertNull(newProfile.getNewProfile().getPreferredLanguage());
+		assertEquals(List.of("PHONE", "EMAIL"), newProfile.getNewProfile().getChannel());
+		assertEquals(0, newProfile.getNewProfile().getExceptions().size());
+		assertEquals(List.of("x", "y"), newProfile.getNewProfile().getVerified());
+		assertEquals(0, newProfile.getNewProfile().getBiometricInfo().size());
+		assertEquals(List.of("DOC015", "DOC006", "DOC025", "COE"), newProfile.getNewProfile().getDocuments());
+	}
+
 }
