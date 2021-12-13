@@ -25,7 +25,7 @@ import io.mosip.credential.request.generator.constants.LoggerFileConstant;
 import io.mosip.credential.request.generator.dto.CredentialStatusEvent;
 import io.mosip.credential.request.generator.dto.Event;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
-import io.mosip.credential.request.generator.exception.CredentialrRequestGeneratorException;
+import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorException;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import io.mosip.credential.request.generator.service.CredentialRequestService;
 import io.mosip.credential.request.generator.util.Utilities;
@@ -318,7 +318,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 
 
 	@Override
-	public void updateCredentialStatus(CredentialStatusEvent credentialStatusEvent) throws CredentialrRequestGeneratorException {
+	public void updateCredentialStatus(CredentialStatusEvent credentialStatusEvent) throws CredentialRequestGeneratorException {
 		String requestId=null;
 		try {
 
@@ -341,7 +341,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 						"updated the status of  " + requestId);
 			} else {
 
-				throw new CredentialrRequestGeneratorException();
+				throw new CredentialRequestGeneratorException();
 			}
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ended updating  credential status");
@@ -351,7 +351,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 					ExceptionUtils.getStackTrace(e));
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,e);
 			
-			throw new CredentialrRequestGeneratorException();
+			throw new CredentialRequestGeneratorException();
 
 		}
 		

@@ -3,7 +3,7 @@ package io.mosip.credential.request.generator.service;
 import org.springframework.stereotype.Service;
 
 import io.mosip.credential.request.generator.dto.CredentialStatusEvent;
-import io.mosip.credential.request.generator.exception.CredentialrRequestGeneratorException;
+import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorException;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
@@ -50,10 +50,10 @@ public interface CredentialRequestService {
 	 * Update credential status.
 	 *
 	 * @param credentialStatusEvent the credential status event
-	 * @throws CredentialrRequestGeneratorException the credentialr request
+	 * @throws CredentialRequestGeneratorException the credentialr request
 	 *                                              generator exception
 	 */
-	public void updateCredentialStatus(CredentialStatusEvent credentialStatusEvent) throws CredentialrRequestGeneratorException;
+	public void updateCredentialStatus(CredentialStatusEvent credentialStatusEvent) throws CredentialRequestGeneratorException;
 
 	/**
 	 * Gets the request ids.
