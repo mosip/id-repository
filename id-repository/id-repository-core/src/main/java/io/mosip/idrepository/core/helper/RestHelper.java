@@ -9,8 +9,8 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Supplier;
 
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
@@ -18,6 +18,7 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
 import org.springframework.web.reactive.function.client.WebClient.ResponseSpec;
@@ -151,12 +152,20 @@ public class RestHelper {
 	 *
 	 * @param request the request
 	 * @return the supplier
+	 * @throws RestServiceException 
 	 */
-	public Supplier<Object> requestAsync(@Valid RestRequestDTO request) {
+	@Async
+	public CompletableFuture<Object> requestAsync(@Valid RestRequestDTO request) {
 		mosipLogger.debug(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_ASYNC,
 				PREFIX_REQUEST + request.getUri());
-		Mono<?> sendRequest = request(request);
-		return sendRequest::block;
+		try {
+			Object obj =  requestSync(request);
+			return CompletableFuture.completedFuture(obj);
+		} catch (RestServiceException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_ASYNC,
+					ExceptionUtils.getStackTrace(e));
+			return CompletableFuture.failedFuture(e);
+		}
 	}
 
 	/**
