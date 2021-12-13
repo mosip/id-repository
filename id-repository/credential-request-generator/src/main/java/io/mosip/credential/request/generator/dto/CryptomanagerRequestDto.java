@@ -58,9 +58,4 @@ public class CryptomanagerRequestDto {
 	@ApiModelProperty(notes = " Base64 Encoded AAD(Advance Authentication Data)", example = "pfxeERQk57XJBJ9JF0oBAtrTzofhAPw54HnJtwW36l4=")
 	private String aad;
 
-	@Override
-	public String toString() {
-		return "CryptomanagerRequestDto [applicationId=" + applicationId + ", referenceId=" + referenceId
-				+ ", timeStamp=" + timeStamp + ", salt=" + salt + "]";
-	}
 }
