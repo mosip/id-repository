@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.mosip.credential.request.generator.dto.CredentialStatusEvent;
-import io.mosip.credential.request.generator.exception.CredentialrRequestGeneratorException;
+import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorException;
 import io.mosip.credential.request.generator.service.CredentialRequestService;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
@@ -125,7 +125,7 @@ public class CredentialRequestGeneratorController {
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "500", description = "Internal Server Error" ,content = @Content(schema = @Schema(hidden = true)))})
 	@PreAuthenticateContentAndVerifyIntent(secret = "test", callback = "/v1/credentialrequest/callback/notifyStatus", topic = "CREDENTIAL_STATUS_UPDATE")
-	public ResponseWrapper<?> handleSubscribeEvent( @RequestBody CredentialStatusEvent credentialStatusEvent) throws CredentialrRequestGeneratorException {
+	public ResponseWrapper<?> handleSubscribeEvent( @RequestBody CredentialStatusEvent credentialStatusEvent) throws CredentialRequestGeneratorException {
 		credentialRequestService.updateCredentialStatus(credentialStatusEvent);
 		return new ResponseWrapper<>();
 	}

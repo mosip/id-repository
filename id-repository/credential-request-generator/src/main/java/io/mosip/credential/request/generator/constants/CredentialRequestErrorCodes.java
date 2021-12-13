@@ -11,11 +11,12 @@ public enum CredentialRequestErrorCodes {
 	REQUEST_ID_ERROR("IDR-CRG-003", "request id is not present"),
 	REQUEST_ID_PROCESSED_ERROR("IDR-CRG-004", "request id already processed"),
 
-	UNKNOWN_EXCEPTION("IDR-CRG-004", "unknown exception"),
-	CREDENTIAL_REQUEST_GENERATOR_BUSINESS_EXCEPTION("IDR-CRG-005", "Credential status update failed"),
-	IO_EXCEPTION("IDR-CRG-006", "IO exception"), RETRY_COUNT_EXCEEDED("IDR-CRG-007", "retry count exceeded"),
+	UNKNOWN_EXCEPTION("IDR-CRG-005", "unknown exception"),
+	CREDENTIAL_REQUEST_GENERATOR_BUSINESS_EXCEPTION("IDR-CRG-006", "Credential status update failed"),
+	IO_EXCEPTION("IDR-CRG-007", "IO exception"), RETRY_COUNT_EXCEEDED("IDR-CRG-007", "retry count exceeded"),
 	DATE_PARSE_ERROR("IDR-CRG-008", "Date Parsing Error format should be yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
-	DATA_NOT_FOUND("IDR-CRG-009", "No records found");
+	DATA_NOT_FOUND("IDR-CRG-009", "No records found"),
+	ENCRYPTION_DECRYPTION_FAILED("IDR-CRG-010", "Failed to encrypt/decrypt data using Keymanager");
 	
 	private final String errorCode;
 	private final String errorMessage;
