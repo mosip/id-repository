@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.IntFunction;
+import java.util.function.ToIntFunction;
 
 import javax.annotation.PostConstruct;
 
@@ -307,10 +308,22 @@ public class IdRepoSecurityManager {
 	public String getIdHash(String uin, IntFunction<String> saltRetreivalFunction) {
 		return getIdHashAndAttributes(uin, saltRetreivalFunction).get(ID_HASH);
 	}
-
+	
+	public String getIdHashWithSaltModuloByPlainIdHash(String uin, IntFunction<String> saltRetreivalFunction) {
+		return getIdHashAndAttributesWithSaltModuloByPlainIdHash(uin, saltRetreivalFunction).get(ID_HASH);
+	}
+	
 	public Map<String, String> getIdHashAndAttributes(String id, IntFunction<String> saltRetreivalFunction) {
+		return getIdHashAndAttributes(id, saltRetreivalFunction, this::getSaltKeyForId);
+	}
+
+	public Map<String, String> getIdHashAndAttributesWithSaltModuloByPlainIdHash(String id, IntFunction<String> saltRetreivalFunction) {
+		return getIdHashAndAttributes(id, saltRetreivalFunction, this::getSaltKeyForHashOfId);
+	}
+	
+	public Map<String, String> getIdHashAndAttributes(String id, IntFunction<String> saltRetreivalFunction, ToIntFunction<String> saltIdFunction) {
 		Map<String, String> hashWithAttributes = new HashMap<>();
-		int saltId = getSaltKeyForId(id);
+		int saltId = saltIdFunction.applyAsInt(id);
 		String hashSalt = saltRetreivalFunction.apply(saltId);
 		String hash = hashwithSalt(id.getBytes(), hashSalt.getBytes());
 		hashWithAttributes.put(ID_HASH, hash);
@@ -322,5 +335,10 @@ public class IdRepoSecurityManager {
 	public int getSaltKeyForId(String id) {
 		Integer saltKeyLength = env.getProperty(SALT_KEY_LENGTH, Integer.class, DEFAULT_SALT_KEY_LENGTH);
 		return SaltUtil.getIdvidModulo(id, saltKeyLength);
+	}
+	
+	public int getSaltKeyForHashOfId(String id) {
+		Integer saltKeyLength = env.getProperty(SALT_KEY_LENGTH, Integer.class, DEFAULT_SALT_KEY_LENGTH);
+		return SaltUtil.getIdvidHashModulo(id, saltKeyLength);
 	}
 }
