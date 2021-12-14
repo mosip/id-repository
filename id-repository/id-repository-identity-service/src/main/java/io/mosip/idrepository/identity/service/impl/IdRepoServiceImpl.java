@@ -205,6 +205,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		String uinHash = getUinHash(uin, modResult);
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
 		String uinToEncrypt = getUinToEncrypt(uin, modResult);
+		anonymousProfileHelper
+			.setRegId(request.getRequest().getRegistrationId())
+			.setNewUinData(identityInfo);
 
 		List<UinDocument> docList = new ArrayList<>();
 		List<UinBiometric> bioList = new ArrayList<>();
@@ -232,10 +235,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						uinEntity.getUinData(), uinEntity.getUinDataHash(), uinEntity.getRegId(), activeStatus,
 						IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), null, null, false, null));
 		issueCredential(uinEntity.getUin(), uinHashWithSalt, activeStatus, null);
-		anonymousProfileHelper
-			.setRegId(request.getRequest().getRegistrationId())
-			.setNewUinData(identityInfo)
-			.buildAndsaveProfile(false);
+		anonymousProfileHelper.buildAndsaveProfile(false);
 		return uinEntity;
 	}
 
