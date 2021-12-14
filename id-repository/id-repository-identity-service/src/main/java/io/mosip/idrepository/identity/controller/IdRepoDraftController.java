@@ -79,6 +79,7 @@ public class IdRepoDraftController {
 	public void initBinder(WebDataBinder binder) {
 		binder.addValidators(validator);
 	}
+	
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostdraftcreateregistrationId())")
 	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
 	@PostMapping(path = "/create/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -192,7 +193,7 @@ public class IdRepoDraftController {
 	public ResponseEntity<Void> hasDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
 			HttpStatus responseStatus = draftService.hasDraft(registrationId) ? HttpStatus.OK : HttpStatus.NO_CONTENT;
-			return new ResponseEntity<Void>(responseStatus);
+			return new ResponseEntity<>(responseStatus);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.HAS_DRAFT_REQUEST_RESPONSE, registrationId,
 					IdType.ID, e);

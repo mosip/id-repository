@@ -1,32 +1,50 @@
 package io.mosip.credential.request.generator.api.config;
 
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springdoc.core.GroupedOpenApi;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+
 import io.mosip.credential.request.generator.entity.CredentialEntity;
+import io.mosip.credential.request.generator.interceptor.CredentialTransactionInterceptor;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
+import io.mosip.credential.request.generator.util.RestUtil;
+import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
 import io.mosip.kernel.dataaccess.hibernate.repository.impl.HibernateRepositoryImpl;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.servers.Server;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springdoc.core.GroupedOpenApi;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @Configuration
 @EnableJpaRepositories(basePackageClasses = {
 		CredentialRepositary.class }, basePackages = "io.mosip.credential.request.generator.repositary.*", repositoryBaseClass = HibernateRepositoryImpl.class)
 @EntityScan(basePackageClasses = { CredentialEntity.class })
-public class CredentialRequestGeneratorConfig {
+public class CredentialRequestGeneratorConfig extends HibernateDaoConfig {
 
 	private static final Logger logger = LoggerFactory.getLogger(CredentialRequestGeneratorConfig.class);
-
+	
+	@Autowired
+	@Qualifier("restUtil")
+	private RestUtil restUtil;
+	
 	@Autowired
 	private OpenApiProperties openApiProperties;
+	
+	@Override
+	public Map<String, Object> jpaProperties() {
+		Map<String, Object> jpaProperties = super.jpaProperties();
+		jpaProperties.put("hibernate.ejb.interceptor", new CredentialTransactionInterceptor(restUtil));
+		return jpaProperties;
+	}
 
 	@Bean
 	public OpenAPI openApi() {

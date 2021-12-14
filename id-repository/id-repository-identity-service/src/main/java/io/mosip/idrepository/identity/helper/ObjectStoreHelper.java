@@ -6,6 +6,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.OBJECT_STORE_A
 import static io.mosip.idrepository.core.constant.IdRepoConstants.OBJECT_STORE_ADAPTER_NAME;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.OBJECT_STORE_BUCKET_NAME;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_NOT_FOUND;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -16,11 +17,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import com.amazonaws.services.s3.model.AmazonS3Exception;
+
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
-import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 
 /**
  * @author Manoj SP
@@ -82,14 +85,14 @@ public class ObjectStoreHelper {
 
 	public byte[] getDemographicObject(String uinHash, String fileRefId) throws IdRepoAppException {
 		if (!this.demographicObjectExists(uinHash, fileRefId)) {
-			throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
+			throw new IdRepoAppException(FILE_NOT_FOUND);
 		}
 		return getObject(uinHash, false, fileRefId, demoDataRefId);
 	}
 
 	public byte[] getBiometricObject(String uinHash, String fileRefId) throws IdRepoAppException {
 		if (!this.biometricObjectExists(uinHash, fileRefId)) {
-			throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
+			throw new IdRepoAppException(FILE_NOT_FOUND);
 		}
 		return getObject(uinHash, true, fileRefId, bioDataRefId);
 	}
@@ -106,10 +109,15 @@ public class ObjectStoreHelper {
 		return objectStore.exists(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
 	}
 
-	private void putObject(String uinHash, boolean isBio, String fileRefId, byte[] data, String refId) throws IdRepoAppException {
-		String objectName = uinHash + SLASH + (isBio ? BIOMETRICS : DEMOGRAPHICS) + SLASH + fileRefId;
-		objectStore.putObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName,
-				new ByteArrayInputStream(securityManager.encrypt(data, refId)));
+	private void putObject(String uinHash, boolean isBio, String fileRefId, byte[] data, String refId)
+			throws IdRepoAppException {
+		try {
+			String objectName = uinHash + SLASH + (isBio ? BIOMETRICS : DEMOGRAPHICS) + SLASH + fileRefId;
+			objectStore.putObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName,
+					new ByteArrayInputStream(securityManager.encrypt(data, refId)));
+		} catch (AmazonS3Exception | FSAdapterException e) {
+			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR, e);
+		}
 	}
 
 	private byte[] getObject(String uinHash, boolean isBio, String fileRefId, String refId) throws IdRepoAppException {
@@ -117,8 +125,8 @@ public class ObjectStoreHelper {
 		String objectName = uinHash + SLASH + (isBio ? BIOMETRICS : DEMOGRAPHICS) + SLASH + fileRefId;
 		return securityManager.decrypt(IOUtils.toByteArray(
 				objectStore.getObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName)), refId);
-		} catch (IOException e) {
-			throw new IdRepoAppUncheckedException(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR);
+		} catch (AmazonS3Exception | FSAdapterException | IOException e) {
+			throw new IdRepoAppException(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR);
 		}
 	}
 }
