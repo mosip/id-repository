@@ -42,7 +42,39 @@ public class SaltUtilTest {
 	 */
 	@Test(expected = Exception.class)
 	public void testModulus_0Divisor() {
-		SaltUtil.getIdvidModulo("9706932491", 0);
+		SaltUtil.getIdvidHashModulo("9706932491", 0);
+	}
+	
+	/**
+	 * Test modulus positive divisor.
+	 */
+	@Test
+	public void testHashModulus_positiveDivisor() {
+		assertEquals(413, SaltUtil.getIdvidHashModulo("9706932491", 3)); 
+	}
+	
+	/**
+	 * Test modulus lesser length.
+	 */
+	@Test
+	public void testHashModulus_lesserLength() {
+		assertEquals(568, SaltUtil.getIdvidHashModulo("91", 3));
+	}
+	
+	/**
+	 * Test modulus negative divisor.
+	 */
+	@Test(expected = Exception.class)
+	public void testHashModulus_negativeDivisor() {
+		SaltUtil.getIdvidHashModulo("9706932491", -3);
+	}
+	
+	/**
+	 * Test modulus 0 divisor.
+	 */
+	@Test(expected = Exception.class)
+	public void testHashModulus_0Divisor() {
+		SaltUtil.getIdvidModulo("9706932491", 0); 
 	}
 
 }
