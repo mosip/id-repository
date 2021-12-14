@@ -45,10 +45,10 @@ CMD if [ "$is_glowroot_env" = "present" ]; then \
     
     sed -i 's/<service_name>/id-repository-vid-service/g' glowroot/glowroot.properties ; \
     wget "${iam_adapter_url_env}" -O kernel-auth-adapter.jar; \
-    java -Dloader.path=./kernel-auth-adapter.jar -jar -javaagent:glowroot/glowroot.jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" id-repository-vid-service.jar ; \
+    java -Dloader.path=./kernel-auth-adapter.jar -jar -javaagent:glowroot/glowroot.jar -Dlog4j2.formatMsgNoLookups=true -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" id-repository-vid-service.jar ; \
     else \
     wget "${iam_adapter_url_env}" -O kernel-auth-adapter.jar; \
-    java -Dloader.path=./kernel-auth-adapter.jar -jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" id-repository-vid-service.jar ; \
+    java -Dloader.path=./kernel-auth-adapter.jar -jar -Dlog4j2.formatMsgNoLookups=true -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" id-repository-vid-service.jar ; \
     fi
 
 #CMD ["java","-jar","-Dspring.cloud.config.label=${spring_config_label_env}","-Dspring.profiles.active=${active_profile_env}","-Dspring.cloud.config.uri=${spring_config_url_env}","id-repository-vid-service.jar"]
