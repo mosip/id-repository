@@ -250,7 +250,8 @@ public class IdentityIssuanceProfileBuilder {
 				this.oldIdentity = mapper.readTree(identity);
 		} catch (IOException e) {
 			// this block should never be executed
-			e.printStackTrace();
+			IdRepoLogger.getLogger(IdentityIssuanceProfileBuilder.class)
+				.warn("EXCEPTION --->>> " + ExceptionUtils.getStackTrace(e));			
 		}
 		return this;
 	}
@@ -266,7 +267,8 @@ public class IdentityIssuanceProfileBuilder {
 				this.newIdentity = mapper.readTree(identity);
 		} catch (IOException e) {
 			// this block should never be executed
-			e.printStackTrace();
+			IdRepoLogger.getLogger(IdentityIssuanceProfileBuilder.class)
+				.warn("EXCEPTION --->>> " + ExceptionUtils.getStackTrace(e));
 		}
 		return this;
 	}
