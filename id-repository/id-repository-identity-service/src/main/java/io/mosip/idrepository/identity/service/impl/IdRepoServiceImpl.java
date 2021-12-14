@@ -4,7 +4,6 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.CBEFF_FORMAT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_FORMAT_ATTRIBUTE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_NAME_ATTRIBUTE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
@@ -40,7 +39,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,7 +64,7 @@ import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.IdRepoService;
-import io.mosip.idrepository.core.util.CryptoUtil;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.entity.UinBiometric;
@@ -83,7 +81,6 @@ import io.mosip.idrepository.identity.repository.UinRepo;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
-import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.UUIDUtils;
@@ -205,6 +202,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		String uinHash = getUinHash(uin, modResult);
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
 		String uinToEncrypt = getUinToEncrypt(uin, modResult);
+		anonymousProfileHelper
+			.setRegId(request.getRequest().getRegistrationId())
+			.setNewUinData(identityInfo);
 
 		List<UinDocument> docList = new ArrayList<>();
 		List<UinBiometric> bioList = new ArrayList<>();
@@ -232,10 +232,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						uinEntity.getUinData(), uinEntity.getUinDataHash(), uinEntity.getRegId(), activeStatus,
 						IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), null, null, false, null));
 		issueCredential(uinEntity.getUin(), uinHashWithSalt, activeStatus, null);
-		anonymousProfileHelper
-			.setRegId(request.getRequest().getRegistrationId())
-			.setNewUinData(identityInfo)
-			.buildAndsaveProfile(false);
+		anonymousProfileHelper.buildAndsaveProfile(false);
 		return uinEntity;
 	}
 
@@ -276,9 +273,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			} catch (IdRepoAppException e) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, e.getMessage());
 				throw new IdRepoAppUncheckedException(e.getErrorCode(), e.getErrorText(), e);
-			} catch (AmazonS3Exception | FSAdapterException e) {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, e.getMessage());
-				throw new IdRepoAppUncheckedException(FILE_STORAGE_ACCESS_ERROR, e);
 			}
 		});
 	}
@@ -495,6 +489,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
 		if (comparisonResult.failed()) {
+			// Code should never reach here
 			updateJsonObject(inputData, dbData, comparisonResult);
 		}
 	}
@@ -600,21 +595,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		List<Map<String, String>> inputDataList = inputData.read(path + DOT + key, List.class);
 		inputDataList.stream()
 				.filter(map -> map.containsKey(LANGUAGE) && dbDataList.stream().filter(dbMap -> dbMap.containsKey(LANGUAGE))
-						.allMatch(dbMap -> {
-							return !StringUtils.equalsIgnoreCase(dbMap.get(LANGUAGE), map.get(LANGUAGE));
-						}))
-				.forEach(value -> {
-//					dbDataList.add(value);
-					dbData.add(jsonPath, value);
-				});
+						.allMatch(dbMap -> !StringUtils.equalsIgnoreCase(dbMap.get(LANGUAGE), map.get(LANGUAGE))))
+				.forEach(value -> dbData.add(jsonPath, value));
 		dbDataList.stream()
 				.filter(map -> map.containsKey(LANGUAGE)
 						&& inputDataList.stream().filter(inputDataMap -> inputDataMap.containsKey(LANGUAGE)).allMatch(
 								inputDataMap -> !StringUtils.equalsIgnoreCase(inputDataMap.get(LANGUAGE), map.get(LANGUAGE))))
-				.forEach(value -> {
-//					inputDataList.add(value);
-					inputData.add(jsonPath, value);
-				});
+				.forEach(value -> inputData.add(jsonPath, value));
 	}
 
 	/**
