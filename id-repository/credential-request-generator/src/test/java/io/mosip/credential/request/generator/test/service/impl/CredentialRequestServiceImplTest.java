@@ -31,7 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.credential.request.generator.dto.CredentialStatusEvent;
 import io.mosip.credential.request.generator.dto.Event;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
-import io.mosip.credential.request.generator.exception.CredentialrRequestGeneratorException;
+import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorException;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import io.mosip.credential.request.generator.service.impl.CredentialRequestServiceImpl;
 import io.mosip.credential.request.generator.util.Utilities;
@@ -231,7 +231,7 @@ public class CredentialRequestServiceImplTest {
 
 	@Test
 	public void testUpdateCredentialStatusSuccess()
-			throws JsonProcessingException, CredentialrRequestGeneratorException {
+			throws JsonProcessingException, CredentialRequestGeneratorException {
 		CredentialEntity credentialEntity = new CredentialEntity();
 		credentialEntity.setRequestId("1234");
 		Optional<CredentialEntity> entity = Optional.of(credentialEntity);
@@ -247,9 +247,9 @@ public class CredentialRequestServiceImplTest {
 
 	}
 
-	@Test(expected = CredentialrRequestGeneratorException.class)
+	@Test(expected = CredentialRequestGeneratorException.class)
 	public void testDataAccessLayerExceptionForUpdateCredentialStatus()
-			throws JsonProcessingException, CredentialrRequestGeneratorException {
+			throws JsonProcessingException, CredentialRequestGeneratorException {
 		CredentialEntity credentialEntity = new CredentialEntity();
 		credentialEntity.setRequestId("1234");
 		Optional<CredentialEntity> entity = Optional.of(credentialEntity);
@@ -264,9 +264,9 @@ public class CredentialRequestServiceImplTest {
 		credentialRequestServiceImpl.updateCredentialStatus(credentialStatusEvent);
 	}
 
-	@Test(expected = CredentialrRequestGeneratorException.class)
+	@Test(expected = CredentialRequestGeneratorException.class)
 	public void testEntityNullForUpdateCredentialStatus()
-			throws JsonProcessingException, CredentialrRequestGeneratorException {
+			throws JsonProcessingException, CredentialRequestGeneratorException {
 	
 		Mockito.when(credentialRepositary.update(Mockito.any()))
 				.thenThrow(new DataAccessLayerException("", "", new Throwable()));
