@@ -22,7 +22,6 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
-import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 
@@ -86,14 +85,14 @@ public class ObjectStoreHelper {
 
 	public byte[] getDemographicObject(String uinHash, String fileRefId) throws IdRepoAppException {
 		if (!this.demographicObjectExists(uinHash, fileRefId)) {
-			throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
+			throw new IdRepoAppException(FILE_NOT_FOUND);
 		}
 		return getObject(uinHash, false, fileRefId, demoDataRefId);
 	}
 
 	public byte[] getBiometricObject(String uinHash, String fileRefId) throws IdRepoAppException {
 		if (!this.biometricObjectExists(uinHash, fileRefId)) {
-			throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
+			throw new IdRepoAppException(FILE_NOT_FOUND);
 		}
 		return getObject(uinHash, true, fileRefId, bioDataRefId);
 	}
@@ -117,7 +116,7 @@ public class ObjectStoreHelper {
 			objectStore.putObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName,
 					new ByteArrayInputStream(securityManager.encrypt(data, refId)));
 		} catch (AmazonS3Exception | FSAdapterException e) {
-			throw new IdRepoAppUncheckedException(FILE_STORAGE_ACCESS_ERROR, e);
+			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR, e);
 		}
 	}
 
@@ -127,7 +126,7 @@ public class ObjectStoreHelper {
 		return securityManager.decrypt(IOUtils.toByteArray(
 				objectStore.getObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName)), refId);
 		} catch (AmazonS3Exception | FSAdapterException | IOException e) {
-			throw new IdRepoAppUncheckedException(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR);
+			throw new IdRepoAppException(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR);
 		}
 	}
 }
