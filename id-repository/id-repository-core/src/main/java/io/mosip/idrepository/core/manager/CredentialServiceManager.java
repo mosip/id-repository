@@ -192,7 +192,7 @@ public class CredentialServiceManager {
 			if ((status != null && isUpdate) && (!ACTIVATED.equals(status) || expiryTimestamp != null)) {
 				// Event to be sent to IDA for deactivation/blocked uin state
 				sendUINEventToIDA(uin, expiryTimestamp, status, vidInfoDtos, partnerIds, txnId,
-						id -> securityManager.getIdHash(id, saltRetreivalFunction), idaEventModelConsumer);
+						id -> securityManager.getIdHashWithSaltModuloByPlainIdHash(id, saltRetreivalFunction), idaEventModelConsumer);
 			} else {
 				// For create uin, or update uin with null expiry (active status), send event to
 				// credential service.
@@ -378,7 +378,7 @@ public class CredentialServiceManager {
 		eventRequestsList.addAll(partnerIds.stream().map(partnerId -> {
 			String token = tokenIDGenerator.generateTokenID(uin, partnerId);
 			return createCredReqDto(uin, partnerId, expiryTimestamp, null, token,
-					securityManager.getIdHashAndAttributes(uin, saltRetreivalFunction));
+					securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(uin, saltRetreivalFunction));
 		}).collect(Collectors.toList()));
 
 		if (vidInfoDtos != null) {
@@ -416,7 +416,7 @@ public class CredentialServiceManager {
 			return partnerIds.stream().map(partnerId -> {
 				String token = tokenIDGenerator.generateTokenID(uin, partnerId);
 				return createCredReqDto(vid.getVid(), partnerId, expiryTimestamp, vid.getTransactionLimit(), token,
-						securityManager.getIdHashAndAttributes(vid.getVid(), saltRetreivalFunction));
+						securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(vid.getVid(), saltRetreivalFunction));
 			});
 		}).collect(Collectors.toList());
 
@@ -519,7 +519,7 @@ public class CredentialServiceManager {
 						.filter(skipExistingCredentialsForPartnersCondition.negate())
 						.map(partnerId -> createCredReqDto(entity.getIndividualId(), partnerId, entity.getIdExpiryTimestamp(),
 								entity.getIdTransactionLimit(), entity.getTokenId(),
-								securityManager.getIdHashAndAttributes(entity.getIndividualId(), saltRetreivalFunction)))
+								securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(entity.getIndividualId(), saltRetreivalFunction)))
 						.filter(additionalPredicate);
 			}).collect(Collectors.toList());
 			
