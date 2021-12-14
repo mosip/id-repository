@@ -26,7 +26,7 @@ import io.mosip.idrepository.core.dto.Exceptions;
 import io.mosip.idrepository.core.dto.IdentityIssuanceProfile;
 import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
-import io.mosip.idrepository.core.util.CryptoUtil;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.biometrics.commons.CbeffValidator;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BIR;
@@ -250,7 +250,8 @@ public class IdentityIssuanceProfileBuilder {
 				this.oldIdentity = mapper.readTree(identity);
 		} catch (IOException e) {
 			// this block should never be executed
-			e.printStackTrace();
+			IdRepoLogger.getLogger(IdentityIssuanceProfileBuilder.class)
+				.warn("EXCEPTION --->>> " + ExceptionUtils.getStackTrace(e));			
 		}
 		return this;
 	}
@@ -266,7 +267,8 @@ public class IdentityIssuanceProfileBuilder {
 				this.newIdentity = mapper.readTree(identity);
 		} catch (IOException e) {
 			// this block should never be executed
-			e.printStackTrace();
+			IdRepoLogger.getLogger(IdentityIssuanceProfileBuilder.class)
+				.warn("EXCEPTION --->>> " + ExceptionUtils.getStackTrace(e));
 		}
 		return this;
 	}

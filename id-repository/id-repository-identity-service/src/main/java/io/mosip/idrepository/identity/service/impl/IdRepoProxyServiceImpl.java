@@ -1,14 +1,11 @@
 package io.mosip.idrepository.identity.service.impl;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DOCUMENT_HASH_MISMATCH;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_NOT_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
 import static io.mosip.kernel.biometrics.constant.BiometricType.FACE;
@@ -35,7 +32,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 
-import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -57,6 +53,7 @@ import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.BiometricExtractionService;
 import io.mosip.idrepository.core.spi.IdRepoService;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 import io.mosip.idrepository.identity.repository.UinDraftRepo;
@@ -69,7 +66,6 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.idrepository.core.util.CryptoUtil;
 
 /**
  * The Class IdRepoServiceImpl - Service implementation for Identity service.
@@ -222,16 +218,13 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	public IdResponseDTO retrieveIdentity(String id, IdType idType, String type, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
 		switch (idType) {
-		case UIN:
-			return retrieveIdentityByUin(id, type, extractionFormats);
 		case VID:
 			return retrieveIdentityByVid(id, type, extractionFormats);
 		case ID:
 			return retrieveIdentityByRid(id, type, extractionFormats);
+		case UIN:
 		default:
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getIdType", "Invalid ID");
-			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
-					INVALID_INPUT_PARAMETER.getErrorMessage(), "id");
+			return retrieveIdentityByUin(id, type, extractionFormats);
 		}
 	}
 
@@ -253,14 +246,14 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
 					"\n" + e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
-		} catch (IdRepoAppException e) {
+		} catch (IdRepoAppException | IdRepoAppUncheckedException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
 					"\n" + e.getMessage());
-			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
-		} catch (IdRepoAppUncheckedException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
-					"\n" + e.getMessage());
-			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+			String errorCode = (e instanceof IdRepoAppException) ? ((IdRepoAppException) e).getErrorCode()
+					: ((IdRepoAppUncheckedException) e).getErrorCode();
+			String errorMsg = (e instanceof IdRepoAppException) ? ((IdRepoAppException) e).getErrorText()
+					: ((IdRepoAppUncheckedException) e).getErrorText();
+			throw new IdRepoAppException(errorCode, errorMsg, e);
 		}
 	}
 
@@ -303,11 +296,10 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * @return the string
 	 */
 	private String retrieveUinHash(String uin) {
-		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
-		int modResult = (int) (Long.parseLong(uin) % moduloValue);
-		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
+		int saltId = securityManager.getSaltKeyForId(uin);
+		String hashSalt = uinHashSaltRepo.retrieveSaltById(saltId);
 		String hashwithSalt = securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
-		return modResult + SPLITTER + hashwithSalt;
+		return saltId + SPLITTER + hashwithSalt;
 	}
 
 	/**
@@ -356,14 +348,14 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
 					"\n" + e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
-		} catch (IdRepoAppException e) {
+		} catch (IdRepoAppException | IdRepoAppUncheckedException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
 					"\n" + e.getMessage());
-			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
-		} catch (IdRepoAppUncheckedException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
-					"\n" + e.getMessage());
-			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+			String errorCode = (e instanceof IdRepoAppException) ? ((IdRepoAppException) e).getErrorCode()
+					: ((IdRepoAppUncheckedException) e).getErrorCode();
+			String errorMsg = (e instanceof IdRepoAppException) ? ((IdRepoAppException) e).getErrorText()
+					: ((IdRepoAppUncheckedException) e).getErrorText();
+			throw new IdRepoAppException(errorCode, errorMsg, e);
 		}
 	}
 
@@ -494,12 +486,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		} catch (IdRepoAppUncheckedException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
-		} catch (AmazonS3Exception e) {
-			// TODO need to remove AmazonS3Exception handling
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES, e.getMessage());
-			throw new IdRepoAppUncheckedException(FILE_NOT_FOUND, e);
 		} catch (Exception e) {
-			ExceptionUtils.getStackTrace(e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
 			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
 		}
