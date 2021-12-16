@@ -31,6 +31,10 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
@@ -91,6 +95,9 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 
 	@Autowired
 	private IdRepoWebSubHelper websubHelper;
+	
+	@Autowired
+	private ObjectMapper mapper;
 
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent event) {
@@ -99,6 +106,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 
 	@PostConstruct
 	public void init() {
+		mapper.registerModule(new Jdk8Module()).registerModule(new JavaTimeModule());
 		SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
 		restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
 
