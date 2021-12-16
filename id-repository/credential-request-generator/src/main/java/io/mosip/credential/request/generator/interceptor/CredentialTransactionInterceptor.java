@@ -48,17 +48,11 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 	public boolean onLoad(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
 		if (entity instanceof CredentialEntity) {
 			int indexOfData = Arrays.asList(propertyNames).indexOf(REQUEST);
-			String decryptedData = encryptDecryptData(ApiName.DECRYPTION, (String) state[indexOfData]);
+			String decryptedData = new String(CryptoUtil
+					.decodeURLSafeBase64(encryptDecryptData(ApiName.DECRYPTION, (String) state[indexOfData])));
 			state[indexOfData] = decryptedData;
 		}
 		return super.onLoad(entity, id, state, propertyNames, types);
-	}
-
-	@Override
-	public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState,
-			String[] propertyNames, Type[] types) {
-		encryptData(entity, currentState, propertyNames);
-		return super.onFlushDirty(entity, id, currentState, previousState, propertyNames, types);
 	}
 
 	private void encryptData(Object entity, Object[] state, String[] propertyNames) {
