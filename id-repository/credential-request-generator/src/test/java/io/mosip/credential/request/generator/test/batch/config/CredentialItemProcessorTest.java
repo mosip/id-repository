@@ -21,6 +21,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credential.request.generator.batch.config.CredentialItemProcessor;
@@ -117,7 +118,7 @@ public class CredentialItemProcessorTest {
 
 		Mockito.when(mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class))
 				.
-				thenThrow(new IOException("mapping exception"));
+				thenThrow(new JsonMappingException("mapping exception"));
 
 		CredentialEntity updatedCredential = credentialItemProcessor.process(credential);
 		assertEquals("FAILED", updatedCredential.getStatusCode());

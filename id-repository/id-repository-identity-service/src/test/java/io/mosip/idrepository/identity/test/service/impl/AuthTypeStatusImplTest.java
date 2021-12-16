@@ -35,6 +35,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
@@ -90,6 +92,8 @@ public class AuthTypeStatusImplTest {
 
 	@Before
 	public void init() throws IOException {
+		mapper.registerModule(new Jdk8Module()).registerModule(new JavaTimeModule());
+		mapper.findAndRegisterModules();
 		partnerResponseObj = mapper.readValue(
 				"{\"response\":{\"partners\":[{\"partnerID\":\"MOVP\",\"status\":\"active\",\"organizationName\":\"movp\",\"contactNumber\":\"\",\"emailId\":\"movp@gmail.com\",\"address\":\"Bangalore\",\"partnerType\":\"Online_Verification_Partner\"}]}}",
 				Object.class);
@@ -148,7 +152,7 @@ public class AuthTypeStatusImplTest {
 				IdRepoErrorConstants.AUTHENTICATION_FAILED.getErrorMessage())));
 		when(restHelper.requestSync(any()))
 				.thenThrow(new RestServiceException(IdRepoErrorConstants.AUTHENTICATION_FAILED,
-						new ObjectMapper().writeValueAsString(restResponse), restResponse));
+						mapper.writeValueAsString(restResponse), restResponse));
 		try {
 			authTypeStatusImpl.fetchAuthTypeStatus("", IdType.VID);
 		} catch (IdRepoAppException e) {
