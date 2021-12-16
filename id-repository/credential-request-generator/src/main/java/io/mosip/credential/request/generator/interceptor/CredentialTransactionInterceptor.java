@@ -48,8 +48,8 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 	public boolean onLoad(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
 		if (entity instanceof CredentialEntity) {
 			int indexOfData = Arrays.asList(propertyNames).indexOf(REQUEST);
-			String encryptedData = encryptDecryptData(ApiName.DECRYPTION, (String) state[indexOfData]);
-			state[indexOfData] = encryptedData;
+			String decryptedData = encryptDecryptData(ApiName.DECRYPTION, (String) state[indexOfData]);
+			state[indexOfData] = decryptedData;
 		}
 		return super.onLoad(entity, id, state, propertyNames, types);
 	}
