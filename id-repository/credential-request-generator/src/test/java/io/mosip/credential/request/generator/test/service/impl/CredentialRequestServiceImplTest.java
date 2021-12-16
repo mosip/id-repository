@@ -26,6 +26,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credential.request.generator.dto.CredentialStatusEvent;
@@ -174,7 +175,7 @@ public class CredentialRequestServiceImplTest {
 		credentialIssueRequestDto.setCredentialType("MOSIP");
 		credentialIssueRequestDto.setId("123");
 		Mockito.when(objectMapper.readValue(credentialEntity.getRequest(), CredentialIssueRequestDto.class))
-				.thenThrow(new IOException());
+				.thenThrow(new JsonMappingException(""));
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto = credentialRequestServiceImpl
 				.cancelCredentialRequest("1234");
 		assertNotNull(credentialIssueResponseDto.getErrors().get(0));
@@ -223,7 +224,7 @@ public class CredentialRequestServiceImplTest {
 		credentialIssueRequestDto.setCredentialType("MOSIP");
 		credentialIssueRequestDto.setId("123");
 		Mockito.when(objectMapper.readValue(credentialEntity.getRequest(), CredentialIssueRequestDto.class))
-				.thenThrow(new IOException());
+				.thenThrow(new JsonMappingException(""));
 		ResponseWrapper<CredentialIssueStatusResponse> credentialIssueResponseDto = credentialRequestServiceImpl
 				.getCredentialRequestStatus("1234");
 		assertNotNull(credentialIssueResponseDto.getErrors().get(0));
@@ -368,7 +369,7 @@ public class CredentialRequestServiceImplTest {
 		credentialIssueRequestDto.setId("123");
 		credentialIssueRequestDto.setIssuer("test");
 		Mockito.when(objectMapper.readValue(credentialEntity.getRequest(), CredentialIssueRequestDto.class))
-				.thenThrow(new IOException());
+				.thenThrow(new JsonMappingException(""));
 		ResponseWrapper<PageDto<CredentialRequestIdsDto>> credentialgetRequestIdsresponseDto = credentialRequestServiceImpl
 				.getRequestIds("FAILED", null, 0, 1, "updateDateTime", "ASC");
 		assertNotNull(credentialgetRequestIdsresponseDto.getErrors().get(0));
@@ -502,7 +503,7 @@ public class CredentialRequestServiceImplTest {
 		credentialIssueRequestDto.setCredentialType("MOSIP");
 		credentialIssueRequestDto.setId("123");
 		Mockito.when(objectMapper.readValue(credentialEntity.getRequest(), CredentialIssueRequestDto.class))
-				.thenThrow(new IOException());
+				.thenThrow(new JsonMappingException(""));
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto = credentialRequestServiceImpl
 				.retriggerCredentialRequest("1234");
 		assertNotNull(credentialIssueResponseDto.getErrors().get(0));

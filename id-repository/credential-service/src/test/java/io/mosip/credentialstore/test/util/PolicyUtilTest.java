@@ -23,6 +23,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
@@ -92,7 +93,7 @@ public class PolicyUtilTest {
 	public void testIOException() throws Exception {
 		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(policyResponse);
 		Mockito.when(objectMapper.readValue(policyResponse, PolicyManagerResponseDto.class))
-				.thenThrow(new IOException());
+				.thenThrow(new JsonMappingException(""));
 		
 		policyUtil.getPolicyDetail("euin", "3456", "requestId");
 	}
@@ -154,7 +155,7 @@ public class PolicyUtilTest {
 	public void testPartnerIOException() throws Exception {
 		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(partnerextractorResponse);
 		Mockito.when(objectMapper.readValue(partnerextractorResponse, PartnerExtractorResponseDto.class))
-				.thenThrow(new IOException());
+				.thenThrow(new JsonMappingException(""));
 		policyUtil.getPartnerExtractorFormat("1234", "3456", "requestId");
 	}
 
