@@ -54,6 +54,13 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 		}
 		return super.onLoad(entity, id, state, propertyNames, types);
 	}
+	
+	@Override
+	public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState,
+			String[] propertyNames, Type[] types) {
+		encryptData(entity, currentState, propertyNames);
+		return super.onFlushDirty(entity, id, currentState, previousState, propertyNames, types);
+	}
 
 	private void encryptData(Object entity, Object[] state, String[] propertyNames) {
 		if (entity instanceof CredentialEntity) {
