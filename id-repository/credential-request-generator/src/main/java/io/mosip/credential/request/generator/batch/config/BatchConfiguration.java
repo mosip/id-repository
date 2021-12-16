@@ -76,9 +76,7 @@ public class BatchConfiguration {
 	/** The credential re process job. */
 	@Autowired
 	private Job credentialReProcessJob;
-
-
-
+	
 	/**
 	 * Process job.
 	 */

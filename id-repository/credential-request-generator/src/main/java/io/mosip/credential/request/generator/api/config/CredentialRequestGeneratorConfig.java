@@ -25,7 +25,7 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.servers.Server;
 
 @Configuration
-@EnableJpaRepositories(basePackageClasses = {
+@EnableJpaRepositories(entityManagerFactoryRef = "entityManagerFactory", basePackageClasses = {
 		CredentialRepositary.class }, basePackages = "io.mosip.credential.request.generator.repositary.*", repositoryBaseClass = HibernateRepositoryImpl.class)
 @EntityScan(basePackageClasses = { CredentialEntity.class })
 public class CredentialRequestGeneratorConfig extends HibernateDaoConfig {
