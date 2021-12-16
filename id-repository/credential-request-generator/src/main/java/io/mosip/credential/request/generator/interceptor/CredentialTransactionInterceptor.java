@@ -3,6 +3,7 @@ package io.mosip.credential.request.generator.interceptor;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
@@ -14,9 +15,11 @@ import io.mosip.credential.request.generator.dto.CryptomanagerRequestDto;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorUncheckedException;
 import io.mosip.credential.request.generator.util.RestUtil;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 
 /**
@@ -83,8 +86,16 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 			requestWrapper.setRequest(cryptoRequest);
 			ResponseWrapper<Map<String, String>> restResponse = restUtil.postApi(api, null, null, null,
 					MediaType.APPLICATION_JSON_UTF8, requestWrapper, ResponseWrapper.class);
-			return restResponse.getResponse().get("data");
+			if (Objects.isNull(restResponse.getErrors()) || restResponse.getErrors().isEmpty()) {
+				return restResponse.getResponse().get("data");
+			} else {
+				IdRepoLogger.getLogger(CredentialTransactionInterceptor.class)
+						.error("KEYMANAGER ERROR RESPONSE -> " + restResponse);
+				throw new CredentialRequestGeneratorUncheckedException(
+						CredentialRequestErrorCodes.ENCRYPTION_DECRYPTION_FAILED);
+			}
 		} catch (Exception e) {
+			IdRepoLogger.getLogger(CredentialTransactionInterceptor.class).error(ExceptionUtils.getStackTrace(e));
 			throw new CredentialRequestGeneratorUncheckedException(
 					CredentialRequestErrorCodes.ENCRYPTION_DECRYPTION_FAILED, e);
 		}
