@@ -141,7 +141,7 @@ public class DigitalSignatureUtilTest {
 	public void testIOException() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException, SignatureException {
 		String test = "testdata";
 
-		Mockito.when(objectMapper.readValue(signResponse, SignResponseDto.class)).thenThrow(new IOException());
+		Mockito.when(objectMapper.readValue(signResponse, SignResponseDto.class)).thenThrow(new JsonMappingException(""));
 		digitalSignatureUtil.sign(test, "requestId");
 	}
 }
