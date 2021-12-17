@@ -302,7 +302,7 @@ public class IdRepoController {
 	 *             the ID data validation exception
 	 */
 	//@PreAuthorize("hasAnyRole('RESIDENT')")
-	@Deprecated
+	@Deprecated(since = "1.2.0")
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetauthtypesstatusindividualidtypeindividualid())")
 	@GetMapping(path = "/authtypes/status/individualIdType/{IDType}/individualId/{ID}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Authtype Status Request", description = "Authtype Status Request", tags = { "id-repo-controller" })
