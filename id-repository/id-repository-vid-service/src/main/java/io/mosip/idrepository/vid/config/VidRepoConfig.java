@@ -20,7 +20,6 @@ import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -154,19 +153,13 @@ public class VidRepoConfig {
 		});
 		return em;
 	}
-	
-	@Bean
-	@Primary
-	public RestHelper restHelper() {
-		return new RestHelper();
-	}
 
 	@Bean
 	public CredentialServiceManager credentialServiceManager(@Qualifier("selfTokenWebClient") WebClient webClient) {
 		return new CredentialServiceManager(restHelperWithAuth(webClient));
 	}
 	
-	@Bean("restHelperWithAuth")
+	@Bean
 	public RestHelper restHelperWithAuth(@Qualifier("selfTokenWebClient") WebClient webClient) {
 		return new RestHelper(webClient);
 	}
