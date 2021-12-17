@@ -19,7 +19,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
@@ -270,22 +269,11 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 	}
 
 	@Bean
-	@Primary
-	public RestHelper restHelper() {
-		return new RestHelper();
-	}
-
-	@Bean("restHelperWithAuth")
 	public RestHelper restHelperWithAuth(@Qualifier("selfTokenWebClient") WebClient webClient) {
 		return new RestHelper(webClient);
 	}
 
 	@Bean
-	public IdRepoSecurityManager securityManager() {
-		return new IdRepoSecurityManager(restHelper());
-	}
-
-	@Bean("securityManagerWithAuth")
 	public IdRepoSecurityManager securityManagerWithAuth(@Qualifier("selfTokenWebClient") WebClient webClient) {
 		return new IdRepoSecurityManager(restHelperWithAuth(webClient));
 	}
