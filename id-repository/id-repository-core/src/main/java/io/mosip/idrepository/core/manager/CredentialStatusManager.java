@@ -11,7 +11,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
@@ -24,16 +23,15 @@ import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
-import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.websub.model.EventModel;
@@ -60,10 +58,6 @@ public class CredentialStatusManager {
 	private ObjectMapper mapper;
 
 	@Autowired
-	@Qualifier("restHelperWithAuth")
-	private RestHelper restHelper;
-
-	@Autowired
 	private Environment env;
 
 	@Autowired
@@ -73,7 +67,6 @@ public class CredentialStatusManager {
 	private UinEncryptSaltRepo uinEncryptSaltRepo;
 
 	@Autowired
-	@Qualifier("securityManagerWithAuth")
 	private IdRepoSecurityManager securityManager;
 
 	@Value("${" + UIN_REFID + "}")

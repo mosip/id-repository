@@ -228,7 +228,6 @@ public class IdRepoWebSubHelper {
 
 	public void subscribeForVidEvent() {
 		try {
-			this.tryRegisteringTopic(vidEventTopic);
 			SubscriptionChangeRequest subscriptionRequest = new SubscriptionChangeRequest();
 			subscriptionRequest.setCallbackURL(vidEventUrl);
 			subscriptionRequest.setHubURL(hubURL);
