@@ -31,6 +31,8 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
+
 import io.mosip.idrepository.core.entity.UinEncryptSalt;
 import io.mosip.idrepository.core.entity.UinHashSalt;
 import io.mosip.idrepository.core.helper.RestHelper;
@@ -162,6 +164,11 @@ public class VidRepoConfig {
 	@Bean
 	public RestHelper restHelperWithAuth(@Qualifier("selfTokenWebClient") WebClient webClient) {
 		return new RestHelper(webClient);
+	}
+	
+	@Bean
+	public AfterburnerModule afterburnerModule() {
+	  return new AfterburnerModule();
 	}
 	
 }

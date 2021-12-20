@@ -7,6 +7,8 @@ import org.springframework.batch.core.configuration.annotation.DefaultBatchConfi
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
+
 /**
  * The Class SaltGeneratorIdMapDataSourceConfig - Provides configuration for Salt
  * generator application.
@@ -40,6 +42,11 @@ public class SaltGeneratorConfig {
 				// Datasource and instead use Map based implementation internally.
 			}
 		};
+	}
+	
+	@Bean
+	public AfterburnerModule afterburnerModule() {
+	  return new AfterburnerModule();
 	}
 	
 }
