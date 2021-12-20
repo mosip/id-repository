@@ -11,6 +11,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
+
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.provider.impl.IdAuthProvider;
 import io.mosip.credentialstore.provider.impl.QrCodeProvider;
@@ -107,5 +109,10 @@ public class CredentialStoreBeanConfig {
 		VariableResolverFactory functionFactory = new MapVariableResolverFactory();
 		MVEL.eval(mvelExpression, functionFactory);
 		return functionFactory;
+	}
+	
+	@Bean
+	public AfterburnerModule afterburnerModule() {
+	  return new AfterburnerModule();
 	}
 }
