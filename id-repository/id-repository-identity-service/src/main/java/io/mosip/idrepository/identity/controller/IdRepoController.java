@@ -351,9 +351,8 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
-	public ResponseEntity<AuthtypeResponseDto> fetchAuthTypeStatus(@PathVariable("ID") String individualId,
-			@RequestParam(name = ID_TYPE, required = false) @Nullable String idType) throws IdRepoAppException {
-		return this.getAuthTypeStatus(individualId, Objects.isNull(idType) ? getIdType(individualId).getIdType() : idType);
+	public ResponseEntity<AuthtypeResponseDto> getAuthTypeStatus(@PathVariable("ID") String individualId) throws IdRepoAppException {
+		return this.getAuthTypeStatus(individualId, getIdType(individualId).getIdType());
 	}
 
 	/**
