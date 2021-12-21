@@ -381,16 +381,18 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<IdResponseDTO> updateAuthtypeStatus(
 			@RequestBody AuthTypeStatusRequestDto authTypeStatusRequest) throws IdRepoAppException {
-		boolean isIdTypeValid = false;
+		String individualId = authTypeStatusRequest.getIndividualId();
 		try {
+			authTypeStatusRequest.setIndividualIdType(Objects.nonNull(authTypeStatusRequest.getIndividualIdType())
+					? authTypeStatusRequest.getIndividualIdType()
+					: getIdType(individualId).getIdType());
 			IdType idType = validator.validateIdType(authTypeStatusRequest.getIndividualIdType());
-			isIdTypeValid = true;
-			validator.validateIdvId(authTypeStatusRequest.getIndividualId(), idType);
+			validator.validateIdvId(individualId, idType);
 			IdResponseDTO updateAuthtypeStatus = authTypeStatusService.updateAuthTypeStatus(
-					authTypeStatusRequest.getIndividualId(), idType, authTypeStatusRequest.getRequest());
+					individualId, idType, authTypeStatusRequest.getRequest());
 			String individualIdType = authTypeStatusRequest.getIndividualIdType();
 			auditHelper.audit(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
-					authTypeStatusRequest.getIndividualId(),
+					individualId,
 					individualIdType == null ? IdType.UIN : IdType.valueOf(individualIdType),
 					"auth type status update status : " + true);
 			return new ResponseEntity<>(updateAuthtypeStatus, HttpStatus.OK);
@@ -398,8 +400,8 @@ public class IdRepoController {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "updateAuthtypeStatus",
 					e.getMessage());
 			auditHelper.auditError(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
-					authTypeStatusRequest.getIndividualId(),
-					isIdTypeValid ? IdType.valueOf(authTypeStatusRequest.getIndividualIdType()) : IdType.UIN, e);
+					individualId,
+					IdType.valueOf(authTypeStatusRequest.getIndividualIdType()), e);
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		}
 	}
