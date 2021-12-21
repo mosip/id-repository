@@ -128,6 +128,6 @@ public class IdRepoDataSourceConfig {
 	
 	@Bean
 	public AfterburnerModule afterburnerModule() {
-	  return new AfterburnerModule();
+		return new AfterburnerModule();
 	}
 }
