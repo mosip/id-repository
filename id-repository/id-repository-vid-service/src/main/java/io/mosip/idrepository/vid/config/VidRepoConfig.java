@@ -20,7 +20,6 @@ import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -31,6 +30,8 @@ import org.springframework.orm.jpa.persistenceunit.PersistenceUnitPostProcessor;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 
 import io.mosip.idrepository.core.entity.UinEncryptSalt;
 import io.mosip.idrepository.core.entity.UinHashSalt;
@@ -154,21 +155,20 @@ public class VidRepoConfig {
 		});
 		return em;
 	}
-	
-	@Bean
-	@Primary
-	public RestHelper restHelper() {
-		return new RestHelper();
-	}
 
 	@Bean
 	public CredentialServiceManager credentialServiceManager(@Qualifier("selfTokenWebClient") WebClient webClient) {
 		return new CredentialServiceManager(restHelperWithAuth(webClient));
 	}
 	
-	@Bean("restHelperWithAuth")
+	@Bean
 	public RestHelper restHelperWithAuth(@Qualifier("selfTokenWebClient") WebClient webClient) {
 		return new RestHelper(webClient);
+	}
+
+	@Bean
+	public AfterburnerModule afterburnerModule() {
+		return new AfterburnerModule();
 	}
 	
 }

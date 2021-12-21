@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import io.mosip.credential.request.generator.entity.CredentialEntity;
@@ -25,7 +26,7 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.servers.Server;
 
 @Configuration
-@EnableJpaRepositories(basePackageClasses = {
+@EnableJpaRepositories(entityManagerFactoryRef = "entityManagerFactory", basePackageClasses = {
 		CredentialRepositary.class }, basePackages = "io.mosip.credential.request.generator.repositary.*", repositoryBaseClass = HibernateRepositoryImpl.class)
 @EntityScan(basePackageClasses = { CredentialEntity.class })
 public class CredentialRequestGeneratorConfig extends HibernateDaoConfig {
@@ -37,12 +38,15 @@ public class CredentialRequestGeneratorConfig extends HibernateDaoConfig {
 	private RestUtil restUtil;
 	
 	@Autowired
+	private Environment env;
+	
+	@Autowired
 	private OpenApiProperties openApiProperties;
 	
 	@Override
 	public Map<String, Object> jpaProperties() {
 		Map<String, Object> jpaProperties = super.jpaProperties();
-//		jpaProperties.put("hibernate.ejb.interceptor", new CredentialTransactionInterceptor(restUtil));
+		jpaProperties.put("hibernate.ejb.interceptor", new CredentialTransactionInterceptor(restUtil, env));
 		return jpaProperties;
 	}
 

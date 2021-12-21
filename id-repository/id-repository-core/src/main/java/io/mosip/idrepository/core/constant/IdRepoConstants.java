@@ -130,6 +130,8 @@ public class IdRepoConstants {
 	public static final String IRIS_EXTRACTION_FORMAT = "irisExtractionFormat";
 
 	public static final String FINGER_EXTRACTION_FORMAT = "fingerExtractionFormat";
+	
+	public static final String CREDENTIAL_CRYPTO_REF_ID = "mosip.credential.request.crypto-ref-id";
 
 	
 	/** The value. */
@@ -163,6 +165,10 @@ public class IdRepoConstants {
 	public static final String VID_UPDATE_ID = "mosip.idrepo.vid.id.update";
 	
 	public static final int DEFAULT_SALT_KEY_LENGTH = 3;
+	
+	public static final String PARTNER_CACHE_UPDATE_INTERVAL = "mosip.partner.cache.update.interval.milli.seconds";
+	
+	public static final int PARTNER_CACHE_UPDATE_DEFAULT_INTERVAL = 7200000;
   
 	public static final String ERRORS = "errors";
 

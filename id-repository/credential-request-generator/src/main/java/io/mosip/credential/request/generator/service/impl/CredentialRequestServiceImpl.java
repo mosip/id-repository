@@ -1,6 +1,5 @@
 package io.mosip.credential.request.generator.service.impl;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -17,6 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credential.request.generator.constants.CredentialRequestErrorCodes;
@@ -221,7 +221,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			errorList.add(error);
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					ExceptionUtils.getStackTrace(e));
-		} catch (IOException e) {
+		} catch (JsonProcessingException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR,
 					AuditEvents.CANCEL_CREDENTIAL_REQUEST, requestId, IdType.ID, e);
 			ServiceError error = new ServiceError();
@@ -289,7 +289,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			errorList.add(error);
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					ExceptionUtils.getStackTrace(e));
-		} catch (IOException e) {
+		} catch (JsonProcessingException e) {
 
 			ServiceError error = new ServiceError();
 			error.setErrorCode(CredentialRequestErrorCodes.IO_EXCEPTION.getErrorCode());
@@ -405,7 +405,7 @@ try {
 				errorList.add(error);
 			}
 		
-		} catch (IOException e) {
+		} catch (JsonProcessingException e) {
 			ServiceError error = new ServiceError();
 			error.setErrorCode(CredentialRequestErrorCodes.IO_EXCEPTION.getErrorCode());
 			error.setMessage(CredentialRequestErrorCodes.IO_EXCEPTION.getErrorMessage());
@@ -497,7 +497,7 @@ try {
 			errorList.add(error);
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					ExceptionUtils.getStackTrace(e));
-		} catch (IOException e) {
+		} catch (JsonProcessingException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR,
 					AuditEvents.RETRY_CREDENTIAL_REQUEST, requestId, IdType.ID, e);
 			ServiceError error = new ServiceError();
