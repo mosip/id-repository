@@ -22,6 +22,8 @@ import org.springframework.orm.jpa.persistenceunit.PersistenceUnitPostProcessor;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.annotation.EnableAsync;
 
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
+
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.entity.UinEncryptSalt;
 import io.mosip.idrepository.core.entity.UinHashSalt;
@@ -122,5 +124,10 @@ public class IdRepoDataSourceConfig {
 		dbValues.put("password", env.getProperty("mosip.idrepo.identity.db.password"));
 		dbValues.put("driverClassName", env.getProperty("mosip.idrepo.identity.db.driverClassName"));
 		return buildDataSource(dbValues);
+	}
+	
+	@Bean
+	public AfterburnerModule afterburnerModule() {
+		return new AfterburnerModule();
 	}
 }

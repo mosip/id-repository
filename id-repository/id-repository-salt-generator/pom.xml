@@ -1,31 +1,32 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-    <groupId>io.mosip.idrepository</groupId>
+	<groupId>io.mosip.idrepository</groupId>
 	<artifactId>id-repository-salt-generator</artifactId>
 	<version>1.2.0-SNAPSHOT</version>
 	<name>ID-Repository Salt Generator</name>
-	
+
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
 		<version>1.2.0-SNAPSHOT</version>
 	</parent>
-	
+
 	<description>Batch Job Application to for one-time populating of salt values for ID Repository salt tables.</description>
-<properties>		
+	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- maven -->
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
 		<maven.compiler.version>3.8.0</maven.compiler.version>
-<!--		<maven.surefire.plugin.version>2.22.0</maven.surefire.plugin.version>-->
+		<!-- <maven.surefire.plugin.version>2.22.0</maven.surefire.plugin.version> -->
 
 		<maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
 		<maven.war.plugin.version>3.1.0</maven.war.plugin.version>
-<!--		<maven.jacoco.plugin.version>0.8.1</maven.jacoco.plugin.version>-->
-<!--		<maven.sonar.plugin.version>3.7.0.1746</maven.sonar.plugin.version>-->
+		<!-- <maven.jacoco.plugin.version>0.8.1</maven.jacoco.plugin.version> -->
+		<!-- <maven.sonar.plugin.version>3.7.0.1746</maven.sonar.plugin.version> -->
 		<maven.javadoc.version>3.2.0</maven.javadoc.version>
 		<maven-shade-plugin.version>2.3</maven-shade-plugin.version>
 
@@ -34,12 +35,12 @@
 		<spring.data.jpa.version>2.0.7.RELEASE</spring.data.jpa.version>
 		<spring.security.test.version>5.0.5.RELEASE</spring.security.test.version>
 		<spring-cloud-config.version>2.0.4.RELEASE</spring-cloud-config.version>
-                
+
 		<!-- swagger -->
 		<swagger.core.version>2.0.7</swagger.core.version>
 		<swagger.annotations.version>1.5.21</swagger.annotations.version>
 		<springfox.version>2.9.2</springfox.version>
-                
+
 		<!-- vertx -->
 		<vertx.version>3.6.2</vertx.version>
 		<vertx.health.check.version>3.7.0</vertx.health.check.version>
@@ -125,12 +126,12 @@
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
 		<maven.compiler.version>3.8.0</maven.compiler.version>
-<!--		<maven.surefire.plugin.version>2.22.0</maven.surefire.plugin.version>-->
+		<!-- <maven.surefire.plugin.version>2.22.0</maven.surefire.plugin.version> -->
 
 		<maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
 		<maven.war.plugin.version>3.1.0</maven.war.plugin.version>
-<!--		<maven.jacoco.plugin.version>0.8.4</maven.jacoco.plugin.version>-->
-<!--		<maven.sonar.plugin.version>3.7.0.1746</maven.sonar.plugin.version>-->
+		<!-- <maven.jacoco.plugin.version>0.8.4</maven.jacoco.plugin.version> -->
+		<!-- <maven.sonar.plugin.version>3.7.0.1746</maven.sonar.plugin.version> -->
 		<maven.javadoc.version>3.2.0</maven.javadoc.version>
 		<maven-shade-plugin.version>2.3</maven-shade-plugin.version>
 
@@ -139,12 +140,12 @@
 		<spring.data.jpa.version>2.0.7.RELEASE</spring.data.jpa.version>
 		<spring.security.test.version>5.0.5.RELEASE</spring.security.test.version>
 		<spring-cloud-config.version>2.0.4.RELEASE</spring-cloud-config.version>
-                
+
 		<!-- swagger -->
 		<swagger.core.version>2.0.7</swagger.core.version>
 		<swagger.annotations.version>1.5.21</swagger.annotations.version>
 		<springfox.version>2.9.2</springfox.version>
-                
+
 		<!-- vertx -->
 		<vertx.version>3.6.2</vertx.version>
 		<vertx.health.check.version>3.7.0</vertx.health.check.version>
@@ -256,6 +257,11 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+			<groupId>com.fasterxml.jackson.module</groupId>
+			<artifactId>jackson-module-afterburner</artifactId>
+			<version>2.12.0</version>
+		</dependency>
+		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-logger-logback</artifactId>
 			<version>${kernel-logger-logback.version}</version>
@@ -266,10 +272,10 @@
 			<version>${postgresql.version}</version>
 		</dependency>
 		<dependency>
-		    <groupId>com.h2database</groupId>
-		    <artifactId>h2</artifactId>
-		    <scope>runtime</scope>
-		    <version>1.4.200</version>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+			<version>1.4.200</version>
 		</dependency>
 	</dependencies>
 	<build>
