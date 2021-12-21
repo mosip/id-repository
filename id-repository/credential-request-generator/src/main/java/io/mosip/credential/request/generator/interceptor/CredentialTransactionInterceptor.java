@@ -7,6 +7,7 @@ import java.util.Objects;
 
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
+import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 
 import io.mosip.credential.request.generator.constants.ApiName;
@@ -15,6 +16,7 @@ import io.mosip.credential.request.generator.dto.CryptomanagerRequestDto;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorUncheckedException;
 import io.mosip.credential.request.generator.util.RestUtil;
+import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
@@ -31,11 +33,14 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 	private static final String REQUEST = "request";
 
 	private transient RestUtil restUtil;
+	
+	private transient Environment env;
 
 	private static final long serialVersionUID = 1L;
 
-	public CredentialTransactionInterceptor(RestUtil restUtil) {
+	public CredentialTransactionInterceptor(RestUtil restUtil, Environment env) {
 		this.restUtil = restUtil;
+		this.env = env;
 	}
 
 	@Override
@@ -77,9 +82,9 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 		try {
 			RequestWrapper<CryptomanagerRequestDto> requestWrapper = new RequestWrapper<>();
 			CryptomanagerRequestDto cryptoRequest = new CryptomanagerRequestDto();
-			cryptoRequest.setApplicationId("ID_REPO");
+			cryptoRequest.setApplicationId(env.getProperty(IdRepoConstants.APPLICATION_ID));
 			cryptoRequest.setData(request);
-			cryptoRequest.setReferenceId("CREDENTIAL_REQUEST");
+			cryptoRequest.setReferenceId(env.getProperty(IdRepoConstants.CREDENTIAL_CRYPTO_REF_ID));
 			requestWrapper.setRequest(cryptoRequest);
 			cryptoRequest.setTimeStamp(DateUtils.getUTCCurrentDateTime());
 			requestWrapper.setRequest(cryptoRequest);
