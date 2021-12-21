@@ -4,7 +4,6 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_ACTIVE_STA
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +45,7 @@ import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.IdRepoWebSubHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.manager.partner.PartnerServiceManager;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.TokenIDGenerator;
@@ -72,16 +72,11 @@ public class CredentialServiceManager {
 
 	private static final String PROP_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS = "skip-requesting-existing-credentials-for-partners";
 	
-	private static final String RESPONSE = "response";
-
 	/** The Constant mosipLogger. */
 	private static final Logger mosipLogger = IdRepoLogger.getLogger(CredentialServiceManager.class);
 
 	/** The Constant IDA. */
 	private static final String IDA = "IDA";
-
-	/** The Constant PARTNER_ACTIVE_STATUS. */
-	private static final String PARTNER_ACTIVE_STATUS = "Active";
 
 	/** The Constant AUTH. */
 	private static final String AUTH = "auth";
@@ -138,6 +133,9 @@ public class CredentialServiceManager {
 	@Autowired
 	private ApplicationContext ctx;
 	
+	@Autowired
+	private PartnerServiceManager partnerServiceManager;
+	
 	@Value("${" + PROP_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS + ":"
 			+ DEFAULT_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS + "}")
 	private boolean skipExistingCredentialsForPartners;
@@ -156,7 +154,7 @@ public class CredentialServiceManager {
 	public void triggerEventNotifications(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate,
 			String txnId, IntFunction<String> saltRetreivalFunction) {
 		this.notifyUinCredential(uin, expiryTimestamp, status, isUpdate, txnId, saltRetreivalFunction, null, null,
-				getPartnerIds());
+				partnerServiceManager.getOLVPartnerIds());
 	}
 
 	/**
@@ -186,7 +184,7 @@ public class CredentialServiceManager {
 			}
 			
 			if (partnerIds.isEmpty() || (partnerIds.size() == 1 && dummyCheck.isDummyOLVPartner(partnerIds.get(0)))) {
-				partnerIds = getPartnerIds();
+				partnerIds = partnerServiceManager.getOLVPartnerIds();
 			}
 
 			if ((status != null && isUpdate) && (!ACTIVATED.equals(status) || expiryTimestamp != null)) {
@@ -223,7 +221,7 @@ public class CredentialServiceManager {
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,
 			Consumer<EventModel> idaEventModelConsumer) {
 		try {
-			List<String> partnerIds = getPartnerIds();
+			List<String> partnerIds = partnerServiceManager.getOLVPartnerIds();
 			if (isUpdated) {
 				sendVIDEventsToIDA(status, vids, partnerIds, idaEventModelConsumer);
 			} else {
@@ -235,43 +233,7 @@ public class CredentialServiceManager {
 		}
 	}
 
-	/**
-	 * Gets the partner ids.
-	 *
-	 * @return the partner ids
-	 */
-	@SuppressWarnings("unchecked")
-	private List<String> getPartnerIds() {
-		List<String> partners = Collections.emptyList();
-		try {
-			Map<String, Object> responseWrapperMap = restHelper
-					.requestSync(restBuilder.buildRequest(RestServicesConstants.PARTNER_SERVICE, null, Map.class));
-			Object response = responseWrapperMap.get(RESPONSE);
-			if (response instanceof Map) {
-				Object partnersObj = ((Map<String, ?>) response).get("partners");
-				if (partnersObj instanceof List) {
-					List<Map<String, Object>> partnersList = (List<Map<String, Object>>) partnersObj;
-					partners = partnersList.stream()
-							.filter(partner -> PARTNER_ACTIVE_STATUS.equalsIgnoreCase((String) partner.get("status")))
-							.map(partner -> (String) partner.get("partnerID"))
-							.filter(Predicate.not(dummyCheck::isDummyOLVPartner))
-							.collect(Collectors.toList());
-				}
-			}
-		} catch (RestServiceException | IdRepoDataValidationException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), GET_PARTNER_IDS,
-					e.getMessage());
-		}
-
-		mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), GET_PARTNER_IDS,
-				"PARTNERS_IDENTIFIED: " + partners.size());
-
-		if (partners.isEmpty()) {
-			return List.of(dummyCheck.getDummyOLVPartnerId());
-		} else {
-			return partners;
-		}
-	}
+	
 
 	/**
 	 * Send UIN event to IDA.
