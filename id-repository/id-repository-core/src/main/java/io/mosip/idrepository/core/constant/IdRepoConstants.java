@@ -130,6 +130,8 @@ public class IdRepoConstants {
 	public static final String IRIS_EXTRACTION_FORMAT = "irisExtractionFormat";
 
 	public static final String FINGER_EXTRACTION_FORMAT = "fingerExtractionFormat";
+	
+	public static final String CREDENTIAL_CRYPTO_REF_ID = "mosip.credential.request.crypto-ref-id";
 
 	
 	/** The value. */

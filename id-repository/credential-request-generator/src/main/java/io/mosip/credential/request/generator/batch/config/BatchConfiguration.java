@@ -36,6 +36,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
+
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import io.mosip.credential.request.generator.util.RestUtil;
@@ -76,9 +78,7 @@ public class BatchConfiguration {
 	/** The credential re process job. */
 	@Autowired
 	private Job credentialReProcessJob;
-
-
-
+	
 	/**
 	 * Process job.
 	 */
@@ -333,5 +333,10 @@ public class BatchConfiguration {
 
 		return "";
 
+	}
+	
+	@Bean
+	public AfterburnerModule afterburnerModule() {
+		return new AfterburnerModule();
 	}
 }

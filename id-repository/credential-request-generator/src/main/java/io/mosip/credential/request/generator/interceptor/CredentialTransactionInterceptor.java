@@ -3,9 +3,11 @@ package io.mosip.credential.request.generator.interceptor;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
+import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 
 import io.mosip.credential.request.generator.constants.ApiName;
@@ -14,9 +16,12 @@ import io.mosip.credential.request.generator.dto.CryptomanagerRequestDto;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorUncheckedException;
 import io.mosip.credential.request.generator.util.RestUtil;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.constant.IdRepoConstants;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 
 /**
@@ -28,11 +33,14 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 	private static final String REQUEST = "request";
 
 	private transient RestUtil restUtil;
+	
+	private transient Environment env;
 
 	private static final long serialVersionUID = 1L;
 
-	public CredentialTransactionInterceptor(RestUtil restUtil) {
+	public CredentialTransactionInterceptor(RestUtil restUtil, Environment env) {
 		this.restUtil = restUtil;
+		this.env = env;
 	}
 
 	@Override
@@ -44,15 +52,14 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 	@Override
 	public boolean onLoad(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
 		if (entity instanceof CredentialEntity) {
-			CredentialEntity credEntity = (CredentialEntity) entity;
-			String encryptedData = encryptDecryptData(ApiName.DECRYPTION, credEntity.getRequest());
-			credEntity.setRequest(encryptedData);
 			int indexOfData = Arrays.asList(propertyNames).indexOf(REQUEST);
-			state[indexOfData] = encryptedData;
+			String decryptedData = new String(CryptoUtil
+					.decodeURLSafeBase64(encryptDecryptData(ApiName.DECRYPTION, (String) state[indexOfData])));
+			state[indexOfData] = decryptedData;
 		}
 		return super.onLoad(entity, id, state, propertyNames, types);
 	}
-
+	
 	@Override
 	public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState,
 			String[] propertyNames, Type[] types) {
@@ -75,16 +82,24 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 		try {
 			RequestWrapper<CryptomanagerRequestDto> requestWrapper = new RequestWrapper<>();
 			CryptomanagerRequestDto cryptoRequest = new CryptomanagerRequestDto();
-			cryptoRequest.setApplicationId("ID_REPO");
+			cryptoRequest.setApplicationId(env.getProperty(IdRepoConstants.APPLICATION_ID));
 			cryptoRequest.setData(request);
-			cryptoRequest.setReferenceId("CREDENTIAL_REQUEST");
+			cryptoRequest.setReferenceId(env.getProperty(IdRepoConstants.CREDENTIAL_CRYPTO_REF_ID));
 			requestWrapper.setRequest(cryptoRequest);
 			cryptoRequest.setTimeStamp(DateUtils.getUTCCurrentDateTime());
 			requestWrapper.setRequest(cryptoRequest);
 			ResponseWrapper<Map<String, String>> restResponse = restUtil.postApi(api, null, null, null,
 					MediaType.APPLICATION_JSON_UTF8, requestWrapper, ResponseWrapper.class);
-			return restResponse.getResponse().get("data");
+			if (Objects.isNull(restResponse.getErrors()) || restResponse.getErrors().isEmpty()) {
+				return restResponse.getResponse().get("data");
+			} else {
+				IdRepoLogger.getLogger(CredentialTransactionInterceptor.class)
+						.error("KEYMANAGER ERROR RESPONSE -> " + restResponse);
+				throw new CredentialRequestGeneratorUncheckedException(
+						CredentialRequestErrorCodes.ENCRYPTION_DECRYPTION_FAILED);
+			}
 		} catch (Exception e) {
+			IdRepoLogger.getLogger(CredentialTransactionInterceptor.class).error(ExceptionUtils.getStackTrace(e));
 			throw new CredentialRequestGeneratorUncheckedException(
 					CredentialRequestErrorCodes.ENCRYPTION_DECRYPTION_FAILED, e);
 		}

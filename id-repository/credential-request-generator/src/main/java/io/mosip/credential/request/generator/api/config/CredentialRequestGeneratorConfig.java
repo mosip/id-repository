@@ -25,7 +25,7 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.servers.Server;
 
 @Configuration
-@EnableJpaRepositories(basePackageClasses = {
+@EnableJpaRepositories(entityManagerFactoryRef = "entityManagerFactory", basePackageClasses = {
 		CredentialRepositary.class }, basePackages = "io.mosip.credential.request.generator.repositary.*", repositoryBaseClass = HibernateRepositoryImpl.class)
 @EntityScan(basePackageClasses = { CredentialEntity.class })
 public class CredentialRequestGeneratorConfig extends HibernateDaoConfig {
@@ -42,7 +42,7 @@ public class CredentialRequestGeneratorConfig extends HibernateDaoConfig {
 	@Override
 	public Map<String, Object> jpaProperties() {
 		Map<String, Object> jpaProperties = super.jpaProperties();
-//		jpaProperties.put("hibernate.ejb.interceptor", new CredentialTransactionInterceptor(restUtil));
+		jpaProperties.put("hibernate.ejb.interceptor", new CredentialTransactionInterceptor(restUtil));
 		return jpaProperties;
 	}
 

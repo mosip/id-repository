@@ -11,6 +11,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
+
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.provider.impl.IdAuthProvider;
 import io.mosip.credentialstore.provider.impl.QrCodeProvider;
@@ -19,8 +21,6 @@ import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
-
-
 
 /**
  * The Class CredentialStoreConfig.
@@ -31,17 +31,17 @@ import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 @EnableRetry
 @PropertySource("classpath:bootstrap.properties")
 public class CredentialStoreBeanConfig {
-	
+
 	@Bean
 	public DummyPartnerCheckUtil dummyPartnerCheckUtil() {
 		return new DummyPartnerCheckUtil();
 	}
-	
+
 	@Bean
 	public IdRepoSecurityManager securityManager() {
 		return new IdRepoSecurityManager();
 	}
-	
+
 	/**
 	 * Gets the id auth provider.
 	 *
@@ -63,6 +63,7 @@ public class CredentialStoreBeanConfig {
 
 		return new CredentialProvider();
 	}
+
 	/**
 	 * Gets the qrCode provider.
 	 *
@@ -73,20 +74,18 @@ public class CredentialStoreBeanConfig {
 
 		return new QrCodeProvider();
 	}
-	
 
 	@Bean
 	public RestUtil getRestUtil() {
 		return new RestUtil();
 	}
 
-
 	@Bean
 	public AuditHelper getAuditHelper() {
 		return new AuditHelper();
-		
+
 	}
-	
+
 	@Bean
 	public RestHelper restHelper() {
 		return new RestHelper();
@@ -107,5 +106,10 @@ public class CredentialStoreBeanConfig {
 		VariableResolverFactory functionFactory = new MapVariableResolverFactory();
 		MVEL.eval(mvelExpression, functionFactory);
 		return functionFactory;
+	}
+
+	@Bean
+	public AfterburnerModule afterburnerModule() {
+		return new AfterburnerModule();
 	}
 }
