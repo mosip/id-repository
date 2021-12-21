@@ -57,6 +57,8 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.*;
 @Tag(name = "id-repo-controller", description = "Id Repo Controller")
 public class IdRepoController {
 
+	private static final String GET_UIN = "getUin";
+
 	private static final String ID_TYPE = "idType";
 
 	/** The Constant RETRIEVE_IDENTITY. */
@@ -154,7 +156,7 @@ public class IdRepoController {
 			validator.validateId(request.getId(), CREATE);
 			DataValidationUtil.validate(errors);
 			if (!validator.validateUin(uin)) {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "addIdentity", "Invalid uin");
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, "Invalid uin");
 				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
 			}
@@ -263,7 +265,7 @@ public class IdRepoController {
 			validator.validateId(request.getId(), UPDATE);
 			DataValidationUtil.validate(errors);
 			if (!validator.validateUin(uin)) {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "addIdentity", "Invalid uin");
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, "Invalid uin");
 				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
 			}
@@ -341,16 +343,17 @@ public class IdRepoController {
 	
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetauthtypesstatusindividualidtypeindividualid())")
 	@GetMapping(path = "/authtypes/status/{ID}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Authtype Status Request", description = "Authtype Status Request", tags = { "id-repo-controller" })
+	@Operation(summary = "Authtype Status Request", description = "Authtype Status Request", tags = {
+			"id-repo-controller" })
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "Request authenticated successfully",
-					content = @Content(array = @ArraySchema(schema = @Schema(implementation = IdRepoAppException.class)))),
-			@ApiResponse(responseCode = "400", description = "No Records Found" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
-	public ResponseEntity<AuthtypeResponseDto> getAuthTypeStatus(@PathVariable("ID") String individualId) throws IdRepoAppException {
-		return this.getAuthTypeStatus(individualId, getIdType(individualId).getIdType());
+			@ApiResponse(responseCode = "200", description = "Request authenticated successfully", content = @Content(array = @ArraySchema(schema = @Schema(implementation = IdRepoAppException.class)))),
+			@ApiResponse(responseCode = "400", description = "No Records Found", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
+	public ResponseEntity<AuthtypeResponseDto> fetchAuthTypeStatus(@PathVariable("ID") String individualId,
+			@RequestParam(name = ID_TYPE, required = false) @Nullable String idType) throws IdRepoAppException {
+		return this.getAuthTypeStatus(individualId, Objects.isNull(idType) ? getIdType(individualId).getIdType() : idType);
 	}
 
 	/**
@@ -378,16 +381,18 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<IdResponseDTO> updateAuthtypeStatus(
 			@RequestBody AuthTypeStatusRequestDto authTypeStatusRequest) throws IdRepoAppException {
-		boolean isIdTypeValid = false;
+		String individualId = authTypeStatusRequest.getIndividualId();
 		try {
+			authTypeStatusRequest.setIndividualIdType(Objects.nonNull(authTypeStatusRequest.getIndividualIdType())
+					? authTypeStatusRequest.getIndividualIdType()
+					: getIdType(individualId).getIdType());
 			IdType idType = validator.validateIdType(authTypeStatusRequest.getIndividualIdType());
-			isIdTypeValid = true;
-			validator.validateIdvId(authTypeStatusRequest.getIndividualId(), idType);
+			validator.validateIdvId(individualId, idType);
 			IdResponseDTO updateAuthtypeStatus = authTypeStatusService.updateAuthTypeStatus(
-					authTypeStatusRequest.getIndividualId(), idType, authTypeStatusRequest.getRequest());
+					individualId, idType, authTypeStatusRequest.getRequest());
 			String individualIdType = authTypeStatusRequest.getIndividualIdType();
 			auditHelper.audit(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
-					authTypeStatusRequest.getIndividualId(),
+					individualId,
 					individualIdType == null ? IdType.UIN : IdType.valueOf(individualIdType),
 					"auth type status update status : " + true);
 			return new ResponseEntity<>(updateAuthtypeStatus, HttpStatus.OK);
@@ -395,8 +400,8 @@ public class IdRepoController {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "updateAuthtypeStatus",
 					e.getMessage());
 			auditHelper.auditError(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
-					authTypeStatusRequest.getIndividualId(),
-					isIdTypeValid ? IdType.valueOf(authTypeStatusRequest.getIndividualIdType()) : IdType.UIN, e);
+					individualId,
+					IdType.valueOf(authTypeStatusRequest.getIndividualIdType()), e);
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		}
 	}
@@ -412,22 +417,22 @@ public class IdRepoController {
 	 */
 	private String getUin(Object request) throws IdRepoAppException {
 		if (Objects.isNull(request)) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "getUin", "request is null");
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, GET_UIN, "request is null");
 			throw new IdRepoAppException(MISSING_INPUT_PARAMETER.getErrorCode(),
 					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), "request"));
 		}
 		Object uin = null;
-		String pathOfUin = env.getProperty(MOSIP_KERNEL_IDREPO_JSON_PATH);
+		String pathOfUin = env.getProperty(MOSIP_KERNEL_IDREPO_JSON_PATH, "");
 		try {
 			String identity = mapper.writeValueAsString(request);
 			JsonPath jsonPath = JsonPath.compile(pathOfUin);
 			uin = jsonPath.read(identity);
 			return String.valueOf(uin);
 		} catch (JsonProcessingException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "getUin", e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, GET_UIN, e.getMessage());
 			throw new IdRepoAppException(INVALID_REQUEST, e);
 		} catch (JsonPathException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "getUin", e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, GET_UIN, e.getMessage());
 			throw new IdRepoAppException(MISSING_INPUT_PARAMETER.getErrorCode(),
 					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), pathOfUin.replace(".", "/")));
 		}
