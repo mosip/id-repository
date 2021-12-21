@@ -9,8 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
-
 import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
@@ -57,10 +55,5 @@ public class CredentialsFeederConfig extends IdRepoDataSourceConfig {
 	@Bean
 	public IdRepoSecurityManager securityManager(@Qualifier("selfTokenWebClient") WebClient webClient) {
 		return new IdRepoSecurityManager(restHelper(webClient));
-	}
-	
-	@Bean
-	public AfterburnerModule afterburnerModule() {
-	  return new AfterburnerModule();
 	}
 }

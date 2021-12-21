@@ -22,8 +22,6 @@ import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 
-
-
 /**
  * The Class CredentialStoreConfig.
  *
@@ -33,17 +31,17 @@ import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 @EnableRetry
 @PropertySource("classpath:bootstrap.properties")
 public class CredentialStoreBeanConfig {
-	
+
 	@Bean
 	public DummyPartnerCheckUtil dummyPartnerCheckUtil() {
 		return new DummyPartnerCheckUtil();
 	}
-	
+
 	@Bean
 	public IdRepoSecurityManager securityManager() {
 		return new IdRepoSecurityManager();
 	}
-	
+
 	/**
 	 * Gets the id auth provider.
 	 *
@@ -65,6 +63,7 @@ public class CredentialStoreBeanConfig {
 
 		return new CredentialProvider();
 	}
+
 	/**
 	 * Gets the qrCode provider.
 	 *
@@ -75,20 +74,18 @@ public class CredentialStoreBeanConfig {
 
 		return new QrCodeProvider();
 	}
-	
 
 	@Bean
 	public RestUtil getRestUtil() {
 		return new RestUtil();
 	}
 
-
 	@Bean
 	public AuditHelper getAuditHelper() {
 		return new AuditHelper();
-		
+
 	}
-	
+
 	@Bean
 	public RestHelper restHelper() {
 		return new RestHelper();
@@ -110,9 +107,9 @@ public class CredentialStoreBeanConfig {
 		MVEL.eval(mvelExpression, functionFactory);
 		return functionFactory;
 	}
-	
+
 	@Bean
 	public AfterburnerModule afterburnerModule() {
-	  return new AfterburnerModule();
+		return new AfterburnerModule();
 	}
 }
