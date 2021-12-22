@@ -165,10 +165,10 @@ public class VidRepoConfig {
 	public RestHelper restHelperWithAuth(@Qualifier("selfTokenWebClient") WebClient webClient) {
 		return new RestHelper(webClient);
 	}
-	
+
 	@Bean
 	public AfterburnerModule afterburnerModule() {
-	  return new AfterburnerModule();
+		return new AfterburnerModule();
 	}
 	
 }

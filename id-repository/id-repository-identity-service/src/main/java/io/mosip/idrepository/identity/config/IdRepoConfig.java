@@ -30,13 +30,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
-import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
-
 
 import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
@@ -280,10 +276,5 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 	@Bean
 	public IdRepoSecurityManager securityManagerWithAuth(@Qualifier("selfTokenWebClient") WebClient webClient) {
 		return new IdRepoSecurityManager(restHelperWithAuth(webClient));
-	}
-	
-	@Bean
-	public AfterburnerModule afterburnerModule() {
-	  return new AfterburnerModule();
 	}
 }

@@ -41,6 +41,26 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>2.12.0</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-annotations</artifactId>
+				<version>2.12.0</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-core</artifactId>
+				<version>2.12.0</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.datatype</groupId>
+				<artifactId>jackson-datatype-jsr310</artifactId>
+				<version>2.12.0</version>
+			</dependency>
+			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-config</artifactId>
 				<version>${spring-cloud-config.version}</version>
@@ -52,9 +72,9 @@
 				<scope>test</scope>
 			</dependency>
 			<dependency>
-			  <groupId>com.fasterxml.jackson.module</groupId>
-			  <artifactId>jackson-module-afterburner</artifactId>
-			  <version>2.12.0</version>
+				<groupId>com.fasterxml.jackson.module</groupId>
+				<artifactId>jackson-module-afterburner</artifactId>
+				<version>2.12.0</version>
 			</dependency>
 			<dependency>
 				<groupId>com.h2database</groupId>
@@ -186,16 +206,16 @@
 			<version>${kernel.websubclient.version}</version>
 		</dependency>
 		<dependency>
-          <groupId>org.springframework.batch</groupId>
-          <artifactId>spring-batch-integration</artifactId>
-           <version>${spring.batch.integration.version}</version>
-           <exclusions>
+			<groupId>org.springframework.batch</groupId>
+			<artifactId>spring-batch-integration</artifactId>
+			<version>${spring.batch.integration.version}</version>
+			<exclusions>
 				<exclusion>
 					<groupId>org.springframework</groupId>
 					<artifactId>spring-context</artifactId>
 				</exclusion>
 			</exclusions>
-      </dependency>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
