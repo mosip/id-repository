@@ -74,15 +74,15 @@ public class AnonymousProfileHelper {
 	
 	@PostConstruct
 	public void init() throws IOException {
-//		try (InputStream xsdBytes = new URL(env.getProperty("mosip.identity.mapping-file")).openStream()) {
-			IdentityMapping identityMapping = mapper.readValue(IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(env.getProperty("mosip.identity.mapping-file")), StandardCharsets.UTF_8),
+		try (InputStream xsdBytes = new URL(env.getProperty("mosip.identity.mapping-file")).openStream()) {
+			IdentityMapping identityMapping = mapper.readValue(IOUtils.toString(xsdBytes, StandardCharsets.UTF_8),
 					IdentityMapping.class);
 			IdentityIssuanceProfileBuilder.setIdentityMapping(identityMapping);
-//		}
+		}
 		IdentityIssuanceProfileBuilder.setDateFormat(env.getProperty("mosip.kernel.idobjectvalidator.date-format"));
 	}
 
-//	@Async
+	@Async
 	public void buildAndsaveProfile(boolean profilingEnabled) {
 		if (profilingEnabled)
 			try {
