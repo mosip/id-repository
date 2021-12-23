@@ -74,13 +74,11 @@ public class IdRepoWebSubHelperTest {
 				.doThrow(new WebSubClientException(WebSubClientErrorCode.AUTHENTTICATED_CONTENT_ERROR.getErrorCode(),
 						WebSubClientErrorCode.AUTHENTTICATED_CONTENT_ERROR.getErrorMessage()))
 				.when(publisherClient).registerTopic(Mockito.any(), Mockito.anyString());
-		;
 		idRepoWebSubHelper.tryRegisteringTopic("topic");
 		Set field = (Set) ReflectionTestUtils.getField(idRepoWebSubHelper, "registeredTopicCache");
 		assertEquals(0, field.size());
 
 		Mockito.lenient().doNothing().when(publisherClient).registerTopic(Mockito.any(), Mockito.anyString());
-		;
 		idRepoWebSubHelper.tryRegisteringTopic("topic");
 		assertEquals(1, field.size());
 	}
@@ -94,17 +92,13 @@ public class IdRepoWebSubHelperTest {
 
 		// Throw the error for the first time only to make sure if it is cached in
 		// second call
-		Mockito.lenient()
-				.doThrow(new WebSubClientException(WebSubClientErrorCode.AUTHENTTICATED_CONTENT_ERROR.getErrorCode(),
-						WebSubClientErrorCode.AUTHENTTICATED_CONTENT_ERROR.getErrorMessage()))
+		Mockito.lenient().doThrow(new RuntimeException())
 				.when(publisherClient).registerTopic(Mockito.any(), Mockito.anyString());
-		;
 		idRepoWebSubHelper.tryRegisteringTopic("topic");
 		Set field = (Set) ReflectionTestUtils.getField(idRepoWebSubHelper, "registeredTopicCache");
 		assertEquals(0, field.size());
 
 		Mockito.lenient().doNothing().when(publisherClient).registerTopic(Mockito.any(), Mockito.anyString());
-		;
 		idRepoWebSubHelper.tryRegisteringTopic("topic");
 		assertEquals(1, field.size());
 
