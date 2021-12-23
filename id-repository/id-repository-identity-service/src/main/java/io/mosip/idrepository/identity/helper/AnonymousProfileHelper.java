@@ -2,9 +2,8 @@ package io.mosip.idrepository.identity.helper;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 
@@ -14,7 +13,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -37,6 +36,7 @@ import io.mosip.kernel.core.util.UUIDUtils;
 
 @Component
 @Transactional
+@ConditionalOnProperty("mosip.idrepo.anonymous-profiling-enabled")
 public class AnonymousProfileHelper {
 	
 	Logger mosipLogger = IdRepoLogger.getLogger(AnonymousProfileHelper.class);
@@ -53,9 +53,6 @@ public class AnonymousProfileHelper {
 	@Autowired
 	private ChannelInfoHelper channelInfoHelper;
 
-	@Value("${mosip.identity.mapping-file}")
-	private String identityMappingJson;
-	
 	@Autowired
 	private Environment env;
 
@@ -75,23 +72,19 @@ public class AnonymousProfileHelper {
 	
 	private String newCbeffRefId;
 	
-	private boolean isDraft;
-
 	@PostConstruct
-	public void init() throws MalformedURLException, IOException {
-		try (InputStream xsdBytes = new URL(identityMappingJson).openStream()) {
-			IdentityMapping identityMapping = mapper.readValue(IOUtils.toString(xsdBytes, Charset.forName("UTF-8")),
+	public void init() throws IOException {
+//		try (InputStream xsdBytes = new URL(env.getProperty("mosip.identity.mapping-file")).openStream()) {
+			IdentityMapping identityMapping = mapper.readValue(IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream(env.getProperty("mosip.identity.mapping-file")), StandardCharsets.UTF_8),
 					IdentityMapping.class);
 			IdentityIssuanceProfileBuilder.setIdentityMapping(identityMapping);
-		}
-		IdentityIssuanceProfileBuilder
-				.setFilterLanguage(env.getProperty("mosip.mandatory-languages", "").split(",")[0]);
+//		}
 		IdentityIssuanceProfileBuilder.setDateFormat(env.getProperty("mosip.kernel.idobjectvalidator.date-format"));
 	}
 
-	@Async
-	public void buildAndsaveProfile() {
-		if (!isDraft)
+//	@Async
+	public void buildAndsaveProfile(boolean profilingEnabled) {
+		if (profilingEnabled)
 			try {
 				channelInfoHelper.updatePhoneChannelInfo(oldUinData, newUinData);
 				channelInfoHelper.updateEmailChannelInfo(oldUinData, newUinData);
@@ -99,18 +92,19 @@ public class AnonymousProfileHelper {
 				List<DocumentsDTO> newDocList = List.of(new DocumentsDTO());
 				if (Objects.isNull(oldCbeff) && Objects.nonNull(oldCbeffRefId))
 					this.oldCbeff = CryptoUtil
-							.encodeBase64(objectStoreHelper.getBiometricObject(uinHash, oldCbeffRefId));
+							.encodeToURLSafeBase64(objectStoreHelper.getBiometricObject(uinHash, oldCbeffRefId));
 				if (Objects.isNull(newCbeff) && Objects.nonNull(newCbeffRefId))
 					this.newCbeff = CryptoUtil
-							.encodeBase64(objectStoreHelper.getBiometricObject(uinHash, newCbeffRefId));
+							.encodeToURLSafeBase64(objectStoreHelper.getBiometricObject(uinHash, newCbeffRefId));
 				if (Objects.nonNull(oldCbeff))
 					oldDocList = List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
 							.getIdentity().getIndividualBiometrics().getValue(), oldCbeff));
 				if (Objects.nonNull(newCbeff))
 					newDocList = List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
 							.getIdentity().getIndividualBiometrics().getValue(), newCbeff));
-				String id = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, new String(regId)).toString();
+				String id = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, regId).toString();
 				IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
+						.setFilterLanguage(env.getProperty("mosip.mandatory-languages", "").split(",")[0])
 						.setProcessName(Objects.isNull(oldUinData) ? "New" : "Update").setOldIdentity(oldUinData)
 						.setOldDocuments(oldDocList).setNewIdentity(newUinData).setNewDocuments(newDocList).build();
 				AnonymousProfileEntity anonymousProfile = AnonymousProfileEntity.builder().id(id)
@@ -181,11 +175,10 @@ public class AnonymousProfileHelper {
 		this.newUinData = null;
 		this.oldCbeff = null;
 		this.newCbeff = null;
+		this.uinHash = null;
+		this.newCbeffRefId = null;
+		this.oldCbeffRefId = null;
 		this.regId = null;
 	}
 
-	public AnonymousProfileHelper setIsDraft(boolean isDraft) {
-		this.isDraft = isDraft;
-		return this;
-	}
 }
