@@ -15,6 +15,11 @@ import io.mosip.kernel.core.websub.spi.PublisherClient;
 import io.mosip.kernel.websub.api.constants.WebSubClientErrorCode;
 import io.mosip.kernel.websub.api.exception.WebSubClientException;
 
+/**
+ * 
+ * @author Loganathan S
+ *
+ */
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class IdRepoWebSubHelperTest {
