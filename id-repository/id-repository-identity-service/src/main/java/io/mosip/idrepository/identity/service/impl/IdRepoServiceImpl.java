@@ -19,9 +19,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
@@ -49,7 +49,6 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 
-import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
@@ -166,9 +165,14 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	@Autowired
 	private ObjectStoreHelper objectStoreHelper;
 	
-	@Autowired
+	@Autowired(required=false)
 	private AnonymousProfileHelper anonymousProfileHelper;
 
+	@PostConstruct
+	public void init() {
+		if (Objects.isNull(anonymousProfileHelper))
+			anonymousProfileHelper = new AnonymousProfileHelper();
+	}
 	/**
 	 * Adds the identity to DB.
 	 *
@@ -189,7 +193,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		String uinHash = modResult + SPLITTER + uinHashwithSalt;
 		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(modResult);
 		String uinToEncrypt = modResult + SPLITTER + uin + SPLITTER + encryptSalt;
-
+		anonymousProfileHelper
+			.setRegId(request.getRequest().getRegistrationId())
+			.setNewUinData(identityInfo);
 		List<UinDocument> docList = new ArrayList<>();
 		List<UinBiometric> bioList = new ArrayList<>();
 		Uin uinEntity;
@@ -220,18 +226,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				null, env.getProperty(ACTIVE_STATUS),
 				env.getProperty(MOSIP_PRIMARY_LANGUAGE), IdRepoSecurityManager.getUser(),
 				DateUtils.getUTCCurrentDateTime(), null, null, false, null));
-		anonymousProfileHelper.setRegId(request.getRequest().getRegistrationId())
-				.setNewCbeff(
-						Optional.ofNullable(request.getRequest().getDocuments()).stream().flatMap(list -> list.stream())
-								.filter(doc -> doc.getCategory()
-										.contentEquals(IdentityIssuanceProfileBuilder.getIdentityMapping().getIdentity()
-												.getIndividualBiometrics().getValue()))
-								.findFirst().orElse(new DocumentsDTO()).getValue())
-				.setNewCbeff(uinEntity.getUinHash().split("_")[1], !anonymousProfileHelper.isNewCbeffPresent()
-						&& uinEntity.getBiometrics() != null && !uinEntity.getBiometrics().isEmpty()
-								? uinEntity.getBiometrics().get(uinEntity.getBiometrics().size() - 1).getBioFileId()
-								: null)
-				.setNewUinData(identityInfo).buildAndsaveProfile();
+		anonymousProfileHelper
+				.buildAndsaveProfile(env.getProperty("mosip.idrepo.anonymous-profiling-enabled", Boolean.class, false));
 		return uinEntity;
 	}
 
@@ -254,6 +250,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			try {
 				if (bioAttributes.contains(doc.getCategory())) {
 					addBiometricDocuments(uinHash, uinRefId, bioList, doc, docType);
+					anonymousProfileHelper.setNewCbeff(doc.getValue());
 				} else {
 					addDemographicDocuments(uinHash, uinRefId, docList, doc, docType);
 				}
@@ -410,7 +407,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					env.getProperty(MOSIP_PRIMARY_LANGUAGE), IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), false, null));
-			anonymousProfileHelper.buildAndsaveProfile();
+			anonymousProfileHelper
+			.buildAndsaveProfile(env.getProperty("mosip.idrepo.anonymous-profiling-enabled", Boolean.class, false));
 			return uinObject;
 		} catch (JSONException | InvalidJsonException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, UPDATE_IDENTITY, e.getMessage());
