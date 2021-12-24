@@ -37,6 +37,7 @@ import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.TokenIDGenerator;
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.model.Event;
@@ -44,6 +45,7 @@ import io.mosip.kernel.core.websub.model.EventModel;
 import io.mosip.kernel.core.websub.model.Type;
 import io.mosip.kernel.core.websub.spi.PublisherClient;
 import io.mosip.kernel.core.websub.spi.SubscriptionClient;
+import io.mosip.kernel.websub.api.constants.WebSubClientErrorCode;
 import io.mosip.kernel.websub.api.exception.WebSubClientException;
 import io.mosip.kernel.websub.api.model.SubscriptionChangeRequest;
 import io.mosip.kernel.websub.api.model.SubscriptionChangeResponse;
@@ -114,8 +116,15 @@ public class IdRepoWebSubHelper {
 				try {
 					publisher.registerTopic(topic, publisherURL);
 					registeredTopicCache.add(topic);
-				} catch (WebSubClientException | IdRepoAppUncheckedException e) {
-					mosipLogger.warn(IdRepoSecurityManager.getUser(), "IdRepoConfig", "init", e.getMessage().toUpperCase());
+				} catch (WebSubClientException e) {
+					if(WebSubClientErrorCode.REGISTER_ERROR.getErrorCode().equals(e.getErrorCode())) {
+						// If topic is already registered this error is expected, then we will add the
+						// topic to cache
+						registeredTopicCache.add(topic);
+					}
+					mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "tryRegisteringTopic", e.getMessage().toUpperCase());
+				} catch (Exception e) {
+					mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "tryRegisteringTopic", ExceptionUtils.getStackTrace(e));
 				}
 			}
 		}
