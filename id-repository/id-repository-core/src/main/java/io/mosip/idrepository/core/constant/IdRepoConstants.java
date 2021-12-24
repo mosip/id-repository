@@ -166,9 +166,9 @@ public class IdRepoConstants {
 	
 	public static final int DEFAULT_SALT_KEY_LENGTH = 3;
 	
-	public static final String PARTNER_CACHE_UPDATE_INTERVAL = "mosip.partner.cache.update.interval.milli.seconds";
+	public static final String IDREPO_CACHE_UPDATE_INTERVAL = "mosip.idrepo.cache.update.interval.milli.seconds";
 	
-	public static final int PARTNER_CACHE_UPDATE_DEFAULT_INTERVAL = 7200000;
+	public static final int CACHE_UPDATE_DEFAULT_INTERVAL = 7200000;
   
 	public static final String ERRORS = "errors";
 
