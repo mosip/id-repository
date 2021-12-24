@@ -2,8 +2,10 @@ package io.mosip.idrepository.core.security;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_ID;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.CACHE_UPDATE_DEFAULT_INTERVAL;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DATETIME_PATTERN;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DEFAULT_SALT_KEY_LENGTH;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.IDREPO_CACHE_UPDATE_INTERVAL;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.PREPEND_THUMPRINT_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SALT_KEY_LENGTH;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED;
@@ -19,8 +21,12 @@ import java.util.function.ToIntFunction;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -36,11 +42,11 @@ import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
-import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.idrepository.core.util.SaltUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.HMACUtils2;
 import lombok.NoArgsConstructor;
@@ -101,6 +107,9 @@ public class IdRepoSecurityManager {
 	
 	@Autowired
 	private ApplicationContext ctx;
+	
+	@Autowired
+	private CacheManager cacheManager;
 	
 	public IdRepoSecurityManager(RestHelper restHelper) {
 		this.restHelper = restHelper;
@@ -313,6 +322,7 @@ public class IdRepoSecurityManager {
 		return getIdHashAndAttributesWithSaltModuloByPlainIdHash(uin, saltRetreivalFunction).get(ID_HASH);
 	}
 	
+	@Cacheable(cacheNames = "id_attributes")
 	public Map<String, String> getIdHashAndAttributes(String id, IntFunction<String> saltRetreivalFunction) {
 		return getIdHashAndAttributes(id, saltRetreivalFunction, this::getSaltKeyForId);
 	}
@@ -340,5 +350,12 @@ public class IdRepoSecurityManager {
 	public int getSaltKeyForHashOfId(String id) {
 		Integer saltKeyLength = env.getProperty(SALT_KEY_LENGTH, Integer.class, DEFAULT_SALT_KEY_LENGTH);
 		return SaltUtil.getIdvidHashModulo(id, saltKeyLength);
+	}
+	
+	@Scheduled(initialDelayString = "${" + IDREPO_CACHE_UPDATE_INTERVAL + ":" + CACHE_UPDATE_DEFAULT_INTERVAL + "}", fixedDelayString = "${" + IDREPO_CACHE_UPDATE_INTERVAL + ":" + CACHE_UPDATE_DEFAULT_INTERVAL + "}")
+	public void evictIdAttributeCacheAtInterval() {
+		Cache idAttrCache = cacheManager.getCache("id_attributes");
+		if (Objects.nonNull(idAttrCache))
+			idAttrCache.clear();
 	}
 }
