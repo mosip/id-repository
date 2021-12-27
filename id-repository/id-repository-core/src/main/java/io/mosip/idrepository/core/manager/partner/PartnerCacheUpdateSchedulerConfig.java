@@ -22,7 +22,7 @@ public class PartnerCacheUpdateSchedulerConfig {
 	/**
 	 * Clear partner data cache.
 	 */
-	@Scheduled(initialDelayString = "${" + PARTNER_CACHE_UPDATE_INTERVAL + ":" + PARTNER_CACHE_UPDATE_DEFAULT_INTERVAL + "}", fixedDelayString = "${" + PARTNER_CACHE_UPDATE_INTERVAL + ":" + PARTNER_CACHE_UPDATE_DEFAULT_INTERVAL + "}")
+	@Scheduled(initialDelayString = "${" + IDREPO_CACHE_UPDATE_INTERVAL + ":" + CACHE_UPDATE_DEFAULT_INTERVAL + "}", fixedDelayString = "${" + IDREPO_CACHE_UPDATE_INTERVAL + ":" + CACHE_UPDATE_DEFAULT_INTERVAL + "}")
 	public void clearPartnerDataCache() {
 		partnerServiceManager.clearOLVPartnersCache();
 	}

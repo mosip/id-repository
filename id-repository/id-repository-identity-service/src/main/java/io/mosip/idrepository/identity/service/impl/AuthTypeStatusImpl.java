@@ -176,8 +176,9 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	}
 
 	private IdResponseDTO doUpdateAuthTypeStatus(String individualId, List<AuthtypeStatus> authTypeStatusList) {
+		String uinHash = securityManager.hash(individualId.getBytes());
 		List<AuthtypeLock> entities = authTypeStatusList.stream()
-				.map(authtypeStatus -> this.putAuthTypeStatus(authtypeStatus, individualId)).collect(Collectors.toList());
+				.map(authtypeStatus -> this.putAuthTypeStatus(authtypeStatus, uinHash)).collect(Collectors.toList());
 		authLockRepository.saveAll(entities);
 
 		return buildResponse();
@@ -191,9 +192,9 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	 * @param reqTime        the req time
 	 * @return the authtype lock
 	 */
-	private AuthtypeLock putAuthTypeStatus(AuthtypeStatus authtypeStatus, String uin) {
+	private AuthtypeLock putAuthTypeStatus(AuthtypeStatus authtypeStatus, String uinHash) {
 		AuthtypeLock authtypeLock = new AuthtypeLock();
-		authtypeLock.setHashedUin(securityManager.hash(uin.getBytes()));
+		authtypeLock.setHashedUin(uinHash);
 		String authType = authtypeStatus.getAuthType();
 		if (authType.equalsIgnoreCase("bio")) {
 			authType = authType + "-" + authtypeStatus.getAuthSubType();
