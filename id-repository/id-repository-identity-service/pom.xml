@@ -142,4 +142,13 @@
 			</plugin>
 		</plugins>
 	</build>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.mosip.kernel</groupId>
+				<artifactId>kernel-biometrics-api</artifactId>
+				<version>1.1.5.3</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 </project>
