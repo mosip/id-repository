@@ -55,10 +55,6 @@ public class RestRequestBuilder {
 
 	/** The Constant METHOD_BUILD_REQUEST. */
 	private static final String METHOD_BUILD_REQUEST = "buildRequest";
-	
-//	private static final String REST_HEADERS = ".rest.headers";
-//	
-//	private static final String = ".rest.uri.queryparam."
 
 	/** The env. */
 	@Autowired
@@ -101,10 +97,9 @@ public class RestRequestBuilder {
 
 		String serviceName = restService.getServiceName();
 
-		String uri = (mapBuilder.containsKey(serviceName) && mapBuilder.get(serviceName).containsKey(REST_URI))?mapBuilder.get(serviceName).get(REST_URI):null;
-		String httpMethod = (mapBuilder.containsKey(serviceName) && mapBuilder.get(serviceName).containsKey(REST_HTTP_METHOD))?mapBuilder.get(serviceName).get(REST_HTTP_METHOD):null;
-		String timeout = (mapBuilder.containsKey(serviceName) && mapBuilder.get(serviceName).containsKey(REST_TIMEOUT))?mapBuilder.get(serviceName).get(REST_TIMEOUT):null;
-
+		String uri = getProperty(serviceName,REST_URI);
+		String httpMethod = getProperty(serviceName,REST_HTTP_METHOD);
+		String timeout = getProperty(serviceName,REST_TIMEOUT);
 		HttpHeaders headers = constructHttpHeaders(serviceName);
 
 		checkUri(request, uri);
@@ -156,15 +151,15 @@ public class RestRequestBuilder {
 	private HttpHeaders constructHttpHeaders(String serviceName) throws IdRepoDataValidationException {
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.valueOf((mapBuilder.containsKey(serviceName) && mapBuilder.get(serviceName).containsKey(REST_HEADERS_MEDIA_TYPE))?mapBuilder.get(serviceName).get(REST_HEADERS_MEDIA_TYPE):null));
+			headers.setContentType(MediaType.valueOf(getProperty(serviceName,REST_HEADERS_MEDIA_TYPE)));
 			return headers;
 		} catch (InvalidMediaTypeException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), METHOD_BUILD_REQUEST, "returnType",
 					"throwing IDDataValidationException - INVALID_INPUT_PARAMETER"
-							+ mapBuilder.get(serviceName).get(REST_HEADERS_MEDIA_TYPE));
+							+ getProperty(serviceName,REST_HEADERS_MEDIA_TYPE));
 			throw new IdRepoDataValidationException(INVALID_INPUT_PARAMETER.getErrorCode(),
 					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(),
-							mapBuilder.get(serviceName).get(REST_HEADERS_MEDIA_TYPE)));
+							getProperty(serviceName,REST_HEADERS_MEDIA_TYPE)));
 		}
 	}
 
@@ -253,6 +248,20 @@ public class RestRequestBuilder {
 			throw new IdRepoDataValidationException(INVALID_INPUT_PARAMETER.getErrorCode(),
 					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "uri"));
 		}
+	}
+	
+	/**
+	 * Get Rest properties.
+	 *
+	 * @param serviceName the service name
+	 * @param property the rest property name
+	 * @return the rest property
+	 */
+	private String getProperty(String serviceName, String property){
+		if(mapBuilder.containsKey(serviceName) && mapBuilder.get(serviceName).containsKey(property)){
+			return mapBuilder.get(serviceName).get(property);
+		}
+		return null;
 	}
 
 }
