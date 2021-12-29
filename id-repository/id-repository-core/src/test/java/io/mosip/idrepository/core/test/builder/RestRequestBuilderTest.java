@@ -213,14 +213,11 @@ public class RestRequestBuilderTest {
 		mapBuilder.get("mosip.idrepo.audit").put(".rest.timeout", "");
 		ReflectionTestUtils.setField(restBuilder, "mapBuilder", mapBuilder);
 		ReflectionTestUtils.setField(restBuilder, "env", environment);
-		try {
-			restBuilder.buildRequest(RestServicesConstants.AUDIT_MANAGER_SERVICE, auditBuilder
-					.buildRequest(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",IdType.ID, "desc"),
-					AuditResponseDTO.class);
-		}
-		catch(Exception e) {
-				e.printStackTrace();
-		}
+		
+		restBuilder.buildRequest(RestServicesConstants.AUDIT_MANAGER_SERVICE, auditBuilder
+				.buildRequest(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",IdType.ID, "desc"),
+				AuditResponseDTO.class);
+		
 	}
 
 	@Test
