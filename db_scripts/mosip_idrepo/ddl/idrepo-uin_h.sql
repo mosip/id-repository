@@ -39,6 +39,9 @@ CREATE TABLE idrepo.uin_h(
 
 );
 -- ddl-end --
+--index creation starts--
+CREATE INDEX IF NOT EXISTS idx_uin_h_reg_id ON idrepo.uin_h USING btree (reg_id);
+-- index creation ends--
 COMMENT ON TABLE idrepo.uin_h IS 'UIN History : This to track changes to base table record whenever there is an INSERT/UPDATE/DELETE ( soft delete ), Effective DateTimestamp is used for identifying latest or point in time information. Refer base table description for details.   ';
 -- ddl-end --
 COMMENT ON COLUMN idrepo.uin_h.uin_ref_id IS 'UIN Reference ID: System generated id mapped to a UIN used for references in the system. UIN reference ID is also used as folder/bucket in DFS (HDFS/CEPH) to store documents and biometric CBEFF file.';
