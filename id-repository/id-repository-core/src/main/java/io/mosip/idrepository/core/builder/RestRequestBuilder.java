@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.Environment;
@@ -53,11 +55,32 @@ public class RestRequestBuilder {
 
 	/** The Constant METHOD_BUILD_REQUEST. */
 	private static final String METHOD_BUILD_REQUEST = "buildRequest";
+	
+//	private static final String REST_HEADERS = ".rest.headers";
+//	
+//	private static final String = ".rest.uri.queryparam."
 
 	/** The env. */
 	@Autowired
 	private Environment env;
 
+	private static HashMap<String, HashMap<String, String>> mapBuilder = new HashMap<>();
+
+	@PostConstruct
+	private void init() {
+	
+		for(RestServicesConstants service : RestServicesConstants.values()) {	
+			String serviceName = service.getServiceName();
+			if(!mapBuilder.containsKey(serviceName)) {
+				HashMap<String,String> propertiesMap = new HashMap<String,String>();
+				propertiesMap.put(REST_TIMEOUT, env.getProperty(serviceName.concat(REST_TIMEOUT)));
+				propertiesMap.put(REST_HTTP_METHOD, env.getProperty(serviceName.concat(REST_HTTP_METHOD)));
+				propertiesMap.put(REST_URI, env.getProperty(serviceName.concat(REST_URI)));
+				propertiesMap.put(REST_HEADERS_MEDIA_TYPE, env.getProperty(serviceName.concat(REST_HEADERS_MEDIA_TYPE)));
+				mapBuilder.put(serviceName, propertiesMap);
+			}
+		}
+	}
 	/** The logger. */
 	private static Logger mosipLogger = IdRepoLogger.getLogger(RestRequestBuilder.class);
 
@@ -78,9 +101,9 @@ public class RestRequestBuilder {
 
 		String serviceName = restService.getServiceName();
 
-		String uri = env.getProperty(serviceName.concat(REST_URI));
-		String httpMethod = env.getProperty(serviceName.concat(REST_HTTP_METHOD));
-		String timeout = env.getProperty(serviceName.concat(REST_TIMEOUT));
+		String uri = (mapBuilder.containsKey(serviceName) && mapBuilder.get(serviceName).containsKey(REST_URI))?mapBuilder.get(serviceName).get(REST_URI):null;
+		String httpMethod = (mapBuilder.containsKey(serviceName) && mapBuilder.get(serviceName).containsKey(REST_HTTP_METHOD))?mapBuilder.get(serviceName).get(REST_HTTP_METHOD):null;
+		String timeout = (mapBuilder.containsKey(serviceName) && mapBuilder.get(serviceName).containsKey(REST_TIMEOUT))?mapBuilder.get(serviceName).get(REST_TIMEOUT):null;
 
 		HttpHeaders headers = constructHttpHeaders(serviceName);
 
@@ -133,15 +156,15 @@ public class RestRequestBuilder {
 	private HttpHeaders constructHttpHeaders(String serviceName) throws IdRepoDataValidationException {
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.valueOf(env.getProperty(serviceName.concat(REST_HEADERS_MEDIA_TYPE))));
+			headers.setContentType(MediaType.valueOf((mapBuilder.containsKey(serviceName) && mapBuilder.get(serviceName).containsKey(REST_HEADERS_MEDIA_TYPE))?mapBuilder.get(serviceName).get(REST_HEADERS_MEDIA_TYPE):null));
 			return headers;
 		} catch (InvalidMediaTypeException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), METHOD_BUILD_REQUEST, "returnType",
 					"throwing IDDataValidationException - INVALID_INPUT_PARAMETER"
-							+ env.getProperty(serviceName.concat(REST_HEADERS_MEDIA_TYPE)));
+							+ mapBuilder.get(serviceName).get(REST_HEADERS_MEDIA_TYPE));
 			throw new IdRepoDataValidationException(INVALID_INPUT_PARAMETER.getErrorCode(),
 					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(),
-							serviceName.concat(REST_HEADERS_MEDIA_TYPE)));
+							mapBuilder.get(serviceName).get(REST_HEADERS_MEDIA_TYPE)));
 		}
 	}
 

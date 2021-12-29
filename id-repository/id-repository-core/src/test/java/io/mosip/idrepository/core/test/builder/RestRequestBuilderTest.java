@@ -1,5 +1,9 @@
 package io.mosip.idrepository.core.test.builder;
 
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -57,11 +61,22 @@ public class RestRequestBuilderTest {
 
 	@InjectMocks
 	AuditRequestBuilder auditBuilder;
-
+	
+	HashMap<String,HashMap<String,String>> mapBuilder = new HashMap<>();
+	
 	@Before
 	public void before() {
 		ReflectionTestUtils.setField(auditBuilder, "env", env);
 		ReflectionTestUtils.setField(restBuilder, "env", env);
+		ReflectionTestUtils.invokeMethod(restBuilder, "init", null );
+		String serviceName = RestServicesConstants.AUDIT_MANAGER_SERVICE.getServiceName();
+		HashMap<String, String> map = new HashMap<>();
+		map.put(".rest.uri",env.getProperty(serviceName.concat(".rest.uri")));
+		map.put(".rest.headers.mediaType", env.getProperty(serviceName.concat(".rest.headers.mediaType")));
+		map.put(".rest.httpMethod",env.getProperty(serviceName.concat(".rest.httpMethod")));
+		map.put(".rest.timeout",env.getProperty(serviceName.concat(".rest.timeout")));
+		mapBuilder.put("mosip.idrepo.audit", map);
+		ReflectionTestUtils.setField(restBuilder, "mapBuilder", mapBuilder);
 	}
 
 	@Test
@@ -101,6 +116,8 @@ public class RestRequestBuilderTest {
 		environment.setProperty("mosip.idrepo.audit.rest.headers.mediaType", "multipart/form-data");
 		environment.setProperty("mosip.idrepo.audit.rest.uri.queryparam.test", "yes");
 		environment.setProperty("mosip.idrepo.audit.rest.uri.pathparam.test", "yes");
+		mapBuilder.get("mosip.idrepo.audit").put(".rest.headers.mediaType","multipart/form-data");
+		ReflectionTestUtils.setField(restBuilder, "mapBuilder", mapBuilder);
 
 		ReflectionTestUtils.setField(restBuilder, "env", environment);
 		RequestWrapper<AuditRequestDTO> auditRequest = auditBuilder.buildRequest(AuditModules.ID_REPO_CORE_SERVICE,
@@ -118,7 +135,8 @@ public class RestRequestBuilderTest {
 		MockEnvironment environment = new MockEnvironment();
 		environment.merge(env);
 		environment.setProperty("mosip.idrepo.audit.rest.uri", "");
-
+		mapBuilder.get("mosip.idrepo.audit").put(".rest.uri","");
+		ReflectionTestUtils.setField(restBuilder, "mapBuilder", mapBuilder);
 		ReflectionTestUtils.setField(restBuilder, "env", environment);
 
 		restBuilder.buildRequest(RestServicesConstants.AUDIT_MANAGER_SERVICE, auditBuilder
@@ -133,6 +151,15 @@ public class RestRequestBuilderTest {
 		MockEnvironment environment = new MockEnvironment();
 
 		ReflectionTestUtils.setField(restBuilder, "env", environment);
+		HashMap<String, String> map = new HashMap<>();
+		map.put(".rest.uri","");
+		map.put(".rest.headers.mediaType","");
+		map.put(".rest.httpMethod","");
+		map.put(".rest.timeout","");
+		map.put("buildRequest","");
+		mapBuilder.put("mosip.idrepo.audit", map);
+		ReflectionTestUtils.setField(restBuilder, "mapBuilder", mapBuilder);
+		
 
 		restBuilder.buildRequest(RestServicesConstants.AUDIT_MANAGER_SERVICE, auditBuilder
 				.buildRequest(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id", IdType.ID,"desc"),
@@ -145,6 +172,9 @@ public class RestRequestBuilderTest {
 		MockEnvironment environment = new MockEnvironment();
 		environment.merge(env);
 		environment.setProperty("mosip.idrepo.audit.rest.httpMethod", "");
+
+		mapBuilder.get("mosip.idrepo.audit").put(".rest.httpMethod", "");
+		ReflectionTestUtils.setField(restBuilder, "mapBuilder", mapBuilder);
 
 		ReflectionTestUtils.setField(restBuilder, "env", environment);
 
@@ -167,7 +197,8 @@ public class RestRequestBuilderTest {
 		environment.setProperty("mosip.idrepo.audit.rest.headers.mediaType", "multipart/form-data");
 		environment.setProperty("mosip.idrepo.audit.rest.uri.queryparam.test", "yes");
 		environment.setProperty("mosip.idrepo.audit.rest.uri.pathparam.test", "yes");
-
+		mapBuilder.get("mosip.idrepo.audit").put(".rest.headers.mediaType", "multipart/form-data");
+		ReflectionTestUtils.setField(restBuilder, "mapBuilder", mapBuilder);
 		ReflectionTestUtils.setField(restBuilder, "env", environment);
 		restBuilder.buildRequest(RestServicesConstants.AUDIT_MANAGER_SERVICE, new LinkedMultiValueMap<String, String>(),
 				Object.class);
@@ -179,12 +210,17 @@ public class RestRequestBuilderTest {
 		MockEnvironment environment = new MockEnvironment();
 		environment.merge(env);
 		environment.setProperty("mosip.idrepo.audit.rest.timeout", "");
-
+		mapBuilder.get("mosip.idrepo.audit").put(".rest.timeout", "");
+		ReflectionTestUtils.setField(restBuilder, "mapBuilder", mapBuilder);
 		ReflectionTestUtils.setField(restBuilder, "env", environment);
-
-		restBuilder.buildRequest(RestServicesConstants.AUDIT_MANAGER_SERVICE, auditBuilder
-				.buildRequest(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",IdType.ID, "desc"),
-				AuditResponseDTO.class);
+		try {
+			restBuilder.buildRequest(RestServicesConstants.AUDIT_MANAGER_SERVICE, auditBuilder
+					.buildRequest(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",IdType.ID, "desc"),
+					AuditResponseDTO.class);
+		}
+		catch(Exception e) {
+				e.printStackTrace();
+		}
 	}
 
 	@Test
