@@ -131,7 +131,6 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 		List<String> partnerIds = getPartnerIds();
 		partnerIds.forEach(partnerId -> {
 			String topic = partnerId + "/" + IDAEventType.AUTH_TYPE_STATUS_UPDATE.name();
-			webSubHelper.tryRegisteringTopic(topic);
 			webSubHelper.publishAuthTypeStatusUpdateEvent(uin, authTypeStatusList, topic, partnerId);
 		});
 
