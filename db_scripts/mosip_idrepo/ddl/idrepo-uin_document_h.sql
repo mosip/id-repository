@@ -1,17 +1,3 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_repo
--- Table Name 	: idrepo.uin_document_h
--- Purpose    	: UIN Document History : This to track changes to base table record whenever there is an INSERT/UPDATE/DELETE ( soft delete ), Effective DateTimestamp is used for identifying latest or point in time information. Refer base table description for details.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes
--- Jul-2021		Ram Bhatt	    Lang Code is nullable
--- ------------------------------------------------------------------------------------------
 
 -- object: idrepo.uin_document_h | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.uin_document_h CASCADE;

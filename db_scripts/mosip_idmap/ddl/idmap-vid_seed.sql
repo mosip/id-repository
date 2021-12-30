@@ -1,16 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_idmap
--- Table Name 	: idmap.vid_seed
--- Purpose    	: Virtual ID Seed: Stores a random number that will be used as seed in the algorithm to generate a vid. This seed value is encrypted/hashed and used along with a counter in the algorithm to generate a unique random number. Only one seed value would be available for the generation of vid and this will never change.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes
--- ------------------------------------------------------------------------------------------
+
 
 -- object: idmap.vid_seed | type: TABLE --
 -- DROP TABLE IF EXISTS idmap.vid_seed CASCADE;

@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_idrepo
--- Table Name 	: idrepo.uin_biometric_draft
--- Purpose    	: UIN Biometric Draft: 
---           
--- Create By   	: Ram Bhatt
--- Created Date	: Jul-2021
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
+
 
 -- object: idrepo.uin_biometric_draft | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.uin_biometric_draft CASCADE;

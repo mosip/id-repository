@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_repo
--- Table Name 	: idrepo.credential_request_status
--- Purpose    	: Credential Request Status: 
---           
--- Create By   	: Ram Bhatt
--- Created Date	: May-2021
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
+
 
 -- object: idrepo.credential_request_status | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.credential_request_status CASCADE;

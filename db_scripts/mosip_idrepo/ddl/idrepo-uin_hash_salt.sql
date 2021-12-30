@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_repo
--- Table Name 	: idrepo.uin_hash_salt
--- Purpose    	: UIN Hash Salt: Stores the salt used to hash uin of an individual in the hashing algorithm.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
+
 
 -- object: idrepo.uin_hash_salt | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.uin_hash_salt CASCADE;

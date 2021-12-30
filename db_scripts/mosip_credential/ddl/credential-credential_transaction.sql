@@ -1,17 +1,3 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_credential
--- Table Name 	: credential.credential_transaction
--- Purpose    	: Credential: The credential share is a functional service that interacts with the ID Repository and collects the user attributes for printing.
---           
--- Create By   	: Sadanandegowda DM
--- Created Date	: Aug-2020
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes
--- Apr-2021		Ram Bhatt	    status_comment added
--- ------------------------------------------------------------------------------------------
 -- object: credential.credential_transaction | type: TABLE --
 -- DROP TABLE IF EXISTS credential.credential_transaction CASCADE;
 CREATE TABLE credential.credential_transaction(

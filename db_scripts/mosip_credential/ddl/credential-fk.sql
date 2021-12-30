@@ -1,15 +1,3 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_credential
--- Table Name : credential Table relations
--- Purpose    : All the FKs are created separately, not part of create table scripts to ease the deployment process
---           
--- Create By   : Sadanandegowda DM
--- Created Date: Aug-2020
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
 
 
 -- object: STEP_EXEC_CTX_FK | type: CONSTRAINT --

@@ -1,16 +1,3 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_idmap
--- Table Name 	: idmap.vid
--- Purpose    	: VID: To store generated list of Virtual IDs mapped to a UIN that can be used for Authentication. UIN of an individual should be secure, not to be disclosed publicly, so as part of security, VIDs are introduced. VIDs are timebound, can be changed, etc.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes
--- ------------------------------------------------------------------------------------------
 
 -- object: idmap.vid | type: TABLE --
 -- DROP TABLE IF EXISTS idmap.vid CASCADE;

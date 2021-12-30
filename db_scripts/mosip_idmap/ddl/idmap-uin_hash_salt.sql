@@ -1,15 +1,3 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_idmap
--- Table Name 	: idmap.uin_hash_salt
--- Purpose    	: UIN Hash Salt: Stores the salt used to hash uin of an individual in the hashing algorithm.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- 
--- ------------------------------------------------------------------------------------------
 
 -- object: idmap.uin_hash_salt | type: TABLE --
 -- DROP TABLE IF EXISTS idmap.uin_hash_salt CASCADE;

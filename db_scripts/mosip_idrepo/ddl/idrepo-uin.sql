@@ -1,19 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_repo
--- Table Name 	: idrepo.uin
--- Purpose    	: UIN: Information related to an individual (demographic, biometric, and uploaded documents) are stored. The information is stored in JSON format. A hash value of the JSON file is also maintained as a separate column as an added security to prevent data tampering.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false 
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes
--- Jul-2021		Ram Bhatt	    Lang Code is nullable
--- Jul-2021		Manoj SP	    Addition of Anonymous Profile column
--- Sep-2021		Manoj SP	    Removed Anonymous Profile column
--- ------------------------------------------------------------------------------------------
+
 
 -- object: idrepo.uin | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.uin CASCADE;

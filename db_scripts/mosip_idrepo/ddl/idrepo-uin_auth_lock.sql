@@ -1,18 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_idrepo
--- Table Name   : idrepo.uin_auth_lock
--- Purpose      : UIN Authentication Lock: An individual is provided an option to lock or unlock any of the authentication types that are provided by the system. When an individual locks a particular type of authentication, any requests received by the system will be rejected. The details of the locked authentication types are stored in this table.
---           
--- Create By    : adanandegowda DM
--- Created Date : Sep-2020
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes
--- May-2021		Ram Bhatt	    Added unlock_expiry_datetime column
--- Jul-2021		Ram Bhatt	    Lang Code is nullable
--- ------------------------------------------------------------------------------------------
+
 -- object: idrepo.uin_auth_lock | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.uin_auth_lock CASCADE;
 CREATE TABLE idrepo.uin_auth_lock(

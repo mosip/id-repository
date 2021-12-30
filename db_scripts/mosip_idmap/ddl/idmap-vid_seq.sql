@@ -1,16 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_idmap
--- Table Name 	: idmap.vid_seq
--- Purpose    	: Virtual ID Sequence: Stores sequence numbers that are used in the algorithm to generate vid. Stores a incremental sequence number that will be used as salt in the algorithm to generate a vid. This salt value is encrypted/hashed and used along with a seed number in the algorithm to generate a unique random number.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false 
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes
--- ------------------------------------------------------------------------------------------
+
 
 -- object: idmap.vid_seq | type: TABLE --
 -- DROP TABLE IF EXISTS idmap.vid_seq CASCADE;

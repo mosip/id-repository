@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_idrepo
--- Table Name 	: idrepo.channel_info
--- Purpose    	: channel_info: Channel information for reporting purpose.
---           
--- Create By   	: Manoj SP
--- Created Date	: 10-Sep-2021
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- Sep-2021             Manoj SP            Created channel_info table 
--- ------------------------------------------------------------------------------------------
+
 
 -- object: idrepo.channel_info | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.channel_info CASCADE;

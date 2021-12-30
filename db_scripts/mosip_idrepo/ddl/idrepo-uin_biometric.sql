@@ -1,26 +1,5 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_repo
--- Table Name 	: idrepo.uin_biometric
--- Purpose    	: UIN Biometric: This table stores biometric information of an individual. The biometric information is captured in CBEFF file format. The CBEFF file is stored in separate storage like HDFS/CEPH store, only the reference to the file is maintained in this table. Along with the reference, a hash value of the biometric file is also maintained as an added security measure to prevent data tampering.
---           
--- Create By   	: Nasir Khan / Sadanandegowda
--- Created Date	: 15-Jul-2019
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
--- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes
--- Jul-2021		Ram Bhatt	    Lang Code is nullable
--- ------------------------------------------------------------------------------------------
 
--- NOTE: the code below contains the SQL for the selected object
--- as well for its dependencies and children (if applicable).
--- 
--- This feature is only a convinience in order to permit you to test
--- the whole object's SQL definition at once.
--- 
--- When exporting or generating the SQL for the whole database model
--- all objects will be placed at their original positions.
+
 
 
 -- object: idrepo.uin_biometric | type: TABLE --

@@ -1,15 +1,4 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_idrepo
--- Table Name 	: idrepo.anonymous_profile
--- Purpose    	: anonymous_profile: Anonymous profiling information for reporting purpose.
---           
--- Create By   	: Manoj SP
--- Created Date	: 10-Sep-2021
--- 
--- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- Sep-2021				Manoj SP	    Created anonymous_profile table 
--- ------------------------------------------------------------------------------------------
+
 
 -- object: idrepo.anonymous_profile | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.anonymous_profile CASCADE;
