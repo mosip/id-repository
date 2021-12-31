@@ -2,6 +2,7 @@ package io.mosip.idrepository.core.builder;
 
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,6 +10,7 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
@@ -40,7 +42,9 @@ import lombok.NoArgsConstructor;
 @Component
 @NoArgsConstructor
 public class RestRequestBuilder {
-
+	
+	
+	
 	/** The Constant REST_TIMEOUT. */
 	private static final String REST_TIMEOUT = ".rest.timeout";
 
@@ -60,13 +64,18 @@ public class RestRequestBuilder {
 	@Autowired
 	private Environment env;
 
+	private ArrayList<String> serviceNames;
+
 	private static HashMap<String, HashMap<String, String>> mapBuilder = new HashMap<>();
 
+	public RestRequestBuilder(ArrayList<String> serviceNames) {
+		this.serviceNames = serviceNames;
+	}
+	
 	@PostConstruct
 	private void init() {
 	
-		for(RestServicesConstants service : RestServicesConstants.values()) {	
-			String serviceName = service.getServiceName();
+		for(String serviceName : serviceNames) {	
 			if(!mapBuilder.containsKey(serviceName)) {
 				HashMap<String,String> propertiesMap = new HashMap<String,String>();
 				propertiesMap.put(REST_TIMEOUT, env.getProperty(serviceName.concat(REST_TIMEOUT)));
@@ -77,6 +86,9 @@ public class RestRequestBuilder {
 			}
 		}
 	}
+	
+
+	
 	/** The logger. */
 	private static Logger mosipLogger = IdRepoLogger.getLogger(RestRequestBuilder.class);
 
@@ -264,4 +276,8 @@ public class RestRequestBuilder {
 		return null;
 	}
 
+
+	
+
+	
 }
