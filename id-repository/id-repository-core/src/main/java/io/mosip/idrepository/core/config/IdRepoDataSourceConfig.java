@@ -1,18 +1,20 @@
 package io.mosip.idrepository.core.config;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
 import org.hibernate.Interceptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -33,7 +35,6 @@ import io.mosip.idrepository.core.entity.UinHashSalt;
 import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
-import io.mosip.idrepository.core.util.EnvUtil;
 
 @EnableAsync
 @EnableJpaRepositories(basePackageClasses = { UinHashSaltRepo.class, UinEncryptSaltRepo.class,
@@ -43,9 +44,9 @@ public class IdRepoDataSourceConfig {
 
 	@Autowired(required = false)
 	private Interceptor interceptor;
-	
+
 	@Autowired
-	private EnvUtil env;
+	private Environment env;
 
 	/**
 	 * Entity manager factory.
@@ -120,7 +121,7 @@ public class IdRepoDataSourceConfig {
 	public DataSource dataSource() {
 //		If sharding is enabled, need to uncomment
 //		return buildDataSource(db.get("shard"));
-		
+
 //		If sharding is enabled, need to comment below code
 		Map<String, String> dbValues = new HashMap<>();
 		dbValues.put("url", env.getProperty("mosip.idrepo.identity.db.url"));
@@ -135,11 +136,16 @@ public class IdRepoDataSourceConfig {
 		return new AfterburnerModule();
 	}
 	
-	@Bean
-	public RestRequestBuilder getRestRequestBuilder() {
-		return new RestRequestBuilder(Arrays.stream(RestServicesConstants.values())
-				.map(RestServicesConstants::getServiceName).collect(Collectors.toList()));
+	private ArrayList<String> serviceNames() {
+		ArrayList<String> list = new ArrayList<String>();
+		for(RestServicesConstants service : RestServicesConstants.values()) {
+			list.add(service.getServiceName());
+		}
+		return list;
 	}
 	
-	
+	@Bean
+	public RestRequestBuilder getRestRequestBuilder() {
+		return new RestRequestBuilder(serviceNames());
+	}
 }
