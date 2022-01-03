@@ -1,5 +1,6 @@
 package io.mosip.idrepository.core.config;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -7,10 +8,13 @@ import javax.sql.DataSource;
 
 import org.hibernate.Interceptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -23,13 +27,14 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 
+import io.mosip.idrepository.core.builder.RestRequestBuilder;
+import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.entity.UinEncryptSalt;
 import io.mosip.idrepository.core.entity.UinHashSalt;
 import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
-import io.mosip.idrepository.core.util.EnvUtil;
 
 @EnableAsync
 @EnableJpaRepositories(basePackageClasses = { UinHashSaltRepo.class, UinEncryptSaltRepo.class,
@@ -39,6 +44,9 @@ public class IdRepoDataSourceConfig {
 
 	@Autowired(required = false)
 	private Interceptor interceptor;
+
+	@Autowired
+	private Environment env;
 
 	/**
 	 * Entity manager factory.
@@ -116,15 +124,28 @@ public class IdRepoDataSourceConfig {
 
 //		If sharding is enabled, need to comment below code
 		Map<String, String> dbValues = new HashMap<>();
-		dbValues.put("url", EnvUtil.getIdrepoDBUrl());
-		dbValues.put("username", EnvUtil.getIdrepoDBUsername());
-		dbValues.put("password", EnvUtil.getIdrepoDBPassword());
-		dbValues.put("driverClassName", EnvUtil.getIdrepoDBDriverClassName());
+		dbValues.put("url", env.getProperty("mosip.idrepo.identity.db.url"));
+		dbValues.put("username", env.getProperty("mosip.idrepo.identity.db.username"));
+		dbValues.put("password", env.getProperty("mosip.idrepo.identity.db.password"));
+		dbValues.put("driverClassName", env.getProperty("mosip.idrepo.identity.db.driverClassName"));
 		return buildDataSource(dbValues);
 	}
 	
 	@Bean
 	public AfterburnerModule afterburnerModule() {
 		return new AfterburnerModule();
+	}
+	
+	private ArrayList<String> serviceNames() {
+		ArrayList<String> list = new ArrayList<String>();
+		for(RestServicesConstants service : RestServicesConstants.values()) {
+			list.add(service.getServiceName());
+		}
+		return list;
+	}
+	
+	@Bean
+	public RestRequestBuilder getRestRequestBuilder() {
+		return new RestRequestBuilder(serviceNames());
 	}
 }

@@ -2,12 +2,19 @@ package io.mosip.idrepository.core.builder;
 
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.PropertySource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.InvalidMediaTypeException;
@@ -21,7 +28,6 @@ import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
 import lombok.NoArgsConstructor;
@@ -36,7 +42,9 @@ import lombok.NoArgsConstructor;
 @Component
 @NoArgsConstructor
 public class RestRequestBuilder {
-
+	
+	
+	
 	/** The Constant REST_TIMEOUT. */
 	private static final String REST_TIMEOUT = ".rest.timeout";
 
@@ -54,15 +62,20 @@ public class RestRequestBuilder {
 
 	/** The env. */
 	@Autowired
-	private EnvUtil env;
+	private Environment env;
+
+	private ArrayList<String> serviceNames;
 
 	private static HashMap<String, HashMap<String, String>> mapBuilder = new HashMap<>();
 
+	public RestRequestBuilder(ArrayList<String> serviceNames) {
+		this.serviceNames = serviceNames;
+	}
+	
 	@PostConstruct
 	private void init() {
 	
-		for(RestServicesConstants service : RestServicesConstants.values()) {	
-			String serviceName = service.getServiceName();
+		for(String serviceName : serviceNames) {	
 			if(!mapBuilder.containsKey(serviceName)) {
 				HashMap<String,String> propertiesMap = new HashMap<String,String>();
 				propertiesMap.put(REST_TIMEOUT, env.getProperty(serviceName.concat(REST_TIMEOUT)));
@@ -73,6 +86,9 @@ public class RestRequestBuilder {
 			}
 		}
 	}
+	
+
+	
 	/** The logger. */
 	private static Logger mosipLogger = IdRepoLogger.getLogger(RestRequestBuilder.class);
 
@@ -118,6 +134,8 @@ public class RestRequestBuilder {
 
 		checkReturnType(returnType, request);
 
+		constructParams(paramMap, pathVariables, headers, serviceName);
+
 		request.setHeaders(headers);
 
 		if (!paramMap.isEmpty()) {
@@ -155,6 +173,38 @@ public class RestRequestBuilder {
 					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(),
 							getProperty(serviceName,REST_HEADERS_MEDIA_TYPE)));
 		}
+	}
+
+	/**
+	 * Construct uri params and path variables from properties.
+	 *
+	 * @param paramMap      the param map
+	 * @param pathVariables the path variables
+	 * @param headers       the headers
+	 * @param serviceName   the service name
+	 */
+	private void constructParams(MultiValueMap<String, String> paramMap, Map<String, String> pathVariables,
+			HttpHeaders headers, String serviceName) {
+		((AbstractEnvironment) env).getPropertySources().forEach((PropertySource<?> source) -> {
+			if (source instanceof MapPropertySource) {
+				Map<String, Object> systemProperties = ((MapPropertySource) source).getSource();
+
+				systemProperties.keySet().forEach((String property) -> {
+					if (property.startsWith(serviceName.concat(".rest.headers"))) {
+						headers.add(property.replace(serviceName.concat(".rest.headers."), ""),
+								env.getProperty(property));
+					}
+					if (property.startsWith(serviceName.concat(".rest.uri.queryparam."))) {
+						paramMap.put(property.replace(serviceName.concat(".rest.uri.queryparam."), ""),
+								Collections.singletonList(env.getProperty(property)));
+					}
+					if (property.startsWith(serviceName.concat(".rest.uri.pathparam."))) {
+						pathVariables.put(property.replace(serviceName.concat(".rest.uri.pathparam."), ""),
+								env.getProperty(property));
+					}
+				});
+			}
+		});
 	}
 
 	/**
@@ -226,4 +276,8 @@ public class RestRequestBuilder {
 		return null;
 	}
 
+
+	
+
+	
 }
