@@ -1,6 +1,7 @@
 package io.mosip.idrepository.core.test.builder;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,8 +51,11 @@ import io.mosip.kernel.core.http.RequestWrapper;
 @ActiveProfiles("test")
 public class RestRequestBuilderTest {
 
+	private ArrayList<String> serviceNames = new ArrayList<String>() {{add(RestServicesConstants.AUDIT_MANAGER_SERVICE.getServiceName());}} ;
+	
+	
 	@InjectMocks
-	RestRequestBuilder restBuilder;
+	RestRequestBuilder restBuilder = new RestRequestBuilder(serviceNames);
 
 	@Autowired
 	ConfigurableEnvironment env;
@@ -63,9 +67,12 @@ public class RestRequestBuilderTest {
 	AuditRequestBuilder auditBuilder;
 	
 	HashMap<String,HashMap<String,String>> mapBuilder = new HashMap<>();
+
+	
 	
 	@Before
 	public void before() {
+		
 		ReflectionTestUtils.setField(auditBuilder, "env", env);
 		ReflectionTestUtils.setField(restBuilder, "env", env);
 		ReflectionTestUtils.invokeMethod(restBuilder, "init", null );
