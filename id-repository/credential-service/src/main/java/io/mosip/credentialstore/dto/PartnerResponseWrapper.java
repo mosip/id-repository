@@ -8,7 +8,6 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import io.mosip.kernel.core.exception.ErrorResponse;
 import io.mosip.kernel.core.exception.ServiceError;
 import lombok.Data;
 

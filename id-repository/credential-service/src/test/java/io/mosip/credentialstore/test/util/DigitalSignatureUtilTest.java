@@ -13,7 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
@@ -33,15 +33,16 @@ import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.SignatureException;
 import io.mosip.credentialstore.util.DigitalSignatureUtil;
 import io.mosip.credentialstore.util.RestUtil;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ServiceError;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class})
 public class DigitalSignatureUtilTest {
 	/** The environment. */
 	@Mock
-	private Environment environment;
+	private EnvUtil environment;
 
 	/** The rest template. */
 	@Mock
@@ -79,14 +80,10 @@ public class DigitalSignatureUtilTest {
 				"}";
 		
 		Mockito.when(objectMapper.readValue(signResponse, SignResponseDto.class)).thenReturn(signResponseDto);
-		Mockito.when(environment.getProperty("mosip.credential.service.datetime.pattern"))
-				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		Mockito.when(environment.getProperty("mosip.credential.service.includeCertificateHash"))
-				.thenReturn("false");
-		Mockito.when(environment.getProperty("mosip.credential.service.includeCertificate"))
-				.thenReturn("false");
-		Mockito.when(environment.getProperty("mosip.credential.service.includePayload"))
-				.thenReturn("false");
+		EnvUtil.setDateTimePattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		EnvUtil.setCredServiceIncludeCertificateHash(false);
+		EnvUtil.setCredServiceIncludeCertificate(false);
+		EnvUtil.setCredServiceIncludePayload(false);
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(signResponse);
 	}

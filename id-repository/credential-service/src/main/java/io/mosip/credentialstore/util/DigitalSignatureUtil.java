@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -23,6 +22,7 @@ import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.SignatureException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.RequestWrapper;
@@ -36,10 +36,6 @@ import io.mosip.kernel.core.util.DateUtils;
 @Component
 public class DigitalSignatureUtil {
 
-	/** The environment. */
-	@Autowired
-	private Environment environment;
-
 	/** The rest template. */
 	@Autowired
 	RestUtil restUtil;
@@ -49,10 +45,6 @@ public class DigitalSignatureUtil {
 	@Autowired
 	private ObjectMapper mapper;
 
-	/** The Constant DATETIME_PATTERN. */
-	private static final String DATETIME_PATTERN = "mosip.credential.service.datetime.pattern";
-
-	
 	private static final Logger LOGGER = IdRepoLogger.getLogger(DigitalSignatureUtil.class);
 
 
@@ -74,19 +66,17 @@ public class DigitalSignatureUtil {
 
 			JWTSignatureRequestDto dto = new JWTSignatureRequestDto();
 			dto.setDataToSign(data);
-			dto.setIncludeCertHash(
-					environment.getProperty("mosip.credential.service.includeCertificateHash", Boolean.class));
-			dto.setIncludeCertificate(
-					environment.getProperty("mosip.credential.service.includeCertificate", Boolean.class));
-			dto.setIncludePayload(environment.getProperty("mosip.credential.service.includePayload", Boolean.class));
+			dto.setIncludeCertHash(EnvUtil.getCredServiceIncludeCertificateHash());
+			dto.setIncludeCertificate(EnvUtil.getCredServiceIncludeCertificate());
+			dto.setIncludePayload(EnvUtil.getCredServiceIncludePayload());
 
 
 			RequestWrapper<JWTSignatureRequestDto> request = new RequestWrapper<>();
 			request.setRequest(dto);
 			request.setMetadata(null);
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(environment.getProperty(DATETIME_PATTERN));
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(environment.getProperty(DATETIME_PATTERN)), format);
+					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 			request.setRequesttime(localdatetime);
 			String responseString = restUtil.postApi(ApiName.KEYMANAGER_JWTSIGN, null, "", "",
 					MediaType.APPLICATION_JSON, request, String.class);

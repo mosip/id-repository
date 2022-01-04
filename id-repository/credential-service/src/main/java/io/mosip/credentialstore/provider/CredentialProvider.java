@@ -21,7 +21,6 @@ import org.mvel2.integration.impl.MapVariableResolverFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -48,12 +47,13 @@ import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 
 
@@ -74,9 +74,6 @@ public class CredentialProvider {
 
 	/** The Constant DATETIME_PATTERN. */
 	public static final String DATETIME_PATTERN = "mosip.credential.service.datetime.pattern";
-
-	@Autowired
-	private Environment env;
 
 	@Autowired
 	private ObjectMapper mapper;
@@ -140,16 +137,16 @@ public class CredentialProvider {
 			String credentialId = utilities.generateId();
 
 
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
 			JSONObject json = new JSONObject();
 			List<String> typeList = new ArrayList<>();
-			typeList.add(env.getProperty("mosip.credential.service.credential.schema"));
-			json.put(JsonConstants.ID, env.getProperty("mosip.credential.service.format.id") + credentialId);
+			typeList.add(EnvUtil.getCredServiceSchema());
+			json.put(JsonConstants.ID, EnvUtil.getCredServiceFormatId() + credentialId);
 			json.put(JsonConstants.TYPE, typeList);
-			json.put(JsonConstants.ISSUER, env.getProperty("mosip.credential.service.format.issuer"));
+			json.put(JsonConstants.ISSUER, EnvUtil.getCredServiceFormatIssuer());
 			json.put(JsonConstants.ISSUANCEDATE, DateUtils.formatToISOString(localdatetime));
 			json.put(JsonConstants.ISSUEDTO, credentialServiceRequestDto.getIssuer());
 			json.put(JsonConstants.CONSENT, "");

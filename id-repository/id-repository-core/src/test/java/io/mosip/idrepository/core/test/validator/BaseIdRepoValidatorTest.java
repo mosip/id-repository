@@ -9,10 +9,9 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
@@ -26,6 +25,7 @@ import org.springframework.web.context.WebApplicationContext;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.core.validator.BaseIdRepoValidator;
 import io.mosip.kernel.core.util.DateUtils;
 
@@ -36,7 +36,7 @@ import io.mosip.kernel.core.util.DateUtils;
  */
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @ActiveProfiles("test")
 @ConfigurationProperties("mosip.idrepo.identity")
 public class BaseIdRepoValidatorTest {
@@ -44,9 +44,6 @@ public class BaseIdRepoValidatorTest {
 	BaseIdRepoValidator requestValidator=new BaseIdRepoValidator() {
 		
 	};
-	
-	@Autowired
-	Environment env;
 	
 	/** The id. */
 	private Map<String, String> id;
@@ -61,7 +58,7 @@ public class BaseIdRepoValidatorTest {
 	Errors errors;
 	@Before
 	public void before() {
-		ReflectionTestUtils.setField(requestValidator, "env", env);
+		EnvUtil.setVersionPattern("^v\\\\d+(\\\\.\\\\d+)?$");
 		ReflectionTestUtils.setField(requestValidator, "id", id);
 		errors = new BeanPropertyBindingResult(new IdRequestDTO(), "idRequestDto");
 	}

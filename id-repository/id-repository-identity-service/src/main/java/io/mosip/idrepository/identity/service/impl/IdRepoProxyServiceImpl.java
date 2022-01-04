@@ -1,6 +1,5 @@
 package io.mosip.idrepository.identity.service.impl;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
@@ -27,7 +26,6 @@ import javax.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.JDBCConnectionException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
@@ -53,7 +51,7 @@ import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.BiometricExtractionService;
 import io.mosip.idrepository.core.spi.IdRepoService;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 import io.mosip.idrepository.identity.repository.UinDraftRepo;
@@ -66,6 +64,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
 
 /**
  * The Class IdRepoServiceImpl - Service implementation for Identity service.
@@ -122,10 +121,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	@Autowired
 	private ObjectStoreHelper objectStoreHelper;
-
-	/** The env. */
-	@Autowired
-	private Environment env;
 
 	/** The mapper. */
 	@Autowired
@@ -541,7 +536,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			throws IdRepoAppException {
 		IdResponseDTO idResponse = new IdResponseDTO();
 		idResponse.setId(id);
-		idResponse.setVersion(env.getProperty(APPLICATION_VERSION));
+		idResponse.setVersion(EnvUtil.getAppVersion());
 		ResponseDTO response = new ResponseDTO();
 		response.setStatus(uin.getStatusCode());
 		if (id.equals(this.id.get(READ))) {

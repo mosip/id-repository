@@ -1,13 +1,52 @@
 package io.mosip.idrepository.identity.controller;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.FACE_EXTRACTION_FORMAT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.FINGER_EXTRACTION_FORMAT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.IRIS_EXTRACTION_FORMAT;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATA_VALIDATION_FAILED;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_REQUEST;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+
+import javax.annotation.Nullable;
+import javax.annotation.Resource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.Errors;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.JsonPathException;
+
 import io.mosip.idrepository.core.constant.AuditEvents;
 import io.mosip.idrepository.core.constant.AuditModules;
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.*;
+import io.mosip.idrepository.core.dto.AuthTypeStatusRequestDto;
+import io.mosip.idrepository.core.dto.AuthtypeResponseDto;
+import io.mosip.idrepository.core.dto.AuthtypeStatus;
+import io.mosip.idrepository.core.dto.IdRequestDTO;
+import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.helper.AuditHelper;
@@ -16,6 +55,7 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.AuthtypeStatusService;
 import io.mosip.idrepository.core.spi.IdRepoService;
 import io.mosip.idrepository.core.util.DataValidationUtil;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
@@ -26,24 +66,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.Errors;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
-
-import javax.annotation.Nullable;
-import javax.annotation.Resource;
-import java.util.*;
-
-import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.*;
 
 /**
  * The Class IdRepoController - Controller class for Identity service. These
@@ -106,10 +129,6 @@ public class IdRepoController {
 
 	@Autowired
 	private AuditHelper auditHelper;
-
-	/** The env. */
-	@Autowired
-	private Environment env;
 
 	@Autowired
 	private AuthtypeStatusService authTypeStatusService;
@@ -421,7 +440,7 @@ public class IdRepoController {
 					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), "request"));
 		}
 		Object uin = null;
-		String pathOfUin = env.getProperty(MOSIP_KERNEL_IDREPO_JSON_PATH, "");
+		String pathOfUin = EnvUtil.getUinJsonPath();
 		try {
 			String identity = mapper.writeValueAsString(request);
 			JsonPath jsonPath = JsonPath.compile(pathOfUin);
