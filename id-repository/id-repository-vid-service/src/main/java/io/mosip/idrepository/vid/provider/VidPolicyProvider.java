@@ -1,8 +1,6 @@
 package io.mosip.idrepository.vid.provider;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_POLICY_FILE_URL;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_POLICY_PATH;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_POLICY_SCHEMA_URL;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_TYPE_PATH;
 
 import java.io.IOException;
@@ -17,7 +15,6 @@ import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -30,6 +27,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 
 import io.mosip.idrepository.core.dto.VidPolicy;
+import io.mosip.idrepository.core.util.EnvUtil;
 
 /**
  * The Class VidPolicyProvider - Provider class to load policy from policy json
@@ -44,10 +42,6 @@ public class VidPolicyProvider {
 	/** The Constant READ_LIST_OPTIONS. */
 	private static final Configuration READ_LIST_OPTIONS = Configuration.defaultConfiguration()
 			.addOptions(Option.SUPPRESS_EXCEPTIONS, Option.ALWAYS_RETURN_LIST);
-
-	/** The env. */
-	@Autowired
-	private Environment env;
 
 	/** The mapper. */
 	@Autowired
@@ -64,8 +58,8 @@ public class VidPolicyProvider {
 	 */
 	@PostConstruct
 	public void loadPolicyDetails() throws IOException, ProcessingException {
-		JsonNode policyJson = mapper.readValue(new URL(env.getProperty(VID_POLICY_FILE_URL)), JsonNode.class);
-		JsonNode schema = mapper.readValue(new URL(env.getProperty(VID_POLICY_SCHEMA_URL)), JsonNode.class);
+		JsonNode policyJson = mapper.readValue(new URL(EnvUtil.getVidPolicyFileUrl()), JsonNode.class);
+		JsonNode schema = mapper.readValue(new URL(EnvUtil.getVidPolicySchemaUrl()), JsonNode.class);
 		final JsonSchema jsonSchema = JsonSchemaFactory.byDefault().getJsonSchema(schema);
 		jsonSchema.validate(policyJson);
 		List<String> vidType = JsonPath.compile(VID_TYPE_PATH).read(policyJson.toString(), READ_LIST_OPTIONS);

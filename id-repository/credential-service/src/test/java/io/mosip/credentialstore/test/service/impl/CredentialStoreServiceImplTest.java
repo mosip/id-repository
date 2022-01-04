@@ -19,7 +19,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -58,6 +57,7 @@ import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.helper.AuditHelper;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.BDBInfoType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
@@ -99,7 +99,7 @@ public class CredentialStoreServiceImplTest {
 	Utilities utilities;
 
 	@Mock
-	private Environment env;
+	private EnvUtil env;
 	
 	@Mock
 	private CbeffUtil cbeffutil;
@@ -133,7 +133,7 @@ public class CredentialStoreServiceImplTest {
 
 	@Before
 	public void setUp() throws Exception {
-		
+		EnvUtil.setDateTimePattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		Mockito.when(env.getProperty("mosip.credential.service.datetime.pattern"))
 		.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		Mockito.when(env.getProperty("credentialType.policyid.MOSIP"))

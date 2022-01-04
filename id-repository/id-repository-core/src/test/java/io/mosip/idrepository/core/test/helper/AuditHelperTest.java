@@ -11,7 +11,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -33,6 +33,7 @@ import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.EnvUtil;
 
 /**
  * @author Manoj SP
@@ -40,7 +41,7 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
  */
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 public class AuditHelperTest {
 
 	@Mock
@@ -62,11 +63,10 @@ public class AuditHelperTest {
 	RestRequestBuilder restBuilder;
 
 	@Autowired
-	Environment env;
+	EnvUtil env;
 
 	@Before
 	public void before() {
-		ReflectionTestUtils.setField(auditBuilder, "env", env);
 		ReflectionTestUtils.setField(restBuilder, "env", env);
 		ReflectionTestUtils.setField(auditHelper, "mapper", new ObjectMapper());
 		when(securityManager.hash(Mockito.any())).thenReturn("mock");

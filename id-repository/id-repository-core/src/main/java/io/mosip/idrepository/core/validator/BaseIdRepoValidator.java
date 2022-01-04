@@ -1,7 +1,5 @@
 package io.mosip.idrepository.core.validator;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.DATETIME_ADJUSTMENT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.VERSION_PATTERN;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
 
@@ -12,14 +10,13 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 
@@ -48,10 +45,6 @@ public abstract class BaseIdRepoValidator {
 	/** The Constant ID. */
 	protected static final String ID = "id";
 
-	/**  The Environment. */
-	@Autowired
-	protected Environment env;
-
 	/** The id. */
 	@Resource
 	protected Map<String, String> id;
@@ -70,7 +63,7 @@ public abstract class BaseIdRepoValidator {
 					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), REQUEST_TIME));
 		} else {
 			if (DateUtils.after(reqTime, DateUtils.getUTCCurrentDateTime()
-					.plusMinutes(env.getProperty(DATETIME_ADJUSTMENT, Long.class, 0l)))) {
+					.plusMinutes(EnvUtil.getDateTimeAdjustment()))) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateReqTime",
 						"requesttime is future dated");
 				mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateReqTime",
@@ -94,7 +87,7 @@ public abstract class BaseIdRepoValidator {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateVersion", "version is null");
 			errors.rejectValue(VER, MISSING_INPUT_PARAMETER.getErrorCode(),
 					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), VER));
-		} else if ((!Pattern.compile(env.getProperty(VERSION_PATTERN)).matcher(ver)
+		} else if ((!Pattern.compile(EnvUtil.getVersionPattern()).matcher(ver)
 				.matches())) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateVersion", "version is InValid");
 			errors.rejectValue(VER, INVALID_INPUT_PARAMETER.getErrorCode(),

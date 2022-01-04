@@ -11,7 +11,6 @@ import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -30,6 +29,7 @@ import io.mosip.idrepository.core.entity.UinHashSalt;
 import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
+import io.mosip.idrepository.core.util.EnvUtil;
 
 @EnableAsync
 @EnableJpaRepositories(basePackageClasses = { UinHashSaltRepo.class, UinEncryptSaltRepo.class,
@@ -39,9 +39,6 @@ public class IdRepoDataSourceConfig {
 
 	@Autowired(required = false)
 	private Interceptor interceptor;
-
-	@Autowired
-	private Environment env;
 
 	/**
 	 * Entity manager factory.
@@ -119,10 +116,10 @@ public class IdRepoDataSourceConfig {
 
 //		If sharding is enabled, need to comment below code
 		Map<String, String> dbValues = new HashMap<>();
-		dbValues.put("url", env.getProperty("mosip.idrepo.identity.db.url"));
-		dbValues.put("username", env.getProperty("mosip.idrepo.identity.db.username"));
-		dbValues.put("password", env.getProperty("mosip.idrepo.identity.db.password"));
-		dbValues.put("driverClassName", env.getProperty("mosip.idrepo.identity.db.driverClassName"));
+		dbValues.put("url", EnvUtil.getIdrepoDBUrl());
+		dbValues.put("username", EnvUtil.getIdrepoDBUsername());
+		dbValues.put("password", EnvUtil.getIdrepoDBPassword());
+		dbValues.put("driverClassName", EnvUtil.getIdrepoDBDriverClassName());
 		return buildDataSource(dbValues);
 	}
 	
