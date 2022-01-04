@@ -177,19 +177,6 @@ public class IdentityIssuanceProfileBuilder {
 	}
 
 	private List<Exceptions> getExceptions(List<BIR> bioData) {
-		if (Objects.nonNull(bioData))
-			return bioData.stream().filter(bir -> Objects.nonNull(bir.getOthers()))
-					.filter(bir -> bir.getOthers().entrySet().stream()
-							.anyMatch(others -> others.getKey().contentEquals("EXCEPTION")))
-					.filter(bir -> ((String) bir.getOthers().entrySet().stream()
-							.filter(others -> others.getKey().contentEquals("EXCEPTION")
-									&& Objects.nonNull(others.getValue()))
-							.findAny().get().getValue()).contentEquals("true"))
-					.map(bir -> Exceptions.builder()
-							.type(bir.getBdbInfo().getType().stream().map(BiometricType::value)
-									.collect(Collectors.joining(" ")))
-							.subType(String.join(" ", bir.getBdbInfo().getSubtype())).build())
-					.collect(Collectors.toList());
 		return List.of();
 	}
 
@@ -203,33 +190,13 @@ public class IdentityIssuanceProfileBuilder {
 	private List<BiometricInfo> getBiometricInfo(List<BIR> biometrics) {
 		if (Objects.nonNull(biometrics))
 			return Streams.stream(biometrics).map(bir -> {
-				Optional<Map.Entry<String, Object>> payload = Optional.ofNullable(bir.getOthers()).stream()
-						.flatMap(birs -> birs.entrySet().stream())
-						.filter(others -> others.getKey().contentEquals("PAYLOAD")).findAny();
-
-				String digitalId = null;
-				if (payload.isPresent() && Objects.nonNull(payload.get().getValue())
-						&& payload.get().getValue() instanceof String
-						&& StringUtils.isNotBlank((String) payload.get().getValue())) {
-					Map<String, String> digitalIdEncoded = mapper.readValue((String) payload.get().getValue(),
-							new TypeReference<Map<String, String>>() {
-							});
-					digitalId = new String(CryptoUtil.decodeBase64(digitalIdEncoded.get("digitalId").split("\\.")[1]));
-				}
-
 				return BiometricInfo.builder()
-						.type(bir.getBdbInfo().getType().stream().map(type -> type.value())
+						.type(bir.getBdbInfo().getType().stream().map(BiometricType::value)
 								.collect(Collectors.joining(" ")))
 						.subType(
 								String.join(" ", bir.getBdbInfo().getSubtype()))
 						.qualityScore(bir.getBdbInfo().getQuality().getScore())
-						.attempts(
-								Objects.nonNull(bir.getOthers())
-										? (String) bir.getOthers().entrySet().stream()
-												.filter(others -> others.getKey().contentEquals("RETRIES")).findAny()
-												.orElseGet(() -> Map.entry("", null)).getValue()
-										: null)
-						.digitalId(digitalId).build();
+						.build();
 			}).collect(Collectors.toList());
 		return List.of();
 	}
