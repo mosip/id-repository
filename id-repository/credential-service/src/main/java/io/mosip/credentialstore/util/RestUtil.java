@@ -233,7 +233,7 @@ public class RestUtil {
                 post.setHeader("Content-type", "application/json");
                 HttpResponse response = httpClient.execute(post);
                 org.apache.http.HttpEntity entity = response.getEntity();
-                EntityUtils.toString(entity, "UTF-8");
+                String responseBody = EntityUtils.toString(entity, "UTF-8");
                 Header[] cookie = response.getHeaders("Set-Cookie");
                 if (cookie.length == 0)
                     throw new IOException("cookie is empty. Could not generate new token.");
