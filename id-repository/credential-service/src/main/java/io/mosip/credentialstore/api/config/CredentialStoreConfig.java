@@ -1,10 +1,16 @@
 package io.mosip.credentialstore.api.config;
 
+import io.mosip.idrepository.core.builder.RestRequestBuilder;
+import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.servers.Server;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springdoc.core.GroupedOpenApi;
@@ -44,5 +50,11 @@ public class CredentialStoreConfig {
 		return GroupedOpenApi.builder().group(openApiProperties.getGroup().getName())
 				.pathsToMatch(openApiProperties.getGroup().getPaths().stream().toArray(String[]::new))
 				.build();
+	}
+	
+	@Bean
+	public RestRequestBuilder getRestRequestBuilder() {
+		return new RestRequestBuilder(Arrays.stream(RestServicesConstants.values())
+				.map(RestServicesConstants::getServiceName).collect(Collectors.toList()));
 	}
 }
