@@ -61,7 +61,7 @@ public class RestRequestBuilder {
 	/** The logger. */
 	private static Logger mosipLogger = IdRepoLogger.getLogger(RestRequestBuilder.class);
 
-	List<String> serviceNames = List.of();
+	private List<String> serviceNames = List.of();
 
 	public RestRequestBuilder(List<String> serviceNames) {
 		this.serviceNames = serviceNames;
