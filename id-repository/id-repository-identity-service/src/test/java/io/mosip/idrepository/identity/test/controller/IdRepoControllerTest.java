@@ -21,7 +21,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -51,6 +51,7 @@ import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.spi.AuthtypeStatusService;
 import io.mosip.idrepository.core.spi.IdRepoService;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.controller.IdRepoController;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
@@ -62,7 +63,7 @@ import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
  */
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @ActiveProfiles("test")
 public class IdRepoControllerTest {
 
@@ -90,9 +91,6 @@ public class IdRepoControllerTest {
 	@Autowired
 	ObjectMapper mapper;
 
-	@Autowired
-	private Environment env;
-
 	@Before
 	public void before() {
 		Map<String, String> id = Maps.newHashMap("read", "mosip.id.read");
@@ -101,9 +99,7 @@ public class IdRepoControllerTest {
 		ReflectionTestUtils.setField(controller, "id", id);
 		ReflectionTestUtils.setField(controller, "mapper", mapper);
 		ReflectionTestUtils.setField(controller, "validator", validator);
-		ReflectionTestUtils.setField(controller, "env", env);
 		ReflectionTestUtils.setField(validator, "id", id);
-		ReflectionTestUtils.setField(validator, "env", env);
 		ReflectionTestUtils.setField(validator, "allowedTypes", Lists.newArrayList("bio", "demo", "all"));
 	}
 

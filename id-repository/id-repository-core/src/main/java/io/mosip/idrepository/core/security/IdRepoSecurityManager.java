@@ -1,13 +1,7 @@
 package io.mosip.idrepository.core.security;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_ID;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.CACHE_UPDATE_DEFAULT_INTERVAL;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.DATETIME_PATTERN;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.DEFAULT_SALT_KEY_LENGTH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.IDREPO_CACHE_UPDATE_INTERVAL;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.PREPEND_THUMPRINT_STATUS;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.SALT_KEY_LENGTH;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED;
 
 import java.security.NoSuchAlgorithmException;
@@ -25,7 +19,6 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -42,6 +35,7 @@ import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.core.util.SaltUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
@@ -96,10 +90,6 @@ public class IdRepoSecurityManager {
 
 	/** The rest helper. */
 	private RestHelper restHelper;
-
-	/** The env. */
-	@Autowired
-	private Environment env;
 
 	/** The mapper. */
 	@Autowired
@@ -179,13 +169,13 @@ public class IdRepoSecurityManager {
 			RequestWrapper<ObjectNode> baseRequest = new RequestWrapper<>();
 			baseRequest.setId(STRING);
 			baseRequest.setRequesttime(DateUtils.getUTCCurrentDateTime());
-			baseRequest.setVersion(env.getProperty(APPLICATION_VERSION));
+			baseRequest.setVersion(EnvUtil.getAppVersion());
 			ObjectNode request = new ObjectNode(mapper.getNodeFactory());
-			request.put(APPLICATIONID, env.getProperty(APPLICATION_ID));
-			request.put(TIME_STAMP, DateUtils.formatDate(new Date(), env.getProperty(DATETIME_PATTERN)));
+			request.put(APPLICATIONID, EnvUtil.getAppId());
+			request.put(TIME_STAMP, DateUtils.formatDate(new Date(), EnvUtil.getDateTimePattern()));
 			request.put(DATA, CryptoUtil.encodeToURLSafeBase64(dataToEncrypt));
 			request.put(REFERENCE_ID, refId);
-			request.put(PREPEND_THUMBPRINT, env.getProperty(PREPEND_THUMPRINT_STATUS));
+			request.put(PREPEND_THUMBPRINT, EnvUtil.getPrependThumbprintStatus());
 			baseRequest.setRequest(request);
 			return encryptDecryptData(restBuilder.buildRequest(RestServicesConstants.CRYPTO_MANAGER_ENCRYPT,
 					baseRequest, ObjectNode.class));
@@ -209,14 +199,14 @@ public class IdRepoSecurityManager {
 			RequestWrapper<ObjectNode> baseRequest = new RequestWrapper<>();
 			baseRequest.setId(STRING);
 			baseRequest.setRequesttime(DateUtils.getUTCCurrentDateTime());
-			baseRequest.setVersion(env.getProperty(APPLICATION_VERSION));
+			baseRequest.setVersion(EnvUtil.getAppVersion());
 			ObjectNode request = new ObjectNode(mapper.getNodeFactory());
-			request.put(APPLICATIONID, env.getProperty(APPLICATION_ID));
-			request.put(TIME_STAMP, DateUtils.formatDate(new Date(), env.getProperty(DATETIME_PATTERN)));
+			request.put(APPLICATIONID, EnvUtil.getAppId());
+			request.put(TIME_STAMP, DateUtils.formatDate(new Date(), EnvUtil.getDateTimePattern()));
 			request.put(DATA, CryptoUtil.encodeToURLSafeBase64(dataToEncrypt));
 			request.put("salt", CryptoUtil.encodeToURLSafeBase64(saltToEncrypt));
 			request.put(REFERENCE_ID, refId);
-			request.put(PREPEND_THUMBPRINT, env.getProperty(PREPEND_THUMPRINT_STATUS));
+			request.put(PREPEND_THUMBPRINT, EnvUtil.getPrependThumbprintStatus());
 			baseRequest.setRequest(request);
 			return encryptDecryptData(restBuilder.buildRequest(RestServicesConstants.CRYPTO_MANAGER_ENCRYPT,
 					baseRequest, ObjectNode.class));
@@ -239,13 +229,13 @@ public class IdRepoSecurityManager {
 			RequestWrapper<ObjectNode> baseRequest = new RequestWrapper<>();
 			baseRequest.setId(STRING);
 			baseRequest.setRequesttime(DateUtils.getUTCCurrentDateTime());
-			baseRequest.setVersion(env.getProperty(APPLICATION_VERSION));
+			baseRequest.setVersion(EnvUtil.getAppVersion());
 			ObjectNode request = new ObjectNode(mapper.getNodeFactory());
-			request.put(APPLICATIONID, env.getProperty(APPLICATION_ID));
+			request.put(APPLICATIONID, EnvUtil.getAppId());
 			request.put(REFERENCE_ID, refId);
-			request.put(TIME_STAMP, DateUtils.formatDate(new Date(), env.getProperty(DATETIME_PATTERN)));
+			request.put(TIME_STAMP, DateUtils.formatDate(new Date(), EnvUtil.getDateTimePattern()));
 			request.put(DATA, new String(dataToDecrypt));
-			request.put(PREPEND_THUMBPRINT, env.getProperty(PREPEND_THUMPRINT_STATUS));
+			request.put(PREPEND_THUMBPRINT, EnvUtil.getPrependThumbprintStatus());
 			baseRequest.setRequest(request);
 			return CryptoUtil.decodeURLSafeBase64(new String(encryptDecryptData(restBuilder
 					.buildRequest(RestServicesConstants.CRYPTO_MANAGER_DECRYPT, baseRequest, ObjectNode.class))));
@@ -269,14 +259,14 @@ public class IdRepoSecurityManager {
 			RequestWrapper<ObjectNode> baseRequest = new RequestWrapper<>();
 			baseRequest.setId(STRING);
 			baseRequest.setRequesttime(DateUtils.getUTCCurrentDateTime());
-			baseRequest.setVersion(env.getProperty(APPLICATION_VERSION));
+			baseRequest.setVersion(EnvUtil.getAppVersion());
 			ObjectNode request = new ObjectNode(mapper.getNodeFactory());
-			request.put(APPLICATIONID, env.getProperty(APPLICATION_ID));
+			request.put(APPLICATIONID, EnvUtil.getAppId());
 			request.put(REFERENCE_ID, refId);
-			request.put(TIME_STAMP, DateUtils.formatDate(new Date(), env.getProperty(DATETIME_PATTERN)));
+			request.put(TIME_STAMP, DateUtils.formatDate(new Date(), EnvUtil.getDateTimePattern()));
 			request.put(DATA, CryptoUtil.encodeToURLSafeBase64(dataToDecrypt));
 			request.put("salt", CryptoUtil.encodeToURLSafeBase64(saltToDecrypt));
-			request.put(PREPEND_THUMBPRINT, env.getProperty(PREPEND_THUMPRINT_STATUS));
+			request.put(PREPEND_THUMBPRINT, EnvUtil.getPrependThumbprintStatus());
 			baseRequest.setRequest(request);
 			return CryptoUtil.decodeURLSafeBase64(new String(encryptDecryptData(restBuilder
 					.buildRequest(RestServicesConstants.CRYPTO_MANAGER_DECRYPT, baseRequest, ObjectNode.class))));
@@ -343,12 +333,12 @@ public class IdRepoSecurityManager {
 	}
 
 	public int getSaltKeyForId(String id) {
-		Integer saltKeyLength = env.getProperty(SALT_KEY_LENGTH, Integer.class, DEFAULT_SALT_KEY_LENGTH);
+		Integer saltKeyLength = EnvUtil.getIdrepoSaltKeyLength();
 		return SaltUtil.getIdvidModulo(id, saltKeyLength);
 	}
 	
 	public int getSaltKeyForHashOfId(String id) {
-		Integer saltKeyLength = env.getProperty(SALT_KEY_LENGTH, Integer.class, DEFAULT_SALT_KEY_LENGTH);
+		Integer saltKeyLength = EnvUtil.getIdrepoSaltKeyLength();
 		return SaltUtil.getIdvidHashModulo(id, saltKeyLength);
 	}
 	

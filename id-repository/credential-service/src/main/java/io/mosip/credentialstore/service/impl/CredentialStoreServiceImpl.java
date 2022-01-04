@@ -12,7 +12,6 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import io.mosip.credentialstore.constants.CredentialConstants;
@@ -56,6 +55,7 @@ import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -82,9 +82,6 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	/** The idrepositary util. */
 	@Autowired
 	private IdrepositaryUtil idrepositaryUtil;
-
-	/** The Constant VALUE. */
-	private static final String VALUE = "value";
 
 	/** The id auth provider. */
 	@Autowired(required = true)
@@ -121,23 +118,10 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 	/** The env. */
 	@Autowired
-	private Environment env;
-
-	/** The Constant DATETIME_PATTERN. */
-	private static final String DATETIME_PATTERN = "mosip.credential.service.datetime.pattern";
-
-	/** The Constant CREDENTIAL_SERVICE_SERVICE_ID. */
-	private static final String CREDENTIAL_SERVICE_SERVICE_ID = "mosip.credential.service.service.id";
-
-	/** The Constant CREDENTIAL_SERVICE_SERVICE_VERSION. */
-	private static final String CREDENTIAL_SERVICE_SERVICE_VERSION = "mosip.credential.service.service.version";
+	private EnvUtil env;
 
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialStoreServiceImpl.class);
 
-
-	private static final String CREDENTIAL_SERVICE_TYPE_NAME = "mosip.credential.service.type.name";
-
-	private static final String CREDENTIAL_SERVICE_TYPE_NAMESPACE = "mosip.credential.service.type.namespace";
 
 	private static final String DATASHARE = "Data Share";
 
@@ -328,10 +312,10 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 		} finally {
 
-			credentialIssueResponseDto.setId(CREDENTIAL_SERVICE_SERVICE_ID);
+			credentialIssueResponseDto.setId(EnvUtil.getCredServiceId());
 			credentialIssueResponseDto
-					.setResponsetime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
-			credentialIssueResponseDto.setVersion(env.getProperty(CREDENTIAL_SERVICE_SERVICE_VERSION));
+					.setResponsetime(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()));
+			credentialIssueResponseDto.setVersion(EnvUtil.getCredServiceVersion());
 
 			if (!errorList.isEmpty()) {
 				credentialIssueResponseDto.setErrors(errorList);
@@ -352,9 +336,9 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		Map<String, Object> map = credentialServiceRequestDto.getAdditionalData();
 
 		EventModel eventModel = new EventModel();
-		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+		DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 		LocalDateTime localdatetime = LocalDateTime
-				.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+				.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 		eventModel.setPublishedOn(DateUtils.toISOString(localdatetime));
 		eventModel.setPublisher("CREDENTIAL_SERVICE");
 		eventModel.setTopic(credentialServiceRequestDto.getIssuer() + "/" + IDAEventType.CREDENTIAL_ISSUED);
@@ -383,8 +367,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		event.setId(eventId);
 		event.setTransactionId(credentialServiceRequestDto.getRequestId());
 		Type type = new Type();
-		type.setName(env.getProperty(CREDENTIAL_SERVICE_TYPE_NAME));
-		type.setNamespace(env.getProperty(CREDENTIAL_SERVICE_TYPE_NAMESPACE));
+		type.setName(EnvUtil.getCredServiceTypeName());
+		type.setNamespace(EnvUtil.getCredServiceTypeNamespace());
 		event.setType(type);
 		eventModel.setEvent(event);
 		LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),

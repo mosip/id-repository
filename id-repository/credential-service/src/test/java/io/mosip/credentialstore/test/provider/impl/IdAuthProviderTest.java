@@ -14,7 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -32,6 +32,7 @@ import io.mosip.credentialstore.provider.impl.IdAuthProvider;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.constant.QualityType;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
@@ -39,7 +40,7 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class})
 public class IdAuthProviderTest {
 	@Mock
@@ -47,7 +48,7 @@ public class IdAuthProviderTest {
 	
 	/** The env. */
 	@Mock
-	Environment env;
+	EnvUtil env;
 	
 	
 	@Mock
@@ -63,8 +64,7 @@ public class IdAuthProviderTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		Mockito.when(env.getProperty("mosip.credential.service.datetime.pattern"))
-		.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		EnvUtil.setDateTimePattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		encryptZkResponseDto=new EncryptZkResponseDto();
 		List<ZkDataAttribute>  zkDataAttributeList=new ArrayList<>();
 			ZkDataAttribute zkDataAttribute=new ZkDataAttribute();

@@ -8,7 +8,6 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -32,6 +31,7 @@ import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.DataEncryptionFailureException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.RequestWrapper;
@@ -40,14 +40,8 @@ import io.mosip.kernel.core.util.DateUtils;
 
 @Component
 public class EncryptionUtil {
-
 	
 	private static final Logger LOGGER = IdRepoLogger.getLogger(EncryptionUtil.class); 
-
-	
-	/** The Constant DATETIME_PATTERN. */
-	private static final String DATETIME_PATTERN = "mosip.credential.service.datetime.pattern";
-	
 
 	/** The Constant IO_EXCEPTION. */
 	private static final String IO_EXCEPTION = "Exception while reading packet inputStream";
@@ -55,10 +49,6 @@ public class EncryptionUtil {
 	/** The Constant DATE_TIME_EXCEPTION. */
 	private static final String DATE_TIME_EXCEPTION = "Error while parsing packet timestamp";
 
-
-	/** The env. */
-	@Autowired
-	private Environment env;
 
 	@Autowired
 	RestUtil restUtil;
@@ -82,9 +72,9 @@ public class EncryptionUtil {
 			RequestWrapper<CryptoWithPinRequestDto> request = new RequestWrapper<>();
 			cryptoWithPinRequestDto.setData(data);
 			cryptoWithPinRequestDto.setUserPin(pin);
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 			request.setRequesttime(localdatetime);
 
 			request.setRequest(cryptoWithPinRequestDto);
@@ -140,9 +130,9 @@ public class EncryptionUtil {
 			RequestWrapper<EncryptZkRequestDto> request = new RequestWrapper<>();
 			encryptZkRequestDto.setZkDataAttributes(zkDataAttributes);
 			encryptZkRequestDto.setId(id);
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 			request.setRequesttime(localdatetime);
 
 			request.setRequest(encryptZkRequestDto);
@@ -204,11 +194,10 @@ public class EncryptionUtil {
 			cryptomanagerRequestDto.setData(dataToBeEncrypted);
 			cryptomanagerRequestDto.setReferenceId(partnerId);
 			cryptomanagerRequestDto
-					.setPrependThumbprint(
-							env.getProperty("mosip.credential.service.share.prependThumbprint", Boolean.class));
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+					.setPrependThumbprint(EnvUtil.getPrependThumbprintStatus());
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 			request.setRequesttime(localdatetime);
 
 			request.setRequest(cryptomanagerRequestDto);

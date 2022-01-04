@@ -32,7 +32,7 @@ import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -68,6 +68,7 @@ import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.IdRepoRetryException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import reactor.core.publisher.Mono;
@@ -82,7 +83,7 @@ import reactor.core.publisher.Mono;
 @PowerMockRunnerDelegate(SpringJUnit4ClassRunner.class)
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*",
 		"com.sun.org.apache.xalan.*", "javax.activation.*" })
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @AutoConfigureMockMvc
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @PrepareForTest({ WebClient.class, SslContextBuilder.class })
@@ -94,7 +95,7 @@ public class RestHelperTest {
 
 	/** The environment. */
 	@Autowired
-	Environment environment;
+	EnvUtil environment;
 
 	/** The mapper. */
 	@Autowired
@@ -119,7 +120,6 @@ public class RestHelperTest {
 	 */
 	@Before
 	public void before() throws SSLException {
-		ReflectionTestUtils.setField(auditBuilder, "env", environment);
 		ReflectionTestUtils.setField(restBuilder, "env", environment);
 		ReflectionTestUtils.setField(restHelper, "mapper", mapper);
 		PowerMockito.mockStatic(SslContextBuilder.class);

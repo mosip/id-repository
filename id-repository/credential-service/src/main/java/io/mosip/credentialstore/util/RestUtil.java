@@ -24,7 +24,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -42,6 +41,7 @@ import io.mosip.credentialstore.constants.ApiName;
 import io.mosip.idrepository.core.dto.Metadata;
 import io.mosip.idrepository.core.dto.SecretKeyRequest;
 import io.mosip.idrepository.core.dto.TokenRequestDTO;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.TokenHandlerUtil;
@@ -49,7 +49,7 @@ import io.mosip.kernel.core.util.TokenHandlerUtil;
 public class RestUtil {
 
     @Autowired
-    private Environment environment;
+    private EnvUtil environment;
 
     private static final String AUTHORIZATION = "Authorization=";
 
@@ -143,7 +143,6 @@ public class RestUtil {
 		String apiHostIpPort = environment.getProperty(apiName.name());
 		T result = null;
 		UriComponentsBuilder builder = null;
-		UriComponents uriComponents = null;
 		if (apiHostIpPort != null) {
 
 			 builder = UriComponentsBuilder.fromUriString(apiHostIpPort);
@@ -208,20 +207,20 @@ public class RestUtil {
         if (StringUtils.isNotEmpty(token)) {
 
 			isValid = TokenHandlerUtil.isValidBearerToken(token,
-					environment.getProperty("credential.service.token.request.issuerUrl"),
-					environment.getProperty("credential.service.token.request.clientId"));
+					EnvUtil.getCredServiceTokenRequestIssuerUrl(),
+					EnvUtil.getCredServiceTokenRequestClientId());
 
 
         }
         if (!isValid) {
             TokenRequestDTO<SecretKeyRequest> tokenRequestDTO = new TokenRequestDTO<SecretKeyRequest>();
-			tokenRequestDTO.setId(environment.getProperty("credential.service.token.request.id"));
+			tokenRequestDTO.setId(EnvUtil.getCredServiceTokenRequestId());
             tokenRequestDTO.setMetadata(new Metadata());
 
             tokenRequestDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
             // tokenRequestDTO.setRequest(setPasswordRequestDTO());
             tokenRequestDTO.setRequest(setSecretKeyRequestDTO());
-			tokenRequestDTO.setVersion(environment.getProperty("credential.service.token.request.version"));
+			tokenRequestDTO.setVersion(EnvUtil.getCredServiceTokenRequestVersion());
 
             Gson gson = new Gson();
             HttpClient httpClient = HttpClientBuilder.create().build();
@@ -234,7 +233,7 @@ public class RestUtil {
                 post.setHeader("Content-type", "application/json");
                 HttpResponse response = httpClient.execute(post);
                 org.apache.http.HttpEntity entity = response.getEntity();
-                String responseBody = EntityUtils.toString(entity, "UTF-8");
+                EntityUtils.toString(entity, "UTF-8");
                 Header[] cookie = response.getHeaders("Set-Cookie");
                 if (cookie.length == 0)
                     throw new IOException("cookie is empty. Could not generate new token.");
@@ -250,9 +249,9 @@ public class RestUtil {
 
     private SecretKeyRequest setSecretKeyRequestDTO() {
         SecretKeyRequest request = new SecretKeyRequest();
-		request.setAppId(environment.getProperty("credential.service.token.request.appid"));
-		request.setClientId(environment.getProperty("credential.service.token.request.clientId"));
-		request.setSecretKey(environment.getProperty("credential.service.token.request.secretKey"));
+		request.setAppId(EnvUtil.getCredServiceTokenRequestAppId());
+		request.setClientId(EnvUtil.getCredServiceTokenRequestClientId());
+		request.setSecretKey(EnvUtil.getCredServiceTokenRequestSecretKey());
         return request;
     }
 
