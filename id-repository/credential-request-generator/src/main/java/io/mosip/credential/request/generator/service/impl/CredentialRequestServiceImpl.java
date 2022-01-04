@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -40,6 +39,7 @@ import io.mosip.idrepository.core.dto.PageDto;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
@@ -63,18 +63,6 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 	
 	/** The Constant USER. */
 	private static final String PRINT_USER = "service-account-mosip-print-client";
-	/** The env. */
-	@Autowired
-	private Environment env;
-
-	/** The Constant DATETIME_PATTERN. */
-	private static final String DATETIME_PATTERN = "mosip.credential.request.datetime.pattern";
-
-	/** The Constant CREDENTIAL_REQUEST_SERVICE_ID. */
-	private static final String CREDENTIAL_REQUEST_SERVICE_ID = "mosip.credential.request.service.id";
-
-	/** The Constant CREDENTIAL_REQUEST_SERVICE_VERSION. */
-	private static final String CREDENTIAL_REQUEST_SERVICE_VERSION = "mosip.credential.request.service.version";
 
 	@Autowired
 	private ObjectMapper mapper;
@@ -151,14 +139,14 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			errorList.add(error);
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL, ExceptionUtils.getStackTrace(e));
 		} finally {
-			credentialIssueResponseWrapper.setId(CREDENTIAL_REQUEST_SERVICE_ID);
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
 			credentialIssueResponseWrapper
 					.setResponsetime(localdatetime);
-			credentialIssueResponseWrapper.setVersion(env.getProperty(CREDENTIAL_REQUEST_SERVICE_VERSION));
+			credentialIssueResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialIssueResponseWrapper.setErrors(errorList);
 			} else {
@@ -232,14 +220,14 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 					requestId,
 					ExceptionUtils.getStackTrace(e));
 		} finally {
-			credentialIssueResponseWrapper.setId(CREDENTIAL_REQUEST_SERVICE_ID);
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
 			credentialIssueResponseWrapper
 					.setResponsetime(localdatetime);
-			credentialIssueResponseWrapper.setVersion(env.getProperty(CREDENTIAL_REQUEST_SERVICE_VERSION));
+			credentialIssueResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialIssueResponseWrapper.setErrors(errorList);
 			} else {
@@ -298,14 +286,14 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					ExceptionUtils.getStackTrace(e));
 		} finally {
-			credentialIssueStatusResponseWrapper.setId(CREDENTIAL_REQUEST_SERVICE_ID);
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			credentialIssueStatusResponseWrapper.setId(EnvUtil.getCredReqServiceId());
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
 			credentialIssueStatusResponseWrapper
 					.setResponsetime(localdatetime);
-			credentialIssueStatusResponseWrapper.setVersion(env.getProperty(CREDENTIAL_REQUEST_SERVICE_VERSION));
+			credentialIssueStatusResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialIssueStatusResponseWrapper.setErrors(errorList);
 			} else {
@@ -436,13 +424,13 @@ try {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, GET_REQUESTIDS,
 					ExceptionUtils.getStackTrace(e));
 		} finally {
-			credentialRequestIdsResponseWrapper.setId(CREDENTIAL_REQUEST_SERVICE_ID);
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			credentialRequestIdsResponseWrapper.setId(EnvUtil.getCredReqServiceId());
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
 			credentialRequestIdsResponseWrapper.setResponsetime(localdatetime);
-			credentialRequestIdsResponseWrapper.setVersion(env.getProperty(CREDENTIAL_REQUEST_SERVICE_VERSION));
+			credentialRequestIdsResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialRequestIdsResponseWrapper.setErrors(errorList);
 			} else {
@@ -507,13 +495,13 @@ try {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					ExceptionUtils.getStackTrace(e));
 		} finally {
-			credentialIssueResponseWrapper.setId(CREDENTIAL_REQUEST_SERVICE_ID);
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
 			credentialIssueResponseWrapper.setResponsetime(localdatetime);
-			credentialIssueResponseWrapper.setVersion(env.getProperty(CREDENTIAL_REQUEST_SERVICE_VERSION));
+			credentialIssueResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialIssueResponseWrapper.setErrors(errorList);
 			} else {

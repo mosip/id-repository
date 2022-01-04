@@ -13,7 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
@@ -39,14 +39,15 @@ import io.mosip.credentialstore.exception.DataEncryptionFailureException;
 import io.mosip.credentialstore.exception.SignatureException;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.RestUtil;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ServiceError;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class})
 public class EncryptionUtilTest {
 	@Mock
-	private Environment environment;
+	private EnvUtil environment;
 
 	/** The rest template. */
 	@Mock
@@ -89,8 +90,7 @@ public class EncryptionUtilTest {
 		zkDataAttributeList.add(zkDataAttribute);
 		encryptZkResponseDto.setZkDataAttributes(zkDataAttributeList);
 		cryptoZkResponseDto.setResponse(encryptZkResponseDto);
-		Mockito.when(environment.getProperty("mosip.credential.service.datetime.pattern"))
-				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		EnvUtil.setDateTimePattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(cryptoResponse);
 

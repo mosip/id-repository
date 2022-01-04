@@ -24,7 +24,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
@@ -42,7 +42,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
-import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.RequestDTO;
@@ -51,6 +50,7 @@ import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.idobjectvalidator.constant.IdObjectValidatorErrorConstant;
@@ -68,7 +68,7 @@ import io.mosip.kernel.idvalidator.uin.impl.UinValidatorImpl;
  */
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @ActiveProfiles("test")
 @ConfigurationProperties("mosip.idrepo.identity")
 public class IdRequestValidatorTest {
@@ -80,9 +80,6 @@ public class IdRequestValidatorTest {
 	
 	@Mock
 	private HttpServletRequest servletRequest;
-
-	@Autowired
-	private Environment env;
 
 	private Map<String, String> id;
 
@@ -130,11 +127,10 @@ public class IdRequestValidatorTest {
 	@Before
 	public void setup() throws RestServiceException, IdRepoDataValidationException {
 		when(servletRequest.getRequestURI()).thenReturn("");
-		uinStatus.add(env.getProperty(IdRepoConstants.ACTIVE_STATUS));
+		uinStatus.add(EnvUtil.getUinActiveStatus());
 		allowedTypes.add("bio,demo,all");
 		ReflectionTestUtils.setField(validator, "id", id);
 		ReflectionTestUtils.setField(validator, "uinStatus", uinStatus);
-		ReflectionTestUtils.setField(validator, "env", env);
 		ReflectionTestUtils.setField(validator, "allowedTypes", allowedTypes);
 		ReflectionTestUtils.setField(validator, "mapper", mapper);
 		errors = new BeanPropertyBindingResult(new IdRequestDTO(), "idRequestDto");
@@ -437,7 +433,7 @@ public class IdRequestValidatorTest {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
 			assertEquals(
 					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(),
-							env.getProperty(IdRepoConstants.MOSIP_KERNEL_IDREPO_JSON_PATH)).replace(".", "/"),
+							EnvUtil.getUinJsonPath()).replace(".", "/"),
 					e.getErrorText());
 		}
 	}

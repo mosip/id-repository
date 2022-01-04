@@ -14,7 +14,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
@@ -32,6 +32,7 @@ import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.vid.entity.Vid;
 import io.mosip.idrepository.vid.interceptor.IdRepoVidEntityInterceptor;
 
@@ -41,7 +42,7 @@ import io.mosip.idrepository.vid.interceptor.IdRepoVidEntityInterceptor;
  */
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @ActiveProfiles("test")
 public class IdRepoVidEntityInterceptorTest {
 
@@ -61,11 +62,10 @@ public class IdRepoVidEntityInterceptorTest {
 	ObjectMapper mapper;
 	
 	@Autowired
-	Environment env;
+	EnvUtil env;
 	
 	@Before
 	public void setup() {
-		ReflectionTestUtils.setField(securityManager, "env", env);
 		ReflectionTestUtils.setField(securityManager, "mapper", mapper);
 		ReflectionTestUtils.setField(interceptor, "securityManager", securityManager);
 	}
