@@ -2,8 +2,11 @@ package io.mosip.idrepository.core.builder;
 
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -57,24 +60,27 @@ public class RestRequestBuilder {
 	private EnvUtil env;
 
 	private static HashMap<String, HashMap<String, String>> mapBuilder = new HashMap<>();
+	
+	/** The logger. */
+	private static Logger mosipLogger = IdRepoLogger.getLogger(RestRequestBuilder.class);
 
 	@PostConstruct
 	private void init() {
-	
-		for(RestServicesConstants service : RestServicesConstants.values()) {	
-			String serviceName = service.getServiceName();
-			if(!mapBuilder.containsKey(serviceName)) {
-				HashMap<String,String> propertiesMap = new HashMap<String,String>();
+
+		List<String> serviceNames = Arrays.stream(RestServicesConstants.values())
+				.map(RestServicesConstants::getServiceName).collect(Collectors.toList());
+		for (String serviceName : serviceNames) {
+			if (!mapBuilder.containsKey(serviceName)) {
+				HashMap<String, String> propertiesMap = new HashMap<>();
 				propertiesMap.put(REST_TIMEOUT, env.getProperty(serviceName.concat(REST_TIMEOUT)));
 				propertiesMap.put(REST_HTTP_METHOD, env.getProperty(serviceName.concat(REST_HTTP_METHOD)));
 				propertiesMap.put(REST_URI, env.getProperty(serviceName.concat(REST_URI)));
-				propertiesMap.put(REST_HEADERS_MEDIA_TYPE, env.getProperty(serviceName.concat(REST_HEADERS_MEDIA_TYPE)));
+				propertiesMap.put(REST_HEADERS_MEDIA_TYPE,
+						env.getProperty(serviceName.concat(REST_HEADERS_MEDIA_TYPE)));
 				mapBuilder.put(serviceName, propertiesMap);
 			}
 		}
 	}
-	/** The logger. */
-	private static Logger mosipLogger = IdRepoLogger.getLogger(RestRequestBuilder.class);
 
 	/**
 	 * Builds the rest request based on the rest service provided using {@code RestServicesConstants}.
