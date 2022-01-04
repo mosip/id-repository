@@ -160,7 +160,7 @@ public class EnvUtil extends AbstractEnvironment {
 	}
 	
 	private void initCredentialRequestGeneratorServiceProperties() {
-		if (env.getRequiredProperty("spring.application.name").startsWith("credential-request")) {
+		if (env.getProperty("spring.application.name", "").startsWith("credential-request")) {
 			setCredReqTokenClientId(super.getProperty("credential.request.token.request.clientId"));
 			setCredReqTokenSecretKey(super.getProperty("credential.request.token.request.secretKey"));
 			setCredReqTokenAppId(super.getProperty("credential.request.token.request.appid"));
@@ -168,7 +168,7 @@ public class EnvUtil extends AbstractEnvironment {
 	}
 	
 	private void initCredentialServiceProperties() {
-		if (env.getRequiredProperty("spring.application.name").startsWith("credential-service")) {
+		if (env.getProperty("spring.application.name", "").startsWith("credential-service")) {
 			setCredServiceTokenRequestClientId(super.getProperty("credential.service.token.request.clientId"));
 			setCredServiceTokenRequestSecretKey(super.getProperty("credential.service.token.request.secretKey"));
 			setCredServiceTokenRequestAppId(super.getProperty("credential.service.token.request.appid"));
