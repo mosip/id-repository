@@ -1,6 +1,8 @@
 package io.mosip.idrepository.core.test.builder;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -65,8 +67,10 @@ public class RestRequestBuilderTest {
 	
 	@Before
 	public void before() {
+		ReflectionTestUtils.setField(restBuilder, "serviceNames", Arrays.stream(RestServicesConstants.values())
+				.map(RestServicesConstants::getServiceName).collect(Collectors.toList()));
 		ReflectionTestUtils.setField(restBuilder, "env", env);
-		ReflectionTestUtils.invokeMethod(restBuilder, "init", null );
+		ReflectionTestUtils.invokeMethod(restBuilder, "init");
 		String serviceName = RestServicesConstants.AUDIT_MANAGER_SERVICE.getServiceName();
 		HashMap<String, String> map = new HashMap<>();
 		map.put(".rest.uri",env.getProperty(serviceName.concat(".rest.uri")));
