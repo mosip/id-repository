@@ -26,6 +26,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_UPDATE_ID;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -42,6 +43,7 @@ import lombok.Setter;
  */
 @Component
 @Primary
+@RefreshScope
 public class EnvUtil extends AbstractEnvironment {
 	
 	@Autowired
