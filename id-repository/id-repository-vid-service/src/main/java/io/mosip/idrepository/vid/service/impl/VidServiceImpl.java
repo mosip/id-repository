@@ -476,7 +476,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	}
 
 	private Map<String, String> getIdHashAndAttributes(String id) {
-		return securityManager.getIdHashAndAttributes(id, uinHashSaltRepo::retrieveSaltById);
+		return securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(id, uinHashSaltRepo::retrieveSaltById);
 	}
 
 	/*
