@@ -237,12 +237,12 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			// UIN value in VID entity
 			if (!vidStatus.contentEquals(DRAFT_STATUS))
 				notify(uin, vidStatus,
-						Collections.singletonList(createVidInfo(vidEntity, getIdHashAndAttributes(vidEntity.getVid()))),
+						Collections.singletonList(createVidInfo(vidEntity, getIdHashAndAttributesForIDAEvent(vidEntity.getVid()))),
 						false);
 			return vidRepo.save(vidEntity);
 		} else if (vidDetails.size() == policy.getAllowedInstances() && Boolean.TRUE.equals(policy.getAutoRestoreAllowed())) {
 			Vid vidObject = vidDetails.get(0);
-			Map<String, String> idHashAndAttributes = getIdHashAndAttributes(vidObject.getVid());
+			Map<String, String> idHashAndAttributes = getIdHashAndAttributesForIDAEvent(vidObject.getVid());
 			vidObject.setStatusCode(policy.getRestoreOnAction());
 			vidObject.setUpdatedBy(IdRepoSecurityManager.getUser());
 			vidObject.setUpdatedDTimes(DateUtils.getUTCCurrentDateTime());
@@ -382,7 +382,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			// onFlushDirty call in the interceptor resulting in inconsistently encrypted
 			// UIN value in VID entity
 			List<VidInfoDTO> vidInfos = vidList.stream()
-					.map(vid -> createVidInfo(vid, getIdHashAndAttributes(vid.getVid())))
+					.map(vid -> createVidInfo(vid, getIdHashAndAttributesForIDAEvent(vid.getVid())))
 					.collect(Collectors.toList());
 			VidsInfosDTO response = new VidsInfosDTO();
 			response.setResponse(vidInfos);
@@ -451,7 +451,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		// Get the salted ID Hash before modifiying the vid entity, otherwise result in
 		// onFlushDirty call in the interceptor resulting in inconsistently encrypted
 		// UIN value in VID entity
-		Map<String, String> idHashAndAttributes = getIdHashAndAttributes(vidObject.getVid());
+		Map<String, String> idHashAndAttributes = getIdHashAndAttributesForIDAEvent(vidObject.getVid());
 		if (!(vidStatus.equals(EnvUtil.getVidUnlimitedTxnStatus())
 				&& Objects.isNull(policy.getAllowedTransactions()))) {
 			vidObject.setStatusCode(vidStatus);
@@ -475,8 +475,9 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		return response;
 	}
 
-	private Map<String, String> getIdHashAndAttributes(String id) {
-		return securityManager.getIdHashAndAttributes(id, uinHashSaltRepo::retrieveSaltById);
+	private Map<String, String> getIdHashAndAttributesForIDAEvent(String id) {
+		//Note this ID Hash is only to be sent in IDA event.
+		return securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(id, uinHashSaltRepo::retrieveSaltById);
 	}
 
 	/*
@@ -572,7 +573,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			// Get the salted ID Hash before modifiying the vid entity, otherwise result in
 			// onFlushDirty call in the interceptor resulting in inconsistently encrypted
 			// UIN value in VID entity
-			Map<String, Map<String, String>> vidHashAttributesMap = vidList.stream().collect(Collectors.toMap(Vid::getVid, vid -> getIdHashAndAttributes(vid.getVid())));
+			Map<String, Map<String, String>> vidHashAttributesMap = vidList.stream().collect(Collectors.toMap(Vid::getVid, vid -> getIdHashAndAttributesForIDAEvent(vid.getVid())));
 			vidList.forEach(vid -> {
 				Map<String, String> idHashAndAttributes = vidHashAttributesMap.get(vid.getVid());
 				vid.setStatusCode(status);

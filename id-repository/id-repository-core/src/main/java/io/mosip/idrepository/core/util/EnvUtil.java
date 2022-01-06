@@ -26,6 +26,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_UPDATE_ID;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
@@ -40,6 +41,7 @@ import lombok.Setter;
  *
  */
 @Component
+@Primary
 public class EnvUtil extends AbstractEnvironment {
 	
 	@Autowired
@@ -105,6 +107,8 @@ public class EnvUtil extends AbstractEnvironment {
 	@PostConstruct
 	public void init() {
 		this.merge((ConfigurableEnvironment) env);
+		this.initCredentialRequestGeneratorServiceProperties();
+		this.initCredentialServiceProperties();
 		setIovDateFormat(super.getProperty("mosip.kernel.idobjectvalidator.date-format"));
 		setAnonymousProfileFilterLanguage(super.getProperty("mosip.mandatory-languages", "").split(",")[0]);
 		setAppId(super.getProperty(IdRepoConstants.APPLICATION_ID));
@@ -136,10 +140,7 @@ public class EnvUtil extends AbstractEnvironment {
 		setPrependThumbprintStatus(super.getProperty(PREPEND_THUMPRINT_STATUS, Boolean.class));
 		setIdrepoSaltKeyLength(super.getProperty(SALT_KEY_LENGTH, Integer.class, DEFAULT_SALT_KEY_LENGTH));
 		setCredReqTokenIssuerUrl(super.getProperty("credential.request.token.request.issuerUrl"));
-		setCredReqTokenClientId(super.getProperty("credential.request.token.request.clientId"));
 		setCredReqTokenVersion(super.getProperty("credential.request.token.request.version"));
-		setCredReqTokenAppId(super.getProperty("credential.request.token.request.appid"));
-		setCredReqTokenSecretKey(super.getProperty("credential.request.token.request.secretKey"));
 		setIsDraftVidTypePresent(super.containsProperty(DEFAULT_VID_TYPE));
 		setDraftVidType(super.getProperty(DEFAULT_VID_TYPE));
 		setCreateVidId(super.getProperty(VID_CREATE_ID));
@@ -157,9 +158,22 @@ public class EnvUtil extends AbstractEnvironment {
 		setCredReqTokenRequestId(super.getProperty("credential.request.token.request.id"));
 		setCredServiceTokenRequestId(super.getProperty("credential.service.token.request.id"));
 		setCredServiceTokenRequestIssuerUrl(super.getProperty("credential.service.token.request.issuerUrl"));
-		setCredServiceTokenRequestClientId(super.getProperty("credential.service.token.request.clientId"));
 		setCredServiceTokenRequestVersion(super.getProperty("credential.service.token.request.version"));
-		setCredServiceTokenRequestAppId(super.getProperty("credential.service.token.request.appid"));
-		setCredServiceTokenRequestSecretKey(super.getProperty("credential.service.token.request.secretKey"));
+	}
+	
+	private void initCredentialRequestGeneratorServiceProperties() {
+		if (env.getProperty("spring.application.name", "").startsWith("credential-request")) {
+			setCredReqTokenClientId(super.getProperty("credential.request.token.request.clientId"));
+			setCredReqTokenSecretKey(super.getProperty("credential.request.token.request.secretKey"));
+			setCredReqTokenAppId(super.getProperty("credential.request.token.request.appid"));
+		}
+	}
+	
+	private void initCredentialServiceProperties() {
+		if (env.getProperty("spring.application.name", "").startsWith("credential-service")) {
+			setCredServiceTokenRequestClientId(super.getProperty("credential.service.token.request.clientId"));
+			setCredServiceTokenRequestSecretKey(super.getProperty("credential.service.token.request.secretKey"));
+			setCredServiceTokenRequestAppId(super.getProperty("credential.service.token.request.appid"));
+		}
 	}
 }

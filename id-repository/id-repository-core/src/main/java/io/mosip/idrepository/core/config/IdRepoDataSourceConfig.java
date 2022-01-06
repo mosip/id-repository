@@ -1,7 +1,9 @@
 package io.mosip.idrepository.core.config;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
@@ -23,6 +25,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 
+import io.mosip.idrepository.core.builder.RestRequestBuilder;
+import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.entity.UinEncryptSalt;
 import io.mosip.idrepository.core.entity.UinHashSalt;
@@ -127,4 +131,12 @@ public class IdRepoDataSourceConfig {
 	public AfterburnerModule afterburnerModule() {
 		return new AfterburnerModule();
 	}
+	
+	@Bean
+	public RestRequestBuilder getRestRequestBuilder() {
+		return new RestRequestBuilder(Arrays.stream(RestServicesConstants.values())
+				.map(RestServicesConstants::getServiceName).collect(Collectors.toList()));
+	}
+	
+	
 }

@@ -1,6 +1,8 @@
 package io.mosip.idrepository.core.test.builder;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -11,6 +13,8 @@ import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -53,7 +57,7 @@ public class RestRequestBuilderTest {
 	RestRequestBuilder restBuilder;
 
 	@Autowired
-	EnvUtil env;
+	Environment env;
 
 	@Autowired
 	MockMvc mockMvc;
@@ -65,8 +69,10 @@ public class RestRequestBuilderTest {
 	
 	@Before
 	public void before() {
+		ReflectionTestUtils.setField(restBuilder, "serviceNames", Arrays.stream(RestServicesConstants.values())
+				.map(RestServicesConstants::getServiceName).collect(Collectors.toList()));
 		ReflectionTestUtils.setField(restBuilder, "env", env);
-		ReflectionTestUtils.invokeMethod(restBuilder, "init", null );
+		ReflectionTestUtils.invokeMethod(restBuilder, "init");
 		String serviceName = RestServicesConstants.AUDIT_MANAGER_SERVICE.getServiceName();
 		HashMap<String, String> map = new HashMap<>();
 		map.put(".rest.uri",env.getProperty(serviceName.concat(".rest.uri")));
@@ -113,7 +119,7 @@ public class RestRequestBuilderTest {
 		environment.setProperty("mosip.idrepo.audit.rest.headers.mediaType", "multipart/form-data");
 		environment.setProperty("mosip.idrepo.audit.rest.uri.queryparam.test", "yes");
 		environment.setProperty("mosip.idrepo.audit.rest.uri.pathparam.test", "yes");
-		env.merge(environment);
+		environment.merge((ConfigurableEnvironment) env);
 		ReflectionTestUtils.setField(restBuilder, "env", env);
 		mapBuilder.get("mosip.idrepo.audit").put(".rest.headers.mediaType","multipart/form-data");
 		ReflectionTestUtils.setField(restBuilder, "mapBuilder", mapBuilder);
@@ -132,7 +138,7 @@ public class RestRequestBuilderTest {
 
 		MockEnvironment environment = new MockEnvironment();
 		environment.setProperty("mosip.idrepo.audit.rest.uri", "");
-		env.merge(environment);
+		environment.merge((ConfigurableEnvironment) env);
 		mapBuilder.get("mosip.idrepo.audit").put(".rest.uri","");
 		ReflectionTestUtils.setField(restBuilder, "mapBuilder", mapBuilder);
 		ReflectionTestUtils.setField(restBuilder, "env", env);
@@ -166,7 +172,7 @@ public class RestRequestBuilderTest {
 
 		MockEnvironment environment = new MockEnvironment();
 		environment.setProperty("mosip.idrepo.audit.rest.httpMethod", "");
-		env.merge(environment);
+		environment.merge((ConfigurableEnvironment) env);
 		ReflectionTestUtils.setField(restBuilder, "env", env);
 
 		mapBuilder.get("mosip.idrepo.audit").put(".rest.httpMethod", "");
@@ -189,7 +195,7 @@ public class RestRequestBuilderTest {
 		environment.setProperty("mosip.idrepo.audit.rest.headers.mediaType", "multipart/form-data");
 		environment.setProperty("mosip.idrepo.audit.rest.uri.queryparam.test", "yes");
 		environment.setProperty("mosip.idrepo.audit.rest.uri.pathparam.test", "yes");
-		env.merge(environment);
+		environment.merge((ConfigurableEnvironment) env);
 		mapBuilder.get("mosip.idrepo.audit").put(".rest.headers.mediaType", "multipart/form-data");
 		ReflectionTestUtils.setField(restBuilder, "mapBuilder", mapBuilder);
 		ReflectionTestUtils.setField(restBuilder, "env", env);
@@ -202,7 +208,7 @@ public class RestRequestBuilderTest {
 
 		MockEnvironment environment = new MockEnvironment();
 		environment.setProperty("mosip.idrepo.audit.rest.timeout", "");
-		env.merge(environment);
+		environment.merge((ConfigurableEnvironment) env);
 		ReflectionTestUtils.setField(restBuilder, "env", env);
 		mapBuilder.get("mosip.idrepo.audit").put(".rest.timeout", "");
 		ReflectionTestUtils.setField(restBuilder, "mapBuilder", mapBuilder);
@@ -218,7 +224,7 @@ public class RestRequestBuilderTest {
 
 		MockEnvironment environment = new MockEnvironment();
 		environment.setProperty("mosip.idrepo.audit.rest.headers.accept", "application/json");
-		env.merge(environment);
+		environment.merge((ConfigurableEnvironment) env);
 
 		ReflectionTestUtils.setField(restBuilder, "env", env);
 

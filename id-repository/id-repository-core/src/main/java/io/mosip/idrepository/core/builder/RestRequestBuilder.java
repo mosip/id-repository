@@ -2,20 +2,18 @@ package io.mosip.idrepository.core.builder;
 
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -24,19 +22,16 @@ import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
 import lombok.NoArgsConstructor;
 
 /**
- * A builder for creating and building RestRequest objects from
- * properties
+ * A builder for creating and building RestRequest objects from properties
  * 
  * @author Manoj SP
  *
  */
-@Component
 @NoArgsConstructor
 public class RestRequestBuilder {
 
@@ -57,18 +52,21 @@ public class RestRequestBuilder {
 
 	/** The env. */
 	@Autowired
-	private EnvUtil env;
+	private Environment env;
 
 	private static HashMap<String, HashMap<String, String>> mapBuilder = new HashMap<>();
-	
+
 	/** The logger. */
 	private static Logger mosipLogger = IdRepoLogger.getLogger(RestRequestBuilder.class);
 
+	private List<String> serviceNames = List.of();
+
+	public RestRequestBuilder(List<String> serviceNames) {
+		this.serviceNames = serviceNames;
+	}
+
 	@PostConstruct
 	private void init() {
-
-		List<String> serviceNames = Arrays.stream(RestServicesConstants.values())
-				.map(RestServicesConstants::getServiceName).collect(Collectors.toList());
 		for (String serviceName : serviceNames) {
 			if (!mapBuilder.containsKey(serviceName)) {
 				HashMap<String, String> propertiesMap = new HashMap<>();
@@ -83,7 +81,8 @@ public class RestRequestBuilder {
 	}
 
 	/**
-	 * Builds the rest request based on the rest service provided using {@code RestServicesConstants}.
+	 * Builds the rest request based on the rest service provided using
+	 * {@code RestServicesConstants}.
 	 *
 	 * @param restService the rest service
 	 * @param requestBody the request body
@@ -99,9 +98,9 @@ public class RestRequestBuilder {
 
 		String serviceName = restService.getServiceName();
 
-		String uri = getProperty(serviceName,REST_URI);
-		String httpMethod = getProperty(serviceName,REST_HTTP_METHOD);
-		String timeout = getProperty(serviceName,REST_TIMEOUT);
+		String uri = getProperty(serviceName, REST_URI);
+		String httpMethod = getProperty(serviceName, REST_HTTP_METHOD);
+		String timeout = getProperty(serviceName, REST_TIMEOUT);
 		HttpHeaders headers = constructHttpHeaders(serviceName);
 
 		checkUri(request, uri);
@@ -116,8 +115,7 @@ public class RestRequestBuilder {
 					request.setRequestBody(requestBody);
 				} else {
 					throw new IdRepoDataValidationException(INVALID_INPUT_PARAMETER.getErrorCode(),
-							String.format(INVALID_INPUT_PARAMETER.getErrorMessage(),
-									"requestBody"));
+							String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "requestBody"));
 				}
 			}
 		}
@@ -151,15 +149,14 @@ public class RestRequestBuilder {
 	private HttpHeaders constructHttpHeaders(String serviceName) throws IdRepoDataValidationException {
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.valueOf(getProperty(serviceName,REST_HEADERS_MEDIA_TYPE)));
+			headers.setContentType(MediaType.valueOf(getProperty(serviceName, REST_HEADERS_MEDIA_TYPE)));
 			return headers;
 		} catch (InvalidMediaTypeException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), METHOD_BUILD_REQUEST, "returnType",
 					"throwing IDDataValidationException - INVALID_INPUT_PARAMETER"
-							+ getProperty(serviceName,REST_HEADERS_MEDIA_TYPE));
-			throw new IdRepoDataValidationException(INVALID_INPUT_PARAMETER.getErrorCode(),
-					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(),
-							getProperty(serviceName,REST_HEADERS_MEDIA_TYPE)));
+							+ getProperty(serviceName, REST_HEADERS_MEDIA_TYPE));
+			throw new IdRepoDataValidationException(INVALID_INPUT_PARAMETER.getErrorCode(), String.format(
+					INVALID_INPUT_PARAMETER.getErrorMessage(), getProperty(serviceName, REST_HEADERS_MEDIA_TYPE)));
 		}
 	}
 
@@ -217,16 +214,16 @@ public class RestRequestBuilder {
 					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "uri"));
 		}
 	}
-	
+
 	/**
 	 * Get Rest properties.
 	 *
 	 * @param serviceName the service name
-	 * @param property the rest property name
+	 * @param property    the rest property name
 	 * @return the rest property
 	 */
-	private String getProperty(String serviceName, String property){
-		if(mapBuilder.containsKey(serviceName) && mapBuilder.get(serviceName).containsKey(property)){
+	private String getProperty(String serviceName, String property) {
+		if (mapBuilder.containsKey(serviceName) && mapBuilder.get(serviceName).containsKey(property)) {
 			return mapBuilder.get(serviceName).get(property);
 		}
 		return null;
