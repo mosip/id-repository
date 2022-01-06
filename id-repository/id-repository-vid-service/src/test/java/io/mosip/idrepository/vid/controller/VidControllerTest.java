@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -39,6 +40,7 @@ import io.mosip.idrepository.core.dto.VidResponseDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.spi.VidService;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.vid.validator.VidRequestValidator;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
@@ -53,7 +55,7 @@ import io.mosip.kernel.core.idvalidator.spi.VidValidator;
  */
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @ConfigurationProperties("mosip.idrepo.vid")
 @ActiveProfiles("test")
 public class VidControllerTest {
@@ -297,13 +299,8 @@ public class VidControllerTest {
 		Map<String, Set<String>> locationDetails = new ObjectMapper().readValue(s,
 				new TypeReference<Map<String, Set<String>>>() {
 				});
-		String req = "Ù…Ù†Ø³Ø± ";
-
 		for (Entry<String, Set<String>> location : locationDetails.entrySet()) {
-			Set<String> set = location.getValue();
-			/*
-			 * for(String str : set) { if(str.equals(req)) { System.out.println(true); } }
-			 */
+			location.getValue();
 		}
 
 	}

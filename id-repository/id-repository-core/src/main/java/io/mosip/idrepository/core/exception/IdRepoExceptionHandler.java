@@ -1,6 +1,5 @@
 package io.mosip.idrepository.core.exception;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.AUTHORIZATION_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_REQUEST;
@@ -20,8 +19,6 @@ import javax.servlet.ServletException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -38,6 +35,7 @@ import io.mosip.idrepository.core.constant.AuthAdapterErrorCode;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.exception.ServiceError;
@@ -76,10 +74,6 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 
 	/** The mosip logger. */
 	Logger mosipLogger = IdRepoLogger.getLogger(IdRepoExceptionHandler.class);
-
-	/** The env. */
-	@Autowired
-	private Environment env;
 
 	/** The id. */
 	@Resource
@@ -282,7 +276,7 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 
 		response.setErrors(getAllErrors(e));
 
-		response.setVersion(env.getProperty(APPLICATION_VERSION));
+		response.setVersion(EnvUtil.getAppVersion());
 
 		return response;
 	}

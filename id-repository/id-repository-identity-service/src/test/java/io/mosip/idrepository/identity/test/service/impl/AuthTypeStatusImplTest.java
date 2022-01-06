@@ -26,12 +26,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,6 +47,7 @@ import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.IdRepoWebSubHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.entity.AuthtypeLock;
 import io.mosip.idrepository.identity.repository.AuthLockRepository;
 import io.mosip.idrepository.identity.service.impl.AuthTypeStatusImpl;
@@ -57,7 +57,7 @@ import io.mosip.kernel.core.util.DateUtils;
 
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @ActiveProfiles("test")
 public class AuthTypeStatusImplTest {
 
@@ -69,10 +69,6 @@ public class AuthTypeStatusImplTest {
 
 	@Mock
 	private IdRepoSecurityManager securityManager;
-
-	/** The environment. */
-	@Autowired
-	private Environment env;
 
 	/** The rest helper. */
 	@Mock
@@ -97,7 +93,6 @@ public class AuthTypeStatusImplTest {
 		partnerResponseObj = mapper.readValue(
 				"{\"response\":{\"partners\":[{\"partnerID\":\"MOVP\",\"status\":\"active\",\"organizationName\":\"movp\",\"contactNumber\":\"\",\"emailId\":\"movp@gmail.com\",\"address\":\"Bangalore\",\"partnerType\":\"Online_Verification_Partner\"}]}}",
 				Object.class);
-		ReflectionTestUtils.setField(authTypeStatusImpl, "env", env);
 	}
 
 	@Test

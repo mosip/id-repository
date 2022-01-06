@@ -18,7 +18,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
@@ -36,17 +36,18 @@ import io.mosip.idrepository.core.dto.IdentityIssuanceProfile;
 import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.entity.AnonymousProfileEntity;
 import io.mosip.idrepository.identity.helper.AnonymousProfileHelper;
 import io.mosip.idrepository.identity.helper.ChannelInfoHelper;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 import io.mosip.idrepository.identity.repository.AnonymousProfileRepo;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.UUIDUtils;
 
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @ActiveProfiles("test")
 public class AnonymousProfileHelperTest {
 
@@ -65,9 +66,6 @@ public class AnonymousProfileHelperTest {
 	@Mock
 	private ChannelInfoHelper channelInfoHelper;
 
-	@Autowired
-	private Environment env;
-
 	IdentityMapping identityMapping;
 	
 	private String cbeff;
@@ -77,7 +75,6 @@ public class AnonymousProfileHelperTest {
 	@Before
 	public void init() throws Exception {
 		ReflectionTestUtils.setField(anonymousProfileHelper, "mapper", mapper);
-		ReflectionTestUtils.setField(anonymousProfileHelper, "env", env);
 		ReflectionTestUtils.setField(anonymousProfileHelper, "identityMappingJson", "");
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		cbeff = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("test-cbeff.xml"),

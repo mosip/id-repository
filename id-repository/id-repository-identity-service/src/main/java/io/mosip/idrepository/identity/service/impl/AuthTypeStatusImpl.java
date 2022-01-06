@@ -9,12 +9,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IDAEventType;
-import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
@@ -29,6 +27,7 @@ import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.AuthtypeStatusService;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.entity.AuthtypeLock;
 import io.mosip.idrepository.identity.repository.AuthLockRepository;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -65,10 +64,6 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 
 	@Autowired
 	private IdRepoSecurityManager securityManager;
-
-	/** The environment. */
-	@Autowired
-	private Environment env;
 
 	/** The rest helper. */
 	@Autowired
@@ -131,7 +126,6 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 		List<String> partnerIds = getPartnerIds();
 		partnerIds.forEach(partnerId -> {
 			String topic = partnerId + "/" + IDAEventType.AUTH_TYPE_STATUS_UPDATE.name();
-			webSubHelper.tryRegisteringTopic(topic);
 			webSubHelper.publishAuthTypeStatusUpdateEvent(uin, authTypeStatusList, topic, partnerId);
 		});
 
@@ -176,8 +170,9 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	}
 
 	private IdResponseDTO doUpdateAuthTypeStatus(String individualId, List<AuthtypeStatus> authTypeStatusList) {
+		String uinHash = securityManager.hash(individualId.getBytes());
 		List<AuthtypeLock> entities = authTypeStatusList.stream()
-				.map(authtypeStatus -> this.putAuthTypeStatus(authtypeStatus, individualId)).collect(Collectors.toList());
+				.map(authtypeStatus -> this.putAuthTypeStatus(authtypeStatus, uinHash)).collect(Collectors.toList());
 		authLockRepository.saveAll(entities);
 
 		return buildResponse();
@@ -191,9 +186,9 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	 * @param reqTime        the req time
 	 * @return the authtype lock
 	 */
-	private AuthtypeLock putAuthTypeStatus(AuthtypeStatus authtypeStatus, String uin) {
+	private AuthtypeLock putAuthTypeStatus(AuthtypeStatus authtypeStatus, String uinHash) {
 		AuthtypeLock authtypeLock = new AuthtypeLock();
-		authtypeLock.setHashedUin(securityManager.hash(uin.getBytes()));
+		authtypeLock.setHashedUin(uinHash);
 		String authType = authtypeStatus.getAuthType();
 		if (authType.equalsIgnoreCase("bio")) {
 			authType = authType + "-" + authtypeStatus.getAuthSubType();
@@ -207,7 +202,7 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 					DateUtils.parseToLocalDateTime((String) authtypeStatus.getMetadata().get(UNLOCK_EXP_TIMESTAMP)));
 		}
 		authtypeLock.setStatuscode(Boolean.toString(authtypeStatus.getLocked()));
-		authtypeLock.setCreatedBy(env.getProperty(IdRepoConstants.APPLICATION_ID));
+		authtypeLock.setCreatedBy(EnvUtil.getAppId());
 		authtypeLock.setCrDTimes(DateUtils.getUTCCurrentDateTime());
 		authtypeLock.setLangCode("");
 		return authtypeLock;

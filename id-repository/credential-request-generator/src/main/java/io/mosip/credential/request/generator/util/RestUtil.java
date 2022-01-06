@@ -21,7 +21,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -38,9 +37,9 @@ import com.google.gson.Gson;
 
 import io.mosip.credential.request.generator.constants.ApiName;
 import io.mosip.idrepository.core.dto.Metadata;
-import io.mosip.idrepository.core.dto.PasswordRequest;
 import io.mosip.idrepository.core.dto.SecretKeyRequest;
 import io.mosip.idrepository.core.dto.TokenRequestDTO;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.TokenHandlerUtil;
@@ -54,7 +53,7 @@ public class RestUtil {
 
 	/** The environment. */
     @Autowired
-    private Environment environment;
+    private EnvUtil environment;
 
 	/** The Constant AUTHORIZATION. */
     private static final String AUTHORIZATION = "Authorization=";
@@ -237,20 +236,20 @@ public class RestUtil {
         if (StringUtils.isNotEmpty(token)) {
 
 			isValid = TokenHandlerUtil.isValidBearerToken(token,
-					environment.getProperty("credential.request.token.request.issuerUrl"),
-					environment.getProperty("credential.request.token.request.clientId"));
+					EnvUtil.getCredReqTokenIssuerUrl(),
+					EnvUtil.getCredReqTokenClientId());
 
 
         }
         if (!isValid) {
             TokenRequestDTO<SecretKeyRequest> tokenRequestDTO = new TokenRequestDTO<SecretKeyRequest>();
-			tokenRequestDTO.setId(environment.getProperty("credential.request.token.request.id"));
+			tokenRequestDTO.setId(EnvUtil.getCredReqTokenRequestId());
             tokenRequestDTO.setMetadata(new Metadata());
 
             tokenRequestDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
             // tokenRequestDTO.setRequest(setPasswordRequestDTO());
             tokenRequestDTO.setRequest(setSecretKeyRequestDTO());
-			tokenRequestDTO.setVersion(environment.getProperty("credential.request.token.request.version"));
+			tokenRequestDTO.setVersion(EnvUtil.getCredReqTokenVersion());
 
             Gson gson = new Gson();
             HttpClient httpClient = HttpClientBuilder.create().build();
@@ -284,22 +283,9 @@ public class RestUtil {
 	 */
     private SecretKeyRequest setSecretKeyRequestDTO() {
         SecretKeyRequest request = new SecretKeyRequest();
-		request.setAppId(environment.getProperty("credential.request.token.request.appid"));
-		request.setClientId(environment.getProperty("credential.request.token.request.clientId"));
-		request.setSecretKey(environment.getProperty("credential.request.token.request.secretKey"));
-        return request;
-    }
-
-	/**
-	 * Sets the password request DTO.
-	 *
-	 * @return the password request
-	 */
-    private PasswordRequest setPasswordRequestDTO() {
-        PasswordRequest request = new PasswordRequest();
-		request.setAppId(environment.getProperty("credential.request.token.request.appid"));
-		request.setPassword(environment.getProperty("credential.request.token.request.password"));
-		request.setUserName(environment.getProperty("credential.request.token.request.username"));
+		request.setAppId(EnvUtil.getCredReqTokenAppId());
+		request.setClientId(EnvUtil.getCredReqTokenClientId());
+		request.setSecretKey(EnvUtil.getCredReqTokenSecretKey());
         return request;
     }
 }
