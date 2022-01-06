@@ -1,6 +1,8 @@
 package io.mosip.credential.request.generator.api.config;
 
+import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,13 +12,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.interceptor.CredentialTransactionInterceptor;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import io.mosip.credential.request.generator.util.RestUtil;
+import io.mosip.idrepository.core.builder.RestRequestBuilder;
+import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
 import io.mosip.kernel.dataaccess.hibernate.repository.impl.HibernateRepositoryImpl;
 import io.swagger.v3.oas.models.Components;
@@ -38,15 +41,12 @@ public class CredentialRequestGeneratorConfig extends HibernateDaoConfig {
 	private RestUtil restUtil;
 	
 	@Autowired
-	private Environment env;
-	
-	@Autowired
 	private OpenApiProperties openApiProperties;
 	
 	@Override
 	public Map<String, Object> jpaProperties() {
 		Map<String, Object> jpaProperties = super.jpaProperties();
-		jpaProperties.put("hibernate.ejb.interceptor", new CredentialTransactionInterceptor(restUtil, env));
+		jpaProperties.put("hibernate.ejb.interceptor", new CredentialTransactionInterceptor(restUtil));
 		return jpaProperties;
 	}
 
@@ -74,5 +74,11 @@ public class CredentialRequestGeneratorConfig extends HibernateDaoConfig {
 		return GroupedOpenApi.builder().group(openApiProperties.getGroup().getName())
 				.pathsToMatch(openApiProperties.getGroup().getPaths().stream().toArray(String[]::new))
 				.build();
+	}
+	
+	@Bean
+	public RestRequestBuilder getRestRequestBuilder() {
+		return new RestRequestBuilder(Arrays.stream(RestServicesConstants.values())
+				.map(RestServicesConstants::getServiceName).collect(Collectors.toList()));
 	}
 }

@@ -24,7 +24,6 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
-import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import io.mosip.credentialstore.constants.CredentialConstants;
@@ -45,6 +44,7 @@ import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.ResponseDTO;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.constant.QualityType;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
@@ -58,7 +58,7 @@ import io.mosip.kernel.biometrics.spi.CbeffUtil;
 public class QrCodeProviderTest {
 	/** The environment. */
 	@Mock
-	private Environment environment;	
+	private EnvUtil environment;	
 	
 	/** The digital signature util. */
 	@Mock
@@ -93,9 +93,7 @@ public class QrCodeProviderTest {
 		PowerMockito.mockStatic(MVEL.class);
 		Mockito.when(MVEL.executeExpression(Mockito.any(), Mockito.any(), Mockito.anyMap(), Mockito.any()))
 				.thenReturn("test");
-		
-		Mockito.when(environment.getProperty("mosip.credential.service.datetime.pattern"))
-		.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		EnvUtil.setDateTimePattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(),Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenReturn("testdata");
 		
@@ -103,7 +101,7 @@ public class QrCodeProviderTest {
 		Mockito.when(utilities.generateId()).thenReturn("test123");
 		Map<String, String> map1 = new HashMap<>();
 		map1.put("UIN", "4238135072");
-		JSONObject jsonObject = new JSONObject(map1);
+		new JSONObject(map1);
 
 
 		policyResponse = new PartnerCredentialTypePolicyDto();

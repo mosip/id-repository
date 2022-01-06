@@ -14,14 +14,12 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,6 +32,7 @@ import com.jayway.jsonpath.Option;
 
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.dto.VidPolicy;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.vid.provider.VidPolicyProvider;
 
 /**
@@ -42,12 +41,9 @@ import io.mosip.idrepository.vid.provider.VidPolicyProvider;
  */
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @ActiveProfiles("test")
 public class VidPolicyProviderTest {
-
-	@Autowired
-	private Environment env;
 
 	@Mock
 	private ObjectMapper mapper;
@@ -57,7 +53,6 @@ public class VidPolicyProviderTest {
 
 	@Before
 	public void setup() {
-		ReflectionTestUtils.setField(policyProvider, "env", env);
 	}
 
 	@SuppressWarnings("unchecked")

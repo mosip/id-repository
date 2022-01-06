@@ -1,6 +1,5 @@
 package io.mosip.idrepository.core.manager;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.CREDENTIAL_STATUS_UPDATE_TOPIC;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
@@ -12,7 +11,6 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,6 +27,7 @@ import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -56,9 +55,6 @@ public class CredentialStatusManager {
 
 	@Autowired
 	private ObjectMapper mapper;
-
-	@Autowired
-	private Environment env;
 
 	@Autowired
 	private UinHashSaltRepo uinHashSaltRepo;
@@ -117,7 +113,7 @@ public class CredentialStatusManager {
 
 	private void handleNewOrUpdatedRequests() {
 		try {
-			String activeStatus = env.getProperty(ACTIVE_STATUS);
+			String activeStatus = EnvUtil.getUinActiveStatus();
 			List<CredentialRequestStatus> newIssueRequestList = statusRepo
 					.findByStatus(CredentialRequestStatusLifecycle.NEW.toString());
 			for (CredentialRequestStatus credentialRequestStatus : newIssueRequestList) {

@@ -1,14 +1,11 @@
 package io.mosip.idrepository.vid.config;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_DB_DRIVER_CLASS_NAME;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_DB_PASSWORD;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_DB_URL;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_DB_USERNAME;
-
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
@@ -20,7 +17,6 @@ import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaVendorAdapter;
@@ -33,12 +29,15 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 
+import io.mosip.idrepository.core.builder.RestRequestBuilder;
+import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.entity.UinEncryptSalt;
 import io.mosip.idrepository.core.entity.UinHashSalt;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.vid.repository.VidRepo;
 
 /**
@@ -54,10 +53,6 @@ import io.mosip.idrepository.vid.repository.VidRepo;
 @EnableAsync
 @EnableJpaRepositories(basePackageClasses = { VidRepo.class, UinHashSaltRepo.class, UinEncryptSaltRepo.class })
 public class VidRepoConfig {
-
-	/** The env. */
-	@Autowired
-	private Environment env;
 
 	/** The Interceptor. */
 	@Autowired
@@ -128,10 +123,10 @@ public class VidRepoConfig {
 	 */
 	@Bean
 	public DataSource dataSource() {
-		DriverManagerDataSource dataSource = new DriverManagerDataSource(env.getProperty(VID_DB_URL));
-		dataSource.setUsername(env.getProperty(VID_DB_USERNAME));
-		dataSource.setPassword(env.getProperty(VID_DB_PASSWORD));
-		dataSource.setDriverClassName(env.getProperty(VID_DB_DRIVER_CLASS_NAME));
+		DriverManagerDataSource dataSource = new DriverManagerDataSource(EnvUtil.getVidDBUrl());
+		dataSource.setUsername(EnvUtil.getVidDBUsername());
+		dataSource.setPassword(EnvUtil.getVidDBPassword());
+		dataSource.setDriverClassName(EnvUtil.getVidDBDriverClassName());
 		dataSource.setSchema("idmap");
 		return dataSource;
 	}
@@ -169,6 +164,12 @@ public class VidRepoConfig {
 	@Bean
 	public AfterburnerModule afterburnerModule() {
 		return new AfterburnerModule();
+	}
+
+	@Bean
+	public RestRequestBuilder getRestRequestBuilder() {
+		return new RestRequestBuilder(Arrays.stream(RestServicesConstants.values())
+				.map(RestServicesConstants::getServiceName).collect(Collectors.toList()));
 	}
 	
 }

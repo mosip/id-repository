@@ -18,7 +18,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
@@ -35,7 +35,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
-import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
@@ -53,6 +52,7 @@ import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.vid.entity.Vid;
 import io.mosip.idrepository.vid.provider.VidPolicyProvider;
 import io.mosip.idrepository.vid.repository.VidRepo;
@@ -67,7 +67,7 @@ import io.mosip.kernel.core.util.DateUtils;
  */
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @ActiveProfiles("test")
 @ConfigurationProperties("mosip.idrepo.vid")
 public class VidServiceImplTest {
@@ -99,7 +99,7 @@ public class VidServiceImplTest {
 	private ObjectMapper mapper;
 
 	@Autowired
-	Environment environment;
+	EnvUtil environment;
 
 	@Mock
 	private UinHashSaltRepo uinHashSaltRepo;
@@ -118,7 +118,6 @@ public class VidServiceImplTest {
 
 	@Before
 	public void before() {
-		ReflectionTestUtils.setField(service, "env", environment);
 		ReflectionTestUtils.setField(restHelper, "mapper", mapper);
 		ReflectionTestUtils.setField(service, "id", id);
 		ReflectionTestUtils.setField(service, "vidActiveStatus", "ACTIVE");
@@ -560,7 +559,7 @@ public class VidServiceImplTest {
 	@Test
 	public void testRetrieveUinByVid() throws IdRepoAppException {
 		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(environment.getProperty(IdRepoConstants.DATETIME_TIMEZONE)))
+				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_null",
 				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "ACTIVE", "IdRepo",
@@ -586,7 +585,7 @@ public class VidServiceImplTest {
 	@Test
 	public void testRetrieveUinByVidExpired() {
 		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(environment.getProperty(IdRepoConstants.DATETIME_TIMEZONE)))
+				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime();
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_null",
 				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "ACTIVATED", "IdRepo",
@@ -609,7 +608,7 @@ public class VidServiceImplTest {
 	@Test
 	public void testRetrieveUinHashNotMatching() {
 		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(environment.getProperty(IdRepoConstants.DATETIME_TIMEZONE)))
+				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime();
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691",
 				"461_7329815461_7C9JlRD32RnFTzAmeTfIzg", "461_7C9JlRD32RnFTzAmeTfIzg", "perpetual",
@@ -632,7 +631,7 @@ public class VidServiceImplTest {
 	@Test
 	public void testRetrieveUinByVidBlocked() {
 		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(environment.getProperty(IdRepoConstants.DATETIME_TIMEZONE)))
+				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_null",
 				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "Blocked", "IdRepo",
@@ -669,7 +668,7 @@ public class VidServiceImplTest {
 	@Test
 	public void testUpdateVidvalid() throws IdRepoAppException {
 		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(environment.getProperty(IdRepoConstants.DATETIME_TIMEZONE)))
+				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_3920450236",
 				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "ACTIVE", "IdRepo",
@@ -697,7 +696,7 @@ public class VidServiceImplTest {
 	@Test
 	public void testUpdateVidvalidREVOKE() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
 		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(environment.getProperty(IdRepoConstants.DATETIME_TIMEZONE)))
+				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_null",
 				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "ACTIVE", "IdRepo",
@@ -757,7 +756,7 @@ public class VidServiceImplTest {
 	@Test
 	public void testRegenerate_Valid() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
 		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(environment.getProperty(IdRepoConstants.DATETIME_TIMEZONE)))
+				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		String vidValue = "2015642902372691";
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", vidValue, "461_null",
@@ -814,7 +813,7 @@ public class VidServiceImplTest {
 	@Test
 	public void testRegenerateVid_InValidStatus() throws IdRepoAppException {
 		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(environment.getProperty(IdRepoConstants.DATETIME_TIMEZONE)))
+				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691",
 				"461_7329815461_7C9JlRD32RnFTzAmeTfIzg", "461_7C9JlRD32RnFTzAmeTfIzg", "perpetual",
@@ -857,7 +856,7 @@ public class VidServiceImplTest {
 	@Test
 	public void testRegenerate_IdRepoAppUncheckedException() throws Throwable {
 		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(environment.getProperty(IdRepoConstants.DATETIME_TIMEZONE)))
+				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_null",
 				"461_7329815461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "ACTIVE", "IdRepo",
@@ -898,7 +897,7 @@ public class VidServiceImplTest {
 	@Test
 	public void testRegenerate_AutoRestoreNotAllowed() throws Throwable {
 		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(environment.getProperty(IdRepoConstants.DATETIME_TIMEZONE)))
+				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691",
 				"461_7329815461_7C9JlRD32RnFTzAmeTfIzg", "461_7329815461_7C9JlRD32RnFTzAmeTfIzg", "perpetual",

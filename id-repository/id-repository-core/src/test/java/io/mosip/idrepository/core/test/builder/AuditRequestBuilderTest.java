@@ -11,22 +11,21 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.InjectMocks;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.WebApplicationContext;
 
 import io.mosip.idrepository.core.builder.AuditRequestBuilder;
 import io.mosip.idrepository.core.constant.AuditEvents;
 import io.mosip.idrepository.core.constant.AuditModules;
-import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.AuditRequestDTO;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.http.RequestWrapper;
 
 /**
@@ -35,7 +34,7 @@ import io.mosip.kernel.core.http.RequestWrapper;
  */
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @ActiveProfiles("test")
 public class AuditRequestBuilderTest {
@@ -43,12 +42,8 @@ public class AuditRequestBuilderTest {
 	@InjectMocks
 	AuditRequestBuilder auditBuilder;
 
-	@Autowired
-	Environment env;
-
 	@Before
 	public void before() {
-		ReflectionTestUtils.setField(auditBuilder, "env", env);
 	}
 
 	@Test
@@ -66,13 +61,13 @@ public class AuditRequestBuilderTest {
 			expectedRequest.setActionTimeStamp(null);
 			expectedRequest.setHostName(inetAddress.getHostName());
 			expectedRequest.setHostIp(inetAddress.getHostAddress());
-			expectedRequest.setApplicationId(env.getProperty(IdRepoConstants.APPLICATION_ID));
-			expectedRequest.setApplicationName(env.getProperty(IdRepoConstants.APPLICATION_NAME));
+			expectedRequest.setApplicationId(EnvUtil.getAppId());
+			expectedRequest.setApplicationName(EnvUtil.getAppName());
 			expectedRequest.setSessionUserId("sessionUserId");
 			expectedRequest.setSessionUserName("sessionUserName");
 			expectedRequest.setId("id");
 			expectedRequest.setIdType(IdType.ID.getIdType());
-			expectedRequest.setCreatedBy(env.getProperty("user.name"));
+			expectedRequest.setCreatedBy(IdRepoSecurityManager.getUser());
 			expectedRequest.setModuleName(AuditModules.ID_REPO_CORE_SERVICE.getModuleName());
 			expectedRequest.setModuleId(AuditModules.ID_REPO_CORE_SERVICE.getModuleId());
 			expectedRequest.setDescription("desc");

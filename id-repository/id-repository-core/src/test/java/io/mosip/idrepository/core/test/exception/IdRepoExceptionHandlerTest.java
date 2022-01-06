@@ -9,15 +9,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +40,7 @@ import io.mosip.idrepository.core.exception.AuthenticationException;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.IdRepoExceptionHandler;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ServiceError;
 
 /**
@@ -51,15 +50,12 @@ import io.mosip.kernel.core.exception.ServiceError;
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @ActiveProfiles("test")
 @ConfigurationProperties("mosip.idrepo.identity")
 public class IdRepoExceptionHandlerTest {
 
 	private Map<String, String> id;
-
-	@Autowired
-	Environment env;
 
 	/** The errors. */
 	@Mock
@@ -85,7 +81,6 @@ public class IdRepoExceptionHandlerTest {
 	 */
 	@Before
 	public void before() {
-		ReflectionTestUtils.setField(handler, "env", env);
 		ReflectionTestUtils.setField(handler, "id", id);
 	}
 

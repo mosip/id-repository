@@ -17,7 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.ContextConfiguration;
@@ -42,11 +42,12 @@ import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
 import io.mosip.idrepository.core.dto.CredentialRequestIdsDto;
 import io.mosip.idrepository.core.dto.PageDto;
 import io.mosip.idrepository.core.helper.AuditHelper;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.http.ResponseWrapper;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class})
 public class CredentialRequestServiceImplTest {
 
@@ -58,7 +59,7 @@ public class CredentialRequestServiceImplTest {
 	private CredentialRequestServiceImpl credentialRequestServiceImpl;
 	
 	@Mock
-	private Environment env;
+	private EnvUtil env;
 	
 	@Mock
 	CredentialEntity credentialEntity;
@@ -76,11 +77,8 @@ public class CredentialRequestServiceImplTest {
 	
 	@Before
 	public void setUp() {
-		
 		Mockito.when(utilities.generateId()).thenReturn("123456");
-		Mockito.when(env.getProperty("mosip.credential.request.datetime.pattern"))
-		.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		
+		EnvUtil.setDateTimePattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 	}
 	
 
@@ -338,7 +336,7 @@ public class CredentialRequestServiceImplTest {
 		credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		credentialList.add(credentialEntity);
-		Page<CredentialEntity> page = new PageImpl<>(credentialList);
+		new PageImpl<>(credentialList);
 
 		Mockito.when(credentialRepositary.fingByStatusCode(Mockito.any(), Mockito.any())).thenReturn(null);
 		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
@@ -385,7 +383,7 @@ public class CredentialRequestServiceImplTest {
 		credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		credentialList.add(credentialEntity);
-		Page<CredentialEntity> page = new PageImpl<>(credentialList);
+		new PageImpl<>(credentialList);
 
 		Mockito.when(credentialRepositary.fingByStatusCode(Mockito.any(), Mockito.any()))
 				.thenThrow(new DataAccessLayerException("", "", new Throwable()));
