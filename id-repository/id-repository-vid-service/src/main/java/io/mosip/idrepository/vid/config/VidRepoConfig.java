@@ -63,9 +63,6 @@ public class VidRepoConfig {
 	@Autowired
 	private Interceptor interceptor;
 	
-	@Autowired
-	private EnvUtil env;
-
 	/** The id. */
 	private Map<String, String> id;
 
@@ -130,7 +127,7 @@ public class VidRepoConfig {
 	 * @return the data source
 	 */
 	@Bean
-	public DataSource dataSource() {
+	public DataSource dataSource(EnvUtil env) {
 		DriverManagerDataSource dataSource = new DriverManagerDataSource(env.getProperty(VID_DB_URL));
 		dataSource.setUsername(env.getProperty(VID_DB_USERNAME));
 		dataSource.setPassword(env.getProperty(VID_DB_PASSWORD));
@@ -139,9 +136,9 @@ public class VidRepoConfig {
 	}
 
 	@Bean
-	public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+	public LocalContainerEntityManagerFactoryBean entityManagerFactory(EnvUtil env) {
 		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-		em.setDataSource(dataSource());
+		em.setDataSource(dataSource(env));
 		em.setPackagesToScan("io.mosip.idrepository.vid.*");
 
 		JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
