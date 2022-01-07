@@ -12,6 +12,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -63,7 +64,7 @@ public class AuditHelperTest {
 	RestRequestBuilder restBuilder;
 
 	@Autowired
-	EnvUtil env;
+	Environment env;
 
 	@Before
 	public void before() {
