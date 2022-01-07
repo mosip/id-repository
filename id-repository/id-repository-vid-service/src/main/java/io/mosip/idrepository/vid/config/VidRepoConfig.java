@@ -1,5 +1,10 @@
 package io.mosip.idrepository.vid.config;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_DB_DRIVER_CLASS_NAME;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_DB_PASSWORD;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_DB_URL;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_DB_USERNAME;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -57,7 +62,7 @@ public class VidRepoConfig {
 	/** The Interceptor. */
 	@Autowired
 	private Interceptor interceptor;
-
+	
 	/** The id. */
 	private Map<String, String> id;
 
@@ -122,19 +127,18 @@ public class VidRepoConfig {
 	 * @return the data source
 	 */
 	@Bean
-	public DataSource dataSource() {
-		DriverManagerDataSource dataSource = new DriverManagerDataSource(EnvUtil.getVidDBUrl());
-		dataSource.setUsername(EnvUtil.getVidDBUsername());
-		dataSource.setPassword(EnvUtil.getVidDBPassword());
-		dataSource.setDriverClassName(EnvUtil.getVidDBDriverClassName());
-		dataSource.setSchema("idmap");
+	public DataSource dataSource(EnvUtil env) {
+		DriverManagerDataSource dataSource = new DriverManagerDataSource(env.getProperty(VID_DB_URL));
+		dataSource.setUsername(env.getProperty(VID_DB_USERNAME));
+		dataSource.setPassword(env.getProperty(VID_DB_PASSWORD));
+		dataSource.setDriverClassName(env.getProperty(VID_DB_DRIVER_CLASS_NAME));
 		return dataSource;
 	}
 
 	@Bean
-	public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+	public LocalContainerEntityManagerFactoryBean entityManagerFactory(EnvUtil env) {
 		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-		em.setDataSource(dataSource());
+		em.setDataSource(dataSource(env));
 		em.setPackagesToScan("io.mosip.idrepository.vid.*");
 
 		JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
