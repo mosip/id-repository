@@ -7,7 +7,6 @@ import java.util.Objects;
 
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
-import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 
 import io.mosip.credential.request.generator.constants.ApiName;
@@ -16,8 +15,8 @@ import io.mosip.credential.request.generator.dto.CryptomanagerRequestDto;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorUncheckedException;
 import io.mosip.credential.request.generator.util.RestUtil;
-import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
@@ -34,13 +33,10 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 
 	private transient RestUtil restUtil;
 	
-	private transient Environment env;
-
 	private static final long serialVersionUID = 1L;
 
-	public CredentialTransactionInterceptor(RestUtil restUtil, Environment env) {
+	public CredentialTransactionInterceptor(RestUtil restUtil) {
 		this.restUtil = restUtil;
-		this.env = env;
 	}
 
 	@Override
@@ -82,9 +78,9 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 		try {
 			RequestWrapper<CryptomanagerRequestDto> requestWrapper = new RequestWrapper<>();
 			CryptomanagerRequestDto cryptoRequest = new CryptomanagerRequestDto();
-			cryptoRequest.setApplicationId(env.getProperty(IdRepoConstants.APPLICATION_ID));
+			cryptoRequest.setApplicationId(EnvUtil.getAppId());
 			cryptoRequest.setData(request);
-			cryptoRequest.setReferenceId(env.getProperty(IdRepoConstants.CREDENTIAL_CRYPTO_REF_ID));
+			cryptoRequest.setReferenceId(EnvUtil.getCredCryptoRefId());
 			requestWrapper.setRequest(cryptoRequest);
 			cryptoRequest.setTimeStamp(DateUtils.getUTCCurrentDateTime());
 			requestWrapper.setRequest(cryptoRequest);

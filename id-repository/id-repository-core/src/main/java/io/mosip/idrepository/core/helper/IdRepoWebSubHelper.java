@@ -32,11 +32,11 @@ import io.mosip.idrepository.core.constant.EventType;
 import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.dto.AuthTypeStatusEventDTO;
 import io.mosip.idrepository.core.dto.AuthtypeStatus;
-import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.TokenIDGenerator;
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.model.Event;
@@ -44,6 +44,7 @@ import io.mosip.kernel.core.websub.model.EventModel;
 import io.mosip.kernel.core.websub.model.Type;
 import io.mosip.kernel.core.websub.spi.PublisherClient;
 import io.mosip.kernel.core.websub.spi.SubscriptionClient;
+import io.mosip.kernel.websub.api.constants.WebSubClientErrorCode;
 import io.mosip.kernel.websub.api.exception.WebSubClientException;
 import io.mosip.kernel.websub.api.model.SubscriptionChangeRequest;
 import io.mosip.kernel.websub.api.model.SubscriptionChangeResponse;
@@ -104,32 +105,36 @@ public class IdRepoWebSubHelper {
 	/*
 	 * Cacheable is added to execute topic registration only once per topic
 	 */
-	@Async
 	public void tryRegisteringTopic(String topic) {
-		synchronized (registeredTopicCache) {
-			// Skip topic registration if already registered
-			if (registeredTopicCache.contains(topic)) {
-				return;
-			} else {
-				try {
-					publisher.registerTopic(topic, publisherURL);
+		if (!registeredTopicCache.contains(topic)) {
+			try {
+				this.registerTopic(topic);
+				registeredTopicCache.add(topic);
+			} catch (WebSubClientException e) {
+				if (WebSubClientErrorCode.REGISTER_ERROR.getErrorCode().equals(e.getErrorCode())) {
+					// If topic is already registered this error is expected, then we will add the
+					// topic to cache
 					registeredTopicCache.add(topic);
-				} catch (WebSubClientException | IdRepoAppUncheckedException e) {
-					mosipLogger.warn(IdRepoSecurityManager.getUser(), "IdRepoConfig", "init", e.getMessage().toUpperCase());
 				}
+				mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
+						"tryRegisteringTopic", e.getMessage().toUpperCase());
+			} catch (Exception e) {
+				mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
+						"tryRegisteringTopic", ExceptionUtils.getStackTrace(e));
 			}
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	@Async
-	public void publishAuthTypeStatusUpdateEvent(String individualId, List<AuthtypeStatus> authTypeStatusList, String topic,
-			String partnerId) {
+	public void publishAuthTypeStatusUpdateEvent(String individualId, List<AuthtypeStatus> authTypeStatusList,
+			String topic, String partnerId) {
 		AuthTypeStatusEventDTO event = new AuthTypeStatusEventDTO();
 		event.setTokenId(tokenIdGenerator.generateTokenID(individualId, partnerId));
 		event.setAuthTypeStatusList(authTypeStatusList);
 		Map<String, String> dataMap = mapper.convertValue(event, Map.class);
-		EventModel eventModel = createEventModel(IDAEventType.AUTH_TYPE_STATUS_UPDATE, null, null, null, partnerId, null, dataMap );
+		EventModel eventModel = createEventModel(IDAEventType.AUTH_TYPE_STATUS_UPDATE, null, null, null, partnerId,
+				null, dataMap);
+		this.tryRegisteringTopic(topic);
 		this.publishEvent(eventModel);
 	}
 	
@@ -162,7 +167,7 @@ public class IdRepoWebSubHelper {
 	 * @param idHash           the id hash
 	 * @return the event model
 	 */
-	public EventModel createEventModel(EventType eventType, LocalDateTime expiryTimestamp, Integer transactionLimit,
+	private EventModel createEventModel(EventType eventType, LocalDateTime expiryTimestamp, Integer transactionLimit,
 			String transactionId, String partner, String idHash, Map<String, String> dataMap) {
 		EventModel model = new EventModel();
 		model.setPublisher(ID_REPO);
@@ -203,7 +208,6 @@ public class IdRepoWebSubHelper {
 	 *
 	 * @param model the model
 	 */
-	@Async
 	public void sendEventToIDA(EventModel model, Consumer<EventModel> idaEventModelConsumer) {
 		if (idaEventModelConsumer != null) {
 			idaEventModelConsumer.accept(model);
@@ -222,7 +226,7 @@ public class IdRepoWebSubHelper {
 			}
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_EVENT_TO_IDA,
 					"Publising event to topic: " + model.getTopic());
-			publisher.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null, publisherURL);
+			this.publishEvent(model);
 		}
 	}
 
@@ -242,14 +246,17 @@ public class IdRepoWebSubHelper {
 		}
 	}
 
-	@Async
 	public void publishEvent(EventModel event) {
 		this.publishEvent(event.getTopic(), event);
 	}
 	
 	@Async
+	public void registerTopic(String topic) {
+		publisher.registerTopic(topic, publisherURL);
+	}
+	
+	@Async
 	public <U> void publishEvent(String eventTopic, U eventModel) {
-		this.tryRegisteringTopic(eventTopic);
 		publisher.publishUpdate(eventTopic, eventModel, MediaType.APPLICATION_JSON_VALUE, null, publisherURL);
 	}
 }

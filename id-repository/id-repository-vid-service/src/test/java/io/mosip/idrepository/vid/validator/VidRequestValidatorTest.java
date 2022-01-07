@@ -18,7 +18,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
@@ -29,10 +29,10 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.web.context.WebApplicationContext;
 
-import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.VidRequestDTO;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.core.validator.BaseIdRepoValidator;
 import io.mosip.idrepository.vid.provider.VidPolicyProvider;
 import io.mosip.kernel.core.http.RequestWrapper;
@@ -48,7 +48,7 @@ import io.mosip.kernel.core.util.DateUtils;
  */
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @ConfigurationProperties("mosip.idrepo.vid")
 @ActiveProfiles("test")
 public class VidRequestValidatorTest {
@@ -66,7 +66,7 @@ public class VidRequestValidatorTest {
 	private UinValidator<String> uinValidator;
 
 	@Autowired
-	protected Environment env;
+	protected EnvUtil env;
 
 	@Mock
 	private VidPolicyProvider policyProvider;
@@ -99,7 +99,6 @@ public class VidRequestValidatorTest {
 		ReflectionTestUtils.setField(requestValidator, "allowedStatus", allowedStatus);
 		ReflectionTestUtils.setField(requestValidator, "id", id);
 		ReflectionTestUtils.setField(baseValidator, "id", id);
-		ReflectionTestUtils.setField(requestValidator, "env", env);
 		ReflectionTestUtils.setField(requestValidator, "vidValidator", vidValidator);
 		ReflectionTestUtils.setField(requestValidator, "policyProvider", policyProvider);
 		ReflectionTestUtils.setField(requestValidator, "uinValidator", uinValidator);
@@ -196,7 +195,7 @@ public class VidRequestValidatorTest {
 		request.setVidStatus("ACTIVE");
 		req.setVersion("v1");
 		req.setRequesttime(DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(env.getProperty(IdRepoConstants.DATETIME_TIMEZONE))).toLocalDateTime());
+				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone())).toLocalDateTime());
 		req.setRequest(request);
 		ReflectionTestUtils.invokeMethod(requestValidator, "validate", req, errors);
 		assertFalse(errors.hasErrors());
@@ -209,7 +208,7 @@ public class VidRequestValidatorTest {
 		req.setRequest(null);
 		req.setVersion("v1");
 		req.setRequesttime(DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(env.getProperty(IdRepoConstants.DATETIME_TIMEZONE))).toLocalDateTime());
+				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone())).toLocalDateTime());
 		ReflectionTestUtils.invokeMethod(requestValidator, "validate", req, errors);
 		assertTrue(errors.hasErrors());
 		errors.getAllErrors().forEach(error -> {
@@ -236,7 +235,7 @@ public class VidRequestValidatorTest {
 		request.setUin("2953190571");
 		req.setVersion("v1");
 		req.setRequesttime(DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(env.getProperty(IdRepoConstants.DATETIME_TIMEZONE))).toLocalDateTime());
+				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone())).toLocalDateTime());
 		req.setRequest(request);
 		HashSet<String> value = new HashSet<String>();
 		value.add("Perpetual".toUpperCase());
@@ -257,7 +256,7 @@ public class VidRequestValidatorTest {
 		request.setVidType("Temp");
 		req.setVersion("v1");
 		req.setRequesttime(DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(env.getProperty(IdRepoConstants.DATETIME_TIMEZONE))).toLocalDateTime());
+				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone())).toLocalDateTime());
 		req.setRequest(request);
 		HashSet<String> value = new HashSet<String>();
 		value.add("Perpetual");
@@ -283,7 +282,7 @@ public class VidRequestValidatorTest {
 		request.setVidType(null);
 		req.setVersion("v1");
 		req.setRequesttime(DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(env.getProperty(IdRepoConstants.DATETIME_TIMEZONE))).toLocalDateTime());
+				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone())).toLocalDateTime());
 		req.setRequest(request);
 		HashSet<String> value = new HashSet<String>();
 		value.add("Perpetual");

@@ -18,7 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -40,14 +40,15 @@ import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.ResponseDTO;
+import io.mosip.idrepository.core.util.EnvUtil;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class})
 public class CredentialProviderTest {
 	/** The environment. */
 	@Mock
-	private Environment environment;	
+	private EnvUtil environment;	
 	
 
 	
@@ -73,8 +74,7 @@ public class CredentialProviderTest {
 
 	@Before
 	public void setUp() throws DataEncryptionFailureException, ApiNotAccessibleException, SignatureException {
-		Mockito.when(environment.getProperty("mosip.credential.service.datetime.pattern"))
-		.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		EnvUtil.setDateTimePattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenReturn("testdata");
 		

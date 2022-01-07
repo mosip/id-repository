@@ -17,7 +17,6 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -34,6 +33,7 @@ import io.mosip.credentialstore.exception.SignatureException;
 import io.mosip.credentialstore.util.DataShareUtil;
 import io.mosip.credentialstore.util.RestUtil;
 import io.mosip.idrepository.core.dto.ErrorDTO;
+import io.mosip.idrepository.core.util.EnvUtil;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*", "org.w3c.dom.*",
@@ -61,7 +61,7 @@ public class DataShareUtilTest {
 	String dataShareResponse;
 
 	@Mock
-	private Environment env;
+	private EnvUtil env;
 
 	@SuppressWarnings("unchecked")
 	@Before
