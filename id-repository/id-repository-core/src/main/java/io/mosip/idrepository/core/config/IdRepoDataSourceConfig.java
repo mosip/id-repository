@@ -43,6 +43,9 @@ public class IdRepoDataSourceConfig {
 
 	@Autowired(required = false)
 	private Interceptor interceptor;
+	
+	@Autowired
+	private EnvUtil env;
 
 	/**
 	 * Entity manager factory.
@@ -117,13 +120,13 @@ public class IdRepoDataSourceConfig {
 	public DataSource dataSource() {
 //		If sharding is enabled, need to uncomment
 //		return buildDataSource(db.get("shard"));
-
+		
 //		If sharding is enabled, need to comment below code
 		Map<String, String> dbValues = new HashMap<>();
-		dbValues.put("url", EnvUtil.getIdrepoDBUrl());
-		dbValues.put("username", EnvUtil.getIdrepoDBUsername());
-		dbValues.put("password", EnvUtil.getIdrepoDBPassword());
-		dbValues.put("driverClassName", EnvUtil.getIdrepoDBDriverClassName());
+		dbValues.put("url", env.getProperty("mosip.idrepo.identity.db.url"));
+		dbValues.put("username", env.getProperty("mosip.idrepo.identity.db.username"));
+		dbValues.put("password", env.getProperty("mosip.idrepo.identity.db.password"));
+		dbValues.put("driverClassName", env.getProperty("mosip.idrepo.identity.db.driverClassName"));
 		return buildDataSource(dbValues);
 	}
 	
