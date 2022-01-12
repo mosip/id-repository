@@ -134,6 +134,8 @@ public class IdAuthProvider extends CredentialProvider {
 		}
 
 		 Map<String,Object> additionalData=credentialServiceRequestDto.getAdditionalData();
+		 //FIXME added for temporary debugging
+		 LOGGER.debug("Demo data: " + demoZkDataAttributes);
 		 if(!demoZkDataAttributes.isEmpty()) {
 				EncryptZkResponseDto demoEncryptZkResponseDto = encryptionUtil
 						.encryptDataWithZK(credentialServiceRequestDto.getId(), demoZkDataAttributes, requestId);
