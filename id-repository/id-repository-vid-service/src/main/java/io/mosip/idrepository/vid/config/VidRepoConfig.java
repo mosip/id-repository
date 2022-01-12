@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
@@ -22,6 +23,7 @@ import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaVendorAdapter;
@@ -30,6 +32,8 @@ import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
 import org.springframework.orm.jpa.persistenceunit.PersistenceUnitPostProcessor;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
@@ -39,11 +43,14 @@ import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.entity.UinEncryptSalt;
 import io.mosip.idrepository.core.entity.UinHashSalt;
 import io.mosip.idrepository.core.helper.RestHelper;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.vid.repository.VidRepo;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.StringUtils;
 
 /**
  * The Class Vid Repo Config.
@@ -58,6 +65,8 @@ import io.mosip.idrepository.vid.repository.VidRepo;
 @EnableAsync
 @EnableJpaRepositories(basePackageClasses = { VidRepo.class, UinHashSaltRepo.class, UinEncryptSaltRepo.class })
 public class VidRepoConfig {
+	
+	Logger mosipLogger = IdRepoLogger.getLogger(VidRepoConfig.class);
 
 	/** The Interceptor. */
 	@Autowired
@@ -174,6 +183,49 @@ public class VidRepoConfig {
 	public RestRequestBuilder getRestRequestBuilder() {
 		return new RestRequestBuilder(Arrays.stream(RestServicesConstants.values())
 				.map(RestServicesConstants::getServiceName).collect(Collectors.toList()));
+	}
+	
+	@Bean
+	@Primary
+	public Executor executor() {
+	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+	    executor.setCorePoolSize(Math.floorDiv(EnvUtil.getActiveAsyncThreadCount(), 4));
+	    executor.setMaxPoolSize(EnvUtil.getActiveAsyncThreadCount());
+	    executor.setThreadNamePrefix("idrepo-vid-");
+	    executor.setWaitForTasksToCompleteOnShutdown(true);
+	    executor.initialize();
+	    return executor;
+	}
+	
+	@Bean
+	@Qualifier("webSubHelperExecutor")
+	public Executor webSubHelperExecutor() {
+	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+	    executor.setCorePoolSize(Math.floorDiv(EnvUtil.getActiveAsyncThreadCount(), 4));
+	    executor.setMaxPoolSize(EnvUtil.getActiveAsyncThreadCount());
+	    executor.setThreadNamePrefix("idrepo-websub-");
+	    executor.setWaitForTasksToCompleteOnShutdown(true);
+	    executor.initialize();
+	    return executor;
+	}
+	
+	@Scheduled(fixedRateString = "${" + "mosip.idrepo.monitor-thread-queue-in-ms" + ":10000}")
+	public void monitorThreadQueueLimit() {
+		if (StringUtils.isNotBlank(EnvUtil.getMonitorAsyncThreadQueue())) {
+			ThreadPoolTaskExecutor threadPoolTaskExecutor = (ThreadPoolTaskExecutor) executor();
+			ThreadPoolTaskExecutor webSubHelperExecutor = (ThreadPoolTaskExecutor) webSubHelperExecutor();
+			String monitoringLog = "Thread Name : {} Thread Active Count: {} Thread Task count: {} Thread queue count: {}";
+			logThreadQueueDetails(threadPoolTaskExecutor, threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size(), monitoringLog);
+			logThreadQueueDetails(webSubHelperExecutor, webSubHelperExecutor.getThreadPoolExecutor().getQueue().size(), monitoringLog);
+		}
+	}
+
+	private void logThreadQueueDetails(ThreadPoolTaskExecutor threadPoolTaskExecutor, int threadPoolQueueSize,
+			String monitoringLog) {
+		if (threadPoolQueueSize > EnvUtil.getAsyncThreadQueueThreshold())
+			mosipLogger.info(monitoringLog, threadPoolTaskExecutor.getThreadNamePrefix(),
+					threadPoolTaskExecutor.getActiveCount(),
+					threadPoolTaskExecutor.getThreadPoolExecutor().getTaskCount(), threadPoolQueueSize);
 	}
 	
 }
