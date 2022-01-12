@@ -55,6 +55,7 @@ import io.mosip.kernel.websub.api.model.UnsubscriptionRequest;
  *
  */
 @Component
+@Async("webSubHelperExecutor")
 public class IdRepoWebSubHelper {
 
 	private static final String SEND_EVENT_TO_IDA = "sendEventToIDA";
@@ -250,12 +251,10 @@ public class IdRepoWebSubHelper {
 		this.publishEvent(event.getTopic(), event);
 	}
 	
-	@Async
 	public void registerTopic(String topic) {
 		publisher.registerTopic(topic, publisherURL);
 	}
 	
-	@Async
 	public <U> void publishEvent(String eventTopic, U eventModel) {
 		publisher.publishUpdate(eventTopic, eventModel, MediaType.APPLICATION_JSON_VALUE, null, publisherURL);
 	}
