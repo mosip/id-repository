@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -26,12 +25,11 @@ import io.mosip.idrepository.core.dto.Exceptions;
 import io.mosip.idrepository.core.dto.IdentityIssuanceProfile;
 import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
-import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.biometrics.commons.CbeffValidator;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BIR;
-import io.mosip.kernel.biometrics.entities.Entry;
 import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.util.CryptoUtil;
 import lombok.Data;
 
 @Data
@@ -169,10 +167,9 @@ public class IdentityIssuanceProfileBuilder {
 	private List<Exceptions> getExceptions(List<BIR> bioData) {
 		if (Objects.nonNull(bioData))
 			return bioData.stream().filter(bir -> Objects.nonNull(bir.getOthers()))
-					.filter(bir -> bir.getOthers().stream()
-							.anyMatch(others -> others.getKey().contentEquals("EXCEPTION")))
-					.filter(bir -> bir.getOthers().stream().filter(others -> others.getKey().contentEquals("EXCEPTION"))
-							.findAny().get().getValue().contentEquals("true"))
+					.filter(bir -> bir.getOthers().keySet().stream()
+							.anyMatch(key -> key.contentEquals("EXCEPTION")))
+					.filter(bir -> bir.getOthers().get("EXCEPTION").contentEquals("true"))
 					.map(bir -> Exceptions.builder()
 							.type(bir.getBdbInfo().getType().stream().map(BiometricType::value)
 									.collect(Collectors.joining(" ")))
@@ -191,13 +188,15 @@ public class IdentityIssuanceProfileBuilder {
 		if (Objects.nonNull(biometrics))
 			return Streams.stream(biometrics)
 				.map(bir -> {
-						Optional<Entry> payload = Optional.ofNullable(bir.getOthers()).stream()
-								.flatMap(Collection::stream)
-								.filter(others -> others.getKey().contentEquals("PAYLOAD")).findAny();
+						Optional<String> payload = Optional.ofNullable(bir.getOthers())
+								.stream()
+								.filter(othersMap -> othersMap.containsKey("PAYLOAD"))
+								.map(othersMap -> othersMap.get("PAYLOAD"))
+								.findFirst();
 						
 						String digitalId = null;
-						if (payload.isPresent() && StringUtils.isNotBlank(payload.get().getValue())) {
-							Map<String, String> digitalIdEncoded = mapper.readValue(payload.get().getValue(),
+						if (payload.isPresent() && StringUtils.isNotBlank(payload.get())) {
+							Map<String, String> digitalIdEncoded = mapper.readValue(payload.get(),
 									new TypeReference<Map<String, String>>() {
 									});
 							digitalId = new String(
@@ -209,11 +208,11 @@ public class IdentityIssuanceProfileBuilder {
 										.collect(Collectors.joining(" ")))
 								.subType(String.join(" ", bir.getBdbInfo().getSubtype()))
 								.qualityScore(bir.getBdbInfo().getQuality().getScore())
-								.attempts(Objects.nonNull(bir.getOthers()) ? bir.getOthers().stream()
-										.filter(others -> others.getKey().contentEquals("RETRIES"))
-										.findAny()
-										.orElseGet(Entry::new).getValue() : null)
-								.digitalId(digitalId).build();
+								.attempts(Objects.nonNull(bir.getOthers()) && bir.getOthers().containsKey("RETRIES")
+										? bir.getOthers().get("RETRIES")
+										: null)
+								.digitalId(digitalId)
+								.build();
 					}).collect(Collectors.toList());
 		return List.of();
 	}
