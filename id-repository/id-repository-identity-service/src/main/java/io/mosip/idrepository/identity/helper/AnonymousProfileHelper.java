@@ -81,7 +81,7 @@ public class AnonymousProfileHelper {
 		IdentityIssuanceProfileBuilder.setDateFormat(EnvUtil.getIovDateFormat());
 	}
 
-	@Async
+	@Async("anonymousProfileExecutor")
 	public void buildAndsaveProfile(boolean isDraft) {
 		if (!isDraft)
 			try {

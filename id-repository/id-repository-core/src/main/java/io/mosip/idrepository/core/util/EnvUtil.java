@@ -26,8 +26,6 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_UPDATE_ID;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
-import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -41,12 +39,11 @@ import lombok.Setter;
  *
  */
 @Component
-@Primary
-public class EnvUtil extends AbstractEnvironment {
-	
+public class EnvUtil {
+
 	@Autowired
 	private Environment env;
-	
+
 	@Getter @Setter private static String iovDateFormat;
 	@Getter @Setter private static String anonymousProfileFilterLanguage;
 	@Getter @Setter private static String appId;
@@ -103,77 +100,108 @@ public class EnvUtil extends AbstractEnvironment {
 	@Getter @Setter private static String credServiceTokenRequestVersion;
 	@Getter @Setter private static String credServiceTokenRequestAppId;
 	@Getter @Setter private static String credServiceTokenRequestSecretKey;
+	@Getter @Setter private static Integer activeAsyncThreadCount;
+	@Getter @Setter private static String monitorAsyncThreadQueue;
+	@Getter @Setter private static Integer asyncThreadQueueThreshold;
+
+	public String getProperty(String key) {
+		return env.getProperty(key);
+	}
+
+	public <T> T getProperty(String key, Class<T> targetType, T defaultValue) {
+		return env.getProperty(key, targetType, defaultValue);
+	}
+
+	public String getProperty(String key, String defaultValue) {
+		return env.getProperty(key, defaultValue);
+	}
+
+	public <T> T getProperty(String key, Class<T> targetType) {
+		return env.getProperty(key, targetType);
+	}
+
+	public void merge(ConfigurableEnvironment parent) {
+		((ConfigurableEnvironment) env).merge(parent);
+	}
+
+	public boolean containsProperty(String key) {
+		return env.containsProperty(key);
+	}
 
 	@PostConstruct
 	public void init() {
-		this.merge((ConfigurableEnvironment) env);
 		this.initCredentialRequestGeneratorServiceProperties();
 		this.initCredentialServiceProperties();
-		setIovDateFormat(super.getProperty("mosip.kernel.idobjectvalidator.date-format"));
-		setAnonymousProfileFilterLanguage(super.getProperty("mosip.mandatory-languages", "").split(",")[0]);
-		setAppId(super.getProperty(IdRepoConstants.APPLICATION_ID));
-		setAppName(super.getProperty(IdRepoConstants.APPLICATION_NAME));
-		setAppVersion(super.getProperty(APPLICATION_VERSION));
-		setDateTimeAdjustment(super.getProperty(DATETIME_ADJUSTMENT, Long.class, 0l));
-		setVersionPattern(super.getProperty(VERSION_PATTERN));
-		setDateTimePattern(super.getProperty(DATETIME_PATTERN));
-		setCredServiceSchema(super.getProperty("mosip.credential.service.credential.schema"));
-		setCredReqServiceId(super.getProperty("mosip.credential.request.service.id"));
-		setCredServiceId(super.getProperty("mosip.credential.service.service.id"));
-		setCredServiceFormatId(super.getProperty("mosip.credential.service.format.id"));
-		setCredServiceFormatIssuer(super.getProperty("mosip.credential.service.format.issuer"));
-		setCredReqServiceVersion(super.getProperty("mosip.credential.request.service.version"));
-		setCredServiceVersion(super.getProperty("mosip.credential.service.service.version"));
-		setVidActiveStatus(super.getProperty(VID_ACTIVE_STATUS));
-		setUinActiveStatus(super.getProperty(ACTIVE_STATUS));
-		setCredServiceTypeName(super.getProperty("mosip.credential.service.type.name"));
-		setCredServiceTypeNamespace(super.getProperty("mosip.credential.service.type.namespace"));
-		setCredCryptoRefId(super.getProperty(IdRepoConstants.CREDENTIAL_CRYPTO_REF_ID));
-		setCredServiceIncludeCertificateHash(super.getProperty("mosip.credential.service.includeCertificateHash", Boolean.class));
-		setCredServiceIncludeCertificate(super.getProperty("mosip.credential.service.includeCertificate", Boolean.class));
-		setCredServiceIncludePayload(super.getProperty("mosip.credential.service.includePayload", Boolean.class));
-		setUinJsonPath(super.getProperty(MOSIP_KERNEL_IDREPO_JSON_PATH, ""));
-		setIdrepoDBUrl(super.getProperty("mosip.idrepo.identity.db.url"));
-		setIdrepoDBUsername(super.getProperty("mosip.idrepo.identity.db.username"));
-		setIdrepoDBPassword(super.getProperty("mosip.idrepo.identity.db.password"));
-		setIdrepoDBDriverClassName(super.getProperty("mosip.idrepo.identity.db.driverClassName"));
-		setPrependThumbprintStatus(super.getProperty(PREPEND_THUMPRINT_STATUS, Boolean.class));
-		setIdrepoSaltKeyLength(super.getProperty(SALT_KEY_LENGTH, Integer.class, DEFAULT_SALT_KEY_LENGTH));
-		setCredReqTokenIssuerUrl(super.getProperty("credential.request.token.request.issuerUrl"));
-		setCredReqTokenVersion(super.getProperty("credential.request.token.request.version"));
-		setIsDraftVidTypePresent(super.containsProperty(DEFAULT_VID_TYPE));
-		setDraftVidType(super.getProperty(DEFAULT_VID_TYPE));
-		setCreateVidId(super.getProperty(VID_CREATE_ID));
-		setVidAppVersion(super.getProperty(APPLICATION_VERSION_VID));
-		setUpdatedVidId(super.getProperty(VID_UPDATE_ID));
-		setVidPolicyFileUrl(super.getProperty(VID_POLICY_FILE_URL));
-		setVidPolicySchemaUrl(super.getProperty(VID_POLICY_SCHEMA_URL));
-		setVidDBUrl(super.getProperty(VID_DB_URL));
-		setVidDBUsername(super.getProperty(VID_DB_USERNAME));
-		setVidDBPassword(super.getProperty(VID_DB_PASSWORD));
-		setVidDBDriverClassName(super.getProperty(VID_DB_DRIVER_CLASS_NAME));
-		setDatetimeTimezone(super.getProperty(IdRepoConstants.DATETIME_TIMEZONE));
-		setVidDeactivatedStatus(super.getProperty(VID_DEACTIVATED));
-		setVidUnlimitedTxnStatus(super.getProperty(VID_UNLIMITED_TRANSACTION_STATUS));
-		setCredReqTokenRequestId(super.getProperty("credential.request.token.request.id"));
-		setCredServiceTokenRequestId(super.getProperty("credential.service.token.request.id"));
-		setCredServiceTokenRequestIssuerUrl(super.getProperty("credential.service.token.request.issuerUrl"));
-		setCredServiceTokenRequestVersion(super.getProperty("credential.service.token.request.version"));
+		setIovDateFormat(this.getProperty("mosip.kernel.idobjectvalidator.date-format"));
+		setAnonymousProfileFilterLanguage(this.getProperty("mosip.mandatory-languages", "").split(",")[0]);
+		setAppId(this.getProperty(IdRepoConstants.APPLICATION_ID));
+		setAppName(this.getProperty(IdRepoConstants.APPLICATION_NAME));
+		setAppVersion(this.getProperty(APPLICATION_VERSION));
+		setDateTimeAdjustment(this.getProperty(DATETIME_ADJUSTMENT, Long.class, 0l));
+		setVersionPattern(this.getProperty(VERSION_PATTERN));
+		setDateTimePattern(this.getProperty(DATETIME_PATTERN));
+		setCredServiceSchema(this.getProperty("mosip.credential.service.credential.schema"));
+		setCredReqServiceId(this.getProperty("mosip.credential.request.service.id"));
+		setCredServiceId(this.getProperty("mosip.credential.service.service.id"));
+		setCredServiceFormatId(this.getProperty("mosip.credential.service.format.id"));
+		setCredServiceFormatIssuer(this.getProperty("mosip.credential.service.format.issuer"));
+		setCredReqServiceVersion(this.getProperty("mosip.credential.request.service.version"));
+		setCredServiceVersion(this.getProperty("mosip.credential.service.service.version"));
+		setVidActiveStatus(this.getProperty(VID_ACTIVE_STATUS));
+		setUinActiveStatus(this.getProperty(ACTIVE_STATUS));
+		setCredServiceTypeName(this.getProperty("mosip.credential.service.type.name"));
+		setCredServiceTypeNamespace(this.getProperty("mosip.credential.service.type.namespace"));
+		setCredCryptoRefId(this.getProperty(IdRepoConstants.CREDENTIAL_CRYPTO_REF_ID));
+		setCredServiceIncludeCertificateHash(
+				this.getProperty("mosip.credential.service.includeCertificateHash", Boolean.class));
+		setCredServiceIncludeCertificate(
+				this.getProperty("mosip.credential.service.includeCertificate", Boolean.class));
+		setCredServiceIncludePayload(this.getProperty("mosip.credential.service.includePayload", Boolean.class));
+		setUinJsonPath(this.getProperty(MOSIP_KERNEL_IDREPO_JSON_PATH, ""));
+		setIdrepoDBUrl(this.getProperty("mosip.idrepo.identity.db.url"));
+		setIdrepoDBUsername(this.getProperty("mosip.idrepo.identity.db.username"));
+		setIdrepoDBPassword(this.getProperty("mosip.idrepo.identity.db.password"));
+		setIdrepoDBDriverClassName(this.getProperty("mosip.idrepo.identity.db.driverClassName"));
+		setPrependThumbprintStatus(this.getProperty(PREPEND_THUMPRINT_STATUS, Boolean.class));
+		setIdrepoSaltKeyLength(this.getProperty(SALT_KEY_LENGTH, Integer.class, DEFAULT_SALT_KEY_LENGTH));
+		setCredReqTokenIssuerUrl(this.getProperty("credential.request.token.request.issuerUrl"));
+		setCredReqTokenVersion(this.getProperty("credential.request.token.request.version"));
+		setIsDraftVidTypePresent(this.containsProperty(DEFAULT_VID_TYPE));
+		setDraftVidType(this.getProperty(DEFAULT_VID_TYPE));
+		setCreateVidId(this.getProperty(VID_CREATE_ID));
+		setVidAppVersion(this.getProperty(APPLICATION_VERSION_VID));
+		setUpdatedVidId(this.getProperty(VID_UPDATE_ID));
+		setVidPolicyFileUrl(this.getProperty(VID_POLICY_FILE_URL));
+		setVidPolicySchemaUrl(this.getProperty(VID_POLICY_SCHEMA_URL));
+		setVidDBUrl(this.getProperty(VID_DB_URL));
+		setVidDBUsername(this.getProperty(VID_DB_USERNAME));
+		setVidDBPassword(this.getProperty(VID_DB_PASSWORD));
+		setVidDBDriverClassName(this.getProperty(VID_DB_DRIVER_CLASS_NAME));
+		setDatetimeTimezone(this.getProperty(IdRepoConstants.DATETIME_TIMEZONE));
+		setVidDeactivatedStatus(this.getProperty(VID_DEACTIVATED));
+		setVidUnlimitedTxnStatus(this.getProperty(VID_UNLIMITED_TRANSACTION_STATUS));
+		setCredReqTokenRequestId(this.getProperty("credential.request.token.request.id"));
+		setCredServiceTokenRequestId(this.getProperty("credential.service.token.request.id"));
+		setCredServiceTokenRequestIssuerUrl(this.getProperty("credential.service.token.request.issuerUrl"));
+		setCredServiceTokenRequestVersion(this.getProperty("credential.service.token.request.version"));
+		setActiveAsyncThreadCount(this.getProperty("mosip.idrepo.active-async-thread-count", Integer.class));
+		setMonitorAsyncThreadQueue(this.getProperty("mosip.idrepo.monitor-thread-queue-in-ms"));
+		setAsyncThreadQueueThreshold(this.getProperty("mosip.idrepo.max-thread-queue-threshold", Integer.class, 0));
 	}
-	
+
 	private void initCredentialRequestGeneratorServiceProperties() {
 		if (env.getProperty("spring.application.name", "").startsWith("credential-request")) {
-			setCredReqTokenClientId(super.getProperty("credential.request.token.request.clientId"));
-			setCredReqTokenSecretKey(super.getProperty("credential.request.token.request.secretKey"));
-			setCredReqTokenAppId(super.getProperty("credential.request.token.request.appid"));
+			setCredReqTokenClientId(this.getProperty("credential.request.token.request.clientId"));
+			setCredReqTokenSecretKey(this.getProperty("credential.request.token.request.secretKey"));
+			setCredReqTokenAppId(this.getProperty("credential.request.token.request.appid"));
 		}
 	}
-	
+
 	private void initCredentialServiceProperties() {
 		if (env.getProperty("spring.application.name", "").startsWith("credential-service")) {
-			setCredServiceTokenRequestClientId(super.getProperty("credential.service.token.request.clientId"));
-			setCredServiceTokenRequestSecretKey(super.getProperty("credential.service.token.request.secretKey"));
-			setCredServiceTokenRequestAppId(super.getProperty("credential.service.token.request.appid"));
+			setCredServiceTokenRequestClientId(this.getProperty("credential.service.token.request.clientId"));
+			setCredServiceTokenRequestSecretKey(this.getProperty("credential.service.token.request.secretKey"));
+			setCredServiceTokenRequestAppId(this.getProperty("credential.service.token.request.appid"));
 		}
 	}
 }
