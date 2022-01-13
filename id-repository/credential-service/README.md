@@ -9,5 +9,5 @@ Default supported credential types:
 1. `euin`
 1. `reprint`
 
-## Default context-path and port
-Refer [`bootstrap.properties`](src/main/resources/bootstrap.properties)
+
+
