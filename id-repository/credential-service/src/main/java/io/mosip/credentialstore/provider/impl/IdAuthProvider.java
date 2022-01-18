@@ -104,7 +104,6 @@ public class IdAuthProvider extends CredentialProvider {
 			
 			List<ZkDataAttribute> demoZkDataAttributes=new ArrayList<>();
             Map<String, Object> formattedMap=new HashMap<>();
-			formattedMap.put(JsonConstants.ID, credentialServiceRequestDto.getId());
 			for (Map.Entry<AllowedKycDto, Object> entry : sharableAttributeMap.entrySet()) {
 				AllowedKycDto allowedKycDto = entry.getKey();
 				String attributeName = allowedKycDto.getAttributeName();
