@@ -14,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,10 +26,12 @@ import io.mosip.idrepository.core.dto.IdentityIssuanceProfile;
 import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.entity.AnonymousProfileEntity;
 import io.mosip.idrepository.identity.repository.AnonymousProfileRepo;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.retry.WithRetry;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.UUIDUtils;
 
@@ -55,9 +56,6 @@ public class AnonymousProfileHelper {
 	@Value("${mosip.identity.mapping-file}")
 	private String identityMappingJson;
 	
-	@Autowired
-	private Environment env;
-
 	private byte[] oldUinData;
 
 	private byte[] newUinData;
@@ -81,15 +79,13 @@ public class AnonymousProfileHelper {
 					IdentityMapping.class);
 			IdentityIssuanceProfileBuilder.setIdentityMapping(identityMapping);
 		}
-		IdentityIssuanceProfileBuilder.setDateFormat(env.getProperty("mosip.kernel.idobjectvalidator.date-format"));
+		IdentityIssuanceProfileBuilder.setDateFormat(EnvUtil.getIovDateFormat());
 	}
 
-	@Async
+	@Async("anonymousProfileExecutor")
 	public void buildAndsaveProfile(boolean isDraft) {
 		if (!isDraft)
 			try {
-				channelInfoHelper.updatePhoneChannelInfo(oldUinData, newUinData);
-				channelInfoHelper.updateEmailChannelInfo(oldUinData, newUinData);
 				List<DocumentsDTO> oldDocList = List.of(new DocumentsDTO());
 				List<DocumentsDTO> newDocList = List.of(new DocumentsDTO());
 				if (Objects.isNull(oldCbeff) && Objects.nonNull(oldCbeffRefId))
@@ -106,17 +102,24 @@ public class AnonymousProfileHelper {
 							.getIdentity().getIndividualBiometrics().getValue(), newCbeff));
 				String id = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, regId).toString();
 				IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
-						.setFilterLanguage(env.getProperty("mosip.mandatory-languages", "").split(",")[0])
+						.setFilterLanguage(EnvUtil.getAnonymousProfileFilterLanguage())
 						.setProcessName(Objects.isNull(oldUinData) ? "New" : "Update").setOldIdentity(oldUinData)
 						.setOldDocuments(oldDocList).setNewIdentity(newUinData).setNewDocuments(newDocList).build();
 				AnonymousProfileEntity anonymousProfile = AnonymousProfileEntity.builder().id(id)
 						.profile(mapper.writeValueAsString(profile)).createdBy(IdRepoSecurityManager.getUser())
 						.crDTimes(DateUtils.getUTCCurrentDateTime()).build();
 				anonymousProfileRepo.save(anonymousProfile);
+				updateChannelInfo();
 			} catch (Exception e) {
 				mosipLogger.warn(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "buildAndsaveProfile",
 						ExceptionUtils.getStackTrace(e));
 			}
+	}
+
+	@WithRetry
+	public void updateChannelInfo() {
+		channelInfoHelper.updatePhoneChannelInfo(oldUinData, newUinData);
+		channelInfoHelper.updateEmailChannelInfo(oldUinData, newUinData);
 	}
 
 	public AnonymousProfileHelper setOldUinData(byte[] oldUinData) {

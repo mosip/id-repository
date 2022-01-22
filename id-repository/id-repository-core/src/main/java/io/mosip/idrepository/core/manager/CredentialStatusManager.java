@@ -1,6 +1,5 @@
 package io.mosip.idrepository.core.manager;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.CREDENTIAL_STATUS_UPDATE_TOPIC;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
@@ -11,10 +10,9 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -24,16 +22,17 @@ import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
-import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.retry.WithRetry;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.websub.model.EventModel;
@@ -42,6 +41,7 @@ import io.mosip.kernel.core.websub.model.EventModel;
  * @author Manoj SP
  *
  */
+@Transactional
 public class CredentialStatusManager {
 	
 	private static final String TRANSACTION_LIMIT = "transaction_limit";
@@ -60,20 +60,12 @@ public class CredentialStatusManager {
 	private ObjectMapper mapper;
 
 	@Autowired
-	@Qualifier("restHelperWithAuth")
-	private RestHelper restHelper;
-
-	@Autowired
-	private Environment env;
-
-	@Autowired
 	private UinHashSaltRepo uinHashSaltRepo;
 
 	@Autowired
 	private UinEncryptSaltRepo uinEncryptSaltRepo;
 
 	@Autowired
-	@Qualifier("securityManagerWithAuth")
 	private IdRepoSecurityManager securityManager;
 
 	@Value("${" + UIN_REFID + "}")
@@ -85,7 +77,7 @@ public class CredentialStatusManager {
 	@Autowired
 	private DummyPartnerCheckUtil dummyPartner;
 	
-	@Async
+	@Async("credentialStatusManagerJobExecutor")
 	public void triggerEventNotifications() {
 		handleDeletedRequests();
 		handleExpiredRequests();
@@ -122,9 +114,9 @@ public class CredentialStatusManager {
 		}
 	}
 
-	private void handleNewOrUpdatedRequests() {
+	public void handleNewOrUpdatedRequests() {
 		try {
-			String activeStatus = env.getProperty(ACTIVE_STATUS);
+			String activeStatus = EnvUtil.getUinActiveStatus();
 			List<CredentialRequestStatus> newIssueRequestList = statusRepo
 					.findByStatus(CredentialRequestStatusLifecycle.NEW.toString());
 			for (CredentialRequestStatus credentialRequestStatus : newIssueRequestList) {
@@ -134,18 +126,24 @@ public class CredentialStatusManager {
 						Objects.nonNull(credentialRequestStatus.getUpdatedBy()), null,
 						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer,
 						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()));
-				Optional<CredentialRequestStatus> idWithDummyPartnerOptional = statusRepo.findByIndividualIdHashAndPartnerId(
-						credentialRequestStatus.getIndividualIdHash(), dummyPartner.getDummyOLVPartnerId());
-				if (idWithDummyPartnerOptional.isPresent() && !idWithDummyPartnerOptional.get().getStatus()
-						.contentEquals(CredentialRequestStatusLifecycle.FAILED.toString())) {
-					statusRepo.delete(idWithDummyPartnerOptional.get());
-				}
+				deleteDummyPartner(credentialRequestStatus);
 			}
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleNewOrUpdatedRequests", ExceptionUtils.getStackTrace(e));
 		}
 	}
 
+	@WithRetry
+	public void deleteDummyPartner(CredentialRequestStatus credentialRequestStatus) {
+		Optional<CredentialRequestStatus> idWithDummyPartnerOptional = statusRepo.findByIndividualIdHashAndPartnerId(
+				credentialRequestStatus.getIndividualIdHash(), dummyPartner.getDummyOLVPartnerId());
+		if (idWithDummyPartnerOptional.isPresent() && !idWithDummyPartnerOptional.get().getStatus()
+				.contentEquals(CredentialRequestStatusLifecycle.FAILED.toString())) {
+			statusRepo.delete(idWithDummyPartnerOptional.get());
+		}
+	}
+
+	@WithRetry
 	public void credentialRequestResponseConsumer(CredentialIssueRequestWrapperDto request, Map<String, Object> response) {
 		try {
 			CredentialIssueResponse credResponse = mapper.convertValue(response.get("response"), CredentialIssueResponse.class);
