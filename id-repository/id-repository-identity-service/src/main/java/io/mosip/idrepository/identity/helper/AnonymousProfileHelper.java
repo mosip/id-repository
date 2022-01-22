@@ -30,6 +30,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.entity.AnonymousProfileEntity;
 import io.mosip.idrepository.identity.repository.AnonymousProfileRepo;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.retry.WithRetry;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.UUIDUtils;
@@ -85,8 +86,6 @@ public class AnonymousProfileHelper {
 	public void buildAndsaveProfile(boolean isDraft) {
 		if (!isDraft)
 			try {
-				channelInfoHelper.updatePhoneChannelInfo(oldUinData, newUinData);
-				channelInfoHelper.updateEmailChannelInfo(oldUinData, newUinData);
 				List<DocumentsDTO> oldDocList = List.of(new DocumentsDTO());
 				List<DocumentsDTO> newDocList = List.of(new DocumentsDTO());
 				try {
@@ -113,9 +112,16 @@ public class AnonymousProfileHelper {
 						.profile(mapper.writeValueAsString(profile)).createdBy(IdRepoSecurityManager.getUser())
 						.crDTimes(DateUtils.getUTCCurrentDateTime()).build();
 				anonymousProfileRepo.save(anonymousProfile);
+				updateChannelInfo();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+	}
+
+	@WithRetry
+	public void updateChannelInfo() {
+		channelInfoHelper.updatePhoneChannelInfo(oldUinData, newUinData);
+		channelInfoHelper.updateEmailChannelInfo(oldUinData, newUinData);
 	}
 
 	public AnonymousProfileHelper setOldUinData(byte[] oldUinData) {
