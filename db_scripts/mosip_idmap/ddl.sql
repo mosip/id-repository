@@ -1,4 +1,4 @@
-\c mosip_idmap sysadmin
+\c mosip_idmap 
 
 \ir ddl/idmap-vid.sql
 \ir ddl/idmap-vid_seed.sql
