@@ -15,9 +15,11 @@ import org.springframework.web.client.HttpServerErrorException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.ApiName;
+import io.mosip.credentialstore.constants.JsonConstants;
 import io.mosip.credentialstore.constants.LoggerFileConstant;
 import io.mosip.credentialstore.dto.JWTSignatureRequestDto;
 import io.mosip.credentialstore.dto.SignResponseDto;
+import io.mosip.credentialstore.dto.VerCredSignatureRequestDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.SignatureException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
@@ -70,7 +72,6 @@ public class DigitalSignatureUtil {
 			dto.setIncludeCertificate(EnvUtil.getCredServiceIncludeCertificate());
 			dto.setIncludePayload(EnvUtil.getCredServiceIncludePayload());
 
-
 			RequestWrapper<JWTSignatureRequestDto> request = new RequestWrapper<>();
 			request.setRequest(dto);
 			request.setMetadata(null);
@@ -113,4 +114,58 @@ public class DigitalSignatureUtil {
 
 	}
 
+	@Retryable(value = { SignatureException.class,
+		ApiNotAccessibleException.class }, maxAttemptsExpression = "${mosip.credential.service.retry.maxAttempts}", backoff = @Backoff(delayExpression = "${mosip.credential.service.retry.maxDelay}"))
+	public String signVerCred(String data, String requestId) throws ApiNotAccessibleException, SignatureException {
+		try {
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Digital signature entry");
+
+			VerCredSignatureRequestDto verCredDto = new VerCredSignatureRequestDto();
+			verCredDto.setDataToSign(data);
+			verCredDto.setB64JWSHeaderParam(false);
+			verCredDto.setIncludePayload(false);
+			verCredDto.setValidateJson(false);
+			verCredDto.setSignAlgorithm(JsonConstants.VC_SIGN_ALGO);
+
+			RequestWrapper<VerCredSignatureRequestDto> request = new RequestWrapper<>();
+			request.setRequest(verCredDto);
+			request.setMetadata(null);
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
+			LocalDateTime localdatetime = LocalDateTime
+					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+			request.setRequesttime(localdatetime);
+			String responseString = restUtil.postApi(ApiName.KEYMANAGER_VERCRED_SIGN, null, "", "",
+					MediaType.APPLICATION_JSON, request, String.class);
+
+			SignResponseDto responseObject = mapper.readValue(responseString, SignResponseDto.class);
+			if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
+				ServiceError error = responseObject.getErrors().get(0);
+				throw new SignatureException(error.getMessage());
+			}
+			String signedData = responseObject.getResponse().getJwtSignedData();
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"JWS Signed data successfully");
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"JWS Digital signature exit");
+			return signedData;
+		} catch (IOException e) {
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
+			throw new SignatureException(e);
+		} catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
+			if (e.getCause() instanceof HttpClientErrorException) {
+				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
+				throw new ApiNotAccessibleException(httpClientException.getResponseBodyAsString());
+			} else if (e.getCause() instanceof HttpServerErrorException) {
+				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
+				throw new ApiNotAccessibleException(httpServerException.getResponseBodyAsString());
+			} else {
+				throw new SignatureException(e);
+			}
+
+		}
+	}
 }

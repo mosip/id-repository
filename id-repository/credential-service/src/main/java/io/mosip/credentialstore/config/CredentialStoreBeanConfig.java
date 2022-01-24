@@ -4,6 +4,7 @@ import org.mvel2.MVEL;
 import org.mvel2.integration.VariableResolverFactory;
 import org.mvel2.integration.impl.MapVariableResolverFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.provider.impl.IdAuthProvider;
 import io.mosip.credentialstore.provider.impl.QrCodeProvider;
+import io.mosip.credentialstore.provider.impl.VerCredProvider;
 import io.mosip.credentialstore.util.RestUtil;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
@@ -75,6 +77,17 @@ public class CredentialStoreBeanConfig {
 		return new QrCodeProvider();
 	}
 
+	/**
+	 * Gets the qrCode provider.
+	 *
+	 * @return the default provider
+	 */
+	@Bean("vercred")
+	public CredentialProvider getVerCredProvider() {
+
+		return new VerCredProvider();
+	}
+
 	@Bean
 	public RestUtil getRestUtil() {
 		return new RestUtil();
@@ -98,6 +111,7 @@ public class CredentialStoreBeanConfig {
 	private String mvelFile;
 
 	@Autowired
+	@Qualifier("plainRestTemplate")
 	private RestTemplate restTemplate;
 
 	@Bean("varres")

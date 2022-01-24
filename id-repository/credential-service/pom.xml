@@ -192,6 +192,11 @@
 			<version>${spring.boot.version}</version>
 			<optional>true</optional>
 		</dependency>
+		<dependency>
+			<groupId>info.weboftrust</groupId>
+			<artifactId>ld-signatures-java</artifactId>
+			<version>0.8.0</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>

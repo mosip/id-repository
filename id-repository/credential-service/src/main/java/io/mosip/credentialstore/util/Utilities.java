@@ -2,20 +2,27 @@ package io.mosip.credentialstore.util;
 
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.apicatalog.jsonld.JsonLdError;
+import com.apicatalog.jsonld.document.JsonDocument;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
 import io.mosip.credentialstore.dto.Issuer;
 import io.mosip.credentialstore.dto.Type;
+import io.mosip.credentialstore.exception.VerCredException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -35,6 +42,7 @@ public class Utilities {
 	private static final Logger LOGGER = IdRepoLogger.getLogger(Utilities.class);
 
 	@Autowired
+	@Qualifier("plainRestTemplate")
 	private RestTemplate restTemplate;
 	
 	public List<Type> getTypes(String configServerFileStorageURL, String uri) {
@@ -66,17 +74,40 @@ public class Utilities {
 			LOGGER.error(IdRepoSecurityManager.getUser(), UTILITIES, GETTYPES,
 					"error while getting types" + ExceptionUtils.getStackTrace(e));
 		}
-
-
 		return typeList;
 	}
+	
 	public String generateId() {
 		return UUID.randomUUID().toString();
 	}
 	
 	public String generatePin() {
-	return  RandomStringUtils.randomAlphabetic(5);
+		return  RandomStringUtils.randomAlphabetic(5);
 	}
 
+	public JSONObject getVCContext(String configServerFileStorageURL, String uri) {
+		try {
+			String vcContextStr = restTemplate.getForObject(configServerFileStorageURL + uri, String.class);
+			JSONObject vcContext = JsonUtil.objectMapperReadValue(vcContextStr, JSONObject.class);
+			return vcContext;
+		} catch (IOException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), UTILITIES, "VCContext",
+					"error while getting VC Context Json." + ExceptionUtils.getStackTrace(e));
+			throw new VerCredException(CredentialServiceErrorCodes.VC_CONTEXT_FILE_NOT_FOUND.getErrorCode(),
+					CredentialServiceErrorCodes.VC_CONTEXT_FILE_NOT_FOUND.getErrorMessage());
+		}
+	}
 
+	public JsonDocument getVCContextJson(String configServerFileStorageURL, String uri) {
+		try {
+			String vcContextJson = restTemplate.getForObject(configServerFileStorageURL + uri, String.class);
+			JsonDocument jsonDocument = JsonDocument.of(new StringReader(vcContextJson));
+			return jsonDocument;
+		} catch (JsonLdError e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), UTILITIES, "VCContextJson",
+					"error while getting VC Context Json Document." + ExceptionUtils.getStackTrace(e));
+			throw new VerCredException(CredentialServiceErrorCodes.VC_CONTEXT_FILE_NOT_FOUND.getErrorCode(),
+					CredentialServiceErrorCodes.VC_CONTEXT_FILE_NOT_FOUND.getErrorMessage());
+		}
+	}
 }
