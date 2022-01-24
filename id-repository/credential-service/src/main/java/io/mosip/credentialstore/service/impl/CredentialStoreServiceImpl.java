@@ -98,6 +98,10 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	@Qualifier("qrcode")
 	CredentialProvider qrCodeProvider;
 
+	@Autowired(required = true)
+	@Qualifier("vercred")
+	CredentialProvider verCredProvider;
+
 	/** The data share util. */
 	@Autowired
 	private DataShareUtil dataShareUtil;
@@ -372,8 +376,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		event.setType(type);
 		eventModel.setEvent(event);
 		LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
-				credentialServiceRequestDto.getRequestId(),
-				"event json" + JsonUtil.objectMapperObjectToJson(eventModel));
+				credentialServiceRequestDto.getRequestId(),	"Building Event JSON Completed.");
 		return eventModel;
 	}
 
@@ -434,14 +437,13 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			return idAuthProvider;
 		} else if (provider.equalsIgnoreCase(CredentialFormatter.QrCodeProvider.name())) {
 			return qrCodeProvider;
+		} else if (provider.equalsIgnoreCase(CredentialFormatter.VerCredProvider.name())) {
+			return verCredProvider;
 		} else {
 			return credentialDefaultProvider;
 		}
 
 	}
-
-
-
 
 	@Override
 	public CredentialTypeResponse getCredentialTypes() {
