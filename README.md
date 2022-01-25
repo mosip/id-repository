@@ -1,73 +1,63 @@
+
+[![Build Status](https://travis-ci.org/mosip/id-repository.svg?branch=master)](https://travis-ci.org/mosip/id-repository)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mosip_id-repository&metric=alert_status)](https://sonarcloud.io/dashboard?id=mosip_id-repository)
+[![Join the chat at https://gitter.im/mosip-community/id-repository](https://badges.gitter.im/mosip-community/id-repository.svg)](https://gitter.im/mosip-community/id-repository?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 # ID Repository
 
-ID Repository acts as a repository of Identity details of an Individual, and provides API based mechanism to store and retrieve Identity details by Registration Processor module.
+## Overview
+This repository contains source code and design documents for MOSIP ID Repository which is the server-side module to manage ID lifecycle.  The modules exposes API endpoints.  
 
-Following are the pre-requisites for storing or retrieving Identity authentication of an individual
+[Overview of Registration Processor and its role in ID lifecycle management](https://nayakrounak.gitbook.io/mosip-docs/modules/registration-processor)
 
-1. ID Repository accepts ID JSON in the format as provided by the country in ID Schema
-2. ID JSON present in ID Repository APIs gets validated against IdObjectValidator.
+The front end UI application called Registration Client is available in a separate repo [here](https://github.com/mosip/registration-client/tree/develop)
 
-[ID Repository Documentation](https://docs.mosip.io/platform/modules/id-repository)
+## Database
+See [DB guide](db_scripts/README.md)
 
-# Dependencies
-ID Repository dependencies are mentioned below.  For all Kernel services refer to [commons repo](https://github.com/mosip/commons)
+## Build & run (for developers)
+The project requires JDK 1.11. 
+1. To build jars:
+    ```
+    $ cd registration
+    $ mvn clean install 
+    ```
+1. To skip JUnit tests and Java Docs:
+    ```
+    $ mvn install -DskipTests=true -Dmaven.javadoc.skip=true
+    ```
+1. To build Docker for a service:
+    ```
+    $ cd <service folder>
+    $ docker build -f Dockerfile
+    ```
 
-* id-repository-identity-service
-    *  kernel-auditmanager-service 
-    *  kernel-auth-service 
-    *  kernel-config-server
-    *  kernel-cryptomanager-service
-    *  kernel-masterdata-service
-    *  kernel-fsadapter-hdfs
+1. As a developer, to run a service jar individually:
+    ```
+    `java -Dspring.profiles.active=<profile> -Dspring.cloud.config.uri=<config-url> -Dspring.cloud.config.label=<config-label> -jar <jar-name>.jar`
+    ```
+    Example:  
+        _profile_: `env` (extension used on configuration property files*)    
+        _config_label_: `master` (git branch of config repo*)  
+        _config-url_: `http://localhost:51000` (Url of the config server*)  
+	
+	\* Refer to [kernel-config-server](https://github.com/mosip/commons/tree/master/kernel/kernel-config-server) for details
 
-* id-repository-vid-service
-    *  kernel-auditmanager-service 
-    *  kernel-auth-service 
-    *  kernel-config-server
-    *  kernel-cryptomanager-service
-    *  kernel-vidgenerator-service
-    *  id-repository-identity-service
-    
-# Configuration
-Configurations used for ID Repo are available in [mosip-config](https://github.com/mosip/mosip-config)
+TODO: Auth adapter jar
 
-# Build
-Below command should be run in the parent project **id-repository**
-`mvn clean install`
+## Deploy
+To deploy Registration on Kubernetes cluster using Dockers refer to [mosip-infra](https://github.com/mosip/mosip-infra/tree/1.2.0_v3/deployment/v3)
 
-# Deploy
-Below command should be executed to run any service locally in specific profile and local configurations - 
-```
-java -Dspring.profiles.active=<profile> -jar <jar-name>.jar
-```
 
-Below command should be executed to run any service locally in specific profile and `remote` configurations - 
-```
-java -Dspring.profiles.active=<profile> -Dspring.cloud.config.uri=<config-url> -Dspring.cloud.config.label=<config-label> -jar <jar-name>.jar
-```
+## Configuration
+Refer to the [configuration guide](docs/configuration.md).
 
-Below command should be executed to run a docker image - 
-```
-docker run -it -p <host-port>:<container-port> -e active_profile_env={profile} -e spring_config_label_env= {branch} -e spring_config_url_env={config_server_url} <docker-registry-IP:docker-registry-port/<docker-image>
-```
+## Test
+Automated functaionl tests available in [Functional Tests repo](https://github.com/mosip/mosip-functional-tests)
 
-**Sample Build and Deployment commands:**
+## APIs
+API documentation available on Wiki: [Registration APIs](https://github.com/mosip/documentation/wiki/Registration-APIs)
 
-```
-docker run -it -d -p 8090:8090 -e active_profile_env={profile}  -e spring_config_label_env= {branch} -e spring_config_url_env={config_server_url} docker-registry.mosip.io:5000/id-repository-identity-service
+## License
+This project is licensed under the terms of [Mozilla Public License 2.0](https://github.com/mosip/mosip-platform/blob/master/LICENSE)
 
-docker run -it -d -p 8091:8091 -e active_profile_env={profile}  -e spring_config_label_env= {branch} -e spring_config_url_env={config_server_url} docker-registry.mosip.io:5000/id-repository-vid-service
-```
-
-# Test
-Automated functional tests are available in [Functional Tests repo](https://github.com/mosip/mosip-functional-tests)
-
-# Documentation
-MOSIP documentation is available on [Wiki](https://docs.mosip.io/platform)
-
-ID Repository documentation is available on : [ID Repository Documentation](https://docs.mosip.io/platform/modules/id-repository)
-
-ID Repository API documentation available on Wiki: [ID Repository APIs](https://docs.mosip.io/platform/apis/id-repository-apis)
-
-# License
-This project is licensed under the terms of [Mozilla Public License 2.0](https://github.com/mosip/commons/blob/master/LICENSE)
