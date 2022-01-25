@@ -12,6 +12,8 @@ public enum CredentialFormatter {
 	/** The credential default provider. */
 	CredentialDefaultProvider,
 	
-	QrCodeProvider
+	QrCodeProvider,
+
+	VerCredProvider,
 
 }

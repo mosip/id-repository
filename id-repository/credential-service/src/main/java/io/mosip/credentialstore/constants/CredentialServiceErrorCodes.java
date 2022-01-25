@@ -41,6 +41,10 @@ public enum CredentialServiceErrorCodes {
 
 	POLICY_SCHEMA_VALIDATION_EXCEPTION("IDR-CRS-015", "Policy Schema validation failed"),
 
+	VC_CONTEXT_FILE_NOT_FOUND("IDR-CRS-016", "Error downloading VC Context file or JSON parsing error."),
+
+	PIN_NOT_PROVIDER("IDR-CRS-017", "Pin not available to encrypt the data."),
+
 	PARTNER_EXCEPTION("IDR-CRS-008", "Failed to get partner extraction policy details");
 	
 
