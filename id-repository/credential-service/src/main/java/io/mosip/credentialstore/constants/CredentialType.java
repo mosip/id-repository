@@ -14,4 +14,6 @@ public enum CredentialType {
 	/** The mosip. */
 	MOSIP,
 
+	VERCRED,
+	
 }
