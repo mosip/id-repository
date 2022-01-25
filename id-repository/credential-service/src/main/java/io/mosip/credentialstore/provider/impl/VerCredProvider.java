@@ -70,7 +70,7 @@ public class VerCredProvider extends CredentialProvider {
 	@Autowired
 	private ObjectMapper mapper;
 
-	@Value("${config.server.file.storage.uri1:https://dev.mosip.net/mosipvc/}")
+	@Value("${config.server.file.storage.uri:}")
 	private String configServerFileStorageURL;
 	
 	@Value("#{${mosip.credential.service.vercred.context.url.map}}")
@@ -148,7 +148,7 @@ public class VerCredProvider extends CredentialProvider {
 			List<String> protectedAttributes = new ArrayList<>();
 			formattedMap.put(JsonConstants.ID, verCredIdUrl + credentialServiceRequestDto.getId());
 			formattedMap.put(JsonConstants.VC_VERSION_CONST, JsonConstants.VC_VERSION_1);
-			
+
 			for (Map.Entry<AllowedKycDto, Object> entry : sharableAttributeMap.entrySet()) {
 				AllowedKycDto allowedKycDto = entry.getKey();
 				String attributeName = allowedKycDto.getAttributeName();
