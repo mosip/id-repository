@@ -101,6 +101,10 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	@Qualifier("qrcode")
 	CredentialProvider qrCodeProvider;
 
+	@Autowired(required = true)
+	@Qualifier("vercred")
+	CredentialProvider verCredProvider;
+
 	/** The data share util. */
 	@Autowired
 	private DataShareUtil dataShareUtil;
@@ -449,6 +453,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			return idAuthProvider;
 		} else if (provider.equalsIgnoreCase(CredentialFormatter.QrCodeProvider.name())) {
 			return qrCodeProvider;
+		} else if (provider.equalsIgnoreCase(CredentialFormatter.VerCredProvider.name())) {
+			return verCredProvider;
 		} else {
 			return credentialDefaultProvider;
 		}

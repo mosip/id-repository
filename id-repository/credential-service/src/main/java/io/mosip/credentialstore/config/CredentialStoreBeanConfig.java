@@ -1,9 +1,11 @@
 package io.mosip.credentialstore.config;
 
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import org.mvel2.MVEL;
 import org.mvel2.integration.VariableResolverFactory;
 import org.mvel2.integration.impl.MapVariableResolverFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.provider.impl.IdAuthProvider;
 import io.mosip.credentialstore.provider.impl.QrCodeProvider;
+import io.mosip.credentialstore.provider.impl.VerCredProvider;
 import io.mosip.credentialstore.util.RestUtil;
 import io.mosip.idrepository.core.helper.AuditHelper;
 
@@ -29,7 +32,12 @@ import io.mosip.idrepository.core.helper.AuditHelper;
 @PropertySource("classpath:bootstrap.properties")
 public class CredentialStoreBeanConfig {
 
-	
+
+	@Bean
+	public IdRepoSecurityManager securityManager() {
+		return new IdRepoSecurityManager();
+	}
+
 	/**
 	 * Gets the id auth provider.
 	 *
@@ -61,7 +69,18 @@ public class CredentialStoreBeanConfig {
 
 		return new QrCodeProvider();
 	}
-	
+
+
+	/**
+	 * Gets the qrCode provider.
+	 *
+	 * @return the default provider
+	 */
+	@Bean("vercred")
+	public CredentialProvider getVerCredProvider() {
+
+		return new VerCredProvider();
+	}
 
 	@Bean
 	public RestUtil getRestUtil() {
@@ -72,7 +91,7 @@ public class CredentialStoreBeanConfig {
 	@Bean
 	public AuditHelper getAuditHelper() {
 		return new AuditHelper();
-		
+
 	}
 
 	@Value("${config.server.file.storage.uri}")
