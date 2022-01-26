@@ -1,4 +1,4 @@
-# ID Repository Core
+# ID Repository core
 
 ## Overview
 
