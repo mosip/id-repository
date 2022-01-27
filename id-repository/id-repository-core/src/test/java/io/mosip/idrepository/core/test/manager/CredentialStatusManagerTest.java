@@ -96,13 +96,11 @@ public class CredentialStatusManagerTest {
 	public void before() {
 		ReflectionTestUtils.setField(env, "uinActiveStatus", "true");
 		ReflectionTestUtils.setField(credentialStatusManager, "uinRefId", "123");
-
 	}
 
 	@Test
 	public void triggerEventNotificationsTest() {
 		List<CredentialRequestStatus> deletedIssueRequestList = new ArrayList<CredentialRequestStatus>();
-		List<CredentialRequestStatus> expiredIssueRequestList = new ArrayList<CredentialRequestStatus>();
 		CredentialRequestStatus req = new CredentialRequestStatus();
 		req.setIndividualId("12");
 		req.setPartnerId("33");
