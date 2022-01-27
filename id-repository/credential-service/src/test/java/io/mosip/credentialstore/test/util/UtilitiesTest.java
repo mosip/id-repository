@@ -1,5 +1,8 @@
 package io.mosip.credentialstore.test.util;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -26,7 +29,8 @@ import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.util.EnvUtil;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest @Import(EnvUtil.class)
+@WebMvcTest
+@Import(EnvUtil.class)
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 public class UtilitiesTest {
 
@@ -53,4 +57,27 @@ public class UtilitiesTest {
 	public void getCredentialTypesSuccessTest() throws IOException, PolicyException, ApiNotAccessibleException {
 		utilities.getTypes("", "");
 	}
+
+	@Test
+	public void getVCContextTest() {
+		assertNotNull(utilities.getVCContext("", ""));
+	}
+
+	@Test
+	public void getVCContextJsonTest() {
+		assertNotNull(utilities.getVCContextJson("", ""));
+	}
+
+	@Test
+	public void generateId() {
+		String response = utilities.generateId();
+		assertNotNull(response);
+	}
+
+	@Test
+	public void generatePin() {
+		String response = utilities.generatePin();
+		assertEquals(5, response.length());
+	}
+
 }
