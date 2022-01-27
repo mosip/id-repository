@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 import javax.annotation.PostConstruct;
 
@@ -19,11 +20,13 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
@@ -46,9 +49,11 @@ import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.manager.CredentialStatusManager;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.StringUtils;
 
 /**
  * The Class IdRepoConfig.
@@ -276,5 +281,76 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 	@Bean
 	public IdRepoSecurityManager securityManagerWithAuth(@Qualifier("selfTokenWebClient") WebClient webClient) {
 		return new IdRepoSecurityManager(restHelperWithAuth(webClient));
+	}
+	
+	@Bean
+	@Primary
+	public Executor executor() {
+	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+	    executor.setCorePoolSize(Math.floorDiv(EnvUtil.getActiveAsyncThreadCount(), 4));
+	    executor.setMaxPoolSize(EnvUtil.getActiveAsyncThreadCount());
+	    executor.setThreadNamePrefix("idrepo-identity-");
+	    executor.setWaitForTasksToCompleteOnShutdown(true);
+	    executor.initialize();
+	    return executor;
+	}
+	
+	@Bean
+	@Qualifier("webSubHelperExecutor")
+	public Executor webSubHelperExecutor() {
+	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+	    executor.setCorePoolSize(Math.floorDiv(EnvUtil.getActiveAsyncThreadCount(), 4));
+	    executor.setMaxPoolSize(EnvUtil.getActiveAsyncThreadCount());
+	    executor.setThreadNamePrefix("idrepo-websub-");
+	    executor.setWaitForTasksToCompleteOnShutdown(true);
+	    executor.initialize();
+	    return executor;
+	}
+	
+	@Bean
+	@Qualifier("credentialStatusManagerJobExecutor")
+	public Executor credentialStatusManagerJobExecutor() {
+	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+	    executor.setCorePoolSize(Math.floorDiv(EnvUtil.getActiveAsyncThreadCount(), 4));
+	    executor.setMaxPoolSize(EnvUtil.getActiveAsyncThreadCount());
+	    executor.setThreadNamePrefix("idrepo-cred-status-job-");
+	    executor.setWaitForTasksToCompleteOnShutdown(true);
+	    executor.initialize();
+	    return executor;
+	}
+	
+	@Bean
+	@Qualifier("anonymousProfileExecutor")
+	public Executor anonymousProfileExecutor() {
+	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+	    executor.setCorePoolSize(Math.floorDiv(EnvUtil.getActiveAsyncThreadCount(), 4));
+	    executor.setMaxPoolSize(EnvUtil.getActiveAsyncThreadCount());
+	    executor.setThreadNamePrefix("idrepo-identity-anonymousprofile-");
+	    executor.setWaitForTasksToCompleteOnShutdown(true);
+	    executor.initialize();
+	    return executor;
+	}
+	
+	@Scheduled(fixedRateString = "${" + "mosip.idrepo.monitor-thread-queue-in-ms" + ":10000}")
+	public void monitorThreadQueueLimit() {
+		if (StringUtils.isNotBlank(EnvUtil.getMonitorAsyncThreadQueue())) {
+			ThreadPoolTaskExecutor threadPoolTaskExecutor = (ThreadPoolTaskExecutor) executor();
+			ThreadPoolTaskExecutor webSubHelperExecutor = (ThreadPoolTaskExecutor) webSubHelperExecutor();
+			ThreadPoolTaskExecutor credentialStatusManagerJobExecutor = (ThreadPoolTaskExecutor) credentialStatusManagerJobExecutor();
+			ThreadPoolTaskExecutor anonymousProfileExecutor = (ThreadPoolTaskExecutor) anonymousProfileExecutor();
+			String monitoringLog = "Thread Name : {} Thread Active Count: {} Thread Task count: {} Thread queue count: {}";
+			logThreadQueueDetails(threadPoolTaskExecutor, threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size(), monitoringLog);
+			logThreadQueueDetails(webSubHelperExecutor, webSubHelperExecutor.getThreadPoolExecutor().getQueue().size(), monitoringLog);
+			logThreadQueueDetails(credentialStatusManagerJobExecutor, credentialStatusManagerJobExecutor.getThreadPoolExecutor().getQueue().size(), monitoringLog);
+			logThreadQueueDetails(anonymousProfileExecutor, anonymousProfileExecutor.getThreadPoolExecutor().getQueue().size(), monitoringLog);
+		}
+	}
+
+	private void logThreadQueueDetails(ThreadPoolTaskExecutor threadPoolTaskExecutor, int threadPoolQueueSize,
+			String monitoringLog) {
+		if (threadPoolQueueSize > EnvUtil.getAsyncThreadQueueThreshold())
+			mosipLogger.info(monitoringLog, threadPoolTaskExecutor.getThreadNamePrefix(),
+					threadPoolTaskExecutor.getActiveCount(),
+					threadPoolTaskExecutor.getThreadPoolExecutor().getTaskCount(), threadPoolQueueSize);
 	}
 }

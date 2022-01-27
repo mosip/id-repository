@@ -479,7 +479,7 @@ public class CredentialRequestServiceImplTest {
 		credentialEntity.setRequestId("1234");
 		credentialEntity.setStatusCode("NEW");
 		Optional<CredentialEntity> entity = Optional.of(credentialEntity);
-		Mockito.when(credentialRepositary.update(Mockito.any()))
+		Mockito.when(credentialRepositary.save(Mockito.any()))
 				.thenThrow(new DataAccessLayerException("", "", new Throwable()));
 		Mockito.when(credentialRepositary.findById(Mockito.any())).thenReturn(entity);
 

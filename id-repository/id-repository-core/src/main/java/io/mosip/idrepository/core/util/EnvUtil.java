@@ -100,6 +100,9 @@ public class EnvUtil {
 	@Getter @Setter private static String credServiceTokenRequestVersion;
 	@Getter @Setter private static String credServiceTokenRequestAppId;
 	@Getter @Setter private static String credServiceTokenRequestSecretKey;
+	@Getter @Setter private static Integer activeAsyncThreadCount;
+	@Getter @Setter private static String monitorAsyncThreadQueue;
+	@Getter @Setter private static Integer asyncThreadQueueThreshold;
 
 	public String getProperty(String key) {
 		return env.getProperty(key);
@@ -181,6 +184,9 @@ public class EnvUtil {
 		setCredServiceTokenRequestId(this.getProperty("credential.service.token.request.id"));
 		setCredServiceTokenRequestIssuerUrl(this.getProperty("credential.service.token.request.issuerUrl"));
 		setCredServiceTokenRequestVersion(this.getProperty("credential.service.token.request.version"));
+		setActiveAsyncThreadCount(this.getProperty("mosip.idrepo.active-async-thread-count", Integer.class));
+		setMonitorAsyncThreadQueue(this.getProperty("mosip.idrepo.monitor-thread-queue-in-ms"));
+		setAsyncThreadQueueThreshold(this.getProperty("mosip.idrepo.max-thread-queue-threshold", Integer.class, 0));
 	}
 
 	private void initCredentialRequestGeneratorServiceProperties() {
