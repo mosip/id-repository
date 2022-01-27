@@ -130,7 +130,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	/** The mapper. */
 	@Autowired
-	private ObjectMapper mapper;
+	protected ObjectMapper mapper;
 
 	/** The uin repo. */
 	@Autowired
