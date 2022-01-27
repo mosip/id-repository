@@ -1,17 +1,20 @@
 package io.mosip.idrepository.vid.service.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -19,6 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataAccessException;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
@@ -35,18 +40,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
+import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
+import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.dto.VidPolicy;
 import io.mosip.idrepository.core.dto.VidRequestDTO;
 import io.mosip.idrepository.core.dto.VidResponseDTO;
+import io.mosip.idrepository.core.dto.VidsInfosDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.RestServiceException;
+import io.mosip.idrepository.core.helper.IdRepoWebSubHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
@@ -59,6 +68,7 @@ import io.mosip.idrepository.vid.repository.VidRepo;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.websub.model.EventModel;
 
 /**
  * @author Manoj SP
@@ -109,6 +119,9 @@ public class VidServiceImplTest {
 	
 	@Mock
 	private CredentialServiceManager credServiceManager;
+	
+	@Mock
+	private IdRepoWebSubHelper websubHelper;
 
 	private Map<String, String> id;
 
@@ -122,6 +135,118 @@ public class VidServiceImplTest {
 		ReflectionTestUtils.setField(service, "id", id);
 		ReflectionTestUtils.setField(service, "vidActiveStatus", "ACTIVE");
 		ReflectionTestUtils.setField(service, "allowedStatus", "ACTIVE,REVOKED,EXPIRED,USED,INVALIDATED,DEACTIVATED");
+	}
+
+	@Test
+	public void testCreateDraftVid() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
+		when(securityManager.hash(Mockito.any())).thenReturn("123");
+		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any(Class.class)))
+				.thenReturn(new RestRequestDTO());
+		IdResponseDTO identityResponse = new IdResponseDTO();
+		ResponseDTO response = new ResponseDTO();
+		response.setStatus("ACTIVATED");
+		identityResponse.setResponse(response);
+		when(restHelper.requestSync(Mockito.any())).thenReturn(identityResponse);
+		VidPolicy policy = new VidPolicy();
+		policy.setAllowedInstances(2);
+		when(vidPolicyProvider.getPolicy(Mockito.any())).thenReturn(policy);
+		Vid vid = new Vid();
+		vid.setVid("123");
+		vid.setStatusCode("");
+		when(vidRepo.findByUinHashAndStatusCodeAndVidTypeCodeAndExpiryDTimesAfter(Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any())).thenReturn(Collections.singletonList(vid));
+		when(vidRepo.save(Mockito.any())).thenReturn(vid);
+		VidRequestDTO request = new VidRequestDTO();
+		request.setUin("2953190571");
+		request.setVidStatus(IdRepoConstants.DRAFT_STATUS);
+		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
+		RestRequestDTO restReq = new RestRequestDTO();
+		when(restBuilder.buildRequest(RestServicesConstants.VID_GENERATOR_SERVICE, null, ResponseWrapper.class)).thenReturn(restReq);
+		ResponseWrapper<Object> responseWrapper = new ResponseWrapper<>();
+		ObjectNode node = mapper.createObjectNode();
+		node.put("vid", "12345");
+		responseWrapper.setResponse(mapper.readValue(node.toString(), Object.class));
+		when(restHelper.requestSync(restReq)).thenReturn(responseWrapper);
+		ResponseWrapper<VidResponseDTO> vidResponse = service.generateVid(request);
+		assertEquals(vidResponse.getResponse().getVid().toString(), vid.getVid());
+		assertEquals(vidResponse.getResponse().getVidStatus(), vid.getStatusCode());
+	}
+
+	@Test
+	public void testCreateDraftVidRestDataValidationFailure() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
+		MockEnvironment env = new MockEnvironment();
+		ReflectionTestUtils.setField(environment, "env", env);
+		when(securityManager.hash(Mockito.any())).thenReturn("123");
+		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any(Class.class)))
+				.thenThrow(new IdRepoDataValidationException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER));
+		IdResponseDTO identityResponse = new IdResponseDTO();
+		ResponseDTO response = new ResponseDTO();
+		response.setStatus("ACTIVATED");
+		identityResponse.setResponse(response);
+		when(restHelper.requestSync(Mockito.any())).thenReturn(identityResponse);
+		VidPolicy policy = new VidPolicy();
+		policy.setAllowedInstances(2);
+		when(vidPolicyProvider.getPolicy(Mockito.any())).thenReturn(policy);
+		Vid vid = new Vid();
+		vid.setVid("123");
+		vid.setStatusCode("");
+		when(vidRepo.findByUinHashAndStatusCodeAndVidTypeCodeAndExpiryDTimesAfter(Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any())).thenReturn(Collections.singletonList(vid));
+		when(vidRepo.save(Mockito.any())).thenReturn(vid);
+		VidRequestDTO request = new VidRequestDTO();
+		request.setUin("2953190571");
+		request.setVidStatus(IdRepoConstants.DRAFT_STATUS);
+		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
+		RestRequestDTO restReq = new RestRequestDTO();
+		ResponseWrapper<Object> responseWrapper = new ResponseWrapper<>();
+		ObjectNode node = mapper.createObjectNode();
+		node.put("vid", "12345");
+		responseWrapper.setResponse(mapper.readValue(node.toString(), Object.class));
+		when(restHelper.requestSync(restReq)).thenReturn(responseWrapper);
+		try {
+			service.generateVid(request);
+		} catch (IdRepoAppException e) {
+			assertEquals("Invalid Input Parameter - %s", e.getErrorText());
+		}
+	}
+
+	@Test
+	public void testCreateDraftVidWithExpiry() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
+		when(securityManager.hash(Mockito.any())).thenReturn("123");
+		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any(Class.class)))
+				.thenReturn(new RestRequestDTO());
+		IdResponseDTO identityResponse = new IdResponseDTO();
+		ResponseDTO response = new ResponseDTO();
+		response.setStatus("ACTIVATED");
+		identityResponse.setResponse(response);
+		when(restHelper.requestSync(Mockito.any())).thenReturn(identityResponse);
+		VidPolicy policy = new VidPolicy();
+		policy.setAllowedInstances(2);
+		policy.setValidForInMinutes(2);
+		when(vidPolicyProvider.getPolicy(Mockito.any())).thenReturn(policy);
+		Vid vid = new Vid();
+		vid.setVid("123");
+		vid.setStatusCode("");
+		when(vidRepo.findByUinHashAndStatusCodeAndVidTypeCodeAndExpiryDTimesAfter(Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any())).thenReturn(Collections.singletonList(vid));
+		when(vidRepo.save(Mockito.any())).thenReturn(vid);
+		VidRequestDTO request = new VidRequestDTO();
+		request.setUin("2953190571");
+		request.setVidStatus(IdRepoConstants.DRAFT_STATUS);
+		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
+		RestRequestDTO restReq = new RestRequestDTO();
+		when(restBuilder.buildRequest(RestServicesConstants.VID_GENERATOR_SERVICE, null, ResponseWrapper.class)).thenReturn(restReq);
+		ResponseWrapper<Object> responseWrapper = new ResponseWrapper<>();
+		ObjectNode node = mapper.createObjectNode();
+		node.put("vid", "12345");
+		responseWrapper.setResponse(mapper.readValue(node.toString(), Object.class));
+		when(restHelper.requestSync(restReq)).thenReturn(responseWrapper);
+		ResponseWrapper<VidResponseDTO> vidResponse = service.generateVid(request);
+		assertEquals(vidResponse.getResponse().getVid().toString(), vid.getVid());
+		assertEquals(vidResponse.getResponse().getVidStatus(), vid.getStatusCode());
 	}
 
 	@Test
@@ -1005,5 +1130,65 @@ public class VidServiceImplTest {
 		when(vidPolicyProvider.getPolicy(Mockito.any())).thenReturn(new VidPolicy());
 		ResponseWrapper<VidResponseDTO> regenerateVid = service.reactivateVIDsForUIN("12345461");
 		assertEquals("ACTIVE", regenerateVid.getResponse().getVidStatus());
+	}
+	
+	@Test
+	public void testRetrieveVidsByUin() throws IdRepoAppException {
+		Vid vid = new Vid();
+		vid.setVid("123");
+		vid.setStatusCode("");
+		vid.setUinHash("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
+		vid.setUin("461_7C9JlRD32RnFTzAmeTfIzg");
+		vid.setVidTypeCode("Perpetual");
+		when(vidPolicyProvider.getPolicy(Mockito.any())).thenReturn(new VidPolicy());
+		when(securityManager.hashwithSalt(Mockito.any(), Mockito.any()))
+				.thenReturn("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
+		when(securityManager.getSaltKeyForId(Mockito.any())).thenReturn(461);
+		when(vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn(List.of(vid));
+		VidsInfosDTO response = service.retrieveVidsByUin("");
+		assertEquals("Perpetual", response.getResponse().get(0).getVidType());
+	}
+	
+	@Test
+	public void testRetrieveVidsByUinException() throws IdRepoAppException {
+		when(securityManager.getSaltKeyForId(Mockito.any())).thenThrow(new IdRepoAppUncheckedException(IdRepoErrorConstants.UNKNOWN_ERROR));
+		try {
+			service.retrieveVidsByUin("");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getMessage());
+		}
+	}
+	
+	@Test
+	public void testRetrieveVidsByUinDataAccessException() throws IdRepoAppException {
+		when(securityManager.getSaltKeyForId(Mockito.any())).thenThrow(new DataAccessException(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage()) {
+		});
+		try {
+			service.retrieveVidsByUin("");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getMessage());
+		}
+	}
+	
+	@Test
+	public void testCredentialRequestResponseConsumer() {
+		CredentialIssueRequestWrapperDto req = new CredentialIssueRequestWrapperDto();
+		Map<String, Object> res = Map.of();
+		ArgumentCaptor<EventModel> argCapture = ArgumentCaptor.forClass(EventModel.class);
+		service.credentialRequestResponseConsumer(req, res);
+		verify(websubHelper).publishEvent(argCapture.capture());
+		assertEquals(req, argCapture.getValue().getEvent().getData().get("request"));
+		assertEquals(res, argCapture.getValue().getEvent().getData().get("response"));
+	}
+	
+	@Test
+	public void testIdaEventConsumer() {
+		ArgumentCaptor<EventModel> argCapture = ArgumentCaptor.forClass(EventModel.class);
+		EventModel event = new EventModel();
+		service.idaEventConsumer(event);
+		verify(websubHelper).publishEvent(argCapture.capture());
+		assertEquals(event, argCapture.getValue().getEvent().getData().get("idaEvent"));
 	}
 }
