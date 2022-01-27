@@ -1,9 +1,11 @@
 package io.mosip.idrepository.vid.controller;
 
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -34,7 +36,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
-import io.mosip.idrepository.core.dto.AuthTypeDTO;
+import io.mosip.idrepository.core.dto.VidInfoDTO;
 import io.mosip.idrepository.core.dto.VidRequestDTO;
 import io.mosip.idrepository.core.dto.VidResponseDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
@@ -55,7 +57,8 @@ import io.mosip.kernel.core.idvalidator.spi.VidValidator;
  */
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
-@WebMvcTest @Import(EnvUtil.class)
+@WebMvcTest
+@Import(EnvUtil.class)
 @ConfigurationProperties("mosip.idrepo.vid")
 @ActiveProfiles("test")
 public class VidControllerTest {
@@ -73,7 +76,7 @@ public class VidControllerTest {
 	private VidController controller;
 
 	@Mock
-	private VidService<Object, ResponseWrapper<VidResponseDTO>, ResponseWrapper<AuthTypeDTO>> vidService;
+	private VidService<VidRequestDTO, ResponseWrapper<VidResponseDTO>, ResponseWrapper<List<VidInfoDTO>>> vidService;
 
 	@Mock
 	private VidRequestValidator vidValidator;
@@ -98,6 +101,24 @@ public class VidControllerTest {
 	@Test
 	public void testInitBinder() {
 		controller.initBinder(Mockito.mock(WebDataBinder.class));
+	}
+
+	@Test
+	public void testCreateDraftVid() throws IdRepoAppException {
+		RequestWrapper<VidRequestDTO> req = new RequestWrapper<VidRequestDTO>();
+		VidRequestDTO request = new VidRequestDTO();
+		request.setUin("2953190571");
+		request.setVidType("");
+		req.setRequest(request);
+		ResponseWrapper<VidResponseDTO> value = new ResponseWrapper<VidResponseDTO>();
+		VidResponseDTO res = new VidResponseDTO();
+		res.setVidStatus("DRAFTED");
+		value.setResponse(res);
+		Mockito.when(vidService.generateVid(Mockito.any())).thenReturn(value);
+		when(validator.validateId(Mockito.anyString())).thenReturn(true);
+		ResponseEntity<ResponseWrapper<VidResponseDTO>> response = controller.createDraftVid(req,
+				new BeanPropertyBindingResult(req, "RequestWrapper<RequestDTO>"));
+		assertEquals("DRAFTED", response.getBody().getResponse().getVidStatus());
 	}
 
 	@Test
@@ -360,8 +381,7 @@ public class VidControllerTest {
 			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorMessage(), e.getErrorText());
 		}
 	}
-	
-	
+
 	@Test
 	public void testReactivateVID_valid() throws IdRepoAppException {
 		ResponseWrapper<VidResponseDTO> value = new ResponseWrapper<VidResponseDTO>();
@@ -415,6 +435,36 @@ public class VidControllerTest {
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorMessage(), e.getErrorText());
+		}
+	}
+
+	@Test
+	public void testRetrieveVidsByUin() throws IdRepoAppException {
+		ResponseWrapper<List<VidInfoDTO>> res = new ResponseWrapper<>();
+		VidInfoDTO vidInfoDTO = new VidInfoDTO();
+		res.setResponse(List.of(vidInfoDTO));
+		when(vidService.retrieveVidsByUin("")).thenReturn(res);
+		ResponseEntity<ResponseWrapper<List<VidInfoDTO>>> responseEntity = controller.retrieveVidsByUin("");
+		assertEquals(vidInfoDTO, responseEntity.getBody().getResponse().get(0));
+	}
+
+	@Test
+	public void testRetrieveVidsByUinInvalidIdException() throws IdRepoAppException {
+		when(vidService.retrieveVidsByUin("")).thenThrow(new InvalidIDException(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage()));
+		try {
+			controller.retrieveVidsByUin("");
+		} catch (IdRepoAppException e) {
+			assertEquals(String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN), e.getErrorText());
+		}
+	}
+
+	@Test
+	public void testRetrieveVidsByUinException() throws IdRepoAppException {
+		when(vidService.retrieveVidsByUin("")).thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
+		try {
+			controller.retrieveVidsByUin("");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
 		}
 	}
 
