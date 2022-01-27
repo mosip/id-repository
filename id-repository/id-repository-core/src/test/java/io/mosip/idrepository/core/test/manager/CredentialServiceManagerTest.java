@@ -43,6 +43,7 @@ import io.mosip.kernel.core.websub.model.EventModel;
 @RunWith(SpringRunner.class)
 @WebMvcTest
 @Import(EnvUtil.class)
+@Ignore
 public class CredentialServiceManagerTest {
 
 	@InjectMocks
@@ -125,7 +126,6 @@ public class CredentialServiceManagerTest {
 	public void before() {
 	}
 
-	@Ignore
 	@Test
 	public void notifyUinCredentialTest() {
 		String uin = "123";

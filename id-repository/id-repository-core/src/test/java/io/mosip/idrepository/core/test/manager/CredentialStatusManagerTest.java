@@ -18,6 +18,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -40,6 +41,7 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.model.Event;
 import io.mosip.kernel.core.websub.model.EventModel;
 
@@ -98,6 +100,22 @@ public class CredentialStatusManagerTest {
 	}
 
 	@Test
+	public void triggerEventNotificationsTest() {
+		List<CredentialRequestStatus> deletedIssueRequestList = new ArrayList<CredentialRequestStatus>();
+		List<CredentialRequestStatus> expiredIssueRequestList = new ArrayList<CredentialRequestStatus>();
+		CredentialRequestStatus req = new CredentialRequestStatus();
+		req.setIndividualId("12");
+		req.setPartnerId("33");
+		req.setStatus("Success");
+		req.setTokenId("132");
+		req.setRequestId("22");
+		deletedIssueRequestList.add(req);
+		Mockito.when(statusRepo.findByStatus(CredentialRequestStatusLifecycle.DELETED.toString()))
+				.thenReturn(deletedIssueRequestList);
+		credentialStatusManager.triggerEventNotifications();
+	}
+
+	@Test
 	public void handleNewOrUpdatedRequestsTest() {
 		List<CredentialRequestStatus> newIssueRequestList = new ArrayList<CredentialRequestStatus>();
 		CredentialRequestStatus req = new CredentialRequestStatus();
@@ -105,6 +123,7 @@ public class CredentialStatusManagerTest {
 		req.setPartnerId("33");
 		req.setStatus("Success");
 		req.setTokenId("132");
+		req.setRequestId("22");
 		newIssueRequestList.add(req);
 		Mockito.when(statusRepo.findByStatus(CredentialRequestStatusLifecycle.NEW.toString()))
 				.thenReturn(newIssueRequestList);
