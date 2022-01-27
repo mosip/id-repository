@@ -34,3 +34,6 @@ mosip.kernel.salt-generator.tableName=<tableName/property key containing the tab
 ```
 java -Dspring.cloud.config.uri=<url> -Dspring.cloud.config.label=<label> -Dspring.cloud.config.name=<name> -Dspring.profiles.active=<profile> -Dmosip.kernel.salt-generator.schemaName=<schemaName/property key containing the schemaName> -Dmosip.kernel.salt-generator.tableName=<tableName/property key containing the tableName> -jar kernel-salt-generator.jar
 ```
+
+## Default context-path and port
+Refer [`bootstrap.properties`](src/main/resources/bootstrap.properties)
