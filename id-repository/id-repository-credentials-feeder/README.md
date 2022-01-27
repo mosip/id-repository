@@ -29,4 +29,5 @@ This generic job takes below VM arguments:
 docker run -it -d -p 8092:8092 -e active_profile_env={profile}  -e spring_config_label_env= {branch} -e spring_config_url_env={config_server_url} -e spring_config_name_env= {config_server_name} -Donline-verification-partner-ids={olv_partner_ids} -Dskip-requesting-existing-credentials-for-partners=true docker-registry.mosip.io:5000/id-repository-credentials-feeder
 
 ```
-
+## Default context-path and port
+Refer [`bootstrap.properties`](src/main/resources/bootstrap.properties)
