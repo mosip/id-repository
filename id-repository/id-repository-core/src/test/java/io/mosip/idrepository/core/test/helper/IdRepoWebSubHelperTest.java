@@ -2,18 +2,35 @@ package io.mosip.idrepository.core.test.helper;
 
 import static org.junit.Assert.assertEquals;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.mosip.idrepository.core.constant.EventType;
+import io.mosip.idrepository.core.constant.IDAEventType;
+import io.mosip.idrepository.core.dto.AuthtypeStatus;
 import io.mosip.idrepository.core.helper.IdRepoWebSubHelper;
+import io.mosip.idrepository.core.util.TokenIDGenerator;
+import io.mosip.kernel.core.websub.model.EventModel;
 import io.mosip.kernel.core.websub.spi.PublisherClient;
+import io.mosip.kernel.core.websub.spi.SubscriptionClient;
 import io.mosip.kernel.websub.api.constants.WebSubClientErrorCode;
 import io.mosip.kernel.websub.api.exception.WebSubClientException;
+import io.mosip.kernel.websub.api.model.SubscriptionChangeRequest;
+import io.mosip.kernel.websub.api.model.SubscriptionChangeResponse;
+import io.mosip.kernel.websub.api.model.UnsubscriptionRequest;
 
 /**
  * 
@@ -23,6 +40,21 @@ import io.mosip.kernel.websub.api.exception.WebSubClientException;
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class IdRepoWebSubHelperTest {
+
+	@InjectMocks
+	private IdRepoWebSubHelper idRepoWebSubHelper;
+
+	@Mock
+	private TokenIDGenerator tokenIdGenerator;
+
+	@Mock
+	private ObjectMapper mapper;
+
+	@Mock
+	private PublisherClient<String, Object, HttpHeaders> publisher;
+
+	@Mock
+	protected SubscriptionClient<SubscriptionChangeRequest, UnsubscriptionRequest, SubscriptionChangeResponse> subscribe;
 
 	@Test
 	public void testTryRegisterCache() {
@@ -92,8 +124,8 @@ public class IdRepoWebSubHelperTest {
 
 		// Throw the error for the first time only to make sure if it is cached in
 		// second call
-		Mockito.lenient().doThrow(new RuntimeException())
-				.when(publisherClient).registerTopic(Mockito.any(), Mockito.anyString());
+		Mockito.lenient().doThrow(new RuntimeException()).when(publisherClient).registerTopic(Mockito.any(),
+				Mockito.anyString());
 		idRepoWebSubHelper.tryRegisteringTopic("topic");
 		Set field = (Set) ReflectionTestUtils.getField(idRepoWebSubHelper, "registeredTopicCache");
 		assertEquals(0, field.size());
@@ -101,7 +133,33 @@ public class IdRepoWebSubHelperTest {
 		Mockito.lenient().doNothing().when(publisherClient).registerTopic(Mockito.any(), Mockito.anyString());
 		idRepoWebSubHelper.tryRegisteringTopic("topic");
 		assertEquals(1, field.size());
+	}
 
+	@Test
+	public void publishAuthTypeStatusUpdateEventTest() {
+		String individualId = "123";
+		List<AuthtypeStatus> authTypeStatusList = new ArrayList<AuthtypeStatus>();
+		String topic = "Test";
+		String partnerId = "66";
+		idRepoWebSubHelper.publishAuthTypeStatusUpdateEvent(individualId, authTypeStatusList, topic, partnerId);
+	}
+
+	@Test
+	public void createEventModelTest() {
+		EventType eventType = IDAEventType.DEACTIVATE_ID;
+		LocalDateTime expiryTimestamp = LocalDateTime.now();
+		Integer transactionLimit = 10;
+		String transactionId = "12";
+		String partner = "Test";
+		String idHash = "Azsa";
+		EventModel res = idRepoWebSubHelper.createEventModel(eventType, expiryTimestamp, transactionLimit,
+				transactionId, partner, idHash);
+		assertEquals("ID_REPO", res.getPublisher());
+	}
+
+	@Test
+	public void subscribeForVidEventTest() {
+		idRepoWebSubHelper.subscribeForVidEvent();
 	}
 
 }

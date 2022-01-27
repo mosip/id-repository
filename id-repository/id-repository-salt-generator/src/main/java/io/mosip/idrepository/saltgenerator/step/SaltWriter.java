@@ -54,19 +54,19 @@ public class SaltWriter implements ItemWriter<IdRepoSaltEntitiesComposite> {
 				&& vidHashSaltRepo.countByIdIn(entitiesCompositeList.parallelStream().map(entities -> entities.getVidHashSaltEntity().getId()).collect(Collectors.toList())) == 0l
 			    && identityEncryptSaltRepo.countByIdIn(entitiesCompositeList.parallelStream().map(entities -> entities.getIdentityEncryptSaltEntity().getId()).collect(Collectors.toList())) == 0l
 				&& vidEncryptSaltRepo.countByIdIn(entitiesCompositeList.parallelStream().map(entities -> entities.getVidEncryptSaltEntity().getId()).collect(Collectors.toList())) == 0l) {
-			List<IdentityHashSaltEntity> idRepoHashSaltEntitiesList = entitiesCompositeList.stream().map(entities -> entities.getIdentityHashSaltEntity()).collect(Collectors.toList());
+			List<IdentityHashSaltEntity> idRepoHashSaltEntitiesList = entitiesCompositeList.stream().map(IdRepoSaltEntitiesComposite::getIdentityHashSaltEntity).collect(Collectors.toList());
 			identityHashSaltRepo.saveAll(idRepoHashSaltEntitiesList);
 			mosipLogger.debug("SALT_GENERATOR", "SaltWriter", "IdRepo Hash Salt Entities written", String.valueOf(idRepoHashSaltEntitiesList.size()));
 			
-			List<VidHashSaltEntity> vidHashSaltEntitiesList = entitiesCompositeList.stream().map(entities -> entities.getVidHashSaltEntity()).collect(Collectors.toList());
+			List<VidHashSaltEntity> vidHashSaltEntitiesList = entitiesCompositeList.stream().map(IdRepoSaltEntitiesComposite::getVidHashSaltEntity).collect(Collectors.toList());
 			vidHashSaltRepo.saveAll(vidHashSaltEntitiesList);
 			mosipLogger.debug("SALT_GENERATOR", "SaltWriter", "IdMap Hash Salt Entities Entities written", String.valueOf(vidHashSaltEntitiesList.size()));
 			
-			List<IdentityEncryptSaltEntity> idRepoEncryptSaltEntitiesList = entitiesCompositeList.stream().map(entities -> entities.getIdentityEncryptSaltEntity()).collect(Collectors.toList());
+			List<IdentityEncryptSaltEntity> idRepoEncryptSaltEntitiesList = entitiesCompositeList.stream().map(IdRepoSaltEntitiesComposite::getIdentityEncryptSaltEntity).collect(Collectors.toList());
 			identityEncryptSaltRepo.saveAll(idRepoEncryptSaltEntitiesList);
 			mosipLogger.debug("SALT_GENERATOR", "SaltWriter", "IdRepo Encrypt Salt Entities written", String.valueOf(idRepoEncryptSaltEntitiesList.size()));
 			
-			List<VidEncryptSaltEntity> vidEncryptSaltEntitiesList = entitiesCompositeList.stream().map(entities -> entities.getVidEncryptSaltEntity()).collect(Collectors.toList());
+			List<VidEncryptSaltEntity> vidEncryptSaltEntitiesList = entitiesCompositeList.stream().map(IdRepoSaltEntitiesComposite::getVidEncryptSaltEntity).collect(Collectors.toList());
 			vidEncryptSaltRepo.saveAll(vidEncryptSaltEntitiesList);
 			mosipLogger.debug("SALT_GENERATOR", "SaltWriter", "IdMap Encrypt Salt Entities written", String.valueOf(vidEncryptSaltEntitiesList.size()));
 			

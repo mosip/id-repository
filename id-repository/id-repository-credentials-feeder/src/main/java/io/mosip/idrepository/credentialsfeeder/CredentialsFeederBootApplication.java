@@ -33,7 +33,7 @@ import io.mosip.idrepository.core.util.TokenIDGenerator;
 @ComponentScan(basePackages = {
 		"io.mosip.idrepository.credentialsfeeder.*", "${mosip.auth.adapter.impl.basepackage}" }, excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
 				"io.mosip.idrepository.core.entity", "io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig" }))
-public class CredentialsFeederApplication {
+public class CredentialsFeederBootApplication {
 
 	/**
 	 * The main method.
@@ -41,7 +41,7 @@ public class CredentialsFeederApplication {
 	 * @param args the arguments
 	 */
 	public static void main(String[] args) {
-		ApplicationContext applicationContext = SpringApplication.run(CredentialsFeederApplication.class, args);
+		ApplicationContext applicationContext = SpringApplication.run(CredentialsFeederBootApplication.class, args);
 		SpringApplication.exit(applicationContext);
 	}
 
