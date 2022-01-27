@@ -6,11 +6,7 @@
 # ID Repository
 
 ## Overview
-This repository contains source code and design documents for MOSIP ID Repository which is the server-side module to manage ID lifecycle.  The modules exposes API endpoints.  
-
-[Overview of Registration Processor and its role in ID lifecycle management](https://nayakrounak.gitbook.io/mosip-docs/modules/registration-processor)
-
-The front end UI application called Registration Client is available in a separate repo [here](https://github.com/mosip/registration-client/tree/develop)
+This repository contains source code and design documents for MOSIP [ID Repository](https://docs.mosip.io/1.2.0/modules/id-repository) which is the server-side module to manage ID lifecycle.  The modules exposes API endpoints.  
 
 ## Database
 See [DB guide](db_scripts/README.md)
@@ -46,7 +42,7 @@ The project requires JDK 1.11.
 TODO: Auth adapter jar
 
 ## Deploy
-To deploy Registration on Kubernetes cluster using Dockers refer to [mosip-infra](https://github.com/mosip/mosip-infra/tree/1.2.0_v3/deployment/v3)
+To deploy Registration on Kubernetes cluster using Dockers refer to [mosip-infra](https://github.com/mosip/mosip-infra/tree/1.2.0-rc2/deployment/v3)
 
 
 ## Configuration
@@ -56,7 +52,6 @@ Refer to the [configuration guide](docs/configuration.md).
 Automated functaionl tests available in [Functional Tests repo](https://github.com/mosip/mosip-functional-tests)
 
 ## APIs
-API documentation available on Wiki: [Registration APIs](https://github.com/mosip/documentation/wiki/Registration-APIs)
 
 ## License
 This project is licensed under the terms of [Mozilla Public License 2.0](https://github.com/mosip/mosip-platform/blob/master/LICENSE)
