@@ -3,6 +3,7 @@ package io.mosip.credentialstore.util;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -15,6 +16,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.ApiName;
+import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
 import io.mosip.credentialstore.constants.JsonConstants;
 import io.mosip.credentialstore.constants.LoggerFileConstant;
 import io.mosip.credentialstore.dto.JWTSignatureRequestDto;
@@ -86,6 +88,10 @@ public class DigitalSignatureUtil {
 			if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
 				ServiceError error = responseObject.getErrors().get(0);
 				throw new SignatureException(error.getMessage());
+			} else if (Objects.isNull(responseObject) || Objects.isNull(responseObject.getResponse())) {
+				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						"KEYMANAGER_JWTSIGN response is null");
+				throw new SignatureException(CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
 			}
 			String signedData = responseObject.getResponse().getJwtSignedData();
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
@@ -142,6 +148,10 @@ public class DigitalSignatureUtil {
 			if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
 				ServiceError error = responseObject.getErrors().get(0);
 				throw new SignatureException(error.getMessage());
+			} else if (Objects.isNull(responseObject) || Objects.isNull(responseObject.getResponse())) {
+				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						"KEYMANAGER_VERCRED_SIGN response is null");
+				throw new SignatureException(CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
 			}
 			String signedData = responseObject.getResponse().getJwtSignedData();
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
