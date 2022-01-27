@@ -1,6 +1,7 @@
 package io.mosip.idrepository.vid.service.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -43,6 +44,7 @@ import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.dto.VidPolicy;
 import io.mosip.idrepository.core.dto.VidRequestDTO;
 import io.mosip.idrepository.core.dto.VidResponseDTO;
+import io.mosip.idrepository.core.dto.VidsInfosDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
@@ -67,7 +69,8 @@ import io.mosip.kernel.core.util.DateUtils;
  */
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
-@WebMvcTest @Import(EnvUtil.class)
+@WebMvcTest
+@Import(EnvUtil.class)
 @ActiveProfiles("test")
 @ConfigurationProperties("mosip.idrepo.vid")
 public class VidServiceImplTest {
@@ -106,7 +109,7 @@ public class VidServiceImplTest {
 
 	@Mock
 	private UinEncryptSaltRepo uinEncryptSaltRepo;
-	
+
 	@Mock
 	private CredentialServiceManager credServiceManager;
 
@@ -148,7 +151,8 @@ public class VidServiceImplTest {
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
 		RestRequestDTO restReq = new RestRequestDTO();
-		when(restBuilder.buildRequest(RestServicesConstants.VID_GENERATOR_SERVICE, null, ResponseWrapper.class)).thenReturn(restReq);
+		when(restBuilder.buildRequest(RestServicesConstants.VID_GENERATOR_SERVICE, null, ResponseWrapper.class))
+				.thenReturn(restReq);
 		ResponseWrapper<Object> responseWrapper = new ResponseWrapper<>();
 		ObjectNode node = mapper.createObjectNode();
 		node.put("vid", "12345");
@@ -161,7 +165,8 @@ public class VidServiceImplTest {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testCreateVidAutoRestore() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
+	public void testCreateVidAutoRestore()
+			throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
 		when(securityManager.hash(Mockito.any())).thenReturn("123");
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any(Class.class)))
 				.thenReturn(new RestRequestDTO());
@@ -186,7 +191,8 @@ public class VidServiceImplTest {
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
 		RestRequestDTO restReq = new RestRequestDTO();
-		when(restBuilder.buildRequest(RestServicesConstants.VID_GENERATOR_SERVICE, null, ResponseWrapper.class)).thenReturn(restReq);
+		when(restBuilder.buildRequest(RestServicesConstants.VID_GENERATOR_SERVICE, null, ResponseWrapper.class))
+				.thenReturn(restReq);
 		ResponseWrapper<Object> responseWrapper = new ResponseWrapper<>();
 		ObjectNode node = mapper.createObjectNode();
 		node.put("vid", "12345");
@@ -198,7 +204,8 @@ public class VidServiceImplTest {
 	}
 
 	@Test
-	public void testCreateVidInstanceFail() throws RestServiceException, IdRepoDataValidationException, JsonParseException, JsonMappingException, IOException {
+	public void testCreateVidInstanceFail() throws RestServiceException, IdRepoDataValidationException,
+			JsonParseException, JsonMappingException, IOException {
 		when(securityManager.hash(Mockito.any())).thenReturn("123");
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any(Class.class)))
 				.thenReturn(new RestRequestDTO());
@@ -221,7 +228,8 @@ public class VidServiceImplTest {
 		VidRequestDTO request = new VidRequestDTO();
 		request.setUin("2953190571");
 		RestRequestDTO restReq = new RestRequestDTO();
-		when(restBuilder.buildRequest(RestServicesConstants.VID_GENERATOR_SERVICE, null, ResponseWrapper.class)).thenReturn(restReq);
+		when(restBuilder.buildRequest(RestServicesConstants.VID_GENERATOR_SERVICE, null, ResponseWrapper.class))
+				.thenReturn(restReq);
 		ResponseWrapper<Object> responseWrapper = new ResponseWrapper<>();
 		ObjectNode node = mapper.createObjectNode();
 		node.put("vid", "12345");
@@ -394,8 +402,10 @@ public class VidServiceImplTest {
 		VidRequestDTO request = new VidRequestDTO();
 		request.setUin("2953190571");
 		RestRequestDTO restReq = new RestRequestDTO();
-		when(restBuilder.buildRequest(RestServicesConstants.VID_GENERATOR_SERVICE, null, ResponseWrapper.class)).thenReturn(restReq);
-		when(restHelper.requestSync(restReq)).thenThrow(new RestServiceException(IdRepoErrorConstants.VID_GENERATION_FAILED));
+		when(restBuilder.buildRequest(RestServicesConstants.VID_GENERATOR_SERVICE, null, ResponseWrapper.class))
+				.thenReturn(restReq);
+		when(restHelper.requestSync(restReq))
+				.thenThrow(new RestServiceException(IdRepoErrorConstants.VID_GENERATION_FAILED));
 		try {
 			service.generateVid(request);
 		} catch (IdRepoAppException e) {
@@ -558,12 +568,11 @@ public class VidServiceImplTest {
 
 	@Test
 	public void testRetrieveUinByVid() throws IdRepoAppException {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
+		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime().atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_null",
-				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "ACTIVE", "IdRepo",
-				currentTime, "IdRepo", currentTime, false, currentTime);
+				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "ACTIVE", "IdRepo", currentTime,
+				"IdRepo", currentTime, false, currentTime);
 		when(securityManager.hash(Mockito.any())).thenReturn("123");
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any(Class.class)))
 				.thenReturn(new RestRequestDTO());
@@ -577,19 +586,19 @@ public class VidServiceImplTest {
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
 		String uin = "3920450236";
-		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(uin.getBytes());
+		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn(uin.getBytes());
 		ResponseWrapper<VidResponseDTO> retrieveUinByVid = service.retrieveUinByVid("12345678");
 		assertEquals(uin, String.valueOf(retrieveUinByVid.getResponse().getUin()));
 	}
 
 	@Test
 	public void testRetrieveUinByVidExpired() {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
+		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime().atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime();
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_null",
-				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "ACTIVATED", "IdRepo",
-				currentTime, "IdRepo", currentTime, false, currentTime);
+				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "ACTIVATED", "IdRepo", currentTime,
+				"IdRepo", currentTime, false, currentTime);
 		Mockito.when(vidRepo.findByVid(Mockito.anyString())).thenReturn(vid);
 		Mockito.when(vidRepo.retrieveUinByVid(Mockito.anyString())).thenReturn("1234567");
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
@@ -607,13 +616,11 @@ public class VidServiceImplTest {
 
 	@Test
 	public void testRetrieveUinHashNotMatching() {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
+		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime().atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime();
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691",
-				"461_7329815461_7C9JlRD32RnFTzAmeTfIzg", "461_7C9JlRD32RnFTzAmeTfIzg", "perpetual",
-				currentTime, currentTime, "ACTIVATED", "IdRepo", currentTime, "IdRepo", currentTime, false,
-				currentTime);
+				"461_7329815461_7C9JlRD32RnFTzAmeTfIzg", "461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime,
+				currentTime, "ACTIVATED", "IdRepo", currentTime, "IdRepo", currentTime, false, currentTime);
 		Mockito.when(vidRepo.findByVid(Mockito.anyString())).thenReturn(vid);
 		Mockito.when(vidRepo.retrieveUinByVid(Mockito.anyString())).thenReturn("1234567");
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
@@ -630,12 +637,11 @@ public class VidServiceImplTest {
 
 	@Test
 	public void testRetrieveUinByVidBlocked() {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
+		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime().atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_null",
-				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "Blocked", "IdRepo",
-				currentTime, "IdRepo", currentTime, false, currentTime);
+				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "Blocked", "IdRepo", currentTime,
+				"IdRepo", currentTime, false, currentTime);
 		Mockito.when(vidRepo.findByVid(Mockito.anyString())).thenReturn(vid);
 		Mockito.when(vidRepo.retrieveUinByVid(Mockito.anyString())).thenReturn("1234567");
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
@@ -667,17 +673,17 @@ public class VidServiceImplTest {
 
 	@Test
 	public void testUpdateVidvalid() throws IdRepoAppException {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
+		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime().atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_3920450236",
-				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "ACTIVE", "IdRepo",
-				currentTime, "IdRepo", currentTime, false, currentTime);
+				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "ACTIVE", "IdRepo", currentTime,
+				"IdRepo", currentTime, false, currentTime);
 		Mockito.when(vidRepo.findByVid(Mockito.anyString())).thenReturn(vid);
 		Mockito.when(vidRepo.retrieveUinByVid(Mockito.anyString())).thenReturn("1234567");
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
-		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("3920450236".getBytes());
+		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn("3920450236".getBytes());
 		Mockito.when(securityManager.hashwithSalt(Mockito.any(), Mockito.any())).thenReturn("3920450236");
 		VidPolicy policy = new VidPolicy();
 		policy.setAllowedInstances(1);
@@ -694,13 +700,13 @@ public class VidServiceImplTest {
 	}
 
 	@Test
-	public void testUpdateVidvalidREVOKE() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
+	public void testUpdateVidvalidREVOKE()
+			throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
+		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime().atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_null",
-				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "ACTIVE", "IdRepo",
-				currentTime, "IdRepo", currentTime, false, currentTime);
+				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "ACTIVE", "IdRepo", currentTime,
+				"IdRepo", currentTime, false, currentTime);
 		Mockito.when(vidRepo.findByVid(Mockito.anyString())).thenReturn(vid);
 		Mockito.when(vidRepo.retrieveUinByVid(Mockito.anyString())).thenReturn("1234567");
 		VidPolicy policy = new VidPolicy();
@@ -721,14 +727,17 @@ public class VidServiceImplTest {
 		Mockito.when(vidRepo.save(Mockito.any())).thenReturn(vid);
 		Mockito.when(securityManager.hash(Mockito.any()))
 				.thenReturn("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
-		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("3920450236".getBytes());
+		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn("3920450236".getBytes());
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
-		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("3920450236".getBytes());
+		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn("3920450236".getBytes());
 		VidRequestDTO request = new VidRequestDTO();
 		request.setVidStatus("REVOKE");
 		RestRequestDTO restReq = new RestRequestDTO();
-		when(restBuilder.buildRequest(RestServicesConstants.VID_GENERATOR_SERVICE, null, ResponseWrapper.class)).thenReturn(restReq);
+		when(restBuilder.buildRequest(RestServicesConstants.VID_GENERATOR_SERVICE, null, ResponseWrapper.class))
+				.thenReturn(restReq);
 		ResponseWrapper<Object> response = new ResponseWrapper<>();
 		ObjectNode node = mapper.createObjectNode();
 		node.put("vid", "12345");
@@ -754,14 +763,14 @@ public class VidServiceImplTest {
 	}
 
 	@Test
-	public void testRegenerate_Valid() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
+	public void testRegenerate_Valid()
+			throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
+		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime().atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		String vidValue = "2015642902372691";
-		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", vidValue, "461_null",
-				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "ACTIVE", "IdRepo",
-				currentTime, "IdRepo", currentTime, false, currentTime);
+		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", vidValue, "461_null", "461_7C9JlRD32RnFTzAmeTfIzg",
+				"perpetual", currentTime, currentTime, "ACTIVE", "IdRepo", currentTime, "IdRepo", currentTime, false,
+				currentTime);
 		Mockito.when(vidRepo.findByVid(Mockito.anyString())).thenReturn(vid);
 		Mockito.when(vidRepo.retrieveUinByVid(Mockito.anyString())).thenReturn("1234567");
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
@@ -784,9 +793,11 @@ public class VidServiceImplTest {
 		Mockito.when(vidRepo.save(Mockito.any())).thenReturn(vid);
 		Mockito.when(securityManager.hash(Mockito.any()))
 				.thenReturn("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
-		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("3920450236".getBytes());
+		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn("3920450236".getBytes());
 		RestRequestDTO restReq = new RestRequestDTO();
-		when(restBuilder.buildRequest(RestServicesConstants.VID_GENERATOR_SERVICE, null, ResponseWrapper.class)).thenReturn(restReq);
+		when(restBuilder.buildRequest(RestServicesConstants.VID_GENERATOR_SERVICE, null, ResponseWrapper.class))
+				.thenReturn(restReq);
 		ResponseWrapper<Object> responseWrapper = new ResponseWrapper<>();
 		ObjectNode node = mapper.createObjectNode();
 		node.put("vid", "12345");
@@ -812,12 +823,11 @@ public class VidServiceImplTest {
 
 	@Test
 	public void testRegenerateVid_InValidStatus() throws IdRepoAppException {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
+		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime().atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691",
-				"461_7329815461_7C9JlRD32RnFTzAmeTfIzg", "461_7C9JlRD32RnFTzAmeTfIzg", "perpetual",
-				currentTime, currentTime, "INACTIVE", "IdRepo", currentTime, "IdRepo", currentTime, false, currentTime);
+				"461_7329815461_7C9JlRD32RnFTzAmeTfIzg", "461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime,
+				currentTime, "INACTIVE", "IdRepo", currentTime, "IdRepo", currentTime, false, currentTime);
 		Mockito.when(vidRepo.findByVid(Mockito.anyString())).thenReturn(vid);
 		Mockito.when(vidRepo.retrieveUinByVid(Mockito.anyString())).thenReturn("1234567");
 		VidPolicy policy = new VidPolicy();
@@ -855,8 +865,7 @@ public class VidServiceImplTest {
 
 	@Test
 	public void testRegenerate_IdRepoAppUncheckedException() throws Throwable {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
+		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime().atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_null",
 				"461_7329815461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "ACTIVE", "IdRepo",
@@ -883,8 +892,7 @@ public class VidServiceImplTest {
 				.thenThrow(new IdRepoAppUncheckedException(IdRepoErrorConstants.VID_GENERATION_FAILED));
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
 		try {
-			when(securityManager.hash(Mockito.any()))
-			.thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+			when(securityManager.hash(Mockito.any())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 			Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
 					.thenReturn("3920450236".getBytes());
 			service.regenerateVid("123");
@@ -896,8 +904,7 @@ public class VidServiceImplTest {
 
 	@Test
 	public void testRegenerate_AutoRestoreNotAllowed() throws Throwable {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
-				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
+		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime().atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691",
 				"461_7329815461_7C9JlRD32RnFTzAmeTfIzg", "461_7329815461_7C9JlRD32RnFTzAmeTfIzg", "perpetual",
@@ -933,7 +940,7 @@ public class VidServiceImplTest {
 			assertEquals(IdRepoErrorConstants.VID_POLICY_FAILED.getErrorMessage(), e.getErrorText());
 		}
 	}
-	
+
 	@Test
 	public void testDeactivateVID_valid() throws IdRepoAppException {
 		RestRequestDTO restRequestDTO = new RestRequestDTO();
@@ -941,40 +948,40 @@ public class VidServiceImplTest {
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
 		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
-		.thenReturn("3920450236".getBytes());
+				.thenReturn("3920450236".getBytes());
 		when(securityManager.hash(Mockito.any()))
 				.thenReturn("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
 		Mockito.when(restBuilder.buildRequest(RestServicesConstants.IDREPO_IDENTITY_SERVICE, null, IdResponseDTO.class))
-		.thenReturn(restRequestDTO);
+				.thenReturn(restRequestDTO);
 		Vid vid = new Vid();
 		vid.setVid("123");
 		vid.setStatusCode("");
 		vid.setUinHash("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
 		vid.setUin("461_37C9JlRD32RnFTzAmeTfIzg");
-		when(vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(Mockito.any(), Mockito.any(),
-				Mockito.any())).thenReturn(Collections.singletonList(vid));
+		when(vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn(Collections.singletonList(vid));
 		when(vidPolicyProvider.getPolicy(Mockito.any())).thenReturn(new VidPolicy());
 		ResponseWrapper<VidResponseDTO> regenerateVid = service.deactivateVIDsForUIN("12345461");
 		assertEquals("DEACTIVATED", regenerateVid.getResponse().getVidStatus());
 	}
-	
+
 	@Test
 	public void testDeactivateVID_Invalid() throws Throwable {
 		RestRequestDTO restRequestDTO = new RestRequestDTO();
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
 		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
-		.thenReturn("3920450236".getBytes());
+				.thenReturn("3920450236".getBytes());
 		when(securityManager.hash(Mockito.any()))
 				.thenReturn("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
 		Mockito.when(restBuilder.buildRequest(RestServicesConstants.IDREPO_IDENTITY_SERVICE, null, IdResponseDTO.class))
-		.thenReturn(restRequestDTO);
+				.thenReturn(restRequestDTO);
 		Vid vid = new Vid();
 		vid.setVid("123");
 		vid.setStatusCode("");
 		vid.setUin("461_7C9JlRD32RnFTzAmeTfIzg");
-		when(vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(Mockito.any(), Mockito.any(),
-				Mockito.any())).thenReturn(Collections.emptyList());
+		when(vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn(Collections.emptyList());
 		try {
 			service.deactivateVIDsForUIN("12345461");
 		} catch (IdRepoAppException e) {
@@ -982,28 +989,38 @@ public class VidServiceImplTest {
 			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorMessage(), e.getErrorText());
 		}
 	}
-	
+
 	@Test
 	public void testReactivateVID_valid() throws IdRepoAppException {
 		RestRequestDTO restRequestDTO = new RestRequestDTO();
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
 		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any()))
-		.thenReturn("3920450236".getBytes());
+				.thenReturn("3920450236".getBytes());
 		when(securityManager.getSaltKeyForId(Mockito.any())).thenReturn(461);
 		when(securityManager.hashwithSalt(Mockito.any(), Mockito.any()))
 				.thenReturn("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
 		Mockito.when(restBuilder.buildRequest(RestServicesConstants.IDREPO_IDENTITY_SERVICE, null, IdResponseDTO.class))
-		.thenReturn(restRequestDTO);
+				.thenReturn(restRequestDTO);
 		Vid vid = new Vid();
 		vid.setVid("123");
 		vid.setStatusCode("");
 		vid.setUinHash("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
 		vid.setUin("461_7C9JlRD32RnFTzAmeTfIzg");
-		when(vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(Mockito.any(), Mockito.any(),
-				Mockito.any())).thenReturn(Collections.singletonList(vid));
+		when(vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn(Collections.singletonList(vid));
 		when(vidPolicyProvider.getPolicy(Mockito.any())).thenReturn(new VidPolicy());
 		ResponseWrapper<VidResponseDTO> regenerateVid = service.reactivateVIDsForUIN("12345461");
 		assertEquals("ACTIVE", regenerateVid.getResponse().getVidStatus());
 	}
+
+	@Test
+	public void retrieveVidsByUinTest() throws IdRepoAppException {
+		String uin = "123";
+		int saltId = 12;
+		Mockito.when(securityManager.getSaltKeyForId(uin)).thenReturn(saltId);
+		VidsInfosDTO response = service.retrieveVidsByUin(uin);
+		assertNotNull(response);
+	}
+
 }
