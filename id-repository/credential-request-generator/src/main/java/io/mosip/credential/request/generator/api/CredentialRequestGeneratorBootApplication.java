@@ -25,7 +25,7 @@ import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
 				"io.mosip.idrepository.core.config.IdRepoDataSourceConfig.*", "io.mosip.kernel.dataaccess.hibernate.config.*" }))
 @EnableBatchProcessing
 @EnableScheduling
-public class CredentialRequestGeneratorApp {
+public class CredentialRequestGeneratorBootApplication {
 
 	/**
 	 * The main method.
@@ -33,6 +33,6 @@ public class CredentialRequestGeneratorApp {
 	 * @param args the arguments
 	 */
 	public static void main(String[] args) {
-		SpringApplication.run(CredentialRequestGeneratorApp.class, args);
+		SpringApplication.run(CredentialRequestGeneratorBootApplication.class, args);
 	}
 }
