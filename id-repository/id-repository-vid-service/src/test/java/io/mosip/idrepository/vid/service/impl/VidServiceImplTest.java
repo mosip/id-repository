@@ -1157,7 +1157,7 @@ public class VidServiceImplTest {
 		try {
 			service.retrieveVidsByUin("");
 		} catch (IdRepoAppException e) {
-			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getMessage());
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
 		}
 	}
 	
@@ -1168,7 +1168,7 @@ public class VidServiceImplTest {
 		try {
 			service.retrieveVidsByUin("");
 		} catch (IdRepoAppException e) {
-			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getMessage());
+			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorMessage(), e.getErrorText());
 		}
 	}
 	
