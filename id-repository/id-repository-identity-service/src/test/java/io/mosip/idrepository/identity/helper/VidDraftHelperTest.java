@@ -123,5 +123,8 @@ public class VidDraftHelperTest {
         Mockito.when(restBuilder.buildRequest(Mockito.any(),
                 Mockito.any(), Mockito.any())).thenReturn(restRequest);
         vidDraftHelper.activateDraftVid(uin);
+
+        uin = null;
+        vidDraftHelper.activateDraftVid(uin);
     }
 }
