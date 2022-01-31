@@ -1,7 +1,7 @@
 
 [![Build Status](https://travis-ci.org/mosip/id-repository.svg?branch=master)](https://travis-ci.org/mosip/id-repository)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mosip_id-repository&metric=alert_status)](https://sonarcloud.io/dashboard?id=mosip_id-repository)
-[![Join the chat at https://gitter.im/mosip-community/id-repository](https://badges.gitter.im/mosip-community/id-repository.svg)](https://gitter.im/mosip-community/id-repository?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/mosip-community/id-repository](https://badges.gitter.im/mosip-community/id-repository.svg)](https://community.mosip.io/mosip-community/id-repository?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # ID Repository
 
