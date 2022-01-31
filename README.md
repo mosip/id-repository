@@ -1,7 +1,7 @@
 
 [![Build Status](https://travis-ci.org/mosip/id-repository.svg?branch=master)](https://travis-ci.org/mosip/id-repository)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mosip_id-repository&metric=alert_status)](https://sonarcloud.io/dashboard?id=mosip_id-repository)
-[![Join the chat at https://gitter.im/mosip-community/id-repository](https://badges.gitter.im/mosip-community/id-repository.svg)](https://gitter.im/mosip-community/id-repository?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/mosip-community/id-repository](https://badges.gitter.im/mosip-community/id-repository.svg)](https://community.mosip.io/mosip-community/id-repository?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # ID Repository
 
@@ -15,7 +15,7 @@ See [DB guide](db_scripts/README.md)
 The project requires JDK 1.11. 
 1. To build jars:
     ```
-    $ cd registration
+    $ cd id-repository
     $ mvn clean install 
     ```
 1. To skip JUnit tests and Java Docs:
@@ -39,10 +39,12 @@ The project requires JDK 1.11.
 	
 	\* Refer to [kernel-config-server](https://github.com/mosip/commons/tree/master/kernel/kernel-config-server) for details
 
-TODO: Auth adapter jar
+2. kernel-auth-adapter.jar needs to added to the build path to run the service.
+	
+NOTE: To run identity service, Biometric SDK implementation jar or [Mock SDK](https://github.com/mosip/mosip-mock-services/tree/master/mock-sdk) needs to be added to the build path.
 
 ## Deploy
-To deploy Registration on Kubernetes cluster using Dockers refer to [mosip-infra](https://github.com/mosip/mosip-infra/tree/1.2.0-rc2/deployment/v3)
+To deploy ID Repository on Kubernetes cluster using Dockers refer to [mosip-infra](https://github.com/mosip/mosip-infra/tree/1.2.0-rc2/deployment/v3)
 
 
 ## Configuration
@@ -52,6 +54,7 @@ Refer to the [configuration guide](docs/configuration.md).
 Automated functaionl tests available in [Functional Tests repo](https://github.com/mosip/mosip-functional-tests)
 
 ## APIs
+API documentation is available [here](https://mosip.github.io/documentation/).
 
 ## License
 This project is licensed under the terms of [Mozilla Public License 2.0](https://github.com/mosip/mosip-platform/blob/master/LICENSE)
