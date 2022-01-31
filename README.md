@@ -15,7 +15,7 @@ See [DB guide](db_scripts/README.md)
 The project requires JDK 1.11. 
 1. To build jars:
     ```
-    $ cd registration
+    $ cd id-repository
     $ mvn clean install 
     ```
 1. To skip JUnit tests and Java Docs:
@@ -39,10 +39,10 @@ The project requires JDK 1.11.
 	
 	\* Refer to [kernel-config-server](https://github.com/mosip/commons/tree/master/kernel/kernel-config-server) for details
 
-TODO: Auth adapter jar
+2. kernel-auth-adapter.jar and Biometric SDK implementation jar needs to added to the build path to run the service.
 
 ## Deploy
-To deploy Registration on Kubernetes cluster using Dockers refer to [mosip-infra](https://github.com/mosip/mosip-infra/tree/1.2.0-rc2/deployment/v3)
+To deploy ID Repository on Kubernetes cluster using Dockers refer to [mosip-infra](https://github.com/mosip/mosip-infra/tree/1.2.0-rc2/deployment/v3)
 
 
 ## Configuration
