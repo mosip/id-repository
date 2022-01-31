@@ -36,6 +36,15 @@ Point the above to your DB and port.  Default is set to point to in-cluster Post
 ## VID Configurations
 * `mosip-vid-policy.json`: VID policies based on which VID is created.
 
+## Salt Generator Configurations
+** application.properties **
+
+```
+mosip.kernel.salt-generator.chunk-size=<chunkSize>
+mosip.kernel.salt-generator.start-sequence=<startSeq>
+mosip.kernel.salt-generator.end-sequence=<endSeq>
+```
+
 ## Biometric-SDK configurations
 ```
 mosip.biosdk.default.service.url
