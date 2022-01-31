@@ -39,7 +39,9 @@ The project requires JDK 1.11.
 	
 	\* Refer to [kernel-config-server](https://github.com/mosip/commons/tree/master/kernel/kernel-config-server) for details
 
-2. kernel-auth-adapter.jar and Biometric SDK implementation jar needs to added to the build path to run the service.
+2. kernel-auth-adapter.jar needs to added to the build path to run the service.
+	
+NOTE: To run identity service, Biometric SDK implementation jar or [Mock SDK](https://github.com/mosip/mosip-mock-services/tree/master/mock-sdk) needs to be added to the build path.
 
 ## Deploy
 To deploy ID Repository on Kubernetes cluster using Dockers refer to [mosip-infra](https://github.com/mosip/mosip-infra/tree/1.2.0-rc2/deployment/v3)
