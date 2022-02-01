@@ -1,9 +1,7 @@
-# ID Repository Identity Service
+# Identity Service
 
 ## Overview
-Identity service provides functionality to store/update/retrieve identity information and also to retrieve/update uin status.
-
-Identity service integrates with Biometric SDKs to extract templates from provided biometric data.
+Refer [here](https://docs.mosip.io/1.2.0/modules/id-repository#identity-service)
 
 ## Default context-path and port
 Refer [`bootstrap.properties`](src/main/resources/bootstrap.properties)
