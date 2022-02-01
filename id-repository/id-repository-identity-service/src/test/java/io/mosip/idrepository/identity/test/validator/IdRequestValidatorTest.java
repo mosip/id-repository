@@ -1,7 +1,12 @@
 package io.mosip.idrepository.identity.test.validator;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.FACE_EXTRACTION_FORMAT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.FINGER_EXTRACTION_FORMAT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.IRIS_EXTRACTION_FORMAT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -43,10 +48,12 @@ import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
+import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.RequestDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
+import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
@@ -59,6 +66,7 @@ import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailed
 import io.mosip.kernel.core.idobjectvalidator.exception.InvalidIdSchemaException;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
+import io.mosip.kernel.core.idvalidator.spi.VidValidator;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.idvalidator.uin.impl.UinValidatorImpl;
 
@@ -100,6 +108,9 @@ public class IdRequestValidatorTest {
 
 	@Mock
 	private UinValidatorImpl uinValidator;
+	
+	@Mock
+	private VidValidator<String> vidValidator;
 
 	@Mock
 	private IdObjectValidator idObjectValidator;
@@ -438,4 +449,105 @@ public class IdRequestValidatorTest {
 		}
 	}
 
+	@Test
+	public void testValidateVid() {
+		when(vidValidator.validateId(Mockito.anyString())).thenReturn(true);
+		boolean flag = validator.validateVid("cvb");
+		assertTrue(flag);
+	}
+	
+	@Test
+	public void testValidateVidwithException() {
+		when(vidValidator.validateId(Mockito.anyString())).thenThrow(InvalidIDException.class);
+		boolean flag = validator.validateVid("cvb");
+		assertFalse(flag);		
+	}
+	
+	@Test
+	public void testValidateUin() throws IdRepoAppException {
+		when(uinValidator.validateId(Mockito.anyString())).thenReturn(true);
+		boolean flag = validator.validateUin("vcbhg");
+		assertTrue(flag);
+	}
+	
+	@Test(expected = IdRepoAppUncheckedException.class)
+	public void testGetSchemawithIdRepoAppUncheckedException() {
+		String response = ReflectionTestUtils.invokeMethod(validator, "getSchema", "null");
+		assertNotNull(response);
+	}
+	
+	@Test(expected = IdRepoDataValidationException.class)
+	public void testGetSchema() throws IdRepoDataValidationException {
+		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(IdRepoDataValidationException.class);
+		String response = ReflectionTestUtils.invokeMethod(validator, "getSchema", "cvhgfvbn");
+		assertNotNull(response);
+	}
+	
+	@Test(expected = IdRepoAppException.class)
+	public void testValidateIdvId() throws IdRepoAppException {
+		IdType id = IdType.VID;
+		when(vidValidator.validateId(Mockito.anyString())).thenThrow(InvalidIDException.class);
+		validator.validateIdvId("edcvbj", id);
+	}
+	
+	@Test(expected = IdRepoAppException.class)
+	public void testValidateTypeAndExtractionFormatswithTypeNull() throws IdRepoAppException {
+		Map<String, String> extractionFormats = new HashMap<>();
+		extractionFormats.put(FINGER_EXTRACTION_FORMAT, "fingerFormat");
+		extractionFormats.put(IRIS_EXTRACTION_FORMAT, "irisFormat");
+		extractionFormats.put(FACE_EXTRACTION_FORMAT, "faceFormat");
+		validator.validateTypeAndExtractionFormats(null,extractionFormats);
+	}
+	
+	@Test(expected = IdRepoAppException.class)
+	public void testValidateTypeAndExtractionFormats() throws IdRepoAppException {
+		Map<String, String> extractionFormats = new HashMap<>();
+		extractionFormats.put(FINGER_EXTRACTION_FORMAT, "fingerFormat");
+		extractionFormats.put(IRIS_EXTRACTION_FORMAT, "irisFormat");
+		extractionFormats.put(FACE_EXTRACTION_FORMAT, "faceFormat");
+		validator.validateTypeAndExtractionFormats("cvbhgfc",extractionFormats);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testValidateIdTypewithIllegalArgumentException() throws IdRepoAppException {
+		IdType id = validator.validateIdType("jhgcvb");
+		assertNull(id);
+	}
+	
+	@Test
+	public void testValidateIdTypeWithTypeNull() throws IdRepoAppException {
+		IdType id = validator.validateIdType(null);
+		assertNull(id);
+	}
+	
+	@Test
+	public void testValidateIdType() throws IdRepoAppException {
+		IdType id = validator.validateIdType("VID");
+		assertNotNull(id);
+	}
+	
+	@Test(expected = IdRepoAppException.class)
+	public void testValidateTypeWithIdRepoAppException() throws IdRepoAppException {
+		allowedTypes = List.of("bio", "demo", "all");	
+		ReflectionTestUtils.setField(validator, "allowedTypes", allowedTypes);
+		String response = validator.validateType("metadata");
+		assertNotNull(response);
+	}
+	
+	@Test
+	public void testValidateTypeWithTypeAll() throws IdRepoAppException {
+		allowedTypes = List.of("bio", "demo", "metadata", "all");	
+		ReflectionTestUtils.setField(validator, "allowedTypes", allowedTypes);
+		String response = validator.validateType("bio,demo,metadata,all");
+		assertNotNull(response);
+	}
+	
+	@Test(expected = IdRepoAppException.class)
+	public void testValidateType() throws IdRepoAppException {
+		allowedTypes = List.of("bio", "demo", "all");		
+		ReflectionTestUtils.setField(validator, "allowedTypes", allowedTypes);
+		String response = validator.validateType("metadata,bio");
+		assertNotNull(response);
+	}
+	
 }
