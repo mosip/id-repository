@@ -172,6 +172,11 @@ public class CredentialStatusManagerTest {
 		Optional<CredentialRequestStatus> idWithDummyPartnerOptional = Optional.of(credentialRequestStatus);
 		Mockito.when(statusRepo.findByIndividualIdHashAndPartnerId(Mockito.any(), Mockito.any())).thenReturn(idWithDummyPartnerOptional);
 		credentialStatusManager.deleteDummyPartner(credentialRequestStatus);
+
+		credentialRequestStatus.setStatus(CredentialRequestStatusLifecycle.FAILED.toString());
+        idWithDummyPartnerOptional = Optional.of(credentialRequestStatus);
+		Mockito.when(statusRepo.findByIndividualIdHashAndPartnerId(Mockito.any(), Mockito.any())).thenReturn(idWithDummyPartnerOptional);
+		credentialStatusManager.deleteDummyPartner(credentialRequestStatus);
 	}
 
 	/**
