@@ -2,6 +2,7 @@ package io.mosip.credential.request.generator.util;
 
 import io.mosip.credential.request.generator.constants.ApiName;
 import io.mosip.idrepository.core.util.EnvUtil;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -214,6 +215,8 @@ public class RestUtilTest {
         ReflectionTestUtils.invokeMethod(restUtilSpy, "setRequestHeader", requestType, mediaType);
         //ClassCastException
         ReflectionTestUtils.invokeMethod(restUtilSpy, "setRequestHeader", new Object(), mediaType);
+        //null
+        ReflectionTestUtils.invokeMethod(restUtilSpy, "setRequestHeader", null, null);
     }
 
     /**
