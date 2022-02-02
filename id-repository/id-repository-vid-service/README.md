@@ -1,8 +1,7 @@
 # ID Repository VID Service
 
 ## Overview
-
-VID Service provides functionality to create/update Virtual IDs mapped against an UIN. It also provides facility to update status of VID. VIDs are created based on the VID policy defined in the configuration.
+Refer [here](https://docs.mosip.io/1.2.0/modules/id-repository#vid-service)
 
 ## Default context-path and port
 Refer [`bootstrap.properties`](src/main/resources/bootstrap.properties)
