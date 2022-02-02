@@ -17,7 +17,7 @@
 		<java.version>1.8</java.version>
 		<io.micrometer.prometheus.version>1.4.2</io.micrometer.prometheus.version>
 		<kernel-dataaccess-hibernate.version>1.0.7</kernel-dataaccess-hibernate.version>
-		<postgresql.version>42.2.2</postgresql.version>
+		<postgresql.version>42.2.25</postgresql.version>
 	</properties>
 
 	<dependencies>
