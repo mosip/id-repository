@@ -2,6 +2,8 @@ package io.mosip.credential.request.generator.util;
 
 import io.mosip.credential.request.generator.constants.ApiName;
 import io.mosip.idrepository.core.util.EnvUtil;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 @WebMvcTest
 @ContextConfiguration(classes = {TestContext.class, WebApplicationContext.class})
 @RunWith(SpringRunner.class)
@@ -43,6 +46,11 @@ public class RestUtilTest {
         MockitoAnnotations.initMocks(this);
     }
 
+
+    /**
+     * This class tests the  postApi method
+     * @throws Exception
+     */
     @Test
     public void postApiTest() throws Exception {
         ApiName apiName = ApiName.CRDENTIALSERVICE;
@@ -53,6 +61,10 @@ public class RestUtilTest {
         restUtil.postApi(apiName, pathsegments, queryParamName, queryParamValue, mediaType, requestType, responseClass);
     }
 
+    /**
+     * This class tests the  postApi method
+     * @throws Exception
+     */
     @Test(expected = Exception.class)
     public void postApiExceptionTest() throws Exception {
         ApiName apiName = ApiName.CRDENTIALSERVICE;
@@ -73,6 +85,10 @@ public class RestUtilTest {
         restUtilSpy.postApi(apiName, pathsegments, queryParamName, queryParamValue, mediaType, requestType, responseClass);
     }
 
+    /**
+     * This class tests the  postApi method
+     * @throws Exception
+     */
     @Test(expected = Exception.class)
     public void postApiExceptionTest1() throws Exception {
         ApiName apiName = ApiName.CRDENTIALSERVICE;
@@ -86,6 +102,10 @@ public class RestUtilTest {
         restUtil.postApi(apiName, pathsegments, queryParamName, queryParamValue, mediaType, requestType, responseClass);
     }
 
+    /**
+     * This class tests the postApi method
+     * @throws Exception
+     */
     @Test(expected = Exception.class)
     public void postApiExceptionTest2() throws Exception {
         ApiName apiName = ApiName.CRDENTIALSERVICE;
@@ -102,6 +122,10 @@ public class RestUtilTest {
         restUtil.postApi(apiName, pathsegments, queryParamName, queryParamValue, mediaType, requestType, responseClass);
     }
 
+    /**
+     * This class tests the getApi method
+     * @throws Exception
+     */
     @Test
     public void getApiTest() throws Exception {
         ApiName apiName = ApiName.CRDENTIALSERVICE;
@@ -112,8 +136,12 @@ public class RestUtilTest {
         restUtil.getApi(apiName, pathsegments, queryParamName, queryParamValue, null);
     }
 
+    /**
+     * This class tests the getApi method
+     * @throws Exception
+     */
     @Test(expected = Exception.class)
-    public void getApiExceptionTest() throws Exception {
+    public void getApiExceptionTest1() throws Exception {
         ApiName apiName = ApiName.CRDENTIALSERVICE;
         List<String> pathsegments = new ArrayList<>();
         pathsegments.add("");
@@ -130,8 +158,12 @@ public class RestUtilTest {
         restUtilSpy.getApi(apiName, pathsegments, queryParamName, queryParamValue, null);
     }
 
+    /**
+     * This class tests the getApi method
+     * @throws Exception
+     */
     @Test(expected = Exception.class)
-    public void getApiExceptionTest1() throws Exception {
+    public void getApiExceptionTest2() throws Exception {
         ApiName apiName = ApiName.CRDENTIALSERVICE;
         List<String> pathsegments = new ArrayList<>();
         pathsegments.add("");
@@ -141,8 +173,12 @@ public class RestUtilTest {
         restUtil.getApi(apiName, pathsegments, queryParamName, queryParamValue, null);
     }
 
+    /**
+     * This class tests the getApi method
+     * @throws Exception
+     */
     @Test(expected = Exception.class)
-    public void getApiExceptionTest2() throws Exception {
+    public void getApiExceptionTest3() throws Exception {
         ApiName apiName = ApiName.CRDENTIALSERVICE;
         List<String> pathsegments = new ArrayList<>();
         pathsegments.add("");
@@ -158,8 +194,12 @@ public class RestUtilTest {
         restUtil.getApi(apiName, pathsegments, queryParamName, queryParamValue, null);
     }
 
+    /**
+     * This class tests the setRequestHeader method
+     * @throws IOException
+     */
     @Test
-    public void setRequestHeaderTest() throws IOException {
+    public void setRequestHeaderTest1() throws IOException {
         Map<String, String> headers = new HashMap<>();
         Map<String, String > contentType = new HashMap<>();
         contentType.put("0", "1");
@@ -176,8 +216,12 @@ public class RestUtilTest {
         ReflectionTestUtils.invokeMethod(restUtilSpy, "setRequestHeader", new Object(), mediaType);
     }
 
+    /**
+     * This class tests the setRequestHeader method
+     * @throws IOException
+     */
     @Test
-    public void setRequestHeaderExceptionTest() throws IOException {
+    public void setRequestHeaderTest2() throws IOException {
         Map<String, String> headers = new HashMap<>();
         Map<String, String > contentType = new HashMap<>();
         contentType.put("0", "1");
@@ -189,12 +233,35 @@ public class RestUtilTest {
         ReflectionTestUtils.invokeMethod(restUtilSpy, "setRequestHeader", requestType, mediaType);
     }
 
+    /**
+     * This class tests the getToken method
+     * @throws IOException
+     */
+    @Test
+    public void getTokenTest() throws IOException {
+        HttpClient httpClient = Mockito.mock(HttpClient.class);
+        HttpPost httpPost = Mockito.mock(HttpPost.class);
+        HttpResponse httpResponse = Mockito.mock(HttpResponse.class);
+        Mockito.when(httpClient.execute(null)).thenReturn(httpResponse);
+        Mockito.when(environment.getProperty("KEYBASEDTOKENAPI")).thenReturn("https://stackoverflow.com/questions/20542361/mocking-apache-httpclient-using-mockito");
+        System.setProperty("token", "1122");
+        restUtil.getToken();
+    }
+
+    /**
+     * This class tests the getTokenException method
+     * @throws IOException
+     */
     @Test(expected = IOException.class)
     public void getTokenExceptionTest1() throws IOException {
         Mockito.when(environment.getProperty("KEYBASEDTOKENAPI")).thenReturn("1122");
         restUtil.getToken();
     }
 
+    /**
+     * This class tests the getTokenException method
+     * @throws IOException
+     */
     @Test(expected = IOException.class)
     public void getTokenExceptionTest2() throws IOException {
         Mockito.when(environment.getProperty("KEYBASEDTOKENAPI")).thenReturn("1122");
@@ -202,4 +269,17 @@ public class RestUtilTest {
         restUtil.getToken();
     }
 
+    /**
+     * This class tests the getToken method
+     * @throws IOException
+     */
+    @Test(expected = Exception.class)
+    public void getTokenExceptionTest3() throws IOException {
+        HttpClient httpClient = Mockito.mock(HttpClient.class);
+        HttpResponse httpResponse = Mockito.mock(HttpResponse.class);
+        Mockito.when(httpClient.execute(null)).thenReturn(httpResponse);
+        Mockito.when(environment.getProperty("KEYBASEDTOKENAPI")).thenReturn("https://www.google.com/");
+        System.setProperty("token", "1122");
+        restUtil.getToken();
+    }
 }
