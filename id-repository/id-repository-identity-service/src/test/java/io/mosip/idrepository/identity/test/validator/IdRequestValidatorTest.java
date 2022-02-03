@@ -3,6 +3,7 @@ package io.mosip.idrepository.identity.test.validator;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FACE_EXTRACTION_FORMAT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FINGER_EXTRACTION_FORMAT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.IRIS_EXTRACTION_FORMAT;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -21,6 +22,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -476,11 +478,15 @@ public class IdRequestValidatorTest {
 		assertNotNull(response);
 	}
 	
-	@Test(expected = IdRepoDataValidationException.class)
+	@Test
 	public void testGetSchema() throws IdRepoDataValidationException {
-		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(IdRepoDataValidationException.class);
-		String response = ReflectionTestUtils.invokeMethod(validator, "getSchema", "cvhgfvbn");
-		assertNotNull(response);
+		try{
+			when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(IdRepoDataValidationException.class);
+			String response = ReflectionTestUtils.invokeMethod(validator, "getSchema", "cvhgfvbn");
+			}
+		catch(IdRepoAppUncheckedException e) {
+			assertEquals(IdRepoErrorConstants.SCHEMA_RETRIEVE_ERROR.getErrorCode(), e.getErrorCode());	
+		}
 	}
 	
 	@Test(expected = IdRepoAppException.class)
@@ -508,10 +514,14 @@ public class IdRequestValidatorTest {
 		validator.validateTypeAndExtractionFormats("cvbhgfc",extractionFormats);
 	}
 	
-	@Test(expected=IllegalArgumentException.class)
+	@Test
 	public void testValidateIdTypewithIllegalArgumentException() throws IdRepoAppException {
-		IdType id = validator.validateIdType("jhgcvb");
-		assertNull(id);
+		try{
+			IdType id = validator.validateIdType("jhgcvb");
+		}
+		catch(IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+		}
 	}
 	
 	@Test
