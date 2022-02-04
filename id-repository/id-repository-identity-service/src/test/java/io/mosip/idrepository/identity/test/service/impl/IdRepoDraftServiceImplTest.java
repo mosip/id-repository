@@ -4,6 +4,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.FACE_EXTRACTIO
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FINGER_EXTRACTION_FORMAT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.IRIS_EXTRACTION_FORMAT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MOSIP_KERNEL_IDREPO_JSON_PATH;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -85,6 +86,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.entity.UinBiometric;
 import io.mosip.idrepository.identity.entity.UinBiometricDraft;
+import io.mosip.idrepository.identity.entity.UinDocument;
 import io.mosip.idrepository.identity.entity.UinDocumentDraft;
 import io.mosip.idrepository.identity.entity.UinDraft;
 import io.mosip.idrepository.identity.helper.AnonymousProfileHelper;
@@ -105,6 +107,7 @@ import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.kernel.core.util.StringUtils;
 
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
@@ -112,7 +115,7 @@ import io.mosip.kernel.core.util.CryptoUtil;
 @ActiveProfiles("test")
 @ConfigurationProperties("mosip.idrepo.identity")
 public class IdRepoDraftServiceImplTest {
-	@InjectMocks
+	@Mock
 	CbeffImpl cbeffUtil;
 
 	@Mock
@@ -205,6 +208,9 @@ public class IdRepoDraftServiceImplTest {
 	
 	@InjectMocks
 	IdRepoDraftServiceImpl idRepoServiceImpl;
+	
+	@Mock
+	private CryptoUtil cryptoUtil;
 
 	/** The id. */
 	private Map<String, String> id;
@@ -241,7 +247,6 @@ public class IdRepoDraftServiceImplTest {
 		assertFalse(flag);
 	}
 
-	@Ignore
 	@Test
 	public void testCreateDraft() throws IdRepoAppException, IOException, NoSuchAlgorithmException {
 		ReflectionTestUtils.setField(idRepoServiceImpl, "securityManager", securityManager);
@@ -256,6 +261,22 @@ public class IdRepoDraftServiceImplTest {
 		String identityData = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("identity-data.json"),
 				StandardCharsets.UTF_8);
 		uin.setUin("2419762130");
+		List<UinBiometric> biometrics = new ArrayList<UinBiometric>();
+		UinBiometric biometric = new UinBiometric();
+		biometric.setBiometricFileType("individualBiometrics");
+		biometric.setBiometricFileHash("A2C07E94066BE52308E96ABAD995035E62985A1B0D8837E9ACAB47F8F8A52014");
+		biometric.setBioFileId("1234");
+		biometric.setBiometricFileName("name");
+		biometrics.add(biometric);
+		uin.setBiometrics(biometrics);
+		UinDocument document = new UinDocument();
+		document.setDoccatCode("ProofOfIdentity");
+		document.setDocHash("3A6EB0790F39AC87C94F3856B2DD2C5D110E6811602261A9A923D3BB23ADC8B7");
+		document.setDocId("1236");
+		document.setDocName("name");
+		List<UinDocument> listdocs = new ArrayList<UinDocument>();
+		listdocs.add(document);
+		uin.setDocuments(listdocs);
 		String uinHash =  DatatypeConverter.printHexBinary(MessageDigest.getInstance("SHA-256").digest("2419762130".getBytes())).toUpperCase();
 		uin.setUinHash("123_"+uinHash);
 		uin.setRegId("1234567890");
@@ -316,7 +337,6 @@ public class IdRepoDraftServiceImplTest {
 		assertNull(idresponse);
 	}
 	
-
 	@Test
 	public void testGenerateIdentityObject() {
 		Object uin1 = "274390482564";
@@ -413,8 +433,7 @@ public class IdRepoDraftServiceImplTest {
 	}
 	
 	@Test
-	@Ignore
-	public void testUpdateDocuments() throws IOException, NoSuchAlgorithmException {
+	public void testUpdateDocuments() throws Exception {
 		RequestDTO req = new RequestDTO();
 		DocumentsDTO doc1 = new DocumentsDTO();
 		doc1.setCategory("individualBiometrics");
@@ -425,7 +444,6 @@ public class IdRepoDraftServiceImplTest {
 		req.setDocuments(docList);
 		UinDraft draft =  new UinDraft();
 		draft.setUin("274390482564");
-//		byte[] uinData = "274390482564".getBytes();
 		byte[] salt = "salt".getBytes();
 		String identityData = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("identity-data.json"),
 				StandardCharsets.UTF_8);
@@ -452,6 +470,8 @@ public class IdRepoDraftServiceImplTest {
 		ReflectionTestUtils.setField(idRepoServiceImpl, "anonymousProfileHelper", anonymousProfileHelper);
 		ReflectionTestUtils.setField(idRepoServiceImpl, "bioAttributes",
 				Lists.newArrayList("individualBiometrics", "parentOrGuardianBiometrics"));
+		when(cbeffUtil.validateXML(Mockito.any())).thenReturn(true);
+		when(securityManager.hash(Mockito.any())).thenReturn("A2C07E94066BE52308E96ABAD995035E62985A1B0D8837E9ACAB47F8F8A52014");
 		ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "updateDocuments",req,draft );
 	}
 	
@@ -543,8 +563,6 @@ public class IdRepoDraftServiceImplTest {
 		assertNotNull(response);
 	}
 	
-//	@Test(expected = JDBCConnectionException.class)
-//	@Ignore
 	@Test
 	public void testExtractBiometricswithException() throws IdRepoAppException {
 		try {
@@ -562,7 +580,6 @@ public class IdRepoDraftServiceImplTest {
 	}
 	
 	@Test(expected = IdRepoAppException.class)
-//	@Test
 	public void testExtractBiometrics() throws IdRepoAppException, NoSuchAlgorithmException {
 		Map<String, String> extractionFormats = new HashMap<>();
 		extractionFormats.put(FINGER_EXTRACTION_FORMAT, "fingerFormat");
@@ -591,8 +608,6 @@ public class IdRepoDraftServiceImplTest {
 		assertNotNull(response);
 	}
 	
-//	@Test(expected = JDBCConnectionException.class)
-//	@Ignore
 	@Test
 	public void testGetDraftwithException() throws IdRepoAppException {
 		try {
@@ -610,7 +625,6 @@ public class IdRepoDraftServiceImplTest {
 	}
 	
 	@Test
-//	@Ignore
 	public void testGetDraft() throws IdRepoAppException, NoSuchAlgorithmException, IOException {
 		Map<String, String> extractionFormats = new HashMap<>();
 		extractionFormats.put(FINGER_EXTRACTION_FORMAT, "fingerFormat");
@@ -684,13 +698,19 @@ public class IdRepoDraftServiceImplTest {
 	public void testDecryptUin() throws IdRepoAppException, NoSuchAlgorithmException {
 		String uin = "274390482564";
 		String uinEncrypt = "1234_AKH3N4PlvZlXYkS/zP0cGtghWORy+Mk5SJXnEeVFfeo=";
-		String uinHash = "1234_"+DatatypeConverter.printHexBinary(MessageDigest.getInstance("SHA-256").digest("2419762130".getBytes())).toUpperCase();
+		String uinHash = DatatypeConverter.printHexBinary(MessageDigest.getInstance("SHA-256").digest("2419762130".getBytes())).toUpperCase();
+		String uinHashInput = "1234_"+uinHash;
 		ReflectionTestUtils.setField(idRepoServiceImpl, "uinEncryptSaltRepo", uinEncryptSaltRepo);
-//		ReflectionTestUtils.setField(idRepoServiceImpl, "securityManager", securityManager);
 		ReflectionTestUtils.setField(idRepoServiceImpl, "securityManager", securityManager);
+		when(uinEncryptSaltRepo.getOne(Mockito.anyInt())).thenReturn(uinEncryptSalt);
+		when(CryptoUtil.decodeURLSafeBase64(Mockito.anyString())).thenReturn("2419762130".getBytes());
+		when(CryptoUtil.decodePlainBase64(Mockito.anyString())).thenReturn("2419762130".getBytes());		ReflectionTestUtils.setField(idRepoServiceImpl, "cryptoUtil", cryptoUtil);
 		when(uinEncryptSalt.getSalt()).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
+		when(securityManager.getSaltKeyForId(Mockito.anyString())).thenReturn(1234);
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("");
+		when(securityManager.hashwithSalt(Mockito.any(),Mockito.any())).thenReturn(uinHash);
 		when(securityManager.decryptWithSalt(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn("274390482564".getBytes());
-		String res = ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "decryptUin", uinEncrypt,uinHash);
+		String res = ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "decryptUin", uin,uinHashInput);
 		assertSame(uin,res);
 	}
 	
@@ -735,9 +755,7 @@ public class IdRepoDraftServiceImplTest {
 		RequestDTO req = new RequestDTO();
 		ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "validateRequest",req);			
 	}
-	
-//	@Test(expected = JDBCConnectionException.class )
-//	@Ignore
+
 	@Test
 	public void testUpdateDraftwithJDBCConnectionException() throws IdRepoAppException {
 		try {
@@ -751,9 +769,7 @@ public class IdRepoDraftServiceImplTest {
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());	
 		}
 	}
-	
-//	@Test(expected = InvalidJsonException.class )
-//	@Ignore
+
 	@Test
 	public void testUpdateDraftwithJSONException() throws IdRepoAppException {
 		try{
@@ -767,9 +783,7 @@ public class IdRepoDraftServiceImplTest {
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());	
 		}
 	}
-	
-//	@Test(expected = JDBCConnectionException.class)
-//	@Ignore
+
 	@Test
 	public void testPublishDraftJDBCConnectionException() throws IdRepoAppException {
 		try {
@@ -782,9 +796,7 @@ public class IdRepoDraftServiceImplTest {
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());	
 		}
 	}
-	
-//	@Test(expected = JDBCConnectionException.class)
-//	@Ignore
+
 	@Test
 	public void testDiscardDraftJDBCConnectionException() throws IdRepoAppException {
 		try{
@@ -796,9 +808,7 @@ public class IdRepoDraftServiceImplTest {
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());	
 		}
 	}
-	
-//	@Test(expected = JDBCConnectionException.class)
-//	@Ignore
+
 	@Test
 	public void testHasDraftJDBCConnectionException() throws IdRepoAppException {
 		try{
@@ -836,7 +846,6 @@ public class IdRepoDraftServiceImplTest {
 	
 	
 	@Ignore
-//	@Test(expected = RestServiceException.class)
 	@Test
 	public void testGenerateUinwithRestServiceException() throws IdRepoDataValidationException, JsonMappingException, RestServiceException, JsonProcessingException {
 		try {
@@ -848,13 +857,13 @@ public class IdRepoDraftServiceImplTest {
 		res.put("uin", "274390482564");
 		response.setResponse(res);
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any(Class.class)))
-				.thenReturn(new RestRequestDTO());
-		when(restHelper.requestSync(Mockito.any()))
 				.thenThrow(IdRepoDataValidationException.class);
+		when(restHelper.requestSync(Mockito.any()))
+				.thenReturn(response);
 		String uin = ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "generateUin");
 		}
 		catch(IdRepoAppException e) {
-			assertEquals(IdRepoErrorConstants.UIN_GENERATION_FAILED.getErrorCode(), e.getErrorCode());	
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());	
 		}
 	}
 	
@@ -872,12 +881,12 @@ public class IdRepoDraftServiceImplTest {
 			when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any(Class.class)))
 					.thenReturn(new RestRequestDTO());
 			when(restHelper.requestSync(Mockito.any()))
-					.thenThrow(IdRepoDataValidationException.class);
+					.thenThrow(RestServiceException.class);
 			String uin = ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "generateUin");
 			assertSame(uin,"274390482564");
 		}
 		catch(IdRepoAppException e) {
-			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());	
+			assertEquals(IdRepoErrorConstants.UIN_GENERATION_FAILED.getErrorCode(), e.getErrorCode());	
 		}
 	}
 	
@@ -897,5 +906,44 @@ public class IdRepoDraftServiceImplTest {
 	public void testconstructIdResponsewithNUll() {
 		IdResponseDTO response = ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "constructIdResponse",null,"DRAFTED",null,null );
 		assertNotNull(response);
+	}
+	
+	@Test
+	public void testUpdateBiometricAndDocumentDrafts() {
+		Uin uin = new Uin();
+		List<UinBiometric> biometrics = new ArrayList<UinBiometric>();
+		UinBiometric biometric = new UinBiometric();
+		biometric.setBiometricFileType("individualBiometrics");
+		biometric.setBiometricFileHash("A2C07E94066BE52308E96ABAD995035E62985A1B0D8837E9ACAB47F8F8A52014");
+		biometric.setBioFileId("1234");
+		biometric.setBiometricFileName("name");
+		biometrics.add(biometric);
+		uin.setBiometrics(biometrics);
+		UinDraft draft = new UinDraft();
+		List<UinBiometricDraft> draftbiometrics = new ArrayList<UinBiometricDraft>();
+		UinBiometricDraft draftbiometric = new UinBiometricDraft();
+		draftbiometric.setBiometricFileType("individualBiometrics");
+		draftbiometric.setBiometricFileHash("A2C07E94066BE52308E96ABAD995035E62985A1B0D8837E9ACAB47F8F8A52014");
+		draftbiometric.setBioFileId("1235");
+		draftbiometric.setBiometricFileName("name");
+		draftbiometrics.add(draftbiometric);
+		draft.setBiometrics(draftbiometrics);
+		UinDocumentDraft draftdocument = new UinDocumentDraft();
+		draftdocument.setDoccatCode("ProofOfIdentity");
+		draftdocument.setDocHash("3A6EB0790F39AC87C94F3856B2DD2C5D110E6811602261A9A923D3BB23ADC8B7");
+		draftdocument.setDocId("1234");
+		draftdocument.setDocName("name");
+		List<UinDocumentDraft> draftlistdocs = new ArrayList<UinDocumentDraft>();
+		draftlistdocs.add(draftdocument);
+		draft.setDocuments(draftlistdocs);
+		UinDocument document = new UinDocument();
+		document.setDoccatCode("ProofOfIdentity");
+		document.setDocHash("3A6EB0790F39AC87C94F3856B2DD2C5D110E6811602261A9A923D3BB23ADC8B7");
+		document.setDocId("1236");
+		document.setDocName("name");
+		List<UinDocument> listdocs = new ArrayList<UinDocument>();
+		listdocs.add(document);
+		uin.setDocuments(listdocs);
+		ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "updateBiometricAndDocumentDrafts","123456890",draft,uin);
 	}
 }
