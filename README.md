@@ -1,5 +1,5 @@
 
-[![Maven Package upon a push](https://github.com/mosip/id-repository/actions/workflows/push_trigger.yml/badge.svg?branch=release-master)](https://github.com/mosip/id-repository/actions/workflows/push_trigger.yml)
+[![Maven Package upon a push](https://github.com/mosip/id-repository/actions/workflows/push_trigger.yml/badge.svg?branch=master)](https://github.com/mosip/id-repository/actions/workflows/push_trigger.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?branch=master&project=mosip_id-repository&metric=alert_status)](https://sonarcloud.io/dashboard?branch=master&id=mosip_id-repository)
 
 # ID Repository
