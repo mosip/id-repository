@@ -158,7 +158,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	/** The bio attributes. */
 	@Resource
-	private List<String> bioAttributes;
+	protected List<String> bioAttributes;
 
 	/** The uin hash salt repo. */
 	@Autowired
@@ -178,7 +178,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	private CredentialRequestStatusRepo credRequestRepo;
 	
 	@Autowired
-	private AnonymousProfileHelper anonymousProfileHelper;
+	protected AnonymousProfileHelper anonymousProfileHelper;
 	
 	@Value("${mosip.idrepo.identity.uin-status.registered}")
 	private String activeStatus;
