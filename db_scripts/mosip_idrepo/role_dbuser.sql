@@ -1,0 +1,4 @@
+CREATE ROLE idrepouser WITH 
+	INHERIT
+	LOGIN
+	PASSWORD :dbuserpwd;
