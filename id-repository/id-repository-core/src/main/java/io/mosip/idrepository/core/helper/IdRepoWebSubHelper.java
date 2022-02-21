@@ -212,7 +212,6 @@ public class IdRepoWebSubHelper {
 	 * @param model the model
 	 */
 	public void sendEventToIDA(EventModel model, Consumer<EventModel> idaEventModelConsumer) {
-		System.err.println("sendEventToIDA");
 		if (idaEventModelConsumer != null) {
 			idaEventModelConsumer.accept(model);
 		}
@@ -259,8 +258,6 @@ public class IdRepoWebSubHelper {
 	}
 	
 	public <U> void publishEvent(String eventTopic, U eventModel) {
-		System.err.println(eventTopic);
-		System.err.println(eventModel);
 		publisher.publishUpdate(eventTopic, eventModel, MediaType.APPLICATION_JSON_VALUE, null, publisherURL);
 	}
 }
