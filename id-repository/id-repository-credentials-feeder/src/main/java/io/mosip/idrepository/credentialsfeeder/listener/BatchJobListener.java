@@ -6,10 +6,10 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 import org.springframework.stereotype.Component;
 
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
+import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.credentialsfeeder.logger.IdRepoLogger;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.saltgenerator.constant.SaltGeneratorErrorConstants;
-import io.mosip.kernel.core.saltgenerator.exception.SaltGeneratorException;
 
 /**
  * The listener interface for receiving batchJob events.
@@ -46,7 +46,7 @@ public class BatchJobListener extends JobExecutionListenerSupport {
 		mosipLogger.debug(CREDENTIALS_FEEDER, "BatchJobListener", "BATCH JOB COMPLETED WITH STATUS : ",
 				jobExecution.getStatus().name());
 		if (!jobExecution.getStatus().equals(BatchStatus.COMPLETED)) {
-			throw new SaltGeneratorException(SaltGeneratorErrorConstants.JOB_FAILED);
+			throw new IdRepoAppUncheckedException(IdRepoErrorConstants.JOB_FAILED);
 		}
 		jobExecution.setExitStatus(ExitStatus.COMPLETED);
 	}

@@ -16,6 +16,7 @@ import io.mosip.idrepository.core.helper.IdRepoWebSubHelper;
 import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.manager.CredentialStatusManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.core.util.TokenIDGenerator;
 
 /**
@@ -27,9 +28,8 @@ import io.mosip.idrepository.core.util.TokenIDGenerator;
 @SpringBootApplication
 @EnableBatchProcessing
 @EnableAutoConfiguration(exclude = { ScheduledTasksEndpointAutoConfiguration.class })
-@Import({ java.lang.String.class, IdRepoDataSourceConfig.class, CredentialServiceManager.class,
-		RestRequestBuilder.class, TokenIDGenerator.class, IdRepoWebSubHelper.class, CredentialStatusManager.class,
-		DummyPartnerCheckUtil.class })
+@Import({ java.lang.String.class, IdRepoDataSourceConfig.class, CredentialServiceManager.class, TokenIDGenerator.class,
+		IdRepoWebSubHelper.class, CredentialStatusManager.class, DummyPartnerCheckUtil.class, EnvUtil.class })
 @ComponentScan(basePackages = {
 		"io.mosip.idrepository.credentialsfeeder.*", "${mosip.auth.adapter.impl.basepackage}" }, excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
 				"io.mosip.idrepository.core.entity", "io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig" }))
