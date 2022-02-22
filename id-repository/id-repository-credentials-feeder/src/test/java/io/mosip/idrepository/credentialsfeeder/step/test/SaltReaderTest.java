@@ -1,4 +1,4 @@
-package io.mosip.kernel.saltgenerator.step.test;
+package io.mosip.idrepository.credentialsfeeder.step.test;
 
 public class SaltReaderTest {
 
