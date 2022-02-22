@@ -69,12 +69,12 @@ public class BatchConfigurationTest {
 	}
 
 	@Test
-	public void processJobTest() {
+	public void processJobTest() throws Exception {
 		batchConfiguration.processJob();
 	}
 
 	@Test
-	public void reProcessJobTest() {
+	public void reProcessJobTest() throws Exception {
 		batchConfiguration.reProcessJob();
 	}
 

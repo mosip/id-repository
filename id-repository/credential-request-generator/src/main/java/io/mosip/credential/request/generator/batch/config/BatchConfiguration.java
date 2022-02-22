@@ -83,14 +83,14 @@ public class BatchConfiguration {
 	 * Process job.
 	 */
 	@Scheduled(fixedDelayString = "${mosip.credential.request.job.timedelay}")
-	public void processJob() {
+	public void processJob() throws Exception {
 		try {
 			JobParameters jobParameters = new JobParametersBuilder().addLong("time", System.currentTimeMillis())
 					.toJobParameters();
 			jobLauncher.run(credentialProcessJob, jobParameters);
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw new Exception();
 		}
 	}
 
@@ -98,14 +98,14 @@ public class BatchConfiguration {
 	 * Re process job.
 	 */
 	@Scheduled(fixedDelayString = "${mosip.credential.request.reprocess.job.timedelay}")
-	public void reProcessJob() {
+	public void reProcessJob() throws Exception {
 		try {
 			JobParameters jobParameters = new JobParametersBuilder().addLong("time", System.currentTimeMillis())
 					.toJobParameters();
 			jobLauncher.run(credentialReProcessJob, jobParameters);
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw new Exception();
 		}
 	}
 	/**
