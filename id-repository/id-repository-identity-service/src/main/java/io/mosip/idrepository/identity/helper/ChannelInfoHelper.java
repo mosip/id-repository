@@ -1,7 +1,5 @@
 package io.mosip.idrepository.identity.helper;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.MODULO_VALUE;
-
 import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
@@ -9,7 +7,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -33,9 +30,6 @@ public class ChannelInfoHelper {
 
 	@Autowired
 	private UinHashSaltRepo saltRepo;
-
-	@Autowired
-	private Environment env;
 
 	@Autowired
 	private IdRepoSecurityManager securityManager;
@@ -260,8 +254,6 @@ public class ChannelInfoHelper {
 	}
 
 	private int getModValue(String number) {
-		Integer moduloValue = env.getProperty(MODULO_VALUE, Integer.class);
-		int modResult = (int) (Long.parseLong(number) % moduloValue);
-		return modResult;
+		return securityManager.getSaltKeyForId(number);
 	}
 }
