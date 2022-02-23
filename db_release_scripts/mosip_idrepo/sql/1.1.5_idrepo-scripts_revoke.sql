@@ -7,5 +7,10 @@
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- -------------------------------------------------------------------------------------------------
+-- Oct 2021            Manoj SP           Added anonymous_profile and channel_info tables
+-----------------------------------------------------------------------------------------------------
 
 \c mosip_idrepo sysadmin
+
+DROP TABLE IF EXISTS idrepo.anonymous_profile;
+DROP TABLE IF EXISTS idrepo.channel_info;
