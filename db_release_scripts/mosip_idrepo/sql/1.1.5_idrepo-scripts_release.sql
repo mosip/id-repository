@@ -8,9 +8,13 @@
 -- Modified Date        Modified By         Comments / Remarks
 -- -------------------------------------------------------------------------------------------------
 -- Mar-2021		Ram Bhatt	    Reverting is_deleted not null changes
+-- Oct-2021		Manoj SP	    Added anonymous_profile and channel_info tables.
 ----------------------------------------------------------------------------------------------------
 
 \c mosip_idrepo sysadmin
+
+\ir ../ddl/idrepo-anonymous_profile.sql
+\ir ../ddl/idrepo-channel_info.sql
 
 ----------------------------------------------------------------------------------------------------
 

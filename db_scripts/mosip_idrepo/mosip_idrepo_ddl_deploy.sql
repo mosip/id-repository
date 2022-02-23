@@ -9,5 +9,7 @@
 \ir ddl/idrepo-uin_hash_salt.sql
 \ir ddl/idrepo-uin_encrypt_salt.sql
 \ir ddl/idrepo-uin_auth_lock.sql
+\ir ddl/idrepo-anonymous_profile.sql
+\ir ddl/idrepo-channel_info.sql
 
 \ir ddl/idrepo-fk.sql
