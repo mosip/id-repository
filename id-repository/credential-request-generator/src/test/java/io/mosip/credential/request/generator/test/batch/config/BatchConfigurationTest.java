@@ -8,14 +8,12 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.integration.async.AsyncItemWriter;
 import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
@@ -30,7 +28,6 @@ import io.mosip.credential.request.generator.batch.config.CredentialItemReProces
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import io.mosip.credential.request.generator.util.RestUtil;
-import io.mosip.idrepository.core.util.EnvUtil;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest
@@ -69,12 +66,12 @@ public class BatchConfigurationTest {
 	}
 
 	@Test
-	public void processJobTest() throws Exception {
+	public void processJobTest() {
 		batchConfiguration.processJob();
 	}
 
 	@Test
-	public void reProcessJobTest() throws Exception {
+	public void reProcessJobTest() {
 		batchConfiguration.reProcessJob();
 	}
 

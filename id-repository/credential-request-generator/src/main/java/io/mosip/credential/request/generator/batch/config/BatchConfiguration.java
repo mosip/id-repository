@@ -10,7 +10,7 @@ import java.util.Map;
 
 import javax.persistence.QueryHint;
 
-import io.mosip.credential.request.generator.constants.LoggerFileConstant;
+
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
