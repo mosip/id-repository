@@ -86,10 +86,11 @@ public class Utilities {
 
 	public static String randomString(int length) {
 		String source = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+		int srcLen = source.length();
 		SecureRandom secureRnd = new SecureRandom();
 		StringBuilder sb = new StringBuilder(length);
 		for (int i = 0; i < length; i++) {
-			sb.append(source.charAt(secureRnd.nextInt(source.length())));
+			sb.append(source.charAt(secureRnd.nextInt(srcLen)));
 		}
 		return sb.toString();
 	}
