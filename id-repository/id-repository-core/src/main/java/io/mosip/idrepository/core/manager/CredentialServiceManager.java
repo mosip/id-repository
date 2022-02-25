@@ -46,7 +46,6 @@ import io.mosip.idrepository.core.manager.partner.PartnerServiceManager;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.EnvUtil;
-import io.mosip.idrepository.core.util.SupplierWithException;
 import io.mosip.idrepository.core.util.TokenIDGenerator;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -313,8 +312,8 @@ public class CredentialServiceManager {
 	 */
 	private Stream<EventModel> createIdaEventModel(EventType eventType, LocalDateTime expiryTimestamp,
 			Integer transactionLimit, List<String> partnerIds, String transactionId, String idHash) {
-		return partnerIds.stream().map(partner -> SupplierWithException.execute(() -> websubHelper
-				.createEventModel(eventType, expiryTimestamp, transactionLimit, transactionId, partner, idHash).get()));
+		return partnerIds.stream().map(
+				partner -> websubHelper.createEventModel(eventType, expiryTimestamp, transactionLimit, transactionId, partner, idHash));
 	}
 
 	/**
