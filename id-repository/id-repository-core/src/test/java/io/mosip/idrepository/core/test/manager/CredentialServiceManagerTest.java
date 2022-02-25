@@ -1,8 +1,5 @@
 package io.mosip.idrepository.core.test.manager;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,53 +9,83 @@ import java.util.function.Consumer;
 import java.util.function.IntFunction;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
-import org.springframework.scheduling.annotation.AsyncResult;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
-import io.mosip.idrepository.core.dto.RestRequestDTO;
-import io.mosip.idrepository.core.dto.VidsInfosDTO;
-import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
-import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.IdRepoWebSubHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.manager.partner.PartnerServiceManager;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.core.util.TokenIDGenerator;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.websub.model.EventModel;
 
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
 @WebMvcTest
 @Import(EnvUtil.class)
-@ActiveProfiles("test")
+@Ignore
 public class CredentialServiceManagerTest {
 
 	@InjectMocks
 	private CredentialServiceManager credentialServiceManager;
 
+	private static final String SEND_REQUEST_TO_CRED_SERVICE = "sendRequestToCredService";
+
+	private static final String GET_PARTNER_IDS = "getPartnerIds";
+
+	private static final String NOTIFY = "notify";
+
+	private static final boolean DEFAULT_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS = false;
+
+	private static final String PROP_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS = "skip-requesting-existing-credentials-for-partners";
+
+	/** The Constant mosipLogger. */
+	private static final Logger mosipLogger = IdRepoLogger.getLogger(CredentialServiceManager.class);
+
+	/** The Constant IDA. */
+	private static final String IDA = "IDA";
+
+	/** The Constant AUTH. */
+	private static final String AUTH = "auth";
+
+	/** The Constant ACTIVE. */
+	private static final String ACTIVATED = "ACTIVATED";
+
+	/** The Constant BLOCKED. */
+	private static final String BLOCKED = "BLOCKED";
+
+	/** The Constant REVOKED. */
+	private static final String REVOKED = "REVOKED";
+
+	/** The mapper. */
 	@Mock
 	private ObjectMapper mapper;
 
+	/** The rest helper. */
+	@Mock
+	private RestHelper restHelper;
+
+	/** The rest builder. */
 	@Mock
 	private RestRequestBuilder restBuilder;
 
@@ -66,6 +93,18 @@ public class CredentialServiceManagerTest {
 	@Mock
 	private IdRepoSecurityManager securityManager;
 
+	/** The credential type. */
+	@Value("${id-repo-ida-credential-type:}")
+	private String credentialType;
+
+	/** The credential recepiant. */
+	@Value("${id-repo-ida-credential-recepiant:}")
+	private String credentialRecepiant;
+
+	@Value("$mosip.idrepo.vid.active-status}")
+	private String vidActiveStatus;
+
+	/** The token ID generator. */
 	@Mock
 	private TokenIDGenerator tokenIDGenerator;
 
@@ -81,29 +120,17 @@ public class CredentialServiceManagerTest {
 	@Mock
 	private PartnerServiceManager partnerServiceManager;
 
-	@Mock
-	private RestHelper restHelper;
+	private boolean skipExistingCredentialsForPartners;
 
 	@Before
-	public void init() {
-		MockitoAnnotations.initMocks(this);
-		ReflectionTestUtils.setField(credentialServiceManager, "restHelper", restHelper);
+	public void before() {
 	}
 
 	@Test
-	public void notifyUinCredentialForStatusUpdateTest() throws IdRepoDataValidationException, RestServiceException {
-		RestRequestDTO restReq = new RestRequestDTO();
-		restReq.setUri("{uin}");
-		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
-		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
-		vidsInfosDTO.setResponse(List.of());
-		when(restHelper.requestSync(any())).thenReturn(vidsInfosDTO);
-		EventModel eventModel = new EventModel();
-		when(websubHelper.createEventModel(any(), any(), any(), any(), any(), any()))
-				.thenReturn(new AsyncResult<>(eventModel));
+	public void notifyUinCredentialTest() {
 		String uin = "123";
 		LocalDateTime expiryTimestamp = LocalDateTime.now();
-		String status = "ACTIVATED";
+		String status = "Test";
 		boolean isUpdate = true;
 		String txnId = "12";
 		IntFunction<String> saltRetreivalFunction = a -> "Test";
