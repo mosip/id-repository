@@ -3,6 +3,7 @@ package io.mosip.credentialstore.util;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -81,9 +82,19 @@ public class Utilities {
 		return UUID.randomUUID().toString();
 	}
 	
-	public String generatePin() {
-		return  RandomStringUtils.randomAlphabetic(5);
+	public String generatePin() {return  randomString(5);}
+
+	public static String randomString(int length) {
+		String source = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+		int srcLen = source.length();
+		SecureRandom secureRnd = new SecureRandom();
+		StringBuilder sb = new StringBuilder(length);
+		for (int i = 0; i < length; i++) {
+			sb.append(source.charAt(secureRnd.nextInt(srcLen)));
+		}
+		return sb.toString();
 	}
+
 
 	public JSONObject getVCContext(String configServerFileStorageURL, String uri) {
 		try {

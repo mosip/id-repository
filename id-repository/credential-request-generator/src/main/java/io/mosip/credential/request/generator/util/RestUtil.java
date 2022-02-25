@@ -58,6 +58,8 @@ public class RestUtil {
 	/** The Constant AUTHORIZATION. */
     private static final String AUTHORIZATION = "Authorization=";
 
+	private static final String CONTENT_TYPE = "Content-Type";
+
 	/**
 	 * Post api.
 	 *
@@ -212,7 +214,7 @@ public class RestUtil {
                 Iterator<String> iterator = httpHeader.keySet().iterator();
                 while (iterator.hasNext()) {
                     String key = iterator.next();
-                    if (!(headers.containsKey("Content-Type") && key == "Content-Type"))
+                    if (!(headers.containsKey(CONTENT_TYPE) && key.equals(CONTENT_TYPE)))
                         headers.add(key, httpHeader.get(key).get(0));
                 }
                 return new HttpEntity<Object>(httpEntity.getBody(), headers);

@@ -10,15 +10,20 @@ import java.util.Map;
 
 import javax.persistence.QueryHint;
 
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.Step;
+
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
+import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.batch.integration.async.AsyncItemProcessor;
 import org.springframework.batch.integration.async.AsyncItemWriter;
 import org.springframework.batch.item.ItemProcessor;
@@ -52,8 +57,9 @@ import io.mosip.credential.request.generator.util.RestUtil;
 @Configuration
 @EnableBatchProcessing
 public class BatchConfiguration {
-	
 
+	private static final String BATCH_CONFIGURATION = "BatchConfiguration";
+	private static final Logger LOGGER = IdRepoLogger.getLogger(BatchConfiguration.class);
 
 	/** The job builder factory. */
 	@Autowired
@@ -70,6 +76,7 @@ public class BatchConfiguration {
 	/** The crdential repo. */
 	@Autowired
 	private CredentialRepositary<CredentialEntity, String> crdentialRepo;
+
 
 	/** The credential process job. */
 	@Autowired
@@ -88,10 +95,11 @@ public class BatchConfiguration {
 			JobParameters jobParameters = new JobParametersBuilder().addLong("time", System.currentTimeMillis())
 					.toJobParameters();
 			jobLauncher.run(credentialProcessJob, jobParameters);
-
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException | JobParametersInvalidException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), BATCH_CONFIGURATION,
+					"error in JobLauncher " + ExceptionUtils.getStackTrace(e));
 		}
+
 	}
 
 	/**
@@ -104,8 +112,9 @@ public class BatchConfiguration {
 					.toJobParameters();
 			jobLauncher.run(credentialReProcessJob, jobParameters);
 
-		} catch (Exception e) {
-			e.printStackTrace();
+		}  catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException | JobParametersInvalidException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), BATCH_CONFIGURATION,
+					"error in JobLauncher " + ExceptionUtils.getStackTrace(e));
 		}
 	}
 	/**
