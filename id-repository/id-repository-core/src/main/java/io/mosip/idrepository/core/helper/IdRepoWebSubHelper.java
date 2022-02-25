@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +24,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -153,10 +151,9 @@ public class IdRepoWebSubHelper {
 	 * @param idHash           the id hash
 	 * @return the event model
 	 */
-	public Future<EventModel> createEventModel(EventType eventType, LocalDateTime expiryTimestamp, Integer transactionLimit,
+	public EventModel createEventModel(EventType eventType, LocalDateTime expiryTimestamp, Integer transactionLimit,
 			String transactionId, String partner, String idHash) {
-		EventModel eventModel = createEventModel(eventType, expiryTimestamp, transactionLimit, transactionId, partner, idHash, null);
-		return new AsyncResult<>(eventModel);
+		return createEventModel(eventType, expiryTimestamp, transactionLimit, transactionId, partner, idHash, null);
 	}
 	
 	/**
