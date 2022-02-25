@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -145,7 +146,7 @@ public class IdRepoWebSubHelperTest {
 	}
 
 	@Test
-	public void createEventModelTest() {
+	public void createEventModelTest() throws InterruptedException, ExecutionException {
 		EventType eventType = IDAEventType.DEACTIVATE_ID;
 		LocalDateTime expiryTimestamp = LocalDateTime.now();
 		Integer transactionLimit = 10;
@@ -153,7 +154,7 @@ public class IdRepoWebSubHelperTest {
 		String partner = "Test";
 		String idHash = "Azsa";
 		EventModel res = idRepoWebSubHelper.createEventModel(eventType, expiryTimestamp, transactionLimit,
-				transactionId, partner, idHash);
+				transactionId, partner, idHash).get();
 		assertEquals("ID_REPO", res.getPublisher());
 	}
 
