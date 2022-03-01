@@ -49,6 +49,7 @@ public class IdrepositaryUtil {
 		try {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					requestId, "Id repository get data entry");
+			LOGGER.debug(String.format("Formatters: %s", bioAttributeFormatterMap.toString()));
 			Map<String, Object> map = credentialServiceRequestDto.getAdditionalData();
 			String idType = null;
 			idType = (String) map.get("idType");
@@ -76,6 +77,8 @@ public class IdrepositaryUtil {
 				queryParamName = queryParamName + ",irisExtractionFormat";
 				queryParamValue = queryParamValue + "," + irisExtractionFormat;
 			}
+			
+			LOGGER.debug(String.format("getIdentity query param names:%s - query param values: %s", queryParamName, queryParamValue));
 
 			String responseString = restUtil.getApi(ApiName.IDREPOGETIDBYID, pathsegments, queryParamName,
 					queryParamValue, String.class);
