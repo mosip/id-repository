@@ -6,6 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import javax.net.ssl.SSLContext;
 
@@ -209,12 +210,11 @@ public class RestUtil {
             try {
                 HttpEntity<Object> httpEntity = (HttpEntity<Object>) requestType;
                 HttpHeaders httpHeader = httpEntity.getHeaders();
-                Iterator<String> iterator = httpHeader.keySet().iterator();
-                while (iterator.hasNext()) {
-                    String key = iterator.next();
-                    if (!(headers.containsKey("Content-Type") && key == "Content-Type"))
-                        headers.add(key, httpHeader.get(key).get(0));
-                }
+				for (String key : httpHeader.keySet()) {
+					String contentType = "Content-Type";
+					if (!(headers.containsKey(contentType) && key == contentType))
+						headers.add(key, Objects.requireNonNull(httpHeader.get(key)).get(0));
+				}
                 return new HttpEntity<Object>(httpEntity.getBody(), headers);
             } catch (ClassCastException e) {
                 return new HttpEntity<Object>(requestType, headers);
