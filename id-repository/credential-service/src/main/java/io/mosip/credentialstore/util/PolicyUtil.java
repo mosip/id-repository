@@ -70,7 +70,10 @@ public class PolicyUtil {
 				ServiceError error = responseObject.getErrors().get(0);
 				throw new PolicyException(error.getMessage());
 			}
-			PartnerCredentialTypePolicyDto policyResponseDto = responseObject.getResponse();
+			PartnerCredentialTypePolicyDto policyResponseDto = null;
+			if (responseObject != null) {
+				policyResponseDto = responseObject.getResponse();
+			}
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					requestId,
 					"Fetched policy details successfully");
@@ -126,8 +129,9 @@ public class PolicyUtil {
 				}
 
 			}
+			if(responseObject!=null){
+			partnerExtractorResponse = responseObject.getResponse();}
 
-			partnerExtractorResponse = responseObject.getResponse();
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Fetched partner extraction policy details successfully");
 
