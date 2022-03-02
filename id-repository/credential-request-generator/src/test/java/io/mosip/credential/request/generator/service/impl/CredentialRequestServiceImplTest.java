@@ -270,7 +270,7 @@ public class CredentialRequestServiceImplTest {
 
 		Mockito.when(credentialRepositary.update(Mockito.any()))
 				.thenThrow(new DataAccessLayerException("", "", new Throwable()));
-		Mockito.when(credentialRepositary.findById(Mockito.any())).thenReturn(null);
+		Mockito.when(credentialRepositary.findById(Mockito.any())).thenReturn(Optional.empty());
 		Event event = new Event();
 		CredentialStatusEvent credentialStatusEvent = new CredentialStatusEvent();
 		event.setRequestId("1234");

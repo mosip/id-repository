@@ -232,7 +232,6 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			} else {
 				credentialIssueResponseWrapper.setResponse(credentialIssueResponse);
 			}
-			System.out.println("rid= "+requestId);
 			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CANCEL_CREDENTIAL_REQUEST, requestId, IdType.ID,"Cancel the request");
 		}
 		return credentialIssueResponseWrapper;
@@ -315,7 +314,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"started updating  credential status");
 			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
-			if (entity != null && entity.isPresent()) {
+			if (entity.isPresent()) {
 				CredentialEntity credentialEntity = entity.get();
 				credentialEntity.setStatusCode(event.getStatus());
 				if(!StringUtils.isEmpty(event.getUrl())) {
