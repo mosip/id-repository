@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -32,6 +34,10 @@ import io.mosip.kernel.core.logger.spi.Logger;
 public class PolicyUtil {
 
 
+	private static final String PARTNER_EXTRACTOR_FORMATS = "PARTNER_EXTRACTOR_FORMATS";
+
+	private static final String DATASHARE_POLICIES = "DATASHARE_POLICIES";
+
 	/** The rest template. */
 	@Autowired
 	RestUtil restUtil;
@@ -45,6 +51,7 @@ public class PolicyUtil {
 	@Autowired
 	Utilities utilities;
 
+	@Cacheable(cacheNames = DATASHARE_POLICIES, key="{ #credentialType, #subscriberId }")
 	public PartnerCredentialTypePolicyDto getPolicyDetail(String credentialType, String subscriberId, String requestId)
 			throws PolicyException, ApiNotAccessibleException {
 
@@ -63,7 +70,10 @@ public class PolicyUtil {
 				ServiceError error = responseObject.getErrors().get(0);
 				throw new PolicyException(error.getMessage());
 			}
-			PartnerCredentialTypePolicyDto policyResponseDto = responseObject.getResponse();
+			PartnerCredentialTypePolicyDto policyResponseDto = null;
+			if (responseObject != null) {
+				policyResponseDto = responseObject.getResponse();
+			}
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					requestId,
 					"Fetched policy details successfully");
@@ -93,7 +103,7 @@ public class PolicyUtil {
 	}
 
 
-
+	@Cacheable(cacheNames = PARTNER_EXTRACTOR_FORMATS, key="{ #subscriberId, #policyId }")
 	public PartnerExtractorResponse getPartnerExtractorFormat(String policyId, String subscriberId, String requestId)
 			throws ApiNotAccessibleException, PartnerException {
 		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
@@ -120,7 +130,10 @@ public class PolicyUtil {
 
 			}
 
-			partnerExtractorResponse = responseObject.getResponse();
+			if(responseObject!=null){
+				partnerExtractorResponse = responseObject.getResponse();
+			}
+
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Fetched partner extraction policy details successfully");
 
@@ -142,6 +155,18 @@ public class PolicyUtil {
 
 		}
 
+	}
+	
+	@CacheEvict(value = DATASHARE_POLICIES)
+	public void clearDataSharePoliciesCache() {
+		LOGGER.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "clearDataSharePoliciesCache",
+				DATASHARE_POLICIES + " cache cleared");
+	}
+
+	@CacheEvict(value = PARTNER_EXTRACTOR_FORMATS)
+	public void clearPartnerExtractorFormatsCache() {
+		LOGGER.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
+				"clearPartnerExtractorFormatsCache", PARTNER_EXTRACTOR_FORMATS + " cache cleared");
 	}
 
 }
