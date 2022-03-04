@@ -57,9 +57,6 @@ ENV schema_name=${salt_gen_schema_name}
 # environment variable to pass table name to salt generator, at docker runtime
 ENV table_name=${salt_gen_table_name}
 
-# environment variable to pass iam_adapter url, at docker runtime
-ENV iam_adapter_url_env=${iam_adapter_url}
-
 # can be passed during Docker build as build time environment for github branch to pickup configuration from.
 ARG container_user=mosip
 
@@ -110,4 +107,4 @@ USER ${container_user_uid}:${container_user_gid}
 #EXPOSE 8092
 
 CMD wget -q --show-progress "${iam_adapter_url_env}" -O "${loader_path_env}"/kernel-auth-adapter.jar; \
-    java -Dloader.path="${loader_path_env}" -jar -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dserver.port="${spring_server_port}" -Donline-verification-partner-ids="${olv_partner_ids_env}" -Dskip-requesting-existing-credentials-for-partners="${skip_existing_cred_requests_for_partner_env}" id-repository-credentials-feeder.jar;
+    java -Dloader.path="${loader_path_env}" -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dserver.port="${spring_server_port}" -Donline-verification-partner-ids="${olv_partner_ids_env}" -Dskip-requesting-existing-credentials-for-partners="${skip_existing_cred_requests_for_partner_env}" -jar id-repository-credentials-feeder.jar;
