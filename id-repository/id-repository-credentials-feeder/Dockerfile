@@ -57,6 +57,9 @@ ENV schema_name=${salt_gen_schema_name}
 # environment variable to pass table name to salt generator, at docker runtime
 ENV table_name=${salt_gen_table_name}
 
+# environment variable to pass iam_adapter url, at docker runtime
+ENV iam_adapter_url_env=${iam_adapter_url}
+
 # can be passed during Docker build as build time environment for github branch to pickup configuration from.
 ARG container_user=mosip
 
