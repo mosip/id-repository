@@ -116,7 +116,7 @@ public class VerCredProviderTest {
 		assertNotNull(response);
 	}
 
-	@Test(expected = CredentialFormatterException.class)
+	@Test
 	public void getFormattedCredentialDataExceptionTest1() throws CredentialFormatterException {
 		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
 		Map<String, Object> additionalData = new HashMap<>();
@@ -128,7 +128,8 @@ public class VerCredProviderTest {
 		dto.setEncrypted(true);
 		dto.setAttributeName("Test");
 		sharableAttributes.put(dto, "value");
-		verCredProvider.getFormattedCredentialData(credentialServiceRequestDto, sharableAttributes);
+		DataProviderResponse response = verCredProvider.getFormattedCredentialData(credentialServiceRequestDto, sharableAttributes);
+		assertNotNull(response);
 	}
 
 }
