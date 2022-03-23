@@ -99,7 +99,7 @@ public class RestUtil {
 
 			}
 		uriComponents = builder.build(false).encode();
-		IdRepoLogger.getLogger(RestUtil.class).info(uriComponents.toUri().toString());
+		IdRepoLogger.getLogger(RestUtil.class).debug(uriComponents.toUri().toString());
         try {
             result = (T) restTemplate.exchange(uriComponents.toUri(), HttpMethod.GET, setRequestHeader(null, null), responseType)
                     .getBody();
