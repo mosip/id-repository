@@ -3,8 +3,10 @@ package io.mosip.credentialstore.util;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
@@ -50,12 +52,20 @@ public class PolicyUtil {
 
 	@Autowired
 	Utilities utilities;
+	
+	@Autowired
+	private CacheManager cacheManager;
 
 	@Cacheable(cacheNames = DATASHARE_POLICIES, key="{ #credentialType, #subscriberId }")
 	public PartnerCredentialTypePolicyDto getPolicyDetail(String credentialType, String subscriberId, String requestId)
 			throws PolicyException, ApiNotAccessibleException {
 
 		try {
+			IdRepoLogger.getLogger(PolicyUtil.class).info(cacheManager.getCacheNames().toString());
+			IdRepoLogger.getLogger(PolicyUtil.class)
+					.info(Objects.nonNull(cacheManager.getCache(DATASHARE_POLICIES))
+							? cacheManager.getCache(DATASHARE_POLICIES).toString()
+							: "null");
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					requestId,
 					"started fetching the policy data");
