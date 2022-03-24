@@ -25,7 +25,7 @@ public class PartnerCacheUpdatingSchedulerConfig {
 	/**
 	 * Clear partner data cache.
 	 */
-	@Scheduled(initialDelayString = "300000")
+	@Scheduled(fixedDelay = 300000l)
 	public void clearPartnerDataCache() {
 		partnerServiceManager.clearDataSharePoliciesCache();
 		partnerServiceManager.clearPartnerExtractorFormatsCache();
