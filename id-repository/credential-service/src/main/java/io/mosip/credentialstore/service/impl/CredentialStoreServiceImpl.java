@@ -7,11 +7,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 
 import io.mosip.credentialstore.constants.CredentialConstants;
@@ -137,6 +139,10 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 	@Autowired
 	EncryptionUtil encryptionUtil;
+	
+	@Autowired
+	private CacheManager cacheManager;
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -146,6 +152,11 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	 */
 	public CredentialServiceResponseDto createCredentialIssuance(
 			CredentialServiceRequestDto credentialServiceRequestDto) {
+		IdRepoLogger.getLogger(CredentialStoreServiceImpl.class).info(cacheManager.getCacheNames().toString());
+		IdRepoLogger.getLogger(CredentialStoreServiceImpl.class)
+				.info(Objects.nonNull(cacheManager.getCache("DATASHARE_POLICIES"))
+						? cacheManager.getCache("DATASHARE_POLICIES").toString()
+						: "null");
 		LOGGER.debug(IdRepoSecurityManager.getUser(),
 				LoggerFileConstant.REQUEST_ID.toString(),
 				credentialServiceRequestDto.getRequestId(),
