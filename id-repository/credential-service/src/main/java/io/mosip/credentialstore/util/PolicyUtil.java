@@ -53,7 +53,7 @@ public class PolicyUtil {
 	@Autowired
 	Utilities utilities;
 	
-	@Autowired
+	@Autowired(required = false)
 	private CacheManager cacheManager;
 
 	@Cacheable(cacheNames = DATASHARE_POLICIES, key="{ #credentialType, #subscriberId }")
@@ -61,7 +61,9 @@ public class PolicyUtil {
 			throws PolicyException, ApiNotAccessibleException {
 
 		try {
-			IdRepoLogger.getLogger(PolicyUtil.class).info(cacheManager.getCacheNames().toString());
+			IdRepoLogger.getLogger(PolicyUtil.class).info(Objects.nonNull(cacheManager.getCacheNames())
+					? cacheManager.getCacheNames().toString()
+					: "null");
 			IdRepoLogger.getLogger(PolicyUtil.class)
 					.info(Objects.nonNull(cacheManager.getCache(DATASHARE_POLICIES))
 							? cacheManager.getCache(DATASHARE_POLICIES).toString()

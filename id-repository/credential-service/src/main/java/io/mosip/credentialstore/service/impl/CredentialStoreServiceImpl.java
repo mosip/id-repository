@@ -140,7 +140,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	@Autowired
 	EncryptionUtil encryptionUtil;
 	
-	@Autowired
+	@Autowired(required = false)
 	private CacheManager cacheManager;
 	
 	/*
@@ -152,7 +152,9 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	 */
 	public CredentialServiceResponseDto createCredentialIssuance(
 			CredentialServiceRequestDto credentialServiceRequestDto) {
-		IdRepoLogger.getLogger(CredentialStoreServiceImpl.class).info(cacheManager.getCacheNames().toString());
+		IdRepoLogger.getLogger(PolicyUtil.class).info(Objects.nonNull(cacheManager.getCacheNames())
+				? cacheManager.getCacheNames().toString()
+				: "null");
 		IdRepoLogger.getLogger(CredentialStoreServiceImpl.class)
 				.info(Objects.nonNull(cacheManager.getCache("DATASHARE_POLICIES"))
 						? cacheManager.getCache("DATASHARE_POLICIES").toString()
