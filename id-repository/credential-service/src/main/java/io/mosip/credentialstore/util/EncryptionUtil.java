@@ -151,7 +151,9 @@ public class EncryptionUtil {
 				ServiceError error = responseObject.getErrors().get(0);
 				throw new DataEncryptionFailureException(error.getMessage());
 			}
+
 			encryptedData = responseObject.getResponse();
+
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ZK Encryption done successfully");
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
@@ -215,7 +217,8 @@ public class EncryptionUtil {
 				ServiceError error = responseObject.getErrors().get(0);
 				throw new DataEncryptionFailureException(error.getMessage());
 			}
-			encryptedPacket = responseObject.getResponse().getData();
+			encryptedPacket = responseObject!=null? responseObject.getResponse().getData() : null;
+
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Credential Data Encryption done successfully");
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
