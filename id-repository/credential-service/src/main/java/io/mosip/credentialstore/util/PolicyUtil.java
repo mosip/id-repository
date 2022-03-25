@@ -3,10 +3,14 @@ package io.mosip.credentialstore.util;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -50,12 +54,24 @@ public class PolicyUtil {
 
 	@Autowired
 	Utilities utilities;
+	
+	@Autowired(required = false)
+	private CacheManager cacheManager;
 
 	@Cacheable(cacheNames = DATASHARE_POLICIES, key="{ #credentialType, #subscriberId }")
 	public PartnerCredentialTypePolicyDto getPolicyDetail(String credentialType, String subscriberId, String requestId)
 			throws PolicyException, ApiNotAccessibleException {
 
 		try {
+			IdRepoLogger.getLogger(PolicyUtil.class).info(Objects.nonNull(cacheManager.getCacheNames())
+					? cacheManager.getCacheNames().toString()
+					: "null");
+			IdRepoLogger.getLogger(PolicyUtil.class)
+					.info(Objects.nonNull(cacheManager.getCache(DATASHARE_POLICIES))
+							? ((ConcurrentMapCache) cacheManager.getCache(DATASHARE_POLICIES)).getNativeCache()
+									.entrySet().stream().map(entry -> entry.getKey() + " - " + entry.getValue())
+									.collect(Collectors.joining())
+							: "null");
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					requestId,
 					"started fetching the policy data");
