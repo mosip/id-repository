@@ -91,7 +91,9 @@ public class EncryptionUtil {
 						"encrypted failed for attribute  " + attributeName);
 				throw new DataEncryptionFailureException(error.getMessage());
 			}
-			encryptedData = responseObject.getResponse().getData();
+
+			encryptedData = responseObject!=null? responseObject.getResponse().getData() : null;
+
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Pin Based Encryption done successfully");
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
