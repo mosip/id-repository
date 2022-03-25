@@ -248,7 +248,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		CredentialIssueStatusResponse credentialIssueStatusResponse = new CredentialIssueStatusResponse();
 		try {
 			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
-			if (entity != null && !entity.isEmpty()) {
+			if (entity.isPresent()) {
 				CredentialEntity credentialEntity = entity.get();
 				CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credentialEntity.getRequest(),
 						CredentialIssueRequestDto.class);
