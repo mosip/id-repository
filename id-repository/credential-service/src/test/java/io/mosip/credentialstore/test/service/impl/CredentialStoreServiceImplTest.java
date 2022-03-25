@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.cache.CacheManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -130,6 +131,9 @@ public class CredentialStoreServiceImplTest {
 
 	@Mock
 	EncryptionUtil encryptionUtil;
+	
+	@Mock
+	CacheManager cacheManager;
 
 	@Before
 	public void setUp() throws Exception {

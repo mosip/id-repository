@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
@@ -60,11 +61,13 @@ public class PolicyUtilTest {
 	private PartnerExtractorResponseDto partnerExtractorResponseDto;
 
 	String partnerextractorResponse;
+	
+	@Mock
+	private CacheManager cacheManager;
 
 	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() throws Exception {
-		
 		policyManagerResponseDto = new PolicyManagerResponseDto();
 		PartnerCredentialTypePolicyDto responseData = new PartnerCredentialTypePolicyDto();
 		responseData.setPolicyId("1234");

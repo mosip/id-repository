@@ -7,11 +7,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.stereotype.Component;
 
 import io.mosip.credentialstore.constants.CredentialConstants;
@@ -137,6 +141,10 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 	@Autowired
 	EncryptionUtil encryptionUtil;
+	
+	@Autowired(required = false)
+	private CacheManager cacheManager;
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -146,6 +154,15 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	 */
 	public CredentialServiceResponseDto createCredentialIssuance(
 			CredentialServiceRequestDto credentialServiceRequestDto) {
+		IdRepoLogger.getLogger(PolicyUtil.class).info(Objects.nonNull(cacheManager.getCacheNames())
+				? cacheManager.getCacheNames().toString()
+				: "null");
+		IdRepoLogger.getLogger(PolicyUtil.class)
+		.info(Objects.nonNull(cacheManager.getCache("DATASHARE_POLICIES"))
+				? ((ConcurrentMapCache) cacheManager.getCache("DATASHARE_POLICIES")).getNativeCache()
+						.entrySet().stream().map(entry -> entry.getKey() + " - " + entry.getValue())
+						.collect(Collectors.joining())
+				: "null");
 		LOGGER.debug(IdRepoSecurityManager.getUser(),
 				LoggerFileConstant.REQUEST_ID.toString(),
 				credentialServiceRequestDto.getRequestId(),
