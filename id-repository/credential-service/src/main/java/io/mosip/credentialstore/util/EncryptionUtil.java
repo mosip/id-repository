@@ -1,10 +1,12 @@
 package io.mosip.credentialstore.util;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -92,7 +94,8 @@ public class EncryptionUtil {
 				throw new DataEncryptionFailureException(error.getMessage());
 			}
 
-			encryptedData = responseObject!=null? responseObject.getResponse().getData() : null;
+			encryptedData = Objects.nonNull(responseObject) && Objects.nonNull(responseObject.getResponse())?
+					responseObject.getResponse().getData() : null;
 
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Pin Based Encryption done successfully");
@@ -217,7 +220,9 @@ public class EncryptionUtil {
 				ServiceError error = responseObject.getErrors().get(0);
 				throw new DataEncryptionFailureException(error.getMessage());
 			}
-			encryptedPacket = responseObject!=null? responseObject.getResponse().getData() : null;
+
+			encryptedPacket = Objects.nonNull(responseObject) && Objects.nonNull(responseObject.getResponse())?
+					responseObject.getResponse().getData() : null;
 
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Credential Data Encryption done successfully");
