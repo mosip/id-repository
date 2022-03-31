@@ -25,7 +25,7 @@ public class PartnerCacheUpdatingSchedulerConfig {
 	/**
 	 * Clear partner data cache.
 	 */
-	@Scheduled(fixedDelay = 300000l)
+	@Scheduled(initialDelayString = "${" + IDREPO_CACHE_UPDATE_INTERVAL + ":" + CACHE_UPDATE_DEFAULT_INTERVAL + "}", fixedDelayString = "${" + IDREPO_CACHE_UPDATE_INTERVAL + ":" + CACHE_UPDATE_DEFAULT_INTERVAL + "}")
 	public void clearPartnerDataCache() {
 		partnerServiceManager.clearDataSharePoliciesCache();
 		partnerServiceManager.clearPartnerExtractorFormatsCache();
