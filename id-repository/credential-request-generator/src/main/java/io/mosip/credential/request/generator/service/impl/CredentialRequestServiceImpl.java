@@ -248,7 +248,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		CredentialIssueStatusResponse credentialIssueStatusResponse = new CredentialIssueStatusResponse();
 		try {
 			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
-			if (entity.isPresent()) {
+			if (entity!=null && entity.isPresent()) {
 				CredentialEntity credentialEntity = entity.get();
 				CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credentialEntity.getRequest(),
 						CredentialIssueRequestDto.class);
@@ -450,7 +450,8 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		CredentialIssueResponse credentialIssueResponse = null;
 		try {
 			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
-			if (entity.isPresent()) {
+			if (entity!=null && entity.isPresent()) {
+
 				CredentialEntity credentialEntity = entity.get();
 
 				credentialEntity.setStatusCode(CredentialStatusCode.RETRY.name());
