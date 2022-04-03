@@ -12,7 +12,6 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,7 +41,7 @@ import io.mosip.kernel.core.websub.model.EventModel;
  * @author Manoj SP
  *
  */
-@Transactional(propagation = Propagation.REQUIRES_NEW)
+@Transactional
 public class CredentialStatusManager {
 	
 	private static final String TRANSACTION_LIMIT = "transaction_limit";
