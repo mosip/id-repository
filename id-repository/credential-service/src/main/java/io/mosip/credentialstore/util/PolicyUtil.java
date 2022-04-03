@@ -3,9 +3,10 @@ package io.mosip.credentialstore.util;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -50,6 +51,9 @@ public class PolicyUtil {
 
 	@Autowired
 	Utilities utilities;
+	
+	@Autowired
+	private CacheManager manager;
 	
 	@Cacheable(cacheNames = DATASHARE_POLICIES, key="{ #credentialType, #subscriberId }")
 	public PartnerCredentialTypePolicyDto getPolicyDetail(String credentialType, String subscriberId, String requestId)
@@ -157,14 +161,16 @@ public class PolicyUtil {
 
 	}
 	
-	@CacheEvict(value = DATASHARE_POLICIES)
 	public void clearDataSharePoliciesCache() {
+		if (Objects.nonNull(manager) && Objects.nonNull(manager.getCache(DATASHARE_POLICIES)))
+			manager.getCache(DATASHARE_POLICIES).clear();
 		LOGGER.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "clearDataSharePoliciesCache",
 				DATASHARE_POLICIES + " cache cleared");
 	}
 
-	@CacheEvict(value = PARTNER_EXTRACTOR_FORMATS)
 	public void clearPartnerExtractorFormatsCache() {
+		if (Objects.nonNull(manager) && Objects.nonNull(manager.getCache(PARTNER_EXTRACTOR_FORMATS)))
+			manager.getCache(PARTNER_EXTRACTOR_FORMATS).clear();
 		LOGGER.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
 				"clearPartnerExtractorFormatsCache", PARTNER_EXTRACTOR_FORMATS + " cache cleared");
 	}
