@@ -159,7 +159,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	/** The bio attributes. */
 	@Resource
-	private List<String> bioAttributes;
+	protected List<String> bioAttributes;
 
 	/** The uin hash salt repo. */
 	@Autowired
@@ -180,9 +180,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	
 	@Autowired
 	private AnonymousProfileHelper anonymousProfileHelper;
-	
-	@Autowired
-	private CredentialStatusManager credManager;
 	
 	@Value("${mosip.idrepo.identity.uin-status.registered}")
 	private String activeStatus;
@@ -741,7 +738,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
 			credRequestRepo.save(credStatus);
 		}
-		credManager.triggerEventNotifications();
 	}
 
 	/**
