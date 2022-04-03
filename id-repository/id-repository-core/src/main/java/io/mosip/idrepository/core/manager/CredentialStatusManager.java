@@ -12,6 +12,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,7 +42,7 @@ import io.mosip.kernel.core.websub.model.EventModel;
  * @author Manoj SP
  *
  */
-@Transactional
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class CredentialStatusManager {
 	
 	private static final String TRANSACTION_LIMIT = "transaction_limit";
@@ -92,7 +93,7 @@ public class CredentialStatusManager {
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
 				String idvId = decryptId(credentialRequestStatus.getIndividualId());
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), "BLOCKED",
-						Objects.nonNull(credentialRequestStatus.getUpdatedBy()), null,
+						true, null,
 						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer,
 						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()));
 			}

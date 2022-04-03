@@ -58,6 +58,7 @@ import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.manager.CredentialStatusManager;
 import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
@@ -158,7 +159,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	/** The bio attributes. */
 	@Resource
-	protected List<String> bioAttributes;
+	private List<String> bioAttributes;
 
 	/** The uin hash salt repo. */
 	@Autowired
@@ -179,6 +180,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	
 	@Autowired
 	protected AnonymousProfileHelper anonymousProfileHelper;
+	
+	@Autowired
+	private CredentialStatusManager credManager;
 	
 	@Value("${mosip.idrepo.identity.uin-status.registered}")
 	private String activeStatus;
@@ -711,17 +715,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp) {
 		List<CredentialRequestStatus> credStatusList = credRequestRepo.findByIndividualIdHash(uinHash);
-		if (credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
-			CredentialRequestStatus credStatus = new CredentialRequestStatus();
-			credStatus.setIndividualId(enryptedUin);
-			credStatus.setIndividualIdHash(uinHash);
-			credStatus.setPartnerId(dummyPartner.getDummyOLVPartnerId());
-			credStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
-			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
-			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
-			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
-			credRequestRepo.save(credStatus);
-		} else if (!credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
+		if (!credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {
 				credStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
@@ -735,7 +729,19 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
 				credRequestRepo.save(credStatus);
 			});
+		} else if (credStatusList.isEmpty()) {
+			CredentialRequestStatus credStatus = new CredentialRequestStatus();
+			credStatus.setIndividualId(enryptedUin);
+			credStatus.setIndividualIdHash(uinHash);
+			credStatus.setPartnerId(dummyPartner.getDummyOLVPartnerId());
+			credStatus.setStatus(uinStatus.contentEquals(activeStatus) ? CredentialRequestStatusLifecycle.NEW.toString()
+					: CredentialRequestStatusLifecycle.DELETED.toString());
+			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
+			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
+			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
+			credRequestRepo.save(credStatus);
 		}
+		credManager.triggerEventNotifications();
 	}
 
 	/**
