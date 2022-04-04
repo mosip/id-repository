@@ -110,7 +110,7 @@ public class RestRequestBuilder {
 
 		if (requestBody != null) {
 			//System.out.println("here1= "+ Objects.nonNull(headers.getContentType()) + "  here2= "+ Objects.requireNonNull(headers.getContentType().includes(MediaType.MULTIPART_FORM_DATA)) );
-			if (Objects.nonNull(headers.getContentType()) && !headers.getContentType().includes(MediaType.MULTIPART_FORM_DATA)) {
+			if (headers!=null && headers.getContentType()!=null && !headers.getContentType().includes(MediaType.MULTIPART_FORM_DATA)) {
 				request.setRequestBody(requestBody);
 			} else {
 				if (requestBody instanceof MultiValueMap) {
