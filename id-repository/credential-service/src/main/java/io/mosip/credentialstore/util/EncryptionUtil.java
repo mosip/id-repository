@@ -10,6 +10,7 @@ import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.mock.mockito.MockitoPostProcessor;
 import org.springframework.http.MediaType;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -87,7 +88,7 @@ public class EncryptionUtil {
 			CryptoWithPinResponseDto responseObject= mapper.readValue(response,
 					CryptoWithPinResponseDto.class);
 
-			if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
+			if (Objects.nonNull(responseObject)  && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
 				ServiceError error = responseObject.getErrors().get(0);
 				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 						"encrypted failed for attribute  " + attributeName);
@@ -155,7 +156,9 @@ public class EncryptionUtil {
 				throw new DataEncryptionFailureException(error.getMessage());
 			}
 
-			encryptedData = responseObject.getResponse();
+			if(responseObject!=null && responseObject.getResponse()!=null) {
+				encryptedData = responseObject.getResponse();
+			}
 
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ZK Encryption done successfully");
@@ -214,7 +217,7 @@ public class EncryptionUtil {
 
 			CryptomanagerResponseDto responseObject = mapper.readValue(response, CryptomanagerResponseDto.class);
 
-			if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
+			if (Objects.nonNull(responseObject) && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
 				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 						"credential encryption failed");
 				ServiceError error = responseObject.getErrors().get(0);
@@ -253,6 +256,7 @@ public class EncryptionUtil {
 		return encryptedPacket;
 
 	}
+
 
 
 

@@ -181,12 +181,14 @@ public class EncryptionUtilTest {
 		Mockito.when(objectMapper.readValue(cryptoResponse, CryptoZkResponseDto.class)).thenReturn(cryptoZkResponseDto);
 		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList, "requestId");
 	}
-	@Test(expected = DataEncryptionFailureException.class)
+
+	@Test
 	public void encryptionWithZktestIOException() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException, SignatureException, DataEncryptionFailureException {
 
 		Mockito.when(objectMapper.readValue(cryptoResponse, CryptoWithPinResponseDto.class)).thenThrow(new JsonMappingException(""));
 		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList, "requestId");
 	}
+
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
 	public void encryptionWithZktestHttpClientException() throws Exception {
