@@ -13,7 +13,7 @@
 
 -- object: idrepo.channel_info | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.channel_info CASCADE;
-CREATE TABLE idrepo.channel_info(
+CREATE TABLE IF NOT EXISTS idrepo.channel_info(
 	hashed_channel character varying(128) NOT NULL,
 	channel_type character varying(5) NOT NULL,
 	no_of_records numeric NOT null default 0,

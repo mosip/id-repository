@@ -17,7 +17,7 @@
 \c mosip_idrepo sysadmin
 ---------------------------------------------------------------------------------------------------
 
-ALTER TABLE idrepo.uin_auth_lock ADD COLUMN unlock_expiry_datetime timestamp;
+ALTER TABLE IF EXISTS idrepo.uin_auth_lock ADD COLUMN IF NOT EXISTS unlock_expiry_datetime timestamp;
 ------------------------------------------------------------------------------------------------
 
 \ir ../ddl/idrepo-credential_request_status.sql
@@ -30,11 +30,11 @@ ALTER TABLE idrepo.uin_auth_lock ADD COLUMN unlock_expiry_datetime timestamp;
 
 -------------------------------------------------------------------------------------------------
 
-ALTER TABLE idrepo.uin ALTER COLUMN lang_code DROP NOT NULL;
-ALTER TABLE idrepo.uin_auth_lock ALTER COLUMN lang_code DROP NOT NULL;
-ALTER TABLE idrepo.uin_biometric ALTER COLUMN lang_code DROP NOT NULL;
-ALTER TABLE idrepo.uin_biometric_h ALTER COLUMN lang_code DROP NOT NULL;
-ALTER TABLE idrepo.uin_document ALTER COLUMN lang_code DROP NOT NULL;
-ALTER TABLE idrepo.uin_document_h ALTER COLUMN lang_code DROP NOT NULL;
-ALTER TABLE idrepo.uin_h ALTER COLUMN lang_code DROP NOT NULL;
+ALTER TABLE IF EXISTS idrepo.uin ALTER COLUMN lang_code DROP NOT NULL;
+ALTER TABLE IF EXISTS idrepo.uin_auth_lock ALTER COLUMN lang_code DROP NOT NULL;
+ALTER TABLE IF EXISTS idrepo.uin_biometric ALTER COLUMN lang_code DROP NOT NULL;
+ALTER TABLE IF EXISTS idrepo.uin_biometric_h ALTER COLUMN lang_code DROP NOT NULL;
+ALTER TABLE IF EXISTS idrepo.uin_document ALTER COLUMN lang_code DROP NOT NULL;
+ALTER TABLE IF EXISTS idrepo.uin_document_h ALTER COLUMN lang_code DROP NOT NULL;
+ALTER TABLE IF EXISTS idrepo.uin_h ALTER COLUMN lang_code DROP NOT NULL;
 ---------------------------------------------------------------------------------

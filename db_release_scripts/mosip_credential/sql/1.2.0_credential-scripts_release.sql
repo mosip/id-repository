@@ -12,6 +12,6 @@
 
 \c mosip_credential sysadmin
 
-ALTER TABLE credential.credential_transaction ADD COLUMN status_comment character varying(512) ;
+ALTER TABLE IF EXISTS credential.credential_transaction ADD COLUMN IF NOT EXISTS status_comment character varying(512) ;
 
 ---------------------------------------------------------------------------------------------------

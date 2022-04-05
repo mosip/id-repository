@@ -13,7 +13,7 @@
 
 -- object: idrepo.credential_request_status | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.credential_request_status CASCADE;
-CREATE TABLE idrepo.credential_request_status (
+CREATE TABLE IF NOT EXISTS idrepo.credential_request_status (
 	individual_id character varying(500) NOT NULL,
 	individual_id_hash character varying(128) NOT NULL,
 	partner_id character varying(36) NOT NULL,
@@ -28,7 +28,5 @@ CREATE TABLE idrepo.credential_request_status (
 	upd_dtimes timestamp,
 	is_deleted bool DEFAULT false,
 	del_dtimes timestamp,
-	CONSTRAINT credential_request_status_pk PRIMARY KEY (individual_id_hash,partner_id)
-
-);
+	CONSTRAINT credential_request_status_pk PRIMARY KEY (individual_id_hash,partner_id));
 -- ddl-end --

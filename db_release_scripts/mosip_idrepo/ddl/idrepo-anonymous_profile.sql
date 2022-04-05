@@ -13,7 +13,7 @@
 
 -- object: idrepo.anonymous_profile | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.anonymous_profile CASCADE;
-CREATE TABLE idrepo.anonymous_profile(
+CREATE TABLE IF NOT EXISTS idrepo.anonymous_profile(
 	id character varying(36) NOT NULL,
 	profile character varying NOT NULL,
 	cr_by character varying(256) NOT NULL,

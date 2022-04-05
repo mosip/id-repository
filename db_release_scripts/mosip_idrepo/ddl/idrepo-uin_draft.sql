@@ -13,7 +13,7 @@
 
 -- object: idrepo.uin_draft | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.uin_draft CASCADE;
-CREATE TABLE idrepo.uin_draft(
+CREATE TABLE IF NOT EXISTS idrepo.uin_draft(
 	reg_id character varying (39) NOT NULL,
 	uin character varying (500) NOT NULL,
 	uin_hash character varying (128) NOT NULL,
