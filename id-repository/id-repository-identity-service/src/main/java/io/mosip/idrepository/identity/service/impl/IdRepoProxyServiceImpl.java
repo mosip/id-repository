@@ -483,7 +483,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			Thread.currentThread().interrupt();
 			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
 		}
-
 	}
 
 	/*
