@@ -271,16 +271,13 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			String uin = response.getResponse().get("UIN");
 			return retrieveIdentityByUin(uin, type, extractionFormats);
 		} catch (RestServiceException e) {
-			if (e.getResponseBodyAsString().isPresent()) {
-				List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(e.getResponseBodyAsString().orElse(null));
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
-						"\n" + errorList);
-				throw new IdRepoAppException(errorList.get(0).getErrorCode(), errorList.get(0).getMessage());
-			} else {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
-						"\n" + e.getMessage());
-				throw new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR);
-			}
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
+					"\n" + e.getMessage());
+			String errorMessage = e.getResponseBodyAsString().orElseThrow(() -> new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
+			List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(errorMessage);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
+					"\n" + errorList);
+			throw new IdRepoAppException(errorList.get(0).getErrorCode(), errorList.get(0).getMessage());
 		}
 	}
 
