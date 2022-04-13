@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.RecoverableDataAccessException;
@@ -123,6 +124,9 @@ public class IdRepoServiceTest {
 
 	@Mock
 	AuditHelper auditHelper;
+
+	@Mock
+	Environment environment;
 
 	@Mock
 	ObjectStoreAdapter connection;
@@ -1045,6 +1049,7 @@ public class IdRepoServiceTest {
 						.getBytes(),
 				Object.class);
 		uinObj.setUinData(mapper.writeValueAsBytes(obj2));
+		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn("ACTIVE");
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
@@ -1118,6 +1123,7 @@ public class IdRepoServiceTest {
 				Object.class);
 		uinObj.setUinData(mapper.writeValueAsBytes(obj2));
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
+		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn("ACTIVE");
 		when(uinRepo.getStatusByUin(Mockito.any())).thenReturn(ACTIVATED);
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
@@ -1239,6 +1245,7 @@ public class IdRepoServiceTest {
 		uinObj.setUinData(new byte[] { 0 });
 		uinObj.setUinDataHash("");
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
+		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn("ACTIVE");
 		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
 		when(uinRepo.save(Mockito.any())).thenReturn(uinObj);
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
