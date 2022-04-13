@@ -175,6 +175,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	/** The Constant DEMOGRAPHICS. */
 	private static final String DEMOGRAPHICS = "Demographics";
 
+	private static final String REGISTRATION_ID = "registration_id";
+
 	@Autowired
 	private ObjectStoreHelper objectStoreHelper;
 
@@ -715,9 +717,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				VidsInfosDTO response = restHelper.requestSync(restRequest);
 				vidInfoDtos = response.getResponse();
 			}
-
 			List<String> partnerIds = getPartnerIds();
-
 			if ((status != null && isUpdate) && (!ACTIVE.equals(status) || expiryTimestamp != null)) {
 				// Event to be sent to IDA for deactivation/blocked uin state
 				sendEventToIDA(uin, expiryTimestamp, status, vidInfoDtos, partnerIds, txnId);
@@ -725,6 +725,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				// For create uin, or update uin with null expiry (active status), send event to
 				// credential service.
 				sendEventsToCredService(uin, expiryTimestamp, isUpdate, vidInfoDtos, partnerIds);
+				sendGenericIdentityEvents(uin, isUpdate, txnId);
 			}
 
 		} catch (Exception e) {
@@ -772,7 +773,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		eventList.forEach(eventDto -> {
 			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify",
 					"notifying IDA for event" + eventType.toString());
-			sendEventToIDA(eventDto);
+			sendEventToWebsub(eventDto);
 			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify",
 					"notified IDA for event" + eventType.toString());
 		});
@@ -780,12 +781,27 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	private Stream<EventModel> createIdaEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp,
 			Integer transactionLimit, List<String> partnerIds, String transactionId, String idHash) {
-		return partnerIds.stream().map(partner -> createEventModel(eventType, id, expiryTimestamp, transactionLimit,
+		return partnerIds.stream().map(partner -> prepareDataAndcreateEventModel(eventType, id, expiryTimestamp, transactionLimit,
 				transactionId, partner, idHash));
 	}
 
-	private EventModel createEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp,
+	private EventModel prepareDataAndcreateEventModel(EventType eventType, String id, LocalDateTime expiryTimestamp,
 			Integer transactionLimit, String transactionId, String partner, Object idHash) {
+		Map<String, Object> data = new HashMap<>();
+		data.put(ID_HASH, idHash);
+		if (eventType.equals(IDAEventType.DEACTIVATE_ID)) {
+			data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+		} else {
+			if (expiryTimestamp != null) {
+				data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
+			}
+		}
+		data.put(TRANSACTION_LIMIT, transactionLimit);
+		String topic = partner + "/" + eventType.toString();
+		return createEventModel(topic, data, transactionId);
+	}
+
+	private EventModel createEventModel(String topic, Map<String, Object> eventData, String transactionId) {
 		EventModel model = new EventModel();
 		model.setPublisher(ID_REPO);
 		String dateTime = DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime());
@@ -799,33 +815,23 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		type.setNamespace(idaEventTypeNamespace);
 		type.setName(idaEventTypeName);
 		event.setType(type);
-		Map<String, Object> data = new HashMap<>();
-		data.put(ID_HASH, idHash);
-		if (eventType.equals(IDAEventType.DEACTIVATE_ID)) {
-			data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
-		} else {
-			if (expiryTimestamp != null) {
-				data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
-			}
-		}
-		data.put(TRANSACTION_LIMIT, transactionLimit);
-		event.setData(data);
+		event.setData(eventData);
 		model.setEvent(event);
-		model.setTopic(partner + "/" + eventType.toString());
+		model.setTopic(topic);
 		return model;
 	}
 
-	private void sendEventToIDA(EventModel model) {
+	private void sendEventToWebsub(EventModel model) {
 		try {
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendEventToIDA",
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendEventToWebsub",
 					"Trying registering topic: " + model.getTopic());
 			pb.registerTopic(model.getTopic(), env.getProperty(WEB_SUB_PUBLISH_URL));
 		} catch (Exception e) {
 			// Exception will be there if topic already registered. Ignore that
-			mosipLogger.warn(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendEventToIDA",
+			mosipLogger.warn(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendEventToWebsub",
 					"Error in registering topic: " + model.getTopic() + " : " + e.getMessage());
 		}
-		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendEventToIDA",
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendEventToWebsub",
 				"Publising event to topic: " + model.getTopic());
 		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null,
 				env.getProperty(WEB_SUB_PUBLISH_URL));
@@ -897,5 +903,15 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		credentialIssueRequestDto.setUser(IdRepoSecurityManager.getUser());
 		credentialIssueRequestDto.setAdditionalData(data);
 		return credentialIssueRequestDto;
+	}
+
+	private void sendGenericIdentityEvents(String uin, boolean isUpdate, String registrationId) {
+		EventType eventType = isUpdate ? IDAEventType.IDENTITY_UPDATED : IDAEventType.IDENTITY_CREATED;
+		Map<String, Object> eventData = new HashMap<>();
+		eventData.put(ID_HASH, getIdHash(uin));
+		eventData.put(REGISTRATION_ID, registrationId);
+		String topic = eventType.toString();
+		EventModel eventModel = createEventModel(topic, eventData, registrationId);
+		sendEventToWebsub(eventModel);
 	}
 }
