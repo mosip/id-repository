@@ -711,17 +711,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp) {
 		List<CredentialRequestStatus> credStatusList = credRequestRepo.findByIndividualIdHash(uinHash);
-		if (credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
-			CredentialRequestStatus credStatus = new CredentialRequestStatus();
-			credStatus.setIndividualId(enryptedUin);
-			credStatus.setIndividualIdHash(uinHash);
-			credStatus.setPartnerId(dummyPartner.getDummyOLVPartnerId());
-			credStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
-			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
-			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
-			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
-			credRequestRepo.save(credStatus);
-		} else if (!credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
+		if (!credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {
 				credStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
@@ -735,6 +725,17 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
 				credRequestRepo.save(credStatus);
 			});
+		} else if (credStatusList.isEmpty()) {
+			CredentialRequestStatus credStatus = new CredentialRequestStatus();
+			credStatus.setIndividualId(enryptedUin);
+			credStatus.setIndividualIdHash(uinHash);
+			credStatus.setPartnerId(dummyPartner.getDummyOLVPartnerId());
+			credStatus.setStatus(uinStatus.contentEquals(activeStatus) ? CredentialRequestStatusLifecycle.NEW.toString()
+					: CredentialRequestStatusLifecycle.DELETED.toString());
+			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
+			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
+			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
+			credRequestRepo.save(credStatus);
 		}
 	}
 

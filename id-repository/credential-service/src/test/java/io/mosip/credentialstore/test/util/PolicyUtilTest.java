@@ -3,6 +3,9 @@ package io.mosip.credentialstore.test.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +17,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
@@ -60,6 +65,9 @@ public class PolicyUtilTest {
 	private PartnerExtractorResponseDto partnerExtractorResponseDto;
 
 	String partnerextractorResponse;
+	
+	@Mock
+	CacheManager cacheManager;
 	
 	@SuppressWarnings("unchecked")
 	@Before
@@ -192,5 +200,21 @@ public class PolicyUtilTest {
 		PartnerExtractorResponse policyResponseDto = policyUtil.getPartnerExtractorFormat("euin", "3456", "requestId");
 		assertNull(policyResponseDto);
 
+	}
+	
+	@Test 
+	public void testClearCache() {
+		Cache mockCache = Mockito.mock(Cache.class);
+		when(cacheManager.getCache(Mockito.any())).thenReturn(mockCache);
+		policyUtil.clearDataSharePoliciesCache();
+		policyUtil.clearPartnerExtractorFormatsCache();
+		verify(mockCache, times(2)).clear();
+	}
+	
+	@Test 
+	public void testClearCacheNullCache() {
+		policyUtil.clearDataSharePoliciesCache();
+		policyUtil.clearPartnerExtractorFormatsCache();
+		verify(cacheManager, times(2)).getCache(Mockito.any());
 	}
 }
