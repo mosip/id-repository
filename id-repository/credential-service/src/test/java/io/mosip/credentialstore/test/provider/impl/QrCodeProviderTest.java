@@ -319,7 +319,7 @@ public class QrCodeProviderTest {
 		JSONObject j1 = new JSONObject(map);
 
 		Map<String, String> map2 = new HashMap<>();
-		map2.put("language", "ara");
+		map2.put("language", "fra");
 		map2.put("value", "Alok");
 		JSONObject j2 = new JSONObject(map2);
 		JSONArray array = new JSONArray();

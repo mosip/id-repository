@@ -36,4 +36,6 @@ public class CredentialConstants {
 	public static final String ENCRYPTIONKEY = "encryptionKey";
 
 	public static final String BESTTWOFINGERS = "bestTwoFingers";
+
+	public static final String EMPTY_SPACE = " ";
 }
