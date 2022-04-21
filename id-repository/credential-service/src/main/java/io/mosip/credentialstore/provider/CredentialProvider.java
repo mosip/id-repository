@@ -97,7 +97,6 @@ public class CredentialProvider {
 	/**
 	 * Gets the formatted credential data.
 	 *
-	 * @param encryptMap the encrypt map
 	 * @param credentialServiceRequestDto the credential service request dto
 	 * @param sharableAttributeMap the sharable attribute map
 	 * @return the formatted credential data
@@ -427,7 +426,31 @@ public class CredentialProvider {
 
 	}
 
+	private Object getName(AllowedKycDto key, JSONObject identity) {
+		String formattedObject = "";
+		for (Source source : key.getSource()) {
+			String attribute = source.getAttribute();
+			List<Filter> filterList = source.getFilter();
+			if (filterList != null && !filterList.isEmpty()) {
+				Filter filter = filterList.get(0);
+				String lang = filter.getLanguage();
+				JSONArray node = JsonUtil.getJSONArray(identity, attribute);
+				JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
+				for (JsonValue jsonValue : jsonValues) {
+					if (jsonValue.getLanguage().equals(lang))
+						formattedObject = formattedObject + CredentialConstants.EMPTY_SPACE + jsonValue.getValue();
+				}
+			}
+		}
+		return formattedObject.trim();
+	}
+
 	private Object filterAndFormat(AllowedKycDto key, Object object, JSONObject identity) {
+		// this code is added only to fix fullName addition in credential.
+		if (key.getAttributeName().equalsIgnoreCase(CredentialConstants.FULLNAME))
+			return getName(key, identity);
+
+
 		Object formattedObject = object;
 		Source source = key.getSource().get(0);
 		String attribute = source.getAttribute();
