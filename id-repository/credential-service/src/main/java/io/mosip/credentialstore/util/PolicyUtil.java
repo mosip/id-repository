@@ -5,7 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -50,7 +51,10 @@ public class PolicyUtil {
 
 	@Autowired
 	Utilities utilities;
-
+	
+	@Autowired
+	private CacheManager cacheManager;
+	
 	@Cacheable(cacheNames = DATASHARE_POLICIES, key="{ #credentialType, #subscriberId }")
 	public PartnerCredentialTypePolicyDto getPolicyDetail(String credentialType, String subscriberId, String requestId)
 			throws PolicyException, ApiNotAccessibleException {
@@ -70,7 +74,10 @@ public class PolicyUtil {
 				ServiceError error = responseObject.getErrors().get(0);
 				throw new PolicyException(error.getMessage());
 			}
-			PartnerCredentialTypePolicyDto policyResponseDto = responseObject.getResponse();
+			PartnerCredentialTypePolicyDto policyResponseDto = null;
+			if (responseObject != null) {
+				policyResponseDto = responseObject.getResponse();
+			}
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					requestId,
 					"Fetched policy details successfully");
@@ -127,7 +134,10 @@ public class PolicyUtil {
 
 			}
 
-			partnerExtractorResponse = responseObject.getResponse();
+			if(responseObject!=null){
+				partnerExtractorResponse = responseObject.getResponse();
+			}
+
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Fetched partner extraction policy details successfully");
 
@@ -151,16 +161,20 @@ public class PolicyUtil {
 
 	}
 	
-	@CacheEvict(value = DATASHARE_POLICIES)
 	public void clearDataSharePoliciesCache() {
+		Cache cache = cacheManager.getCache(DATASHARE_POLICIES);
+		if (cache != null)
+			cache.clear();
 		LOGGER.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "clearDataSharePoliciesCache",
 				DATASHARE_POLICIES + " cache cleared");
 	}
 
-	@CacheEvict(value = PARTNER_EXTRACTOR_FORMATS)
 	public void clearPartnerExtractorFormatsCache() {
+		Cache cache = cacheManager.getCache(PARTNER_EXTRACTOR_FORMATS);
+		if (cache != null)
+			cache.clear();
 		LOGGER.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
 				"clearPartnerExtractorFormatsCache", PARTNER_EXTRACTOR_FORMATS + " cache cleared");
 	}
-
+	
 }

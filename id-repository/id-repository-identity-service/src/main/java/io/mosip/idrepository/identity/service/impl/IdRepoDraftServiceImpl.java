@@ -145,9 +145,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	@Autowired
 	private VidDraftHelper vidDraftHelper;
 	
-	@Autowired
-	private AnonymousProfileHelper anonymousProfileHelper;
-	
 	@Override
 	public IdResponseDTO createDraft(String registrationId, String uin) throws IdRepoAppException {
 		try {

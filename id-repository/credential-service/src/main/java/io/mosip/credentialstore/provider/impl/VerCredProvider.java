@@ -132,7 +132,6 @@ public class VerCredProvider extends CredentialProvider {
 		vcContextJsonld = utilities.getVCContext(configServerFileStorageURL, vcContextUri);
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public DataProviderResponse getFormattedCredentialData(
 			CredentialServiceRequestDto credentialServiceRequestDto, Map<AllowedKycDto, Object> sharableAttributeMap)
@@ -156,11 +155,13 @@ public class VerCredProvider extends CredentialProvider {
 				String valueStr = null;
 				if (value instanceof String) {
 					valueStr = value.toString();
+					formattedMap.put(attributeName, valueStr);
 				} else {
-					valueStr = mapper.writeValueAsString(value);
+					// Removed converting any object (like List) to string. Now adding it object directly to the map. 
+					formattedMap.put(attributeName, value);
 				}
-				formattedMap.put(attributeName, valueStr);
-				if (allowedKycDto.isEncrypted() || credentialServiceRequestDto.isEncrypt()) {
+				// Commented below code because VC does not support attribute level encryption.
+				/* if (allowedKycDto.isEncrypted() || credentialServiceRequestDto.isEncrypt()) {
 					if (Objects.isNull(pin)) {
 						LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 							"pin is null, pin based encryption will not be able to perform.");
@@ -174,7 +175,7 @@ public class VerCredProvider extends CredentialProvider {
 					}
 				} else {
 					formattedMap.put(attributeName, valueStr);
-				}
+				} */
 
 			}
 
@@ -242,11 +243,11 @@ public class VerCredProvider extends CredentialProvider {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"end formatting credential data");
 			return dataProviderResponse;
-		} catch (DataEncryptionFailureException e) {
+		} /* catch (DataEncryptionFailureException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					ExceptionUtils.getStackTrace(e));
 			throw new CredentialFormatterException(e);
-		} catch (ApiNotAccessibleException e) {
+		} */ catch (ApiNotAccessibleException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					ExceptionUtils.getStackTrace(e));
 			throw new CredentialFormatterException(e);

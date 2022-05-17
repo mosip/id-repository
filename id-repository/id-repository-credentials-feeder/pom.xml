@@ -4,13 +4,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.mosip.idrepository</groupId>
 	<artifactId>id-repository-credentials-feeder</artifactId>
-	<version>1.2.0-SNAPSHOT</version>
+	<version>1.2.0.1-SNAPSHOT</version>
 	<name>ID-Repository Credentials Feeder</name>
 
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.2.0-SNAPSHOT</version>
+		<version>1.2.0.1-SNAPSHOT</version>
 	</parent>
 
 	<description>Batch Job Application for feeding IDA instances with credentials.</description>
@@ -229,10 +229,10 @@
 		<aspectjweaver.version>1.8.12</aspectjweaver.version>
 		<micrometer.core.version>1.4.2</micrometer.core.version>
 		<micrometer.registry.prometheus.version>1.4.2</micrometer.registry.prometheus.version>
-		<kernel-core.version>1.2.0-SNAPSHOT</kernel-core.version>
-		<kernel-logger-logback.version>1.2.0-SNAPSHOT</kernel-logger-logback.version>
+		<kernel-core.version>1.2.0.1-SNAPSHOT</kernel-core.version>
+		<kernel-logger-logback.version>1.2.0.1-SNAPSHOT</kernel-logger-logback.version>
 		<postgresql.version>42.2.2</postgresql.version>
-		<kernel-websubclient-api.version>1.2.0-SNAPSHOT</kernel-websubclient-api.version>
+		<kernel-websubclient-api.version>1.2.0.1-SNAPSHOT</kernel-websubclient-api.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -313,6 +313,7 @@
 				<version>${spring.boot.version}</version>
 				<configuration>
 					<executable>true</executable>
+					<layout>ZIP</layout>
 				</configuration>
 				<executions>
 					<execution>
@@ -325,4 +326,28 @@
 			</plugin>
 		</plugins>
 	</build>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>2.12.0</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-annotations</artifactId>
+				<version>2.12.0</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-core</artifactId>
+				<version>2.12.0</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.datatype</groupId>
+				<artifactId>jackson-datatype-jsr310</artifactId>
+				<version>2.12.0</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 </project>

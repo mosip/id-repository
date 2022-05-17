@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,6 +20,7 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import io.mosip.credentialstore.constants.ApiName;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.util.EnvUtil;
 
 public class RestUtil {
@@ -97,6 +99,7 @@ public class RestUtil {
 
 			}
 		uriComponents = builder.build(false).encode();
+		IdRepoLogger.getLogger(RestUtil.class).debug(uriComponents.toUri().toString());
         try {
             result = (T) restTemplate.exchange(uriComponents.toUri(), HttpMethod.GET, setRequestHeader(null, null), responseType)
                     .getBody();
@@ -140,12 +143,11 @@ public class RestUtil {
             try {
                 HttpEntity<Object> httpEntity = (HttpEntity<Object>) requestType;
                 HttpHeaders httpHeader = httpEntity.getHeaders();
-                Iterator<String> iterator = httpHeader.keySet().iterator();
-                while (iterator.hasNext()) {
-                    String key = iterator.next();
-                    if (!(headers.containsKey("Content-Type") && key == "Content-Type"))
-                        headers.add(key, httpHeader.get(key).get(0));
-                }
+				for (String key : httpHeader.keySet()) {
+					String contentType = "Content-Type";
+					if (!(headers.containsKey(contentType) && key.equals(contentType)))
+						headers.add(key, httpHeader.get(key).get(0));
+				}
                 return new HttpEntity<Object>(httpEntity.getBody(), headers);
             } catch (ClassCastException e) {
                 return new HttpEntity<Object>(requestType, headers);

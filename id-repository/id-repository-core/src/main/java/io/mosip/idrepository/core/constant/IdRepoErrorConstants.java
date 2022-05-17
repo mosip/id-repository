@@ -109,7 +109,9 @@ public enum IdRepoErrorConstants {
 	
 	INVALID_CBEFF("IDR-BIE-001", "Invalid CBEFF"),
 	
-	TECHNICAL_ERROR("IDR-BIE-001", "Technical Error in Biometric Extraction")
+	TECHNICAL_ERROR("IDR-BIE-001", "Technical Error in Biometric Extraction"),
+	
+	JOB_FAILED("IDR-CFJ-001", "Credential Feeder job failed")
 	
 	;
 	
