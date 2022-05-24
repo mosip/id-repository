@@ -25,7 +25,7 @@
 		<kernel.idobjectvalidator.version>1.1.5.2</kernel.idobjectvalidator.version>
 		<kernel-websubclient-api.version>1.1.5.5</kernel-websubclient-api.version>
 		<kernel-idvalidator-vid.version>1.1.5.2</kernel-idvalidator-vid.version>
-		<kernel.khazana.version>1.1.5.2</kernel.khazana.version>
+		<kernel.khazana.version>1.1.5.5-SNAPSHOT</kernel.khazana.version>
 		<kernel-biosdk-provider.version>1.1.5.2</kernel-biosdk-provider.version>
 	</properties>
 
