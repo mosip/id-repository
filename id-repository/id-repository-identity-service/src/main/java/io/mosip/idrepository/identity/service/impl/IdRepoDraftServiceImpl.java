@@ -138,13 +138,13 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 
 	@Autowired
 	private UinDocumentRepo uinDocumentRepo;
-	
+
 	@Autowired
 	private IdRepoProxyServiceImpl proxyService;
-	
+
 	@Autowired
 	private VidDraftHelper vidDraftHelper;
-	
+
 	@Override
 	public IdResponseDTO createDraft(String registrationId, String uin) throws IdRepoAppException {
 		try {
@@ -358,11 +358,11 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			} else {
 				UinDraft draft = uinDraft.get();
 				anonymousProfileHelper
-				.setNewCbeff(draft.getUinHash().split("_")[1],
-						!anonymousProfileHelper.isNewCbeffPresent() && Objects.nonNull(draft.getBiometrics())
-						&& !draft.getBiometrics().isEmpty()
-						? draft.getBiometrics().get(draft.getBiometrics().size() - 1).getBioFileId()
-								: null);
+						.setNewCbeff(draft.getUinHash().split("_")[1],
+								!anonymousProfileHelper.isNewCbeffPresent() && Objects.nonNull(draft.getBiometrics())
+										&& !draft.getBiometrics().isEmpty()
+										? draft.getBiometrics().get(draft.getBiometrics().size() - 1).getBioFileId()
+										: null);
 				IdRequestDTO idRequest = buildRequest(regId, draft);
 				validateRequest(idRequest.getRequest());
 				String uin = decryptUin(draft.getUin(), draft.getUinHash());
@@ -550,7 +550,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		return bioFileId.split("\\.")[0].concat(DOT).concat(getModalityForFormat(extractionFormat.getKey())).concat(DOT)
 				.concat(extractionFormat.getValue());
 	}
-	
+
 	private String getModalityForFormat(String formatQueryParam) {
 		return formatQueryParam.replace(EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX, "");
 	}

@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.hamcrest.Matchers;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -194,6 +195,7 @@ public class AuthTypeStatusImplTest {
 	}
 
 	@Test
+	@Ignore
 	public void testFetchAuthTypeStatusOfUINWithBioLockUnlockedTemporarilyAndUnlockExpired()
 			throws IdRepoAppException, InterruptedException {
 		when(securityManager.hash(any())).thenReturn("");
