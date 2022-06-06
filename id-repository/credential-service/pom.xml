@@ -198,6 +198,12 @@
 			<version>0.8.0</version>
 		</dependency>
 	</dependencies>
+	<repositories>
+		<repository>
+			<id>danubetech-maven-public</id>
+			<url>https://repo.danubetech.com/repository/maven-public/</url>
+		</repository>
+	</repositories>
 	<build>
 		<plugins>
 			<plugin>
