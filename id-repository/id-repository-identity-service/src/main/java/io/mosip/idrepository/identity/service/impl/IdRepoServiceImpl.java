@@ -8,6 +8,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
 
+
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -382,11 +383,20 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
 		try {
 			Uin uinObject = retrieveIdentity(uinHash, IdType.UIN, null, null);
+
 			anonymousProfileHelper.setOldCbeff(uinHash,
 					!anonymousProfileHelper.isOldCbeffPresent() && Objects.nonNull(uinObject.getBiometrics())
 							&& !uinObject.getBiometrics().isEmpty()
 									? uinObject.getBiometrics().get(uinObject.getBiometrics().size() - 1).getBioFileId()
 									: null);
+
+//			getting biometric data from uinObject and copying to newcbeff if exists
+			anonymousProfileHelper.setNewCbeff(uinHash,
+					!anonymousProfileHelper.isNewCbeffPresent() && Objects.nonNull(uinObject.getBiometrics())
+							&& !uinObject.getBiometrics().isEmpty()
+							? uinObject.getBiometrics().get(uinObject.getBiometrics().size() - 1).getBioFileId()
+							: null);
+
 			uinObject.setRegId(request.getRequest().getRegistrationId());
 			if (Objects.nonNull(request.getRequest().getStatus())
 					&& !StringUtils.equals(uinObject.getStatusCode(), request.getRequest().getStatus())) {
@@ -414,11 +424,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
 
 				if (Objects.nonNull(requestDTO.getDocuments()) && !requestDTO.getDocuments().isEmpty()) {
+//				If documents present overwriting the newcbeff
 					anonymousProfileHelper
 							.setNewCbeff(uinObject.getUinHash(),
-									!anonymousProfileHelper.isNewCbeffPresent() ?
-									uinObject.getBiometrics().get(uinObject.getBiometrics().size() - 1).getBioFileId()
-											: null);
+									uinObject.getBiometrics().get(uinObject.getBiometrics().size() - 1).getBioFileId());
+
 					updateDocuments(uinHashWithSalt, uinObject, requestDTO, false);
 					uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
 					uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
