@@ -25,7 +25,7 @@
 		<h2.version>1.4.197</h2.version>
 		<jackson.datatype.version>2.9.8</jackson.datatype.version>
 		<swagger.version>2.9.2</swagger.version>
-		<kernel.core.version>1.2.0.1-SNAPSHOT</kernel.core.version>
+		<kernel.core.version>1.2.1-SNAPSHOT</kernel.core.version>
 		<powermock.module.junit4.version>1.7.4</powermock.module.junit4.version>
 		<powermock.api.mockito.version>1.7.4</powermock.api.mockito.version>
 		<kernel.dataaccess.hibernate.version>1.2.0.1-SNAPSHOT</kernel.dataaccess.hibernate.version>
