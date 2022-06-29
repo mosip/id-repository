@@ -23,7 +23,7 @@
 		<kernel.cbeffutil.api.version>1.2.1-SNAPSHOT</kernel.cbeffutil.api.version>
 		<kernel.idobjectvalidator.version>1.2.1-SNAPSHOT</kernel.idobjectvalidator.version>
 		<kernel-idvalidator-vid.version>1.2.1-SNAPSHOT</kernel-idvalidator-vid.version>
-		<kernel.khazana.version>1.2.0</kernel.khazana.version>
+		<kernel.khazana.version>1.2.1-SNAPSHOT</kernel.khazana.version>
 		<springdoc.version>1.5.10</springdoc.version>
 	</properties>
 
