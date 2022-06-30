@@ -55,6 +55,7 @@ public class PolicyUtil {
 	public PartnerCredentialTypePolicyDto getPolicyDetail(String credentialType, String subscriberId, String requestId)
 			throws PolicyException, ApiNotAccessibleException {
 
+		PartnerCredentialTypePolicyDto policyResponseDto = null;
 		try {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					requestId,
@@ -70,7 +71,7 @@ public class PolicyUtil {
 				ServiceError error = responseObject.getErrors().get(0);
 				throw new PolicyException(error.getMessage());
 			}
-			PartnerCredentialTypePolicyDto policyResponseDto = responseObject.getResponse();
+			if(responseObject!=null) {policyResponseDto = responseObject.getResponse();}
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					requestId,
 					"Fetched policy details successfully");
