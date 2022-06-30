@@ -169,7 +169,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		CredentialIssueResponse credentialIssueResponse = null;
 		try {
 			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
-			if (entity != null && !entity.isEmpty()) {
+			if (entity.isPresent() && !entity.isEmpty()) {
 				CredentialEntity credentialEntity = entity.get();
 				if (credentialEntity.getStatusCode().equalsIgnoreCase("NEW")) {
 					credentialEntity.setStatusCode(CredentialStatusCode.CANCELLED.name());
@@ -315,7 +315,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"started updating  credential status");
 			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
-			if (entity != null) {
+			if (entity.isPresent()) {
 				CredentialEntity credentialEntity = entity.get();
 				credentialEntity.setStatusCode(event.getStatus());
 				if(!StringUtils.isEmpty(event.getUrl())) {
