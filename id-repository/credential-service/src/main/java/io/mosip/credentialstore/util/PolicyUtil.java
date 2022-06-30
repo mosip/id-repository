@@ -127,7 +127,7 @@ public class PolicyUtil {
 
 			}
 
-			partnerExtractorResponse = responseObject.getResponse();
+			if(responseObject!=null) partnerExtractorResponse = responseObject.getResponse();
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Fetched partner extraction policy details successfully");
 
