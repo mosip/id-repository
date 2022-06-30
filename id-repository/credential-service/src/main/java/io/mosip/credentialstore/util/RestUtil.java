@@ -140,12 +140,11 @@ public class RestUtil {
             try {
                 HttpEntity<Object> httpEntity = (HttpEntity<Object>) requestType;
                 HttpHeaders httpHeader = httpEntity.getHeaders();
-                Iterator<String> iterator = httpHeader.keySet().iterator();
-                while (iterator.hasNext()) {
-                    String key = iterator.next();
-                    if (!(headers.containsKey("Content-Type") && key.equals("Content-Type")))
-                        headers.add(key, httpHeader.get(key).get(0));
-                }
+				for (String key : httpHeader.keySet()) {
+					String contentType = "Content-Type";
+					if (!(headers.containsKey(contentType) && key.equals(contentType)))
+						headers.add(key, httpHeader.get(key).get(0));
+				}
                 return new HttpEntity<Object>(httpEntity.getBody(), headers);
             } catch (ClassCastException e) {
                 return new HttpEntity<Object>(requestType, headers);
