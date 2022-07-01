@@ -271,9 +271,9 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			String uin = response.getResponse().get("UIN");
 			return retrieveIdentityByUin(uin, type, extractionFormats);
 		} catch (RestServiceException e) {
-			if (e.getResponseBodyAsString().isPresent()) {
-				Optional <String> erbody = Optional.ofNullable(e.getResponseBodyAsString().orElse(""));
-				List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(String.valueOf(erbody));
+			Optional <String> erbody = Optional.ofNullable(e.getResponseBodyAsString().orElse(null));
+			if (erbody.isPresent()) {
+				List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(erbody.get());
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
 						"\n" + errorList);
 				throw new IdRepoAppException(errorList.get(0).getErrorCode(), errorList.get(0).getMessage());
