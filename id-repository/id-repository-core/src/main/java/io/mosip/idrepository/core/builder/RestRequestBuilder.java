@@ -108,7 +108,7 @@ public class RestRequestBuilder {
 		checkHttpMethod(request, httpMethod);
 
 		if (requestBody != null) {
-			if ( (!headers.isEmpty() && headers.getContentType()!=null) && !headers.getContentType().includes(MediaType.MULTIPART_FORM_DATA)) {
+			if ( headers.getContentType()!=null && !headers.getContentType().includes(MediaType.MULTIPART_FORM_DATA)) {
 				request.setRequestBody(requestBody);
 			} else {
 				if (requestBody instanceof MultiValueMap) {
