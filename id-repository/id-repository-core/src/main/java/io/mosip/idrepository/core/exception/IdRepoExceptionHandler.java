@@ -196,7 +196,6 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 						buildExceptionResponse(ex, ((ServletWebRequest) request).getHttpMethod(), REACTIVATE),
 						HttpStatus.OK);
 			} else {
-				assert request instanceof ServletWebRequest;
 				return new ResponseEntity<>(
 						buildExceptionResponse(ex, ((ServletWebRequest) request).getHttpMethod(), null), HttpStatus.OK);
 			}

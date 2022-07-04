@@ -3,6 +3,7 @@ package io.mosip.credentialstore.util;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -71,7 +72,7 @@ public class PolicyUtil {
 				ServiceError error = responseObject.getErrors().get(0);
 				throw new PolicyException(error.getMessage());
 			}
-			if(responseObject!=null) {policyResponseDto = responseObject.getResponse();}
+			if(Objects.nonNull(responseObject)) {policyResponseDto = responseObject.getResponse();}
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					requestId,
 					"Fetched policy details successfully");
@@ -128,7 +129,7 @@ public class PolicyUtil {
 
 			}
 
-			if(responseObject!=null) {partnerExtractorResponse = responseObject.getResponse();}
+			if(Objects.nonNull(responseObject)) {partnerExtractorResponse = responseObject.getResponse();}
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Fetched partner extraction policy details successfully");
 

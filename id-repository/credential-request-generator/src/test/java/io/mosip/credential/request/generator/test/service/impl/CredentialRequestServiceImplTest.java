@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -150,7 +149,6 @@ public class CredentialRequestServiceImplTest {
 		assertNotNull(credentialIssueResponseDto.getErrors().get(0));
 	}
 	@Test
-	@Ignore
 	public void testEntityNullForCancelCredentialIssuance() throws JsonProcessingException {
 
 		Mockito.when(credentialRepositary.update(Mockito.any()))
@@ -207,7 +205,6 @@ public class CredentialRequestServiceImplTest {
 	}
 
 	@Test
-	@Ignore
 	public void testEntityNullForGetCredentialRequestStatus() throws JsonProcessingException {
 		Mockito.when(credentialRepositary.findById(Mockito.any())).thenReturn(null);
 	    ResponseWrapper<CredentialIssueStatusResponse> credentialIssueResponseDto=credentialRequestServiceImpl.getCredentialRequestStatus("1234");
@@ -267,7 +264,6 @@ public class CredentialRequestServiceImplTest {
 	}
 
 	@Test(expected = CredentialRequestGeneratorException.class)
-	@Ignore
 	public void testEntityNullForUpdateCredentialStatus()
 			throws JsonProcessingException, CredentialRequestGeneratorException {
 	
@@ -468,9 +464,8 @@ public class CredentialRequestServiceImplTest {
 	}
 
 	@Test
-	@Ignore
 	public void testRetriggerCredentialRequestFailure() throws JsonProcessingException {
-		Optional<CredentialEntity> entity = null;
+		Optional<CredentialEntity> entity = Optional.ofNullable(null);
 		Mockito.when(credentialRepositary.findById(Mockito.any())).thenReturn(entity);
 
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto = credentialRequestServiceImpl
