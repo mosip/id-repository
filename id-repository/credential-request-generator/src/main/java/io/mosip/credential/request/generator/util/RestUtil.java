@@ -218,7 +218,7 @@ public class RestUtil {
 					String contentType = "Content-Type";
 					if (!(headers.containsKey(contentType) && key.equals(contentType)) &&
 							Objects.nonNull(httpHeader.get(key)))
-						headers.add(key, httpHeader.get(key).get(0));
+						headers.add(key, Objects.requireNonNull(httpHeader.get(key)).get(0));
 				}
                 return new HttpEntity<Object>(httpEntity.getBody(), headers);
             } catch (ClassCastException e) {
