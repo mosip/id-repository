@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -144,9 +145,8 @@ public class RestUtil {
 				Iterator<String> iterator = httpHeader.keySet().iterator();
 				while (iterator.hasNext()) {
 					String key = iterator.next();
-					if (httpHeader!=null && httpHeader.get(key)!=null && headers.get(key).get(0)!=null
-							&& !(headers.containsKey("Content-Type") && key.equals("Content-Type")))
-						headers.add(key, httpHeader.get(key).get(0));
+					if (!(headers.containsKey("Content-Type") && key.equals("Content-Type")))
+						headers.add(key, Objects.requireNonNull(httpHeader.get(key)).get(0));
 				}
 
                 return new HttpEntity<Object>(httpEntity.getBody(), headers);
