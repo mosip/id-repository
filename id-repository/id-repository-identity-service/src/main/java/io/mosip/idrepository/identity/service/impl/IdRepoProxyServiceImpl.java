@@ -172,7 +172,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * io.mosip.kernel.core.idrepo.spi.IdRepoService#addIdentity(java.lang.Object)
 	 */
@@ -204,7 +204,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * io.mosip.kernel.core.idrepo.spi.IdRepoService#retrieveIdentity(java.lang.
 	 * String)
@@ -213,13 +213,13 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	public IdResponseDTO retrieveIdentity(String id, IdType idType, String type, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
 		switch (idType) {
-			case VID:
-				return retrieveIdentityByVid(id, type, extractionFormats);
-			case ID:
-				return retrieveIdentityByRid(id, type, extractionFormats);
-			case UIN:
-			default:
-				return retrieveIdentityByUin(id, type, extractionFormats);
+		case VID:
+			return retrieveIdentityByVid(id, type, extractionFormats);
+		case ID:
+			return retrieveIdentityByRid(id, type, extractionFormats);
+		case UIN:
+		default:
+			return retrieveIdentityByUin(id, type, extractionFormats);
 		}
 	}
 
@@ -346,7 +346,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * @return the files
 	 */
 	private void getFiles(Uin uinObject, List<DocumentsDTO> documents, Map<String, String> extractionFormats,
-						  String type) {
+			String type) {
 		if (type.equals(BIOMETRICS)) {
 			getBiometricFiles(uinObject, documents, extractionFormats);
 		}
@@ -427,7 +427,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	}
 
 	protected byte[] getBiometricsForRequestedFormats(String uinHash, String fileName,
-													  Map<String, String> extractionFormats, byte[] originalData) throws IdRepoAppException {
+			Map<String, String> extractionFormats, byte[] originalData) throws IdRepoAppException {
 		try {
 			List<BIR> originalBirs = cbeffUtil.getBIRDataFromXML(originalData);
 			List<BIR> finalBirs = new ArrayList<>();
@@ -473,7 +473,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see io.mosip.kernel.core.idrepo.spi.IdRepoService#updateIdentity(java.lang.
 	 * Object, java.lang.String)
 	 */
@@ -509,7 +509,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * This function takes an individualId and an IdType as input and returns the
 	 * RID in the
 	 * form of a ResponseWrapper object
-	 *
+	 * 
 	 * @param individualId The ID of the individual whose RID is to be retrieved.
 	 * @param idType       The type of ID that you're passing in.
 	 * @return ResponseWrapper<String>
@@ -518,20 +518,28 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	public ResponseWrapper<String> getRidByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
 		ResponseWrapper<String> responseWrapper = new ResponseWrapper<>();
 		switch (idType) {
-			case VID:
-				individualId = getUinByVid(individualId);
-			case UIN:
-				individualId = retrieveRidByUin(individualId);
-			case ID:
+		case VID:
+			individualId = getUinByVid(individualId);
+		case UIN:
+			individualId = retrieveRidByUin(individualId);
+			responseWrapper.setResponse(individualId);
+			break;
+		case ID:
+			if (uinRepo.existsByRegId(individualId)) {
 				responseWrapper.setResponse(individualId);
-				break;
+			} else {
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getRidByIndividualId",
+						"NO_RECORD_FOUND");
+				throw new IdRepoAppException(NO_RECORD_FOUND);
+			}
+			break;
 		}
 		return responseWrapper;
 	}
 
 	/**
 	 * It retrieves the RID of an individual by their UIN
-	 *
+	 * 
 	 * @param individualId The UIN of the individual
 	 * @return The RID is being returned.
 	 */
@@ -548,7 +556,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	/**
 	 * It takes a VID as input and returns the corresponding UIN
-	 *
+	 * 
 	 * @param vid Virtual ID
 	 * @return The response is a map of key value pairs.
 	 */
