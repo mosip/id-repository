@@ -213,13 +213,13 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	public IdResponseDTO retrieveIdentity(String id, IdType idType, String type, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
 		switch (idType) {
-			case VID:
-				return retrieveIdentityByVid(id, type, extractionFormats);
-			case ID:
-				return retrieveIdentityByRid(id, type, extractionFormats);
-			case UIN:
-			default:
-				return retrieveIdentityByUin(id, type, extractionFormats);
+		case VID:
+			return retrieveIdentityByVid(id, type, extractionFormats);
+		case ID:
+			return retrieveIdentityByRid(id, type, extractionFormats);
+		case UIN:
+		default:
+			return retrieveIdentityByUin(id, type, extractionFormats);
 		}
 	}
 
@@ -522,8 +522,16 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			individualId = getUinByVid(individualId);
 		case UIN:
 			individualId = retrieveRidByUin(individualId);
-		case ID:
 			responseWrapper.setResponse(individualId);
+			break;
+		case ID:
+			if (uinRepo.existsByRegId(individualId)) {
+				responseWrapper.setResponse(individualId);
+			} else {
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getRidByIndividualId",
+						"NO_RECORD_FOUND");
+				throw new IdRepoAppException(NO_RECORD_FOUND);
+			}
 			break;
 		}
 		return responseWrapper;
