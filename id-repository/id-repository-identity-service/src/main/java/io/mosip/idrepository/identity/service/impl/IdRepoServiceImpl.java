@@ -80,6 +80,7 @@ import io.mosip.idrepository.identity.repository.UinRepo;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
+import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
@@ -707,6 +708,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		byte[] updatedCbeff = cbeffUtil.createXML(new ArrayList<>(existingBIRDataMap.values()));
 		anonymousProfileHelper.setNewCbeff(CryptoUtil.encodeToURLSafeBase64(updatedCbeff));
 		return updatedCbeff;
+	}
+
+	@Override
+	public ResponseWrapper<String> getRidByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
+		return null;
 	}
 
 	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp) {

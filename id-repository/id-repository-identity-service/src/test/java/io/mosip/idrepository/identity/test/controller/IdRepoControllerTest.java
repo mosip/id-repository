@@ -54,6 +54,7 @@ import io.mosip.idrepository.core.spi.IdRepoService;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.controller.IdRepoController;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
+import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 
 /**
@@ -491,6 +492,7 @@ public class IdRepoControllerTest {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testGetAuthtypeStatus() throws IdRepoAppException {
 		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
@@ -500,6 +502,7 @@ public class IdRepoControllerTest {
 		assertEquals(List.of(new AuthtypeStatus()), authTypeStatusResponse.getBody().getResponse().get("authTypes"));
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testGetAuthtypeStatusInvalidIdType() throws IdRepoAppException {
 		when(validator.validateIdType(anyString()))
@@ -543,5 +546,25 @@ public class IdRepoControllerTest {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), e.getErrorText());
 		}
+	}
+	
+	@Test
+	public void testGetRidByUin() throws IdRepoAppException {
+		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
+		ResponseWrapper<String> responseWrapper = new ResponseWrapper<>();
+		responseWrapper.setResponse("1234");
+		when(idRepoService.getRidByIndividualId(any(), any())).thenReturn(responseWrapper);
+		ResponseEntity<ResponseWrapper<String>> ridResponse = controller.getRidByIndividualId("", null);
+		assertEquals("1234", ridResponse.getBody().getResponse());
+	}
+	
+	@Test
+	public void testGetRidByUinWithIdType() throws IdRepoAppException {
+		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
+		ResponseWrapper<String> responseWrapper = new ResponseWrapper<>();
+		responseWrapper.setResponse("1234");
+		when(idRepoService.getRidByIndividualId(any(), any())).thenReturn(responseWrapper);
+		ResponseEntity<ResponseWrapper<String>> ridResponse = controller.getRidByIndividualId("", "");
+		assertEquals("1234", ridResponse.getBody().getResponse());
 	}
 }

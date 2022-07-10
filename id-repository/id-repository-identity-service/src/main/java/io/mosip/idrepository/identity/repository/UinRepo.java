@@ -60,4 +60,7 @@ public interface UinRepo extends JpaRepository<Uin, String> {
 	 * @return true, if successful.
 	 */
 	boolean existsByUinHash(String uinHash);
+
+	@Query("select regId from Uin where uinHash = :uinHash")
+	String getRidByUinHash(@Param("uinHash") String uinHash);
 }
