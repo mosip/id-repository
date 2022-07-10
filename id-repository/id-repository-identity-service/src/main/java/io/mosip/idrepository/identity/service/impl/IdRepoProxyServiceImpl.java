@@ -44,6 +44,7 @@ import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
+import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
@@ -73,7 +74,6 @@ import io.mosip.kernel.core.util.CryptoUtil;
  */
 @Service
 public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdResponseDTO> {
-
 
 	private static final List<BiometricType> SUPPORTED_MODALITIES = List.of(FINGER, IRIS, FACE);
 
@@ -137,7 +137,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	/** The uin repo. */
 	@Autowired
 	private UinRepo uinRepo;
-	
+
 	@Autowired
 	private UinDraftRepo uinDraftRepo;
 
@@ -213,13 +213,13 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	public IdResponseDTO retrieveIdentity(String id, IdType idType, String type, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
 		switch (idType) {
-		case VID:
-			return retrieveIdentityByVid(id, type, extractionFormats);
-		case ID:
-			return retrieveIdentityByRid(id, type, extractionFormats);
-		case UIN:
-		default:
-			return retrieveIdentityByUin(id, type, extractionFormats);
+			case VID:
+				return retrieveIdentityByVid(id, type, extractionFormats);
+			case ID:
+				return retrieveIdentityByRid(id, type, extractionFormats);
+			case UIN:
+			default:
+				return retrieveIdentityByUin(id, type, extractionFormats);
 		}
 	}
 
@@ -263,25 +263,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 */
 	private IdResponseDTO retrieveIdentityByVid(String vid, String type, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
-		try {
-			RestRequestDTO request = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_UIN_BY_VID, null,
-					ResponseWrapper.class);
-			request.setUri(request.getUri().replace("{vid}", vid));
-			ResponseWrapper<Map<String, String>> response = restHelper.requestSync(request);
-			String uin = response.getResponse().get("UIN");
-			return retrieveIdentityByUin(uin, type, extractionFormats);
-		} catch (RestServiceException e) {
-			if (e.getResponseBodyAsString().isPresent()) {
-				List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(e.getResponseBodyAsString().get());
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
-						"\n" + errorList);
-				throw new IdRepoAppException(errorList.get(0).getErrorCode(), errorList.get(0).getMessage());
-			} else {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
-						"\n" + e.getMessage());
-				throw new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR);
-			}
-		}
+		String uin = getUinByVid(vid);
+		return retrieveIdentityByUin(uin, type, extractionFormats);
 	}
 
 	/**
@@ -314,7 +297,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		}
 		if (StringUtils.containsIgnoreCase(type, DEMO) || StringUtils.containsIgnoreCase(type, ALL)) {
 			getFiles(uinObject, documents, null, DEMOGRAPHICS);
-		} 
+		}
 		return constructIdResponse(this.id.get(READ), uinObject, documents);
 	}
 
@@ -426,7 +409,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 						} else {
 							if (StringUtils.equals(bio.getBiometricFileHash(), securityManager.hash(data))) {
 								documents.add(
-										new DocumentsDTO(bio.getBiometricFileType(), CryptoUtil.encodeToURLSafeBase64(data)));
+										new DocumentsDTO(bio.getBiometricFileType(),
+												CryptoUtil.encodeToURLSafeBase64(data)));
 							} else {
 								mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
 										DOCUMENT_HASH_MISMATCH.getErrorMessage());
@@ -522,12 +506,80 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	}
 
 	/**
+	 * This function takes an individualId and an IdType as input and returns the
+	 * RID in the
+	 * form of a ResponseWrapper object
+	 * 
+	 * @param individualId The ID of the individual whose RID is to be retrieved.
+	 * @param idType       The type of ID that you're passing in.
+	 * @return ResponseWrapper<String>
+	 */
+	@Override
+	public ResponseWrapper<String> getRidByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
+		ResponseWrapper<String> responseWrapper = new ResponseWrapper<>();
+		switch (idType) {
+		case VID:
+			individualId = getUinByVid(individualId);
+		case UIN:
+			individualId = retrieveRidByUin(individualId);
+		case ID:
+			responseWrapper.setResponse(individualId);
+			break;
+		}
+		return responseWrapper;
+	}
+
+	/**
+	 * It retrieves the RID of an individual by their UIN
+	 * 
+	 * @param individualId The UIN of the individual
+	 * @return The RID is being returned.
+	 */
+	private String retrieveRidByUin(String individualId) throws IdRepoAppException {
+		String uinHash = retrieveUinHash(individualId);
+		if (uinRepo.existsByUinHash(uinHash)) {
+			return uinRepo.getRidByUinHash(uinHash);
+		} else {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveRidByUin",
+					"NO_RECORD_FOUND");
+			throw new IdRepoAppException(NO_RECORD_FOUND);
+		}
+	}
+
+	/**
+	 * It takes a VID as input and returns the corresponding UIN
+	 * 
+	 * @param vid Virtual ID
+	 * @return The response is a map of key value pairs.
+	 */
+	private String getUinByVid(String vid) throws IdRepoDataValidationException, IdRepoAppException {
+		try {
+			RestRequestDTO request = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_UIN_BY_VID, null,
+					ResponseWrapper.class);
+			request.setUri(request.getUri().replace("{vid}", vid));
+			ResponseWrapper<Map<String, String>> response = restHelper.requestSync(request);
+			return response.getResponse().get("UIN");
+		} catch (RestServiceException e) {
+			if (e.getResponseBodyAsString().isPresent()) {
+				List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(e.getResponseBodyAsString().get());
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
+						"\n" + errorList);
+				throw new IdRepoAppException(errorList.get(0).getErrorCode(), errorList.get(0).getMessage());
+			} else {
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
+						"\n" + e.getMessage());
+				throw new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR);
+			}
+		}
+	}
+
+	/**
 	 * Construct id response.
 	 *
-	 * @param id        the id
-	 * @param uin       the uin
-	 * @param documents the documents
-	 * @param anonymousProfile 
+	 * @param id               the id
+	 * @param uin              the uin
+	 * @param documents        the documents
+	 * @param anonymousProfile
 	 * @return the id response DTO
 	 * @throws IdRepoAppException the id repo app exception
 	 */
