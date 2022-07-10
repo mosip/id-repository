@@ -70,6 +70,7 @@ import io.mosip.idrepository.identity.repository.*;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
+import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
@@ -508,7 +509,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 *
 	 * @param dbData           the db data
 	 * @param comparisonResult the comparison result
-	 * @param attribute
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -719,7 +719,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		return updatedCbeff;
 	}
 
-	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp, String requestId) {
+	@Override
+	public ResponseWrapper<String> getRidByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
+		return null;
+	}
+
+		private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp, String requestId) {
 		List<CredentialRequestStatus> credStatusList = credRequestRepo.findByIndividualIdHash(uinHash);
 		if (!credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {

@@ -2131,4 +2131,66 @@ public class IdRepoServiceTest {
 		List<String> verifiedAttributes = (List<String>) mapper.readValue(updatedIdentity.getUinData(), Map.class).get("verifiedAttributes");
 		assertEquals(List.of("a", "b"), verifiedAttributes);
 	}
+	
+	@Test
+	public void testGetRidByUin() throws IdRepoAppException {
+		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
+		ReflectionTestUtils.setField(proxyService, "securityManager", securityManagerMock);
+		when(securityManagerMock.getSaltKeyForId(any())).thenReturn(1);
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+		when(securityManagerMock.hashwithSalt(any(), any())).thenReturn("hash");
+		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
+		when(uinRepo.getRidByUinHash(Mockito.any())).thenReturn("1234");
+		ResponseWrapper<String> ridResponse = proxyService.getRidByIndividualId("1234", IdType.UIN);
+		assertEquals("1234", ridResponse.getResponse());
+	}
+	
+	@Test
+	public void testGetRidById() throws IdRepoAppException {
+		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
+		ReflectionTestUtils.setField(proxyService, "securityManager", securityManagerMock);
+		when(securityManagerMock.getSaltKeyForId(any())).thenReturn(1);
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+		when(securityManagerMock.hashwithSalt(any(), any())).thenReturn("hash");
+		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
+		when(uinRepo.getRidByUinHash(Mockito.any())).thenReturn("1234");
+		ResponseWrapper<String> ridResponse = proxyService.getRidByIndividualId("1234", IdType.ID);
+		assertEquals("1234", ridResponse.getResponse());
+	}	
+	
+	@Test
+	public void testGetRidByVid() throws IdRepoAppException {
+		RestRequestDTO restRequest = new RestRequestDTO();
+		restRequest.setUri("{vid}");
+		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restRequest);
+		ResponseWrapper<Map<String, String>> vidResponse = new ResponseWrapper<>();
+		vidResponse.setResponse(Map.of("UIN", "1234"));
+		when(restHelper.requestSync(any())).thenReturn(vidResponse);
+		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
+		ReflectionTestUtils.setField(proxyService, "securityManager", securityManagerMock);
+		when(securityManagerMock.getSaltKeyForId(any())).thenReturn(1);
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+		when(securityManagerMock.hashwithSalt(any(), any())).thenReturn("hash");
+		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
+		when(uinRepo.getRidByUinHash(Mockito.any())).thenReturn("1234");
+		ResponseWrapper<String> ridResponse = proxyService.getRidByIndividualId("1234", IdType.VID);
+		assertEquals("1234", ridResponse.getResponse());
+	}
+	
+	@Test
+	public void testGetRidByUinNoRecord() throws IdRepoAppException {
+		try {
+			IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
+			ReflectionTestUtils.setField(proxyService, "securityManager", securityManagerMock);
+			when(securityManagerMock.getSaltKeyForId(any())).thenReturn(1);
+			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+			when(securityManagerMock.hashwithSalt(any(), any())).thenReturn("hash");
+			when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(false);
+			proxyService.getRidByIndividualId("1234", IdType.UIN);
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorCode(), e.getErrorCode());
+			assertEquals(String.format(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorMessage(), "individualId"),
+					e.getErrorText());
+		}
+	}
 }
