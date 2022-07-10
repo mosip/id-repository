@@ -53,6 +53,7 @@ import io.mosip.idrepository.core.spi.IdRepoService;
 import io.mosip.idrepository.core.util.DataValidationUtil;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
+import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -419,6 +420,24 @@ public class IdRepoController {
 					IdType.valueOf(authTypeStatusRequest.getIndividualIdType()), e);
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		}
+	}
+	
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetRidByIndividualId())")
+	@GetMapping(path = "/get-rid/{ID}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "Authtype Status Request", description = "Authtype Status Request", tags = {
+			"id-repo-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Request authenticated successfully", content = @Content(array = @ArraySchema(schema = @Schema(implementation = IdRepoAppException.class)))),
+			@ApiResponse(responseCode = "400", description = "No Records Found", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
+	public ResponseEntity<ResponseWrapper<String>> getRidByIndividualId(@PathVariable String individualId,
+			@RequestParam(name = ID_TYPE, required = false) @Nullable String idType) throws IdRepoAppException {
+		return new ResponseEntity<>(
+				idRepoService.getRidByIndividualId(individualId,
+						Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType)),
+				HttpStatus.OK);
 	}
 
 	/**

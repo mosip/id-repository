@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import io.mosip.idrepository.core.constant.IdType;
 import org.hibernate.exception.JDBCConnectionException;
 import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONCompare;
@@ -580,4 +581,5 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			idResponse.setMetadata(Map.of("vid", vid));
 		return idResponse;
 	}
+
 }

@@ -4,6 +4,7 @@ import java.util.Map;
 
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
+import io.mosip.kernel.core.http.ResponseWrapper;
 
 /**
  * The Interface IdRepoService - service to provide functionality to create, 
@@ -44,7 +45,7 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 * @param id uin/vid/rid
 	 * @param idType 
 	 * @param type the type
-	 * @param extractionFormat 
+	 * @param extractionFormats
 	 * @return the response
 	 * @throws IdRepoAppException the id repo app exception
 	 */
@@ -60,4 +61,15 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	RESPONSE updateIdentity(REQUEST request, String uin) throws IdRepoAppException;
+
+	/**
+	 * This function takes an individualId and an IdType as input and returns the
+	 * RID in the
+	 * form of a ResponseWrapper object
+	 * 
+	 * @param individualId The ID of the individual whose RID is to be retrieved.
+	 * @param idType       The type of ID that you're passing in.
+	 * @return ResponseWrapper<String>
+	 */
+	ResponseWrapper<String> getRidByIndividualId(String individualId, IdType idType) throws IdRepoAppException;
 }
