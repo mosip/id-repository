@@ -551,9 +551,7 @@ public class IdRepoControllerTest {
 	@Test
 	public void testGetRidByUin() throws IdRepoAppException {
 		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
-		ResponseWrapper<String> responseWrapper = new ResponseWrapper<>();
-		responseWrapper.setResponse("1234");
-		when(idRepoService.getRidByIndividualId(any(), any())).thenReturn(responseWrapper);
+		when(idRepoService.getRidByIndividualId(any(), any())).thenReturn("1234");
 		ResponseEntity<ResponseWrapper<String>> ridResponse = controller.getRidByIndividualId("", null);
 		assertEquals("1234", ridResponse.getBody().getResponse());
 	}
@@ -561,9 +559,7 @@ public class IdRepoControllerTest {
 	@Test
 	public void testGetRidByUinWithIdType() throws IdRepoAppException {
 		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
-		ResponseWrapper<String> responseWrapper = new ResponseWrapper<>();
-		responseWrapper.setResponse("1234");
-		when(idRepoService.getRidByIndividualId(any(), any())).thenReturn(responseWrapper);
+		when(idRepoService.getRidByIndividualId(any(), any())).thenReturn("1234");
 		ResponseEntity<ResponseWrapper<String>> ridResponse = controller.getRidByIndividualId("", "");
 		assertEquals("1234", ridResponse.getBody().getResponse());
 	}

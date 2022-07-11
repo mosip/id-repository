@@ -2123,8 +2123,8 @@ public class IdRepoServiceTest {
 		when(securityManagerMock.hashwithSalt(any(), any())).thenReturn("hash");
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinRepo.getRidByUinHash(Mockito.any())).thenReturn("1234");
-		ResponseWrapper<String> ridResponse = proxyService.getRidByIndividualId("1234", IdType.UIN);
-		assertEquals("1234", ridResponse.getResponse());
+		String ridResponse = proxyService.getRidByIndividualId("1234", IdType.UIN);
+		assertEquals("1234", ridResponse);
 	}
 	
 	@Test
@@ -2137,8 +2137,8 @@ public class IdRepoServiceTest {
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinRepo.existsByRegId(Mockito.any())).thenReturn(true);
 		when(uinRepo.getRidByUinHash(Mockito.any())).thenReturn("1234");
-		ResponseWrapper<String> ridResponse = proxyService.getRidByIndividualId("1234", IdType.ID);
-		assertEquals("1234", ridResponse.getResponse());
+		String ridResponse = proxyService.getRidByIndividualId("1234", IdType.ID);
+		assertEquals("1234", ridResponse);
 	}
 	
 	@Test
@@ -2175,8 +2175,8 @@ public class IdRepoServiceTest {
 		when(securityManagerMock.hashwithSalt(any(), any())).thenReturn("hash");
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinRepo.getRidByUinHash(Mockito.any())).thenReturn("1234");
-		ResponseWrapper<String> ridResponse = proxyService.getRidByIndividualId("1234", IdType.VID);
-		assertEquals("1234", ridResponse.getResponse());
+		String ridResponse = proxyService.getRidByIndividualId("1234", IdType.VID);
+		assertEquals("1234", ridResponse);
 	}
 	
 	@Test

@@ -1,11 +1,21 @@
 package io.mosip.idrepository.identity.service.impl;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.CREATE_DRAFT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.DISCARD_DRAFT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DOT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.DRAFTED;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.DRAFT_RECORD_NOT_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.GENERATE_UIN;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.GET_DRAFT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.ID_REPO_DRAFT_SERVICE_IMPL;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MOSIP_KERNEL_IDREPO_JSON_PATH;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.PUBLISH_DRAFT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.UPDATE_DRAFT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.VERIFIED_ATTRIBUTES;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
@@ -14,6 +24,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_GENER
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_HASH_MISMATCH;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -73,7 +84,6 @@ import io.mosip.idrepository.identity.entity.UinBiometricDraft;
 import io.mosip.idrepository.identity.entity.UinDocument;
 import io.mosip.idrepository.identity.entity.UinDocumentDraft;
 import io.mosip.idrepository.identity.entity.UinDraft;
-import io.mosip.idrepository.identity.helper.AnonymousProfileHelper;
 import io.mosip.idrepository.identity.helper.VidDraftHelper;
 import io.mosip.idrepository.identity.repository.UinBiometricRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentRepo;
@@ -92,26 +102,6 @@ import io.mosip.kernel.core.util.StringUtils;
 @Service
 @Transactional(rollbackFor = { IdRepoAppException.class, IdRepoAppUncheckedException.class })
 public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoDraftService<IdRequestDTO, IdResponseDTO> {
-
-	private static final String DRAFT_RECORD_NOT_FOUND = "DRAFT RECORD NOT FOUND";
-
-	private static final String VERIFIED_ATTRIBUTES = "verifiedAttributes";
-
-	private static final String GET_DRAFT = "getDraft";
-
-	private static final String DISCARD_DRAFT = "discardDraft";
-
-	private static final String PUBLISH_DRAFT = "publishDraft";
-
-	private static final String DRAFTED = "DRAFTED";
-
-	private static final String UPDATE_DRAFT = "UpdateDraft";
-
-	private static final String GENERATE_UIN = "generateUin";
-
-	private static final String CREATE_DRAFT = "createDraft";
-
-	private static final String ID_REPO_DRAFT_SERVICE_IMPL = "IdRepoDraftServiceImpl";
 
 	private static final Logger idrepoDraftLogger = IdRepoLogger.getLogger(IdRepoDraftServiceImpl.class);
 
@@ -151,14 +141,13 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			if (!super.uinHistoryRepo.existsByRegId(registrationId) && !uinDraftRepo.existsByRegId(registrationId)) {
 				UinDraft newDraft;
 				if (Objects.nonNull(uin)) {
-					int modValue = securityManager.getSaltKeyForId(uin);
-					Optional<Uin> uinObjectOptional = super.uinRepo.findByUinHash(super.getUinHash(uin, modValue));
+					Optional<Uin> uinObjectOptional = super.uinRepo.findByUinHash(super.getUinHash(uin));
 					if (uinObjectOptional.isPresent()) {
 						Uin uinObject = uinObjectOptional.get();
 						newDraft = mapper.convertValue(uinObject, UinDraft.class);
 						updateBiometricAndDocumentDrafts(registrationId, newDraft, uinObject);
 						newDraft.setRegId(registrationId);
-						newDraft.setUin(super.getUinToEncrypt(uin, securityManager.getSaltKeyForId(uin)));
+						newDraft.setUin(super.getUinToEncrypt(uin));
 					} else {
 						idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT,
 								"UIN NOT EXIST");
@@ -167,9 +156,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				} else {
 					newDraft = new UinDraft();
 					uin = generateUin();
-					int modValue = securityManager.getSaltKeyForId(uin);
-					newDraft.setUin(super.getUinToEncrypt(uin, modValue));
-					newDraft.setUinHash(super.getUinHash(uin, modValue));
+					newDraft.setUin(super.getUinToEncrypt(uin));
+					newDraft.setUinHash(super.getUinHash(uin));
 					byte[] uinData = convertToBytes(generateIdentityObject(uin));
 					newDraft.setUinData(uinData);
 					newDraft.setUinDataHash(securityManager.hash(uinData));
@@ -186,7 +174,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT, e.getMessage());
-			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
+			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 		}
 	}
 
@@ -242,17 +230,17 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 						"RID NOT FOUND IN DB");
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
-		} catch (JSONException | InvalidJsonException e) {
+		} catch (JSONException | IOException | InvalidJsonException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT, e.getMessage());
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT, e.getMessage());
-			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
+			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 		}
 		return constructIdResponse(null, DRAFTED, null, null);
 	}
 
-	private void updateDemographicData(IdRequestDTO request, UinDraft draftToUpdate) throws JSONException, IdRepoAppException {
+	private void updateDemographicData(IdRequestDTO request, UinDraft draftToUpdate) throws JSONException, IdRepoAppException, IOException {
 		if (Objects.nonNull(request.getRequest()) && Objects.nonNull(request.getRequest().getIdentity())) {
 			RequestDTO requestDTO = request.getRequest();
 			Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
@@ -266,7 +254,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 					JSONCompareMode.LENIENT);
 
 			if (comparisonResult.failed()) {
-				super.updateJsonObject(inputData, dbData, comparisonResult);
+				super.updateJsonObject(draftToUpdate.getUinHash(), inputData, dbData, comparisonResult);
 			}
 			draftToUpdate.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
 			draftToUpdate.setUinDataHash(securityManager.hash(draftToUpdate.getUinData()));
@@ -381,7 +369,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT, e.getMessage());
-			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
+			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 		}
 	}
 
@@ -436,7 +424,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		String uin = new String(securityManager.decryptWithSalt(
 				CryptoUtil.decodeURLSafeBase64(StringUtils.substringAfter(encryptedUin, SPLITTER)),
 				CryptoUtil.decodePlainBase64(salt), uinRefId));
-		if (!StringUtils.equals(super.getUinHash(uin, securityManager.getSaltKeyForId(uin)), uinHash)) {
+		if (!StringUtils.equals(super.getUinHash(uin), uinHash)) {
 			throw new IdRepoAppUncheckedException(UIN_HASH_MISMATCH);
 		}
 		return uin;
@@ -457,7 +445,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, DISCARD_DRAFT,
 					e.getMessage());
-			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
+			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 		}
 	}
 
@@ -467,7 +455,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			return uinDraftRepo.existsByRegId(regId);
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "hasDraft", e.getMessage());
-			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
+			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 		}
 	}
 
@@ -495,7 +483,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
-			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
+			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 		}
 	}
 
