@@ -1,15 +1,26 @@
 package io.mosip.idrepository.identity.service.impl;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.ADD_IDENTITY;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.ALL;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.BIO;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.BIOMETRICS;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.CREATE;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.DEMO;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.DEMOGRAPHICS;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.GET_FILES;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.ID_REPO_SERVICE_IMPL;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.MOSIP_ID_UPDATE;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.READ;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.RETRIEVE_IDENTITY;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.SUPPORTED_MODALITIES;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.UPDATE_IDENTITY;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DOCUMENT_HASH_MISMATCH;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
-import static io.mosip.kernel.biometrics.constant.BiometricType.FACE;
-import static io.mosip.kernel.biometrics.constant.BiometricType.FINGER;
-import static io.mosip.kernel.biometrics.constant.BiometricType.IRIS;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -75,49 +86,7 @@ import io.mosip.kernel.core.util.CryptoUtil;
 @Service
 public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdResponseDTO> {
 
-	private static final List<BiometricType> SUPPORTED_MODALITIES = List.of(FINGER, IRIS, FACE);
-
-	/** The Constant GET_FILES. */
-	private static final String GET_FILES = "getFiles";
-
-	/** The Constant UPDATE_IDENTITY. */
-	private static final String UPDATE_IDENTITY = "updateIdentity";
-
-	/** The Constant MOSIP_ID_UPDATE. */
-	private static final String MOSIP_ID_UPDATE = "mosip.id.update";
-
-	/** The Constant ADD_IDENTITY. */
-	private static final String ADD_IDENTITY = "addIdentity";
-
-	/** The mosip logger. */
-	private static final Logger mosipLogger = IdRepoLogger.getLogger(IdRepoProxyServiceImpl.class);
-
-	/** The Constant RETRIEVE_IDENTITY. */
-	private static final String RETRIEVE_IDENTITY = "retrieveIdentity";
-
-	/** The Constant BIOMETRICS. */
-	private static final String BIOMETRICS = "Biometrics";
-
-	/** The Constant BIO. */
-	private static final String BIO = "bio";
-
-	/** The Constant DEMO. */
-	private static final String DEMO = "demo";
-
-	/** The Constant ID_REPO_SERVICE_IMPL. */
-	private static final String ID_REPO_SERVICE_IMPL = "IdRepoServiceImpl";
-
-	/** The Constant CREATE. */
-	private static final String CREATE = "create";
-
-	/** The Constant READ. */
-	private static final String READ = "read";
-
-	/** The Constant ALL. */
-	private static final String ALL = "all";
-
-	/** The Constant DEMOGRAPHICS. */
-	private static final String DEMOGRAPHICS = "Demographics";
+	public static final Logger mosipLogger = IdRepoLogger.getLogger(IdRepoProxyServiceImpl.class);
 
 	@Autowired
 	private ObjectStoreHelper objectStoreHelper;
@@ -213,13 +182,13 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	public IdResponseDTO retrieveIdentity(String id, IdType idType, String type, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
 		switch (idType) {
-		case VID:
-			return retrieveIdentityByVid(id, type, extractionFormats);
-		case ID:
-			return retrieveIdentityByRid(id, type, extractionFormats);
-		case UIN:
-		default:
-			return retrieveIdentityByUin(id, type, extractionFormats);
+			case VID:
+				return retrieveIdentityByVid(id, type, extractionFormats);
+			case ID:
+				return retrieveIdentityByRid(id, type, extractionFormats);
+			case UIN:
+			default:
+				return retrieveIdentityByUin(id, type, extractionFormats);
 		}
 	}
 
@@ -512,29 +481,25 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * 
 	 * @param individualId The ID of the individual whose RID is to be retrieved.
 	 * @param idType       The type of ID that you're passing in.
-	 * @return ResponseWrapper<String>
+	 * @return String
 	 */
 	@Override
-	public ResponseWrapper<String> getRidByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
-		ResponseWrapper<String> responseWrapper = new ResponseWrapper<>();
+	public String getRidByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
 		switch (idType) {
-		case VID:
-			individualId = getUinByVid(individualId);
-		case UIN:
-			individualId = retrieveRidByUin(individualId);
-			responseWrapper.setResponse(individualId);
-			break;
-		case ID:
-			if (uinRepo.existsByRegId(individualId)) {
-				responseWrapper.setResponse(individualId);
-			} else {
+			case VID:
+				individualId = getUinByVid(individualId);
+			case UIN:
+				individualId = retrieveRidByUin(individualId);
+				return individualId;
+			case ID:
+				if (uinRepo.existsByRegId(individualId)) {
+					return individualId;
+				}
+			default:
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getRidByIndividualId",
 						"NO_RECORD_FOUND");
 				throw new IdRepoAppException(NO_RECORD_FOUND);
-			}
-			break;
 		}
-		return responseWrapper;
 	}
 
 	/**
@@ -578,6 +543,52 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 						"\n" + e.getMessage());
 				throw new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR);
 			}
+		}
+	}
+
+	/**
+	 * This function is used to get the maximum allowed update count of an attribute
+	 * for the given individual id
+	 * 
+	 * @param individualId  The UIN of the individual
+	 * @param idType        The type of the ID. For example, UIN, RID, VID, etc.
+	 * @param attributeList List of attributes for which the update count is to be
+	 *                      retrieved.
+	 * @return A map of attribute name and the maximum allowed update count for that
+	 *         attribute.
+	 */
+	@Override
+	public Map<String, Integer> getRemainingUpdateCountByIndividualId(String individualId, IdType idType,
+			List<String> attributeList) throws IdRepoAppException {
+		String uinHash = getUinHash(individualId, idType);
+		return service.getRemainingUpdateCountByIndividualId(uinHash, idType,
+				Objects.isNull(attributeList) ? List.of() : attributeList);
+	}
+
+	/**
+	 * It takes in an individualId and an IdType, and returns the UIN hash of the
+	 * individualId
+	 * 
+	 * @param individualId The ID of the individual.
+	 * @param idType       This is the type of the id that you are passing. It can
+	 *                     be UIN, VID or RID.
+	 * @return The UIN hash is being returned.
+	 */
+	private String getUinHash(String individualId, IdType idType)
+			throws IdRepoDataValidationException, IdRepoAppException {
+		switch (idType) {
+			case VID:
+				individualId = getUinByVid(individualId);
+			case UIN:
+				return retrieveUinHash(individualId);
+			case ID:
+				if (uinRepo.existsByRegId(individualId)) {
+					return uinRepo.getUinHashByRid(individualId);
+				}
+			default:
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getRidByIndividualId",
+						"NO_RECORD_FOUND");
+				throw new IdRepoAppException(NO_RECORD_FOUND);
 		}
 	}
 

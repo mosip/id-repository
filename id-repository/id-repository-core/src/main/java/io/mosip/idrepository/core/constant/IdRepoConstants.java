@@ -140,6 +140,8 @@ public class IdRepoConstants {
 	public static final String FINGER_EXTRACTION_FORMAT = "fingerExtractionFormat";
 	
 	public static final String CREDENTIAL_CRYPTO_REF_ID = "mosip.credential.request.crypto-ref-id";
+	
+	public static final String IDENTITY_UPDATE_COUNT_POLICY_FILE_URL = "mosip.identity-update-count-policy-file-url";
 
 	
 	/** The value. */
@@ -179,7 +181,7 @@ public class IdRepoConstants {
 	public static final int CACHE_UPDATE_DEFAULT_INTERVAL = 7200000;
   
 	public static final String ERRORS = "errors";
-
+	
 	public static final List<BiometricType> SUPPORTED_MODALITIES = List.of(FINGER, IRIS, FACE);
 
 	/** The Constant GET_FILES. */
@@ -220,6 +222,26 @@ public class IdRepoConstants {
 
 	/** The Constant DEMOGRAPHICS. */
 	public static final String DEMOGRAPHICS = "Demographics";
+
+	public static final String DRAFT_RECORD_NOT_FOUND = "DRAFT RECORD NOT FOUND";
+
+	public static final String VERIFIED_ATTRIBUTES = "verifiedAttributes";
+
+	public static final String GET_DRAFT = "getDraft";
+
+	public static final String DISCARD_DRAFT = "discardDraft";
+
+	public static final String PUBLISH_DRAFT = "publishDraft";
+
+	public static final String DRAFTED = "DRAFTED";
+
+	public static final String UPDATE_DRAFT = "UpdateDraft";
+
+	public static final String GENERATE_UIN = "generateUin";
+
+	public static final String CREATE_DRAFT = "createDraft";
+
+	public static final String ID_REPO_DRAFT_SERVICE_IMPL = "IdRepoDraftServiceImpl";
 
 	public static final String AUTH_TYPE_SEPERATOR = "-";
 

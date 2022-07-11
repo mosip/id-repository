@@ -1,10 +1,10 @@
 package io.mosip.idrepository.core.spi;
 
+import java.util.List;
 import java.util.Map;
 
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
-import io.mosip.kernel.core.http.ResponseWrapper;
 
 /**
  * The Interface IdRepoService - service to provide functionality to create, 
@@ -71,5 +71,19 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 * @param idType       The type of ID that you're passing in.
 	 * @return ResponseWrapper<String>
 	 */
-	ResponseWrapper<String> getRidByIndividualId(String individualId, IdType idType) throws IdRepoAppException;
+	String getRidByIndividualId(String individualId, IdType idType) throws IdRepoAppException;
+	
+	/**
+	 * This function is used to get the maximum allowed update count of an attribute
+	 * for the given individual id
+	 * 
+	 * @param individualId  The UIN of the individual
+	 * @param idType        The type of the ID. For example, UIN, RID, VID, etc.
+	 * @param attributeList List of attributes for which the update count is to be
+	 *                      retrieved.
+	 * @return A map of attribute name and the maximum allowed update count for that
+	 *         attribute.
+	 */
+	Map<String, Integer> getRemainingUpdateCountByIndividualId(String individualId, IdType idType,
+			List<String> attributeList) throws IdRepoAppException;
 }

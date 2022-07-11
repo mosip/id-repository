@@ -1,57 +1,11 @@
 package io.mosip.idrepository.identity.test.service.impl;
 
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.lang.reflect.UndeclaredThrowableException;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
-import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
-import org.apache.commons.io.IOUtils;
-import org.hibernate.exception.JDBCConnectionException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.core.env.Environment;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.dao.RecoverableDataAccessException;
-import org.springframework.mock.env.MockEnvironment;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestContext;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.context.WebApplicationContext;
-
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
-
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
@@ -82,7 +36,10 @@ import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.entity.UinBiometric;
 import io.mosip.idrepository.identity.entity.UinDocument;
 import io.mosip.idrepository.identity.helper.AnonymousProfileHelper;
+import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
+import io.mosip.idrepository.identity.provider.IdentityUpdateTrackerProvider;
+import io.mosip.idrepository.identity.repository.IdentityUpdateTrackerRepo;
 import io.mosip.idrepository.identity.repository.UinBiometricHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinDraftRepo;
@@ -99,6 +56,49 @@ import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.util.CryptoUtil;
+import org.apache.commons.io.IOUtils;
+import org.hibernate.exception.JDBCConnectionException;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.RecoverableDataAccessException;
+import org.springframework.mock.env.MockEnvironment;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestContext;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.context.WebApplicationContext;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * The Class IdRepoServiceTest.
@@ -197,6 +197,9 @@ public class IdRepoServiceTest {
 	@Mock
 	private IdRepoServiceHelper idRepoServiceHelper;
 
+	@Mock
+	private IdentityUpdateTrackerRepo identityUpdateTracker;
+
 	/** The id. */
 	private Map<String, String> id;
 
@@ -257,6 +260,8 @@ public class IdRepoServiceTest {
 		when(anonymousProfileHelper.setOldCbeff(Mockito.any())).thenReturn(anonymousProfileHelper);
 		when(anonymousProfileHelper.setNewUinData(Mockito.any())).thenReturn(anonymousProfileHelper);
 		when(anonymousProfileHelper.isNewCbeffPresent()).thenReturn(true);
+		when(identityUpdateTracker.findById(any())).thenReturn(Optional.empty());
+		ReflectionTestUtils.setField(IdentityUpdateTrackerProvider.class, "updateCount", Map.of("fullName", 2));
 	}
 
 	/**
@@ -2141,8 +2146,8 @@ public class IdRepoServiceTest {
 		when(securityManagerMock.hashwithSalt(any(), any())).thenReturn("hash");
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinRepo.getRidByUinHash(Mockito.any())).thenReturn("1234");
-		ResponseWrapper<String> ridResponse = proxyService.getRidByIndividualId("1234", IdType.UIN);
-		assertEquals("1234", ridResponse.getResponse());
+		String ridResponse = proxyService.getRidByIndividualId("1234", IdType.UIN);
+		assertEquals("1234", ridResponse);
 	}
 	
 	@Test
@@ -2155,8 +2160,8 @@ public class IdRepoServiceTest {
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinRepo.existsByRegId(Mockito.any())).thenReturn(true);
 		when(uinRepo.getRidByUinHash(Mockito.any())).thenReturn("1234");
-		ResponseWrapper<String> ridResponse = proxyService.getRidByIndividualId("1234", IdType.ID);
-		assertEquals("1234", ridResponse.getResponse());
+		String ridResponse = proxyService.getRidByIndividualId("1234", IdType.ID);
+		assertEquals("1234", ridResponse);
 	}
 	
 	@Test
@@ -2193,8 +2198,8 @@ public class IdRepoServiceTest {
 		when(securityManagerMock.hashwithSalt(any(), any())).thenReturn("hash");
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinRepo.getRidByUinHash(Mockito.any())).thenReturn("1234");
-		ResponseWrapper<String> ridResponse = proxyService.getRidByIndividualId("1234", IdType.VID);
-		assertEquals("1234", ridResponse.getResponse());
+		String ridResponse = proxyService.getRidByIndividualId("1234", IdType.VID);
+		assertEquals("1234", ridResponse);
 	}
 	
 	@Test
