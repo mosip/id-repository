@@ -1,9 +1,58 @@
 package io.mosip.idrepository.identity.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.CREATE_DRAFT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.DISCARD_DRAFT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.DOT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.DRAFTED;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.DRAFT_RECORD_NOT_FOUND;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.GENERATE_UIN;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.GET_DRAFT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.ID_REPO_DRAFT_SERVICE_IMPL;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.MOSIP_KERNEL_IDREPO_JSON_PATH;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.PUBLISH_DRAFT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.UPDATE_DRAFT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.VERIFIED_ATTRIBUTES;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_GENERATION_FAILED;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_HASH_MISMATCH;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import org.hibernate.exception.JDBCConnectionException;
+import org.json.JSONException;
+import org.skyscreamer.jsonassert.JSONCompare;
+import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.skyscreamer.jsonassert.JSONCompareResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.Errors;
+
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
@@ -11,11 +60,10 @@ import com.jayway.jsonpath.InvalidJsonException;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
-import io.mosip.idrepository.core.dto.DraftResponseDto;
-import io.mosip.idrepository.core.dto.DraftUinResponseDto;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.RequestDTO;
@@ -46,61 +94,6 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
-import org.hibernate.exception.JDBCConnectionException;
-import org.json.JSONException;
-import org.skyscreamer.jsonassert.JSONCompare;
-import org.skyscreamer.jsonassert.JSONCompareMode;
-import org.skyscreamer.jsonassert.JSONCompareResult;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.dao.DataAccessException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionException;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.Errors;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static io.mosip.idrepository.core.constant.IdRepoConstants.CREATE_DRAFT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.DISCARD_DRAFT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.DOT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.DRAFTED;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.DRAFT_RECORD_NOT_FOUND;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.EXCLUDED_ATTRIBUTE_LIST;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.GENERATE_UIN;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.GET_DRAFT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ID_REPO_DRAFT_SERVICE_IMPL;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.MOSIP_KERNEL_IDREPO_JSON_PATH;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.PUBLISH_DRAFT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.UPDATE_DRAFT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.VERIFIED_ATTRIBUTES;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_GENERATION_FAILED;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_HASH_MISMATCH;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
 
 /**
  * @author Manoj SP
@@ -111,9 +104,6 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_E
 public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoDraftService<IdRequestDTO, IdResponseDTO> {
 
 	private static final Logger idrepoDraftLogger = IdRepoLogger.getLogger(IdRepoDraftServiceImpl.class);
-	private static final String COMMA = ",";
-
-	private static final String DEFAULT_ATTRIBUTE_LIST = "UIN,verifiedAttributes,IDSchemaVersion";
 
 	@Value("${" + MOSIP_KERNEL_IDREPO_JSON_PATH + "}")
 	private String uinPath;
@@ -144,24 +134,12 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	
 	@Autowired
 	private VidDraftHelper vidDraftHelper;
-
-	@Autowired
-	private Environment environment;
-	
-	@Value("${mosip.idrepo.create-identity.enable-force-merge:false}")
-	private boolean isForceMergeEnabled;
 	
 	@Override
 	public IdResponseDTO createDraft(String registrationId, String uin) throws IdRepoAppException {
 		try {
-			UinDraft newDraft;
-			if (isForceMergeEnabled || (!super.uinHistoryRepo.existsByRegId(registrationId) && !uinDraftRepo.existsByRegId(registrationId))) {
-				if (isForceMergeEnabled) {
-					IdResponseDTO response = proxyService.retrieveIdentityByRid(registrationId, uin, null);
-					Object res = response.getResponse().getIdentity();
-					LinkedHashMap<String, Object> map = mapper.convertValue(res, LinkedHashMap.class);
-					uin = String.valueOf(map.get("UIN"));
-				}
+			if (!super.uinHistoryRepo.existsByRegId(registrationId) && !uinDraftRepo.existsByRegId(registrationId)) {
+				UinDraft newDraft;
 				if (Objects.nonNull(uin)) {
 					Optional<Uin> uinObjectOptional = super.uinRepo.findByUinHash(super.getUinHash(uin));
 					if (uinObjectOptional.isPresent()) {
@@ -276,7 +254,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 					JSONCompareMode.LENIENT);
 
 			if (comparisonResult.failed()) {
-				super.updateJsonObject(draftToUpdate.getUinHash(), inputData, dbData, comparisonResult, false);
+				super.updateJsonObject(draftToUpdate.getUinHash(), inputData, dbData, comparisonResult);
 			}
 			draftToUpdate.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
 			draftToUpdate.setUinDataHash(securityManager.hash(draftToUpdate.getUinData()));
@@ -583,40 +561,4 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			idResponse.setMetadata(Map.of("vid", vid));
 		return idResponse;
 	}
-
-	@Override
-	public DraftResponseDto getDraftUin(String uin) throws IdRepoAppException{
-		String uinHash = super.getUinHash(uin);
-		DraftResponseDto draftResponseDto = new DraftResponseDto();
-		try {
-			UinDraft uinDraft = uinDraftRepo.findByUinHash(uinHash);
-			DraftUinResponseDto draftUinResponseDto = new DraftUinResponseDto();
-			if (uinDraft!=null) {
-				draftUinResponseDto.setRid(uinDraft.getRegId());
-				draftUinResponseDto.setCreatedDTimes(uinDraft.getCreatedDateTime().toString());
-				draftUinResponseDto.setAttributes(getAttributeListFromUinData(uinDraft.getUinData()));
-				draftResponseDto.setDrafts(List.of(draftUinResponseDto));
-			}
-		} catch (DataAccessException | TransactionException | JDBCConnectionException | JsonProcessingException e) {
-			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
-			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
-		}
-		return draftResponseDto;
-	}
-
-	private List<String> getAttributeListFromUinData(byte[] uinData) throws JsonProcessingException {
-		List<String> attributeList = new ArrayList<>();
-		String resultString = new String(uinData, StandardCharsets.UTF_8);
-		String excludedAttributeListProperty = environment.getProperty(EXCLUDED_ATTRIBUTE_LIST, DEFAULT_ATTRIBUTE_LIST);
-		List<String> excludedListPropertyList = List.of(excludedAttributeListProperty.split(COMMA));
-		ObjectMapper objectMapper = new ObjectMapper();
-		JsonNode jsonNode = objectMapper.readTree(resultString);
-		jsonNode.fieldNames().forEachRemaining(key -> {
-			if(!excludedListPropertyList.contains(key)){
-				attributeList.add(key);
-			}
-		});
-		return attributeList;
-	}
-
 }
