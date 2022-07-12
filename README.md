@@ -1,6 +1,6 @@
 
-[![Maven Package upon a push](https://github.com/mosip/id-repository/actions/workflows/push_trigger.yml/badge.svg?branch=master)](https://github.com/mosip/id-repository/actions/workflows/push_trigger.yml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?branch=master&project=mosip_id-repository&metric=alert_status)](https://sonarcloud.io/dashboard?branch=master&id=mosip_id-repository)
+[![Maven Package upon a push](https://github.com/mosip/id-repository/actions/workflows/push_trigger.yml/badge.svg?branch=release-1.2.0)](https://github.com/mosip/id-repository/actions/workflows/push_trigger.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?branch=release-1.2.0&project=mosip_id-repository&metric=alert_status)](https://sonarcloud.io/dashboard?branch=release-1.2.0&id=mosip_id-repository)
 
 # ID Repository
 
@@ -8,7 +8,7 @@
 This repository contains source code and design documents for MOSIP [ID Repository](https://docs.mosip.io/1.2.0/modules/id-repository) which is the server-side module to manage ID lifecycle.  The modules exposes API endpoints.  
 
 ## Database
-See [DB guide](db_scripts/README.md).
+See [DB guide](db_scripts/README.md)
 
 ## Build & run (for developers)
 The project requires JDK 1.11. 
@@ -36,7 +36,7 @@ The project requires JDK 1.11.
         _config_label_: `master` (git branch of config repo*)  
         _config-url_: `http://localhost:51000` (Url of the config server*)  
 	
-	* Refer to [kernel-config-server](https://github.com/mosip/commons/tree/master/kernel/kernel-config-server) for details
+	\* Refer to [kernel-config-server](https://github.com/mosip/commons/tree/master/kernel/kernel-config-server) for details
 
 2. kernel-auth-adapter.jar needs to added to the build path to run the service.
 	
@@ -57,4 +57,3 @@ API documentation is available [here](https://mosip.github.io/documentation/).
 
 ## License
 This project is licensed under the terms of [Mozilla Public License 2.0](https://github.com/mosip/mosip-platform/blob/master/LICENSE)
-
