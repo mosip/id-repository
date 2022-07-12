@@ -28,14 +28,12 @@ public class IdentityUpdateTrackerProvider {
 	@Autowired
 	private ObjectMapper mapper;
 	
-	private static Map<String, Integer> updateCount;
+	private static Map<String, Integer> updateCount = Map.of();
 	
-	private static String updatePolicyJson;
-
 	@PostConstruct
 	public void loadUpdateCountPolicies() throws IOException {
 		JsonNode policyJson = mapper.readValue(new URL(EnvUtil.getIdentityUpdateCountPolicyFileUrl()), JsonNode.class);
-		updatePolicyJson = policyJson.get("identity").toString();
+		String updatePolicyJson = policyJson.get("identity").toString();
 		updateCount = mapper.readValue(updatePolicyJson, new TypeReference<Map<String, Integer>>() {
 		});
 	}
@@ -48,7 +46,4 @@ public class IdentityUpdateTrackerProvider {
 		return updateCount.get(attribute);
 	}
 	
-	public static String getUpdatePolicyJson() {
-		return updatePolicyJson;
-	}
 }
