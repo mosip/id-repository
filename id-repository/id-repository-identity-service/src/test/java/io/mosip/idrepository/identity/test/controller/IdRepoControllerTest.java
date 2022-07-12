@@ -563,4 +563,20 @@ public class IdRepoControllerTest {
 		ResponseEntity<ResponseWrapper<String>> ridResponse = controller.getRidByIndividualId("", "");
 		assertEquals("1234", ridResponse.getBody().getResponse());
 	}
+	
+	@Test
+	public void testGetRemainingUpdateCountByIndividualId() throws IdRepoAppException {
+		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
+		when(idRepoService.getRemainingUpdateCountByIndividualId(any(), any(), any())).thenReturn(Map.of("1234", 1));
+		ResponseEntity<ResponseWrapper<Map<String, Integer>>> response = controller.getRemainingUpdateCountByIndividualId("1234", null, null);
+		assertEquals(Map.of("1234", 1), response.getBody().getResponse());
+	}
+	
+	@Test
+	public void testGetRemainingUpdateCountByIndividualIdWithIdType() throws IdRepoAppException {
+		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
+		when(idRepoService.getRemainingUpdateCountByIndividualId(any(), any(), any())).thenReturn(Map.of("1234", 1));
+		ResponseEntity<ResponseWrapper<Map<String, Integer>>> response = controller.getRemainingUpdateCountByIndividualId("1234", "UIN", null);
+		assertEquals(Map.of("1234", 1), response.getBody().getResponse());
+	}
 }
