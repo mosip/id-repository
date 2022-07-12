@@ -1,11 +1,59 @@
 package io.mosip.idrepository.identity.test.service.impl;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.FACE_EXTRACTION_FORMAT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.FINGER_EXTRACTION_FORMAT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.IRIS_EXTRACTION_FORMAT;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.xml.bind.DatatypeConverter;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.hibernate.exception.JDBCConnectionException;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestContext;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.context.WebApplicationContext;
+
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.jayway.jsonpath.InvalidJsonException;
+
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
@@ -52,52 +100,6 @@ import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.util.CryptoUtil;
-import org.apache.commons.io.IOUtils;
-import org.hibernate.exception.JDBCConnectionException;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.core.env.Environment;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestContext;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.context.WebApplicationContext;
-
-import javax.xml.bind.DatatypeConverter;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-
-import static io.mosip.idrepository.core.constant.IdRepoConstants.FACE_EXTRACTION_FORMAT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.FINGER_EXTRACTION_FORMAT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.IRIS_EXTRACTION_FORMAT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
@@ -205,9 +207,6 @@ public class IdRepoDraftServiceImplTest {
 	
 	@Mock
 	private IdentityUpdateTrackerRepo identityUpdateTracker;
-
-	@Mock
-	private Environment environment;
 
 	/** The id. */
 	private Map<String, String> id;
@@ -961,56 +960,5 @@ public class IdRepoDraftServiceImplTest {
 		uin.setDocuments(listdocs);
 		ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "updateBiometricAndDocumentDrafts", "123456890", draft,
 				uin);
-	}
-
-	@Test
-	public void testGetDraftUinNullUin() throws IdRepoAppException {
-		when(securityManager.getSaltKeyForId(Mockito.anyString())).thenReturn(1234);
-		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("12345");
-		when(securityManager.hashwithSalt(Mockito.any(), Mockito.any()))
-				.thenReturn("1234_5B72C3B57A72C6497461289FCA7B1F865ED6FB0596B446FEA1F92AF931A5D4B7");
-		assertNotNull(idRepoServiceImpl.getDraftUin("6856306938"));
-	}
-
-	@Test
-	public void testGetDraftUinSuccess() throws IdRepoAppException, IOException {
-		String uin = "6856306938";
-		String regId = "123";
-		String identityData = IOUtils.toString(
-				Objects.requireNonNull(this.getClass().getClassLoader().getResourceAsStream("identity-data.json")), StandardCharsets.UTF_8);
-		when(securityManager.getSaltKeyForId(Mockito.anyString())).thenReturn(1234);
-		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("12345");
-		when(securityManager.hashwithSalt(Mockito.any(), Mockito.any()))
-				.thenReturn("1234_5B72C3B57A72C6497461289FCA7B1F865ED6FB0596B446FEA1F92AF931A5D4B7");
-		when(environment.getProperty(Mockito.anyString(), Mockito.anyString())).thenReturn("UIN");
-		UinDraft uinDraft = new UinDraft();
-		uinDraft.setUin(uin);
-		uinDraft.setRegId(regId);
-		uinDraft.setCreatedDateTime(LocalDateTime.now());
-		uinDraft.setUinData(identityData.getBytes());
-		when(uinDraftRepo.findByUinHash(Mockito.anyString())).thenReturn(uinDraft);
-		assertEquals(regId, idRepoServiceImpl.getDraftUin(uin).getDrafts().get(0).getRid());
-	}
-
-	@Test
-	public void testGetDraftUinFailure() {
-		try {
-			String uin = "6856306938";
-			String regId = "123";
-			when(securityManager.getSaltKeyForId(Mockito.anyString())).thenReturn(1234);
-			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("12345");
-			when(securityManager.hashwithSalt(Mockito.any(), Mockito.any()))
-					.thenReturn("1234_5B72C3B57A72C6497461289FCA7B1F865ED6FB0596B446FEA1F92AF931A5D4B7");
-			when(environment.getProperty(Mockito.anyString(), Mockito.anyString())).thenReturn("UIN");
-			UinDraft uinDraft = new UinDraft();
-			uinDraft.setUin(uin);
-			uinDraft.setRegId(regId);
-			uinDraft.setCreatedDateTime(LocalDateTime.now());
-			uinDraft.setUinData("123{".getBytes());
-			when(uinDraftRepo.findByUinHash(Mockito.anyString())).thenReturn(uinDraft);
-			idRepoServiceImpl.getDraftUin(uin);
-		} catch (IdRepoAppException e) {
-			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
-		}
 	}
 }
