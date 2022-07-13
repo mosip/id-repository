@@ -8,6 +8,7 @@
 -- Modified Date       Modified By       Comments / Remarks
 -- -------------------------------------------------------------------------------------------------
 -- Sep 2021            Manoj SP           Added anonymous_profile and channel_info tables
+-- Jul 2022	           Manoj SP           Added idrepo-identity_update_count_tracker table
 -----------------------------------------------------------------------------------------------------
 
 \c mosip_idrepo sysadmin
@@ -26,3 +27,5 @@ DROP TABLE IF EXISTS idrepo.uin_document_draft;
 DROP TABLE IF EXISTS idrepo.anonymous_profile;
 DROP TABLE IF EXISTS idrepo.channel_info;
 ------------------------------------------------------------------------------------------------------
+
+DROP TABLE IF EXISTS idrepo.idrepo-identity_update_count_tracker;
