@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -525,10 +526,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		Optional<IdentityUpdateTracker> updateTrackerOptional = identityUpdateTracker.findById(uinHash);
 		Map<String, Integer> updateCountTrackerMap = Map.of();
 		if (updateTrackerOptional.isPresent()) {
-			updateCountTrackerMap = mapper.readValue(
+			updateCountTrackerMap = new HashMap<>(mapper.readValue(
 					CryptoUtil.decodeURLSafeBase64(new String(updateTrackerOptional.get().getIdentityUpdateCount())),
 					new TypeReference<Map<String, Integer>>() {
-					});
+					}));
 		}
 		return Map.entry(uinHash, updateCountTrackerMap);
 	}
