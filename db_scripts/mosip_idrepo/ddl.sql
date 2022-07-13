@@ -17,4 +17,3 @@
 \ir ddl/idrepo-anonymous_profile.sql
 \ir ddl/idrepo-channel_info.sql
 \ir ddl/idrepo-identity_update_count_tracker.sql
-\ir ddl/idrepo-handle.sql
