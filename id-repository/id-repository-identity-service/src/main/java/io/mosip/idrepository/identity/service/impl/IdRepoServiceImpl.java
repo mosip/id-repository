@@ -524,7 +524,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	private Entry<String, Map<String, Integer>> getUpdateCountTracker(String uinHash, DocumentContext dbData)
 			throws IOException, JsonParseException, JsonMappingException {
 		Optional<IdentityUpdateTracker> updateTrackerOptional = identityUpdateTracker.findById(uinHash);
-		Map<String, Integer> updateCountTrackerMap = Map.of();
+		Map<String, Integer> updateCountTrackerMap = new HashMap<>();
 		if (updateTrackerOptional.isPresent()) {
 			updateCountTrackerMap = new HashMap<>(mapper.readValue(
 					CryptoUtil.decodeURLSafeBase64(new String(updateTrackerOptional.get().getIdentityUpdateCount())),
