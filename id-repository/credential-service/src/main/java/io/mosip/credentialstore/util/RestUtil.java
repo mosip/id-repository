@@ -32,6 +32,8 @@ public class RestUtil {
 	@Qualifier("selfTokenRestTemplate")
 	RestTemplate restTemplate;
 
+	private static final String CONTENT_TYPE = "Content-Type";
+
 	@SuppressWarnings("unchecked")
 	public <T> T postApi(ApiName apiName, List<String> pathsegments, String queryParamName, String queryParamValue,
 			MediaType mediaType, Object requestType, Class<?> responseClass) throws Exception {
@@ -144,9 +146,10 @@ public class RestUtil {
                 HttpEntity<Object> httpEntity = (HttpEntity<Object>) requestType;
                 HttpHeaders httpHeader = httpEntity.getHeaders();
 				for (String key : httpHeader.keySet()) {
-					String contentType = "Content-Type";
-					if (!(headers.containsKey(contentType) && key.equals(contentType)))
+					if (!(headers.containsKey(CONTENT_TYPE) && key.equals(CONTENT_TYPE)) &&
+							Objects.nonNull(httpHeader.get(key))) {
 						headers.add(key, httpHeader.get(key).get(0));
+					}
 				}
                 return new HttpEntity<Object>(httpEntity.getBody(), headers);
             } catch (ClassCastException e) {
