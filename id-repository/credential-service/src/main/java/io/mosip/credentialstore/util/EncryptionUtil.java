@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -91,7 +92,11 @@ public class EncryptionUtil {
 						"encrypted failed for attribute  " + attributeName);
 				throw new DataEncryptionFailureException(error.getMessage());
 			}
-			encryptedData = responseObject.getResponse().getData();
+
+			if(Objects.nonNull(responseObject)){
+				encryptedData = responseObject.getResponse().getData();
+			}
+
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Pin Based Encryption done successfully");
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
@@ -213,7 +218,11 @@ public class EncryptionUtil {
 				ServiceError error = responseObject.getErrors().get(0);
 				throw new DataEncryptionFailureException(error.getMessage());
 			}
-			encryptedPacket = responseObject.getResponse().getData();
+
+			if(Objects.nonNull(responseObject)){
+				encryptedPacket = responseObject.getResponse().getData();
+			}
+
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Credential Data Encryption done successfully");
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,

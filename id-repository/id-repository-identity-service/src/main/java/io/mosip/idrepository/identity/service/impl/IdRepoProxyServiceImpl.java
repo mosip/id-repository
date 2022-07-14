@@ -533,7 +533,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			ResponseWrapper<Map<String, String>> response = restHelper.requestSync(request);
 			return response.getResponse().get("UIN");
 		} catch (RestServiceException e) {
-			if (e.getResponseBodyAsString().isPresent()) {
+			Optional<String> erBody = e.getResponseBodyAsString();
+			if (erBody.isPresent()) {
 				List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(e.getResponseBodyAsString().get());
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY,
 						"\n" + errorList);
@@ -549,7 +550,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	/**
 	 * This function is used to get the maximum allowed update count of an attribute
 	 * for the given individual id
-	 * 
+	 *
 	 * @param individualId  The UIN of the individual
 	 * @param idType        The type of the ID. For example, UIN, RID, VID, etc.
 	 * @param attributeList List of attributes for which the update count is to be

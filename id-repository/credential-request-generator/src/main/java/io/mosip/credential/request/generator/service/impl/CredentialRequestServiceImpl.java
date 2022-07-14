@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,17 +22,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.credential.request.generator.constants.CredentialRequestErrorCodes;
 import io.mosip.credential.request.generator.constants.CredentialStatusCode;
 import io.mosip.credential.request.generator.constants.LoggerFileConstant;
-import io.mosip.credential.request.generator.dao.CredentialDao;
 import io.mosip.credential.request.generator.dto.CredentialStatusEvent;
 import io.mosip.credential.request.generator.dto.Event;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorException;
+import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import io.mosip.credential.request.generator.service.CredentialRequestService;
 import io.mosip.credential.request.generator.util.Utilities;
 import io.mosip.idrepository.core.constant.AuditEvents;
 import io.mosip.idrepository.core.constant.AuditModules;
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.CredentialIssueRequest;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
@@ -58,8 +58,9 @@ import io.mosip.kernel.core.util.StringUtils;
 @Component
 public class CredentialRequestServiceImpl implements CredentialRequestService {
 
+	/** The credential repositary. */
 	@Autowired
-	private CredentialDao credentialDao;
+	CredentialRepositary<CredentialEntity, String> credentialRepositary;
 
 	/** The Constant USER. */
 	private static final String PRINT_USER = "service-account-mosip-print-client";
@@ -97,7 +98,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 	 * CredentialIssueRequestDto)
 	 */
 	@Override
-	public ResponseWrapper<CredentialIssueResponse> createCredentialIssuance(CredentialIssueRequest credentialIssueRequestDto) {
+	public ResponseWrapper<CredentialIssueResponse> createCredentialIssuance(CredentialIssueRequestDto credentialIssueRequestDto) {
 		LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL,
 				"started creating credential");
 		List<ServiceError> errorList = new ArrayList<>();
@@ -105,6 +106,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 
 		CredentialIssueResponse credentialIssueResponse = null;
 		String requestId = utilities.generateId();
+
 		try{
 			CredentialEntity credential=new CredentialEntity();
 			credential.setRequestId(requestId);
@@ -113,7 +115,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credential.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 			credential.setCreatedBy(IdRepoSecurityManager.getUser());
 			credential.setStatusComment("Request created");
-			credentialDao.save(credential);
+			credentialRepositary.save(credential);
 			credentialIssueResponse = new CredentialIssueResponse();
 			credentialIssueResponse.setRequestId(requestId);
 			credentialIssueResponse.setId(credentialIssueRequestDto.getId());
@@ -154,59 +156,6 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		return credentialIssueResponseWrapper;
 	}
 
-	@Override
-	public ResponseWrapper<CredentialIssueResponse> createCredentialIssuanceByRid(CredentialIssueRequestDto credentialIssueRequestDto, String rid) {
-		LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL,
-				"started creating credential");
-		List<ServiceError> errorList = new ArrayList<>();
-		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = new ResponseWrapper<CredentialIssueResponse>();
-
-		CredentialIssueResponse credentialIssueResponse = null;
-		try{
-			CredentialEntity credential=new CredentialEntity();
-			credential.setRequestId(rid);
-			credential.setRequest(mapper.writeValueAsString(credentialIssueRequestDto));
-			credential.setStatusCode(CredentialStatusCode.NEW.name());
-			credential.setCreateDateTime(DateUtils.getUTCCurrentDateTime());
-			credential.setCreatedBy(IdRepoSecurityManager.getUser());
-			credential.setStatusComment("Request created");
-			credentialDao.save(credential);
-			credentialIssueResponse = new CredentialIssueResponse();
-			credentialIssueResponse.setRequestId(rid);
-			credentialIssueResponse.setId(credentialIssueRequestDto.getId());
-			LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL,
-					"ended creating credential");
-		}catch(DataAccessLayerException e) {
-			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR,
-					AuditEvents.CREATING_CREDENTIAL_REQUEST, rid, IdType.ID, e);
-			ServiceError error = new ServiceError();
-			error.setErrorCode(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorCode());
-			error.setMessage(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorMessage());
-			errorList.add(error);
-			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL, ExceptionUtils.getStackTrace(e));
-		} catch (Exception e) {
-			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR,
-					AuditEvents.CREATING_CREDENTIAL_REQUEST, rid, IdType.ID, e);
-			ServiceError error = new ServiceError();
-			error.setErrorCode(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorCode());
-			error.setMessage(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
-			errorList.add(error);
-			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL, ExceptionUtils.getStackTrace(e));
-		} finally {
-			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
-
-			credentialIssueResponseWrapper
-					.setResponsetime(DateUtils.getUTCCurrentDateTime());
-			credentialIssueResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
-			if (!errorList.isEmpty()) {
-				credentialIssueResponseWrapper.setErrors(errorList);
-			} else {
-				credentialIssueResponseWrapper.setResponse(credentialIssueResponse);
-			}
-			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID,"create credential request requested");
-		}
-		return credentialIssueResponseWrapper;
-	}
 
 	@Override
 	public ResponseWrapper<CredentialIssueResponse> cancelCredentialRequest(String requestId) {
@@ -218,7 +167,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 
 		CredentialIssueResponse credentialIssueResponse = null;
 		try {
-			Optional<CredentialEntity> entity = credentialDao.findById(requestId);
+			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
 			if (entity.isPresent()) {
 				CredentialEntity credentialEntity = entity.get();
 				if (credentialEntity.getStatusCode().equalsIgnoreCase("NEW")) {
@@ -226,7 +175,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 					credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 					credentialEntity.setUpdatedBy(IdRepoSecurityManager.getUser());
 					credentialEntity.setStatusComment("Cancel the request");
-					 credentialDao.update(credentialEntity);
+					credentialRepositary.update(credentialEntity);
 					CredentialIssueRequestDto credentialIssueRequestDto = mapper
 							.readValue(credentialEntity.getRequest(),
 									CredentialIssueRequestDto.class);
@@ -298,8 +247,8 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 
 		CredentialIssueStatusResponse credentialIssueStatusResponse = new CredentialIssueStatusResponse();
 		try {
-			Optional<CredentialEntity> entity = credentialDao.findById(requestId);
-			if (entity != null && !entity.isEmpty()) {
+			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
+			if (Objects.nonNull(entity) && !entity.isEmpty()) {
 				CredentialEntity credentialEntity = entity.get();
 				CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credentialEntity.getRequest(),
 						CredentialIssueRequestDto.class);
@@ -364,7 +313,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			requestId=credentialStatusEvent.getEvent().getRequestId();
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"started updating  credential status");
-			Optional<CredentialEntity> entity = credentialDao.findById(requestId);
+			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
 			if (entity.isPresent()) {
 				CredentialEntity credentialEntity = entity.get();
 				credentialEntity.setStatusCode(event.getStatus());
@@ -374,7 +323,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 				credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 				credentialEntity.setUpdatedBy(PRINT_USER);
 				credentialEntity.setStatusComment("updated the status from partner");
-				credentialDao.update(credentialEntity);
+				credentialRepositary.update(credentialEntity);
 				LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CANCEL_CREDENTIAL,
 						"updated the status of  " + requestId);
 			} else {
@@ -408,11 +357,11 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 
 			Page<CredentialEntity> pageData=null;
 			if (StringUtils.isEmpty(effectivedtimes)) {
-				pageData = credentialDao.findByStatusCode(statusCode,
+				pageData = credentialRepositary.fingByStatusCode(statusCode,
 						PageRequest.of(pageNumber, pageSize, Sort.by(Direction.fromString(direction), sortBy)));
 			}else {
 				LocalDateTime effectiveDateTime=DateUtils.parseToLocalDateTime(effectivedtimes);
-				pageData = credentialDao.findByStatusCodeWithEffectiveDtimes(statusCode, effectiveDateTime,
+				pageData = credentialRepositary.fingByStatusCodeWithEffectiveDtimes(statusCode, effectiveDateTime,
 						PageRequest.of(pageNumber, pageSize, Sort.by(Direction.fromString(direction), sortBy)));
 			}
 
@@ -500,8 +449,8 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 
 		CredentialIssueResponse credentialIssueResponse = null;
 		try {
-			Optional<CredentialEntity> entity = credentialDao.findById(requestId);
-			if (entity != null && !entity.isEmpty()) {
+			Optional<CredentialEntity> entity = credentialRepositary.findById(requestId);
+			if (Objects.nonNull(entity) && !entity.isEmpty()) {
 				CredentialEntity credentialEntity = entity.get();
 
 				credentialEntity.setStatusCode(CredentialStatusCode.RETRY.name());
@@ -510,7 +459,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 				credentialEntity.setStatusComment("retrigger the request");
 				CredentialIssueRequestDto credentialIssueRequestDto = mapper
 						.readValue(credentialEntity.getRequest(), CredentialIssueRequestDto.class);
-				credentialDao.save(credentialEntity);
+				credentialRepositary.save(credentialEntity);
 				credentialIssueResponse = new CredentialIssueResponse();
 				credentialIssueResponse.setId(credentialIssueRequestDto.getId());
 				credentialIssueResponse.setRequestId(requestId);
