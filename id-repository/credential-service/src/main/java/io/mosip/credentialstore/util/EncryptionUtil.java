@@ -153,7 +153,6 @@ public class EncryptionUtil {
 				throw new DataEncryptionFailureException(error.getMessage());
 			}
 
-
 			encryptedData = responseObject.getResponse();
 
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
