@@ -418,7 +418,7 @@ public class IdRepoController {
 	}
 	
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetRidByIndividualId())")
-	@GetMapping(path = "/get-rid/{ID}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(path = "/get-rid/{individualId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Get RID by IndividualId Request", description = "Get RID by IndividualId Request", tags = {
 			"id-repo-controller" })
 	@ApiResponses(value = {
@@ -427,7 +427,7 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
-	public ResponseEntity<ResponseWrapper<String>> getRidByIndividualId(@PathVariable String individualId,
+	public ResponseEntity<ResponseWrapper<String>> getRidByIndividualId(@PathVariable("individualId") String individualId,
 			@RequestParam(name = ID_TYPE, required = false) @Nullable String idType) throws IdRepoAppException {
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
