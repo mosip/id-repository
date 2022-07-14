@@ -137,7 +137,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	/** The uin repo. */
 	@Autowired
 	private UinRepo uinRepo;
-	
+
 	@Autowired
 	private UinDraftRepo uinDraftRepo;
 
@@ -172,7 +172,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * io.mosip.kernel.core.idrepo.spi.IdRepoService#addIdentity(java.lang.Object)
 	 */
@@ -204,7 +204,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * io.mosip.kernel.core.idrepo.spi.IdRepoService#retrieveIdentity(java.lang.
 	 * String)
@@ -213,13 +213,13 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	public IdResponseDTO retrieveIdentity(String id, IdType idType, String type, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
 		switch (idType) {
-		case VID:
-			return retrieveIdentityByVid(id, type, extractionFormats);
-		case ID:
-			return retrieveIdentityByRid(id, type, extractionFormats);
-		case UIN:
-		default:
-			return retrieveIdentityByUin(id, type, extractionFormats);
+			case VID:
+				return retrieveIdentityByVid(id, type, extractionFormats);
+			case ID:
+				return retrieveIdentityByRid(id, type, extractionFormats);
+			case UIN:
+			default:
+				return retrieveIdentityByUin(id, type, extractionFormats);
 		}
 	}
 
@@ -315,7 +315,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		}
 		if (StringUtils.containsIgnoreCase(type, DEMO) || StringUtils.containsIgnoreCase(type, ALL)) {
 			getFiles(uinObject, documents, null, DEMOGRAPHICS);
-		} 
+		}
 		return constructIdResponse(this.id.get(READ), uinObject, documents);
 	}
 
@@ -364,7 +364,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * @return the files
 	 */
 	private void getFiles(Uin uinObject, List<DocumentsDTO> documents, Map<String, String> extractionFormats,
-			String type) {
+						  String type) {
 		if (type.equals(BIOMETRICS)) {
 			getBiometricFiles(uinObject, documents, extractionFormats);
 		}
@@ -444,7 +444,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	}
 
 	protected byte[] getBiometricsForRequestedFormats(String uinHash, String fileName,
-			Map<String, String> extractionFormats, byte[] originalData) throws IdRepoAppException {
+													  Map<String, String> extractionFormats, byte[] originalData) throws IdRepoAppException {
 		try {
 			List<BIR> originalBirs = cbeffUtil.getBIRDataFromXML(originalData);
 			List<BIR> finalBirs = new ArrayList<>();
@@ -490,7 +490,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see io.mosip.kernel.core.idrepo.spi.IdRepoService#updateIdentity(java.lang.
 	 * Object, java.lang.String)
 	 */
@@ -528,7 +528,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * @param id        the id
 	 * @param uin       the uin
 	 * @param documents the documents
-	 * @param anonymousProfile 
+	 * @param anonymousProfile
 	 * @return the id response DTO
 	 * @throws IdRepoAppException the id repo app exception
 	 */
