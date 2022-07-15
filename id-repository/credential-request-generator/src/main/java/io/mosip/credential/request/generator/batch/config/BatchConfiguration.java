@@ -10,6 +10,10 @@ import java.util.Map;
 
 import javax.persistence.QueryHint;
 
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -78,6 +82,9 @@ public class BatchConfiguration {
 	/** The credential re process job. */
 	@Autowired
 	private Job credentialReProcessJob;
+
+	private static final String BATCH_CONFIGURATION = "BatchConfiguration";
+	private static final Logger LOGGER = IdRepoLogger.getLogger(BatchConfiguration.class);
 	
 	/**
 	 * Process job.
@@ -90,7 +97,8 @@ public class BatchConfiguration {
 			jobLauncher.run(credentialProcessJob, jobParameters);
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(IdRepoSecurityManager.getUser(), BATCH_CONFIGURATION,
+					"error in JobLauncher " + ExceptionUtils.getStackTrace(e));
 		}
 	}
 
@@ -105,7 +113,8 @@ public class BatchConfiguration {
 			jobLauncher.run(credentialReProcessJob, jobParameters);
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(IdRepoSecurityManager.getUser(), BATCH_CONFIGURATION,
+					"error in JobLauncher " + ExceptionUtils.getStackTrace(e));
 		}
 	}
 	/**

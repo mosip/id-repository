@@ -549,7 +549,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	/**
 	 * This function is used to get the maximum allowed update count of an attribute
 	 * for the given individual id
-	 * 
+	 *
 	 * @param individualId  The UIN of the individual
 	 * @param idType        The type of the ID. For example, UIN, RID, VID, etc.
 	 * @param attributeList List of attributes for which the update count is to be
