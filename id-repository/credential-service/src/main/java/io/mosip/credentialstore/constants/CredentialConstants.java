@@ -34,6 +34,18 @@ public class CredentialConstants {
 	public static final String FULLNAME = "fullname";
 
 	public static final String ENCRYPTIONKEY = "encryptionKey";
-
+	
+	public static final String EMAIL = "email";
+	
+	public static final String FULLADDRESS = "fullAddress";
+	
+	public static final String NAME = "name";
+	
+	public static final String POSTALCODE = "postalCode";
+	
 	public static final String BESTTWOFINGERS = "bestTwoFingers";
+	
+	public static final String LANGUAGE = "eng";
+	
+	public static final String FORMAT = "format";
 }

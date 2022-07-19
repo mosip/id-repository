@@ -1,6 +1,10 @@
 package io.mosip.credentialstore.provider;
 
+import java.io.InputStream;
 import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -12,7 +16,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.mvel2.MVEL;
@@ -21,6 +27,7 @@ import org.mvel2.integration.impl.MapVariableResolverFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -45,9 +52,9 @@ import io.mosip.credentialstore.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
+import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
@@ -74,6 +81,19 @@ public class CredentialProvider {
 
 	/** The Constant DATETIME_PATTERN. */
 	public static final String DATETIME_PATTERN = "mosip.credential.service.datetime.pattern";
+	
+	public static final String IDENTITY_ATTRIBUTES = "mosip.mask.function.identityAttributes";
+	
+	public static final String DATE = "mosip.mask.function.date";
+	
+	public static final String ADDRESS = "mosip.format.function.address";
+	
+	public static final String NAME = "mosip.format.function.name";
+	
+	public static final String DATE_TIME_FORMAT = "mosip.format.function.dateTimeFormat";
+
+	@Autowired
+	private Environment env;
 
 	@Autowired
 	private ObjectMapper mapper;
@@ -87,8 +107,22 @@ public class CredentialProvider {
 
 	@Value("${credential.service.dob.format}")
 	private String dobFormat;
+	
+	@Value("${mosip.identity.mapping-file}")
+	private String identityMappingJson;
 
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialProvider.class);
+	
+	private IdentityMapping identityMap; 
+	
+	public IdentityMapping getIdentityMapping() throws MalformedURLException,Exception{
+		IdentityMapping identityMapping ;
+		try (InputStream xsdBytes = new URL(identityMappingJson).openStream()) {
+			 identityMapping = mapper.readValue(IOUtils.toString(xsdBytes, StandardCharsets.UTF_8),
+					IdentityMapping.class);
+		}
+		return identityMapping;
+	}
 	/**
 	 * Gets the formatted credential data.
 	 *
@@ -137,16 +171,16 @@ public class CredentialProvider {
 			String credentialId = utilities.generateId();
 
 
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
 
 			JSONObject json = new JSONObject();
 			List<String> typeList = new ArrayList<>();
-			typeList.add(EnvUtil.getCredServiceSchema());
-			json.put(JsonConstants.ID, EnvUtil.getCredServiceFormatId() + credentialId);
+			typeList.add(env.getProperty("mosip.credential.service.credential.schema"));
+			json.put(JsonConstants.ID, env.getProperty("mosip.credential.service.format.id") + credentialId);
 			json.put(JsonConstants.TYPE, typeList);
-			json.put(JsonConstants.ISSUER, EnvUtil.getCredServiceFormatIssuer());
+			json.put(JsonConstants.ISSUER, env.getProperty("mosip.credential.service.format.issuer"));
 			json.put(JsonConstants.ISSUANCEDATE, DateUtils.formatToISOString(localdatetime));
 			json.put(JsonConstants.ISSUEDTO, credentialServiceRequestDto.getIssuer());
 			json.put(JsonConstants.CONSENT, "");
@@ -172,6 +206,8 @@ public class CredentialProvider {
 			PartnerCredentialTypePolicyDto policyResponseDto, CredentialServiceRequestDto credentialServiceRequestDto)
 			throws CredentialFormatterException {
 		String requestId = credentialServiceRequestDto.getRequestId();
+		List<AllowedKycDto> userRequestedSharableAttributesList=Collections.EMPTY_LIST;
+		
 		try {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Preparing demo and bio sharable attributes");
@@ -183,6 +219,13 @@ public class CredentialProvider {
 		Set<AllowedKycDto> sharableAttributeBiometricKeySet = new HashSet<>();
 			List<String> userRequestedAttributes = credentialServiceRequestDto.getSharableAttributes();
 			Map<String, Object> additionalData = credentialServiceRequestDto.getAdditionalData();
+			if(sharableAttributeList != null && userRequestedAttributes!=null) {
+				  userRequestedSharableAttributesList =  sharableAttributeList.stream()
+					      .filter(allowedKycDto -> userRequestedAttributes.contains(allowedKycDto.getAttributeName()))
+					      .collect(Collectors.toList());
+				  sharableAttributeList=userRequestedSharableAttributesList;
+				  
+				}
 
 			if (userRequestedAttributes != null && !userRequestedAttributes.isEmpty()) {
 				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
@@ -199,8 +242,6 @@ public class CredentialProvider {
 
 						}
 					}
-
-
 				});
 
 			} else {
@@ -218,19 +259,29 @@ public class CredentialProvider {
 
 				});
 			}
-
+			
+			Object formattedObject = null;
+			List<String> userReqMaskingAttributes = (List) additionalData.get("maskingAttributes");
+			Map<String, Object> userReqFormatingAttributes = (Map) additionalData.get("formatingAttributes");			
+			identityMap = getIdentityMapping();
+						
 		for (AllowedKycDto key : sharableAttributeDemographicKeySet) {
 			String attribute = key.getSource().get(0).getAttribute();
-
+			if(!userReqMaskingAttributes.contains(attribute) && !userReqFormatingAttributes.containsKey(attribute))
+				continue;
 			Object object = identity.get(attribute);
 				if (object != null) {
-					Object formattedObject = filterAndFormat(key, object, identity);
-					attributesMap.put(key, formattedObject);
-				} else {
-					if (attribute.equalsIgnoreCase(CredentialConstants.FULLNAME)) {
-						Object formattedObject = getFullname(identity);
-						attributesMap.put(key, formattedObject);
-					} else if (attribute.equalsIgnoreCase(CredentialConstants.ENCRYPTIONKEY)) {
+					 if(userReqMaskingAttributes.contains(attribute) && attribute.equals(CredentialConstants.EMAIL)) {
+						 formattedObject = filterAndMask(key, object, identity);
+					 }else
+						 formattedObject =convertToMaskDataFormat(attribute);
+					 	attributesMap.put(key, formattedObject);
+					 
+					 if(userReqFormatingAttributes.containsKey(attribute)) {
+						 formattedObject = filterAndFormat(key, formattedObject, identity,userReqFormatingAttributes.get(attribute));
+					 }
+					 attributesMap.put(key, formattedObject);					 
+					 if (attribute.equalsIgnoreCase(CredentialConstants.ENCRYPTIONKEY)) {
 						additionalData.put(key.getAttributeName(), credentialServiceRequestDto.getEncryptionKey());
 					}
 			}
@@ -345,31 +396,7 @@ public class CredentialProvider {
 		return subType;
 	}
 	
-	@SuppressWarnings("unchecked")
-	private JSONArray getFullname(JSONObject identity) {
-		Map<String, Map<String, String>> languageMap = new HashMap<>();
-		//TODO remove harding of below attributes
-		getName(identity, "firstName", languageMap);
-		getName(identity, "lastName", languageMap);
-		getName(identity, "middleName", languageMap);
-		JSONArray array = new JSONArray();
-		for (Entry<String, Map<String, String>> languageSpecificEntry : languageMap.entrySet()) {
-			Map<String, String> langSpecificfullName = new HashMap<>();
-			String lang = languageSpecificEntry.getKey();
-			Map<String, String> languageSpecificValues = languageSpecificEntry.getValue();
-			String formattedName = formatName(languageSpecificValues.get("firstName"),
-					languageSpecificValues.get("lastName"),
-					languageSpecificValues.get("middleName"));
-			langSpecificfullName.put("language", lang);
-			langSpecificfullName.put("value", formattedName);
-			JSONObject jsonObject = new JSONObject(langSpecificfullName);
-			array.add(jsonObject);
-		}
-		return array;
-	}
-
 	private void getName(JSONObject identity, String attribute, Map<String, Map<String, String>> languageMap) {
-
 		JSONArray node = JsonUtil.getJSONArray(identity, attribute);
 		if (node != null) {
 		JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
@@ -433,7 +460,7 @@ public class CredentialProvider {
 
 	}
 
-	private Object filterAndFormat(AllowedKycDto key, Object object, JSONObject identity) {
+	private Object filterAndMask(AllowedKycDto key, Object object, JSONObject identity) {
 		Object formattedObject = object;
 		Source source = key.getSource().get(0);
 		String attribute = source.getAttribute();
@@ -448,18 +475,150 @@ public class CredentialProvider {
 					formattedObject = jsonValue.getValue();
 			}
 		}
-		if (key.getFormat() != null) {
-			if (attribute.equalsIgnoreCase(CredentialConstants.DATEOFBIRTH)
-					&& !key.getFormat().equalsIgnoreCase(CredentialConstants.MASK)) {
-				formattedObject = formatDate(formattedObject, key.getFormat());
-			} else if (key.getFormat().equalsIgnoreCase(CredentialConstants.MASK)) {
-				formattedObject = maskData(formattedObject);
-			}
-		}
-
+		formattedObject = convertToMaskDataFormat(formattedObject.toString());
 		return formattedObject;
 	}
+	
+	private Object filterAndFormat(AllowedKycDto key, Object object, JSONObject identity,Object formattingObj) throws Exception {
+		Object formattedObject = object;
+		Source source = key.getSource().get(0);
+		String attribute = source.getAttribute();
+		List<Filter> filterList = source.getFilter();
+		if (filterList != null && !filterList.isEmpty()) {
+			Filter filter = filterList.get(0);
+			String lang = filter.getLanguage();
+			JSONArray node = JsonUtil.getJSONArray(identity, attribute);
+			JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
+			for (JsonValue jsonValue : jsonValues) {
+				if (jsonValue.getLanguage().equals(lang))
+					formattedObject = jsonValue.getValue();
+			}
+		}
+		Map<String,String> formatObj = (Map) formattingObj;
+		
+		if(attribute.equals(CredentialConstants.FULLADDRESS))
+			formattedObject = getFullAddress(identity);
+		else if(attribute.equals(CredentialConstants.NAME))
+			formattedObject = getFullName(identity);
+		else if(attribute.equals(CredentialConstants.DATEOFBIRTH))
+			formattedObject = formatDate(formattedObject, formatObj.get(CredentialConstants.FORMAT));
+		return formattedObject;
+	}
+	
+	private JSONArray getFullName(JSONObject identity) throws Exception {
+		List<String> nameAttributes = getNameAttributes();
+		Map<String, Map<String, String>> languageMap = new HashMap<>();
+		JSONArray array = new JSONArray();
+		System.out.println("name attributes:  ");
+		for (String nameAttr : nameAttributes) {
+			Object nameObj = identity.get(nameAttr);
+			if(nameObj  != null && nameObj instanceof List) {
+				getIdentityAttributeForList(identity, nameAttr, languageMap);
+			}else if(nameObj != null && nameObj instanceof String) {
+				getIdentityAttribute(identity, nameAttr, languageMap);
+			}
+		}
+		for (Entry<String, Map<String, String>> languageSpecificEntry : languageMap.entrySet()) {
+			Map<String, String> langSpecificfullName = new HashMap<>();
+			String lang = languageSpecificEntry.getKey();
+			List<String> name = new ArrayList<>();
+			Map<String, String> languageSpecificValues = languageSpecificEntry.getValue();
+			for (String nameAttr : nameAttributes) {
+				if(nameAttr != null && languageSpecificValues.get(nameAttr) != null) {
+					name.add(languageSpecificValues.get(nameAttr));
+				}
+			}
+			String formattedName = formatName(name);
+			langSpecificfullName.put("language", lang);
+			langSpecificfullName.put("value", formattedName);
+			JSONObject jsonObject = new JSONObject(langSpecificfullName);
+			array.add(jsonObject);
+		}
+		return array;
+	}
 
+	@SuppressWarnings("unchecked")
+	private JSONArray getFullAddress(JSONObject identity) throws Exception {
+		List<String> addressAttributes = getAddressAttributes();
+		Map<String, Map<String, String>> languageMap = new HashMap<>();
+		JSONArray array = new JSONArray();
+		System.out.println("address attributes:  ");
+		for (String addressAttr : addressAttributes) {
+			System.out.println(addressAttr+"   "+identity.get(addressAttr));
+			if(identity.get(addressAttr) != null && identity.get(addressAttr) instanceof List) {
+				getIdentityAttributeForList(identity, addressAttr, languageMap);
+			}
+		}		
+		for (Entry<String, Map<String, String>> languageSpecificEntry : languageMap.entrySet()) {
+			Map<String, String> langSpecificfullName = new HashMap<>();
+			List<String> address = new ArrayList<>();
+			String lang = languageSpecificEntry.getKey();
+			Map<String, String> languageSpecificValues = languageSpecificEntry.getValue();
+			for ( String addressAttr : addressAttributes) {
+				if (addressAttr != null && languageSpecificValues.get(addressAttr) != null) {
+					address.add(languageSpecificValues.get(addressAttr));
+				}
+			}
+			if(identity.get(CredentialConstants.POSTALCODE) != null)
+				address.add((String)identity.get(CredentialConstants.POSTALCODE));
+			String formattedAddress = formatAddress(address);
+			langSpecificfullName.put("language", lang);
+			langSpecificfullName.put("value", formattedAddress);
+			JSONObject jsonObject = new JSONObject(langSpecificfullName);
+			array.add(jsonObject);
+		}
+		for(Object address : array) {
+			System.out.println(address.toString());
+		}			
+		return array;
+	}
+
+	private List<String> getAddressAttributes() throws Exception{
+		List<String> addressAttributes=identityMap.getIdentity().getFullAddress().getValueList();
+		return addressAttributes;
+	}
+
+	private List<String> getNameAttributes() throws Exception{
+		List<String> nameAttributes= identityMap.getIdentity().getName().getValueList();
+		return nameAttributes;
+	}
+	
+	private void getIdentityAttribute(JSONObject identity, String attribute,Map<String, Map<String, String>> languageMap) {
+		if (identity.get(attribute) == null) {
+			return;
+		}
+        String jsonValue =(String) identity.get(attribute);
+		Map<String, String> nameMap;
+		String lang = CredentialConstants.LANGUAGE;
+		if (languageMap.containsKey(lang)) {
+			nameMap = languageMap.get(lang);
+		} else {
+			nameMap = new HashMap<>();
+		}
+		nameMap.put(attribute, jsonValue);
+		languageMap.put(lang, nameMap);
+	}	
+
+	private void getIdentityAttributeForList(JSONObject identity, String attribute, Map<String, Map<String, String>> languageMap) {
+		if(identity.get(attribute)==null) {
+			return;
+		}
+		JSONArray node = JsonUtil.getJSONArray(identity, attribute);
+		if (node != null) {
+		JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
+		for (JsonValue jsonValue : jsonValues) {
+				Map<String, String> nameMap;
+				String lang=jsonValue.getLanguage();
+				if (languageMap.containsKey(lang)) {
+					nameMap = languageMap.get(lang);
+				} else {
+					nameMap=new HashMap<>();
+				}
+				nameMap.put(attribute, jsonValue.getValue());
+				languageMap.put(lang, nameMap);
+			}
+		}
+	}
 	private Object maskData(Object object) {
 		Map<String, String> context = new HashMap<>();
 		context.put("value", String.valueOf(object));
@@ -479,15 +638,38 @@ public class CredentialProvider {
 		Serializable serializable = MVEL.compileExpression("convertDateFormat(value, inputformat, outputformat);");
 		return MVEL.executeExpression(serializable, context, myVarFactory, String.class);
 	}
-
-	private String formatName(String firstName, String lastName, String middleName) {
-		Map<String, String> context = new HashMap<>();
-		context.put("firstName", firstName);
-		context.put("lastName", lastName);
-		context.put("middleName", middleName);
+	
+	private String formatName(List<String> name) {
+		Map<String, List<String>> context = new HashMap<>();
+		for (String nam : name) {
+			System.out.println(nam);
+		}
+		context.put("name", name);
 		VariableResolverFactory myVarFactory = new MapVariableResolverFactory(context);
 		myVarFactory.setNextFactory(functionFactory);
-		Serializable serializable = MVEL.compileExpression("formatName(firstName,middleName,lastName);");
+		Serializable serializable = MVEL.compileExpression(env.getProperty(NAME) + "(name);");
 		return MVEL.executeExpression(serializable, context, myVarFactory, String.class);
 	}
+
+	private String formatAddress(List<String> address) {
+		Map<String, List<String>> context = new HashMap<>();
+		for (String adr : address) {
+			System.out.println(adr);
+		}
+		context.put("address", address);
+		VariableResolverFactory myVarFactory = new MapVariableResolverFactory(context);
+		myVarFactory.setNextFactory(functionFactory);
+		Serializable serializable = MVEL.compileExpression(env.getProperty(ADDRESS) + "(address);");
+		return MVEL.executeExpression(serializable, context, myVarFactory, String.class);
+	}
+
+	private String convertToMaskDataFormat(String maskData) {
+		System.out.println("Enter into maskData format");
+		Map<String, String> context = new HashMap<>();
+		context.put("maskData", maskData);
+		VariableResolverFactory myVarFactory = new MapVariableResolverFactory(context);
+		myVarFactory.setNextFactory(functionFactory);
+		Serializable serializable = MVEL.compileExpression(env.getProperty(IDENTITY_ATTRIBUTES) + "(maskData);");
+		return MVEL.executeExpression(serializable, context, myVarFactory, String.class);
+	}	
 }
