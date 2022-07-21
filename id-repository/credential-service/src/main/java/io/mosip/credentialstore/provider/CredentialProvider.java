@@ -96,6 +96,9 @@ public class CredentialProvider {
 	@Value("${credential.service.dob.format}")
 	private String dobFormat;
 
+	@Value("${credential.service.default.vid.type:PERPETUAL}")
+	private String defaultVidType;
+
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialProvider.class);
 	/**
 	 * Gets the formatted credential data.
@@ -251,16 +254,17 @@ public class CredentialProvider {
 					} else if (attribute.equalsIgnoreCase(CredentialConstants.ENCRYPTIONKEY)) {
 						additionalData.put(key.getAttributeName(), credentialServiceRequestDto.getEncryptionKey());
 					}else if(attribute.equalsIgnoreCase(CredentialConstants.VID)){
-						VidInfoDTO vidInfoDTO=null;
+						VidInfoDTO vidInfoDTO;
+						String vidType= key.getSource().get(0).getFilter().get(0).getType()==null?defaultVidType:key.getSource().get(0).getFilter().get(0).getType();
 						if(key.getFormat().equalsIgnoreCase(CredentialConstants.RETRIEVE)) {
-							vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(), key.getSource().get(0).getFilter().get(0).getType());
+							vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(), vidType);
 							if (vidInfoDTO == null) {
-								VidResponseDTO vidResponseDTO = vidUtil.gnerateVID(identity.get("UIN").toString(), key.getSource().get(0).getFilter().get(0).getType());
-								vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(), key.getSource().get(0).getFilter().get(0).getType());
+								vidUtil.gnerateVID(identity.get("UIN").toString(), vidType);
+								vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(), vidType);
 							}
 						}else {
-							VidResponseDTO vidResponseDTO = vidUtil.gnerateVID(identity.get("UIN").toString(), key.getSource().get(0).getFilter().get(0).getType());
-							vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(), key.getSource().get(0).getFilter().get(0).getType());
+							vidUtil.gnerateVID(identity.get("UIN").toString(), vidType);
+							vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(),vidType);
 						}
 						attributesMap.put(key, vidInfoDTO.getVid());
 						additionalData.put("ExpiryTimestamp", vidInfoDTO.getExpiryTimestamp());
