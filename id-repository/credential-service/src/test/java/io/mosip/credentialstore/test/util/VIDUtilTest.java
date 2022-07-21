@@ -1,18 +1,10 @@
 package io.mosip.credentialstore.test.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import io.mosip.credentialstore.constants.ApiName;
-import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
-import io.mosip.credentialstore.dto.PolicyManagerResponseDto;
-import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.IdRepoException;
-import io.mosip.credentialstore.exception.PolicyException;
-import io.mosip.credentialstore.util.PolicyUtil;
 import io.mosip.credentialstore.util.RestUtil;
 import io.mosip.credentialstore.util.VIDUtil;
-import io.mosip.idrepository.core.dto.IdResponseDTO;
-import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.dto.VidInfoDTO;
 import io.mosip.idrepository.core.dto.VidResponseDTO;
 import io.mosip.kernel.core.http.ResponseWrapper;
@@ -29,10 +21,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -100,14 +90,14 @@ public class VIDUtilTest {
     }
     @Test
     public void generateVIDTest() throws Exception {
-        VidResponseDTO vidResponseDTO1 = vidUtil.gnerateVID("4554888654", "PERPETUAL");
+        VidResponseDTO vidResponseDTO1 = vidUtil.generateVID("4554888654", "PERPETUAL");
         assertEquals(vidResponseDTO1.getVid(), "123456789");
 
     }
 
     @Test
     public void getVIDTest() throws Exception {
-        VidInfoDTO vidInfoDTO = vidUtil.getVIDData("4554888654", "PERPETUAL");
+        VidInfoDTO vidInfoDTO = vidUtil.getVIDData("4554888654", "PERPETUAL","4452541213124");
         assertEquals(vidInfoDTO.getVid(), "4452541213124");
 
     }
@@ -119,7 +109,7 @@ public class VIDUtilTest {
                 "error");
         Exception e=new Exception(httpClientErrorException);
         Mockito.when(restUtil.getApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(e);
-        vidUtil.getVIDData("4554888654", "PERPETUAL");
+        vidUtil.getVIDData("4554888654", "PERPETUAL","4452541213124");
     }
 
 }

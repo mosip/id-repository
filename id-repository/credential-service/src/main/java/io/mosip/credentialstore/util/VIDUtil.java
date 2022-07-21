@@ -21,13 +21,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
 
 @Component
 public class VIDUtil {
@@ -51,7 +48,7 @@ public class VIDUtil {
     @Autowired
     private Environment env;
 
-    public VidInfoDTO getVIDData(String uin,String vidType) throws ApiNotAccessibleException, IdRepoException {
+    public VidInfoDTO getVIDData(String uin,String vidType,String vid) throws ApiNotAccessibleException, IdRepoException {
         List<String> pathVariables=new ArrayList<>();
         pathVariables.add(uin);
         ResponseWrapper<List<VidInfoDTO>> response=null;
@@ -66,7 +63,10 @@ public class VIDUtil {
                     VidInfoDTO vidInfoDTO = mapper.readValue(mapper.writeValueAsString(infoDTO), VidInfoDTO.class);
                     vidInfoDTOS.add(vidInfoDTO);
                 }
-                vidInfoDTOS.stream().filter(vidInfoDTO -> vidInfoDTO.getVidType().equalsIgnoreCase(vidType)).collect(Collectors.toList());
+                if(vid!=null) {
+                    vidInfoDTOS = vidInfoDTOS.stream().filter(vidInfoDTO -> vidInfoDTO.getVidType().equalsIgnoreCase(vidType) && vidInfoDTO.getVid()==vid).collect(Collectors.toList());
+                    return vidInfoDTOS.get(0);
+                }
                 vidInfoDTOS.sort(Comparator.comparing(VidInfoDTO::getExpiryTimestamp).reversed());
                 return vidInfoDTOS.get(0);
             }
@@ -87,14 +87,14 @@ public class VIDUtil {
         return null;
     }
 
-    public VidResponseDTO gnerateVID(String uin,String vidType) throws ApiNotAccessibleException, IdRepoException {
+    public VidResponseDTO generateVID(String uin, String vidType) throws ApiNotAccessibleException, IdRepoException {
         VidRequestDTO vidRequestDTO=new VidRequestDTO();
         vidRequestDTO.setUin(uin);
         vidRequestDTO.setVidType(vidType);
         RequestWrapper<VidRequestDTO> vidRequestDTORequestWrapper=new RequestWrapper<>();
         vidRequestDTORequestWrapper.setRequest(vidRequestDTO);
         String response=null;
-        VidResponseDTO vidResponseDTO=null;
+        VidResponseDTO vidResponseDTO;
         try {
             vidRequestDTORequestWrapper.setId(applicationId);
             vidRequestDTORequestWrapper.setVersion(version);

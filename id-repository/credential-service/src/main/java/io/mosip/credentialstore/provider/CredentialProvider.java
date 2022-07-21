@@ -13,7 +13,6 @@ import java.util.Set;
 
 import io.mosip.credentialstore.util.VIDUtil;
 import io.mosip.idrepository.core.dto.*;
-import io.mosip.kernel.core.http.ResponseWrapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.mvel2.MVEL;
@@ -255,16 +254,17 @@ public class CredentialProvider {
 						additionalData.put(key.getAttributeName(), credentialServiceRequestDto.getEncryptionKey());
 					}else if(attribute.equalsIgnoreCase(CredentialConstants.VID)){
 						VidInfoDTO vidInfoDTO;
+						VidResponseDTO vidResponseDTO;
 						String vidType= key.getSource().get(0).getFilter().get(0).getType()==null?defaultVidType:key.getSource().get(0).getFilter().get(0).getType();
 						if(key.getFormat().equalsIgnoreCase(CredentialConstants.RETRIEVE)) {
-							vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(), vidType);
+							vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(), vidType,null);
 							if (vidInfoDTO == null) {
-								vidUtil.gnerateVID(identity.get("UIN").toString(), vidType);
-								vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(), vidType);
+								vidResponseDTO=vidUtil.generateVID(identity.get("UIN").toString(), vidType);
+								vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(), vidType,vidResponseDTO.getVid());
 							}
 						}else {
-							vidUtil.gnerateVID(identity.get("UIN").toString(), vidType);
-							vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(),vidType);
+							vidResponseDTO=vidUtil.generateVID(identity.get("UIN").toString(), vidType);
+							vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(),vidType,vidResponseDTO.getVid());
 						}
 						attributesMap.put(key, vidInfoDTO.getVid());
 						additionalData.put("ExpiryTimestamp", vidInfoDTO.getExpiryTimestamp());
