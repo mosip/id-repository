@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.mosip.credentialstore.util.VIDUtil;
+import io.mosip.idrepository.core.dto.*;
+import io.mosip.kernel.core.http.ResponseWrapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.mvel2.MVEL;
@@ -41,9 +44,6 @@ import io.mosip.credentialstore.exception.DataEncryptionFailureException;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.JsonUtil;
 import io.mosip.credentialstore.util.Utilities;
-import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
-import io.mosip.idrepository.core.dto.DocumentsDTO;
-import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
@@ -82,6 +82,9 @@ public class CredentialProvider {
 
 	@Autowired
 	private CbeffUtil cbeffutil;
+
+	@Autowired
+	VIDUtil vidUtil;
 
 	@Autowired(required = true)
 	@Qualifier("varres")
@@ -247,6 +250,22 @@ public class CredentialProvider {
 						attributesMap.put(key, formattedObject);
 					} else if (attribute.equalsIgnoreCase(CredentialConstants.ENCRYPTIONKEY)) {
 						additionalData.put(key.getAttributeName(), credentialServiceRequestDto.getEncryptionKey());
+					}else if(attribute.equalsIgnoreCase(CredentialConstants.VID)){
+						VidInfoDTO vidInfoDTO=null;
+						if(key.getFormat().equalsIgnoreCase(CredentialConstants.RETRIEVE)) {
+							vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(), key.getSource().get(0).getFilter().get(0).getType());
+							if (vidInfoDTO == null) {
+								VidResponseDTO vidResponseDTO = vidUtil.gnerateVID(identity.get("UIN").toString(), key.getSource().get(0).getFilter().get(0).getType());
+								vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(), key.getSource().get(0).getFilter().get(0).getType());
+							}
+						}else {
+							VidResponseDTO vidResponseDTO = vidUtil.gnerateVID(identity.get("UIN").toString(), key.getSource().get(0).getFilter().get(0).getType());
+							vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(), key.getSource().get(0).getFilter().get(0).getType());
+						}
+						attributesMap.put(key, vidInfoDTO.getVid());
+						additionalData.put("ExpiryTimestamp", vidInfoDTO.getExpiryTimestamp());
+						additionalData.put("TransactionLimit", vidInfoDTO.getTransactionLimit());
+
 					}
 			}
 		}
