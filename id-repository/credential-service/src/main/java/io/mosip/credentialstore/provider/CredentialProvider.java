@@ -252,7 +252,7 @@ public class CredentialProvider {
 							vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(),vidType,vidResponseDTO.getVid());
 						}
 						attributesMap.put(key, vidInfoDTO.getVid());
-						additionalData.put("ExpiryTimestamp", vidInfoDTO.getExpiryTimestamp());
+						additionalData.put("ExpiryTimestamp", vidInfoDTO.getExpiryTimestamp().toString());
 						additionalData.put("TransactionLimit", vidInfoDTO.getTransactionLimit());
 
 					}
