@@ -20,6 +20,7 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import io.mosip.credentialstore.constants.ApiName;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.util.EnvUtil;
 
 public class RestUtil {
@@ -98,6 +99,7 @@ public class RestUtil {
 
 			}
 		uriComponents = builder.build(false).encode();
+		IdRepoLogger.getLogger(RestUtil.class).debug(uriComponents.toUri().toString());
         try {
             result = (T) restTemplate.exchange(uriComponents.toUri(), HttpMethod.GET, setRequestHeader(null, null), responseType)
                     .getBody();
