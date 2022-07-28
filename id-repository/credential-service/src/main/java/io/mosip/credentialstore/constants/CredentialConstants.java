@@ -44,4 +44,8 @@ public class CredentialConstants {
 	public static final String BESTTWOFINGERS = "bestTwoFingers";
 
 	public static final String EMPTY_SPACE = " ";
+
+	public static final String BF_SUB_TYPE ="subType";
+
+	public static final String BF_RANK = "rank";
 }
