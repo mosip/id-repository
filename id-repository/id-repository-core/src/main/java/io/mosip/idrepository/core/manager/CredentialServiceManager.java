@@ -364,7 +364,7 @@ public class CredentialServiceManager {
 	 * @param saltRetreivalFunction      the salt retreival function
 	 * @param credentialResponseConsumer the credential response consumer
 	 */
-	private void sendVidEventsToCredService(String uin, String status, List<VidInfoDTO> vids, boolean isUpdate,
+	public void sendVidEventsToCredService(String uin, String status, List<VidInfoDTO> vids, boolean isUpdate,
 			List<String> partnerIds, IntFunction<String> saltRetreivalFunction,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
 		List<CredentialIssueRequestDto> eventRequestsList = vids.stream().flatMap(vid -> {
