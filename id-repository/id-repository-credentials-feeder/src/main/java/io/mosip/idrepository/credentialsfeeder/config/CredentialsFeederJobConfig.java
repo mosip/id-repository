@@ -1,9 +1,5 @@
 package io.mosip.idrepository.credentialsfeeder.config;
 
-import static io.mosip.idrepository.credentialsfeeder.constant.Constants.DEFAULT_CHUNCK_SIZE;
-import static io.mosip.idrepository.credentialsfeeder.constant.Constants.IDREPO_CREDENTIAL_FEEDER_CHUNK_SIZE;
-import static io.mosip.idrepository.credentialsfeeder.constant.Constants.MOSIP_IDREPO_IDENTITY_UIN_STATUS_REGISTERED;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +40,12 @@ import io.mosip.kernel.core.util.DateUtils;
 @Configuration
 @DependsOn({ "credentialsFeederConfig" })
 public class CredentialsFeederJobConfig {
+
+	private static final String MOSIP_IDREPO_IDENTITY_UIN_STATUS_REGISTERED = "mosip.idrepo.identity.uin-status.registered";
+
+	private static final int DEFAULT_CHUNCK_SIZE = 10;
+
+	private static final String IDREPO_CREDENTIAL_FEEDER_CHUNK_SIZE = "idrepo-credential-feeder-chunk-size";
 
 	@Value("${" + IDREPO_CREDENTIAL_FEEDER_CHUNK_SIZE + ":" + DEFAULT_CHUNCK_SIZE + "}")
 	private int chunkSize;
@@ -144,7 +146,7 @@ public class CredentialsFeederJobConfig {
 		executor.setMaxPoolSize(chunkSize);
 		executor.setQueueCapacity(chunkSize);
 		executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-		executor.setThreadNamePrefix("credential-feeder-");
+		executor.setThreadNamePrefix("MultiThreaded-");
 		return executor;
 	}
 }
