@@ -7,11 +7,16 @@ import org.springframework.batch.core.configuration.annotation.DefaultBatchConfi
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
 import io.mosip.idrepository.core.helper.RestHelper;
+import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
+import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
+import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.credentialsfeeder.repository.UinRepo;
 
 /**
  * The Class CredentialsFeederConfig - Provides configuration for credential feeder application.
@@ -19,6 +24,8 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
  * @author Manoj SP
  */
 @Configuration
+@EnableJpaRepositories(basePackageClasses = { UinHashSaltRepo.class, UinEncryptSaltRepo.class,
+		CredentialRequestStatusRepo.class, UinRepo.class })
 public class CredentialsFeederConfig extends IdRepoDataSourceConfig {
 	
 	/**
