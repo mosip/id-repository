@@ -93,9 +93,9 @@ public class CredentialsFeedingWriter implements ItemWriter<Uin> {
 	 * @param uin The UIN of the resident
 	 */
 	private void issueUinCredential(String uin) {
-		credentialServiceManager.notifyUinCredential(uin, null, uinActiveStatus, false, null,
-				uinHashSaltRepo::retrieveSaltById, credentialStatusManager::credentialRequestResponseConsumer,
-				credentialStatusManager::idaEventConsumer, Arrays.asList(onlineVerificationPartnerIds));
+		credentialServiceManager.sendUinEventsToCredService(uin, null, false, null,
+				Arrays.asList(onlineVerificationPartnerIds), uinHashSaltRepo::retrieveSaltById,
+				credentialStatusManager::credentialRequestResponseConsumer);
 	}
 
 	/**
