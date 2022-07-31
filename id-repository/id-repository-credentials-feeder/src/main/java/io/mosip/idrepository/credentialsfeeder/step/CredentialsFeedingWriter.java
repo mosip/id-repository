@@ -126,7 +126,6 @@ public class CredentialsFeedingWriter implements ItemWriter<Uin> {
 		try {
 			RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_VIDS_BY_UIN, null,
 					VidsInfosDTO.class);
-			restRequest.setUri("https://qa-upgrade.mosip.net/idrepository/v1/vid/uin/" + uin);
 			VidsInfosDTO response = restHelper.requestSync(restRequest);
 			List<VidInfoDTO> vidInfoDtos = response.getResponse();
 			credentialServiceManager.sendVidEventsToCredService(uin, vidActiveStatus, vidInfoDtos, false,
