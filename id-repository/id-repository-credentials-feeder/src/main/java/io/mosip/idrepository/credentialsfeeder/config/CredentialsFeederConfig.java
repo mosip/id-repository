@@ -1,5 +1,7 @@
 package io.mosip.idrepository.credentialsfeeder.config;
 
+import java.util.concurrent.Executor;
+
 import javax.sql.DataSource;
 
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer;
@@ -8,6 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
@@ -16,6 +19,7 @@ import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.credentialsfeeder.repository.UinRepo;
 
 /**
@@ -62,5 +66,17 @@ public class CredentialsFeederConfig extends IdRepoDataSourceConfig {
 	@Bean
 	public IdRepoSecurityManager securityManager(@Qualifier("selfTokenWebClient") WebClient webClient) {
 		return new IdRepoSecurityManager(restHelper(webClient));
+	}
+	
+	@Bean
+	@Qualifier("webSubHelperExecutor")
+	public Executor webSubHelperExecutor() {
+	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+	    executor.setCorePoolSize(Math.floorDiv(EnvUtil.getActiveAsyncThreadCount(), 3));
+	    executor.setMaxPoolSize(EnvUtil.getActiveAsyncThreadCount());
+	    executor.setThreadNamePrefix("idauth-websub-");
+	    executor.setWaitForTasksToCompleteOnShutdown(true);
+	    executor.initialize();
+	    return executor;
 	}
 }
