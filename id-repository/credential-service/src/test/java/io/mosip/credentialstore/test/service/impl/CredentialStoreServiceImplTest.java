@@ -130,7 +130,7 @@ public class CredentialStoreServiceImplTest {
 
 	@Mock
 	EncryptionUtil encryptionUtil;
-
+	
 	@Before
 	public void setUp() throws Exception {
 		EnvUtil.setDateTimePattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");

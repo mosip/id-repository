@@ -20,6 +20,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 
@@ -34,6 +35,8 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 	private transient RestUtil restUtil;
 	
 	private static final long serialVersionUID = 1L;
+	
+	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialTransactionInterceptor.class);
 
 	public CredentialTransactionInterceptor(RestUtil restUtil) {
 		this.restUtil = restUtil;
@@ -49,8 +52,17 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 	public boolean onLoad(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
 		if (entity instanceof CredentialEntity) {
 			int indexOfData = Arrays.asList(propertyNames).indexOf(REQUEST);
-			String decryptedData = new String(CryptoUtil
-					.decodeURLSafeBase64(encryptDecryptData(ApiName.DECRYPTION, (String) state[indexOfData])));
+			String decryptedData;
+			String requestValue = (String) state[indexOfData];
+			try {
+				decryptedData = new String(CryptoUtil
+						.decodeURLSafeBase64(encryptDecryptData(ApiName.DECRYPTION, requestValue)));
+			} catch (Exception e) {
+				LOGGER.debug(
+						"Decryption failed. Falling back to treat the data as un-encrypted one for backward compatibility with 1.1.5.5\n "
+								+ ExceptionUtils.getStackTrace(e));
+				decryptedData = requestValue;
+			}
 			state[indexOfData] = decryptedData;
 		}
 		return super.onLoad(entity, id, state, propertyNames, types);
