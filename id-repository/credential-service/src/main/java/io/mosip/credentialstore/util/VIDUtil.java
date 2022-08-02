@@ -57,14 +57,14 @@ public class VIDUtil {
 
         try {
             response=restUtil.getApi(ApiName.RETRIEVE_VID,pathVariables,"","",ResponseWrapper.class);
-            if(response.getResponse()!=null) {
+            if(!response.getResponse().isEmpty()) {
                 vidResponseDTO = mapper.readValue(mapper.writeValueAsString(response.getResponse()), List.class);
                 for (Object infoDTO : vidResponseDTO) {
                     VidInfoDTO vidInfoDTO = mapper.readValue(mapper.writeValueAsString(infoDTO), VidInfoDTO.class);
                     vidInfoDTOS.add(vidInfoDTO);
                 }
                 if(vid!=null) {
-                    vidInfoDTOS = vidInfoDTOS.stream().filter(vidInfoDTO -> vidInfoDTO.getVidType().equalsIgnoreCase(vidType) && vidInfoDTO.getVid()==vid).collect(Collectors.toList());
+                    vidInfoDTOS = vidInfoDTOS.stream().filter(vidInfoDTO -> vidInfoDTO.getVidType().equalsIgnoreCase(vidType) && vidInfoDTO.getVid().equals(vid)).collect(Collectors.toList());
                     return vidInfoDTOS.get(0);
                 }
                 vidInfoDTOS.sort(Comparator.comparing(VidInfoDTO::getExpiryTimestamp).reversed());
@@ -92,6 +92,7 @@ public class VIDUtil {
         vidRequestDTO.setUin(uin);
         vidRequestDTO.setVidType(vidType);
         RequestWrapper<VidRequestDTO> vidRequestDTORequestWrapper=new RequestWrapper<>();
+        ResponseWrapper<VidResponseDTO> vidResponseDTOResponseWrapper=null;
         vidRequestDTORequestWrapper.setRequest(vidRequestDTO);
         String response=null;
         VidResponseDTO vidResponseDTO;
@@ -102,8 +103,8 @@ public class VIDUtil {
             LocalDateTime localdatetime = LocalDateTime
                     .parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
             vidRequestDTORequestWrapper.setRequesttime(localdatetime);
-            response=restUtil.postApi(ApiName.GENERATE_VID,null,"","", MediaType.APPLICATION_JSON,vidRequestDTORequestWrapper,String.class);
-            vidResponseDTO = mapper.readValue(response, VidResponseDTO.class);
+            vidResponseDTOResponseWrapper=restUtil.postApi(ApiName.GENERATE_VID,null,"","", MediaType.APPLICATION_JSON,vidRequestDTORequestWrapper,String.class);
+            vidResponseDTO = mapper.readValue(mapper.writeValueAsString(vidResponseDTOResponseWrapper.getResponse()), VidResponseDTO.class);
         } catch (Exception e) {
             LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), uin,
                     ExceptionUtils.getStackTrace(e));

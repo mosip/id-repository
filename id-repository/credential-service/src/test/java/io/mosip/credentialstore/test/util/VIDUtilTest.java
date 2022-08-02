@@ -51,14 +51,13 @@ public class VIDUtilTest {
 
     List<VidInfoDTO> vidInfoDTOS=null;
 
-    String vidResponse=null;
+    ResponseWrapper<VidResponseDTO> vidResponseDTOResponseWrapper=null;
 
     ResponseWrapper<List<VidInfoDTO>> vidInfoResponseWrapper=null;
 
     @SuppressWarnings("unchecked")
     @Before
     public void setUp() throws Exception {
-        vidResponse="response";
         vidResponseDTO=new VidResponseDTO();
         vidResponseDTO.setVid("123456789");
         vidResponseDTO.setUin("4554888654");
@@ -75,17 +74,19 @@ public class VIDUtilTest {
         vidInfoDTO1.setExpiryTimestamp(LocalDateTime.now());
         vidInfoDTOS.add(vidInfoDTO1);
         vidInfoResponseWrapper.setResponse(vidInfoDTOS);
+        vidResponseDTOResponseWrapper=new ResponseWrapper<>();
+        vidResponseDTOResponseWrapper.setResponse(vidResponseDTO);
         Mockito.when(environment.getProperty("mosip.credential.service.datetime.pattern"))
                 .thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         Mockito.when(environment.getProperty("GENERATE_VID"))
                 .thenReturn("https://dev.mosip.net/idrepository/v1/vid");
         Mockito.when(environment.getProperty("RETRIEVE_VID"))
                 .thenReturn("https://dev.mosip.net/idrepository/v1/vid/uin");
-        Mockito.when(objectMapper.readValue(vidResponse, VidResponseDTO.class)).thenReturn(vidResponseDTO);
+        Mockito.when(objectMapper.readValue(objectMapper.writeValueAsString(vidResponseDTOResponseWrapper.getResponse()), VidResponseDTO.class)).thenReturn(vidResponseDTO);
         Mockito.when(objectMapper.readValue(objectMapper.writeValueAsString(vidInfoResponseWrapper.getResponse()), List.class)).thenReturn(vidInfoDTOS);
         Mockito.when(objectMapper.readValue(objectMapper.writeValueAsString(vidInfoDTOS), VidInfoDTO.class)).thenReturn(vidInfoDTO);
         Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(vidResponse);
+                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(vidInfoResponseWrapper);
         Mockito.when(restUtil.getApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(vidInfoResponseWrapper);
     }
     @Test
