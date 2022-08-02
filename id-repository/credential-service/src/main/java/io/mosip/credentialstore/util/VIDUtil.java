@@ -57,7 +57,7 @@ public class VIDUtil {
 
         try {
             response=restUtil.getApi(ApiName.RETRIEVE_VID,pathVariables,"","",ResponseWrapper.class);
-            if(!response.getResponse().isEmpty() && response.getResponse()!=null) {
+            if(response.getResponse()!=null && !response.getResponse().isEmpty()) {
                 vidResponseDTO = mapper.readValue(mapper.writeValueAsString(response.getResponse()), List.class);
                 for (Object infoDTO : vidResponseDTO) {
                     VidInfoDTO vidInfoDTO = mapper.readValue(mapper.writeValueAsString(infoDTO), VidInfoDTO.class);
