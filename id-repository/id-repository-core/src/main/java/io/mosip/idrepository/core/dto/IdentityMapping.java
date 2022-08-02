@@ -26,6 +26,9 @@ public class IdentityMapping {
 		@JsonProperty("IDSchemaVersion")
 		private IDSchemaVersion iDSchemaVersion;
 		private Name name;
+		private FirstName firstName;
+		private MiddleName middleName;
+		private LastName lastName;
 		private Gender gender;
 		private LocationHierarchyForProfiling locationHierarchyForProfiling;
 		private Dob dob;
@@ -38,12 +41,14 @@ public class IdentityMapping {
 		private Phone phone;
 		private Email email;
 		private Uin uin;
+		private Vid vid;
 		private IndividualBiometrics individualBiometrics;
 		private IntroducerBiometrics introducerBiometrics;
 		private IndividualAuthBiometrics individualAuthBiometrics;
 		private OfficerBiometricFileName officerBiometricFileName;
 		private SupervisorBiometricFileName supervisorBiometricFileName;
 		private ResidenceStatus residenceStatus;
+		private FullAddress fullAddress;
 	}
 
 	@Data
@@ -129,6 +134,22 @@ public class IdentityMapping {
 	@NoArgsConstructor
 	public static class Name {
 		private String value;
+		
+		public List<String> getValueList() {
+			return Arrays.asList(Objects.nonNull(value) ? value.split(",") : new String[] { "" }).stream()
+					.map(StringUtils::trim).filter(StringUtils::isNotBlank).collect(Collectors.toList());
+		}
+	}
+	
+	@Data
+	@NoArgsConstructor
+	public static class FullAddress {
+		private String value;
+		
+		public List<String> getValueList() {
+			return Arrays.asList(Objects.nonNull(value) ? value.split(",") : new String[] { "" }).stream()
+					.map(StringUtils::trim).filter(StringUtils::isNotBlank).collect(Collectors.toList());
+		}
 	}
 
 	@Data
@@ -193,6 +214,12 @@ public class IdentityMapping {
 
 	@Data
 	@NoArgsConstructor
+	public static class Vid {
+		private String value;
+	}
+	
+	@Data
+	@NoArgsConstructor
 	public static class IndividualBiometrics {
 		private String value;
 	}
@@ -224,6 +251,23 @@ public class IdentityMapping {
 	@Data
 	@NoArgsConstructor
 	public static class ResidenceStatus {
+		private String value;
+	}
+	
+	@Data
+	@NoArgsConstructor
+	public static class FirstName {
+		private String value;
+	}
+	@Data
+	@NoArgsConstructor
+	public static class MiddleName {
+		private String value;
+	}
+	
+	@Data
+	@NoArgsConstructor
+	public static class LastName {
 		private String value;
 	}
 }
