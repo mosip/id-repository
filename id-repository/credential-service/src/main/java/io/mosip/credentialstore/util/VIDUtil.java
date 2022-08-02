@@ -103,7 +103,7 @@ public class VIDUtil {
             LocalDateTime localdatetime = LocalDateTime
                     .parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
             vidRequestDTORequestWrapper.setRequesttime(localdatetime);
-            vidResponseDTOResponseWrapper=restUtil.postApi(ApiName.GENERATE_VID,null,"","", MediaType.APPLICATION_JSON,vidRequestDTORequestWrapper,String.class);
+            vidResponseDTOResponseWrapper=restUtil.postApi(ApiName.GENERATE_VID,null,"","", MediaType.APPLICATION_JSON,vidRequestDTORequestWrapper,ResponseWrapper.class);
             vidResponseDTO = mapper.readValue(mapper.writeValueAsString(vidResponseDTOResponseWrapper.getResponse()), VidResponseDTO.class);
         } catch (Exception e) {
             LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), uin,
