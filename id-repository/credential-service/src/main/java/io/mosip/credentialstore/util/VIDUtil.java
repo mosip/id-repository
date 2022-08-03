@@ -67,8 +67,11 @@ public class VIDUtil {
                     vidInfoDTOS = vidInfoDTOS.stream().filter(vidInfoDTO -> vidInfoDTO.getVidType().equalsIgnoreCase(vidType) && vidInfoDTO.getVid().equals(vid)).collect(Collectors.toList());
                     return vidInfoDTOS.get(0);
                 }
-                vidInfoDTOS.sort(Comparator.comparing(VidInfoDTO::getExpiryTimestamp).reversed());
-                return vidInfoDTOS.get(0);
+                vidInfoDTOS = vidInfoDTOS.stream().filter(vidInfoDTO -> vidInfoDTO.getVidType().equalsIgnoreCase(vidType)).collect(Collectors.toList());
+                if(!vidInfoDTOS.isEmpty()) {
+                    vidInfoDTOS.sort(Comparator.comparing(VidInfoDTO::getExpiryTimestamp).reversed());
+                    return vidInfoDTOS.get(0);
+                }
             }
         } catch (Exception e) {
             LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), uin,
