@@ -81,7 +81,7 @@ import io.mosip.idrepository.identity.entity.UinDocumentHistory;
 import io.mosip.idrepository.identity.entity.UinHistory;
 import io.mosip.idrepository.identity.helper.AnonymousProfileHelper;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
-import io.mosip.idrepository.identity.provider.IdentityUpdateTrackerProvider;
+import io.mosip.idrepository.identity.provider.IdentityUpdateTrackerPolicyProvider;
 import io.mosip.idrepository.identity.repository.IdentityUpdateTrackerRepo;
 import io.mosip.idrepository.identity.repository.UinBiometricHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentHistoryRepo;
@@ -513,11 +513,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	}
 
 	private void updateCount(Map<String, Integer> updateCountTrackerMap, String attribute) {
-		if (IdentityUpdateTrackerProvider.getUpdateCountLimitMap().containsKey(attribute)) {
+		if (IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap().containsKey(attribute)) {
 			updateCountTrackerMap.compute(attribute,
-					(k, v) -> (Objects.nonNull(v) ? ++v : 1) < IdentityUpdateTrackerProvider.getMaxUpdateCountLimit(k)
+					(k, v) -> (Objects.nonNull(v) ? ++v : 1) < IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(k)
 							? (Objects.nonNull(v) ? ++v : 1)
-							: IdentityUpdateTrackerProvider.getMaxUpdateCountLimit(k));
+							: IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(k));
 		}
 	}
 
@@ -789,7 +789,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						.filter(entry -> attributeList.isEmpty() ? true : attributeList.contains(entry.getKey()))
 						.map(entry -> Map.entry(entry.getKey(),
 								Math.max(0,
-										IdentityUpdateTrackerProvider.getMaxUpdateCountLimit(entry.getKey())
+										IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(entry.getKey())
 												- entry.getValue())))
 						.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 			} else {

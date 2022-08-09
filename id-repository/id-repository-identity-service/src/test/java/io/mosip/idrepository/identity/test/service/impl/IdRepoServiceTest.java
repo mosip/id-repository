@@ -82,7 +82,7 @@ import io.mosip.idrepository.identity.entity.UinBiometric;
 import io.mosip.idrepository.identity.entity.UinDocument;
 import io.mosip.idrepository.identity.helper.AnonymousProfileHelper;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
-import io.mosip.idrepository.identity.provider.IdentityUpdateTrackerProvider;
+import io.mosip.idrepository.identity.provider.IdentityUpdateTrackerPolicyProvider;
 import io.mosip.idrepository.identity.repository.IdentityUpdateTrackerRepo;
 import io.mosip.idrepository.identity.repository.UinBiometricHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentHistoryRepo;
@@ -2216,7 +2216,7 @@ public class IdRepoServiceTest {
 		record.setId("id");
 		record.setIdentityUpdateCount(CryptoUtil.encodeToURLSafeBase64("{\"fullName\":2}".getBytes()).getBytes());
 		when(identityUpdateTracker.findById(any())).thenReturn(Optional.of(record));
-		ReflectionTestUtils.setField(IdentityUpdateTrackerProvider.class, "updateCount", Map.of("fullName", 2));
+		ReflectionTestUtils.setField(IdentityUpdateTrackerPolicyProvider.class, "updateCount", Map.of("fullName", 2));
 		Map<String, Integer> response = proxyService.getRemainingUpdateCountByIndividualId("1234", IdType.UIN, null);
 		assertEquals(Map.of("fullName", 0), response);
 	}
@@ -2232,7 +2232,7 @@ public class IdRepoServiceTest {
 		record.setId("id");
 		record.setIdentityUpdateCount(CryptoUtil.encodeToURLSafeBase64("{\"fullName\":2}".getBytes()).getBytes());
 		when(identityUpdateTracker.findById(any())).thenReturn(Optional.empty());
-		ReflectionTestUtils.setField(IdentityUpdateTrackerProvider.class, "updateCount", Map.of("fullName", 2));
+		ReflectionTestUtils.setField(IdentityUpdateTrackerPolicyProvider.class, "updateCount", Map.of("fullName", 2));
 		proxyService.getRemainingUpdateCountByIndividualId("1234", IdType.UIN, null);
 	}
 
@@ -2247,7 +2247,7 @@ public class IdRepoServiceTest {
 		record.setId("id");
 		record.setIdentityUpdateCount(CryptoUtil.encodeToURLSafeBase64("{\"fullName\":2}".getBytes()).getBytes());
 		when(identityUpdateTracker.findById(any())).thenReturn(Optional.of(record));
-		ReflectionTestUtils.setField(IdentityUpdateTrackerProvider.class, "updateCount", Map.of("fullName", 2));
+		ReflectionTestUtils.setField(IdentityUpdateTrackerPolicyProvider.class, "updateCount", Map.of("fullName", 2));
 		when(uinRepo.existsByRegId(any())).thenReturn(true);
 		when(uinRepo.getUinHashByRid(any())).thenReturn("1234");
 		Map<String, Integer> response = proxyService.getRemainingUpdateCountByIndividualId("1234", IdType.ID, null);
@@ -2265,7 +2265,7 @@ public class IdRepoServiceTest {
 		record.setId("id");
 		record.setIdentityUpdateCount(CryptoUtil.encodeToURLSafeBase64("{\"fullName\":2}".getBytes()).getBytes());
 		when(identityUpdateTracker.findById(any())).thenReturn(Optional.of(record));
-		ReflectionTestUtils.setField(IdentityUpdateTrackerProvider.class, "updateCount", Map.of("fullName", 2));
+		ReflectionTestUtils.setField(IdentityUpdateTrackerPolicyProvider.class, "updateCount", Map.of("fullName", 2));
 		when(uinRepo.existsByRegId(any())).thenReturn(false);
 		when(uinRepo.getUinHashByRid(any())).thenReturn("1234");
 		proxyService.getRemainingUpdateCountByIndividualId("1234", IdType.ID, null);
@@ -2288,7 +2288,7 @@ public class IdRepoServiceTest {
 		record.setId("id");
 		record.setIdentityUpdateCount(CryptoUtil.encodeToURLSafeBase64("{\"fullName\":2}".getBytes()).getBytes());
 		when(identityUpdateTracker.findById(any())).thenReturn(Optional.of(record));
-		ReflectionTestUtils.setField(IdentityUpdateTrackerProvider.class, "updateCount", Map.of("fullName", 2));
+		ReflectionTestUtils.setField(IdentityUpdateTrackerPolicyProvider.class, "updateCount", Map.of("fullName", 2));
 		when(uinRepo.existsByRegId(any())).thenReturn(true);
 		when(uinRepo.getUinHashByRid(any())).thenReturn("1234");
 		Map<String, Integer> response = proxyService.getRemainingUpdateCountByIndividualId("1234", IdType.VID, List.of());
@@ -2312,7 +2312,7 @@ public class IdRepoServiceTest {
 		record.setId("id");
 		record.setIdentityUpdateCount(CryptoUtil.encodeToURLSafeBase64("{\"fullName\"2}".getBytes()).getBytes());
 		when(identityUpdateTracker.findById(any())).thenReturn(Optional.of(record));
-		ReflectionTestUtils.setField(IdentityUpdateTrackerProvider.class, "updateCount", Map.of("fullName", 2));
+		ReflectionTestUtils.setField(IdentityUpdateTrackerPolicyProvider.class, "updateCount", Map.of("fullName", 2));
 		when(uinRepo.existsByRegId(any())).thenReturn(true);
 		when(uinRepo.getUinHashByRid(any())).thenReturn("1234");
 		proxyService.getRemainingUpdateCountByIndividualId("1234", IdType.VID, List.of());

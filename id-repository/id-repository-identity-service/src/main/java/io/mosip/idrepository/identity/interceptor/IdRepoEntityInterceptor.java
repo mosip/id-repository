@@ -95,14 +95,15 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 			state[indexOfData] = encryptedData;
 		}
 
-		List<String> uinList = Arrays.asList(uinEntity.getUin().split(SPLITTER));
-		byte[] encryptedUinByteWithSalt = securityManager.encryptWithSalt(uinList.get(1).getBytes(),
-				CryptoUtil.decodePlainBase64(uinList.get(2)), uinRefId);
-		String encryptedUinWithSalt = uinList.get(0) + SPLITTER + new String(encryptedUinByteWithSalt);
-		uinEntity.setUin(encryptedUinWithSalt);
-
-		int indexOfUin = propertyNamesList.indexOf(UIN);
-		state[indexOfUin] = encryptedUinWithSalt;
+		if (!(uinEntity instanceof UinHistory)) {
+			List<String> uinList = Arrays.asList(uinEntity.getUin().split(SPLITTER));
+			byte[] encryptedUinByteWithSalt = securityManager.encryptWithSalt(uinList.get(1).getBytes(),
+					CryptoUtil.decodePlainBase64(uinList.get(2)), uinRefId);
+			String encryptedUinWithSalt = uinList.get(0) + SPLITTER + new String(encryptedUinByteWithSalt);
+			uinEntity.setUin(encryptedUinWithSalt);
+			int indexOfUin = propertyNamesList.indexOf(UIN);
+			state[indexOfUin] = encryptedUinWithSalt;
+		}
 	}
 
 	/*
@@ -116,7 +117,7 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 	public boolean onLoad(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
 		try {
 			List<String> propertyNamesList = Arrays.asList(propertyNames);
-			if (entity instanceof Uin || entity instanceof UinHistory || entity instanceof UinDraft) {
+			if (entity instanceof Uin || entity instanceof UinDraft) {
 				int indexOfData = propertyNamesList.indexOf(UIN_DATA);
 				if (Objects.nonNull(state[indexOfData])) {
 					state[indexOfData] = securityManager.decrypt((byte[]) state[indexOfData], uinDataRefId);
