@@ -28,7 +28,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "uin_h", schema = "idrepo")
 @IdClass(HistoryPK.class)
-public class UinHistory implements Persistable<String> {
+public class UinHistory implements UinInfo, Persistable<String> {
 	
 	/**
 	 * Instantiates a new uin history.
