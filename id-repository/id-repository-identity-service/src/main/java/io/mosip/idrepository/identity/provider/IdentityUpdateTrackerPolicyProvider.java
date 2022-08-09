@@ -23,7 +23,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
  */
 @Component
 @RefreshScope
-public class IdentityUpdateTrackerProvider {
+public class IdentityUpdateTrackerPolicyProvider {
 	
 	@Autowired
 	private ObjectMapper mapper;

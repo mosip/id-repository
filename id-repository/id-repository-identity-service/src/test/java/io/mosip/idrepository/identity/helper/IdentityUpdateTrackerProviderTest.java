@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.idrepository.core.util.EnvUtil;
-import io.mosip.idrepository.identity.provider.IdentityUpdateTrackerProvider;
+import io.mosip.idrepository.identity.provider.IdentityUpdateTrackerPolicyProvider;
 
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
@@ -42,7 +42,7 @@ public class IdentityUpdateTrackerProviderTest {
 	private ObjectMapper mapper;
 	
 	@InjectMocks
-	private IdentityUpdateTrackerProvider provider;
+	private IdentityUpdateTrackerPolicyProvider provider;
 	
 	private JsonNode policy;
 	private String policyJson = "{\"identity\":{\"fullName\":2}}";
@@ -59,7 +59,7 @@ public class IdentityUpdateTrackerProviderTest {
 		when(mapper.readValue(any(URL.class), any(Class.class))).thenReturn(policy);
 		when(mapper.readValue(any(String.class), any(TypeReference.class))).thenReturn(Map.of("fullName", 2));
 		provider.loadUpdateCountPolicies();
-		assertEquals(Map.of("fullName", 2), IdentityUpdateTrackerProvider.getUpdateCountLimitMap());
-		assertTrue(2 == IdentityUpdateTrackerProvider.getMaxUpdateCountLimit("fullName"));
+		assertEquals(Map.of("fullName", 2), IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap());
+		assertTrue(2 == IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit("fullName"));
 	}
 }
