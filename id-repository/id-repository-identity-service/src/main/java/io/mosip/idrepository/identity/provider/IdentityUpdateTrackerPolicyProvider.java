@@ -18,7 +18,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
 
 /**
  * @author Manoj SP
- * @since 1.2.1.0
+ * @since 1.2.0.2
  *
  */
 @Component
@@ -32,8 +32,8 @@ public class IdentityUpdateTrackerPolicyProvider {
 	
 	@PostConstruct
 	public void loadUpdateCountPolicies() throws IOException {
-		JsonNode policyJson = mapper.readValue(new URL(EnvUtil.getIdentityMappingJsonUrl()), JsonNode.class);
-		String updatePolicyJson = policyJson.get("attributeUpdateCountLimit").toString();
+		JsonNode policyJson = mapper.readValue(new URL(EnvUtil.getIdentityUpdateCountPolicyFileUrl()), JsonNode.class);
+		String updatePolicyJson = policyJson.get("identity").toString();
 		updateCount = mapper.readValue(updatePolicyJson, new TypeReference<Map<String, Integer>>() {
 		});
 	}

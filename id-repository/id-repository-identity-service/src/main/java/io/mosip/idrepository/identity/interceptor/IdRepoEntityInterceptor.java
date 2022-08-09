@@ -11,11 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import io.mosip.idrepository.core.entity.HandleInfo;
-import io.mosip.idrepository.core.entity.UinInfo;
-import io.mosip.idrepository.identity.entity.Uin;
-import io.mosip.idrepository.identity.entity.UinDraft;
-import io.mosip.idrepository.identity.entity.UinHistory;
 import org.apache.commons.codec.binary.StringUtils;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
@@ -27,6 +22,10 @@ import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.identity.entity.Uin;
+import io.mosip.idrepository.identity.entity.UinDraft;
+import io.mosip.idrepository.identity.entity.UinHistory;
+import io.mosip.idrepository.identity.entity.UinInfo;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 
@@ -40,7 +39,6 @@ import io.mosip.kernel.core.util.CryptoUtil;
 public class IdRepoEntityInterceptor extends EmptyInterceptor {
 
 	private static final String UIN = "uin";
-	private static final String HANDLE = "handle";
 
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
@@ -69,7 +67,7 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.hibernate.EmptyInterceptor#onSave(java.lang.Object,
 	 * java.io.Serializable, java.lang.Object[], java.lang.String[],
 	 * org.hibernate.type.Type[])
@@ -78,10 +76,7 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 	public boolean onSave(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
 		try {
 			List<String> propertyNamesList = Arrays.asList(propertyNames);
-			if (entity instanceof HandleInfo) {
-				encryptDataOnSave(id, state, propertyNamesList, types, (HandleInfo) entity);
-			}
-			else if (entity instanceof UinInfo) {
+			if (entity instanceof UinInfo) {
 				encryptDataOnSave(id, state, propertyNamesList, types, (UinInfo) entity);
 			}
 		} catch (IdRepoAppException e) {
@@ -92,38 +87,28 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 	}
 
 	private <T extends UinInfo> void encryptDataOnSave(Serializable id, Object[] state, List<String> propertyNamesList,
-													   Type[] types, T entity) throws IdRepoAppException {
-		if (Objects.nonNull(entity.getUinData())) {
-			byte[] encryptedData = securityManager.encrypt(entity.getUinData(), uinDataRefId);
-			entity.setUinData(encryptedData);
+			Type[] types, T uinEntity) throws IdRepoAppException {
+		if (Objects.nonNull(uinEntity.getUinData())) {
+			byte[] encryptedData = securityManager.encrypt(uinEntity.getUinData(), uinDataRefId);
+			uinEntity.setUinData(encryptedData);
 			int indexOfData = propertyNamesList.indexOf(UIN_DATA);
 			state[indexOfData] = encryptedData;
 		}
 
-		if (Objects.nonNull(entity.getUin()) && !(entity instanceof UinHistory)) {
-			List<String> uinList = Arrays.asList(entity.getUin().split(SPLITTER));
+		if (!(uinEntity instanceof UinHistory)) {
+			List<String> uinList = Arrays.asList(uinEntity.getUin().split(SPLITTER));
 			byte[] encryptedUinByteWithSalt = securityManager.encryptWithSalt(uinList.get(1).getBytes(),
 					CryptoUtil.decodePlainBase64(uinList.get(2)), uinRefId);
 			String encryptedUinWithSalt = uinList.get(0) + SPLITTER + new String(encryptedUinByteWithSalt);
-			entity.setUin(encryptedUinWithSalt);
+			uinEntity.setUin(encryptedUinWithSalt);
 			int indexOfUin = propertyNamesList.indexOf(UIN);
 			state[indexOfUin] = encryptedUinWithSalt;
-		}
-
-		if ((entity instanceof HandleInfo)) {
-			List<String> parts = Arrays.asList(((HandleInfo) entity).getHandle().split(SPLITTER));
-			byte[] encryptedHandleByteWithSalt = securityManager.encryptWithSalt(parts.get(1).getBytes(),
-					CryptoUtil.decodePlainBase64(parts.get(2)), uinRefId);
-			String encryptedHandleWithSalt = parts.get(0) + SPLITTER + new String(encryptedHandleByteWithSalt);
-			((HandleInfo) entity).setHandle(encryptedHandleWithSalt);
-			int indexOfUin = propertyNamesList.indexOf(HANDLE);
-			state[indexOfUin] = encryptedHandleWithSalt;
 		}
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.hibernate.EmptyInterceptor#onLoad(java.lang.Object,
 	 * java.io.Serializable, java.lang.Object[], java.lang.String[],
 	 * org.hibernate.type.Type[])
@@ -132,7 +117,7 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 	public boolean onLoad(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
 		try {
 			List<String> propertyNamesList = Arrays.asList(propertyNames);
-			if (entity instanceof Uin || entity instanceof UinHistory || entity instanceof UinDraft) {
+			if (entity instanceof Uin || entity instanceof UinDraft) {
 				int indexOfData = propertyNamesList.indexOf(UIN_DATA);
 				if (Objects.nonNull(state[indexOfData])) {
 					state[indexOfData] = securityManager.decrypt((byte[]) state[indexOfData], uinDataRefId);
@@ -152,14 +137,14 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.hibernate.EmptyInterceptor#onFlushDirty(java.lang.Object,
 	 * java.io.Serializable, java.lang.Object[], java.lang.Object[],
 	 * java.lang.String[], org.hibernate.type.Type[])
 	 */
 	@Override
 	public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState,
-								String[] propertyNames, Type[] types) {
+			String[] propertyNames, Type[] types) {
 		try {
 			if (entity instanceof UinInfo) {
 				UinInfo uinEntity = (UinInfo) entity;
@@ -175,7 +160,7 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 	}
 
 	private <T extends UinInfo> boolean encryptOnDirtyFlush(Serializable id, Object[] currentState, Object[] previousState,
-															String[] propertyNames, Type[] types, T uinEntity) throws IdRepoAppException {
+			String[] propertyNames, Type[] types, T uinEntity) throws IdRepoAppException {
 		byte[] encryptedData = securityManager.encrypt(uinEntity.getUinData(), uinDataRefId);
 		List<String> propertyNamesList = Arrays.asList(propertyNames);
 		int indexOfData = propertyNamesList.indexOf(UIN_DATA);
