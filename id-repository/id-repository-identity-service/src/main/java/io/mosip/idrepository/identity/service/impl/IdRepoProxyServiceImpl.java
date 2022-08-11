@@ -653,25 +653,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", e.getMessage());
 		}
 	}
-	private List<String> getPartnerIds() {
-		try {
-			Map<String, Object> responseWrapperMap = restHelper
-					.requestSync(restBuilder.buildRequest(RestServicesConstants.PARTNER_SERVICE, null, Map.class));
-			Object response = responseWrapperMap.get("response");
-			if (response instanceof Map) {
-				Object partners = ((Map<String, ?>) response).get("partners");
-				if (partners instanceof List) {
-					List<Map<String, Object>> partnersList = (List<Map<String, Object>>) partners;
-					return partnersList.stream()
-							.filter(partner -> PARTNER_ACTIVE_STATUS.equalsIgnoreCase((String) partner.get("status")))
-							.map(partner -> (String) partner.get("partnerID")).collect(Collectors.toList());
-				}
-			}
-		} catch (RestServiceException | IdRepoDataValidationException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getPartnerIds", e.getMessage());
-		}
-		return Collections.emptyList();
-	}
 
 	private EventModel createEventModel(String topic, Map<String, Object> eventData, String transactionId) {
 		EventModel model = new EventModel();
