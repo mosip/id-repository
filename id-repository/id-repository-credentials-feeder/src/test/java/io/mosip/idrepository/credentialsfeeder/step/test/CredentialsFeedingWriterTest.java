@@ -21,6 +21,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
+import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.dto.VidsInfosDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
@@ -88,6 +89,9 @@ public class CredentialsFeedingWriterTest {
 	public void testIssueCredential() throws Exception {
 		VidsInfosDTO info = new VidsInfosDTO();
 		info.setResponse(List.of());
+		RestRequestDTO requestDTO = new RestRequestDTO();
+		requestDTO.setUri("{uin}");
+		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(requestDTO);
 		when(restHelper.requestSync(any())).thenReturn(info);
 		when(credentialStatusManager.decryptId(any())).thenReturn("1234");
 		writer.write(List.of(new Uin(null, "1234", "1234", "".getBytes(), null, null, null, null, null, null, null,
@@ -105,6 +109,9 @@ public class CredentialsFeedingWriterTest {
 	public void testIssueCredentialVidRestCallFailed() throws Exception {
 		VidsInfosDTO info = new VidsInfosDTO();
 		info.setResponse(List.of());
+		RestRequestDTO requestDTO = new RestRequestDTO();
+		requestDTO.setUri("{uin}");
+		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(requestDTO);
 		when(restHelper.requestSync(any())).thenThrow(new RestServiceException(IdRepoErrorConstants.CLIENT_ERROR));
 		when(credentialStatusManager.decryptId(any())).thenReturn("1234");
 		writer.write(List.of(new Uin(null, "1234", "1234", "".getBytes(), null, null, null, null, null, null, null,
@@ -117,6 +124,9 @@ public class CredentialsFeedingWriterTest {
 		when(authLockRepo.findByHashedUin(any())).thenReturn(List.of(authLock));
 		VidsInfosDTO info = new VidsInfosDTO();
 		info.setResponse(List.of());
+		RestRequestDTO requestDTO = new RestRequestDTO();
+		requestDTO.setUri("{uin}");
+		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(requestDTO);
 		when(restHelper.requestSync(any())).thenReturn(info);
 		when(credentialStatusManager.decryptId(any())).thenReturn("1234");
 		writer.write(List.of(new Uin(null, "1234", "1234", "".getBytes(), null, null, null, null, null, null, null,
@@ -129,6 +139,9 @@ public class CredentialsFeedingWriterTest {
 		when(authLockRepo.findByHashedUin(any())).thenReturn(List.of(authLock));
 		VidsInfosDTO info = new VidsInfosDTO();
 		info.setResponse(List.of());
+		RestRequestDTO requestDTO = new RestRequestDTO();
+		requestDTO.setUri("{uin}");
+		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(requestDTO);
 		when(restHelper.requestSync(any())).thenReturn(info);
 		when(credentialStatusManager.decryptId(any())).thenReturn("1234");
 		writer.write(List.of(new Uin(null, "1234", "1234", "".getBytes(), null, null, null, null, null, null, null,
