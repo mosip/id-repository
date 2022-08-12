@@ -32,8 +32,8 @@ public class IdentityUpdateTrackerProvider {
 	
 	@PostConstruct
 	public void loadUpdateCountPolicies() throws IOException {
-		JsonNode policyJson = mapper.readValue(new URL(EnvUtil.getIdentityUpdateCountPolicyFileUrl()), JsonNode.class);
-		String updatePolicyJson = policyJson.get("identity").toString();
+		JsonNode policyJson = mapper.readValue(new URL(EnvUtil.getIdentityMappingJsonUrl()), JsonNode.class);
+		String updatePolicyJson = policyJson.get("attributeUpdateCountLimit").toString();
 		updateCount = mapper.readValue(updatePolicyJson, new TypeReference<Map<String, Integer>>() {
 		});
 	}
