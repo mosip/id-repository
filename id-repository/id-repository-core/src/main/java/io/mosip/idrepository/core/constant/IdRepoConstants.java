@@ -141,7 +141,7 @@ public class IdRepoConstants {
 	
 	public static final String CREDENTIAL_CRYPTO_REF_ID = "mosip.credential.request.crypto-ref-id";
 	
-	public static final String IDENTITY_UPDATE_COUNT_POLICY_FILE_URL = "mosip.identity-update-count-policy-file-url";
+	public static final String IDENTITY_MAPPING_JSON = "mosip.identity.mapping-file";
 
 	
 	/** The value. */
