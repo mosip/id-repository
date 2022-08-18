@@ -7,16 +7,20 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -38,7 +42,10 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -65,6 +72,7 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.IdRepoService;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.EnvUtil;
+import io.mosip.idrepository.identity.entity.IdentityUpdateTracker;
 import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.entity.UinBiometric;
 import io.mosip.idrepository.identity.entity.UinBiometricHistory;
@@ -73,6 +81,8 @@ import io.mosip.idrepository.identity.entity.UinDocumentHistory;
 import io.mosip.idrepository.identity.entity.UinHistory;
 import io.mosip.idrepository.identity.helper.AnonymousProfileHelper;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
+import io.mosip.idrepository.identity.provider.IdentityUpdateTrackerPolicyProvider;
+import io.mosip.idrepository.identity.repository.IdentityUpdateTrackerRepo;
 import io.mosip.idrepository.identity.repository.UinBiometricHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinHistoryRepo;
@@ -183,6 +193,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	@Value("${mosip.idrepo.identity.uin-status.registered}")
 	private String activeStatus;
 	
+	@Autowired
+	private IdentityUpdateTrackerRepo identityUpdateTracker;
+	
 	/**
 	 * Adds the identity to DB.
 	 *
@@ -198,10 +211,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		ObjectNode identityObject = mapper.convertValue(request.getRequest().getIdentity(), ObjectNode.class);
 		identityObject.putPOJO(VERIFIED_ATTRIBUTES, request.getRequest().getVerifiedAttributes());
 		byte[] identityInfo = convertToBytes(identityObject);
-		int modResult = securityManager.getSaltKeyForId(uin);
-		String uinHash = getUinHash(uin, modResult);
+		String uinHash = getUinHash(uin);
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
-		String uinToEncrypt = getUinToEncrypt(uin, modResult);
+		String uinToEncrypt = getUinToEncrypt(uin);
 		anonymousProfileHelper
 			.setRegId(request.getRequest().getRegistrationId())
 			.setNewUinData(identityInfo);
@@ -236,12 +248,14 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		return uinEntity;
 	}
 
-	protected String getUinToEncrypt(String uin, int modResult) {
+	protected String getUinToEncrypt(String uin) {
+		int modResult = securityManager.getSaltKeyForId(uin);
 		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(modResult);
 		return modResult + SPLITTER + uin + SPLITTER + encryptSalt;
 	}
 
-	protected String getUinHash(String uin, int modResult) {
+	protected String getUinHash(String uin) {
+		int modResult = securityManager.getSaltKeyForId(uin);
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
 		return modResult + SPLITTER + securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
 	}
@@ -377,8 +391,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	@Override
 	public Uin updateIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
 		anonymousProfileHelper.setRegId(request.getRequest().getRegistrationId());
-		int modResult = securityManager.getSaltKeyForId(uin);
-		String uinHash = getUinHash(uin, modResult);
+		String uinHash = getUinHash(uin);
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
 		try {
 			Uin uinObject = retrieveIdentity(uinHash, IdType.UIN, null, null);
@@ -406,7 +419,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						dbData.jsonString(), JSONCompareMode.LENIENT);
 
 				if (comparisonResult.failed()) {
-					updateJsonObject(inputData, dbData, comparisonResult);
+					updateJsonObject(uinHash, inputData, dbData, comparisonResult);
 				}
 				uinObject.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
 				uinObject.setUinDataHash(securityManager.hash(uinObject.getUinData()));
@@ -436,7 +449,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					DateUtils.getUTCCurrentDateTime());
 			anonymousProfileHelper.buildAndsaveProfile(false);
 			return uinObject;
-		} catch (JSONException | InvalidJsonException e) {
+		} catch (JSONException | InvalidJsonException | IOException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, UPDATE_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(ID_OBJECT_PROCESSING_FAILED, e);
 		} catch (IdRepoAppUncheckedException e) {
@@ -471,38 +484,67 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @throws JSONException      the JSON exception
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	protected void updateJsonObject(DocumentContext inputData, DocumentContext dbData, JSONCompareResult comparisonResult)
-			throws JSONException, IdRepoAppException {
+	protected void updateJsonObject(String uinHash, DocumentContext inputData, DocumentContext dbData,
+			JSONCompareResult comparisonResult) throws JSONException, IOException, IdRepoAppException {
+		Entry<String, Map<String, Integer>> updateCountTracker = getUpdateCountTracker(uinHash, dbData);
+		Map<String, Integer> updateCountTrackerMap = updateCountTracker.getValue();
+		Consumer<String> incrementUpdateCountForAttribute = attribute -> updateCount(updateCountTrackerMap, attribute);
 		if (comparisonResult.isMissingOnField()) {
-			updateMissingFields(dbData, comparisonResult);
+			updateMissingFields(dbData, comparisonResult, incrementUpdateCountForAttribute);
 		}
 
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
 		if (comparisonResult.isFailureOnField()) {
-			updateFailingFields(inputData, dbData, comparisonResult);
+			updateFailingFields(inputData, dbData, comparisonResult, incrementUpdateCountForAttribute);
 		}
 
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
 		if (!comparisonResult.getMessage().isEmpty()) {
-			updateMissingValues(inputData, dbData, comparisonResult);
+			updateMissingValues(inputData, dbData, comparisonResult, incrementUpdateCountForAttribute);
 		}
 
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
 		if (comparisonResult.failed()) {
 			// Code should never reach here
-			updateJsonObject(inputData, dbData, comparisonResult);
+			updateJsonObject(uinHash, inputData, dbData, comparisonResult);
+		}
+		identityUpdateTracker.save(new IdentityUpdateTracker(updateCountTracker.getKey(), CryptoUtil
+				.encodeToURLSafeBase64(mapper.writeValueAsString(updateCountTrackerMap).getBytes()).getBytes()));
+	}
+
+	private void updateCount(Map<String, Integer> updateCountTrackerMap, String attribute) {
+		if (IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap().containsKey(attribute)) {
+			updateCountTrackerMap.compute(attribute,
+					(k, v) -> (Objects.nonNull(v) ? ++v : 1) < IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(k)
+							? (Objects.nonNull(v) ? ++v : 1)
+							: IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(k));
 		}
 	}
 
+	private Entry<String, Map<String, Integer>> getUpdateCountTracker(String uinHash, DocumentContext dbData)
+			throws IOException, JsonParseException, JsonMappingException {
+		Optional<IdentityUpdateTracker> updateTrackerOptional = identityUpdateTracker.findById(uinHash);
+		Map<String, Integer> updateCountTrackerMap = new HashMap<>();
+		if (updateTrackerOptional.isPresent()) {
+			updateCountTrackerMap = new HashMap<>(mapper.readValue(
+					CryptoUtil.decodeURLSafeBase64(new String(updateTrackerOptional.get().getIdentityUpdateCount())),
+					new TypeReference<Map<String, Integer>>() {
+					}));
+		}
+		return Map.entry(uinHash, updateCountTrackerMap);
+	}
+	
 	/**
 	 * Update missing fields.
 	 *
 	 * @param dbData           the db data
 	 * @param comparisonResult the comparison result
+	 * @param isUpdateAllowedAsPerPolicy 
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void updateMissingFields(DocumentContext dbData, JSONCompareResult comparisonResult) {
+	private void updateMissingFields(DocumentContext dbData, JSONCompareResult comparisonResult,
+			Consumer<String> incrementUpdateCountForAttribute) {
 		for (FieldComparisonFailure failure : comparisonResult.getFieldMissing()) {
 			if (StringUtils.contains(failure.getField(), OPEN_SQUARE_BRACE)) {
 				String path = StringUtils.substringBefore(failure.getField(), OPEN_SQUARE_BRACE);
@@ -513,6 +555,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					key = path;
 					path = ROOT;
 				}
+				incrementUpdateCountForAttribute.accept(key);
 				List value = dbData.read(path + DOT + key, List.class);
 				value.addAll(Collections
 						.singletonList(convertToObject(failure.getExpected().toString().getBytes(), Map.class)));
@@ -524,9 +567,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					path = ROOT;
 				}
 				String key = StringUtils.substringAfterLast(failure.getField(), DOT);
+				incrementUpdateCountForAttribute.accept(key);
 				dbData.put(path, (String) failure.getExpected(), key);
 			}
-
 		}
 	}
 
@@ -536,9 +579,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @param inputData        the input data
 	 * @param dbData           the db data
 	 * @param comparisonResult the comparison result
+	 * @param isUpdateAllowedAsPerPolicy 
+	 * @return 
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	private void updateFailingFields(DocumentContext inputData, DocumentContext dbData, JSONCompareResult comparisonResult) {
+	private void updateFailingFields(DocumentContext inputData, DocumentContext dbData,
+			JSONCompareResult comparisonResult, Consumer<String> incrementUpdateCountForAttribute) {
 		for (FieldComparisonFailure failure : comparisonResult.getFieldFailures()) {
 
 			String path = StringUtils.substringBeforeLast(failure.getField(), DOT);
@@ -553,7 +599,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				key = failure.getField();
 				path = ROOT;
 			}
-
+			incrementUpdateCountForAttribute.accept(StringUtils.substringBefore(failure.getField(), OPEN_SQUARE_BRACE));
 			if (failure.getExpected() instanceof JSONArray) {
 				dbData.put(path, key, convertToObject(failure.getExpected().toString().getBytes(), List.class));
 				inputData.put(path, key, convertToObject(failure.getExpected().toString().getBytes(), List.class));
@@ -578,9 +624,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @param inputData        the input data
 	 * @param dbData           the db data
 	 * @param comparisonResult the comparison result
+	 * @param incrementUpdateCountForAttribute 
+	 * @return 
 	 */
 	@SuppressWarnings("unchecked")
-	private void updateMissingValues(DocumentContext inputData, DocumentContext dbData, JSONCompareResult comparisonResult) {
+	private void updateMissingValues(DocumentContext inputData, DocumentContext dbData,
+			JSONCompareResult comparisonResult, Consumer<String> incrementUpdateCountForAttribute) {
 		String path = StringUtils.substringBefore(comparisonResult.getMessage(), OPEN_SQUARE_BRACE);
 		String key = StringUtils.substringAfterLast(path, DOT);
 		path = StringUtils.substringBeforeLast(path, DOT);
@@ -589,7 +638,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			key = path;
 			path = ROOT;
 		}
-
+		incrementUpdateCountForAttribute.accept(key);
 		JsonPath jsonPath = JsonPath.compile(path + DOT + key);
 		List<Map<String, String>> dbDataList = dbData.read(path + DOT + key, List.class);
 		List<Map<String, String>> inputDataList = inputData.read(path + DOT + key, List.class);
@@ -707,6 +756,52 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		byte[] updatedCbeff = cbeffUtil.createXML(new ArrayList<>(existingBIRDataMap.values()));
 		anonymousProfileHelper.setNewCbeff(CryptoUtil.encodeToURLSafeBase64(updatedCbeff));
 		return updatedCbeff;
+	}
+
+	@Override
+	public String getRidByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
+		return null;
+	}
+
+	/**
+	 * This function is used to get the maximum allowed update count of an attribute
+	 * for the given individual id
+	 * 
+	 * @param individualId  The UIN of the individual
+	 * @param idType        The type of the ID. For example, UIN, RID, VID, etc.
+	 * @param attributeList List of attributes for which the update count is to be
+	 *                      retrieved.
+	 * @return A map of attribute name and the maximum allowed update count for that
+	 *         attribute.
+	 */
+	@Override
+	public Map<String, Integer> getRemainingUpdateCountByIndividualId(String uinHash, IdType idType,
+			List<String> attributeList) throws IdRepoAppException {
+		try {
+			Optional<IdentityUpdateTracker> updateTrackerOptional = identityUpdateTracker.findById(uinHash);
+			if (updateTrackerOptional.isPresent()) {
+				IdentityUpdateTracker trackRecord = updateTrackerOptional.get();
+				Map<String, Integer> updateCountMap = mapper.readValue(
+						CryptoUtil.decodeURLSafeBase64(new String(trackRecord.getIdentityUpdateCount())),
+						new TypeReference<Map<String, Integer>>() {
+						});
+				return updateCountMap.entrySet().stream()
+						.filter(entry -> attributeList.isEmpty() ? true : attributeList.contains(entry.getKey()))
+						.map(entry -> Map.entry(entry.getKey(),
+								Math.max(0,
+										IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(entry.getKey())
+												- entry.getValue())))
+						.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+			} else {
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
+						"getMaxAllowedUpdateCountForIndividualId", "NO_RECORD_FOUND");
+				throw new IdRepoAppException(NO_RECORD_FOUND);
+			}
+		} catch (IOException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
+					"getMaxAllowedUpdateCountForIndividualId", ExceptionUtils.getStackTrace(e));
+			throw new IdRepoAppException(UNKNOWN_ERROR);
+		}
 	}
 
 	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp) {

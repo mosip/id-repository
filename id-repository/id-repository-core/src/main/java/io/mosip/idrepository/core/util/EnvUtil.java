@@ -7,6 +7,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.DATETIME_ADJUS
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DATETIME_PATTERN;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DEFAULT_SALT_KEY_LENGTH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DEFAULT_VID_TYPE;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.IDENTITY_MAPPING_JSON;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.MOSIP_KERNEL_IDREPO_JSON_PATH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.PREPEND_THUMPRINT_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SALT_KEY_LENGTH;
@@ -103,6 +104,7 @@ public class EnvUtil {
 	@Getter @Setter private static Integer activeAsyncThreadCount;
 	@Getter @Setter private static String monitorAsyncThreadQueue;
 	@Getter @Setter private static Integer asyncThreadQueueThreshold;
+	@Getter @Setter private static String identityMappingJsonUrl;
 
 	public String getProperty(String key) {
 		return env.getProperty(key);
@@ -187,6 +189,7 @@ public class EnvUtil {
 		setActiveAsyncThreadCount(this.getProperty("mosip.idrepo.active-async-thread-count", Integer.class));
 		setMonitorAsyncThreadQueue(this.getProperty("mosip.idrepo.monitor-thread-queue-in-ms"));
 		setAsyncThreadQueueThreshold(this.getProperty("mosip.idrepo.max-thread-queue-threshold", Integer.class, 0));
+		setIdentityMappingJsonUrl(this.getProperty(IDENTITY_MAPPING_JSON));
 	}
 
 	private void initCredentialRequestGeneratorServiceProperties() {

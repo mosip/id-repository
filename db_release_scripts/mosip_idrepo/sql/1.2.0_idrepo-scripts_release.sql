@@ -12,6 +12,7 @@
 -- Jul-2021		Manoj SP	    Addition of anonymous profile column to tables
 -- Sep-2021		Manoj SP	    Removed Anonymous Profile alter scripts
 -- Sep-2021		Manoj SP	    Added anonymous_profile and channel_info tables.
+-- Jul 2022	           Manoj SP           Added idrepo-identity_update_count_tracker table
 -------------------------------------------------------------------------------------------------------
 
 \c mosip_idrepo sysadmin
@@ -27,6 +28,7 @@ ALTER TABLE idrepo.uin_auth_lock ADD COLUMN unlock_expiry_datetime timestamp;
 \ir ../ddl/idrepo-uin_document_draft.sql
 \ir ../ddl/idrepo-anonymous_profile.sql
 \ir ../ddl/idrepo-channel_info.sql
+\ir ../ddl/idrepo-identity_update_count_tracker.sql
 
 -------------------------------------------------------------------------------------------------
 

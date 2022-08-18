@@ -35,5 +35,11 @@ public class CredentialConstants {
 
 	public static final String ENCRYPTIONKEY = "encryptionKey";
 
+	public static final String VID = "VID";
+
+	public static final String GENERATE = "GENERATE";
+
+	public static final String RETRIEVE = "RETRIEVE";
+
 	public static final String BESTTWOFINGERS = "bestTwoFingers";
 }

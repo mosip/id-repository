@@ -1,68 +1,47 @@
-package io.mosip.idrepository.identity.entity;
+package io.mosip.idrepository.credentialsfeeder.entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.IdClass;
 import javax.persistence.Lob;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.Type;
 import org.springframework.data.domain.Persistable;
 
 import lombok.AccessLevel;
-import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
- * The Class UinHistory - Entity class for uin_h table.
+ * The Class Uin -Entity class for uin table.
  *
  * @author Manoj SP
  */
-@Data
+@Getter
+@Setter
+@ToString(exclude = { "biometrics", "documents" })
 @Entity
-@Table(name = "uin_h", schema = "idrepo")
-@IdClass(HistoryPK.class)
-public class UinHistory implements UinInfo, Persistable<String> {
-	
-	/**
-	 * Instantiates a new uin history.
-	 */
-	public UinHistory() {
-		
-	}
+@NoArgsConstructor
+@Table(schema = "idrepo")
+public class Uin implements Persistable<String>, UinInfo {
 
-	/**
-	 * Instantiates a new uin history.
-	 *
-	 * @param uinRefId the uin ref id
-	 * @param effectiveDateTime the effective date time
-	 * @param uin the uin
-	 * @param uinHash the uin hash
-	 * @param uinData the uin data
-	 * @param uinDataHash the uin data hash
-	 * @param regId the reg id
-	 * @param bioRefId the bio ref id
-	 * @param statusCode the status code
-	 * @param langCode the lang code
-	 * @param createdBy the created by
-	 * @param createdDateTime the created date time
-	 * @param updatedBy the updated by
-	 * @param updatedDateTime the updated date time
-	 * @param isDeleted the is deleted
-	 * @param deletedDateTime the deleted date time
-	 */
-	public UinHistory(String uinRefId, LocalDateTime effectiveDateTime, String uin, String uinHash, byte[] uinData,
-			String uinDataHash, String regId, String statusCode, String createdBy,
-			LocalDateTime createdDateTime, String updatedBy, LocalDateTime updatedDateTime, Boolean isDeleted,
-			LocalDateTime deletedDateTime) {
+	public Uin(String uinRefId, String uin, String uinHash, byte[] uinData, String uinDataHash, String regId,
+			String statusCode, String createdBy, LocalDateTime createdDateTime,
+			String updatedBy, LocalDateTime updatedDateTime, Boolean isDeleted, LocalDateTime deletedDateTime,
+			List<UinBiometric> biometrics, List<UinDocument> documents) {
 		this.uinRefId = uinRefId;
-		this.effectiveDateTime = effectiveDateTime;
 		this.uin = uin;
 		this.uinHash = uinHash;
 		this.uinData = uinData.clone();
@@ -75,21 +54,18 @@ public class UinHistory implements UinInfo, Persistable<String> {
 		this.updatedDateTime = updatedDateTime;
 		this.isDeleted = isDeleted;
 		this.deletedDateTime = deletedDateTime;
+		this.biometrics = biometrics;
+		this.documents = documents;
 	}
 
 	/** The uin ref id. */
 	@Id
+	@Column(insertable = false, updatable = false, nullable = false)
 	private String uinRefId;
-
-	/** The effective date time. */
-	@Id
-	@Column(name = "eff_dtimes")
-	private LocalDateTime effectiveDateTime;
 
 	/** The uin. */
 	private String uin;
-	
-	/** The uin hash. */
+
 	private String uinHash;
 
 	/** The uin data. */
@@ -105,15 +81,14 @@ public class UinHistory implements UinInfo, Persistable<String> {
 
 	/** The reg id. */
 	private String regId;
-	
-	/** The bio ref id. */
+
 	private String bioRefId;
 
 	/** The status code. */
 	private String statusCode;
-
-	private String langCode;
 	
+	private String langCode;
+
 	/** The created by. */
 	@Column(name = "cr_by")
 	private String createdBy;
@@ -137,6 +112,14 @@ public class UinHistory implements UinInfo, Persistable<String> {
 	@Column(name = "del_dtimes")
 	private LocalDateTime deletedDateTime;
 
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "uin", cascade = CascadeType.ALL)
+	@NotFound(action = NotFoundAction.IGNORE)
+	private List<UinBiometric> biometrics;
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "uin", cascade = CascadeType.ALL)
+	@NotFound(action = NotFoundAction.IGNORE)
+	private List<UinDocument> documents;
+
 	/**
 	 * Gets the uin data.
 	 *
@@ -156,6 +139,16 @@ public class UinHistory implements UinInfo, Persistable<String> {
 	}
 
 	@Override
+	public String getUin() {
+		return uin;
+	}
+
+	@Override
+	public void setUin(String uin) {
+		this.uin = uin;
+	}
+
+	@Override
 	public String getId() {
 		return uinRefId;
 	}
@@ -164,5 +157,4 @@ public class UinHistory implements UinInfo, Persistable<String> {
 	public boolean isNew() {
 		return true;
 	}
-
 }
