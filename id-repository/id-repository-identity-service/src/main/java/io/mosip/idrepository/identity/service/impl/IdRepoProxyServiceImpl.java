@@ -136,6 +136,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	private static final String ACTIVE = "ACTIVE";
 
+	private static final String ACTIVATED = "ACTIVATED";
+
 	@Value("${id-repo-ida-event-type-namespace:mosip}")
 	private String idaEventTypeNamespace;
 
@@ -463,9 +465,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 							RECORD_EXISTS.getErrorMessage());
 					throw new IdRepoAppException(RECORD_EXISTS);
 				}
-				service.updateIdentity(request, uin);
-				if (Objects.nonNull(request.getRequest().getStatus())
-						&& env.getProperty(ACTIVE_STATUS).equalsIgnoreCase(request.getRequest().getStatus())) {
+				Uin uinObject=service.updateIdentity(request, uin);
+				if (env.getProperty(ACTIVE_STATUS).equalsIgnoreCase(uinObject.getStatusCode())) {
 					notify(uin, true, request.getRequest().getRegistrationId());
 				}
 				return constructIdResponse(MOSIP_ID_UPDATE, service.retrieveIdentity(uinHash, IdType.UIN, null, null),
