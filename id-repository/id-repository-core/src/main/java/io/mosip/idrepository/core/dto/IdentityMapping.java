@@ -45,8 +45,6 @@ public class IdentityMapping {
 		private SupervisorBiometricFileName supervisorBiometricFileName;
 		private ResidenceStatus residenceStatus;
 		private FullAddress fullAddress;
-		private SelectedHandles selectedHandles;
-
 	}
 
 	@Data
@@ -245,11 +243,4 @@ public class IdentityMapping {
 					.map(StringUtils::trim).filter(StringUtils::isNotBlank).collect(Collectors.toList());
 		}
 	}
-
-	@Data
-	@NoArgsConstructor
-	public static class SelectedHandles {
-		private String value;
-	}
-
 }
