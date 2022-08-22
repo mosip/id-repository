@@ -291,7 +291,7 @@ public class CredentialProvider {
 			Object object = identity.get(attribute);
 				if (object != null) {
 					if(userReqMaskingAttributes.contains(attribute)) {
-						 formattedObject=convertToMaskDataFormat(object.toString());
+						 formattedObject=maskData(object.toString());
 					 	 attributesMap.put(key, formattedObject);
 					 }
 					 if(userReqFormatingAttributes.containsKey(attribute)) {
@@ -452,7 +452,7 @@ public class CredentialProvider {
 	private String filterBiometric(String individualBiometricsValue, AllowedKycDto key) throws Exception {
 
 		Source source = key.getSource().get(0);
-
+		
 		List<Filter> filterList = source.getFilter();
 		if (filterList != null && !filterList.isEmpty()) {
 			Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
@@ -515,19 +515,20 @@ public class CredentialProvider {
 			formattedObject = formatData(identity, attribute);
 		return formattedObject;
 	}
-/**
- * 
- * @param identity
- * @param formatAttrName
- * @return
- * @throws Exception
- */
-	private JSONArray formatData(JSONObject identity,String formatAttrName) throws Exception {
+
+	/**
+	 * 
+	 * @param identity
+	 * @param format the name and address attributes
+	 * @return
+	 * @throws Exception
+	 */
+	private JSONArray formatData(JSONObject identity, String formatAttrName) throws Exception {
 		List<String> identityAttributesList = Collections.EMPTY_LIST;
 		String formattedData = "";
-		if(formatAttrName.equals(CredentialConstants.NAME) || formatAttrName.equals(CredentialConstants.FULLNAME)) {
-			 identityAttributesList = getNameAttributes();
-		}else if(formatAttrName.equals(CredentialConstants.FULLADDRESS)){
+		if (formatAttrName.equals(CredentialConstants.NAME) || formatAttrName.equals(CredentialConstants.FULLNAME)) {
+			identityAttributesList = getNameAttributes();
+		} else if (formatAttrName.equals(CredentialConstants.FULLADDRESS)) {
 			identityAttributesList = getAddressAttributes();
 		}
 		Map<String, Map<String, String>> languageMap = new HashMap<>();
@@ -535,9 +536,9 @@ public class CredentialProvider {
 		LOGGER.debug("name attributes:  ");
 		for (String identityAttr : identityAttributesList) {
 			Object identityObj = identity.get(identityAttr);
-			if(identityObj  != null && identityObj instanceof List) {
+			if (identityObj != null && identityObj instanceof List) {
 				getIdentityAttributeForList(identity, identityAttr, languageMap);
-			}else if(identityObj != null && identityObj instanceof String) {
+			} else if (identityObj != null && identityObj instanceof String) {
 				getIdentityAttribute(identity, identityAttr, languageMap);
 			}
 		}
@@ -547,14 +548,13 @@ public class CredentialProvider {
 			List<String> formatDataList = new ArrayList<>();
 			Map<String, String> languageSpecificValues = languageSpecificEntry.getValue();
 			for (String identityAttr : identityAttributesList) {
-				if(identityAttr != null && languageSpecificValues.get(identityAttr) != null) {
+				if (identityAttr != null && languageSpecificValues.get(identityAttr) != null) {
 					formatDataList.add(languageSpecificValues.get(identityAttr));
 				}
 			}
-			
-			if(formatAttrName.equals(CredentialConstants.NAME))
+			if (formatAttrName.equals(CredentialConstants.NAME))
 				formattedData = formatName(formatDataList);
-			else if(formatAttrName.equals(CredentialConstants.FULLADDRESS))
+			else if (formatAttrName.equals(CredentialConstants.FULLADDRESS))
 				formattedData = formatAddress(formatDataList);
 			langSpecificIdentity.put("language", lang);
 			langSpecificIdentity.put("value", formattedData);
@@ -564,16 +564,33 @@ public class CredentialProvider {
 		return array;
 	}
 	
-	private List<String> getAddressAttributes() throws Exception{
-		List<String> addressAttributes=identityMap.getIdentity().getFullAddress().getValueList();
+	/**
+	 * get the address data from identity json file
+	 * @return
+	 * @throws Exception
+	 */
+	private List<String> getAddressAttributes() throws Exception {
+		List<String> addressAttributes = identityMap.getIdentity().getFullAddress().getValueList();
 		return addressAttributes;
 	}
 
-	private List<String> getNameAttributes() throws Exception{
-		List<String> nameAttributes= identityMap.getIdentity().getName().getValueList();
+	/**
+	 * get the name data from identity json file
+	 * @return
+	 * @throws Exception
+	 */
+	private List<String> getNameAttributes() throws Exception {
+		List<String> nameAttributes = identityMap.getIdentity().getName().getValueList();
 		return nameAttributes;
 	}
-	
+
+	/**
+	 * get the identity attribute based on requested data
+	 * 
+	 * @param identity
+	 * @param attribute
+	 * @param languageMap
+	 */
 	private void getIdentityAttribute(JSONObject identity, String attribute,
 			Map<String, Map<String, String>> languageMap) {
 		if (identity.get(attribute) == null) {
@@ -591,6 +608,12 @@ public class CredentialProvider {
 		languageMap.put(lang, nameMap);
 	}
 
+	/**
+	 * get the identity attributes list based on requested data
+	 * @param identity
+	 * @param attribute
+	 * @param languageMap
+	 */
 	private void getIdentityAttributeForList(JSONObject identity, String attribute,
 			Map<String, Map<String, String>> languageMap) {
 		if (identity.get(attribute) == null) {
@@ -611,17 +634,14 @@ public class CredentialProvider {
 				languageMap.put(lang, nameMap);
 			}
 		}
-	}
-		
-	private Object maskData(Object object) {
-		Map<String, String> context = new HashMap<>();
-		context.put("value", String.valueOf(object));
-		VariableResolverFactory myVarFactory = new MapVariableResolverFactory(context);
-		myVarFactory.setNextFactory(functionFactory);
-		Serializable serializable = MVEL.compileExpression("convertToMaskData(value);");
-		return MVEL.executeExpression(serializable, context, myVarFactory, String.class);
-	}
+	}	
 
+	/**
+	 * format the date based on user requested data format
+	 * @param object
+	 * @param format
+	 * @return
+	 */
 	private Object formatDate(Object object, String format) {
 		Map<String, String> context = new HashMap<>();
 		context.put("value", String.valueOf(object));
@@ -666,7 +686,7 @@ public class CredentialProvider {
 	 * @param maskData
 	 * @return
 	 */
-	private String convertToMaskDataFormat(String maskData) {
+	private String maskData(String maskData) {
 		LOGGER.debug("Enter into maskData format");
 		Map<String, String> context = new HashMap<>();
 		context.put("maskData", maskData);
