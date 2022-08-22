@@ -233,6 +233,7 @@ public class IdRepoProxyServiceTest {
 				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}}"
 						.getBytes(), Object.class);
 		uinObj.setUinData(mapper.writeValueAsBytes(obj2));
+		when(uinRepo.getStatusByUin(Mockito.anyString())).thenReturn(ACTIVATED);
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
 		when(service.updateIdentity(any(), anyString())).thenReturn(uinObj);
 		when(service.retrieveIdentity(anyString(), any(), any(), any())).thenReturn(uinObj);

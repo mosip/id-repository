@@ -464,8 +464,10 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 					throw new IdRepoAppException(RECORD_EXISTS);
 				}
 				service.updateIdentity(request, uin);
-				if (Objects.nonNull(request.getRequest().getStatus())
-						&& env.getProperty(ACTIVE_STATUS).equalsIgnoreCase(request.getRequest().getStatus())) {
+				System.out.println(" >>>>>>>>env.getProperty(ACTIVE_STATUS)>>>>>>"+env.getProperty(ACTIVE_STATUS));
+				System.out.println(" >>>>>>>>env.uinRepo.getStatusByUin(uin)(ACTIVE_STATUS)>>>>>>"+uinRepo.getStatusByUin(uin));
+
+				if (env.getProperty(ACTIVE_STATUS).equalsIgnoreCase(uinRepo.getStatusByUin(uin))) {
 					notify(uin, true, request.getRequest().getRegistrationId());
 				}
 				return constructIdResponse(MOSIP_ID_UPDATE, service.retrieveIdentity(uinHash, IdType.UIN, null, null),
