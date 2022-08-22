@@ -450,7 +450,6 @@ public class CredentialProvider {
 	}
 
 	private String filterBiometric(String individualBiometricsValue, AllowedKycDto key) throws Exception {
-
 		Source source = key.getSource().get(0);
 		
 		List<Filter> filterList = source.getFilter();
