@@ -3,12 +3,14 @@ package io.mosip.credentialstore.test.provider.impl;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -17,12 +19,15 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.context.WebApplicationContext;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
@@ -36,9 +41,11 @@ import io.mosip.credentialstore.exception.SignatureException;
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.Utilities;
+import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
+import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.util.EnvUtil;
 
@@ -71,9 +78,14 @@ public class CredentialProviderTest {
 	private ResponseDTO response = new ResponseDTO();
 
 	PartnerCredentialTypePolicyDto policyResponse;
+	
+	@Autowired
+	private ObjectMapper mapper;
+	
+	IdentityMapping identityMapping;
 
 	@Before
-	public void setUp() throws DataEncryptionFailureException, ApiNotAccessibleException, SignatureException {
+	public void setUp() throws DataEncryptionFailureException, ApiNotAccessibleException, SignatureException, Exception {
 		EnvUtil.setDateTimePattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenReturn("testdata");
@@ -116,9 +128,26 @@ public class CredentialProviderTest {
 		sourceList3.add(source3);
 		kyc3.setSource(sourceList3);
 		shareableAttributes.add(kyc3);
+		AllowedKycDto kyc4 = new AllowedKycDto();
+		List<Source> sourceList4 = new ArrayList<>();
+		Source source4 = new Source();
+		source4.setAttribute("email");
+		sourceList4.add(source4);
+		kyc4.setSource(sourceList4);		
+		kyc4.setAttributeName("email");
+		kyc4.setEncrypted(true);
+		shareableAttributes.add(kyc4);
+		
 		PolicyAttributesDto dto = new PolicyAttributesDto();
 		dto.setShareableAttributes(shareableAttributes);
 		policyResponse.setPolicies(dto);
+		
+		identityMapping = mapper.readValue(
+				IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("identity-mapping.json"),
+						StandardCharsets.UTF_8),
+				IdentityMapping.class);
+		IdentityIssuanceProfileBuilder.setIdentityMapping(identityMapping);
+		IdentityIssuanceProfileBuilder.setDateFormat("uuuu/MM/dd");
 	}
 
 	@Test
@@ -266,7 +295,7 @@ public class CredentialProviderTest {
 
 		response.setDocuments(docList);
 		idResponse.setResponse(response);
-		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
+		CredentialServiceRequestDto credentialServiceRequestDto =getCredentialRequestDto();
 
 		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = credentialDefaultProvider
 				.prepareSharableAttributes(idResponse,
@@ -305,13 +334,57 @@ public class CredentialProviderTest {
 
 		response.setDocuments(docList);
 		idResponse.setResponse(response);
-		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
+		CredentialServiceRequestDto credentialServiceRequestDto = getCredentialRequestDto();
 		List<String> sharableAttributesList = new ArrayList<>();
 		sharableAttributesList.add("fullName");
 		credentialServiceRequestDto.setSharableAttributes(sharableAttributesList);
 		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = credentialDefaultProvider
 				.prepareSharableAttributes(idResponse, policyResponse, credentialServiceRequestDto);
 		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
+	}
+	
+	private CredentialServiceRequestDto getCredentialRequestDto() {
+		
+		CredentialServiceRequestDto credReq = new CredentialServiceRequestDto();
+		List<String> attributes = new ArrayList<String>();
+		
+		attributes.add("fullName");
+		attributes.add("middleName");
+		attributes.add("lastName");
+		attributes.add("phone");
+		attributes.add("email");
+		attributes.add("UIN");
+		attributes.add("fullAddress");
+		attributes.add("dob");
+		attributes.add("vid");
+
+		List<String> maskingAttributesList = new ArrayList<String>();
+		maskingAttributesList.add("phone");
+		maskingAttributesList.add("email");
+		maskingAttributesList.add("uin");
+		maskingAttributesList.add("vid");
+		
+		Map<String,Object> attributeFormat= new HashMap<String,Object>();
+		
+		attributeFormat.put("dateOfBirth", "DD/MMM/YYYY");
+		attributeFormat.put("fullAddress","");
+		attributeFormat.put("name","");
+		attributeFormat.put("fullName","");
+		
+		Map<String,Object>additionalData=new HashMap<String,Object>();		
+		
+		additionalData.put("formatingAttributes",attributeFormat);
+		additionalData.put("maskingAttributes",maskingAttributesList);
+		
+		credReq.setId("2361485607");
+		credReq.setCredentialType("euin");
+		credReq.setIssuer("mpartner-default-print");
+		credReq.setEncryptionKey("JQ5sLK6Sq11SzUZq");
+		credReq.setEncrypt(Boolean.FALSE);
+		credReq.setSharableAttributes(attributes);
+		credReq.setAdditionalData(additionalData);
+		
+		return credReq;
 	}
 
 }
