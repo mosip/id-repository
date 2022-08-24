@@ -3,12 +3,14 @@ package io.mosip.credentialstore.test.provider.impl;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -26,6 +28,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
@@ -40,9 +44,11 @@ import io.mosip.credentialstore.provider.impl.QrCodeProvider;
 import io.mosip.credentialstore.util.DigitalSignatureUtil;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.Utilities;
+import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
+import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.biometrics.constant.BiometricType;
@@ -86,7 +92,6 @@ public class QrCodeProviderTest {
 
 	@Mock
 	private CbeffUtil cbeffutil;
-
 
 	@Before
 	public void setUp() throws Exception {
@@ -173,6 +178,16 @@ public class QrCodeProviderTest {
 		filter4.setType("Finger");
 		filterList3.add(filter4);
 
+		AllowedKycDto kyc5 = new AllowedKycDto();
+		List<Source> sourceList5 = new ArrayList<>();
+		Source source5 = new Source();
+		source5.setAttribute("email");
+		sourceList5.add(source5);
+		kyc5.setSource(sourceList4);		
+		kyc5.setAttributeName("email");
+		kyc5.setEncrypted(true);
+		shareableAttributes.add(kyc5);	
+		
 		Source source4 = new Source();
 		source4.setAttribute("individualBiometrics");
 		source4.setFilter(filterList2);
@@ -342,7 +357,7 @@ public class QrCodeProviderTest {
 
 		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = qrCodeProvider.prepareSharableAttributes(idResponse,
 				policyResponse, credentialServiceRequestDto);
-		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
+		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 0);
 	}
 
 	@Test
@@ -364,6 +379,7 @@ public class QrCodeProviderTest {
 		identityMap.put("middleName", array);
 		identityMap.put("lastName", array);
 		identityMap.put("dateOfBirth", "1980/11/14");
+		identityMap.put("fullName", array);
 
 		Object identity = identityMap;
 		response.setIdentity(identity);
@@ -377,7 +393,7 @@ public class QrCodeProviderTest {
 
 		response.setDocuments(docList);
 		idResponse.setResponse(response);
-		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
+		CredentialServiceRequestDto credentialServiceRequestDto = getCredentialServiceRequestDto();
 		List<String> sharableAttributesList = new ArrayList<>();
 		sharableAttributesList.add("fullName");
 		credentialServiceRequestDto.setSharableAttributes(sharableAttributesList);
@@ -385,4 +401,49 @@ public class QrCodeProviderTest {
 				policyResponse, credentialServiceRequestDto);
 		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
 	}
+	
+	private CredentialServiceRequestDto getCredentialServiceRequestDto() {
+
+		CredentialServiceRequestDto credReq = new CredentialServiceRequestDto();
+		List<String> attributes = new ArrayList<String>();
+
+		attributes.add("fullName");
+		attributes.add("middleName");
+		attributes.add("lastName");
+		attributes.add("phone");
+		attributes.add("email");
+		attributes.add("UIN");
+		attributes.add("fullAddress");
+		attributes.add("dob");
+		attributes.add("vid");
+
+		List<String> maskingAttributesList = new ArrayList<String>();
+		maskingAttributesList.add("phone");
+		maskingAttributesList.add("email");
+		maskingAttributesList.add("uin");
+		maskingAttributesList.add("vid");
+
+		Map<String, Object> attributeFormat = new HashMap<String, Object>();
+
+		attributeFormat.put("dateOfBirth", "DD/MMM/YYYY");
+		attributeFormat.put("fullAddress", "");
+		attributeFormat.put("name", "");
+		attributeFormat.put("fullName", "");
+
+		Map<String, Object> additionalData = new HashMap<String, Object>();
+
+		additionalData.put("formatingAttributes", attributeFormat);
+		additionalData.put("maskingAttributes", maskingAttributesList);
+
+		credReq.setId("2361485607");
+		credReq.setCredentialType("euin");
+		credReq.setIssuer("mpartner-default-print");
+		credReq.setEncryptionKey("JQ5sLK6Sq11SzUZq");
+		credReq.setEncrypt(Boolean.FALSE);
+		credReq.setSharableAttributes(attributes);
+		credReq.setAdditionalData(additionalData);
+
+		return credReq;
+	}
+
 }
