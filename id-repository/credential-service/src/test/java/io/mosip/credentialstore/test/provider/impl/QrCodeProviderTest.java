@@ -3,14 +3,12 @@ package io.mosip.credentialstore.test.provider.impl;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -28,8 +26,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
@@ -44,11 +40,9 @@ import io.mosip.credentialstore.provider.impl.QrCodeProvider;
 import io.mosip.credentialstore.util.DigitalSignatureUtil;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.Utilities;
-import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
-import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.biometrics.constant.BiometricType;
@@ -92,6 +86,7 @@ public class QrCodeProviderTest {
 
 	@Mock
 	private CbeffUtil cbeffutil;
+
 
 	@Before
 	public void setUp() throws Exception {
@@ -178,16 +173,6 @@ public class QrCodeProviderTest {
 		filter4.setType("Finger");
 		filterList3.add(filter4);
 
-		AllowedKycDto kyc5 = new AllowedKycDto();
-		List<Source> sourceList5 = new ArrayList<>();
-		Source source5 = new Source();
-		source5.setAttribute("email");
-		sourceList5.add(source5);
-		kyc5.setSource(sourceList4);		
-		kyc5.setAttributeName("email");
-		kyc5.setEncrypted(true);
-		shareableAttributes.add(kyc5);	
-		
 		Source source4 = new Source();
 		source4.setAttribute("individualBiometrics");
 		source4.setFilter(filterList2);
@@ -357,7 +342,7 @@ public class QrCodeProviderTest {
 
 		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = qrCodeProvider.prepareSharableAttributes(idResponse,
 				policyResponse, credentialServiceRequestDto);
-		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 0);
+		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
 	}
 
 	@Test
@@ -445,5 +430,4 @@ public class QrCodeProviderTest {
 
 		return credReq;
 	}
-
 }
