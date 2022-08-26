@@ -7,6 +7,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -240,6 +241,7 @@ public class RestUtilTest {
      * This class tests the getToken method
      * @throws IOException
      */
+    @Ignore
     @Test
     public void getTokenTest() throws IOException {
         HttpClient httpClient = Mockito.mock(HttpClient.class);
