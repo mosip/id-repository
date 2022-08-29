@@ -3,14 +3,12 @@ package io.mosip.credentialstore.test.provider.impl;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -40,7 +38,6 @@ import io.mosip.credentialstore.exception.SignatureException;
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.Utilities;
-import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
@@ -77,11 +74,6 @@ public class CredentialProviderTest {
 	private ResponseDTO response = new ResponseDTO();
 
 	PartnerCredentialTypePolicyDto policyResponse;
-
-	@Mock
-	private ObjectMapper mapper;
-	
-	IdentityMapping identityMapping;
 	
 	@Before
 	public void setUp() throws DataEncryptionFailureException, ApiNotAccessibleException, SignatureException,Exception {
@@ -139,13 +131,6 @@ public class CredentialProviderTest {
 		PolicyAttributesDto dto = new PolicyAttributesDto();
 		dto.setShareableAttributes(shareableAttributes);
 		policyResponse.setPolicies(dto);		
-
-		identityMapping = mapper.readValue(
-				IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("identity-mapping.json"),
-						StandardCharsets.UTF_8),
-				IdentityMapping.class);
-		IdentityIssuanceProfileBuilder.setIdentityMapping(identityMapping);
-		IdentityIssuanceProfileBuilder.setDateFormat("uuuu/MM/dd");
 	}
 
 	@Test
