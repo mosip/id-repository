@@ -364,6 +364,7 @@ public class QrCodeProviderTest {
 		identityMap.put("middleName", array);
 		identityMap.put("lastName", array);
 		identityMap.put("dateOfBirth", "1980/11/14");
+		identityMap.put("fullName", array);
 
 		Object identity = identityMap;
 		response.setIdentity(identity);
@@ -377,12 +378,56 @@ public class QrCodeProviderTest {
 
 		response.setDocuments(docList);
 		idResponse.setResponse(response);
-		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
+		CredentialServiceRequestDto credentialServiceRequestDto = getCredentialServiceRequestDto();
 		List<String> sharableAttributesList = new ArrayList<>();
 		sharableAttributesList.add("fullName");
 		credentialServiceRequestDto.setSharableAttributes(sharableAttributesList);
 		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = qrCodeProvider.prepareSharableAttributes(idResponse,
 				policyResponse, credentialServiceRequestDto);
 		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
+	}
+	
+	private CredentialServiceRequestDto getCredentialServiceRequestDto() {
+
+		CredentialServiceRequestDto credReq = new CredentialServiceRequestDto();
+		List<String> attributes = new ArrayList<String>();
+
+		attributes.add("fullName");
+		attributes.add("middleName");
+		attributes.add("lastName");
+		attributes.add("phone");
+		attributes.add("email");
+		attributes.add("UIN");
+		attributes.add("fullAddress");
+		attributes.add("dob");
+		attributes.add("vid");
+
+		List<String> maskingAttributesList = new ArrayList<String>();
+		maskingAttributesList.add("phone");
+		maskingAttributesList.add("email");
+		maskingAttributesList.add("uin");
+		maskingAttributesList.add("vid");
+
+		Map<String, Object> attributeFormat = new HashMap<String, Object>();
+
+		attributeFormat.put("dateOfBirth", "DD/MMM/YYYY");
+		attributeFormat.put("fullAddress", "");
+		attributeFormat.put("name", "");
+		attributeFormat.put("fullName", "");
+
+		Map<String, Object> additionalData = new HashMap<String, Object>();
+
+		additionalData.put("formatingAttributes", attributeFormat);
+		additionalData.put("maskingAttributes", maskingAttributesList);
+
+		credReq.setId("2361485607");
+		credReq.setCredentialType("euin");
+		credReq.setIssuer("mpartner-default-print");
+		credReq.setEncryptionKey("JQ5sLK6Sq11SzUZq");
+		credReq.setEncrypt(Boolean.FALSE);
+		credReq.setSharableAttributes(attributes);
+		credReq.setAdditionalData(additionalData);
+
+		return credReq;
 	}
 }

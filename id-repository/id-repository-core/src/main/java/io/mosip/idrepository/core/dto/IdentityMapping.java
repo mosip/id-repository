@@ -44,6 +44,7 @@ public class IdentityMapping {
 		private OfficerBiometricFileName officerBiometricFileName;
 		private SupervisorBiometricFileName supervisorBiometricFileName;
 		private ResidenceStatus residenceStatus;
+		private FullAddress fullAddress;
 	}
 
 	@Data
@@ -128,7 +129,12 @@ public class IdentityMapping {
 	@Data
 	@NoArgsConstructor
 	public static class Name {
-		private String value;
+		private String value;		
+		public List<String> getValueList() {
+			return Arrays.asList(Objects.nonNull(value) ? value.split(",") : new String[] { "" }).stream()
+					.map(StringUtils::trim).filter(StringUtils::isNotBlank).collect(Collectors.toList());
+		}
+		
 	}
 
 	@Data
@@ -225,5 +231,16 @@ public class IdentityMapping {
 	@NoArgsConstructor
 	public static class ResidenceStatus {
 		private String value;
+	}
+	
+	@Data
+	@NoArgsConstructor
+	public static class FullAddress {
+		private String value;
+		
+		public List<String> getValueList() {
+			return Arrays.asList(Objects.nonNull(value) ? value.split(",") : new String[] { "" }).stream()
+					.map(StringUtils::trim).filter(StringUtils::isNotBlank).collect(Collectors.toList());
+		}
 	}
 }
