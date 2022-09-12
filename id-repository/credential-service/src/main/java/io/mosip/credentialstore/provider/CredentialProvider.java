@@ -286,8 +286,11 @@ public class CredentialProvider {
 		for (AllowedKycDto key : sharableAttributeDemographicKeySet) {
 			String attribute = key.getSource().get(0).getAttribute();
 			Object formattedObject=null;
-			if(!userReqMaskingAttributes.contains(attribute) && !userReqFormatingAttributes.containsKey(attribute))
-				continue;
+			if (userReqMaskingAttributes != null && !userReqMaskingAttributes.isEmpty()
+					&& userReqFormatingAttributes != null && !userReqFormatingAttributes.isEmpty()) {
+				if (!userReqMaskingAttributes.contains(attribute) && !userReqFormatingAttributes.containsKey(attribute))
+					continue;
+			}
 			Object object = identity.get(attribute);
 				if (object != null) {
 					if(userReqMaskingAttributes.contains(attribute)) {
