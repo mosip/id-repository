@@ -11,7 +11,7 @@
 	</parent>
 
 	<artifactId>credential-request-generator</artifactId>
-	<version>1.1.5.3</version>
+	<version>1.1.5.3-p1-SNAPSHOT</version>
 	<name>credential-request-generator</name>
 
 	<properties>
