@@ -21,6 +21,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -37,8 +38,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.google.gson.Gson;
 
 import io.mosip.credential.request.generator.constants.ApiName;
-
-import io.mosip.credential.request.generator.exception.ApiNotAccessibleException;
 import io.mosip.idrepository.core.dto.Metadata;
 import io.mosip.idrepository.core.dto.PasswordRequest;
 import io.mosip.idrepository.core.dto.SecretKeyRequest;
@@ -53,6 +52,14 @@ import io.mosip.kernel.core.util.TokenHandlerUtil;
  */
 @Component
 public class RestUtil {
+	
+	@Value("${idrepo.default.processor.httpclient.connections.max.per.host:20}")
+	private int maxConnectionPerRoute;
+
+	@Value("${idrepo.default.processor.httpclient.connections.max:100}")
+	private int totalMaxConnection;
+	
+	private RestTemplate restTemplate;
 
 	/** The environment. */
     @Autowired
@@ -181,18 +188,17 @@ public class RestUtil {
 	 * @throws NoSuchAlgorithmException the no such algorithm exception
 	 * @throws KeyStoreException        the key store exception
 	 */
-    public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
-        TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
-        SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
-                .loadTrustMaterial(null, acceptingTrustStrategy).build();
-        SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
-        CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
-        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-        requestFactory.setHttpClient(httpClient);
+	public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
+		if (restTemplate != null) {
+			HttpClientBuilder httpClientBuilder = HttpClients.custom().setMaxConnPerRoute(maxConnectionPerRoute)
+					.setMaxConnTotal(totalMaxConnection).disableCookieManagement();
+			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+			requestFactory.setHttpClient(httpClientBuilder.build());
 
-        return new RestTemplate(requestFactory);
-
-    }
+			restTemplate = new RestTemplate(requestFactory);
+		}
+		return restTemplate;
+	}
 
 	/**
 	 * Sets the request header.
