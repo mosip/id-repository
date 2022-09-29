@@ -10,15 +10,18 @@ import lombok.NoArgsConstructor;
 /**
  * @author Manoj SP
  *
- */    
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class VidInfoDTO {
 
 	private String vid;
+	private String maskedVid;
 	private String vidType;
 	private LocalDateTime expiryTimestamp;
+	private LocalDateTime generateTimestamp;
 	private Integer transactionLimit;
+	private Integer transactionLeftCount;
 	private Map<String, String> hashAttributes;
 }

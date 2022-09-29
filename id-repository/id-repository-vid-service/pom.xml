@@ -44,6 +44,11 @@
 			<version>${kernel.idgenerator.vid.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.mvel</groupId>
+			<artifactId>mvel2</artifactId>
+			<version>2.4.7.Final</version>
+		</dependency>
+		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-vid</artifactId>
 			<version>${kernel.idvalidator.vid.version}</version>

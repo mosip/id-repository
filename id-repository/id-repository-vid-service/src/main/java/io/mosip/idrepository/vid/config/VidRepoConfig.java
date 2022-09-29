@@ -16,8 +16,12 @@ import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
 import org.hibernate.Interceptor;
+import org.mvel2.MVEL;
+import org.mvel2.integration.VariableResolverFactory;
+import org.mvel2.integration.impl.MapVariableResolverFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
@@ -34,6 +38,7 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
@@ -65,13 +70,13 @@ import io.mosip.kernel.core.util.StringUtils;
 @EnableAsync
 @EnableJpaRepositories(basePackageClasses = { VidRepo.class, UinHashSaltRepo.class, UinEncryptSaltRepo.class })
 public class VidRepoConfig {
-	
+
 	Logger mosipLogger = IdRepoLogger.getLogger(VidRepoConfig.class);
 
 	/** The Interceptor. */
 	@Autowired
 	private Interceptor interceptor;
-	
+
 	/** The id. */
 	private Map<String, String> id;
 
@@ -168,7 +173,7 @@ public class VidRepoConfig {
 	public CredentialServiceManager credentialServiceManager(@Qualifier("selfTokenWebClient") WebClient webClient) {
 		return new CredentialServiceManager(restHelperWithAuth(webClient));
 	}
-	
+
 	@Bean
 	public RestHelper restHelperWithAuth(@Qualifier("selfTokenWebClient") WebClient webClient) {
 		return new RestHelper(webClient);
@@ -184,39 +189,41 @@ public class VidRepoConfig {
 		return new RestRequestBuilder(Arrays.stream(RestServicesConstants.values())
 				.map(RestServicesConstants::getServiceName).collect(Collectors.toList()));
 	}
-	
+
 	@Bean
 	@Primary
 	public Executor executor() {
-	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-	    executor.setCorePoolSize(Math.floorDiv(EnvUtil.getActiveAsyncThreadCount(), 4));
-	    executor.setMaxPoolSize(EnvUtil.getActiveAsyncThreadCount());
-	    executor.setThreadNamePrefix("idrepo-vid-");
-	    executor.setWaitForTasksToCompleteOnShutdown(true);
-	    executor.initialize();
-	    return executor;
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(Math.floorDiv(EnvUtil.getActiveAsyncThreadCount(), 4));
+		executor.setMaxPoolSize(EnvUtil.getActiveAsyncThreadCount());
+		executor.setThreadNamePrefix("idrepo-vid-");
+		executor.setWaitForTasksToCompleteOnShutdown(true);
+		executor.initialize();
+		return executor;
 	}
-	
+
 	@Bean
 	@Qualifier("webSubHelperExecutor")
 	public Executor webSubHelperExecutor() {
-	    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-	    executor.setCorePoolSize(Math.floorDiv(EnvUtil.getActiveAsyncThreadCount(), 4));
-	    executor.setMaxPoolSize(EnvUtil.getActiveAsyncThreadCount());
-	    executor.setThreadNamePrefix("idrepo-websub-");
-	    executor.setWaitForTasksToCompleteOnShutdown(true);
-	    executor.initialize();
-	    return executor;
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(Math.floorDiv(EnvUtil.getActiveAsyncThreadCount(), 4));
+		executor.setMaxPoolSize(EnvUtil.getActiveAsyncThreadCount());
+		executor.setThreadNamePrefix("idrepo-websub-");
+		executor.setWaitForTasksToCompleteOnShutdown(true);
+		executor.initialize();
+		return executor;
 	}
-	
+
 	@Scheduled(fixedRateString = "${" + "mosip.idrepo.monitor-thread-queue-in-ms" + ":10000}")
 	public void monitorThreadQueueLimit() {
 		if (StringUtils.isNotBlank(EnvUtil.getMonitorAsyncThreadQueue())) {
 			ThreadPoolTaskExecutor threadPoolTaskExecutor = (ThreadPoolTaskExecutor) executor();
 			ThreadPoolTaskExecutor webSubHelperExecutor = (ThreadPoolTaskExecutor) webSubHelperExecutor();
 			String monitoringLog = "Thread Name : {} Thread Active Count: {} Thread Task count: {} Thread queue count: {}";
-			logThreadQueueDetails(threadPoolTaskExecutor, threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size(), monitoringLog);
-			logThreadQueueDetails(webSubHelperExecutor, webSubHelperExecutor.getThreadPoolExecutor().getQueue().size(), monitoringLog);
+			logThreadQueueDetails(threadPoolTaskExecutor,
+					threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size(), monitoringLog);
+			logThreadQueueDetails(webSubHelperExecutor, webSubHelperExecutor.getThreadPoolExecutor().getQueue().size(),
+					monitoringLog);
 		}
 	}
 
@@ -227,5 +234,23 @@ public class VidRepoConfig {
 					threadPoolTaskExecutor.getActiveCount(),
 					threadPoolTaskExecutor.getThreadPoolExecutor().getTaskCount(), threadPoolQueueSize);
 	}
-	
+
+	@Value("${config.server.file.storage.uri}")
+	private String configServerFileStorageURL;
+
+	@Value("${credential.service.mvel.file}")
+	private String mvelFile;
+
+	@Autowired
+	@Qualifier("restTemplate")
+	private RestTemplate restTemplate;
+
+	@Bean("mask")
+	public VariableResolverFactory getVariableResolverFactory() {
+		String mvelExpression = restTemplate.getForObject(configServerFileStorageURL + mvelFile, String.class);
+		VariableResolverFactory functionFactory = new MapVariableResolverFactory();
+		MVEL.eval(mvelExpression, functionFactory);
+		return functionFactory;
+	}
+
 }
