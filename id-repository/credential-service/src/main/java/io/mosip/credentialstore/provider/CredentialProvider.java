@@ -285,23 +285,19 @@ public class CredentialProvider {
 		//formatting and masking the data based on request	
 		for (AllowedKycDto key : sharableAttributeDemographicKeySet) {
 			String attribute = key.getSource().get(0).getAttribute();
-			Object formattedObject=null;
-			
-		/*	if ((userReqMaskingAttributes == null || userReqMaskingAttributes.isEmpty()
-					|| !userReqMaskingAttributes.contains(attribute))
-					&& (userReqFormatingAttributes == null || userReqFormatingAttributes.isEmpty()
-							|| !userReqFormatingAttributes.containsKey(attribute)))
-				continue;*/
-			
 			Object object = identity.get(attribute);
+			Object formattedObject=object;
+			
 				if (object != null) {
 					if(userReqMaskingAttributes!=null && userReqMaskingAttributes.contains(attribute)) {
 						 formattedObject=maskData(object.toString());
-					 	 attributesMap.put(key, formattedObject);
-					 }else if(userReqFormatingAttributes != null && userReqFormatingAttributes.containsKey(attribute)) {
+					 }
+					if(userReqFormatingAttributes != null && userReqFormatingAttributes.containsKey(attribute)) {
 						 formattedObject = filterAndFormat(key,identity,userReqFormatingAttributes);
-						 attributesMap.put(key, formattedObject);
-					 }else if (attribute.equalsIgnoreCase(CredentialConstants.ENCRYPTIONKEY)) {
+					 }
+					attributesMap.put(key, formattedObject);
+				} else {
+					 if (attribute.equalsIgnoreCase(CredentialConstants.ENCRYPTIONKEY)) {
 						additionalData.put(key.getAttributeName(), credentialServiceRequestDto.getEncryptionKey());
 					}else if(attribute.equalsIgnoreCase(CredentialConstants.VID)){
 						VidInfoDTO vidInfoDTO;
