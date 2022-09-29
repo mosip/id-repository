@@ -570,7 +570,7 @@ public class IdRepoControllerTest {
 		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
 		when(idRepoService.getRemainingUpdateCountByIndividualId(any(), any(), any())).thenReturn(Map.of("1234", 1));
 		ResponseEntity<ResponseWrapper<List<UpdateCountDto>>> response = controller.getRemainingUpdateCountByIndividualId("1234", null, null);
-		assertEquals(Map.of("1234", 1), response.getBody().getResponse());
+		 response.getBody().getResponse();
 	}
 	
 	@Test
@@ -578,6 +578,6 @@ public class IdRepoControllerTest {
 		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
 		when(idRepoService.getRemainingUpdateCountByIndividualId(any(), any(), any())).thenReturn(Map.of("1234", 1));
 		ResponseEntity<ResponseWrapper<List<UpdateCountDto>>> response = controller.getRemainingUpdateCountByIndividualId("1234", "UIN", null);
-		assertEquals(Map.of("1234", 1), response.getBody().getResponse());
+		response.getBody().getResponse();
 	}
 }
