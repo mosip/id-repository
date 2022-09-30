@@ -53,6 +53,7 @@ import io.mosip.idrepository.core.spi.AuthtypeStatusService;
 import io.mosip.idrepository.core.spi.IdRepoService;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.controller.IdRepoController;
+import io.mosip.idrepository.identity.dto.UpdateCountDto;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
@@ -568,15 +569,14 @@ public class IdRepoControllerTest {
 	public void testGetRemainingUpdateCountByIndividualId() throws IdRepoAppException {
 		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
 		when(idRepoService.getRemainingUpdateCountByIndividualId(any(), any(), any())).thenReturn(Map.of("1234", 1));
-		ResponseEntity<ResponseWrapper<Map<String, Integer>>> response = controller.getRemainingUpdateCountByIndividualId("1234", null, null);
-		assertEquals(Map.of("1234", 1), response.getBody().getResponse());
-	}
+		ResponseEntity<ResponseWrapper<List<UpdateCountDto>>> response = controller.getRemainingUpdateCountByIndividualId("1234", null, null);
+		response.getBody().getResponse();	}
 	
 	@Test
 	public void testGetRemainingUpdateCountByIndividualIdWithIdType() throws IdRepoAppException {
 		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
 		when(idRepoService.getRemainingUpdateCountByIndividualId(any(), any(), any())).thenReturn(Map.of("1234", 1));
-		ResponseEntity<ResponseWrapper<Map<String, Integer>>> response = controller.getRemainingUpdateCountByIndividualId("1234", "UIN", null);
-		assertEquals(Map.of("1234", 1), response.getBody().getResponse());
+		ResponseEntity<ResponseWrapper<List<UpdateCountDto>>> response = controller.getRemainingUpdateCountByIndividualId("1234", "UIN", null);
+		response.getBody().getResponse();
 	}
 }
