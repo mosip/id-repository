@@ -612,8 +612,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	}
 
 	private VidInfoDTO createVidInfo(Vid vid, Map<String, String> idHashAttributes) {
-
-		return new VidInfoDTO(vid.getVid(), vid.getVidTypeCode(),vid.getExpiryDTimes(), vid.getGeneratedDTimes(),
+		return new VidInfoDTO(vid.getVid(),maskData(vid.getVid()), vid.getVidTypeCode(),  vid.getGeneratedDTimes(), vid.getExpiryDTimes(),
 				policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(),
 				idHashAttributes);
 	}
@@ -761,6 +760,4 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		Serializable serializable = MVEL.compileExpression(identityAttribute + "(maskData);");
 		return MVEL.executeExpression(serializable, context, myVarFactory, String.class);
 	}
-
 }
-
