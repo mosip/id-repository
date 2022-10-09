@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.mosip.idrepository</groupId>
 	<artifactId>id-repository-parent</artifactId>
-	<version>1.1.5.5</version>
+	<version>1.1.5.5-p1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>ID-Repository</name>
@@ -57,12 +57,12 @@
 	</repositories>
 
 	<modules>
-	<module>id-repository-core</module>
-	<module>id-repository-vid-service</module>
-	<module>id-repository-identity-service</module>
+<!-- 	<module>id-repository-core</module> -->
+<!-- 	<module>id-repository-vid-service</module> -->
+<!-- 	<module>id-repository-identity-service</module> -->
 	<module>credential-request-generator</module>
 	<module>credential-service</module>
-	<module>id-repository-salt-generator</module>
+<!-- 	<module>id-repository-salt-generator</module> -->
 	</modules>
 
 	<properties>
