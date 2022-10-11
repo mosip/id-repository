@@ -17,8 +17,10 @@ import lombok.NoArgsConstructor;
 public class VidInfoDTO {
 
 	private String vid;
+	private String maskedVid;
 	private String vidType;
 	private LocalDateTime expiryTimestamp;
+	private LocalDateTime genratedOnTimestamp;
 	private Integer transactionLimit;
 	private Map<String, String> hashAttributes;
 }
