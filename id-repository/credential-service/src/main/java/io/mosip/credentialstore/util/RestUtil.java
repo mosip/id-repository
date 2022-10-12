@@ -24,6 +24,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -53,6 +54,14 @@ public class RestUtil {
 
     private static final String AUTHORIZATION = "Authorization=";
 
+	@Value("${idrepo.default.processor.httpclient.connections.max.per.host:20}")
+	private int maxConnectionPerRoute;
+
+	@Value("${idrepo.default.processor.httpclient.connections.max:100}")
+	private int totalMaxConnection;
+
+	private RestTemplate restTemplate;
+
 	@SuppressWarnings("unchecked")
 	public <T> T postApi(ApiName apiName, List<String> pathsegments, String queryParamName, String queryParamValue,
 			MediaType mediaType, Object requestType, Class<?> responseClass) throws Exception {
@@ -79,11 +88,7 @@ public class RestUtil {
 					builder.queryParam(queryParamNameArr[i], queryParamValueArr[i]);
 				}
 			}
-
-        RestTemplate restTemplate;
-      
         try {
-            restTemplate = getRestTemplate();
             result = (T) restTemplate.postForObject(builder.toUriString(), setRequestHeader(requestType, mediaType), responseClass);
 
         } catch (Exception e) {
@@ -123,10 +128,7 @@ public class RestUtil {
 
 			}
 		uriComponents = builder.build(false).encode();
-        RestTemplate restTemplate;
-
         try {
-            restTemplate = getRestTemplate();
             result = (T) restTemplate.exchange(uriComponents.toUri(), HttpMethod.GET, setRequestHeader(null, null), responseType)
                     .getBody();
         } catch (Exception e) {
@@ -149,12 +151,7 @@ public class RestUtil {
 			 builder = UriComponentsBuilder.fromUriString(apiHostIpPort);
 
 			 URI urlWithPath = builder.build(pathsegments);
-
-
-        RestTemplate restTemplate;
-
         try {
-            restTemplate = getRestTemplate();
             result = (T) restTemplate.exchange(urlWithPath, HttpMethod.GET, setRequestHeader(null, null), responseType)
                     .getBody();
         } catch (Exception e) {
@@ -164,18 +161,18 @@ public class RestUtil {
 		}
 		return result;
     }
-    public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
-        TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
-        SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
-                .loadTrustMaterial(null, acceptingTrustStrategy).build();
-        SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
-        CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
-        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-        requestFactory.setHttpClient(httpClient);
+	public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
+		if (restTemplate != null) {
+			HttpClientBuilder httpClientBuilder = HttpClients.custom().setMaxConnPerRoute(maxConnectionPerRoute)
+					.setMaxConnTotal(totalMaxConnection).disableCookieManagement();
+			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+			requestFactory.setHttpClient(httpClientBuilder.build());
 
-        return new RestTemplate(requestFactory);
+			restTemplate = new RestTemplate(requestFactory);
+		}
+		return restTemplate;
+	}
 
-    }
 
     private HttpEntity<Object> setRequestHeader(Object requestType, MediaType mediaType) throws IOException {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
@@ -282,11 +279,7 @@ public class RestUtil {
 					builder.queryParam(queryParamNameArr[i], queryParamValueArr[i]);
 				}
 			}
-
-			RestTemplate restTemplate;
-
 			try {
-				restTemplate = getRestTemplate();
 				result = (T) restTemplate.postForObject(builder.toUriString(), setRequestHeader(requestType, mediaType),
 						responseClass);
 
