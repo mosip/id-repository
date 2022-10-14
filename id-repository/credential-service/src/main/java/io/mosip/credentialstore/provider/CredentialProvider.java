@@ -236,7 +236,7 @@ public class CredentialProvider {
 		Set<AllowedKycDto> sharableAttributeBiometricKeySet = new HashSet<>();
 			List<String> userRequestedAttributes = credentialServiceRequestDto.getSharableAttributes();
 			Map<String, Object> additionalData = credentialServiceRequestDto.getAdditionalData();			
-			if (sharableAttributeList != null && userRequestedAttributes != null) {
+			if (sharableAttributeList != null && userRequestedAttributes != null && !userRequestedAttributes.isEmpty()) {
 				userRequestedSharableAttributesList = sharableAttributeList.stream()
 						.filter(allowedKycDto -> userRequestedAttributes.contains(allowedKycDto.getAttributeName()))
 						.collect(Collectors.toList());
@@ -291,8 +291,7 @@ public class CredentialProvider {
 				if (object != null) {
 					if(userReqMaskingAttributes!=null && userReqMaskingAttributes.contains(attribute)) {
 						 formattedObject=maskData(object.toString());
-					 }
-					if(userReqFormatingAttributes != null && userReqFormatingAttributes.containsKey(attribute)) {
+					 }else if(userReqFormatingAttributes != null && userReqFormatingAttributes.containsKey(attribute)) {
 						 formattedObject = filterAndFormat(key,identity,userReqFormatingAttributes);
 					 }
 					attributesMap.put(key, formattedObject);
