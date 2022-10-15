@@ -3,12 +3,15 @@ package io.mosip.credentialstore.test.provider.impl;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -25,6 +28,10 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.dto.AllowedKycDto;
@@ -40,9 +47,11 @@ import io.mosip.credentialstore.provider.impl.QrCodeProvider;
 import io.mosip.credentialstore.util.DigitalSignatureUtil;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.Utilities;
+import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
+import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.biometrics.constant.BiometricType;
@@ -87,10 +96,22 @@ public class QrCodeProviderTest {
 	@Mock
 	private CbeffUtil cbeffutil;
 
-
+	IdentityMapping identityMapping;
+	
+	private ObjectMapper mapper = new ObjectMapper();
+	
 	@Before
 	public void setUp() throws Exception {
 		PowerMockito.mockStatic(MVEL.class);
+		ReflectionTestUtils.setField(qrCodeProvider, "mapper", mapper);
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		identityMapping = mapper.readValue(
+				IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("identity-mapping.json"),
+						StandardCharsets.UTF_8),
+				IdentityMapping.class);
+		IdentityIssuanceProfileBuilder.setIdentityMapping(identityMapping);
+		IdentityIssuanceProfileBuilder.setDateFormat("uuuu/MM/dd");
+		
 		Mockito.when(MVEL.executeExpression(Mockito.any(), Mockito.any(), Mockito.anyMap(), Mockito.any()))
 				.thenReturn("test");
 		EnvUtil.setDateTimePattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
@@ -307,7 +328,6 @@ public class QrCodeProviderTest {
 	}
 	
 	@Test
-	@Ignore
 	public void testPrepareSharableAttributesSuccess() throws CredentialFormatterException {
 		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
 		Map<String, String> map = new HashMap<>();
@@ -338,54 +358,13 @@ public class QrCodeProviderTest {
 
 		response.setDocuments(docList);
 		idResponse.setResponse(response);
-		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
-
-		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = qrCodeProvider.prepareSharableAttributes(idResponse,
-				policyResponse, credentialServiceRequestDto);
-		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
-	}
-
-	@Test
-	public void testPrepareSharableAttributesWithFullNameSuccess() throws CredentialFormatterException {
-		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
-		Map<String, String> map = new HashMap<>();
-		map.put("language", "eng");
-		map.put("value", "raghav");
-		JSONObject j1 = new JSONObject(map);
-
-		Map<String, String> map2 = new HashMap<>();
-		map2.put("language", "ara");
-		map2.put("value", "Alok");
-		JSONObject j2 = new JSONObject(map2);
-		JSONArray array = new JSONArray();
-		array.add(j1);
-		array.add(j2);
-		identityMap.put("firstName", array);
-		identityMap.put("middleName", array);
-		identityMap.put("lastName", array);
-		identityMap.put("dateOfBirth", "1980/11/14");
-		identityMap.put("fullName", array);
-
-		Object identity = identityMap;
-		response.setIdentity(identity);
-
-		DocumentsDTO doc1 = new DocumentsDTO();
-		doc1.setCategory("individualBiometrics");
-
-		doc1.setValue("text biomterics");
-		List<DocumentsDTO> docList = new ArrayList<>();
-		docList.add(doc1);
-
-		response.setDocuments(docList);
-		idResponse.setResponse(response);
 		CredentialServiceRequestDto credentialServiceRequestDto = getCredentialServiceRequestDto();
-		List<String> sharableAttributesList = new ArrayList<>();
-		sharableAttributesList.add("fullName");
-		credentialServiceRequestDto.setSharableAttributes(sharableAttributesList);
+
 		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = qrCodeProvider.prepareSharableAttributes(idResponse,
 				policyResponse, credentialServiceRequestDto);
 		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
 	}
+
 	
 	private CredentialServiceRequestDto getCredentialServiceRequestDto() {
 
