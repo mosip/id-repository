@@ -365,6 +365,47 @@ public class QrCodeProviderTest {
 		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
 	}
 
+	@Test
+	public void testPrepareSharableAttributesWithFullNameSuccess() throws CredentialFormatterException {
+		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
+		Map<String, String> map = new HashMap<>();
+		map.put("language", "eng");
+		map.put("value", "raghav");
+		JSONObject j1 = new JSONObject(map);
+
+		Map<String, String> map2 = new HashMap<>();
+		map2.put("language", "ara");
+		map2.put("value", "Alok");
+		JSONObject j2 = new JSONObject(map2);
+		JSONArray array = new JSONArray();
+		array.add(j1);
+		array.add(j2);
+		identityMap.put("firstName", array);
+		identityMap.put("middleName", array);
+		identityMap.put("lastName", array);
+		identityMap.put("dateOfBirth", "1980/11/14");
+		identityMap.put("fullName", array);
+
+		Object identity = identityMap;
+		response.setIdentity(identity);
+
+		DocumentsDTO doc1 = new DocumentsDTO();
+		doc1.setCategory("individualBiometrics");
+
+		doc1.setValue("text biomterics");
+		List<DocumentsDTO> docList = new ArrayList<>();
+		docList.add(doc1);
+
+		response.setDocuments(docList);
+		idResponse.setResponse(response);
+		CredentialServiceRequestDto credentialServiceRequestDto = getCredentialServiceRequestDto();
+		List<String> sharableAttributesList = new ArrayList<>();
+		sharableAttributesList.add("fullName");
+		credentialServiceRequestDto.setSharableAttributes(sharableAttributesList);
+		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = qrCodeProvider.prepareSharableAttributes(idResponse,
+				policyResponse, credentialServiceRequestDto);
+		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
+	}
 	
 	private CredentialServiceRequestDto getCredentialServiceRequestDto() {
 
