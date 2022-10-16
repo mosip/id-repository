@@ -1,5 +1,37 @@
 package io.mosip.credentialstore.test.provider.impl;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.io.IOUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mvel2.MVEL;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.PowerMockRunnerDelegate;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
@@ -12,38 +44,18 @@ import io.mosip.credentialstore.exception.SignatureException;
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.Utilities;
+import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
+import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.util.EnvUtil;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestContext;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.context.WebApplicationContext;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-@RunWith(SpringRunner.class)
-@WebMvcTest @Import(EnvUtil.class)
-@ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class})
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*" })
+@PowerMockRunnerDelegate(SpringRunner.class)
+@PrepareForTest(value = MVEL.class)
 public class CredentialProviderTest {
 	/** The environment. */
 	@Mock
@@ -71,13 +83,30 @@ public class CredentialProviderTest {
 
 	PartnerCredentialTypePolicyDto policyResponse;
 	
+	IdentityMapping identityMapping;
+	
+	private ObjectMapper mapper = new ObjectMapper();
+	
 	@Before
 	public void setUp() throws DataEncryptionFailureException, ApiNotAccessibleException, SignatureException,Exception {
+		
+		ReflectionTestUtils.setField(credentialDefaultProvider, "mapper", mapper);
+		PowerMockito.mockStatic(MVEL.class);
+		
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		identityMapping = mapper.readValue(
+				IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("identity-mapping.json"),
+						StandardCharsets.UTF_8),
+				IdentityMapping.class);
+		IdentityIssuanceProfileBuilder.setIdentityMapping(identityMapping);
+		IdentityIssuanceProfileBuilder.setDateFormat("uuuu/MM/dd");
+		
 		EnvUtil.setDateTimePattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		Mockito.when(encryptionUtil.encryptDataWithPin(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenReturn("testdata");
-		
-
+		Mockito.when(MVEL.executeExpression(Mockito.any(), Mockito.any(), Mockito.anyMap(), Mockito.any()))
+		.thenReturn("test");
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		Mockito.when(utilities.generateId()).thenReturn("test123");
 
 
@@ -126,7 +155,8 @@ public class CredentialProviderTest {
 		shareableAttributes.add(kyc4);		
 		PolicyAttributesDto dto = new PolicyAttributesDto();
 		dto.setShareableAttributes(shareableAttributes);
-		policyResponse.setPolicies(dto);		
+		policyResponse.setPolicies(dto);
+		
 	}
 
 	@Test
@@ -282,6 +312,179 @@ public class CredentialProviderTest {
 		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
 	}
 
+	
+	@Test
+	public void testPrepareSharableAttributesEmptyListCheck() throws CredentialFormatterException {
+		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
+		Map<String, String> map = new HashMap<>();
+		map.put("language", "eng");
+		map.put("value", "raghav");
+		JSONObject j1 = new JSONObject(map);
+
+		Map<String, String> map2 = new HashMap<>();
+		map2.put("language", "ara");
+		map2.put("value", "Alok");
+		JSONObject j2 = new JSONObject(map2);
+		JSONArray array = new JSONArray();
+		array.add(j1);
+		array.add(j2);
+		identityMap.put("fullName", array);
+
+		identityMap.put("dateOfBirth", "1980/11/14");
+
+		Object identity = identityMap;
+		response.setIdentity(identity);
+
+		DocumentsDTO doc1 = new DocumentsDTO();
+		doc1.setCategory("individualBiometrics");
+
+		doc1.setValue("text biomterics");
+		List<DocumentsDTO> docList = new ArrayList<>();
+		docList.add(doc1);
+
+		response.setDocuments(docList);
+		idResponse.setResponse(response);
+		CredentialServiceRequestDto credentialServiceRequestDto = getCredentialServiceRequestDto();
+		List<String> sharableAttributesList = Collections.EMPTY_LIST;
+		credentialServiceRequestDto.setSharableAttributes(sharableAttributesList);
+		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = credentialDefaultProvider
+				.prepareSharableAttributes(idResponse, policyResponse, credentialServiceRequestDto);
+		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
+	}
+	
+	@Test
+	public void testPrepareMaskingAndFormattingEmptyListCheck() throws CredentialFormatterException {
+		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
+		Map<String, String> map = new HashMap<>();
+		map.put("language", "eng");
+		map.put("value", "raghav");
+		JSONObject j1 = new JSONObject(map);
+
+		Map<String, String> map2 = new HashMap<>();
+		map2.put("language", "ara");
+		map2.put("value", "Alok");
+		JSONObject j2 = new JSONObject(map2);
+		JSONArray array = new JSONArray();
+		array.add(j1);
+		array.add(j2);
+		identityMap.put("fullName", array);
+
+		identityMap.put("dateOfBirth", "1980/11/14");
+
+		Object identity = identityMap;
+		response.setIdentity(identity);
+
+		DocumentsDTO doc1 = new DocumentsDTO();
+		doc1.setCategory("individualBiometrics");
+
+		doc1.setValue("text biomterics");
+		List<DocumentsDTO> docList = new ArrayList<>();
+		docList.add(doc1);
+
+		response.setDocuments(docList);
+		idResponse.setResponse(response);
+		CredentialServiceRequestDto credentialServiceRequestDto = getCredentialServiceRequestDto();
+		List<String> sharableAttributesList = Collections.EMPTY_LIST;
+		List<String> maskingAttributes = Collections.EMPTY_LIST;
+		Map<String,String> formatingAttributes = Collections.EMPTY_MAP;
+		Map<String,Object> additionalAttributes = new HashMap<String,Object>();
+		additionalAttributes.put("maskingAttributes", maskingAttributes);
+		additionalAttributes.put("formatingAttributes", formatingAttributes);
+		
+		credentialServiceRequestDto.setSharableAttributes(sharableAttributesList);
+		credentialServiceRequestDto.setAdditionalData(additionalAttributes);
+		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = credentialDefaultProvider
+				.prepareSharableAttributes(idResponse, policyResponse, credentialServiceRequestDto);
+		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
+	}
+	
+	@Test
+	public void testPrepareMaskingAndFormattingNullCheck() throws CredentialFormatterException {
+		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
+		Map<String, String> map = new HashMap<>();
+		map.put("language", "eng");
+		map.put("value", "raghav");
+		JSONObject j1 = new JSONObject(map);
+
+		Map<String, String> map2 = new HashMap<>();
+		map2.put("language", "ara");
+		map2.put("value", "Alok");
+		JSONObject j2 = new JSONObject(map2);
+		JSONArray array = new JSONArray();
+		array.add(j1);
+		array.add(j2);
+		identityMap.put("fullName", array);
+
+		identityMap.put("dateOfBirth", "1980/11/14");
+
+		Object identity = identityMap;
+		response.setIdentity(identity);
+
+		DocumentsDTO doc1 = new DocumentsDTO();
+		doc1.setCategory("individualBiometrics"); 
+
+		doc1.setValue("text biomterics");
+		List<DocumentsDTO> docList = new ArrayList<>();
+		docList.add(doc1);
+
+		response.setDocuments(docList);
+		idResponse.setResponse(response);
+		CredentialServiceRequestDto credentialServiceRequestDto = getCredentialServiceRequestDto();
+		List<String> sharableAttributesList = Collections.EMPTY_LIST;
+		List<String> maskingAttributes = null;
+		List<String> formatingAttributes = null;
+		
+		Map<String,Object> additionalAttributes = new HashMap<String,Object>();
+		additionalAttributes.put("maskingAttributes", maskingAttributes);
+		additionalAttributes.put("formatingAttributes", formatingAttributes);
+		
+		credentialServiceRequestDto.setSharableAttributes(sharableAttributesList);
+		credentialServiceRequestDto.setAdditionalData(additionalAttributes);
+		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = credentialDefaultProvider
+				.prepareSharableAttributes(idResponse, policyResponse, credentialServiceRequestDto);
+		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
+	}
+	
+	@Test
+	public void testPrepareSharableAttributesNULLCheck() throws CredentialFormatterException {
+		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
+		Map<String, String> map = new HashMap<>();
+		map.put("language", "eng");
+		map.put("value", "raghav");
+		JSONObject j1 = new JSONObject(map);
+
+		Map<String, String> map2 = new HashMap<>();
+		map2.put("language", "ara");
+		map2.put("value", "Alok");
+		JSONObject j2 = new JSONObject(map2);
+		JSONArray array = new JSONArray();
+		array.add(j1);
+		array.add(j2);
+		identityMap.put("fullName", array);
+
+		identityMap.put("dateOfBirth", "1980/11/14");
+
+		Object identity = identityMap;
+		response.setIdentity(identity);
+
+		DocumentsDTO doc1 = new DocumentsDTO();
+		doc1.setCategory("individualBiometrics");
+
+		doc1.setValue("text biomterics");
+		List<DocumentsDTO> docList = new ArrayList<>();
+		docList.add(doc1);
+
+		response.setDocuments(docList);
+		idResponse.setResponse(response);
+		CredentialServiceRequestDto credentialServiceRequestDto = getCredentialServiceRequestDto();
+		List<String> sharableAttributesList = null;
+		credentialServiceRequestDto.setSharableAttributes(sharableAttributesList);
+		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = credentialDefaultProvider
+				.prepareSharableAttributes(idResponse, policyResponse, credentialServiceRequestDto);
+		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
+	}
+
+	
 	@Test
 	public void testPrepareSharableAttributesSuccessWithUserRequestedAttributes() throws CredentialFormatterException {
 		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
