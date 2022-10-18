@@ -90,8 +90,7 @@ public class QrCodeProviderTest {
 
 
 	@Before
-	public void setUp() throws DataEncryptionFailureException, ApiNotAccessibleException, SignatureException,
-			IOException {
+	public void setUp() throws Exception {
 		PowerMockito.mockStatic(MVEL.class);
 		Mockito.when(MVEL.executeExpression(Mockito.any(), Mockito.any(), Mockito.anyMap(), Mockito.any()))
 				.thenReturn("test");
@@ -226,6 +225,8 @@ public class QrCodeProviderTest {
 		birLeftThumb.setBdbInfo(bdbInfoLeftThumb);
 		birList.add(birLeftThumb);
 		Mockito.when(cbeffutil.convertBIRTypeToBIR(Mockito.any())).thenReturn(birList);
+		String testbiomterics="testbiometrics";
+		Mockito.when(cbeffutil.createXML(Mockito.any())).thenReturn(testbiomterics.getBytes());
 	}
 	
 	@Test
@@ -335,7 +336,7 @@ public class QrCodeProviderTest {
 		DocumentsDTO doc1 = new DocumentsDTO();
 		doc1.setCategory("individualBiometrics");
 
-		doc1.setValue("text biomterics");
+		doc1.setValue("textbiomterics");
 		List<DocumentsDTO> docList = new ArrayList<>();
 		docList.add(doc1);
 
