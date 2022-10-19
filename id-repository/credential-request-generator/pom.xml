@@ -7,11 +7,11 @@
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.1.5.6-SNAPSHOT</version>
+		<version>1.1.5.7-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>credential-request-generator</artifactId>
-	<version>1.1.5.6-SNAPSHOT</version>
+	<version>1.1.5.7-SNAPSHOT</version>
 	<name>credential-request-generator</name>
 
 	<properties>
@@ -68,6 +68,16 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-core</artifactId>
 			<version>${kernel.core.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.xml.bind</groupId>
+					<artifactId>jaxb-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.glassfish.jaxb</groupId>
+					<artifactId>jaxb-runtime</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>

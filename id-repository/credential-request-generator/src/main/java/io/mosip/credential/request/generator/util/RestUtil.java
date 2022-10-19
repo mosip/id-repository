@@ -38,7 +38,7 @@ import com.google.gson.Gson;
 
 import io.mosip.credential.request.generator.constants.ApiName;
 
-import io.mosip.credential.request.generator.exception.ApiNotAccessibleException;
+
 import io.mosip.idrepository.core.dto.Metadata;
 import io.mosip.idrepository.core.dto.PasswordRequest;
 import io.mosip.idrepository.core.dto.SecretKeyRequest;
