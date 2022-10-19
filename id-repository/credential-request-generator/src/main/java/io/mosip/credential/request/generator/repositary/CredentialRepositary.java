@@ -38,4 +38,25 @@ public interface CredentialRepositary<T extends CredentialEntity, E> extends Bas
 	Page<CredentialEntity> findByStatusCodeWithEffectiveDtimes(@Param("statusCode") String statusCode,
 			@Param("effectiveDTimes") LocalDateTime effectiveDTimes,
 			Pageable pageable);
+	
+	@Transactional
+	@Lock(value = LockModeType.PESSIMISTIC_WRITE) 
+	@QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "1") })
+	@Query("select c from CredentialEntity c where c.statusCode=:statusCode")
+	Page<CredentialEntity> findCredentialByStatusCode(@Param("statusCode")String statusCode, Pageable pageable);
+
+	/**
+	 * Find credential by status codes.
+	 *
+	 * @param statusCodes the status codes
+	 * @param type        the type
+	 * @param pageable    the pageable
+	 * @return the page
+	 */
+	@Transactional
+	@Lock(value = LockModeType.PESSIMISTIC_WRITE)
+	@QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "1") })
+	@Query("SELECT crdn FROM CredentialEntity crdn WHERE crdn.statusCode in :statusCodes and crdn.request like %:type% ")
+	Page<CredentialEntity> findCredentialByStatusCodes(@Param("statusCodes") String[] statusCodes,
+			@Param("type") String type, Pageable pageable);
 }
