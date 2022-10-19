@@ -169,7 +169,7 @@ public class RestUtil {
 		return result;
     }
 	public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
-		if (restTemplate != null) {
+		if (restTemplate == null) {
 			HttpClientBuilder httpClientBuilder = HttpClients.custom().setMaxConnPerRoute(maxConnectionPerRoute)
 					.setMaxConnTotal(totalMaxConnection).disableCookieManagement();
 			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
