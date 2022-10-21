@@ -65,7 +65,7 @@ public class AuditHelper {
 	 * @param desc   the desc
 	 */
 	public void audit(AuditModules module, AuditEvents event, String id, IdType idType, String desc) {
-		String requestId = "";
+		String requestId = null;
 		if(id !=null) {
 			requestId = securityManager.hash(id.getBytes());
 		}
