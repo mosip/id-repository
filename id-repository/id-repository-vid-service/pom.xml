@@ -17,13 +17,13 @@
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
 		<spring.boot.version>2.0.2.RELEASE</spring.boot.version>
-		<kernel.core.version>1.1.5.5-SNAPSHOT</kernel.core.version>
+		<kernel.core.version>1.1.5.5</kernel.core.version>
 		<kernel.idvalidator.uin.version>1.1.5.4</kernel.idvalidator.uin.version>
 		<kernel.idgenerator.vid.version>1.1.5.3</kernel.idgenerator.vid.version>
 		<kernel.idvalidator.vid.version>1.1.5.3</kernel.idvalidator.vid.version>
 		<kernel.dataaccess.hibernate.version>1.1.5.3</kernel.dataaccess.hibernate.version>
 		<json.schema.validator.version>2.2.10</json.schema.validator.version>
-		<kernel-websubclient-api.version>1.1.5.5-SNAPSHOT</kernel-websubclient-api.version>
+		<kernel-websubclient-api.version>1.1.5.5</kernel-websubclient-api.version>
 	</properties>
 
 	<dependencies>

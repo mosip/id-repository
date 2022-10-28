@@ -1,4 +1,4 @@
-name: Maven Package upon a push 
+name: Maven Package upon a push
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - master
       - 1.*
       - develop
-  
+
 jobs:
   build:
 
@@ -21,43 +21,43 @@ jobs:
         java-version: 11
         server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
-    - name: Setup branch and env 
+    - name: Setup branch and env
       run: |
         # Strip git ref prefix from version
         echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
         echo "GPG_TTY=$(tty)" >> $GITHUB_ENV
-        
-    - name: Setup branch and GPG public key 
+
+    - name: Setup branch and GPG public key
       run: |
         # Strip git ref prefix from version
         echo ${{ env.BRANCH_NAME }}
         echo ${{ env.GPG_TTY }}
         sudo apt-get --yes install gnupg2
-        gpg2 --import ./.github/keys/mosipgpgkey_pub.gpg 
-        gpg2 --quiet --batch --passphrase=${{secrets.gpg_secret}}  --allow-secret-key-import --import ./.github/keys/mosipgpgkey_sec.gpg 
-     
+        gpg2 --import ./.github/keys/mosipgpgkey_pub.gpg
+        gpg2 --quiet --batch --passphrase=${{secrets.gpg_secret}}  --allow-secret-key-import --import ./.github/keys/mosipgpgkey_sec.gpg
+
     - uses: actions/cache@v1
       with:
         path: ~/.m2/repository
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-maven-${{ env.BRANCH_NAME }}
-          
+
     - name: Install xmllint
       run: |
         sudo apt-get update
         sudo apt-get install libxml2-utils
-    
+
     - name: Setup the settings file for ossrh server
       run: echo "<settings>   <servers>      <server>        <id>ossrh</id>          <username>${{secrets.RELEASE_USER}}</username>          <password>${{secrets.RELEASE_TOKEN}}</password>       </server>    </servers>    <profiles>       <profile>          <id>ossrh</id>          <activation>             <activeByDefault>true</activeByDefault>          </activation>          <properties>             <gpg.executable>gpg2</gpg.executable>             <gpg.passphrase>${{secrets.gpg_secret}}</gpg.passphrase>          </properties>       </profile>       <profile>          <id>allow-snapshots</id>          <activation>             <activeByDefault>true</activeByDefault>          </activation>          <repositories>             <repository>                <id>snapshots-repo</id>                <url>https://oss.sonatype.org/content/repositories/snapshots</url>                <releases>                   <enabled>false</enabled>                </releases>                <snapshots>                   <enabled>true</enabled>                </snapshots>             </repository>             <repository>                <id>releases-repo</id>                <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>                <releases>                   <enabled>true</enabled>                </releases>                <snapshots>                   <enabled>false</enabled>                </snapshots>             </repository>             <repository>                <id>danubetech-maven-public</id>                <url>https://repo.danubetech.com/repository/maven-public</url>             </repository>          </repositories>       </profile>       <profile>          <id>sonar</id>          <properties>             <sonar.sources>.</sonar.sources>             <sonar.host.url>https://sonarcloud.io</sonar.host.url>          </properties>          <activation>             <activeByDefault>false</activeByDefault>          </activation>       </profile>    </profiles> </settings>" > $GITHUB_WORKSPACE/settings.xml
-    
+
     - name: Build with Maven
       run: cd id-repository && mvn -B package --file pom.xml -s $GITHUB_WORKSPACE/settings.xml
-         
+
     - name: Ready the springboot artifacts
       run: find -name '*.jar' -executable -type f  -exec zip release.zip {} +
 
-    - name: Upload the springboot jars 
+    - name: Upload the springboot jars
       uses: actions/upload-artifact@v1
       with:
         name: release
@@ -75,39 +75,39 @@ jobs:
         java-version: 11
         server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
-        
-    - name: Setup branch and env 
+
+    - name: Setup branch and env
       run: |
         # Strip git ref prefix from version
         echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
         echo "GPG_TTY=$(tty)" >> $GITHUB_ENV
-        
-    - name: Setup branch and GPG public key 
+
+    - name: Setup branch and GPG public key
       run: |
         # Strip git ref prefix from version
         echo ${{ env.BRANCH_NAME }}
         echo ${{ env.GPG_TTY }}
         sudo apt-get --yes install gnupg2
-        gpg2 --import ./.github/keys/mosipgpgkey_pub.gpg 
-        gpg2 --quiet --batch --passphrase=${{secrets.gpg_secret}}  --allow-secret-key-import --import ./.github/keys/mosipgpgkey_sec.gpg 
-     
+        gpg2 --import ./.github/keys/mosipgpgkey_pub.gpg
+        gpg2 --quiet --batch --passphrase=${{secrets.gpg_secret}}  --allow-secret-key-import --import ./.github/keys/mosipgpgkey_sec.gpg
+
     - uses: actions/cache@v1
       with:
         path: ~/.m2/repository
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-maven-${{ env.BRANCH_NAME }}
-          
+
     - name: Install xmllint
       run: |
         sudo apt-get update
         sudo apt-get install libxml2-utils
     - name: Setup the settings file for ossrh server
       run: echo "<settings>   <servers>      <server>        <id>ossrh</id>          <username>${{secrets.RELEASE_USER}}</username>          <password>${{secrets.RELEASE_TOKEN}}</password>       </server>    </servers>    <profiles>       <profile>          <id>ossrh</id>          <activation>             <activeByDefault>true</activeByDefault>          </activation>          <properties>             <gpg.executable>gpg2</gpg.executable>             <gpg.passphrase>${{secrets.gpg_secret}}</gpg.passphrase>          </properties>       </profile>       <profile>          <id>allow-snapshots</id>          <activation>             <activeByDefault>true</activeByDefault>          </activation>          <repositories>             <repository>                <id>snapshots-repo</id>                <url>https://oss.sonatype.org/content/repositories/snapshots</url>                <releases>                   <enabled>false</enabled>                </releases>                <snapshots>                   <enabled>true</enabled>                </snapshots>             </repository>             <repository>                <id>releases-repo</id>                <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>                <releases>                   <enabled>true</enabled>                </releases>                <snapshots>                   <enabled>false</enabled>                </snapshots>             </repository>             <repository>                <id>danubetech-maven-public</id>                <url>https://repo.danubetech.com/repository/maven-public</url>             </repository>          </repositories>       </profile>       <profile>          <id>sonar</id>          <properties>             <sonar.sources>.</sonar.sources>             <sonar.host.url>https://sonarcloud.io</sonar.host.url>          </properties>          <activation>             <activeByDefault>false</activeByDefault>          </activation>       </profile>    </profiles> </settings>" > $GITHUB_WORKSPACE/settings.xml
-      
+
     - name: Build with Maven
       run: cd id-repository && mvn -B package --file pom.xml -s $GITHUB_WORKSPACE/settings.xml
-        
+
     - name: Publish the maven package
       run: |
         #chmod +x ./deploy.sh
@@ -136,18 +136,18 @@ jobs:
           name: release
           path: ./
 
-      - name: Setup branch and GPG public key 
+      - name: Setup branch and GPG public key
         run: |
           # Strip git ref prefix from version
           echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
-        
+
       - name: Get version info from pom
         id: getPomVersion
         uses: mavrosxristoforos/get-xml-info@1.0
         with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml
+          xpath: /*[local-name()="project"]/*[local-name()="version"]
+
       - name: Unzip and extract
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
 
@@ -157,11 +157,11 @@ jobs:
           docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
       - name: Log into registry
         run: echo "${{secrets.release_docker_hub}}" | docker login -u ${{secrets.actor_docker_hub}} --password-stdin
-        
+
       - name: Push image
         run: |
           IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
+
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           echo "push version ${{steps.getPomVersion.outputs.info}}"
@@ -185,8 +185,8 @@ jobs:
         with:
           name: release
           path: ./
-      
-      - name: Setup branch name 
+
+      - name: Setup branch name
         run: |
           # Strip git ref prefix from version
           echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
@@ -194,10 +194,10 @@ jobs:
         id: getPomVersion
         uses: mavrosxristoforos/get-xml-info@1.0
         with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract 
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml
+          xpath: /*[local-name()="project"]/*[local-name()="version"]
+
+      - name: Unzip and extract
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
 
       - name: Build image
@@ -206,11 +206,11 @@ jobs:
           docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
       - name: Log into registry
         run: echo "${{secrets.release_docker_hub}}" | docker login -u ${{secrets.actor_docker_hub}} --password-stdin
-        
+
       - name: Push image
         run: |
           IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
+
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           echo "push version ${{steps.getPomVersion.outputs.info}}"
@@ -234,8 +234,8 @@ jobs:
         with:
           name: release
           path: ./
-      
-      - name: Setup branch name 
+
+      - name: Setup branch name
         run: |
           # Strip git ref prefix from version
           echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
@@ -243,23 +243,23 @@ jobs:
         id: getPomVersion
         uses: mavrosxristoforos/get-xml-info@1.0
         with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract 
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml
+          xpath: /*[local-name()="project"]/*[local-name()="version"]
+
+      - name: Unzip and extract
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
           docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
       - name: Log into registry
         run: echo "${{secrets.release_docker_hub}}" | docker login -u ${{secrets.actor_docker_hub}} --password-stdin
-        
+
       - name: Push image
         run: |
           IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
+
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           echo "push version ${{steps.getPomVersion.outputs.info}}"
@@ -283,8 +283,8 @@ jobs:
         with:
           name: release
           path: ./
-      
-      - name: Setup branch name 
+
+      - name: Setup branch name
         run: |
           # Strip git ref prefix from version
           echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
@@ -292,23 +292,23 @@ jobs:
         id: getPomVersion
         uses: mavrosxristoforos/get-xml-info@1.0
         with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract 
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml
+          xpath: /*[local-name()="project"]/*[local-name()="version"]
+
+      - name: Unzip and extract
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
           docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
       - name: Log into registry
         run: echo "${{secrets.release_docker_hub}}" | docker login -u ${{secrets.actor_docker_hub}} --password-stdin
-        
+
       - name: Push image
         run: |
           IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
+
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           echo "push version ${{steps.getPomVersion.outputs.info}}"
@@ -332,8 +332,8 @@ jobs:
         with:
           name: release
           path: ./
-      
-      - name: Setup branch name 
+
+      - name: Setup branch name
         run: |
           # Strip git ref prefix from version
           echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
@@ -341,23 +341,23 @@ jobs:
         id: getPomVersion
         uses: mavrosxristoforos/get-xml-info@1.0
         with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract 
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml
+          xpath: /*[local-name()="project"]/*[local-name()="version"]
+
+      - name: Unzip and extract
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
+
       - name: Build image
         run: |
           cd "./${{env.SERVICE_LOCATION}}"
           docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
       - name: Log into registry
         run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
+
       - name: Push image
         run: |
           IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
+
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           echo "push version ${{steps.getPomVersion.outputs.info}}"
