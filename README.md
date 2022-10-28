@@ -1,6 +1,7 @@
 # ID Repository
 
-ID Repository acts as a repository of Identity details of an Individual, and provides API based mechanism to store and retrieve Identity details by Registration Processor module.
+[![Maven Package upon a push](https://github.com/mosip/id-repository/actions/workflows/push_trigger.yml/badge.svg?branch=master)](https://github.com/mosip/id-repository/actions/workflows/push_trigger.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?branch=master&id=mosip_id-repository)
 
 Following are the pre-requisites for storing or retrieving Identity authentication of an individual
 
