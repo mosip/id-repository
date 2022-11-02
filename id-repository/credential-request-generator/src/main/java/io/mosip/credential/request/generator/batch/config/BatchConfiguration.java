@@ -195,7 +195,7 @@ public class BatchConfiguration {
 		findCredentialByStatusCode.setAccessible(false);
 
 		Method findCredentialByStatusCodes = CredentialRepositary.class.getDeclaredMethod("findCredentialByStatusCodes",
-				String[].class, String.class, Pageable.class);
+				String[].class, Pageable.class);
 		findCredentialByStatusCodes.setAccessible(true);
 		QueryHints queryHintsReprocess = findCredentialByStatusCodes.getDeclaredAnnotation(QueryHints.class);
 		QueryHint queryHintReprocess = (QueryHint) queryHintsReprocess.value()[0];
