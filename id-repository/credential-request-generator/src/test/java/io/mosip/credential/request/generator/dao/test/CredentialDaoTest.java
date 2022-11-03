@@ -55,8 +55,6 @@ public class CredentialDaoTest {
 				1);
 		ReflectionTestUtils.setField(credentialDao, "reprocessStatusCodes",
 				"FAILED");
-		ReflectionTestUtils.setField(credentialDao, "credentialRequestType",
-				"auth");
 	}
 	
 	@Test
