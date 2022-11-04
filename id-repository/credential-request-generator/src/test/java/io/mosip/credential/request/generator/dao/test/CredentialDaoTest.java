@@ -55,8 +55,7 @@ public class CredentialDaoTest {
 				1);
 		ReflectionTestUtils.setField(credentialDao, "reprocessStatusCodes",
 				"FAILED");
-		ReflectionTestUtils.setField(credentialDao, "credentialRequestType",
-				"auth");
+
 	}
 	
 	@Test
@@ -109,7 +108,7 @@ public class CredentialDaoTest {
 		credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		credentialList.add(credentialEntity);
 		Page<CredentialEntity> page = new PageImpl<>(credentialList);
-		Mockito.when(crdentialRepo.findCredentialByStatusCodes(Mockito.any(), Mockito.any(),Mockito.any())).thenReturn(page);
+		Mockito.when(crdentialRepo.findCredentialByStatusCodes(Mockito.any(),Mockito.any())).thenReturn(page);
 		credentialDao.getCredentialsForReprocess("1234");
 	}
 	@Test
