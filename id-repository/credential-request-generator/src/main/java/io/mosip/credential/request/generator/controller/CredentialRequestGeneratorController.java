@@ -1,10 +1,22 @@
 package io.mosip.credential.request.generator.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.annotation.Nullable;
 
 import io.mosip.idrepository.core.dto.*;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.swagger.annotations.ApiParam;
+
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobParameter;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +32,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.mosip.credential.request.generator.dto.CredentialStatusEvent;
 import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorException;
+import io.mosip.credential.request.generator.init.CredentialInstializer;
+import io.mosip.credential.request.generator.init.SubscribeEvent;
 import io.mosip.credential.request.generator.service.CredentialRequestService;
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.websub.api.annotation.PreAuthenticateContentAndVerifyIntent;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -42,10 +59,25 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "Credential Request Generator", description = "Credential Request Generator")
 public class CredentialRequestGeneratorController {
 	
+	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialRequestGeneratorController.class);
+	
 	/** The credential request service. */
 	@Autowired
 	private CredentialRequestService credentialRequestService;
 
+	@Autowired
+	private CredentialInstializer credentialInstializer;
+	
+	@Autowired
+	private SubscribeEvent subscribeEvent;
+	
+	@Autowired
+	JobLauncher jobLauncher;
+
+	
+	@Autowired
+	@Qualifier("credentialProcessJob")
+	Job job;
 
 
 	/**
@@ -175,5 +207,29 @@ public class CredentialRequestGeneratorController {
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = credentialRequestService
 				.retriggerCredentialRequest(requestId);
 		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseWrapper);
+	}
+	@GetMapping(path = "/scheduleRetrySubscription")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Request authenticated successfully") })
+	public String handleReSubscribeEvent() {
+		return credentialInstializer.scheduleRetrySubscriptions();
+	}
+	@GetMapping(path = "/scheduleWebsubSubscription")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Request authenticated successfully") })
+	public String handleSubscribeEvent() {
+		return subscribeEvent.scheduleSubscription();
+	}
+	
+	@GetMapping(path = "/startCredentialBatch")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Request authenticated successfully") })
+	public String handleCredentialBatchEvent() {
+		try {
+			Map<String, JobParameter> parameters = new HashMap<>();
+			JobExecution jobExecution = jobLauncher.run(job, new JobParameters(parameters));
+			return JsonUtils.javaObjectToJsonString(jobExecution);
+		} catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), "/startCredentialBatch",
+					"Error calling startCredentialBatch API", ExceptionUtils.getStackTrace(e));
+			return "Error occured. Check logs for more details";
+		}
 	}
 }
