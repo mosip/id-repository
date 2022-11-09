@@ -1,34 +1,22 @@
 package io.mosip.credential.request.generator.controller;
 
-import io.mosip.credential.request.generator.dto.CredentialStatusEvent;
-import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorException;
-import io.mosip.credential.request.generator.init.CredentialInstializer;
-import io.mosip.credential.request.generator.init.SubscribeEvent;
-import io.mosip.credential.request.generator.service.CredentialRequestService;
-import io.mosip.credential.request.generator.validator.RequestValidator;
-import io.mosip.idrepository.core.dto.CredentialIssueRequest;
-import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
-import io.mosip.idrepository.core.dto.CredentialIssueResponse;
-import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
-import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
-import io.mosip.idrepository.core.dto.CredentialRequestIdsDto;
-import io.mosip.idrepository.core.dto.PageDto;
-import io.mosip.idrepository.core.exception.IdRepoAppException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.annotation.Nullable;
+
+import io.mosip.idrepository.core.dto.*;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
-import io.mosip.kernel.core.http.RequestWrapper;
-import io.mosip.kernel.core.http.ResponseWrapper;
-import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.websub.api.annotation.PreAuthenticateContentAndVerifyIntent;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.swagger.annotations.ApiParam;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
+
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobParameter;
+import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +30,24 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Nullable;
+import io.mosip.credential.request.generator.dto.CredentialStatusEvent;
+import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorException;
+import io.mosip.credential.request.generator.init.CredentialInstializer;
+import io.mosip.credential.request.generator.init.SubscribeEvent;
+import io.mosip.credential.request.generator.service.CredentialRequestService;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.http.RequestWrapper;
+import io.mosip.kernel.core.http.ResponseWrapper;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.websub.api.annotation.PreAuthenticateContentAndVerifyIntent;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 
 /**
@@ -62,15 +67,18 @@ public class CredentialRequestGeneratorController {
 
 	@Autowired
 	private CredentialInstializer credentialInstializer;
-
+	
 	@Autowired
 	private SubscribeEvent subscribeEvent;
-
-	@Autowired
-	RequestValidator requestValidator;
-
+	
 	@Autowired
 	JobLauncher jobLauncher;
+
+	
+	@Autowired
+	@Qualifier("credentialProcessJob")
+	Job job;
+
 
 	/**
 	 * Credential issue.
@@ -90,36 +98,10 @@ public class CredentialRequestGeneratorController {
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<Object> credentialIssue(
+			@RequestBody  RequestWrapper<CredentialIssueRequestDto>  credentialIssueRequestDto) {
 
-			@RequestBody  RequestWrapper<CredentialIssueRequest>  credentialIssueRequestDto) throws IdRepoAppException {
-		requestValidator.validateRequestGeneratorRequest(credentialIssueRequestDto);
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = credentialRequestService
 				.createCredentialIssuance(credentialIssueRequestDto.getRequest());
-		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseWrapper);
-	}
-
-	/**
-	 * Credential issue.
-	 *
-	 * @param credentialIssueRequestDto the credential issue request dto
-	 * @return the response entity
-	 */
-	//@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostv2requestgeneratorrid())")
-	@PostMapping(path = "/v2/requestgenerator/{rid}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Create the  credential issuance request", description = "Create the  credential issuance request", tags = { "Credential Request Generator" })
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "Created request id successfully"),
-			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "400", description = "Unable to get request id" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
-			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
-	public ResponseEntity<Object> credentialIssueByRid(
-			@RequestBody  RequestWrapper<CredentialIssueRequestDto>  credentialIssueRequestDto, @PathVariable("rid") String rid) {
-
-		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = credentialRequestService
-				.createCredentialIssuanceByRid(credentialIssueRequestDto.getRequest(),rid);
 		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseWrapper);
 	}
 	//@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
@@ -237,4 +219,17 @@ public class CredentialRequestGeneratorController {
 		return subscribeEvent.scheduleSubscription();
 	}
 	
+	@GetMapping(path = "/startCredentialBatch")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Request authenticated successfully") })
+	public String handleCredentialBatchEvent() {
+		try {
+			Map<String, JobParameter> parameters = new HashMap<>();
+			JobExecution jobExecution = jobLauncher.run(job, new JobParameters(parameters));
+			return JsonUtils.javaObjectToJsonString(jobExecution);
+		} catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), "/startCredentialBatch",
+					"Error calling startCredentialBatch API", ExceptionUtils.getStackTrace(e));
+			return "Error occured. Check logs for more details";
+		}
+	}
 }

@@ -56,7 +56,7 @@ public class PolicyUtil {
 	private CacheManager cacheManager;
 	
 	Map<String, PartnerCredentialTypePolicyDto> policyMap = new HashMap();
-
+	
 	Map<String, PartnerExtractorResponse> extractorMap = new HashMap();
 	
 	@Cacheable(cacheNames = DATASHARE_POLICIES, key="{ #credentialType, #subscriberId }")
@@ -82,14 +82,13 @@ public class PolicyUtil {
 				ServiceError error = responseObject.getErrors().get(0);
 				throw new PolicyException(error.getMessage());
 			}
-	
 			if (responseObject != null) {
 				policyResponseDto = responseObject.getResponse();
-			}
+			   }
 			// caching response object
 			policyMap.put(policyMapKey, policyResponseDto);
 			}else 
-							policyResponseDto = policyMap.get(policyMapKey);
+				policyResponseDto = policyMap.get(policyMapKey);
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					requestId,
 					"Fetched policy details successfully");
@@ -148,9 +147,9 @@ public class PolicyUtil {
 
 			}
 
-			if(responseObject!=null){
+			   if(responseObject!=null){
 				partnerExtractorResponse = responseObject.getResponse();
-			}
+	             }
 			// caching response
 			  extractorMap.put(extractorKey, partnerExtractorResponse);
 			}

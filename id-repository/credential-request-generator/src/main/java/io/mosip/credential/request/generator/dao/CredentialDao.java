@@ -34,7 +34,7 @@ public class CredentialDao {
 
     @Value("${credential.request.reprocess.statuscodes}")
     private String reprocessStatusCodes;
-    
+   
 
     private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialDao.class);
 
@@ -74,7 +74,7 @@ public class CredentialDao {
         Pageable pageable=PageRequest.of(0, pageSize,sort);
         String[] statusCodes = reprocessStatusCodes.split(",");
         List<CredentialEntity> credentialEntities=new ArrayList<>();
-        Page<CredentialEntity> pagecredentialEntities=  crdentialRepo.findCredentialByStatusCodes(statusCodes, pageable);
+        Page<CredentialEntity> pagecredentialEntities=  crdentialRepo.findCredentialByStatusCodes(statusCodes,pageable);
         if (pagecredentialEntities != null && pagecredentialEntities.getContent() != null && !pagecredentialEntities.getContent().isEmpty()) {
   	      credentialEntities=	pagecredentialEntities.getContent();
   		}

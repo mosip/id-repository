@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import io.mosip.idrepository.core.constant.AuditEvents;
+import io.mosip.idrepository.core.constant.AuditModules;
+import io.mosip.idrepository.core.constant.IdType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,8 +37,9 @@ import io.mosip.credential.request.generator.dto.CredentialStatusEvent;
 import io.mosip.credential.request.generator.dto.Event;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorException;
+import io.mosip.credential.request.generator.repositary.CredentialRepositary;
+import io.mosip.credential.request.generator.service.impl.CredentialRequestServiceImpl;
 import io.mosip.credential.request.generator.util.Utilities;
-import io.mosip.idrepository.core.dto.CredentialIssueRequest;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
@@ -83,7 +87,7 @@ public class CredentialRequestServiceImplTest {
 
 	@Test
 	public void testCreateCredentialIssuanceSuccess() throws JsonProcessingException {
-		CredentialIssueRequest credentialIssueRequestDto=new CredentialIssueRequest();
+		CredentialIssueRequestDto credentialIssueRequestDto=new CredentialIssueRequestDto();
 		credentialIssueRequestDto.setCredentialType("MOSIP");
 		credentialIssueRequestDto.setId("123");
 		credentialIssueRequestDto.setEncrypt(true);
@@ -93,32 +97,9 @@ public class CredentialRequestServiceImplTest {
 	}
 
 	@Test
-	public void testCreateCredentialIssuanceByRidSuccess() throws JsonProcessingException {
-		CredentialIssueRequestDto credentialIssueRequestDto=new CredentialIssueRequestDto();
-		credentialIssueRequestDto.setCredentialType("MOSIP");
-		credentialIssueRequestDto.setId("123");
-		credentialIssueRequestDto.setEncrypt(true);
-		Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenReturn(credentialIssueRequestDto.toString());
-		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto=credentialRequestServiceImpl.createCredentialIssuanceByRid(credentialIssueRequestDto,"123456");
-		assertEquals("123456", credentialIssueResponseDto.getResponse().getRequestId());
-	}
-
-	@Test
-	public void testDataAccessLayerExceptionForCreateCredentialByRid() throws JsonProcessingException {
-		org.mockito.Mockito.doThrow(new DataAccessLayerException("", "", new Throwable())).when(credentialDao).save(Mockito.any());
-		CredentialIssueRequestDto credentialIssueRequestDto=new CredentialIssueRequestDto();
-		credentialIssueRequestDto.setCredentialType("MOSIP");
-		credentialIssueRequestDto.setId("123");
-		credentialIssueRequestDto.setEncrypt(true);
-		Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenReturn(credentialIssueRequestDto.toString());
-		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto=credentialRequestServiceImpl.createCredentialIssuanceByRid(credentialIssueRequestDto,"123456");
-		assertNotNull(credentialIssueResponseDto.getErrors().get(0));
-	}
-
-	@Test
 	public void testDataAccessLayerExceptionForCreateCredential() throws JsonProcessingException {
 		org.mockito.Mockito.doThrow(new DataAccessLayerException("", "", new Throwable())).when(credentialDao).save(Mockito.any());
-		CredentialIssueRequest credentialIssueRequestDto=new CredentialIssueRequest();
+		CredentialIssueRequestDto credentialIssueRequestDto=new CredentialIssueRequestDto();
 		credentialIssueRequestDto.setCredentialType("MOSIP");
 		credentialIssueRequestDto.setId("123");
 		credentialIssueRequestDto.setEncrypt(true);

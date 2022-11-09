@@ -55,6 +55,7 @@ public class CredentialDaoTest {
 				1);
 		ReflectionTestUtils.setField(credentialDao, "reprocessStatusCodes",
 				"FAILED");
+
 	}
 	
 	@Test

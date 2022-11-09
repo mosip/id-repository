@@ -3,6 +3,9 @@ package io.mosip.credential.request.generator.batch.config;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.QueryHint;
@@ -20,13 +23,22 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.integration.async.AsyncItemProcessor;
+import org.springframework.batch.integration.async.AsyncItemWriter;
+import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.data.RepositoryItemReader;
+import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
@@ -34,10 +46,6 @@ import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import io.mosip.credential.request.generator.util.RestUtil;
-import io.mosip.idrepository.core.logger.IdRepoLogger;
-import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.core.logger.spi.Logger;
 
 
 
@@ -50,13 +58,12 @@ import io.mosip.kernel.core.logger.spi.Logger;
 @EnableBatchProcessing
 public class BatchConfiguration {
 	
-
 	@Autowired
 	public CredentialItemTasklet credentialItemTasklet;
 
 	@Autowired
-	public CredentialItemReprocessTasklet credentialItemReprocessTasklet; 
-	
+	public CredentialItemReprocessTasklet credentialItemReprocessTasklet;
+
 	/** The job builder factory. */
 	@Autowired
 	public JobBuilderFactory jobBuilderFactory;
@@ -75,15 +82,13 @@ public class BatchConfiguration {
 
 	/** The credential process job. */
 	@Autowired
+	@Qualifier("credentialProcessJob")
 	private Job credentialProcessJob;
 
 	/** The credential re process job. */
 	@Autowired
 	private Job credentialReProcessJob;
 
-	private static final String BATCH_CONFIGURATION = "BatchConfiguration";
-	private static final Logger LOGGER = IdRepoLogger.getLogger(BatchConfiguration.class);
-	
 	private static final String BATCH_CONFIGURATION = "BatchConfiguration";
 	private static final Logger LOGGER = IdRepoLogger.getLogger(BatchConfiguration.class);
 	
@@ -118,7 +123,7 @@ public class BatchConfiguration {
 					"error in JobLauncher " + ExceptionUtils.getStackTrace(e));
 		}
 	}
-	
+
 	/**
 	 * Credential process job.
 	 *
@@ -156,7 +161,7 @@ public class BatchConfiguration {
 		return stepBuilderFactory.get("credentialProcessJob").tasklet(credentialItemReprocessTasklet).build();
 
 	}
-
+	
 	/**
 	 * Gets the rest util.
 	 *
@@ -177,10 +182,19 @@ public class BatchConfiguration {
 		return new ThreadPoolTaskScheduler();
 	}
 
+	/**
+	 * Credential re process step.
+	 *
+	 * @return the step
+	 */
+	
+
 	@Bean
 	public PropertyLoader propertyLoader() {
 		return new PropertyLoader();
 	}
+
+
 
 	@Bean(name = "alterAnnotation")
 	public String alterAnnotation() throws Exception {
@@ -198,7 +212,7 @@ public class BatchConfiguration {
 		findCredentialByStatusCode.setAccessible(false);
 
 		Method findCredentialByStatusCodes = CredentialRepositary.class.getDeclaredMethod("findCredentialByStatusCodes",
-				String[].class, Pageable.class);
+				String[].class,Pageable.class);
 		findCredentialByStatusCodes.setAccessible(true);
 		QueryHints queryHintsReprocess = findCredentialByStatusCodes.getDeclaredAnnotation(QueryHints.class);
 		QueryHint queryHintReprocess = (QueryHint) queryHintsReprocess.value()[0];

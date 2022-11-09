@@ -183,11 +183,7 @@ public class CredentialItemReprocessTasklet implements Tasklet {
 					credential.setRetryCount(retryCount + 1);
 				}
 			})).get();
-		} catch (InterruptedException e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_REPROCESS_TASKLET, "batchid = " + batchId,
-					ExceptionUtils.getStackTrace(e));
-			throw e;
-		} catch (ExecutionException e) {
+		} catch (InterruptedException | ExecutionException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_REPROCESS_TASKLET, "batchid = " + batchId,
 						ExceptionUtils.getStackTrace(e));
 		}
