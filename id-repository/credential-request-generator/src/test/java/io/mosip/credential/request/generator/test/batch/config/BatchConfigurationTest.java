@@ -8,12 +8,14 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.integration.async.AsyncItemWriter;
 import org.springframework.batch.item.data.RepositoryItemWriter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -25,10 +27,9 @@ import org.springframework.web.context.WebApplicationContext;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 
 import io.mosip.credential.request.generator.batch.config.BatchConfiguration;
-import io.mosip.credential.request.generator.batch.config.CredentialItemProcessor;
-import io.mosip.credential.request.generator.batch.config.CredentialItemReProcessor;
+import io.mosip.credential.request.generator.batch.config.CredentialItemReprocessTasklet;
+import io.mosip.credential.request.generator.batch.config.CredentialItemTasklet;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
-import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.idrepository.core.util.EnvUtil;
 
@@ -52,9 +53,7 @@ public class BatchConfigurationTest {
 	@Mock
 	private JobLauncher jobLauncher;
 
-	/** The crdential repo. */
-	@Mock
-	private CredentialRepositary<CredentialEntity, String> crdentialRepo;
+
 
 	/** The credential process job. */
 	@Mock
@@ -63,6 +62,12 @@ public class BatchConfigurationTest {
 	/** The credential re process job. */
 	@Mock
 	private Job credentialReProcessJob;
+	
+	@Mock
+	public CredentialItemTasklet credentialItemTasklet;
+
+	@Mock
+	public CredentialItemReprocessTasklet credentialItemReprocessTasklet;
 
 	@Before
 	public void before() {
@@ -78,19 +83,8 @@ public class BatchConfigurationTest {
 		batchConfiguration.reProcessJob();
 	}
 
-	@Test
-	public void processorTest() {
-		CredentialItemProcessor res = batchConfiguration.processor();
-		assertNotNull(res);
-	}
-
-	@Test
-	public void reProcessorTest() {
-		CredentialItemReProcessor res = batchConfiguration.reProcessor();
-		assertNotNull(res);
-	}
-
-	@Test
+	
+    @Test
 	public void getRestUtilTest() {
 		RestUtil res = batchConfiguration.getRestUtil();
 		assertNotNull(res);
@@ -99,24 +93,6 @@ public class BatchConfigurationTest {
 	@Test
 	public void getTaskSchedulerTest() {
 		ThreadPoolTaskScheduler res = batchConfiguration.getTaskScheduler();
-		assertNotNull(res);
-	}
-
-	@Test
-	public void asyncItemWriterTest() {
-		AsyncItemWriter<CredentialEntity> res = batchConfiguration.asyncItemWriter();
-		assertNotNull(res);
-	}
-
-	@Test
-	public void asyncItemWReprocessWriterTest() {
-		AsyncItemWriter<CredentialEntity> res = batchConfiguration.asyncItemWReprocessWriter();
-		assertNotNull(res);
-	}
-
-	@Test
-	public void reProcesswriterTest() {
-		RepositoryItemWriter<CredentialEntity> res = batchConfiguration.reProcesswriter();
 		assertNotNull(res);
 	}
 

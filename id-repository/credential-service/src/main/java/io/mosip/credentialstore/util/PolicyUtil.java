@@ -55,6 +55,10 @@ public class PolicyUtil {
 	@Autowired
 	private CacheManager cacheManager;
 	
+	Map<String, PartnerCredentialTypePolicyDto> policyMap = new HashMap();
+	
+	Map<String, PartnerExtractorResponse> extractorMap = new HashMap();
+	
 	@Cacheable(cacheNames = DATASHARE_POLICIES, key="{ #credentialType, #subscriberId }")
 	public PartnerCredentialTypePolicyDto getPolicyDetail(String credentialType, String subscriberId, String requestId)
 			throws PolicyException, ApiNotAccessibleException {
@@ -63,6 +67,10 @@ public class PolicyUtil {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					requestId,
 					"started fetching the policy data");
+			String policyMapKey = credentialType + " " + subscriberId;
+            PartnerCredentialTypePolicyDto policyResponseDto = null;
+			
+			if (policyMap.get(policyMapKey) == null) {
 			Map<String, String> pathsegments = new HashMap<>();
 			pathsegments.put("partnerId", subscriberId);
 			pathsegments.put("credentialType", credentialType);
@@ -74,10 +82,13 @@ public class PolicyUtil {
 				ServiceError error = responseObject.getErrors().get(0);
 				throw new PolicyException(error.getMessage());
 			}
-			PartnerCredentialTypePolicyDto policyResponseDto = null;
 			if (responseObject != null) {
 				policyResponseDto = responseObject.getResponse();
-			}
+			   }
+			// caching response object
+			policyMap.put(policyMapKey, policyResponseDto);
+			}else 
+				policyResponseDto = policyMap.get(policyMapKey);
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					requestId,
 					"Fetched policy details successfully");
@@ -114,6 +125,8 @@ public class PolicyUtil {
 				"started fetching the partner extraction policy data");
 		PartnerExtractorResponse partnerExtractorResponse = null;
 		try {
+			String extractorKey = policyId + " " + subscriberId;
+			if (extractorMap.get(extractorKey) == null) {
 			Map<String, String> pathsegments = new HashMap<>();
 
 			pathsegments.put("partnerId", subscriberId);
@@ -134,10 +147,14 @@ public class PolicyUtil {
 
 			}
 
-			if(responseObject!=null){
+			   if(responseObject!=null){
 				partnerExtractorResponse = responseObject.getResponse();
+	             }
+			// caching response
+			  extractorMap.put(extractorKey, partnerExtractorResponse);
 			}
-
+			else 
+				partnerExtractorResponse = extractorMap.get(extractorKey);
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Fetched partner extraction policy details successfully");
 

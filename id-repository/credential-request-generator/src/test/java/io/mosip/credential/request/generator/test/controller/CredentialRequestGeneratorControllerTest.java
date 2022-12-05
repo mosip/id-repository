@@ -9,6 +9,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -25,6 +27,8 @@ import com.google.gson.GsonBuilder;
 
 import io.mosip.credential.request.generator.controller.CredentialRequestGeneratorController;
 import io.mosip.credential.request.generator.dto.CredentialStatusEvent;
+import io.mosip.credential.request.generator.init.CredentialInstializer;
+import io.mosip.credential.request.generator.init.SubscribeEvent;
 import io.mosip.credential.request.generator.service.CredentialRequestService;
 import io.mosip.credential.request.generator.test.TestBootApplication;
 import io.mosip.credential.request.generator.test.config.TestConfig;
@@ -43,6 +47,15 @@ import io.mosip.kernel.core.http.ResponseWrapper;
 public class CredentialRequestGeneratorControllerTest {
 	@Mock
 	private CredentialRequestService credentialRequestService;
+	
+	@Mock
+	private CredentialInstializer credentialInstializer;
+	
+	@Mock
+	private SubscribeEvent subscribeEvent;
+	
+	@Mock
+	JobLauncher jobLauncher;
 
 	@InjectMocks
 	private CredentialRequestGeneratorController credentialRequestGeneratorController;
@@ -154,6 +167,37 @@ public class CredentialRequestGeneratorControllerTest {
 
 		mockMvc.perform(
 				MockMvcRequestBuilders.put("/retrigger/requestId").contentType(MediaType.APPLICATION_JSON_VALUE))
+				.andExpect(status().isOk());
+
+	}
+	@Test
+	@WithUserDetails("test")
+	public void testHandleReSubscribeEventSuccess() throws Exception {
+
+
+		mockMvc.perform(
+				MockMvcRequestBuilders.get("/scheduleRetrySubscription"))
+				.andExpect(status().isOk());
+
+	}
+	@Test
+	@WithUserDetails("test")
+	public void testScheduleWebsubSubscriptionSuccess() throws Exception {
+
+
+		mockMvc.perform(
+				MockMvcRequestBuilders.get("/scheduleWebsubSubscription"))
+				.andExpect(status().isOk());
+
+	}
+	
+	@Test
+	@WithUserDetails("test")
+	public void testHandleCredentialBatchEventSuccess() throws Exception {
+
+
+		mockMvc.perform(
+				MockMvcRequestBuilders.get("/startCredentialBatch"))
 				.andExpect(status().isOk());
 
 	}

@@ -11,12 +11,15 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.context.WebApplicationContext;
@@ -24,10 +27,12 @@ import org.springframework.web.context.WebApplicationContext;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.credential.request.generator.batch.config.CredentialItemProcessor;
+import io.mosip.credential.request.generator.batch.config.CredentialItemTasklet;
 import io.mosip.credential.request.generator.constants.ApiName;
+import io.mosip.credential.request.generator.dao.CredentialDao;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.util.RestUtil;
+import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialServiceResponse;
 import io.mosip.idrepository.core.dto.CredentialServiceResponseDto;
@@ -37,11 +42,10 @@ import io.mosip.idrepository.core.util.EnvUtil;
 @RunWith(SpringRunner.class)
 @WebMvcTest @Import(EnvUtil.class)
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
-public class CredentialItemProcessorTest {
-
-
+public class CredentialItemTaskletTest {
+	
 	@InjectMocks
-	private CredentialItemProcessor credentialItemProcessor;
+	private  CredentialItemTasklet  credentialItemTasklet;
 
 
 	@Mock
@@ -61,6 +65,11 @@ public class CredentialItemProcessorTest {
 	CredentialServiceResponseDto credentialServiceResponseDto;
 	
 	CredentialEntity credential;
+	
+	@Mock
+	private CredentialDao credentialDao;
+	
+	List<CredentialEntity> credentialEntities;
 
 	@Before
 	public void setUp() {
@@ -74,12 +83,18 @@ public class CredentialItemProcessorTest {
 		credential.setRequestId("test123");
 		credential.setRetryCount(0);
 		credential.setRequest("request");
-
+		ReflectionTestUtils.setField(credentialItemTasklet, "threadCount",
+				1);
+		credentialItemTasklet.init();
+		 credentialEntities=new ArrayList();
+		credentialEntities.add(credential);
+		Mockito.when(credentialDao.getCredentials(Mockito.any()))
+		.thenReturn(credentialEntities);
 	}
 
 	@Test
 	public void testProcessSuccess() throws Exception {
-
+		
 		Mockito.when(mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class))
 				.thenReturn(credentialIssueRequestDto);
 		Mockito.when(mapper.readValue(responseString, CredentialServiceResponseDto.class))
@@ -91,8 +106,8 @@ public class CredentialItemProcessorTest {
 		credentialServiceResponse.setCredentialId("testcredentialid");
 		credentialServiceResponse.setStatus("ISSUED");;
 		credentialServiceResponseDto.setResponse(credentialServiceResponse);
-		CredentialEntity updatedCredential = credentialItemProcessor.process(credential);
-		assertEquals("ISSUED", updatedCredential.getStatusCode());
+		RepeatStatus repeatStatus = credentialItemTasklet.execute(null, null);
+		assertEquals(RepeatStatus.FINISHED, repeatStatus);
 	}
 
 	@Test
@@ -110,8 +125,8 @@ public class CredentialItemProcessorTest {
 		error.setMessage("Failed to get policy details");
 		errors.add(error);
 		credentialServiceResponseDto.setErrors(errors);
-		CredentialEntity updatedCredential = credentialItemProcessor.process(credential);
-		assertEquals("FAILED", updatedCredential.getStatusCode());
+		RepeatStatus repeatStatus = credentialItemTasklet.execute(null, null);
+		assertEquals(RepeatStatus.FINISHED, repeatStatus);
 	}
 
 	@Test
@@ -120,9 +135,8 @@ public class CredentialItemProcessorTest {
 		Mockito.when(mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class))
 				.
 				thenThrow(new JsonMappingException("mapping exception"));
-
-		CredentialEntity updatedCredential = credentialItemProcessor.process(credential);
-		assertEquals("FAILED", updatedCredential.getStatusCode());
+		RepeatStatus repeatStatus = credentialItemTasklet.execute(null, null);
+		assertEquals(RepeatStatus.FINISHED, repeatStatus);
 	}
 
 	@Test
@@ -138,8 +152,8 @@ public class CredentialItemProcessorTest {
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 
-		CredentialEntity updatedCredential = credentialItemProcessor.process(credential);
-		assertEquals("FAILED", updatedCredential.getStatusCode());
+		RepeatStatus repeatStatus = credentialItemTasklet.execute(null, null);
+		assertEquals(RepeatStatus.FINISHED, repeatStatus);
 	}
 
 	@Test
@@ -156,7 +170,7 @@ public class CredentialItemProcessorTest {
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 
-		CredentialEntity updatedCredential = credentialItemProcessor.process(credential);
-		assertEquals("FAILED", updatedCredential.getStatusCode());
+		RepeatStatus repeatStatus = credentialItemTasklet.execute(null, null);
+		assertEquals(RepeatStatus.FINISHED, repeatStatus);
 	}
 }
