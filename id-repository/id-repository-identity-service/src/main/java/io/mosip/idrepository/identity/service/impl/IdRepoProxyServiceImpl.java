@@ -466,7 +466,9 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 					throw new IdRepoAppException(RECORD_EXISTS);
 				}
 				Uin uinObject=service.updateIdentity(request, uin);
+				mosipLogger.info("Uin updated");
 				if (env.getProperty(ACTIVE_STATUS).equalsIgnoreCase(uinObject.getStatusCode())) {
+					mosipLogger.info("Uin is in active status");
 					notify(uin, true, request.getRequest().getRegistrationId());
 				}
 				return constructIdResponse(MOSIP_ID_UPDATE, service.retrieveIdentity(uinHash, IdType.UIN, null, null),
@@ -690,12 +692,14 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				env.getProperty(WEB_SUB_PUBLISH_URL));
 	}
 	private void sendGenericIdentityEvents(String uin, boolean isUpdate, String registrationId) {
+		mosipLogger.info("Inside sendGenericIdentityEvents");
 		EventType eventType = isUpdate ? IDAEventType.IDENTITY_UPDATED : IDAEventType.IDENTITY_CREATED;
 		Map<String, Object> eventData = new HashMap<>();
 		eventData.put(ID_HASH, getIdHash(uin));
 		eventData.put(REGISTRATION_ID, registrationId);
 		String topic = eventType.toString();
 		EventModel eventModel = createEventModel(topic, eventData, registrationId);
+		mosipLogger.info(String.valueOf(eventModel));
 		sendEventToWebsub(eventModel);
 	}
 	private String getIdHash(String uin) {
