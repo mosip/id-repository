@@ -56,5 +56,9 @@ public class CredentialConstants {
 	public static final String FORMAT = "format";
 	
 	public static final String FULLADDRESS = "fullAddress";
+
+	public static final String BF_SUB_TYPE ="subType";
+
+	public static final String BF_RANK = "rank";
 	
 }
