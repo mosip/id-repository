@@ -42,4 +42,9 @@ public class CredentialConstants {
 	public static final String GENERATE = "GENERATE";
 
 	public static final String RETRIEVE = "RETRIEVE";
+
+	public static final String BF_SUB_TYPE ="subType";
+
+	public static final String BF_RANK = "rank";
+	
 }
