@@ -13,6 +13,8 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 
+import io.mosip.credentialstore.util.VIDUtil;
+import io.mosip.idrepository.core.dto.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.mvel2.MVEL;
@@ -43,9 +45,6 @@ import io.mosip.credentialstore.exception.DataEncryptionFailureException;
 import io.mosip.credentialstore.util.EncryptionUtil;
 import io.mosip.credentialstore.util.JsonUtil;
 import io.mosip.credentialstore.util.Utilities;
-import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
-import io.mosip.idrepository.core.dto.DocumentsDTO;
-import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -83,6 +82,12 @@ public class CredentialProvider {
 
 	@Autowired
 	private CbeffUtil cbeffutil;
+
+	@Autowired
+	private VIDUtil vidUtil;
+
+	@Value("${credential.service.default.vid.type:PERPETUAL}")
+	private String defaultVidType;
 
 	@Autowired(required = true)
 	@Qualifier("varres")
@@ -235,8 +240,25 @@ public class CredentialProvider {
 						attributesMap.put(key, formattedObject);
 					} else if (attribute.equalsIgnoreCase(CredentialConstants.ENCRYPTIONKEY)) {
 						additionalData.put(key.getAttributeName(), credentialServiceRequestDto.getEncryptionKey());
+					}else if(attribute.equalsIgnoreCase(CredentialConstants.VID)){
+						VidInfoDTO vidInfoDTO;
+						VidResponseDTO vidResponseDTO;
+						String vidType= key.getSource().get(0).getFilter().get(0).getType()==null?defaultVidType:key.getSource().get(0).getFilter().get(0).getType();
+						if(key.getFormat().equalsIgnoreCase(CredentialConstants.RETRIEVE)) {
+							vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(), vidType,null);
+							if (vidInfoDTO == null) {
+								vidResponseDTO=vidUtil.generateVID(identity.get("UIN").toString(), vidType);
+								vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(), vidType,vidResponseDTO.getVid());
+							}
+						}else {
+							vidResponseDTO=vidUtil.generateVID(identity.get("UIN").toString(), vidType);
+							vidInfoDTO = vidUtil.getVIDData(identity.get("UIN").toString(),vidType,vidResponseDTO.getVid());
+						}
+						attributesMap.put(key, vidInfoDTO.getVid());
+						additionalData.put("ExpiryTimestamp", vidInfoDTO.getExpiryTimestamp().toString());
+						additionalData.put("TransactionLimit", vidInfoDTO.getTransactionLimit());
 					}
-			}
+				}
 		}
 			credentialServiceRequestDto.setAdditionalData(additionalData);
 		String individualBiometricsValue = null;
