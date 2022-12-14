@@ -10,6 +10,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
+import io.mosip.credential.request.generator.constants.SubscriptionMessage;
 import io.mosip.credential.request.generator.integration.WebSubSubscriptionHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
@@ -36,6 +37,8 @@ public class CredentialInstializer implements ApplicationListener<ApplicationRea
 	private static final String CREDENTIALINSTIALIZER = "CredentialInstializer";
 
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialInstializer.class);
+	
+	private static boolean isSubscriptionStarted = false;
 
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent event) {
@@ -54,13 +57,21 @@ public class CredentialInstializer implements ApplicationListener<ApplicationRea
 		}
 	}
 
-	private void scheduleRetrySubscriptions() {
+	public String scheduleRetrySubscriptions() {
 		LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIALINSTIALIZER, ONAPPLICATIONEVENT,
 				"Scheduling re-subscription every " + reSubscriptionDelaySecs + " seconds");
 
-
-		taskScheduler.scheduleAtFixedRate(this::retrySubscriptions, Instant.now().plusSeconds(reSubscriptionDelaySecs),
-				Duration.ofSeconds(reSubscriptionDelaySecs));
+		if (!isSubscriptionStarted) {
+			taskScheduler.scheduleAtFixedRate(this::retrySubscriptions, Instant.now().plusSeconds(reSubscriptionDelaySecs),
+					Duration.ofSeconds(reSubscriptionDelaySecs));
+			isSubscriptionStarted = true;
+			return SubscriptionMessage.SUCCESS;
+		}
+		else {
+			LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIALINSTIALIZER, ONAPPLICATIONEVENT,
+					"Already instantiated");
+			return SubscriptionMessage.ALREADY_SUBSCRIBED;
+		}
 	}
 
 	private void retrySubscriptions() {

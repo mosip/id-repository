@@ -236,12 +236,12 @@ public class CredentialProvider {
 		Set<AllowedKycDto> sharableAttributeBiometricKeySet = new HashSet<>();
 			List<String> userRequestedAttributes = credentialServiceRequestDto.getSharableAttributes();
 			Map<String, Object> additionalData = credentialServiceRequestDto.getAdditionalData();			
-			if (sharableAttributeList != null && userRequestedAttributes != null) {
+			if (sharableAttributeList != null && userRequestedAttributes != null && !userRequestedAttributes.isEmpty()) {
 				userRequestedSharableAttributesList = sharableAttributeList.stream()
 						.filter(allowedKycDto -> userRequestedAttributes.contains(allowedKycDto.getAttributeName()))
 						.collect(Collectors.toList());
 				sharableAttributeList = userRequestedSharableAttributesList;
-
+				
 			}
 			if (userRequestedAttributes != null && !userRequestedAttributes.isEmpty()) {
 				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
@@ -289,15 +289,19 @@ public class CredentialProvider {
 			Object formattedObject=object;
 			
 				if (object != null) {
-					if(userReqMaskingAttributes!=null && userReqMaskingAttributes.contains(attribute)) {
-						 formattedObject=maskData(object.toString());
-					 }
-					if(userReqFormatingAttributes != null && userReqFormatingAttributes.containsKey(attribute)) {
-						 formattedObject = filterAndFormat(key,identity,userReqFormatingAttributes);
-					 }
+					if (userReqMaskingAttributes != null && !userReqMaskingAttributes.isEmpty()
+							&& userReqMaskingAttributes.contains(attribute)) {
+						formattedObject = maskData(object.toString());
+					} 
+					if (userReqFormatingAttributes != null && !userReqFormatingAttributes.isEmpty()
+							&& userReqFormatingAttributes.containsKey(attribute)) {
+						formattedObject = filterAndFormat(key, identity, userReqFormatingAttributes);
+					}
 					attributesMap.put(key, formattedObject);
-				} else {
-					 if (attribute.equalsIgnoreCase(CredentialConstants.ENCRYPTIONKEY)) {
+				} else if (attribute.equalsIgnoreCase(CredentialConstants.FULLNAME)) {
+					 formattedObject = filterAndFormat(key, identity, userReqFormatingAttributes);
+					attributesMap.put(key, formattedObject);
+				}else if (attribute.equalsIgnoreCase(CredentialConstants.ENCRYPTIONKEY)) {
 						additionalData.put(key.getAttributeName(), credentialServiceRequestDto.getEncryptionKey());
 					}else if(attribute.equalsIgnoreCase(CredentialConstants.VID)){
 						VidInfoDTO vidInfoDTO;
@@ -318,7 +322,7 @@ public class CredentialProvider {
 						additionalData.put("TransactionLimit", vidInfoDTO.getTransactionLimit());
 					}
 			}
-		}
+		
 			credentialServiceRequestDto.setAdditionalData(additionalData);
 		String individualBiometricsValue = null;
 		List<DocumentsDTO> documents = idResponseDto.getResponse().getDocuments();
@@ -510,7 +514,7 @@ public class CredentialProvider {
 		if (attribute.equals(CredentialConstants.DATEOFBIRTH)) {
 			String dateOfBirth = (String) userReqFormatingAttributes.get(CredentialConstants.DATEOFBIRTH);
 			formattedObject = formatDate(identity.get(CredentialConstants.DATEOFBIRTH), dateOfBirth);
-		} else if (attribute.equals(CredentialConstants.NAME) || attribute.equals(CredentialConstants.FULLADDRESS))
+		} else if (attribute.equals(CredentialConstants.FULLNAME) || attribute.equals(CredentialConstants.NAME) || attribute.equals(CredentialConstants.FULLADDRESS))
 			formattedObject = formatData(identity, attribute);
 		return formattedObject;
 	}
