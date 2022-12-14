@@ -761,8 +761,6 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		Serializable serializable = MVEL.compileExpression(identityAttribute + "(maskData);");
 		return MVEL.executeExpression(serializable, context, myVarFactory, String.class);
 	}
-<<<<<<< HEAD
+
 }
-=======
-}
->>>>>>> upstream/develop
+
