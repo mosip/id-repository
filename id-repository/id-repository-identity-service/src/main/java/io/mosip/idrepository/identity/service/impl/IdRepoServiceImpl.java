@@ -169,7 +169,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	@Autowired(required=false)
 	private AnonymousProfileHelper anonymousProfileHelper;
 	
-	@Value("${mosip.idrepo.anonymous-profiling-enabled}")
+	@Value("${mosip.idrepo.anonymous-profiling-enabled:false}")
 	private boolean isprofilingEnabled;
 	
 	@PostConstruct
