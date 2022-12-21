@@ -33,6 +33,7 @@ import org.skyscreamer.jsonassert.JSONCompare;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.skyscreamer.jsonassert.JSONCompareResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -168,6 +169,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	@Autowired(required=false)
 	private AnonymousProfileHelper anonymousProfileHelper;
 	
+	@Value("${mosip.idrepo.anonymous-profiling-enabled}")
+	private boolean isprofilingEnabled;
 	
 	@PostConstruct
 	public void init() {
@@ -227,8 +230,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				null, env.getProperty(ACTIVE_STATUS),
 				env.getProperty(MOSIP_PRIMARY_LANGUAGE), IdRepoSecurityManager.getUser(),
 				DateUtils.getUTCCurrentDateTime(), null, null, false, null));
-		anonymousProfileHelper
-				.buildAndsaveProfile(env.getProperty("mosip.idrepo.anonymous-profiling-enabled", Boolean.class, false),anonymousProfileDto);
+		if (isprofilingEnabled) {
+			anonymousProfileHelper.buildAndsaveProfile(anonymousProfileDto);
+		}
 		return uinEntity;
 	}
 
@@ -408,8 +412,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					env.getProperty(MOSIP_PRIMARY_LANGUAGE), IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), false, null));
-			anonymousProfileHelper
-			.buildAndsaveProfile(env.getProperty("mosip.idrepo.anonymous-profiling-enabled", Boolean.class, false),anonymousProfileDto);
+			if (isprofilingEnabled) {
+				anonymousProfileHelper.buildAndsaveProfile(anonymousProfileDto);
+			}
 			return uinObject;
 		} catch (JSONException | InvalidJsonException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, UPDATE_IDENTITY, e.getMessage());

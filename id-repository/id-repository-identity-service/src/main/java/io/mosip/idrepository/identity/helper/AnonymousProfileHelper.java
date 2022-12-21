@@ -57,9 +57,6 @@ public class AnonymousProfileHelper {
 	@Autowired
 	private Environment env;
 	
-	 String oldCbeff;
-
-	 String newCbeff;
 
 	@PostConstruct
 	public void init() throws IOException {
@@ -72,27 +69,34 @@ public class AnonymousProfileHelper {
 	}
 
 	@Async
-	public void buildAndsaveProfile(boolean profilingEnabled, AnonymousProfileDto anonymousProfileDto) {
-		if (profilingEnabled)
+	public void buildAndsaveProfile(AnonymousProfileDto anonymousProfileDto) {
 			try {
 				channelInfoHelper.updatePhoneChannelInfo(anonymousProfileDto.getOldUinData(), anonymousProfileDto.getNewUinData());
 				channelInfoHelper.updateEmailChannelInfo(anonymousProfileDto.getOldUinData(), anonymousProfileDto.getNewUinData());
 				List<DocumentsDTO> oldDocList = List.of(new DocumentsDTO());
 				List<DocumentsDTO> newDocList = List.of(new DocumentsDTO());
-				if (Objects.isNull(anonymousProfileDto.getOldCbeff()) && Objects.nonNull(anonymousProfileDto.getOldCbeffRefId()))
-				oldCbeff = CryptoUtil
-							.encodeToURLSafeBase64(objectStoreHelper.getBiometricObject(anonymousProfileDto.getUinHash(), anonymousProfileDto.getOldCbeffRefId()));
-				anonymousProfileDto.setOldCbeff(oldCbeff);
-				if (Objects.isNull(anonymousProfileDto.getNewCbeff()) && Objects.nonNull(anonymousProfileDto.getNewCbeffRefId()))
-					newCbeff = CryptoUtil
-							.encodeToURLSafeBase64(objectStoreHelper.getBiometricObject(anonymousProfileDto.getUinHash(), anonymousProfileDto.getNewCbeffRefId()));
-				anonymousProfileDto.setNewCbeff(newCbeff);
-				if (Objects.nonNull(oldCbeff))
+				String oldCbeff = null;
+				String newCbeff = null;
+				if (Objects.isNull(anonymousProfileDto.getOldCbeff())
+						&& Objects.nonNull(anonymousProfileDto.getOldCbeffRefId())) {
+					oldCbeff = CryptoUtil.encodeToURLSafeBase64(objectStoreHelper.getBiometricObject(
+							anonymousProfileDto.getUinHash(), anonymousProfileDto.getOldCbeffRefId()));
+					anonymousProfileDto.setOldCbeff(oldCbeff);
+				}
+				if (Objects.isNull(anonymousProfileDto.getNewCbeff())
+						&& Objects.nonNull(anonymousProfileDto.getNewCbeffRefId())) {
+					newCbeff = CryptoUtil.encodeToURLSafeBase64(objectStoreHelper.getBiometricObject(
+							anonymousProfileDto.getUinHash(), anonymousProfileDto.getNewCbeffRefId()));
+					anonymousProfileDto.setNewCbeff(newCbeff);
+				}
+				if (Objects.nonNull(oldCbeff)) {
 					oldDocList = List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
 							.getIdentity().getIndividualBiometrics().getValue(), oldCbeff));
-				if (Objects.nonNull(newCbeff))
+				}
+				if (Objects.nonNull(newCbeff)) {
 					newDocList = List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
 							.getIdentity().getIndividualBiometrics().getValue(), newCbeff));
+				}
 				String id = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, anonymousProfileDto.getRegId()).toString();
 				IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
 						.setFilterLanguage(env.getProperty("mosip.mandatory-languages", "").split(",")[0])
@@ -107,7 +111,5 @@ public class AnonymousProfileHelper {
 						ExceptionUtils.getStackTrace(e));
 			}
 	}
-
-	
 
 }
