@@ -53,7 +53,8 @@ import io.mosip.idrepository.core.spi.AuthtypeStatusService;
 import io.mosip.idrepository.core.spi.IdRepoService;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.controller.IdRepoController;
-import io.mosip.idrepository.identity.dto.UpdateCountDto;
+import io.mosip.idrepository.identity.dto.AttributeListDto;
+import io.mosip.idrepository.identity.dto.RidDto;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
@@ -553,30 +554,31 @@ public class IdRepoControllerTest {
 	public void testGetRidByUin() throws IdRepoAppException {
 		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
 		when(idRepoService.getRidByIndividualId(any(), any())).thenReturn("1234");
-		ResponseEntity<ResponseWrapper<String>> ridResponse = controller.getRidByIndividualId("", null);
-		assertEquals("1234", ridResponse.getBody().getResponse());
+		ResponseEntity<ResponseWrapper<RidDto>> ridResponse = controller.getRidByIndividualId("", null);
+		assertEquals("1234", ridResponse.getBody().getResponse().getRid());
 	}
 	
 	@Test
 	public void testGetRidByUinWithIdType() throws IdRepoAppException {
 		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
 		when(idRepoService.getRidByIndividualId(any(), any())).thenReturn("1234");
-		ResponseEntity<ResponseWrapper<String>> ridResponse = controller.getRidByIndividualId("", "");
-		assertEquals("1234", ridResponse.getBody().getResponse());
+		ResponseEntity<ResponseWrapper<RidDto>> ridResponse = controller.getRidByIndividualId("", "");
+		assertEquals("1234", ridResponse.getBody().getResponse().getRid());
 	}
 	
 	@Test
 	public void testGetRemainingUpdateCountByIndividualId() throws IdRepoAppException {
 		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
 		when(idRepoService.getRemainingUpdateCountByIndividualId(any(), any(), any())).thenReturn(Map.of("1234", 1));
-		ResponseEntity<ResponseWrapper<List<UpdateCountDto>>> response = controller.getRemainingUpdateCountByIndividualId("1234", null, null);
-		response.getBody().getResponse();	}
+		ResponseEntity<ResponseWrapper<AttributeListDto>> response = controller.getRemainingUpdateCountByIndividualId("1234", null, null);
+		response.getBody().getResponse();
+	}
 	
 	@Test
 	public void testGetRemainingUpdateCountByIndividualIdWithIdType() throws IdRepoAppException {
 		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
 		when(idRepoService.getRemainingUpdateCountByIndividualId(any(), any(), any())).thenReturn(Map.of("1234", 1));
-		ResponseEntity<ResponseWrapper<List<UpdateCountDto>>> response = controller.getRemainingUpdateCountByIndividualId("1234", "UIN", null);
+		ResponseEntity<ResponseWrapper<AttributeListDto>> response = controller.getRemainingUpdateCountByIndividualId("1234", "UIN", null);
 		response.getBody().getResponse();
 	}
 }

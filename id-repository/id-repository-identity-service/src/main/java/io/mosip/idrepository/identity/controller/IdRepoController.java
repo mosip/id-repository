@@ -53,6 +53,8 @@ import io.mosip.idrepository.core.spi.AuthtypeStatusService;
 import io.mosip.idrepository.core.spi.IdRepoService;
 import io.mosip.idrepository.core.util.DataValidationUtil;
 import io.mosip.idrepository.core.util.EnvUtil;
+import io.mosip.idrepository.identity.dto.AttributeListDto;
+import io.mosip.idrepository.identity.dto.RidDto;
 import io.mosip.idrepository.identity.dto.UpdateCountDto;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.http.ResponseWrapper;
@@ -420,7 +422,7 @@ public class IdRepoController {
 	}
 	
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetRidByIndividualId())")
-	@GetMapping(path = "/get-rid/{individualId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(path = "/rid/{individualId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Get RID by IndividualId Request", description = "Get RID by IndividualId Request", tags = {
 			"id-repo-controller" })
 	@ApiResponses(value = {
@@ -429,21 +431,22 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
-	public ResponseEntity<ResponseWrapper<String>> getRidByIndividualId(@PathVariable("individualId") String individualId,
+	public ResponseEntity<ResponseWrapper<RidDto>> getRidByIndividualId(@PathVariable("individualId") String individualId,
 			@RequestParam(name = ID_TYPE, required = false) @Nullable String idType) throws IdRepoAppException {
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
 				individualId, individualIdType, "Get RID by IndividualId Request received");
-		ResponseWrapper<String> responseWrapper = new ResponseWrapper<>();
-		String rid = idRepoService.getRidByIndividualId(individualId, individualIdType);
-		responseWrapper.setResponse(rid);
+		ResponseWrapper<RidDto> responseWrapper = new ResponseWrapper<>();
+		RidDto ridDto = new RidDto();
+		ridDto.setRid(idRepoService.getRidByIndividualId(individualId, individualIdType));
+		responseWrapper.setResponse(ridDto);
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
 				individualId, individualIdType, "Get RID by IndividualId Request success");
 		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}
 	
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getRemainingUpdateCountByIndividualId())")
-	@GetMapping(path = "/update-count/{individualId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(path = "/{individualId}/update-counts", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Get Remaining update count by Individual Id Request", description = "Get Remaining update count by Individual Id Request", tags = {
 			"id-repo-controller" })
 	@ApiResponses(value = {
@@ -452,14 +455,15 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
-	public ResponseEntity<ResponseWrapper<List<UpdateCountDto>>> getRemainingUpdateCountByIndividualId(
+	public ResponseEntity<ResponseWrapper<AttributeListDto>> getRemainingUpdateCountByIndividualId(
 			@PathVariable String individualId, @RequestParam(name = ID_TYPE, required = false) @Nullable String idType,
 			@RequestParam(name = "attribute_list", required = false) @Nullable List<String> attributeList)
 			throws IdRepoAppException {
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID, individualId,
 				individualIdType, "Get Remaining update count by Individual Id Request received");
-		ResponseWrapper<List<UpdateCountDto>> responseWrapper = new ResponseWrapper<>();
+		ResponseWrapper<AttributeListDto> responseWrapper = new ResponseWrapper<>();
+		AttributeListDto attributeListDto = new AttributeListDto();
 		Map<String, Integer> countMap = idRepoService.getRemainingUpdateCountByIndividualId(individualId,
 				individualIdType, attributeList);
 		List<UpdateCountDto> dtoList = countMap.entrySet().stream()
@@ -467,7 +471,8 @@ public class IdRepoController {
 				.collect(Collectors.toList());
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID, individualId,
 				individualIdType, "Get Remaining update count by Individual Id Request success");
-		responseWrapper.setResponse(dtoList);
+		attributeListDto.setAttributes(dtoList);
+		responseWrapper.setResponse(attributeListDto);
 		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}
 
