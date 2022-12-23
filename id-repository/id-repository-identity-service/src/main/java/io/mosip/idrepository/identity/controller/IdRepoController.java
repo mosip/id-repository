@@ -20,6 +20,7 @@ import javax.annotation.Resource;
 
 import io.mosip.idrepository.core.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -133,6 +134,12 @@ public class IdRepoController {
 
 	@Autowired
 	private AuthtypeStatusService authTypeStatusService;
+
+	@Value("${mosip.idrepo.rid.get.id}")
+	private String ridId;
+
+	@Value("${mosip.idrepo.rid.get.version}")
+	private String ridVersion;
 
 	/**
 	 * Inits the binder.
@@ -439,6 +446,8 @@ public class IdRepoController {
 		ResponseWrapper<RidDto> responseWrapper = new ResponseWrapper<>();
 		RidDto ridDto = new RidDto();
 		ridDto.setRid(idRepoService.getRidByIndividualId(individualId, individualIdType));
+		responseWrapper.setId(ridId);
+		responseWrapper.setVersion(ridVersion);
 		responseWrapper.setResponse(ridDto);
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
 				individualId, individualIdType, "Get RID by IndividualId Request success");
