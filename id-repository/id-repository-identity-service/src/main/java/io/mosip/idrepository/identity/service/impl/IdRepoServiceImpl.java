@@ -361,11 +361,14 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		String uinHash = modResult + SPLITTER + uinHashwithSalt;
 		try {
 			Uin uinObject = retrieveIdentity(uinHash, IdType.UIN, null, null);
+			String oldFileRefId;
+			if (!anonymousProfileDto.isOldCbeffPresent() && Objects.nonNull(uinObject.getBiometrics())
+					&& !uinObject.getBiometrics().isEmpty())
+				oldFileRefId = uinObject.getBiometrics().get(uinObject.getBiometrics().size() - 1).getBioFileId();
+			else
+				oldFileRefId = null;
 			anonymousProfileDto.setOldCbeff(uinHash,
-					!anonymousProfileDto.isOldCbeffPresent() && Objects.nonNull(uinObject.getBiometrics())
-							&& !uinObject.getBiometrics().isEmpty()
-									? uinObject.getBiometrics().get(uinObject.getBiometrics().size() - 1).getBioFileId()
-									: null);
+					oldFileRefId);
 			uinObject.setRegId(request.getRequest().getRegistrationId());
 			if (Objects.nonNull(request.getRequest().getStatus())
 					&& !StringUtils.equals(uinObject.getStatusCode(), request.getRequest().getStatus())) {
@@ -392,12 +395,16 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				}
 
 				if (Objects.nonNull(requestDTO.getDocuments()) && !requestDTO.getDocuments().isEmpty()) {
+					String fileRefId;
+					if (!anonymousProfileDto.isNewCbeffPresent() && Objects.nonNull(uinObject.getBiometrics())
+							&& !uinObject.getBiometrics().isEmpty()) {
+						fileRefId = uinObject.getBiometrics().get(uinObject.getBiometrics().size() - 1)
+								.getBioFileId();
+					} else {
+						fileRefId = null;
+					}
 					anonymousProfileDto.setNewCbeff(uinObject.getUinHash(),
-							!anonymousProfileDto.isNewCbeffPresent() && Objects.nonNull(uinObject.getBiometrics())
-									&& !uinObject.getBiometrics().isEmpty()
-											? uinObject.getBiometrics().get(uinObject.getBiometrics().size() - 1)
-													.getBioFileId()
-											: null);
+							fileRefId);
 					updateDocuments(uinHashwithSalt, uinHash, uinObject, requestDTO,anonymousProfileDto);
 					uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
 					uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
@@ -645,7 +652,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 								CBEFF_FORMAT) && bio.getBioFileId().endsWith(CBEFF_FORMAT)) {
 							byte[] decodedBioData = CryptoUtil.decodeBase64(doc.getValue());
 							anonymousProfileDto.setOldCbeff(CryptoUtil.encodeBase64(data));
-							doc.setValue(CryptoUtil.encodeBase64(this.updateXML(decodedBioData, data,anonymousProfileDto)));
+							doc.setValue(this.updateXML(decodedBioData, data,anonymousProfileDto));
 						}
 					} catch (Exception e) {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateCbeff",
@@ -656,7 +663,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				}));
 	}
 	
-	private byte[] updateXML(byte[] inputBioData, byte[] existingBioData,AnonymousProfileDto anonymousProfileDto) throws Exception {
+	private String updateXML(byte[] inputBioData, byte[] existingBioData,AnonymousProfileDto anonymousProfileDto) throws Exception {
 		List<BIR> existingBIRData = CbeffValidator.convertBIRTypeToBIR(cbeffUtil.getBIRDataFromXML(existingBioData));
 		List<BIR> inputBIRData = CbeffValidator.convertBIRTypeToBIR(cbeffUtil.getBIRDataFromXML(inputBioData));
 		Map<String, BIR> inputBIRDataMap = inputBIRData.stream()
@@ -669,8 +676,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						.concat(bir.getBdbInfo().getSubtype().stream().collect(Collectors.joining())), bir -> bir));
 		inputBIRDataMap.entrySet().forEach(entry -> existingBIRDataMap.replace(entry.getKey(), entry.getValue()));
 		byte[] updatedCbeff = cbeffUtil.createXML(new ArrayList<>(existingBIRDataMap.values()));
-		anonymousProfileDto.setNewCbeff(CryptoUtil.encodeBase64(updatedCbeff));
-		return updatedCbeff;
+		String encodeUpdateCbeff = CryptoUtil.encodeBase64(updatedCbeff);
+		anonymousProfileDto.setNewCbeff(encodeUpdateCbeff);
+		return encodeUpdateCbeff;
 	}
 
 	/**

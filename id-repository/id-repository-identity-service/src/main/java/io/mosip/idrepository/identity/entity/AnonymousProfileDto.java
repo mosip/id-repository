@@ -9,15 +9,18 @@ import org.apache.commons.lang3.StringUtils;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
  * @author Neha Farheen
  *
  */
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
+@Getter
 public class AnonymousProfileDto {
 	
 	private byte[] oldUinData;
@@ -67,8 +70,7 @@ public class AnonymousProfileDto {
 
 	public AnonymousProfileDto setOldCbeff(String uinHash, String fileRefId) {
 		if (Objects.isNull(oldCbeff)) {
-			String substringHash = StringUtils.substringAfter(uinHash, "_");
-			this.uinHash = StringUtils.isBlank(substringHash) ? uinHash : substringHash;
+			this.uinHash = splitUinHash(uinHash);
 			this.oldCbeffRefId = fileRefId;
 		}
 		return this;
@@ -76,29 +78,22 @@ public class AnonymousProfileDto {
 
 	public AnonymousProfileDto setNewCbeff(String uinHash, String fileRefId) {
 		if (Objects.isNull(newCbeff)) {
-			String substringHash = StringUtils.substringAfter(uinHash, "_");
-			this.uinHash = StringUtils.isBlank(substringHash) ? uinHash : substringHash;
+			this.uinHash = splitUinHash(uinHash);
 			this.newCbeffRefId = fileRefId;
 		}
 		return this;
 	}
 
+	private static String splitUinHash(String uinHash) {
+		String substringHash = StringUtils.substringAfter(uinHash, "_");
+		return StringUtils.isBlank(substringHash) ? uinHash : substringHash;
+	}
+
 	public AnonymousProfileDto setRegId(String regId) {
-		if (Objects.nonNull(this.regId) && !this.regId.contentEquals(regId))
-			resetData();
 		this.regId = regId;
 		return this;
 	}
 
-	private void resetData() {
-		this.oldUinData = null;
-		this.newUinData = null;
-		this.oldCbeff = null;
-		this.newCbeff = null;
-		this.uinHash = null;
-		this.newCbeffRefId = null;
-		this.oldCbeffRefId = null;
-		this.regId = null;
-	}
+	
 
 }
