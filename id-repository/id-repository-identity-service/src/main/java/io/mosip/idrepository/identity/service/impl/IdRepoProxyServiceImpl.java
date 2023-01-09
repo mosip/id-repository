@@ -265,7 +265,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 					if (uinRepo.existsByUinHash(retrieveUinHash(uin))) {
 						IdResponseDTO idResponseDto = updateIdentity(request, uin, true);
 						Uin uinEntity = new Uin();
-						System.out.println(idResponseDto.getResponse().getStatus());
 						uinEntity.setStatusCode(idResponseDto.getResponse().getStatus());
 						notify(uin, null, null, false, request.getRequest().getRegistrationId());
 						return constructIdResponse(this.id.get(CREATE), uinEntity, null);
