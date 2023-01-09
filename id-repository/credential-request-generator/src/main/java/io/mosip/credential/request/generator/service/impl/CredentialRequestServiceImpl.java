@@ -101,12 +101,14 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 	public ResponseWrapper<CredentialIssueResponse> createCredentialIssuance(CredentialIssueRequestDto credentialIssueRequestDto) {
 		LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL,
 				"started creating credential");
+		String requestId=null;
 		List<ServiceError> errorList = new ArrayList<>();
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = new ResponseWrapper<CredentialIssueResponse>();
 
 		CredentialIssueResponse credentialIssueResponse = null;
-		String requestId = utilities.generateId();
-
+		if(credentialIssueRequestDto.getAdditionalData()!=null) {
+			 requestId= credentialIssueRequestDto.getAdditionalData().containsKey("credential_id") ? credentialIssueRequestDto.getAdditionalData().get("credential_id").toString() : utilities.generateId();
+		}
 		try{
 			CredentialEntity credential=new CredentialEntity();
 			credential.setRequestId(requestId);
