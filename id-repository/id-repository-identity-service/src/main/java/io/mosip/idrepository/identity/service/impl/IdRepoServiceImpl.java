@@ -197,9 +197,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(modResult);
 		String uinToEncrypt = modResult + SPLITTER + uin + SPLITTER + encryptSalt;
 		AnonymousProfileDto anonymousProfileDto = new AnonymousProfileDto();
-		anonymousProfileDto
-			.setRegId(request.getRequest().getRegistrationId())
-			.setNewUinData(identityInfo);
+		anonymousProfileDto.setRegId(request.getRequest().getRegistrationId());
+		anonymousProfileDto.setNewUinData(identityInfo);
 		List<UinDocument> docList = new ArrayList<>();
 		List<UinBiometric> bioList = new ArrayList<>();
 		Uin uinEntity;
@@ -362,13 +361,14 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		try {
 			Uin uinObject = retrieveIdentity(uinHash, IdType.UIN, null, null);
 			String oldFileRefId;
-			if (!anonymousProfileDto.isOldCbeffPresent() && Objects.nonNull(uinObject.getBiometrics())
+			if (!Objects.nonNull(anonymousProfileDto.getOldCbeff()) && Objects.nonNull(uinObject.getBiometrics())
 					&& !uinObject.getBiometrics().isEmpty())
 				oldFileRefId = uinObject.getBiometrics().get(uinObject.getBiometrics().size() - 1).getBioFileId();
 			else
 				oldFileRefId = null;
-			anonymousProfileDto.setOldCbeff(uinHash,
-					oldFileRefId);
+		
+			anonymousProfileDto.setOldCbeff(splitUinHash(uinHash));
+			anonymousProfileDto.setOldCbeffRefId(oldFileRefId);
 			uinObject.setRegId(request.getRequest().getRegistrationId());
 			if (Objects.nonNull(request.getRequest().getStatus())
 					&& !StringUtils.equals(uinObject.getStatusCode(), request.getRequest().getStatus())) {
@@ -396,15 +396,15 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 				if (Objects.nonNull(requestDTO.getDocuments()) && !requestDTO.getDocuments().isEmpty()) {
 					String fileRefId;
-					if (!anonymousProfileDto.isNewCbeffPresent() && Objects.nonNull(uinObject.getBiometrics())
+					if (!Objects.nonNull(anonymousProfileDto.getNewCbeff()) && Objects.nonNull(uinObject.getBiometrics())
 							&& !uinObject.getBiometrics().isEmpty()) {
 						fileRefId = uinObject.getBiometrics().get(uinObject.getBiometrics().size() - 1)
 								.getBioFileId();
 					} else {
 						fileRefId = null;
 					}
-					anonymousProfileDto.setNewCbeff(uinObject.getUinHash(),
-							fileRefId);
+					anonymousProfileDto.setNewCbeff(splitUinHash(uinObject.getUinHash()));
+					anonymousProfileDto.setNewCbeffRefId(fileRefId);
 					updateDocuments(uinHashwithSalt, uinHash, uinObject, requestDTO,anonymousProfileDto);
 					uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
 					uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
@@ -712,6 +712,15 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "convertToBytes", e.getMessage());
 			throw new IdRepoAppException(ID_OBJECT_PROCESSING_FAILED, e);
 		}
+	}
+	
+	private static String splitUinHash(String uinHash) {
+		String substringHash = StringUtils.substringAfter(uinHash, "_");
+		return StringUtils.isBlank(substringHash) ? uinHash : substringHash;
+	}
+	@Override
+	public Uin updateIdentity(IdRequestDTO request, String uin, boolean overridedata) throws IdRepoAppException {
+		return updateIdentity(request,uin);
 	}
 	
 }

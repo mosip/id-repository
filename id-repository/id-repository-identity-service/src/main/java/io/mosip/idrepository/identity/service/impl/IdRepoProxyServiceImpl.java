@@ -245,6 +245,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	@Autowired
 	private BiometricExtractionService biometricExtractionService; 
 
+	@Value("${mosip.idrepo.update-enabled:false}")
+	private boolean isUpdateEnabled;
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -254,8 +256,26 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	@Override
 	public IdResponseDTO addIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
 		try {
-			if (uinRepo.existsByUinHash(retrieveUinHash(uin))
-					|| uinHistoryRepo.existsByRegId(request.getRequest().getRegistrationId())) {
+			if (uinHistoryRepo.existsByRegId(request.getRequest().getRegistrationId())) {
+				if (!isUpdateEnabled) {
+					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
+							RECORD_EXISTS.getErrorMessage());
+					throw new IdRepoAppException(RECORD_EXISTS);
+				} else {
+					if (uinRepo.existsByUinHash(retrieveUinHash(uin))) {
+						IdResponseDTO idResponseDto = updateIdentity(request, uin, true);
+						Uin uinEntity = new Uin();
+						System.out.println(idResponseDto.getResponse().getStatus());
+						uinEntity.setStatusCode(idResponseDto.getResponse().getStatus());
+						notify(uin, null, null, false, request.getRequest().getRegistrationId());
+						return constructIdResponse(this.id.get(CREATE), uinEntity, null);
+					} else {
+						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
+								RECORD_EXISTS.getErrorMessage());
+						throw new IdRepoAppException(RECORD_EXISTS);
+					}
+				}
+			} else if (uinRepo.existsByUinHash(retrieveUinHash(uin))) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 						RECORD_EXISTS.getErrorMessage());
 				throw new IdRepoAppException(RECORD_EXISTS);
@@ -621,21 +641,22 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
 		}
 	}
-	
+	public IdResponseDTO updateIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
+		return updateIdentity(request,uin,false);
+	}
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see io.mosip.kernel.core.idrepo.spi.IdRepoService#updateIdentity(java.lang.
 	 * Object, java.lang.String)
 	 */
-	@Override
-	public IdResponseDTO updateIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
+	public IdResponseDTO updateIdentity(IdRequestDTO request, String uin,boolean overridedata) throws IdRepoAppException {
 		String regId = request.getRequest().getRegistrationId();
 		try {
 			String uinHash = retrieveUinHash(uin);
 			if (uinRepo.existsByUinHash(uinHash)) {
-				if (uinRepo.existsByRegId(regId)
-						|| uinHistoryRepo.existsByRegId(request.getRequest().getRegistrationId())) {
+				if (!overridedata && (uinRepo.existsByRegId(regId)
+						|| uinHistoryRepo.existsByRegId(request.getRequest().getRegistrationId()))) {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
 							RECORD_EXISTS.getErrorMessage());
 					throw new IdRepoAppException(RECORD_EXISTS);
