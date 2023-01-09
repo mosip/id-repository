@@ -691,7 +691,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null,
 				env.getProperty(WEB_SUB_PUBLISH_URL));
 	}
-	private void sendGenericIdentityEvents(String uin, boolean isUpdate, String registrationId) {
+	public void sendGenericIdentityEvents(String uin, boolean isUpdate, String registrationId) {
 		mosipLogger.info("Inside sendGenericIdentityEvents");
 		EventType eventType = isUpdate ? IDAEventType.IDENTITY_UPDATED : IDAEventType.IDENTITY_CREATED;
 		Map<String, Object> eventData = new HashMap<>();

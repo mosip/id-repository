@@ -365,6 +365,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				anonymousProfileHelper.buildAndsaveProfile(true);
 				publishDocuments(draft, uinObject);
 				this.discardDraft(regId);
+				proxyService.sendGenericIdentityEvents(uin,true,regId);
 				return constructIdResponse(null, uinObject.getStatusCode(), null, draftVid);
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
