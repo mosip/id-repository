@@ -628,6 +628,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * @see io.mosip.kernel.core.idrepo.spi.IdRepoService#updateIdentity(java.lang.
 	 * Object, java.lang.String)
 	 */
+	@Override
 	public IdResponseDTO updateIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
 		String regId = request.getRequest().getRegistrationId();
 		try {
