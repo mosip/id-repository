@@ -718,9 +718,5 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		String substringHash = StringUtils.substringAfter(uinHash, "_");
 		return StringUtils.isBlank(substringHash) ? uinHash : substringHash;
 	}
-	@Override
-	public Uin updateIdentity(IdRequestDTO request, String uin, boolean overridedata) throws IdRepoAppException {
-		return updateIdentity(request,uin);
-	}
 	
 }
