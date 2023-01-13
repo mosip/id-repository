@@ -254,7 +254,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	@Override
 	public IdResponseDTO addIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
 		try {
-			System.out.println(uinRepo.existsByUinHash(retrieveUinHash(uin)));
 			if (uinRepo.existsByUinHash(retrieveUinHash(uin))
 					|| uinHistoryRepo.existsByRegId(request.getRequest().getRegistrationId())) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
