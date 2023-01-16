@@ -659,10 +659,12 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
 		}
 	}
+
 	
 	public IdResponseDTO updateIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
 		return updateIdentity(request, uin, false);
 	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
