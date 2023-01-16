@@ -719,4 +719,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		return StringUtils.isBlank(substringHash) ? uinHash : substringHash;
 	}
 	
+	@Override
+	public Uin updateIdentity(IdRequestDTO request, String uin, boolean overridedata) throws IdRepoAppException {
+		return updateIdentity(request, uin);
+	}
+	
 }
