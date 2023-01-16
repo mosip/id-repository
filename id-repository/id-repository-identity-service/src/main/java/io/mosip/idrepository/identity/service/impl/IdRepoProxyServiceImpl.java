@@ -273,16 +273,15 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 					throw new IdRepoAppException(RECORD_EXISTS);
 				} else {
 					if (uinRepo.existsByRegId(request.getRequest().getRegistrationId())) {
-						String uindata = uinRepo.getUinByRid(request.getRequest().getRegistrationId());
-						String uinhashdata = uinRepo.getUinHashByRid(request.getRequest().getRegistrationId());
-						String uinvalue =decryptUin(uindata,uinhashdata);
-						if(uinvalue.equals(uin)) {												
-						IdResponseDTO idResponseDto = updateIdentity(request, uin, true);
-						Uin uinEntity = new Uin();
-						uinEntity.setStatusCode(idResponseDto.getResponse().getStatus());
-						notify(uin, null, null, false, request.getRequest().getRegistrationId());
-						return constructIdResponse(this.id.get(CREATE), uinEntity, null);
-						}else {
+						String uinByRid = uinRepo.getUinByRid(request.getRequest().getRegistrationId());
+						String decryptedUin = decryptUin(uinByRid);
+						if (uin.equals(decryptedUin)) {
+							IdResponseDTO idResponseDto = updateIdentity(request, uin, true);
+							Uin uinEntity = new Uin();
+							uinEntity.setStatusCode(idResponseDto.getResponse().getStatus());
+							notify(uin, null, null, false, request.getRequest().getRegistrationId());
+							return constructIdResponse(this.id.get(CREATE), uinEntity, null);
+						} else {
 							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 									RECORD_EXISTS.getErrorMessage());
 							throw new IdRepoAppException(RECORD_EXISTS);
@@ -942,7 +941,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		return credentialIssueRequestDto;
 	}
 	
-	private String decryptUin(String uin, String uinHash) throws IdRepoAppException {
+	private String decryptUin(String uin) throws IdRepoAppException {
 		List<String> uinDetails = Arrays.stream(uin.split(SPLITTER)).collect(Collectors.toList());
 		String decryptSalt = uinEncryptSaltRepo.retrieveSaltById(Integer.parseInt(uinDetails.get(0)));
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(Integer.parseInt(uinDetails.get(0)));
