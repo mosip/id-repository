@@ -81,7 +81,6 @@ import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 import io.mosip.idrepository.identity.repository.UinHashSaltRepo;
 import io.mosip.idrepository.identity.repository.UinHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinRepo;
-import io.mosip.idrepository.identity.repository.UinEncryptSaltRepo;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
@@ -250,13 +249,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	
 	@Value("${mosip.idrepo.create-identity.enable-force-merge:false}")
 	private boolean isForceMergeEnabled;
-	
-	@Value("${mosip.idrepo.crypto.refId.uin}")
-	private String uinRefId;
-	
-	@Autowired
-	private UinEncryptSaltRepo uinEncryptSaltRepo;
-
+				
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -272,24 +265,24 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 							RECORD_EXISTS.getErrorMessage());
 					throw new IdRepoAppException(RECORD_EXISTS);
 				} else {
-					if (uinRepo.existsByRegId(request.getRequest().getRegistrationId())) {
-						String uinByRid = uinRepo.getUinByRid(request.getRequest().getRegistrationId());
-						String decryptedUin = decryptUin(uinByRid);
-						if (uin.equals(decryptedUin)) {
+					if (!uinRepo.existsByRegId(request.getRequest().getRegistrationId())) {
+						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
+								OLD_APPLICATION_ID.getErrorMessage());
+						throw new IdRepoAppException(OLD_APPLICATION_ID);
+					} else {
+						String uinHashByRid = uinRepo.getUinHashByRid(request.getRequest().getRegistrationId());
+						String retriveUinHashByRequest = retrieveUinHash(uin);
+						if (!retriveUinHashByRequest.equals(uinHashByRid)) {
+							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
+									RECORD_EXISTS.getErrorMessage());
+							throw new IdRepoAppException(RECORD_EXISTS);
+						} else {
 							IdResponseDTO idResponseDto = updateIdentity(request, uin, true);
 							Uin uinEntity = new Uin();
 							uinEntity.setStatusCode(idResponseDto.getResponse().getStatus());
 							notify(uin, null, null, false, request.getRequest().getRegistrationId());
 							return constructIdResponse(this.id.get(CREATE), uinEntity, null);
-						} else {
-							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
-									RECORD_EXISTS.getErrorMessage());
-							throw new IdRepoAppException(RECORD_EXISTS);
 						}
-					} else {
-						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
-								OLD_APPLICATION_ID.getErrorMessage());
-						throw new IdRepoAppException(OLD_APPLICATION_ID);
 					}
 				}
 			} else if (uinRepo.existsByUinHash(retrieveUinHash(uin))) {
@@ -939,15 +932,5 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		credentialIssueRequestDto.setUser(IdRepoSecurityManager.getUser());
 		credentialIssueRequestDto.setAdditionalData(data);
 		return credentialIssueRequestDto;
-	}
-	
-	private String decryptUin(String uin) throws IdRepoAppException {
-		List<String> uinDetails = Arrays.stream(uin.split(SPLITTER)).collect(Collectors.toList());
-		String decryptSalt = uinEncryptSaltRepo.retrieveSaltById(Integer.parseInt(uinDetails.get(0)));
-		String hashSalt = uinHashSaltRepo.retrieveSaltById(Integer.parseInt(uinDetails.get(0)));
-		String encryptedUin = uin.substring(uinDetails.get(0).length() + 1, uin.length());
-		String decryptedUin = new String(securityManager.decryptWithSalt(CryptoUtil.decodeBase64(encryptedUin),
-				CryptoUtil.decodeBase64(decryptSalt), uinRefId));
-		return decryptedUin;
 	}
 }
