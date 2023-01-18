@@ -264,36 +264,33 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 							RECORD_EXISTS.getErrorMessage());
 					throw new IdRepoAppException(RECORD_EXISTS);
-				} else {
-					if (!uinRepo.existsByRegId(request.getRequest().getRegistrationId())) {
-						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
-								OLD_APPLICATION_ID.getErrorMessage());
-						throw new IdRepoAppException(OLD_APPLICATION_ID);
-					} else {
-						String uinHashByRid = uinRepo.getUinHashByRid(request.getRequest().getRegistrationId());
-						String retriveUinHashByRequest = retrieveUinHash(uin);
-						if (!retriveUinHashByRequest.equals(uinHashByRid)) {
-							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
-									RECORD_EXISTS.getErrorMessage());
-							throw new IdRepoAppException(RECORD_EXISTS);
-						} else {
-							IdResponseDTO idResponseDto = updateIdentity(request, uin, true);
-							Uin uinEntity = new Uin();
-							uinEntity.setStatusCode(idResponseDto.getResponse().getStatus());
-							notify(uin, null, null, false, request.getRequest().getRegistrationId());
-							return constructIdResponse(this.id.get(CREATE), uinEntity, null);
-						}
-					}
 				}
+				if (!uinRepo.existsByRegId(request.getRequest().getRegistrationId())) {
+					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
+							OLD_APPLICATION_ID.getErrorMessage());
+					throw new IdRepoAppException(OLD_APPLICATION_ID);
+				}
+				String uinHashByRid = uinRepo.getUinHashByRid(request.getRequest().getRegistrationId());
+				String retriveUinHashByRequest = retrieveUinHash(uin);
+				if (!retriveUinHashByRequest.equals(uinHashByRid)) {
+					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
+							RECORD_EXISTS.getErrorMessage());
+					throw new IdRepoAppException(RECORD_EXISTS);
+				}
+				IdResponseDTO idResponseDto = updateIdentity(request, uin, true);
+				Uin uinEntity = new Uin();
+				uinEntity.setStatusCode(idResponseDto.getResponse().getStatus());
+				notify(uin, null, null, false, request.getRequest().getRegistrationId());
+				return constructIdResponse(this.id.get(CREATE), uinEntity, null);
+
 			} else if (uinRepo.existsByUinHash(retrieveUinHash(uin))) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 						RECORD_EXISTS.getErrorMessage());
 				throw new IdRepoAppException(RECORD_EXISTS);
-			} else {
-				Uin uinEntity = service.addIdentity(request, uin);
-				notify(uin, null, null, false, request.getRequest().getRegistrationId());
-				return constructIdResponse(this.id.get(CREATE), uinEntity, null);
 			}
+			Uin uinEntity = service.addIdentity(request, uin);
+			notify(uin, null, null, false, request.getRequest().getRegistrationId());
+			return constructIdResponse(this.id.get(CREATE), uinEntity, null);
 		} catch (IdRepoAppException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, e.getErrorText());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
