@@ -60,5 +60,7 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	RESPONSE updateIdentity(REQUEST request, String uin) throws IdRepoAppException;
+	
+	RESPONSE updateIdentity(REQUEST request, String uin, boolean overridedata) throws IdRepoAppException;
 
 }

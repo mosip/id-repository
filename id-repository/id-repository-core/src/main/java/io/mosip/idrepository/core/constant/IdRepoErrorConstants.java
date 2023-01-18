@@ -81,6 +81,8 @@ public enum IdRepoErrorConstants {
 	
 	VID_SERVICE_RETRIEVAL_ERROR("IDR-IDS-010", "Failed to retrieve data from vid service"),
 	
+	OLD_APPLICATION_ID("IDR-IDS-011", "This is an old application Id"),
+	
 	// VID Service
 	
 	/** The invalid vid. */

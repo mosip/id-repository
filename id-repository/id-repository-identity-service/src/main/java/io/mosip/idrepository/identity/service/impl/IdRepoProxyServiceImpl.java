@@ -13,6 +13,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.OLD_APPLICATION_ID;
 import static io.mosip.kernel.biometrics.constant.BiometricType.FACE;
 import static io.mosip.kernel.biometrics.constant.BiometricType.FINGER;
 import static io.mosip.kernel.biometrics.constant.BiometricType.IRIS;
@@ -20,6 +21,7 @@ import static io.mosip.kernel.biometrics.constant.BiometricType.IRIS;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -244,7 +246,10 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	
 	@Autowired
 	private BiometricExtractionService biometricExtractionService; 
-
+	
+	@Value("${mosip.idrepo.create-identity.enable-force-merge:false}")
+	private boolean isForceMergeEnabled;
+				
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -254,16 +259,37 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	@Override
 	public IdResponseDTO addIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
 		try {
-			if (uinRepo.existsByUinHash(retrieveUinHash(uin))
-					|| uinHistoryRepo.existsByRegId(request.getRequest().getRegistrationId())) {
+			if (uinHistoryRepo.existsByRegId(request.getRequest().getRegistrationId())) {
+				if (!isForceMergeEnabled) {
+					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
+							RECORD_EXISTS.getErrorMessage());
+					throw new IdRepoAppException(RECORD_EXISTS);
+				}
+				if (!uinRepo.existsByRegId(request.getRequest().getRegistrationId())) {
+					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
+							OLD_APPLICATION_ID.getErrorMessage());
+					throw new IdRepoAppException(OLD_APPLICATION_ID);
+				}
+				String uinHashByRid = uinRepo.getUinHashByRid(request.getRequest().getRegistrationId());
+				String retriveUinHashByRequest = retrieveUinHash(uin);
+				if (!retriveUinHashByRequest.equals(uinHashByRid)) {
+					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
+							RECORD_EXISTS.getErrorMessage());
+					throw new IdRepoAppException(RECORD_EXISTS);
+				}
+				IdResponseDTO idResponseDto = updateIdentity(request, uin, true);
+				Uin uinEntity = new Uin();
+				uinEntity.setStatusCode(idResponseDto.getResponse().getStatus());
+				return constructIdResponse(this.id.get(CREATE), uinEntity, null);
+
+			} else if (uinRepo.existsByUinHash(retrieveUinHash(uin))) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 						RECORD_EXISTS.getErrorMessage());
 				throw new IdRepoAppException(RECORD_EXISTS);
-			} else {
-				Uin uinEntity = service.addIdentity(request, uin);
-				notify(uin, null, null, false, request.getRequest().getRegistrationId());
-				return constructIdResponse(this.id.get(CREATE), uinEntity, null);
 			}
+			Uin uinEntity = service.addIdentity(request, uin);
+			notify(uin, null, null, false, request.getRequest().getRegistrationId());
+			return constructIdResponse(this.id.get(CREATE), uinEntity, null);
 		} catch (IdRepoAppException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, e.getErrorText());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
@@ -622,6 +648,11 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		}
 	}
 
+	
+	public IdResponseDTO updateIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
+		return updateIdentity(request, uin, false);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -629,13 +660,13 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * Object, java.lang.String)
 	 */
 	@Override
-	public IdResponseDTO updateIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
+	public IdResponseDTO updateIdentity(IdRequestDTO request, String uin,boolean overridedata) throws IdRepoAppException {
 		String regId = request.getRequest().getRegistrationId();
 		try {
 			String uinHash = retrieveUinHash(uin);
 			if (uinRepo.existsByUinHash(uinHash)) {
-				if (uinRepo.existsByRegId(regId)
-						|| uinHistoryRepo.existsByRegId(request.getRequest().getRegistrationId())) {
+				if (!overridedata && (uinRepo.existsByRegId(regId)
+						|| uinHistoryRepo.existsByRegId(request.getRequest().getRegistrationId()))) {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
 							RECORD_EXISTS.getErrorMessage());
 					throw new IdRepoAppException(RECORD_EXISTS);
