@@ -66,13 +66,17 @@
 	</distributionManagement>
 	
 	<modules>
+		<!--
 		<module>id-repository-core</module>
 		<module>id-repository-vid-service</module>
+		-->
 		<module>id-repository-identity-service</module>
-        <module>credential-request-generator</module>
-        <module>credential-service</module>
-        <module>id-repository-salt-generator</module>
-        <module>id-repository-credentials-feeder</module>
+        	<module>credential-request-generator</module>
+        	<module>credential-service</module>
+        	<!--
+		<module>id-repository-salt-generator</module>
+        	<module>id-repository-credentials-feeder</module>
+		-->
 	</modules>
 
 	<properties>	
@@ -107,7 +111,7 @@
 		<junit.version>4.12</junit.version>
 		<mockito.version>2.22.0</mockito.version>
 
-		<kernel.logger.logback.version>1.2.0.1-SNAPSHOT</kernel.logger.logback.version>
+		<kernel.logger.logback.version>1.2.0.1-B1</kernel.logger.logback.version>
 	</properties>
     <dependencies>
     	<!-- JUnit -->
