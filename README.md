@@ -26,7 +26,6 @@ The project requires JDK 1.11.
     $ cd <service folder>
     $ docker build -f Dockerfile
     ```
-
 1. As a developer, to run a service jar individually:
     ```
     `java -Dspring.profiles.active=<profile> -Dspring.cloud.config.uri=<config-url> -Dspring.cloud.config.label=<config-label> -jar <jar-name>.jar`
