@@ -74,12 +74,6 @@ public class CredentialRequestGeneratorController {
 	@Autowired
 	JobLauncher jobLauncher;
 
-	
-	@Autowired
-	@Qualifier("credentialProcessJob")
-	Job job;
-
-
 	/**
 	 * Credential issue.
 	 *
@@ -219,17 +213,4 @@ public class CredentialRequestGeneratorController {
 		return subscribeEvent.scheduleSubscription();
 	}
 	
-	@GetMapping(path = "/startCredentialBatch")
-	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Request authenticated successfully") })
-	public String handleCredentialBatchEvent() {
-		try {
-			Map<String, JobParameter> parameters = new HashMap<>();
-			JobExecution jobExecution = jobLauncher.run(job, new JobParameters(parameters));
-			return JsonUtils.javaObjectToJsonString(jobExecution);
-		} catch (Exception e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), "/startCredentialBatch",
-					"Error calling startCredentialBatch API", ExceptionUtils.getStackTrace(e));
-			return "Error occured. Check logs for more details";
-		}
-	}
 }
