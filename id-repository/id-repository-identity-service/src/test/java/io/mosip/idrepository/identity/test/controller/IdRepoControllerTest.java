@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
 
@@ -103,7 +104,7 @@ public class IdRepoControllerTest {
 	}
 
 	@Test
-	public void testAddIdentity() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
+	public void testAddIdentity() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException, NoSuchAlgorithmException {
 		IdResponseDTO response = new IdResponseDTO();
 		IdRequestDTO request = new IdRequestDTO();
 		request.setId("mosip.id.create");
@@ -124,7 +125,7 @@ public class IdRepoControllerTest {
 
 	@Test(expected = IdRepoAppException.class)
 	public void testAddIdentityFailed()
-			throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
+			throws IdRepoAppException, JsonParseException, JsonMappingException, IOException, NoSuchAlgorithmException {
 		IdResponseDTO response = new IdResponseDTO();
 		IdRequestDTO request = new IdRequestDTO();
 		request.setId("mosip.id.creat");

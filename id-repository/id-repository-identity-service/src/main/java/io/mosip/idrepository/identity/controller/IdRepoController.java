@@ -6,6 +6,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_I
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_REQUEST;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +57,9 @@ import io.mosip.idrepository.core.spi.IdRepoService;
 import io.mosip.idrepository.core.util.DataValidationUtil;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -72,6 +75,8 @@ import springfox.documentation.annotations.ApiIgnore;
  */
 @RestController
 public class IdRepoController {
+
+	private static final String DATE_OF_BIRTH = "dateOfBirth";
 
 	private static final String FACE_EXTRACTION_FORMAT = "faceExtractionFormat";
 
@@ -160,11 +165,12 @@ public class IdRepoController {
 	 * @return the response entity
 	 * @throws IdRepoAppException
 	 *             the id repo app exception
+	 * @throws NoSuchAlgorithmException 
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
 	@PostMapping(path = "/", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> addIdentity(@Validated @RequestBody IdRequestDTO request,
-			@ApiIgnore Errors errors) throws IdRepoAppException {
+			@ApiIgnore Errors errors) throws IdRepoAppException, NoSuchAlgorithmException {
 		String regId = Optional.ofNullable(request.getRequest()).map(req -> String.valueOf(req.getRegistrationId()))
 				.orElse("null");
 		try {
@@ -175,6 +181,13 @@ public class IdRepoController {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "addIdentity", "Invalid uin");
 				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
+			}
+			Map<String, Object> requestIdentity = (Map<String, Object>) request.getRequest().getIdentity();
+			String dob = (String) requestIdentity.get(DATE_OF_BIRTH);
+			if (dob != null && !dob.isEmpty()) {
+				mosipLogger.debug(ID_REPO_CONTROLLER, ADD_IDENTITY,
+						request.getRequest().getRegistrationId(),
+						"addIdentity::process():: Date of birth hash:" + getHMACHashCode(dob));
 			}
 			return new ResponseEntity<>(idRepoService.addIdentity(request, uin), HttpStatus.OK);
 		} catch (IdRepoDataValidationException e) {
@@ -418,5 +431,12 @@ public class IdRepoController {
 		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "getIdType", "Invalid ID");
 		throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 				String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "id"));
+	}
+	
+	public static String getHMACHashCode(String value) throws NoSuchAlgorithmException {
+		if (value == null)
+			return null;
+		return CryptoUtil.encodeBase64(HMACUtils2.generateHash(value.getBytes()));
+
 	}
 }
