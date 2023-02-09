@@ -49,7 +49,7 @@ public class Utilities {
 	}
 
 	public String getMappingJsonValue(String key, String identity) throws IOException, JSONException {
-		JSONObject jsonObject = getRegistrationProcessorMappingJson(identity);
+		JSONObject jsonObject = getIdentityMappingJson(identity);
 		Object obj = jsonObject.get(key);
 		if (obj instanceof Map) {
 			Map<?,?> map = (Map<?,?>) obj;
@@ -58,7 +58,7 @@ public class Utilities {
 		return jsonObject.get(key) != null ? jsonObject.get(key).toString() : null;
 	}
 
-	public JSONObject getRegistrationProcessorMappingJson(String identity) throws IOException {
+	public JSONObject getIdentityMappingJson(String identity) throws IOException {
 		logger.debug("Utilities::getRegistrationProcessorMappingJson()::entry");
 		if (mappingJsonObject == null) {
 			String mappingJsonString = Utilities.getJson(configServerFileStorageURL, identityJson);

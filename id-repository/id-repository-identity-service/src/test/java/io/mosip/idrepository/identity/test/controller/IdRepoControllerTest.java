@@ -8,12 +8,10 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
 
 import org.assertj.core.util.Maps;
-import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
