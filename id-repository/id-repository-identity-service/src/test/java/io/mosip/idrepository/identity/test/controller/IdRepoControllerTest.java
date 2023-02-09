@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.assertj.core.util.Maps;
+import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -104,7 +105,7 @@ public class IdRepoControllerTest {
 	}
 
 	@Test
-	public void testAddIdentity() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException, NoSuchAlgorithmException {
+	public void testAddIdentity() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException, NoSuchAlgorithmException, JSONException {
 		IdResponseDTO response = new IdResponseDTO();
 		IdRequestDTO request = new IdRequestDTO();
 		request.setId("mosip.id.create");
@@ -125,7 +126,7 @@ public class IdRepoControllerTest {
 
 	@Test(expected = IdRepoAppException.class)
 	public void testAddIdentityFailed()
-			throws IdRepoAppException, JsonParseException, JsonMappingException, IOException, NoSuchAlgorithmException {
+			throws IdRepoAppException, JsonParseException, JsonMappingException, IOException, NoSuchAlgorithmException, JSONException {
 		IdResponseDTO response = new IdResponseDTO();
 		IdRequestDTO request = new IdRequestDTO();
 		request.setId("mosip.id.creat");
