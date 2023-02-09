@@ -3,13 +3,13 @@
 	<modelVersion>4.0.0</modelVersion>
     <groupId>io.mosip.idrepository</groupId>
 	<artifactId>id-repository-salt-generator</artifactId>
-	<version>1.1.5.5</version>
+	<version>1.1.5.5-P1-rc1</version>
 	<name>ID-Repository Salt Generator</name>
 	
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.1.5.5</version>
+		<version>1.1.5.5-P1-rc1</version>
 	</parent>
 	
 	<description>Batch Job Application to for one-time populating of salt values for ID Repository salt tables.</description>

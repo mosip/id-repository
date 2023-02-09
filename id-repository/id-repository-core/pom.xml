@@ -5,11 +5,11 @@
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.1.5.5</version>
+		<version>1.1.5.5-P1-rc1</version>
 	</parent>
 
 	<artifactId>id-repository-core</artifactId>
-	<version>1.1.5.5</version>
+	<version>1.1.5.5-P1-rc1</version>
 	<name>idrepo-core</name>
 	<description>ID-Repository core</description>
 
