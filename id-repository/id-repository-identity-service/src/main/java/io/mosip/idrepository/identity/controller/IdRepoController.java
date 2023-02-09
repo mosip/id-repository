@@ -5,7 +5,10 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATA_VALI
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_REQUEST;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +18,7 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.annotation.Resource;
 
+import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -54,9 +58,12 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.AuthtypeStatusService;
 import io.mosip.idrepository.core.spi.IdRepoService;
 import io.mosip.idrepository.core.util.DataValidationUtil;
+import io.mosip.idrepository.identity.util.Utilities;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -72,6 +79,10 @@ import springfox.documentation.annotations.ApiIgnore;
  */
 @RestController
 public class IdRepoController {
+
+	private static final String IDENTITY = "identity";
+
+	private static final String DOB = "dob";
 
 	private static final String FACE_EXTRACTION_FORMAT = "faceExtractionFormat";
 
@@ -137,6 +148,9 @@ public class IdRepoController {
 
 	@Autowired
 	private AuthtypeStatusService authTypeStatusService;
+	
+	@Autowired
+	private Utilities utilities;
 
 	/**
 	 * Inits the binder.
@@ -160,6 +174,7 @@ public class IdRepoController {
 	 * @return the response entity
 	 * @throws IdRepoAppException
 	 *             the id repo app exception
+	 * @throws NoSuchAlgorithmException 
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
 	@PostMapping(path = "/", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -176,6 +191,17 @@ public class IdRepoController {
 				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
 			}
+			String dateofBirthAttributeName = utilities.getMappingJsonValue(DOB, IDENTITY);
+		
+			Object requestIdentity = request.getRequest().getIdentity();
+			if (requestIdentity instanceof Map) {
+				Map<String, Object> requestIdentityValue = (Map<String, Object>) requestIdentity;
+				String dob = (String) requestIdentityValue.get(dateofBirthAttributeName);
+				if (dob != null && !dob.isEmpty()) {
+					mosipLogger.debug(ID_REPO_CONTROLLER, ADD_IDENTITY, request.getRequest().getRegistrationId(),
+							"addIdentity::process():: Date of birth hash:" + getHMACHashCode(dob));
+				}
+			}
 			return new ResponseEntity<>(idRepoService.addIdentity(request, uin), HttpStatus.OK);
 		} catch (IdRepoDataValidationException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE,
@@ -187,7 +213,10 @@ public class IdRepoController {
 					regId, IdType.RID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
-		} finally {
+		} catch (IOException  | JSONException | NoSuchAlgorithmException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, e.getMessage());
+			throw new IdRepoAppException(UNKNOWN_ERROR, e);
+		}  finally {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, regId,
 					IdType.RID, "Create Identity requested");
 		}
@@ -418,5 +447,12 @@ public class IdRepoController {
 		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "getIdType", "Invalid ID");
 		throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 				String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "id"));
+	}
+	
+	public static String getHMACHashCode(String value) throws NoSuchAlgorithmException {
+		if (value == null)
+			return null;
+		return CryptoUtil.encodeBase64(HMACUtils2.generateHash(value.getBytes()));
+
 	}
 }

@@ -46,6 +46,7 @@ import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.spi.IdRepoService;
 import io.mosip.idrepository.identity.controller.IdRepoController;
+import io.mosip.idrepository.identity.util.Utilities;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 
@@ -83,6 +84,9 @@ public class IdRepoControllerTest {
 
 	@Autowired
 	private Environment env;
+	
+	@Mock
+	private Utilities utilities;
 
 	List<String> allowedTypes;
 
