@@ -109,7 +109,7 @@ public class IdRepoControllerTest {
 	}
 
 	@Test
-	public void testAddIdentity() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException, NoSuchAlgorithmException, JSONException {
+	public void testAddIdentity() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
 		IdResponseDTO response = new IdResponseDTO();
 		IdRequestDTO request = new IdRequestDTO();
 		request.setId("mosip.id.create");
@@ -130,7 +130,7 @@ public class IdRepoControllerTest {
 
 	@Test(expected = IdRepoAppException.class)
 	public void testAddIdentityFailed()
-			throws IdRepoAppException, JsonParseException, JsonMappingException, IOException, NoSuchAlgorithmException, JSONException {
+			throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
 		IdResponseDTO response = new IdResponseDTO();
 		IdRequestDTO request = new IdRequestDTO();
 		request.setId("mosip.id.creat");

@@ -5,6 +5,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATA_VALI
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_REQUEST;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -174,13 +175,11 @@ public class IdRepoController {
 	 * @throws IdRepoAppException
 	 *             the id repo app exception
 	 * @throws NoSuchAlgorithmException 
-	 * @throws IOException 
-	 * @throws JSONException 
 	 */
 	@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
 	@PostMapping(path = "/", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<IdResponseDTO> addIdentity(@Validated @RequestBody IdRequestDTO request,
-			@ApiIgnore Errors errors) throws IdRepoAppException, NoSuchAlgorithmException, IOException, JSONException {
+			@ApiIgnore Errors errors) throws IdRepoAppException {
 		String regId = Optional.ofNullable(request.getRequest()).map(req -> String.valueOf(req.getRegistrationId()))
 				.orElse("null");
 		try {
@@ -193,6 +192,7 @@ public class IdRepoController {
 						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
 			}
 			String dateofBirthAttributeName = utilities.getMappingJsonValue(DOB, IDENTITY);
+		
 			Object requestIdentity = request.getRequest().getIdentity();
 			if (requestIdentity instanceof Map) {
 				Map<String, Object> requestIdentityValue = (Map<String, Object>) requestIdentity;
@@ -208,12 +208,15 @@ public class IdRepoController {
 					regId, IdType.RID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(DATA_VALIDATION_FAILED, e);
-		} catch (IdRepoAppException e) {
+		} catch (IdRepoAppException e ) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE,
 					regId, IdType.RID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
-		} finally {
+		} catch (IOException  | JSONException | NoSuchAlgorithmException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, e.getMessage());
+			throw new IdRepoAppException(UNKNOWN_ERROR, e);
+		}  finally {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, regId,
 					IdType.RID, "Create Identity requested");
 		}
