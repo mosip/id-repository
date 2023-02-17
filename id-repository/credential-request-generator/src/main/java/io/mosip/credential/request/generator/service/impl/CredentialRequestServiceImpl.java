@@ -106,7 +106,6 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 
 		CredentialIssueResponse credentialIssueResponse = null;
 		String requestId = utilities.generateId();
-
 		try{
 			CredentialEntity credential=new CredentialEntity();
 			credential.setRequestId(requestId);
@@ -156,6 +155,59 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		return credentialIssueResponseWrapper;
 	}
 
+	@Override
+	public ResponseWrapper<CredentialIssueResponse> createCredentialIssuanceByRid(CredentialIssueRequestDto credentialIssueRequestDto, String rid) {
+		LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL,
+				"started creating credential");
+		List<ServiceError> errorList = new ArrayList<>();
+		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = new ResponseWrapper<CredentialIssueResponse>();
+
+		CredentialIssueResponse credentialIssueResponse = null;
+		try{
+			CredentialEntity credential=new CredentialEntity();
+			credential.setRequestId(rid);
+			credential.setRequest(mapper.writeValueAsString(credentialIssueRequestDto));
+			credential.setStatusCode(CredentialStatusCode.NEW.name());
+			credential.setCreateDateTime(DateUtils.getUTCCurrentDateTime());
+			credential.setCreatedBy(IdRepoSecurityManager.getUser());
+			credential.setStatusComment("Request created");
+			credentialDao.save(credential);
+			credentialIssueResponse = new CredentialIssueResponse();
+			credentialIssueResponse.setRequestId(rid);
+			credentialIssueResponse.setId(credentialIssueRequestDto.getId());
+			LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL,
+					"ended creating credential");
+		}catch(DataAccessLayerException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR,
+					AuditEvents.CREATING_CREDENTIAL_REQUEST, rid, IdType.ID, e);
+			ServiceError error = new ServiceError();
+			error.setErrorCode(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL, ExceptionUtils.getStackTrace(e));
+		} catch (Exception e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR,
+					AuditEvents.CREATING_CREDENTIAL_REQUEST, rid, IdType.ID, e);
+			ServiceError error = new ServiceError();
+			error.setErrorCode(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialRequestErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL, ExceptionUtils.getStackTrace(e));
+		} finally {
+			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
+
+			credentialIssueResponseWrapper
+					.setResponsetime(DateUtils.getUTCCurrentDateTime());
+			credentialIssueResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
+			if (!errorList.isEmpty()) {
+				credentialIssueResponseWrapper.setErrors(errorList);
+			} else {
+				credentialIssueResponseWrapper.setResponse(credentialIssueResponse);
+			}
+			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID,"create credential request requested");
+		}
+		return credentialIssueResponseWrapper;
+	}
 
 	@Override
 	public ResponseWrapper<CredentialIssueResponse> cancelCredentialRequest(String requestId) {
