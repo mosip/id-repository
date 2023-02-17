@@ -98,6 +98,30 @@ public class CredentialRequestGeneratorController {
 				.createCredentialIssuance(credentialIssueRequestDto.getRequest());
 		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseWrapper);
 	}
+	/**
+	 * Credential issue.
+	 *
+	 * @param credentialIssueRequestDto the credential issue request dto
+	 * @return the response entity
+	 */
+	//@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostv2requestgeneratorrid())")
+	@PostMapping(path = "/v2/requestgenerator/{rid}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "Create the  credential issuance request", description = "Create the  credential issuance request", tags = { "Credential Request Generator" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Created request id successfully"),
+			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Unable to get request id" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
+	public ResponseEntity<Object> credentialIssueByRid(
+			@RequestBody  RequestWrapper<CredentialIssueRequestDto>  credentialIssueRequestDto, @PathVariable("rid") String rid) {
+
+		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = credentialRequestService
+				.createCredentialIssuanceByRid(credentialIssueRequestDto.getRequest(),rid);
+		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseWrapper);
+	}
 	//@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetcancelrequestid())")
 	@GetMapping(path = "/cancel/{requestId}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
