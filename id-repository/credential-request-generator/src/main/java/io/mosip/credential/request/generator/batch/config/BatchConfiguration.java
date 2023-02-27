@@ -82,7 +82,6 @@ public class BatchConfiguration {
 
 	/** The credential process job. */
 	@Autowired
-	@Qualifier("credentialProcessJob")
 	private Job credentialProcessJob;
 
 	/** The credential re process job. */
