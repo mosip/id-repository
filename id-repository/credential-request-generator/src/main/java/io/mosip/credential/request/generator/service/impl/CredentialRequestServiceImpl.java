@@ -1,5 +1,8 @@
 package io.mosip.credential.request.generator.service.impl;
 
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -8,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-
+import io.mosip.kernel.core.util.CryptoUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -161,11 +164,10 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 				"started creating credential");
 		List<ServiceError> errorList = new ArrayList<>();
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = new ResponseWrapper<CredentialIssueResponse>();
-
 		CredentialIssueResponse credentialIssueResponse = null;
 		try{
 			CredentialEntity credential=new CredentialEntity();
-			credential.setRequestId(rid);
+			credential.setRequestId(URLDecoder.decode(rid, StandardCharsets.UTF_8.toString()));
 			credential.setRequest(mapper.writeValueAsString(credentialIssueRequestDto));
 			credential.setStatusCode(CredentialStatusCode.NEW.name());
 			credential.setCreateDateTime(DateUtils.getUTCCurrentDateTime());
