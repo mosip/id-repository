@@ -1,5 +1,8 @@
 package io.mosip.credential.request.generator.service.impl;
 
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -164,7 +167,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		CredentialIssueResponse credentialIssueResponse = null;
 		try{
 			CredentialEntity credential=new CredentialEntity();
-			credential.setRequestId(new String(CryptoUtil.decodeURLSafeBase64(rid)));
+			credential.setRequestId(URLDecoder.decode(rid, StandardCharsets.UTF_8.toString()));
 			credential.setRequest(mapper.writeValueAsString(credentialIssueRequestDto));
 			credential.setStatusCode(CredentialStatusCode.NEW.name());
 			credential.setCreateDateTime(DateUtils.getUTCCurrentDateTime());
