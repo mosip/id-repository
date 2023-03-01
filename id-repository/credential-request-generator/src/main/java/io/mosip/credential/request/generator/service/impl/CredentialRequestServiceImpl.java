@@ -167,7 +167,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		CredentialIssueResponse credentialIssueResponse = null;
 		try{
 			CredentialEntity credential=new CredentialEntity();
-			credential.setRequestId(URLDecoder.decode(rid, StandardCharsets.UTF_8.toString()));
+			credential.setRequestId(rid);
 			credential.setRequest(mapper.writeValueAsString(credentialIssueRequestDto));
 			credential.setStatusCode(CredentialStatusCode.NEW.name());
 			credential.setCreateDateTime(DateUtils.getUTCCurrentDateTime());
