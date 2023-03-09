@@ -61,4 +61,22 @@ public class CredentialConstants {
 	
 	public static final String FULLADDRESS = "fullAddress";
 	
+	/** The Constant DATETIME_PATTERN. */
+	public static final String DATETIME_PATTERN = "mosip.credential.service.datetime.pattern";
+
+	public static final String IDENTITY_ATTRIBUTES = "mosip.mask.function.identityAttributes";
+
+	public static final String DATE_FORMAT_FUNCTION = "mosip.mask.function.date";
+
+	public static final String ADDRESS_FORMAT_FUNCTION = "mosip.format.function.address";
+
+	public static final String NAME_FORMAT_FUNCTION = "mosip.format.function.name";
+
+	public static final String DATE_TIME_FORMAT_FUNCTION = "mosip.format.function.dateTimeFormat";
+
+	public static final String CREDENTIAL_PHOTO_ATTRIBUTE_NAMES = "mosip.credential.photo.attribute.names";
+	public static final String CREDENTIAL_NAME_ATTRIBUTE_NAMES = "mosip.credential.name.attribute.names";
+	public static final String CREDENTIAL_ADDRESS_ATTRIBUTE_NAMES = "mosip.credential.address.attribute.names";
+
+	
 }
