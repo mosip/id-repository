@@ -1,4 +1,12 @@
 package io.mosip.credentialstore.provider;
+import static io.mosip.credentialstore.constants.CredentialConstants.ADDRESS_FORMAT_FUNCTION;
+import static io.mosip.credentialstore.constants.CredentialConstants.CREDENTIAL_SERVICE_CREDENTIAL_ADDRESS_ATTRIBUTE_NAMES;
+import static io.mosip.credentialstore.constants.CredentialConstants.CREDENTIAL_SERVICE_CREDENTIAL_NAME_ATTRIBUTE_NAMES;
+import static io.mosip.credentialstore.constants.CredentialConstants.CREDENTIAL_SERVICE_CREDENTIAL_PHOTO_ATTRIBUTE_NAMES;
+import static io.mosip.credentialstore.constants.CredentialConstants.FULLADDRESS;
+import static io.mosip.credentialstore.constants.CredentialConstants.FULLNAME;
+import static io.mosip.credentialstore.constants.CredentialConstants.IDENTITY_ATTRIBUTES;
+import static io.mosip.credentialstore.constants.CredentialConstants.NAME_FORMAT_FUNCTION;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -95,21 +103,6 @@ public class CredentialProvider {
 	/** The utilities. */
 	@Autowired
 	Utilities utilities;
-
-	/** The Constant DATETIME_PATTERN. */
-	public static final String DATETIME_PATTERN = "mosip.credential.service.datetime.pattern";
-
-	public static final String IDENTITY_ATTRIBUTES = "mosip.mask.function.identityAttributes";
-
-	public static final String DATE_FORMAT_FUNCTION = "mosip.mask.function.date";
-
-	public static final String ADDRESS_FORMAT_FUNCTION = "mosip.format.function.address";
-
-	public static final String NAME_FORMAT_FUNCTION = "mosip.format.function.name";
-
-	public static final String DATE_TIME_FORMAT_FUNCTION = "mosip.format.function.dateTimeFormat";
-
-	private static final String CREDENTIAL_SERVICE_CREDENTIAL_PHOTO_ATTRIBUTE_NAME = "mosip.credential.service.credential.photo.attribute.name";
 
 	@Autowired
 	private Environment env;
@@ -260,12 +253,11 @@ public class CredentialProvider {
 					final List<AllowedKycDto> sharableAttributeListRef = sharableAttributeList;
 					List<AllowedKycDto> intermediateList = userSharableAttributeList.stream().filter(attrib -> {
 						//Check if name attribute and it is equals to 'name' of 'fullName' and if it is present in the sharable attributes from policy
-						return (((attrib.getAttributeName().equals(CredentialConstants.NAME) || attrib.getAttributeName().equals(CredentialConstants.FULLNAME))
+						return (isNameAttribute(attrib.getAttributeName())
 								&& sharableAttributeFromPolicy.stream()
-								.anyMatch(sharableAttrib -> sharableAttrib.getAttributeName().equals(CredentialConstants.FULLNAME)
-										|| attrib.getAttributeName().equals(CredentialConstants.NAME)))
+								.anyMatch(sharableAttrib -> isNameAttribute(sharableAttrib.getAttributeName())))
 								//Check if photo attribute
-								|| (attrib.getAttributeName().equals(getPhotoAttributeName())));
+								|| isPhotoAttribute(attrib.getAttributeName());
 					})
 					// Checks if the attribute is already in the sharable attributes list
 					.filter(attrib -> sharableAttributeListRef.stream().noneMatch(sharableAttrib -> attrib.getAttributeName().equals(sharableAttrib.getAttributeName())))
@@ -306,8 +298,8 @@ public class CredentialProvider {
 				});
 			}
 
-			List<String> userReqMaskingAttributes = (List) additionalData.get(CredentialConstants.MASKING_ATTRIBUTES);
-			Map<String, Object> userReqFormatingAttributes = (Map) additionalData
+			List<String> userReqMaskingAttributes = (List<String>) additionalData.get(CredentialConstants.MASKING_ATTRIBUTES);
+			Map<String, Object> userReqFormatingAttributes = (Map<String, Object>) additionalData
 					.get(CredentialConstants.FORMATTING_ATTRIBUTES);
 			identityMap = IdentityIssuanceProfileBuilder.getIdentityMapping();
 
@@ -328,9 +320,8 @@ public class CredentialProvider {
 						}
 					}
 					attributesMap.put(key, formattedObject);
-				} else if (attribute.equalsIgnoreCase(CredentialConstants.FULLNAME)
-						|| attribute.equalsIgnoreCase(CredentialConstants.NAME)
-						|| attribute.equalsIgnoreCase(CredentialConstants.FULLADDRESS)) {
+				} else if (isNameAttribute(attribute)
+						|| isFullAddress(attribute)) {
 					formattedObject = filterAndFormat(key, identity, userReqFormatingAttributes);
 					attributesMap.put(key, formattedObject);
 				} else if (attribute.equalsIgnoreCase(CredentialConstants.ENCRYPTIONKEY)) {
@@ -392,11 +383,29 @@ public class CredentialProvider {
 		}
 	}
 
+	private boolean isNameAttribute(String attrName) {
+		return isAttributeInProperty(attrName, CREDENTIAL_SERVICE_CREDENTIAL_NAME_ATTRIBUTE_NAMES, FULLNAME);
+	}
+	
+	private boolean isFullAddress(String attrName) {
+		return isAttributeInProperty(attrName, CREDENTIAL_SERVICE_CREDENTIAL_ADDRESS_ATTRIBUTE_NAMES, FULLADDRESS);
+	}
+	
+	private boolean isPhotoAttribute(String attrName) {
+		return isAttributeInProperty(attrName, CREDENTIAL_SERVICE_CREDENTIAL_PHOTO_ATTRIBUTE_NAMES, PHOTO);
+	}
+	
+	private boolean isAttributeInProperty(String attrName, String propName, String defaultValue) {
+		return Stream.of(env.getProperty(propName, "")
+				.split(","))
+				.anyMatch(attrName::equalsIgnoreCase);
+	}
+
 	private AllowedKycDto createAllowedKycDto(String attrName) {
 		AllowedKycDto allowedKycDto = new AllowedKycDto();
 		allowedKycDto.setAttributeName(attrName);
 		Source source = new Source();
-		if (attrName.equals(getPhotoAttributeName())) {
+		if (isPhotoAttribute(attrName)) {
 			allowedKycDto.setGroup(CredentialConstants.CBEFF);
 			source.setAttribute(CredentialConstants.INDIVIDUAL_BIOMETRICS);
 			Filter filter = new Filter();
@@ -407,10 +416,6 @@ public class CredentialProvider {
 		}
 		allowedKycDto.setSource(List.of(source));
 		return allowedKycDto;
-	}
-
-	private String getPhotoAttributeName() {
-		return env.getProperty(CREDENTIAL_SERVICE_CREDENTIAL_PHOTO_ATTRIBUTE_NAME, PHOTO);
 	}
 
 	private List<BestFingerDto> getBestTwoFingers(String individualBiometricsValue, AllowedKycDto key)
