@@ -321,7 +321,7 @@ public class CredentialProvider {
 					}
 					attributesMap.put(key, formattedObject);
 				} else if (isNameAttribute(attribute)
-						|| isFullAddress(attribute)) {
+						|| isFullAddressAttribute(attribute)) {
 					formattedObject = filterAndFormat(key, identity, userReqFormatingAttributes);
 					attributesMap.put(key, formattedObject);
 				} else if (attribute.equalsIgnoreCase(CredentialConstants.ENCRYPTIONKEY)) {
@@ -387,7 +387,7 @@ public class CredentialProvider {
 		return isAttributeInProperty(attrName, CREDENTIAL_NAME_ATTRIBUTE_NAMES, FULLNAME);
 	}
 	
-	private boolean isFullAddress(String attrName) {
+	private boolean isFullAddressAttribute(String attrName) {
 		return isAttributeInProperty(attrName, CREDENTIAL_ADDRESS_ATTRIBUTE_NAMES, FULLADDRESS);
 	}
 	
@@ -396,8 +396,7 @@ public class CredentialProvider {
 	}
 	
 	private boolean isAttributeInProperty(String attrName, String propName, String defaultValue) {
-		return Stream.of(env.getProperty(propName, "")
-				.split(","))
+		return Stream.of(env.getProperty(propName, "").split(","))
 				.anyMatch(attrName::equalsIgnoreCase);
 	}
 
@@ -573,14 +572,13 @@ public class CredentialProvider {
 		Object formattedObject = null;
 		Source source = key.getSource().get(0);
 		String attribute = source.getAttribute();
-		String userSpecifiedAttributeFormat = (String) userReqFormatingAttributes.get(attribute);
+		String userSpecifiedAttributeFormat = userReqFormatingAttributes == null? null : (String) userReqFormatingAttributes.get(attribute);
 		String attributeFormat = userSpecifiedAttributeFormat != null ? userSpecifiedAttributeFormat 
 				: key.getFormat();
 		if(attributeFormat != null) {
 			if (attribute.equals(CredentialConstants.DATEOFBIRTH)) {
 					formattedObject = formatDate(identity.get(CredentialConstants.DATEOFBIRTH), attributeFormat);
-			} else if (attribute.equals(CredentialConstants.FULLNAME) || attribute.equals(CredentialConstants.NAME)
-					|| attribute.equals(CredentialConstants.FULLADDRESS)) {
+			} else if (isNameAttribute(attribute) || isFullAddressAttribute(attribute)) {
 				List<String> identityAttributesList = Arrays.asList(attributeFormat.split(","));
 				formattedObject = formatData(identity, attribute, identityAttributesList);
 			}
