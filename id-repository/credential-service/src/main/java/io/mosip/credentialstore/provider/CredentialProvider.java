@@ -1,8 +1,8 @@
 package io.mosip.credentialstore.provider;
 import static io.mosip.credentialstore.constants.CredentialConstants.ADDRESS_FORMAT_FUNCTION;
-import static io.mosip.credentialstore.constants.CredentialConstants.CREDENTIAL_SERVICE_CREDENTIAL_ADDRESS_ATTRIBUTE_NAMES;
+import static io.mosip.credentialstore.constants.CredentialConstants.CREDENTIAL_ADDRESS_ATTRIBUTE_NAMES;
 import static io.mosip.credentialstore.constants.CredentialConstants.CREDENTIAL_SERVICE_CREDENTIAL_NAME_ATTRIBUTE_NAMES;
-import static io.mosip.credentialstore.constants.CredentialConstants.CREDENTIAL_SERVICE_CREDENTIAL_PHOTO_ATTRIBUTE_NAMES;
+import static io.mosip.credentialstore.constants.CredentialConstants.CREDENTIAL_PHOTO_ATTRIBUTE_NAMES;
 import static io.mosip.credentialstore.constants.CredentialConstants.FULLADDRESS;
 import static io.mosip.credentialstore.constants.CredentialConstants.FULLNAME;
 import static io.mosip.credentialstore.constants.CredentialConstants.IDENTITY_ATTRIBUTES;
@@ -388,11 +388,11 @@ public class CredentialProvider {
 	}
 	
 	private boolean isFullAddress(String attrName) {
-		return isAttributeInProperty(attrName, CREDENTIAL_SERVICE_CREDENTIAL_ADDRESS_ATTRIBUTE_NAMES, FULLADDRESS);
+		return isAttributeInProperty(attrName, CREDENTIAL_ADDRESS_ATTRIBUTE_NAMES, FULLADDRESS);
 	}
 	
 	private boolean isPhotoAttribute(String attrName) {
-		return isAttributeInProperty(attrName, CREDENTIAL_SERVICE_CREDENTIAL_PHOTO_ATTRIBUTE_NAMES, PHOTO);
+		return isAttributeInProperty(attrName, CREDENTIAL_PHOTO_ATTRIBUTE_NAMES, PHOTO);
 	}
 	
 	private boolean isAttributeInProperty(String attrName, String propName, String defaultValue) {

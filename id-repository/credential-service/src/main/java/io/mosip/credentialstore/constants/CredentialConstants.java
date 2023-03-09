@@ -74,9 +74,9 @@ public class CredentialConstants {
 
 	public static final String DATE_TIME_FORMAT_FUNCTION = "mosip.format.function.dateTimeFormat";
 
-	public static final String CREDENTIAL_SERVICE_CREDENTIAL_PHOTO_ATTRIBUTE_NAMES = "mosip.credential.service.credential.photo.attribute.names";
-	public static final String CREDENTIAL_SERVICE_CREDENTIAL_NAME_ATTRIBUTE_NAMES = "mosip.credential.service.credential.name.attribute.names";
-	public static final String CREDENTIAL_SERVICE_CREDENTIAL_ADDRESS_ATTRIBUTE_NAMES = "mosip.credential.service.credential.address.attribute.names";
+	public static final String CREDENTIAL_PHOTO_ATTRIBUTE_NAMES = "mosip.credential.photo.attribute.names";
+	public static final String CREDENTIAL_NAME_ATTRIBUTE_NAMES = "mosip.credential.name.attribute.names";
+	public static final String CREDENTIAL_ADDRESS_ATTRIBUTE_NAMES = "mosip.credential.address.attribute.names";
 
 	
 }
