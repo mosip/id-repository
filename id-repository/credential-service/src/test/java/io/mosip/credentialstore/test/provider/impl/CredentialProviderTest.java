@@ -26,6 +26,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -71,6 +72,9 @@ public class CredentialProviderTest {
 	@Mock
 	EncryptionUtil encryptionUtil;
 	
+	@Mock
+	Environment env;
+	
 	@InjectMocks
 	private CredentialProvider credentialDefaultProvider;
 	
@@ -91,6 +95,8 @@ public class CredentialProviderTest {
 	public void setUp() throws DataEncryptionFailureException, ApiNotAccessibleException, SignatureException,Exception {
 		
 		ReflectionTestUtils.setField(credentialDefaultProvider, "mapper", mapper);
+		ReflectionTestUtils.setField(credentialDefaultProvider, "env", env);
+		Mockito.when(env.getProperty(Mockito.anyString(), Mockito.anyString())).thenReturn("abc");
 		PowerMockito.mockStatic(MVEL.class);
 		
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

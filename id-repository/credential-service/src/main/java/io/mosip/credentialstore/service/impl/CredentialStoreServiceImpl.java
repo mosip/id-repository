@@ -7,12 +7,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.constants.CredentialFormatter;
@@ -23,9 +26,11 @@ import io.mosip.credentialstore.dto.AllowedKycDto;
 import io.mosip.credentialstore.dto.CredentialTypeResponse;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.dto.DataShare;
+import io.mosip.credentialstore.dto.DataShareDto;
 import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
 import io.mosip.credentialstore.dto.PartnerExtractor;
 import io.mosip.credentialstore.dto.PartnerExtractorResponse;
+import io.mosip.credentialstore.dto.PolicyAttributesDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
 import io.mosip.credentialstore.exception.DataShareException;
@@ -123,6 +128,9 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	/** The env. */
 	@Autowired
 	private EnvUtil env;
+	
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialStoreServiceImpl.class);
 
@@ -157,11 +165,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		CredentialProvider credentialProvider;
 
 		try {
-
-			PartnerCredentialTypePolicyDto policyDetailResponseDto = policyUtil.getPolicyDetail(
-					credentialServiceRequestDto.getCredentialType(),
-					credentialServiceRequestDto.getIssuer(),
-					credentialServiceRequestDto.getRequestId());
+			boolean containsSharableAttributes = Optional.ofNullable(credentialServiceRequestDto.getSharableAttributes()).filter(list -> !list.isEmpty()).isPresent();
+			PartnerCredentialTypePolicyDto policyDetailResponseDto = getPolicy(credentialServiceRequestDto, containsSharableAttributes);
 
 			if (credentialServiceRequestDto.getAdditionalData() == null) {
 				Map<String, Object> additionalData = new HashMap<>();
@@ -189,7 +194,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			String encodedData = null;
 			jsonData = JsonUtil.objectMapperObjectToJson(dataProviderResponse.getJSON());
 			encodedData = CryptoUtil.encodeToURLSafeBase64(jsonData.getBytes());
-			if (policyDetailResponseDto.getPolicies().getDataSharePolicies().getTypeOfShare()
+			if (policyDetailResponseDto.getPolicies() != null && policyDetailResponseDto.getPolicies().getDataSharePolicies().getTypeOfShare()
 					.equalsIgnoreCase(DATASHARE)) {
 
 				dataShare = dataShareUtil.getDataShare(jsonData.getBytes(), policyDetailResponseDto.getPolicyId(),
@@ -335,6 +340,32 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 
 
+	private PartnerCredentialTypePolicyDto getPolicy(CredentialServiceRequestDto credentialServiceRequestDto, boolean containsSharableAttributes)
+			throws PolicyException, ApiNotAccessibleException {
+		try {
+			return policyUtil.getPolicyDetail(
+					credentialServiceRequestDto.getCredentialType(),
+					credentialServiceRequestDto.getIssuer(),
+					credentialServiceRequestDto.getRequestId());
+		} catch (PolicyException e) {
+			if (containsSharableAttributes) {
+				// Auth partner may not have a data-share policy. Return a dummy policy. So it
+				// will use the sharable attributes in the request
+				LOGGER.debug(
+						"Auth partner may not have a data-share policy. Returning a dummy policy. "
+						+ "Will use sharable attributes in the request");
+				return createDummyPolicyResponse();
+			} else {
+				throw e;
+			}
+		}
+	}
+
+	private PartnerCredentialTypePolicyDto createDummyPolicyResponse() {
+		PartnerCredentialTypePolicyDto partnerCredentialTypePolicyDto = new PartnerCredentialTypePolicyDto();
+		return partnerCredentialTypePolicyDto;
+	}
+
 	@SuppressWarnings("unchecked")
 	private EventModel getEventModel(DataShare dataShare, CredentialServiceRequestDto credentialServiceRequestDto,
 			String credentialData, String signature) throws IOException, ApiNotAccessibleException, SignatureException {
@@ -385,35 +416,34 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			String requestId)
 			throws ApiNotAccessibleException, PartnerException {
 		Map<String, String> formatterMap = new HashMap<>();
-		List<AllowedKycDto> sharableAttributeList = policyResponseDto.getPolicies().getShareableAttributes();
-		PartnerExtractorResponse partnerExtractorResponse = policyUtil
-				.getPartnerExtractorFormat(policyResponseDto.getPolicyId(),
-						partnerId, requestId);
-		if (partnerExtractorResponse != null) {
-		List<PartnerExtractor> partnerExtractorList = partnerExtractorResponse.getExtractors();
-
-		sharableAttributeList.forEach(dto -> {
-			if (dto.getGroup() != null && dto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)
-				&& dto.getFormat().equalsIgnoreCase(CredentialConstants.EXTRACTION)) {
-				partnerExtractorList.forEach(partnerExtractorDto -> {
-					if (partnerExtractorDto.getAttributeName().equalsIgnoreCase(dto.getAttributeName())) {
-						if(partnerExtractorDto.getBiometric().contains(CredentialConstants.FACE)){
-							formatterMap.put(CredentialConstants.FACE, getFormat(partnerExtractorDto));
-						} else if (partnerExtractorDto.getBiometric().contains(CredentialConstants.IRIS)) {
-							formatterMap.put(CredentialConstants.IRIS, getFormat(partnerExtractorDto));
-						} else if (partnerExtractorDto.getBiometric().contains(CredentialConstants.FINGER)) {
-							formatterMap.put(CredentialConstants.FINGER, getFormat(partnerExtractorDto));
-		               }
-					}
-
-
-				});
-
+		PolicyAttributesDto policies = policyResponseDto.getPolicies();
+		if(policies != null) {
+			List<AllowedKycDto> sharableAttributeList = policies.getShareableAttributes();
+			if(sharableAttributeList != null) {
+				PartnerExtractorResponse partnerExtractorResponse = policyUtil
+						.getPartnerExtractorFormat(policyResponseDto.getPolicyId(),
+								partnerId, requestId);
+				if (partnerExtractorResponse != null) {
+				List<PartnerExtractor> partnerExtractorList = partnerExtractorResponse.getExtractors();
+					sharableAttributeList.forEach(dto -> {
+						if (dto.getGroup() != null && dto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)
+							&& dto.getFormat().equalsIgnoreCase(CredentialConstants.EXTRACTION)) {
+							partnerExtractorList.forEach(partnerExtractorDto -> {
+								if (partnerExtractorDto.getAttributeName().equalsIgnoreCase(dto.getAttributeName())) {
+									if(partnerExtractorDto.getBiometric().contains(CredentialConstants.FACE)){
+										formatterMap.put(CredentialConstants.FACE, getFormat(partnerExtractorDto));
+									} else if (partnerExtractorDto.getBiometric().contains(CredentialConstants.IRIS)) {
+										formatterMap.put(CredentialConstants.IRIS, getFormat(partnerExtractorDto));
+									} else if (partnerExtractorDto.getBiometric().contains(CredentialConstants.FINGER)) {
+										formatterMap.put(CredentialConstants.FINGER, getFormat(partnerExtractorDto));
+					               }
+								}
+							});
+						}
+					});
 				}
-
-});
+			}
 		}
-
 		return formatterMap;
 	}
 

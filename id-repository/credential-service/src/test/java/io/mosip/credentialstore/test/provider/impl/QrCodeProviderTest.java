@@ -27,6 +27,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -81,6 +82,9 @@ public class QrCodeProviderTest {
 	@Mock
 	EncryptionUtil encryptionUtil;
 	
+	@Mock
+	Environment env;
+	
 	@InjectMocks
 	private QrCodeProvider qrCodeProvider;
 	
@@ -104,6 +108,8 @@ public class QrCodeProviderTest {
 	public void setUp() throws Exception {
 		PowerMockito.mockStatic(MVEL.class);
 		ReflectionTestUtils.setField(qrCodeProvider, "mapper", mapper);
+		ReflectionTestUtils.setField(qrCodeProvider, "env", env);
+		Mockito.when(env.getProperty(Mockito.anyString(), Mockito.anyString())).thenReturn("abc");
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		identityMapping = mapper.readValue(
 				IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("identity-mapping.json"),
