@@ -447,17 +447,17 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		if (comparisonResult.isMissingOnField()) {
 			updateMissingFields(dbData, comparisonResult);
 		}
+		
+		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(),
+				JSONCompareMode.LENIENT);
+		if (!comparisonResult.getMessage().isEmpty()) {
+			updateMissingValues(inputData, dbData, comparisonResult);
+		}
 
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(),
 				JSONCompareMode.LENIENT);
 		if (comparisonResult.isFailureOnField()) {
 			updateFailingFields(inputData, dbData, comparisonResult);
-		}
-
-		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(),
-				JSONCompareMode.LENIENT);
-		if (!comparisonResult.getMessage().isEmpty()) {
-			updateMissingValues(inputData, dbData, comparisonResult);
 		}
 
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(),
