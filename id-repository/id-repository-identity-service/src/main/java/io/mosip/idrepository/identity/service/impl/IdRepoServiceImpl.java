@@ -559,20 +559,32 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	private void updateMissingValues(DocumentContext inputData, DocumentContext dbData,
 			JSONCompareResult comparisonResult) {
 		String path = StringUtils.substringBefore(comparisonResult.getMessage(), OPEN_SQUARE_BRACE);
+		mosipLogger.info("Inside UPDATE MISSING VALUE(561) --- Path Value substringBefore  "+ path);
 		String key = StringUtils.substringAfterLast(path, DOT);
+		mosipLogger.info("Inside UPDATE MISSING VALUE(563) --- Key Value substringAfterLast  "+ key);
 		path = StringUtils.substringBeforeLast(path, DOT);
+		mosipLogger.info("Inside UPDATE MISSING VALUE (565) --- Path Value substringBeforeLast  "+ path);
 
 		if (StringUtils.isEmpty(key)) {
 			key = path;
+			mosipLogger.info("Inside UPDATE MISSING VALUE(569) --- Key Value if check  "+ key);
 			path = ROOT;
+			mosipLogger.info("Inside UPDATE MISSING VALUE(571) --- Path Value Constant  "+ path);
+
 		}
 
 		List<Map<String, String>> dbDataList = dbData.read(path + DOT + key, List.class);
+		mosipLogger.info("Inside UPDATE MISSING VALUE(576) --- DB DATALIST Value   "+ dbDataList.toString());
+
 		List<Map<String, String>> inputDataList = inputData.read(path + DOT + key, List.class);
+		mosipLogger.info("Inside UPDATE MISSING VALUE(579) --- INPUT DATALIST Value   "+ inputDataList.toString());
+
 		inputDataList.stream().filter(
 				map -> map.containsKey(LANGUAGE) && dbDataList.stream().filter(dbMap -> dbMap.containsKey(LANGUAGE))
 						.allMatch(dbMap -> !StringUtils.equalsIgnoreCase(dbMap.get(LANGUAGE), map.get(LANGUAGE))))
 				.forEach(dbDataList::add);
+		mosipLogger.info("Inside UPDATE MISSING VALUE(582) --- DB DATALIST after looping Value   "+ dbDataList.toString());
+
 		dbDataList
 				.stream().filter(
 						map -> map.containsKey(LANGUAGE)
@@ -580,6 +592,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 										.allMatch(inputDataMap -> !StringUtils
 												.equalsIgnoreCase(inputDataMap.get(LANGUAGE), map.get(LANGUAGE))))
 				.forEach(inputDataList::add);
+		mosipLogger.info("Inside UPDATE MISSING VALUE(588) --- INPUT DATALIST after looping Value   "+ inputDataList.toString());
+
+	
 	}
 
 	/**
