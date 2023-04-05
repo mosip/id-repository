@@ -466,7 +466,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(),
 				JSONCompareMode.LENIENT);
 		if (comparisonResult.failed()) {
-			mosipLogger.debug("Step4-Recursive Method call --- INPUT DATA "+inputData.jsonString()+ " DB DATA "+dbData.jsonString()+ " COMPARISION RESULT "+comparisonResult.getMessage());
+			mosipLogger.info("Step4-Recursive Method call --- INPUT DATA "+inputData.jsonString()+ " DB DATA "+dbData.jsonString()+ " COMPARISION RESULT "+comparisonResult.getMessage());
 			updateIdentityObject(inputData, dbData, comparisonResult);
 		}
 	}
