@@ -445,24 +445,28 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	private void updateIdentityObject(DocumentContext inputData, DocumentContext dbData,
 			JSONCompareResult comparisonResult) throws JSONException, IdRepoAppException {
 		if (comparisonResult.isMissingOnField()) {
+			mosipLogger.info("Step1-MissingField --- INPUT DATA "+inputData.jsonString()+ " DB DATA  "+dbData.jsonString()+ " COMPARISION RESULT "+comparisonResult.getMessage());
 			updateMissingFields(dbData, comparisonResult);
 		}
 		
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(),
 				JSONCompareMode.LENIENT);
 		if (!comparisonResult.getMessage().isEmpty()) {
+			mosipLogger.info("Step2-MissingValues--- INPUT DATA "+inputData.jsonString()+ " DB DATA "+dbData.jsonString()+" COMPARISION RESULT"+comparisonResult.getMessage());
 			updateMissingValues(inputData, dbData, comparisonResult);
 		}
 
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(),
 				JSONCompareMode.LENIENT);
 		if (comparisonResult.isFailureOnField()) {
+			mosipLogger.info("Step3-FailingFields--- INPUT DATA "+inputData.jsonString()+ " DB DATA "+dbData.jsonString()+" COMPARISION RESULT "+comparisonResult.getMessage());
 			updateFailingFields(inputData, dbData, comparisonResult);
 		}
 
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(),
 				JSONCompareMode.LENIENT);
 		if (comparisonResult.failed()) {
+			mosipLogger.info("Step4-Recursive Method call --- INPUT DATA "+inputData.jsonString()+ " DB DATA "+dbData.jsonString()+ " COMPARISION RESULT "+comparisonResult.getMessage());
 			updateIdentityObject(inputData, dbData, comparisonResult);
 		}
 	}
