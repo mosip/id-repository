@@ -445,28 +445,25 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	private void updateIdentityObject(DocumentContext inputData, DocumentContext dbData,
 			JSONCompareResult comparisonResult) throws JSONException, IdRepoAppException {
 		if (comparisonResult.isMissingOnField()) {
-			mosipLogger.info("Step1-MissingField --- INPUT DATA "+inputData.jsonString()+ " DB DATA  "+dbData.jsonString()+ " COMPARISION RESULT "+comparisonResult.getMessage());
 			updateMissingFields(dbData, comparisonResult);
 		}
 		
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(),
 				JSONCompareMode.LENIENT);
 		if (!comparisonResult.getMessage().isEmpty()) {
-			mosipLogger.info("Step2-MissingValues--- INPUT DATA "+inputData.jsonString()+ " DB DATA "+dbData.jsonString()+" COMPARISION RESULT"+comparisonResult.getMessage());
 			updateMissingValues(inputData, dbData, comparisonResult);
 		}
 
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(),
 				JSONCompareMode.LENIENT);
 		if (comparisonResult.isFailureOnField()) {
-			mosipLogger.info("Step3-FailingFields--- INPUT DATA "+inputData.jsonString()+ " DB DATA "+dbData.jsonString()+" COMPARISION RESULT "+comparisonResult.getMessage());
 			updateFailingFields(inputData, dbData, comparisonResult);
 		}
 
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(),
 				JSONCompareMode.LENIENT);
 		if (comparisonResult.failed()) {
-			mosipLogger.info("Step4-Recursive Method call --- INPUT DATA "+inputData.jsonString()+ " DB DATA "+dbData.jsonString()+ " COMPARISION RESULT "+comparisonResult.getMessage());
+			mosipLogger.debug("Before Recursive Method call --- INPUT DATA "+inputData.jsonString()+ " DB DATA "+dbData.jsonString()+ " COMPARISION RESULT "+comparisonResult.getMessage());
 			updateIdentityObject(inputData, dbData, comparisonResult);
 		}
 	}
@@ -559,30 +556,20 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	private void updateMissingValues(DocumentContext inputData, DocumentContext dbData,
 			JSONCompareResult comparisonResult) {
 		String path = StringUtils.substringBefore(comparisonResult.getMessage(), OPEN_SQUARE_BRACE);
-		mosipLogger.info("Inside UPDATE MISSING VALUE(561) --- Path Value substringBefore  "+ path);
 		String key = StringUtils.substringAfterLast(path, DOT);
-		mosipLogger.info("Inside UPDATE MISSING VALUE(563) --- Key Value substringAfterLast  "+ key);
 		path = StringUtils.substringBeforeLast(path, DOT);
-		mosipLogger.info("Inside UPDATE MISSING VALUE (565) --- Path Value substringBeforeLast  "+ path);
 
 		if (StringUtils.isEmpty(key)) {
 			key = path;
-			mosipLogger.info("Inside UPDATE MISSING VALUE(569) --- Key Value if check  "+ key);
 			path = ROOT;
-			mosipLogger.info("Inside UPDATE MISSING VALUE(571) --- Path Value Constant  "+ path);
-
 		}
 		List<Map<String, String>> dbDataList = dbData.read(path + DOT + key, List.class);
-		mosipLogger.info("Inside UPDATE MISSING VALUE(576) --- DB DATALIST Value   "+ dbDataList.toString());
-
 		List<Map<String, String>> inputDataList = inputData.read(path + DOT + key, List.class);
-		mosipLogger.info("Inside UPDATE MISSING VALUE(579) --- INPUT DATALIST Value   "+ inputDataList.toString());
 
 		inputDataList.stream().filter(
 				map -> map.containsKey(LANGUAGE) && dbDataList.stream().filter(dbMap -> dbMap.containsKey(LANGUAGE))
 						.allMatch(dbMap -> !StringUtils.equalsIgnoreCase(dbMap.get(LANGUAGE), map.get(LANGUAGE))))
 				.forEach(dbDataList::add);
-		mosipLogger.info("Inside UPDATE MISSING VALUE(582) --- DB DATALIST after looping Value   "+ dbDataList.toString());
 		dbData.put(path, key, dbDataList);
 		dbDataList
 				.stream().filter(
@@ -591,9 +578,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 										.allMatch(inputDataMap -> !StringUtils
 												.equalsIgnoreCase(inputDataMap.get(LANGUAGE), map.get(LANGUAGE))))
 				.forEach(inputDataList::add);
-		mosipLogger.info("Inside UPDATE MISSING VALUE(588) --- INPUT DATALIST after looping Value   "+ inputDataList.toString());
 		inputData.put(path, key, inputDataList);
-		
+		mosipLogger.debug(
+				"Inside UPDATE MISSING VALUE --- INPUT DATALIST after looping Value   " + inputDataList.toString() +" DB DATA LIST "+dbDataList.toString());
 	}
 
 	/**
