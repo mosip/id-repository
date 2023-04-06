@@ -572,7 +572,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			mosipLogger.info("Inside UPDATE MISSING VALUE(571) --- Path Value Constant  "+ path);
 
 		}
-
 		List<Map<String, String>> dbDataList = dbData.read(path + DOT + key, List.class);
 		mosipLogger.info("Inside UPDATE MISSING VALUE(576) --- DB DATALIST Value   "+ dbDataList.toString());
 
@@ -584,7 +583,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						.allMatch(dbMap -> !StringUtils.equalsIgnoreCase(dbMap.get(LANGUAGE), map.get(LANGUAGE))))
 				.forEach(dbDataList::add);
 		mosipLogger.info("Inside UPDATE MISSING VALUE(582) --- DB DATALIST after looping Value   "+ dbDataList.toString());
-
+		dbData.put(path, key, dbDataList);
 		dbDataList
 				.stream().filter(
 						map -> map.containsKey(LANGUAGE)
@@ -593,8 +592,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 												.equalsIgnoreCase(inputDataMap.get(LANGUAGE), map.get(LANGUAGE))))
 				.forEach(inputDataList::add);
 		mosipLogger.info("Inside UPDATE MISSING VALUE(588) --- INPUT DATALIST after looping Value   "+ inputDataList.toString());
-
-	
+		inputData.put(path, key, inputDataList);
+		
 	}
 
 	/**
