@@ -8,6 +8,10 @@ import org.springframework.stereotype.Component;
 
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 
+/**
+ * @author Kamesh Shekhar Prasad
+ * Class to check request of credential request generator API.
+ */
 @Component
 public class RequestValidator {
 
