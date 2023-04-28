@@ -679,7 +679,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				.collect(Collectors.toMap(bir -> bir.getBdbInfo().getType().stream().map(bioType -> bioType.value())
 						.collect(Collectors.joining())
 						.concat(bir.getBdbInfo().getSubtype().stream().collect(Collectors.joining())), bir -> bir));
-		inputBIRDataMap.entrySet().forEach(entry -> existingBIRDataMap.replace(entry.getKey(), entry.getValue()));
+		inputBIRDataMap.entrySet().forEach(entry -> {
+			if (existingBIRDataMap.containsKey(entry.getKey())) {
+				existingBIRDataMap.replace(entry.getKey(), entry.getValue());
+			} else {
+				existingBIRDataMap.put(entry.getKey(), entry.getValue());
+			}
+		});
 		byte[] updatedCbeff = cbeffUtil.createXML(new ArrayList<>(existingBIRDataMap.values()));
 		String encodeUpdateCbeff = CryptoUtil.encodeBase64(updatedCbeff);
 		anonymousProfileDto.setNewCbeff(encodeUpdateCbeff);
