@@ -96,6 +96,16 @@ public class IdRepoConfig implements WebMvcConfigurer {
 	/** The id. */
 	private Map<String, String> id;
 	
+	@Value("${mosip.idrepo.identity-core-pool-size:3}")
+	private int corePoolSize;
+	
+	@Value("${mosip.idrepo.identity-max-pool-size:3}")
+	private int maxPoolSize;
+	
+	@Value("${mosip.idrepo.identity-queue-capacity:500}")
+	private int queueCapacity;
+	
+	
 	@Autowired
 	private Environment env;
 	
@@ -359,9 +369,9 @@ public class IdRepoConfig implements WebMvcConfigurer {
 
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(3);
-		executor.setMaxPoolSize(3);
-		executor.setQueueCapacity(500);
+		executor.setCorePoolSize(corePoolSize);
+		executor.setMaxPoolSize(maxPoolSize);
+		executor.setQueueCapacity(queueCapacity);
 		executor.setThreadNamePrefix("idrepo-");
 		executor.initialize();
 		return executor;
