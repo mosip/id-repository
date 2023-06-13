@@ -1,3 +1,15 @@
+\c mosip_idrepo
+
+REASSIGN OWNED BY sysadmin TO postgres;
+
+REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA idrepo FROM idrepouser;
+
+REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA idrepo FROM sysadmin;
+
+GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE ON ALL TABLES IN SCHEMA idrepo TO idrepouser;
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA idrepo TO postgres;
+
 ALTER TABLE idrepo.uin_auth_lock ADD COLUMN unlock_expiry_datetime timestamp;
 ------------------------------------------------------------------------------------------------
 
