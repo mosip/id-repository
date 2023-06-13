@@ -1,0 +1,7 @@
+ALTER DATABASE mosip_credential OWNER TO postgres;
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA credential TO postgres;
+
+REVOKE ALL PRIVILEGES ON DATABASE mosip_credential FROM credentialuser, sysadmin;
+
+GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE ON ALL TABLES IN SCHEMA credential TO credentialuser;
