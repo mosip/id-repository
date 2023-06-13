@@ -1,10 +1,4 @@
-ALTER DATABASE mosip_idrepo OWNER TO postgres;
-
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA idrepo TO postgres;
-
-REVOKE ALL PRIVILEGES ON DATABASE mosip_idmap FROM idrepouser, sysadmin;
-
-GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE ON ALL TABLES IN SCHEMA idrepo TO idrepouser;
+\c mosip_idrepo
 
 ALTER TABLE idrepo.uin_auth_lock DROP COLUMN unlock_expiry_datetime;
 DROP TABLE IF EXISTS idrepo.credential_request_status;
