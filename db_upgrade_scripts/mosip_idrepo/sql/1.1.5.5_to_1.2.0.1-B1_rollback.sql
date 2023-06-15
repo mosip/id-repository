@@ -1,5 +1,9 @@
 \c mosip_idrepo
 
+REASSIGN OWNED BY postgres TO sysadmin;
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA idrepo TO sysadmin;
+
 ALTER TABLE idrepo.uin_auth_lock DROP COLUMN unlock_expiry_datetime;
 DROP TABLE IF EXISTS idrepo.credential_request_status;
 -----------------------------------------------------------------------------------------------------
