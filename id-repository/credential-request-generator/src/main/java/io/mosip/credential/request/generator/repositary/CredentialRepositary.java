@@ -32,11 +32,8 @@ import io.mosip.kernel.core.dataaccess.spi.repository.BaseRepository;
 @Repository
 public interface CredentialRepositary<T extends CredentialEntity, E> extends BaseRepository<T, E> {
 
-
-
 	@Query("SELECT crdn FROM CredentialEntity crdn WHERE crdn.statusCode= :statusCode")
 	Page<CredentialEntity> findByStatusCode(@Param("statusCode") String statusCode, Pageable pageable);
-
 
 	@Query("SELECT crdn FROM CredentialEntity crdn WHERE crdn.statusCode= :statusCode and crdn.updateDateTime>= :effectiveDTimes")
 	Page<CredentialEntity> findByStatusCodeWithEffectiveDtimes(@Param("statusCode") String statusCode,
@@ -60,6 +57,6 @@ public interface CredentialRepositary<T extends CredentialEntity, E> extends Bas
 	@Transactional
 	@Lock(value = LockModeType.PESSIMISTIC_WRITE)
 	@QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "1") })
-	@Query("SELECT crdn FROM CredentialEntity crdn WHERE crdn.statusCode in :statusCodes")
-	Page<CredentialEntity> findCredentialByStatusCodes(@Param("statusCodes") String[] statusCodes, Pageable pageable);
+	@Query("SELECT crdn FROM CredentialEntity crdn WHERE crdn.statusCode in :statusCodes ")
+	Page<CredentialEntity> findCredentialByStatusCodes(@Param("statusCodes") String[] statusCodes,Pageable pageable);
 }

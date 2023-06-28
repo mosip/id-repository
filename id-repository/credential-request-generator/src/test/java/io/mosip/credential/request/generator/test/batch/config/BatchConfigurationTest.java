@@ -1,21 +1,16 @@
 package io.mosip.credential.request.generator.test.batch.config;
 
 import static org.junit.Assert.*;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.integration.async.AsyncItemWriter;
-import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
@@ -25,13 +20,9 @@ import org.springframework.web.context.WebApplicationContext;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 
 import io.mosip.credential.request.generator.batch.config.BatchConfiguration;
-
 import io.mosip.credential.request.generator.batch.config.CredentialItemReprocessTasklet;
 import io.mosip.credential.request.generator.batch.config.CredentialItemTasklet;
-import io.mosip.credential.request.generator.entity.CredentialEntity;
-import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import io.mosip.credential.request.generator.util.RestUtil;
-import io.mosip.idrepository.core.util.EnvUtil;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest
@@ -52,10 +43,6 @@ public class BatchConfigurationTest {
 	/** The job launcher. */
 	@Mock
 	private JobLauncher jobLauncher;
-
-	/** The crdential repo. */
-	@Mock
-	private CredentialRepositary<CredentialEntity, String> crdentialRepo;
 
 	/** The credential process job. */
 	@Mock
@@ -85,7 +72,7 @@ public class BatchConfigurationTest {
 		batchConfiguration.reProcessJob();
 	}
 
-	@Test
+    @Test
 	public void getRestUtilTest() {
 		RestUtil res = batchConfiguration.getRestUtil();
 		assertNotNull(res);
@@ -96,7 +83,6 @@ public class BatchConfigurationTest {
 		ThreadPoolTaskScheduler res = batchConfiguration.getTaskScheduler();
 		assertNotNull(res);
 	}
-
 
 	@Test
 	public void alterAnnotationTest() throws Exception {

@@ -18,6 +18,8 @@ import com.apicatalog.jsonld.document.JsonDocument;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.credentialstore.constants.CredentialConstants;
+import io.mosip.credentialstore.dto.BestFingerDto;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -156,7 +158,18 @@ public class VerCredProvider extends CredentialProvider {
 				if (value instanceof String) {
 					valueStr = value.toString();
 					formattedMap.put(attributeName, valueStr);
-				} else {
+				}else if ((allowedKycDto.getFormat() != null)
+						&& CredentialConstants.BESTTWOFINGERS.equalsIgnoreCase(allowedKycDto.getFormat())) {
+					List<BestFingerDto> bestFingerList = (List<BestFingerDto>) value;
+					List<Map<String, String>> bestFingerMapList = new ArrayList<>();
+					for (BestFingerDto bestFinger : bestFingerList) {
+						Map<String, String> bestFingerMap = new HashMap<>();
+						bestFingerMap.put(CredentialConstants.BF_SUB_TYPE, bestFinger.getSubType());
+						bestFingerMap.put(CredentialConstants.BF_RANK, Integer.toString(bestFinger.getRank()));
+						bestFingerMapList.add(bestFingerMap);
+					}
+					formattedMap.put(attributeName, bestFingerMapList);
+				}else {
 					// Removed converting any object (like List) to string. Now adding it object directly to the map. 
 					formattedMap.put(attributeName, value);
 				}

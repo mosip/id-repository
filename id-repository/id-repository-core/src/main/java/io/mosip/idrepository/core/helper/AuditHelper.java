@@ -65,8 +65,12 @@ public class AuditHelper {
 	 * @param desc   the desc
 	 */
 	public void audit(AuditModules module, AuditEvents event, String id, IdType idType, String desc) {
+		String requestId = null;
+		if(id !=null) {
+			requestId = securityManager.hash(id.getBytes());
+		}
 		RequestWrapper<AuditRequestDTO> auditRequest = auditBuilder.buildRequest(module, event,
-				securityManager.hash(id.getBytes()), idType, desc);
+				requestId, idType, desc);
 		RestRequestDTO restRequest;
 		try {
 			restRequest = restBuilder.buildRequest(RestServicesConstants.AUDIT_MANAGER_SERVICE, auditRequest,

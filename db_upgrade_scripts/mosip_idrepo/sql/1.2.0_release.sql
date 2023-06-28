@@ -1,5 +1,6 @@
+<<<<<<<< HEAD:db_upgrade_scripts/mosip_idrepo/sql/1.1.5.5_to_1.2.0.1-B1_upgrade.sql
 \c mosip_idrepo
-
+========
 -- -------------------------------------------------------------------------------------------------
 -- Database Name: mosip_idrepo
 -- Release Version 	: 1.2
@@ -16,6 +17,7 @@
 -- Sep-2021		Manoj SP	    Added anonymous_profile and channel_info tables.
 -- Jul 2022	           Manoj SP           Added idrepo-identity_update_count_tracker table
 -------------------------------------------------------------------------------------------------------
+>>>>>>>> 400c9a38814e3d8088069cb2695cd195f7ca59ef:db_upgrade_scripts/mosip_idrepo/sql/1.2.0_release.sql
 
 REASSIGN OWNED BY sysadmin TO postgres;
 

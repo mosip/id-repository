@@ -10,6 +10,10 @@ import java.util.Map;
 
 import javax.persistence.QueryHint;
 
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -54,7 +58,6 @@ import io.mosip.credential.request.generator.util.RestUtil;
 @EnableBatchProcessing
 public class BatchConfiguration {
 	
-
 	@Autowired
 	public CredentialItemTasklet credentialItemTasklet;
 
@@ -85,6 +88,9 @@ public class BatchConfiguration {
 	/** The credential re process job. */
 	@Autowired
 	private Job credentialReProcessJob;
+
+	private static final String BATCH_CONFIGURATION = "BatchConfiguration";
+	private static final Logger LOGGER = IdRepoLogger.getLogger(BatchConfiguration.class);
 	
 	/**
 	 * Process job.
@@ -97,7 +103,8 @@ public class BatchConfiguration {
 			jobLauncher.run(credentialProcessJob, jobParameters);
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(IdRepoSecurityManager.getUser(), BATCH_CONFIGURATION,
+					"error in JobLauncher " + ExceptionUtils.getStackTrace(e));
 		}
 	}
 
@@ -112,10 +119,11 @@ public class BatchConfiguration {
 			jobLauncher.run(credentialReProcessJob, jobParameters);
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(IdRepoSecurityManager.getUser(), BATCH_CONFIGURATION,
+					"error in JobLauncher " + ExceptionUtils.getStackTrace(e));
 		}
 	}
-	
+
 	/**
 	 * Credential process job.
 	 *
@@ -151,9 +159,8 @@ public class BatchConfiguration {
 	@DependsOn("alterAnnotation")
 	public Step credentialReProcessStep() throws Exception {
 		return stepBuilderFactory.get("credentialProcessJob").tasklet(credentialItemReprocessTasklet).build();
-
 	}
-
+	
 	/**
 	 * Gets the rest util.
 	 *
@@ -173,6 +180,12 @@ public class BatchConfiguration {
 	public ThreadPoolTaskScheduler getTaskScheduler() {
 		return new ThreadPoolTaskScheduler();
 	}
+
+	/**
+	 * Credential re process step.
+	 *
+	 * @return the step
+	 */
 
 	@Bean
 	public PropertyLoader propertyLoader() {
@@ -194,8 +207,7 @@ public class BatchConfiguration {
 		values.put("value", propertyLoader().processLockTimeout);
 		findCredentialByStatusCode.setAccessible(false);
 
-		Method findCredentialByStatusCodes = CredentialRepositary.class.getDeclaredMethod("findCredentialByStatusCodes",
-				String[].class, Pageable.class);
+		Method findCredentialByStatusCodes = CredentialRepositary.class.getDeclaredMethod("findCredentialByStatusCodes",String[].class, Pageable.class);
 		findCredentialByStatusCodes.setAccessible(true);
 		QueryHints queryHintsReprocess = findCredentialByStatusCodes.getDeclaredAnnotation(QueryHints.class);
 		QueryHint queryHintReprocess = (QueryHint) queryHintsReprocess.value()[0];

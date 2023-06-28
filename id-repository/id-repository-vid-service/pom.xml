@@ -23,6 +23,8 @@
 		<kernel.idvalidator.vid.version>1.2.0.1-SNAPSHOT</kernel.idvalidator.vid.version>
 		<kernel.dataaccess.hibernate.version>1.2.0.1-SNAPSHOT</kernel.dataaccess.hibernate.version>
 		<json.schema.validator.version>2.2.10</json.schema.validator.version>
+		<powermock.beta.version>2.0.7</powermock.beta.version>
+		<mockito.version>2.28.2</mockito.version>
 		<springdoc.version>1.5.10</springdoc.version>
 	</properties>
 
@@ -87,6 +89,24 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-config</artifactId>
 			<version>${spring-cloud-config.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.mvel</groupId>
+			<artifactId>mvel2</artifactId>
+			<version>2.4.7.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<version>${powermock.beta.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito2</artifactId>
+			<version>${powermock.beta.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springdoc</groupId>
