@@ -20,7 +20,7 @@ public interface UinEncryptSaltRepo extends JpaRepository<UinEncryptSalt, Intege
 	 * @param id the id
 	 * @return String salt
 	 */
-	@Cacheable(cacheNames = "uin_encrypt_salt")
+	@Cacheable(cacheNames = "uin_encrypt_salt", key="id", condition="#id != null")
 	@Query("select salt from UinEncryptSalt where id = :id")
 	public String retrieveSaltById(@Param("id") int id);
 }
