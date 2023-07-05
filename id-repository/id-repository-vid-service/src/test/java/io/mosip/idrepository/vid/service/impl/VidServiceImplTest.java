@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -252,7 +251,7 @@ public class VidServiceImplTest {
 		assertEquals(vidResponse.getResponse().getVid().toString(), vid.getVid());
 		assertEquals(vidResponse.getResponse().getVidStatus(), vid.getStatusCode());
 	}
-	@Ignore
+	
 	@Test
 	public void testCreateVid() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
 		when(securityManager.hash(Mockito.any())).thenReturn("123");
@@ -289,7 +288,6 @@ public class VidServiceImplTest {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Ignore
 	@Test
 	public void testCreateVidAutoRestore() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
 		when(securityManager.hash(Mockito.any())).thenReturn("123");
@@ -326,7 +324,6 @@ public class VidServiceImplTest {
 		assertEquals(vidResponse.getResponse().getVid().toString(), vid.getVid());
 		assertEquals(vidResponse.getResponse().getVidStatus(), vid.getStatusCode());
 	}
-	@Ignore
 	@Test
 	public void testCreateVidInstanceFail() throws RestServiceException, IdRepoDataValidationException, JsonParseException, JsonMappingException, IOException {
 		when(securityManager.hash(Mockito.any())).thenReturn("123");
@@ -795,7 +792,6 @@ public class VidServiceImplTest {
 		}
 	}
 	
-	@Ignore
 	@Test
 	public void testUpdateVidvalid() throws IdRepoAppException {
 		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
@@ -823,7 +819,6 @@ public class VidServiceImplTest {
 		ResponseWrapper<VidResponseDTO> updateVid = service.updateVid("12345678", request);
 		assertEquals(vidStatus, updateVid.getResponse().getVidStatus());
 	}
-	@Ignore
 	@Test
 	public void testUpdateVidvalidREVOKE() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
 		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
@@ -884,7 +879,6 @@ public class VidServiceImplTest {
 		}
 	}
 	
-	@Ignore
 	@Test
 	public void testRegenerate_Valid() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
 		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
@@ -1066,7 +1060,6 @@ public class VidServiceImplTest {
 		}
 	}
 	
-	@Ignore
 	@Test
 	public void testDeactivateVID_valid() throws IdRepoAppException {
 		RestRequestDTO restRequestDTO = new RestRequestDTO();
@@ -1116,7 +1109,6 @@ public class VidServiceImplTest {
 		}
 	}
 	
-	@Ignore
 	@Test
 	public void testReactivateVID_valid() throws IdRepoAppException {
 		RestRequestDTO restRequestDTO = new RestRequestDTO();
@@ -1141,7 +1133,6 @@ public class VidServiceImplTest {
 		assertEquals("ACTIVE", regenerateVid.getResponse().getVidStatus());
 	}
 	
-	@Ignore
 	@Test
 	public void testRetrieveVidsByUin() throws IdRepoAppException {
 		Vid vid = new Vid();
