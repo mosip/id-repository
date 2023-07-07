@@ -13,13 +13,177 @@ GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA idrepo TO postgres;
 ALTER TABLE idrepo.uin_auth_lock ADD COLUMN unlock_expiry_datetime timestamp;
 ------------------------------------------------------------------------------------------------
 
-\ir ../ddl/idrepo-credential_request_status.sql
+CREATE TABLE idrepo.credential_request_status (
+	individual_id character varying(500) NOT NULL,
+	individual_id_hash character varying(128) NOT NULL,
+	partner_id character varying(36) NOT NULL,
+	request_id character varying(36),
+	token_id character varying(128),
+	status character varying(36) NOT NULL,
+	id_transaction_limit numeric,
+	id_expiry_timestamp timestamp,
+	cr_by character varying(256) NOT NULL,
+	cr_dtimes timestamp NOT NULL,
+	upd_by character varying(256),
+	upd_dtimes timestamp,
+	is_deleted bool DEFAULT false,
+	del_dtimes timestamp,
+	CONSTRAINT credential_request_status_pk PRIMARY KEY (individual_id_hash,partner_id)
 
-\ir ../ddl/idrepo-uin_biometric_draft.sql
-\ir ../ddl/idrepo-uin_draft.sql
-\ir ../ddl/idrepo-uin_document_draft.sql
-\ir ../ddl/idrepo-anonymous_profile.sql
-\ir ../ddl/idrepo-channel_info.sql
+);
+
+GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
+   ON idrepo.credential_request_status
+   TO idrepouser;
+----------------------------------------------------------------------------------------------------------------------------------
+CREATE TABLE idrepo.uin_biometric_draft(
+	reg_id character varying(39) NOT NULL,								
+	biometric_file_type character varying(36) NOT NULL,						
+	bio_file_id character varying(128) NOT NULL,					
+	biometric_file_name character varying(128) NOT NULL,						
+	biometric_file_hash character varying(64) NOT NULL,					
+	cr_by character varying(256) NOT NULL,		
+	cr_dtimes timestamp NOT NULL,			
+	upd_by character varying(256),		
+	upd_dtimes timestamp,	
+	is_deleted bool	DEFAULT	FALSE,
+	del_dtimes timestamp,														
+	CONSTRAINT pk_uinbiodft_id PRIMARY KEY (reg_id,biometric_file_type),
+	CONSTRAINT unq_biofileid UNIQUE (bio_file_id)
+);
+
+GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
+   ON idrepo.uin_biometric_draft
+   TO idrepouser;
+-----------------------------------------------------------------------------------------------------------------------------------------------
+CREATE TABLE idrepo.uin_draft(
+	reg_id character varying (39) NOT NULL,
+	uin character varying (500) NOT NULL,
+	uin_hash character varying (128) NOT NULL,
+	uin_data bytea,		
+	uin_data_hash character varying (64),			
+	status_code character varying (32) NOT NULL,
+	cr_by character varying (256) NOT NULL,		
+	cr_dtimes timestamp NOT NULL,		
+	upd_by	character varying (256),			
+	upd_dtimes timestamp,			
+	is_deleted bool	DEFAULT FALSE,
+	del_dtimes timestamp, 
+	CONSTRAINT pk_uindft_id PRIMARY KEY (reg_id),
+	CONSTRAINT unq_uin UNIQUE (uin),
+	CONSTRAINT unq_uinhsh UNIQUE (uin_hash)
+);
+
+GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
+   ON idrepo.uin_draft
+   TO idrepouser;
+---------------------------------------------------------------------------------------------------------------------------------------------
+CREATE TABLE idrepo.uin_document_draft(
+	reg_id character varying(39) NOT NULL,										
+	doccat_code character varying(36) NOT NULL,									
+	doctyp_code character varying(64) NOT NULL,										
+	doc_id character varying(128) NOT NULL,							
+	doc_name character varying(128)	NOT NULL,								
+	docfmt_code character varying(36) NOT NULL,							
+	doc_hash character varying(64) NOT NULL,						
+	cr_by character varying(256) NOT NULL,					
+	cr_dtimes timestamp NOT NULL,				
+	upd_by character varying(256),			
+	upd_dtimes timestamp,		
+	is_deleted bool	DEFAULT	FALSE,
+	del_dtimes timestamp,
+	CONSTRAINT pk_uindocdft_id PRIMARY KEY (reg_id,doccat_code),
+	CONSTRAINT unq_docid UNIQUE (doc_id)
+);
+
+GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
+   ON idrepo.uin_document_draft
+   TO idrepouser;
+---------------------------------------------------------------------------------------------------------------------------------------
+CREATE TABLE idrepo.anonymous_profile(
+	id character varying(36) NOT NULL,
+	profile character varying NOT NULL,
+	cr_by character varying(256) NOT NULL,
+	cr_dtimes timestamp NOT NULL,
+	upd_by character varying(256),
+	upd_dtimes timestamp,
+	is_deleted boolean DEFAULT FALSE,
+	del_dtimes timestamp,
+	CONSTRAINT pk_profile PRIMARY KEY (id)
+);
+
+GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
+   ON idrepo.anonymous_profile
+   TO idrepouser;
+
+   -- ddl-end --
+COMMENT ON TABLE idrepo.anonymous_profile IS 'anonymous_profile: Anonymous profiling information for reporting purpose.';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.anonymous_profile.id IS 'Reference ID: System generated id for references in the system.';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.anonymous_profile.profile IS 'Profile : Contains complete anonymous profile data generated by ID-Repository and stored in plain json text format.';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.anonymous_profile.cr_by IS 'Created By : ID or name of the user who create / insert record';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.anonymous_profile.cr_dtimes IS 'Created DateTimestamp : Date and Timestamp when the record is created/inserted';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.anonymous_profile.upd_by IS 'Updated By : ID or name of the user who update the record with new values';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.anonymous_profile.upd_dtimes IS 'Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.anonymous_profile.is_deleted IS 'IS_Deleted : Flag to mark whether the record is Soft deleted.';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.anonymous_profile.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
+-- ddl-end --
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+CREATE TABLE idrepo.channel_info(
+	hashed_channel character varying(128) NOT NULL,
+	channel_type character varying(5) NOT NULL,
+	no_of_records numeric NOT null default 0,
+	cr_by character varying(256) NOT NULL,
+	cr_dtimes timestamp NOT NULL,
+	upd_by character varying(256),
+	upd_dtimes timestamp,
+	is_deleted boolean DEFAULT FALSE,
+	del_dtimes timestamp,
+	CONSTRAINT pk_channel_info PRIMARY KEY (hashed_channel)
+);
+
+GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
+   ON idrepo.channel_info
+   TO idrepouser;
+   
+-- ddl-end --
+COMMENT ON TABLE idrepo.channel_info IS 'channel_info: Anonymous profiling information on channels such as phone,email for reporting purpose.';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.channel_info.hashed_channel IS 'Hashed Channel: Hash of the phone/email channel.';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.channel_info.channel_type IS 'Channel Type : Whether channel is email or phone.';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.channel_info.no_of_records IS 'No of records : Cumulative count of specific email or phone channel.';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.channel_info.cr_by IS 'Created By : ID or name of the user who create / insert record';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.channel_info.cr_dtimes IS 'Created DateTimestamp : Date and Timestamp when the record is created/inserted';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.channel_info.upd_by IS 'Updated By : ID or name of the user who update the record with new values';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.channel_info.upd_dtimes IS 'Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.channel_info.is_deleted IS 'IS_Deleted : Flag to mark whether the record is Soft deleted.';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.channel_info.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
+-- ddl-end --
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+CREATE TABLE idrepo.identity_update_count_tracker (
+	id varchar NOT NULL,
+	identity_update_count bytea NOT NULL,
+	CONSTRAINT iut_pk PRIMARY KEY (id)
+);
+
+GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
+   ON idrepo.identity_update_count_tracker
+   TO idrepouser;
 
 -------------------------------------------------------------------------------------------------
 
