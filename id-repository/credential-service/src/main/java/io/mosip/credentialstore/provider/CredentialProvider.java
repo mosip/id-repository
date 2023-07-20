@@ -129,6 +129,9 @@ public class CredentialProvider {
 	@Value("${credential.service.default.vid.type:PERPETUAL}")
 	private String defaultVidType;
 
+	@Value("${credential.service.convert.request.version:ISO19794_5_2011}")
+	private String convertRequestVer;
+
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialProvider.class);
 
 	private IdentityMapping identityMap;
@@ -372,12 +375,14 @@ public class CredentialProvider {
 					}else if((key.getFormat() != null)
 							&& CredentialConstants.JPEG.equalsIgnoreCase(key.getFormat())){
 						byte[] imageBytes = filterBiometricBir(individualBiometricsValue, key);
-						ConvertRequestDto convertRequestDto = new ConvertRequestDto();
-						convertRequestDto.setVersion("ISO19794_5_2011");
-						convertRequestDto.setInputBytes(imageBytes);
-						byte[] data = FaceDecoder.convertFaceISOToImageBytes(convertRequestDto);
-						String encryptedImageString = StringUtils.newStringUtf8(Base64.encodeBase64(data, false));
-						attributesMap.put(key, encryptedImageString);
+						if(imageBytes!=null) {
+							ConvertRequestDto convertRequestDto = new ConvertRequestDto();
+							convertRequestDto.setVersion("ISO19794_5_2011");
+							convertRequestDto.setInputBytes(imageBytes);
+							byte[] data = FaceDecoder.convertFaceISOToImageBytes(convertRequestDto);
+							String encryptedImageString = StringUtils.newStringUtf8(Base64.encodeBase64(data, false));
+							attributesMap.put(key, encryptedImageString);
+						}
 					} else {
 						String cbeff = filterBiometric(individualBiometricsValue, key);
 						attributesMap.put(key, cbeff);
@@ -603,7 +608,7 @@ public class CredentialProvider {
 			}
 
 		}
-		return new byte[0];
+		return null;
 	}
 
 	/**
