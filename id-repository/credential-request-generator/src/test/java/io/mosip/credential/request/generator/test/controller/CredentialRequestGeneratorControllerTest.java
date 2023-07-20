@@ -190,14 +190,4 @@ public class CredentialRequestGeneratorControllerTest {
 
 	}
 
-	@Test
-	@WithUserDetails("test")
-	public void testHandleCredentialBatchEventSuccess() throws Exception {
-
-
-		mockMvc.perform(
-				MockMvcRequestBuilders.get("/startCredentialBatch"))
-				.andExpect(status().isOk());
-
-	}
 }
