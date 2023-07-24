@@ -7,7 +7,7 @@ import static io.mosip.credentialstore.constants.CredentialConstants.FULLADDRESS
 import static io.mosip.credentialstore.constants.CredentialConstants.FULLNAME;
 import static io.mosip.credentialstore.constants.CredentialConstants.IDENTITY_ATTRIBUTES;
 import static io.mosip.credentialstore.constants.CredentialConstants.NAME_FORMAT_FUNCTION;
-
+import io.mosip.biometrics.util.face.FaceDecoder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -31,6 +31,9 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import io.mosip.biometrics.util.ConvertRequestDto;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -125,6 +128,9 @@ public class CredentialProvider {
 
 	@Value("${credential.service.default.vid.type:PERPETUAL}")
 	private String defaultVidType;
+
+	@Value("${credential.service.convert.request.version:ISO19794_5_2011}")
+	private String convertRequestVer;
 
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialProvider.class);
 
@@ -366,6 +372,17 @@ public class CredentialProvider {
 							&& CredentialConstants.BESTTWOFINGERS.equalsIgnoreCase(key.getFormat())) {
 						List<BestFingerDto> bestFingerList = getBestTwoFingers(individualBiometricsValue, key);
 						attributesMap.put(key, bestFingerList);
+					}else if((key.getFormat() != null)
+							&& CredentialConstants.JPEG.equalsIgnoreCase(key.getFormat())){
+						byte[] imageBytes = filterBiometricBir(individualBiometricsValue, key);
+						if(imageBytes!=null) {
+							ConvertRequestDto convertRequestDto = new ConvertRequestDto();
+							convertRequestDto.setVersion(convertRequestVer);
+							convertRequestDto.setInputBytes(imageBytes);
+							byte[] data = FaceDecoder.convertFaceISOToImageBytes(convertRequestDto);
+							String encryptedImageString = StringUtils.newStringUtf8(Base64.encodeBase64(data, false));
+							attributesMap.put(key, encryptedImageString);
+						}
 					} else {
 						String cbeff = filterBiometric(individualBiometricsValue, key);
 						attributesMap.put(key, cbeff);
@@ -556,6 +573,42 @@ public class CredentialProvider {
 			return individualBiometricsValue;
 		}
 
+	}
+
+	private byte[] filterBiometricBir(String individualBiometricsValue, AllowedKycDto key) throws Exception {
+
+		Source source = key.getSource().get(0);
+		List<Filter> filterList = source.getFilter();
+		if (filterList != null && !filterList.isEmpty()) {
+			Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
+			filterList.forEach(filter -> {
+				if (filter.getSubType() != null && !filter.getSubType().isEmpty()) {
+					typeAndSubTypeMap.put(filter.getType(), filter.getSubType());
+				} else {
+					typeAndSubTypeMap.put(filter.getType(), null);
+				}
+			});
+
+			List<BIR> birList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeURLSafeBase64(individualBiometricsValue));
+
+			for (BIR bir : birList) {
+				BDBInfo bdbInfo = bir.getBdbInfo();
+				String type = bdbInfo.getType().get(0).value();
+				if (typeAndSubTypeMap.containsKey(type) && typeAndSubTypeMap.get(type) == null) {
+					return bir.getBdb();
+				} else if (typeAndSubTypeMap.containsKey(type) && typeAndSubTypeMap.get(type) != null) {
+					List<String> subTypeList = typeAndSubTypeMap.get(type);
+					List<String> bdbSubTypeList = bdbInfo.getSubtype();
+					String subType;
+					subType = getSubType(bdbSubTypeList);
+					if (subTypeList.contains(subType)) {
+						return bir.getBdb();
+					}
+				}
+			}
+
+		}
+		return null;
 	}
 
 	/**
