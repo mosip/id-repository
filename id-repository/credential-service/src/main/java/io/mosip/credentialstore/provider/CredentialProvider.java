@@ -377,7 +377,7 @@ public class CredentialProvider {
 						byte[] imageBytes = filterBiometricBir(individualBiometricsValue, key);
 						if(imageBytes!=null) {
 							ConvertRequestDto convertRequestDto = new ConvertRequestDto();
-							convertRequestDto.setVersion("ISO19794_5_2011");
+							convertRequestDto.setVersion(convertRequestVer);
 							convertRequestDto.setInputBytes(imageBytes);
 							byte[] data = FaceDecoder.convertFaceISOToImageBytes(convertRequestDto);
 							String encryptedImageString = StringUtils.newStringUtf8(Base64.encodeBase64(data, false));
