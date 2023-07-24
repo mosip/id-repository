@@ -60,6 +60,8 @@ public class CredentialConstants {
 	public static final String BF_SUB_TYPE ="subType";
 
 	public static final String BF_RANK = "rank";
+
+	public static final String JPEG = "jpeg";
 	
 	/** The Constant DATETIME_PATTERN. */
 	public static final String DATETIME_PATTERN = "mosip.credential.service.datetime.pattern";
