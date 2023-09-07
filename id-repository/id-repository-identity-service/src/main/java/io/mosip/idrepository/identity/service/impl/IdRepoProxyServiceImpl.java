@@ -604,7 +604,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			List<BIR> finalBirs = new ArrayList<>();
 			
 			List<CompletableFuture<List<BIR>>> extractionFutures = new ArrayList<>();
-			mosipLogger.debug("Started the Multiple Modality extraction");
+			mosipLogger.debug(IdRepoSecurityManager.getUser(),ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY, "Started the Multiple Modality extraction");
 			for(BiometricType modality : SUPPORTED_MODALITIES) {
 				List<BIRType> birTypesForModality = originalBirs.stream()
 						.filter(bir -> bir.getBDBInfo().getType().get(0).value().equalsIgnoreCase(modality.value()))
@@ -632,7 +632,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			for(CompletableFuture<List<BIR>> future:  extractionFutures) {
 				finalBirs.addAll(future.get());
 			}
-			mosipLogger.debug("Completed the Multiple Modality extraction");
+			mosipLogger.debug(IdRepoSecurityManager.getUser(),ID_REPO_SERVICE_IMPL, RETRIEVE_IDENTITY, "Completed the Multiple Modality extraction");
 			return  cbeffUtil.createXML(finalBirs);
 		} catch (IdRepoAppUncheckedException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
