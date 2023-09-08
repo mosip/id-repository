@@ -373,8 +373,8 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 				String decryptedUin = decryptUin(vidObject.getUin(), vidObject.getUinHash());
 				List<String> uinList = Arrays.asList(decryptedUin.split(SPLITTER));
 				checkExpiry(vidObject.getExpiryDTimes());
-				// MOSIP-29281 checkStatus(vidObject.getStatusCode());
-				checkUinStatus(uinList.get(1));
+				checkStatus(vidObject.getStatusCode());
+				// MOSIP-29281 checkUinStatus(uinList.get(1));
 				VidResponseDTO resDTO = new VidResponseDTO();
 				resDTO.setUin(uinList.get(1));
 				return buildResponse(resDTO, id.get("read"));
