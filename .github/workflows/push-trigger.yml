@@ -25,7 +25,6 @@ on:
       - master
       - 1.*
       - develop
-      - MOSIP-11719
 
 jobs:
   build-maven-id-repository:
