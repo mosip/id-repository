@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -44,7 +47,8 @@ public class PolicyUtil {
 
 	@Autowired
 	Utilities utilities;
-
+	
+	@Cacheable(value = "partnerpolicyCache", key = "#credentialType + '_' + #subscriberId")
 	public PartnerCredentialTypePolicyDto getPolicyDetail(String credentialType, String subscriberId, String requestId)
 			throws PolicyException, ApiNotAccessibleException {
 
@@ -91,8 +95,12 @@ public class PolicyUtil {
 		}
 
 	}
-
-
+	
+	@CacheEvict(value = "partnerpolicyCache", allEntries = true)
+	@Scheduled(fixedRateString = "${mosip.credential.cache.expiry.time.millisec.policyCache}")
+	public void emptyPartnerPolicyCache() {
+		LOGGER.info("Emptying Partner Policy cache");
+	}
 
 	public PartnerExtractorResponse getPartnerExtractorFormat(String policyId, String subscriberId, String requestId)
 			throws ApiNotAccessibleException, PartnerException {
