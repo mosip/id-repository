@@ -1,10 +1,14 @@
 package io.mosip.idrepository.core.logger;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 import javax.annotation.PostConstruct;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
+
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.annotation.Before;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
@@ -12,13 +16,14 @@ import org.springframework.context.annotation.Configuration;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.DateUtils;
 
 @Aspect
 @Configuration
 @ConditionalOnClass(name = { "io.mosip.idrepository.core.helper.RestHelper" })
 @ConditionalOnProperty(value = "mosip.idrepo.aspect-logging.enabled", havingValue = "true", matchIfMissing = true)
 public class IdRepoAspectLogger {
-
+	
 	@PostConstruct
 	public void init() {
 		System.err.println("IdRepoAspectLogger");
@@ -26,73 +31,72 @@ public class IdRepoAspectLogger {
 
 	private transient Logger mosipLogger = IdRepoLogger.getLogger(IdRepoAspectLogger.class);
 
-	@Pointcut("execution(* io.mosip.idrepository.core.helper.RestHelper.requestSync(..))")
-	public void restHelperMethods() {
+	private LocalDateTime restHelperTime;
+	private LocalDateTime websubRegister;
+	private LocalDateTime websubPublish;
+	private LocalDateTime auth;
+	private LocalDateTime keycloak;
+
+	@Before(value = "execution(* io.mosip.idrepository.core.helper.RestHelper.requestSync(..))")
+	public void restHelperBefore(JoinPoint joinPoint) {
+		restHelperTime = DateUtils.getUTCCurrentDateTime();
 	}
 
-	@Around("restHelperMethods()")
-	public void restHelperaroundAdvice(ProceedingJoinPoint jp) throws Throwable {
-		long beforeExecutionTime = System.currentTimeMillis();
-		jp.proceed();
-		long afterExecutionTime = System.currentTimeMillis();
-		mosipLogger.info(IdRepoSecurityManager.getUser(), jp.getSignature().getDeclaringTypeName(),
-				jp.getSignature().getName(), ((RestRequestDTO) jp.getArgs()[0]).getUri()
-						+ " - Time taken to respond in ms: " + (afterExecutionTime - beforeExecutionTime));
+	@After(value = "execution(* io.mosip.idrepository.core.helper.RestHelper.requestSync(..))")
+	public void restHelperAfter(JoinPoint joinPoint) {
+		long duration = Duration.between(restHelperTime, DateUtils.getUTCCurrentDateTime()).toMillis();
+		mosipLogger.info(IdRepoSecurityManager.getUser(), joinPoint.getSignature().getDeclaringTypeName(),
+				joinPoint.getSignature().getName(),
+				((RestRequestDTO) joinPoint.getArgs()[0]).getUri() + " - Time taken to respond in ms: " + duration);
 	}
 
-	@Pointcut("execution(* io.mosip.kernel.websub.api.client.PublisherClientImpl.registerTopic(..))")
-	public void registerTopicMethods() {
+	@Before(value = "execution(* io.mosip.kernel.websub.api.client.PublisherClientImpl.registerTopic(..))")
+	public void registerBefore(JoinPoint joinPoint) {
+		websubRegister = DateUtils.getUTCCurrentDateTime();
 	}
 
-	@Around("registerTopicMethods()")
-	public void registerTopicaroundAdvice(ProceedingJoinPoint jp) throws Throwable {
-		long beforeExecutionTime = System.currentTimeMillis();
-		jp.proceed();
-		long afterExecutionTime = System.currentTimeMillis();
-		mosipLogger.info(IdRepoSecurityManager.getUser(), jp.getSignature().getDeclaringTypeName(),
-				jp.getSignature().getName(), jp.getArgs()[0].toString() + " - Time taken to respond in ms: "
-						+ (afterExecutionTime - beforeExecutionTime));
+	@After(value = "execution(* io.mosip.kernel.websub.api.client.PublisherClientImpl.registerTopic(..))")
+	public void registerAfter(JoinPoint joinPoint) {
+		long duration = Duration.between(websubRegister, DateUtils.getUTCCurrentDateTime()).toMillis();
+		mosipLogger.info(IdRepoSecurityManager.getUser(), joinPoint.getSignature().getDeclaringTypeName(),
+				joinPoint.getSignature().getName(),
+				joinPoint.getArgs()[0].toString() + " - Time taken to respond in ms: " + duration);
 	}
 
-	@Pointcut("execution(* io.mosip.kernel.websub.api.client.PublisherClientImpl.publishUpdate(..))")
-	public void publishUpdateMethods() {
+	@Before(value = "execution(* io.mosip.kernel.websub.api.client.PublisherClientImpl.publishUpdate(..))")
+	public void publishBefore(JoinPoint joinPoint) {
+		websubPublish = DateUtils.getUTCCurrentDateTime();
 	}
 
-	@Around("publishUpdateMethods()")
-	public void publishUpdatearoundAdvice(ProceedingJoinPoint jp) throws Throwable {
-		long beforeExecutionTime = System.currentTimeMillis();
-		jp.proceed();
-		long afterExecutionTime = System.currentTimeMillis();
-		mosipLogger.info(IdRepoSecurityManager.getUser(), jp.getSignature().getDeclaringTypeName(),
-				jp.getSignature().getName(), jp.getArgs()[0].toString() + " - Time taken to respond in ms: "
-						+ (afterExecutionTime - beforeExecutionTime));
+	@After(value = "execution(* io.mosip.kernel.websub.api.client.PublisherClientImpl.publishUpdate(..))")
+	public void publishAfter(JoinPoint joinPoint) {
+		long duration = Duration.between(websubPublish, DateUtils.getUTCCurrentDateTime()).toMillis();
+		mosipLogger.info(IdRepoSecurityManager.getUser(), joinPoint.getSignature().getDeclaringTypeName(),
+				joinPoint.getSignature().getName(),
+				joinPoint.getArgs()[0].toString() + " - Time taken to respond in ms: " + duration);
 	}
 
-	@Pointcut("execution(* io.mosip.kernel.auth.defaultadapter.handler.AuthHandler.getValidatedUserResponse(..))")
-	public void validatedUserResponseMethods() {
+	@Before(value = "execution(* io.mosip.kernel.auth.defaultadapter.handler.AuthHandler.getValidatedUserResponse(..))")
+	public void authBefore(JoinPoint joinPoint) {
+		auth = DateUtils.getUTCCurrentDateTime();
 	}
 
-	@Around("validatedUserResponseMethods()")
-	public void validatedUserResponsearoundAdvice(ProceedingJoinPoint jp) throws Throwable {
-		long beforeExecutionTime = System.currentTimeMillis();
-		jp.proceed();
-		long afterExecutionTime = System.currentTimeMillis();
-		mosipLogger.info(IdRepoSecurityManager.getUser(), jp.getSignature().getDeclaringTypeName(),
-				jp.getSignature().getName(),
-				" Time taken to respond in ms: " + (afterExecutionTime - beforeExecutionTime));
+	@After(value = "execution(* io.mosip.kernel.auth.defaultadapter.handler.AuthHandler.getValidatedUserResponse(..))")
+	public void authAfter(JoinPoint joinPoint) {
+		long duration = Duration.between(auth, DateUtils.getUTCCurrentDateTime()).toMillis();
+		mosipLogger.info(IdRepoSecurityManager.getUser(), joinPoint.getSignature().getDeclaringTypeName(),
+				joinPoint.getSignature().getName(), " Time taken to respond in ms: " + duration);
 	}
 
-	@Pointcut("execution(* io.mosip.kernel.auth.defaultadapter.handler.AuthHandler.getKeycloakValidatedUserResponse(..))")
-	public void keycloakValidatedUserResponseMethods() {
+	@Before(value = "execution(* io.mosip.kernel.auth.defaultadapter.handler.AuthHandler.getKeycloakValidatedUserResponse(..))")
+	public void keycloakAuthBefore(JoinPoint joinPoint) {
+		keycloak = DateUtils.getUTCCurrentDateTime();
 	}
 
-	@Around("keycloakValidatedUserResponseMethods()")
-	public void keycloakValidatedUserResponsearoundAdvice(ProceedingJoinPoint jp) throws Throwable {
-		long beforeExecutionTime = System.currentTimeMillis();
-		jp.proceed();
-		long afterExecutionTime = System.currentTimeMillis();
-		mosipLogger.info(IdRepoSecurityManager.getUser(), jp.getSignature().getDeclaringTypeName(),
-				jp.getSignature().getName(),
-				" Time taken to respond in ms: " + (afterExecutionTime - beforeExecutionTime));
+	@After(value = "execution(* io.mosip.kernel.auth.defaultadapter.handler.AuthHandler.getKeycloakValidatedUserResponse(..))")
+	public void keycloakAuthAfter(JoinPoint joinPoint) {
+		long duration = Duration.between(keycloak, DateUtils.getUTCCurrentDateTime()).toMillis();
+		mosipLogger.info(IdRepoSecurityManager.getUser(), joinPoint.getSignature().getDeclaringTypeName(),
+				joinPoint.getSignature().getName(), " Time taken to respond in ms: " + duration);
 	}
 }
