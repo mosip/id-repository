@@ -99,7 +99,7 @@ public class PolicyUtil {
 	@CacheEvict(value = "partnerpolicyCache", allEntries = true)
 	@Scheduled(fixedRateString = "${mosip.credential.service.policy-cache.exipry-time-millisec}")
 	public void emptyPartnerPolicyCache() {
-		LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+		LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), "emptyPartnerPolicyCache",
 				"Emptying Partner Policy cache");
 
 	}
