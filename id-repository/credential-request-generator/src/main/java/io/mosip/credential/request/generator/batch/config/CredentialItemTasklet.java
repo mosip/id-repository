@@ -143,16 +143,19 @@ public class CredentialItemTasklet implements Tasklet {
 					LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, "batchid = " + batchId,
 							ExceptionUtils.getStackTrace(e));
 					credential.setStatusCode("FAILED");
+					credential.setUpdateDateTime(DateUtils.getUTCCurrentDateTime());
 				} catch (IOException e) {
 
 					LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, "batchid = " + batchId,
 							ExceptionUtils.getStackTrace(e));
 					credential.setStatusCode("FAILED");
+					credential.setUpdateDateTime(DateUtils.getUTCCurrentDateTime());
 				} catch (Exception e) {
 
 					LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, "batchid = " + batchId,
 							ExceptionUtils.getStackTrace(e));
 					credential.setStatusCode("FAILED");
+					credential.setUpdateDateTime(DateUtils.getUTCCurrentDateTime());
 				}
 			})).get();
 		} catch (InterruptedException | ExecutionException e) {
