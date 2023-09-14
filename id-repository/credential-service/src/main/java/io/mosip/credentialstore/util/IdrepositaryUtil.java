@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -37,6 +38,9 @@ public class IdrepositaryUtil {
 
 	@Autowired
 	private ObjectMapper mapper;
+	
+	@Value("${mosip.credential.service.fetch-identity.type:all}")
+	private String identityType;
 
 	private static final Logger LOGGER = IdRepoLogger.getLogger(IdrepositaryUtil.class);
 
@@ -59,7 +63,7 @@ public class IdrepositaryUtil {
 			List<String> pathsegments = new ArrayList<>();
 			pathsegments.add(credentialServiceRequestDto.getId());
 			String queryParamName = "type";
-			String queryParamValue = "all";
+			String queryParamValue = identityType;
 			if (StringUtils.isNotEmpty(idType)) {
 				queryParamName = queryParamName + ",idType";
 				queryParamValue = queryParamValue + "," + idType;
