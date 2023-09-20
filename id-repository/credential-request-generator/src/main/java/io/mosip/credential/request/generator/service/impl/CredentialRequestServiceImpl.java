@@ -328,6 +328,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			}
 			LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, UPDATE_STATUS_CREDENTIAL,
 					"ended updating  credential status");
+			LOGGER.debug(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR.toString(), AuditEvents.UPDATE_CREDENTIAL_REQUEST.toString(), requestId, IdType.ID +"_"+ "update the request");
 			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,"update the request");
 		}catch (DataAccessLayerException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, UPDATE_STATUS_CREDENTIAL,
