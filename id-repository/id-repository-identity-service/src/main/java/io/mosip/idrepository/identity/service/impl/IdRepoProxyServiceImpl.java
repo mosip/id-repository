@@ -562,28 +562,27 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			if (allowedBioAttributes.contains(bio.getBiometricFileType())) {
 				try {
 					String uinHash = uinObject.getUinHash().split("_")[1];
-					if (!objectStoreHelper.biometricObjectExists(uinHash, bio.getBioFileId())) {
+					byte[] data = objectStoreHelper.getBiometricObject(uinHash, bio.getBioFileId());
+					if (Objects.isNull(data)) {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricFiles",
 								"FILE NOT FOUND IN OBJECT STORE");
 						throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
 					}
-					byte[] data = objectStoreHelper.getBiometricObject(uinHash, bio.getBioFileId());
-					if (Objects.nonNull(data)) {
-						if (Objects.nonNull(extractionFormats) && !extractionFormats.isEmpty()) {
-							byte[] extractedData = getBiometricsForRequestedFormats(uinHash, bio.getBioFileId(), extractionFormats, data);
-							if (Objects.nonNull(extractedData)) {
-								documents.add(new DocumentsDTO(bio.getBiometricFileType(), CryptoUtil.encodeBase64(extractedData)));
-							}
-							
+					if (Objects.nonNull(extractionFormats) && !extractionFormats.isEmpty()) {
+						byte[] extractedData = getBiometricsForRequestedFormats(uinHash, bio.getBioFileId(),
+								extractionFormats, data);
+						if (Objects.nonNull(extractedData)) {
+							documents.add(new DocumentsDTO(bio.getBiometricFileType(),
+									CryptoUtil.encodeBase64(extractedData)));
+						}
+
+					} else {
+						if (StringUtils.equals(bio.getBiometricFileHash(), securityManager.hash(data))) {
+							documents.add(new DocumentsDTO(bio.getBiometricFileType(), CryptoUtil.encodeBase64(data)));
 						} else {
-							if (StringUtils.equals(bio.getBiometricFileHash(), securityManager.hash(data))) {
-								documents.add(
-										new DocumentsDTO(bio.getBiometricFileType(), CryptoUtil.encodeBase64(data)));
-							} else {
-								mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
-										DOCUMENT_HASH_MISMATCH.getErrorMessage());
-								throw new IdRepoAppException(DOCUMENT_HASH_MISMATCH);
-							}
+							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
+									DOCUMENT_HASH_MISMATCH.getErrorMessage());
+							throw new IdRepoAppException(DOCUMENT_HASH_MISMATCH);
 						}
 					}
 				} catch (IdRepoAppException e) {
