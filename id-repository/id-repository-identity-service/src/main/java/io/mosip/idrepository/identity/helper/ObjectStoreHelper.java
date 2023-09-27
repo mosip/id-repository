@@ -109,14 +109,8 @@ public class ObjectStoreHelper {
 
 	private byte[] getObject(String uinHash, boolean isBio, String fileRefId, String refId) throws IdRepoAppException, IOException {
 		String objectName = uinHash + SLASH + (isBio ? BIOMETRICS : DEMOGRAPHICS) + SLASH + fileRefId;
-		try {
 			return securityManager.decrypt(IOUtils.toByteArray(
 					objectStore.getObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName)), refId);
-		}catch(ObjectStoreAdapterException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricFiles",
-					"FILE NOT FOUND IN OBJECT STORE");
-			throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
-		}
-		
+	
 	}
 }
