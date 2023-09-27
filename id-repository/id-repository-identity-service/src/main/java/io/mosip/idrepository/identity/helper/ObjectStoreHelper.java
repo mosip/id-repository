@@ -15,9 +15,7 @@ import org.springframework.stereotype.Component;
 
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
-import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.kernel.core.logger.spi.Logger;
 
 /**
  * @author Manoj SP
