@@ -1,10 +1,8 @@
 package io.mosip.idrepository.identity.helper;
 
-import static io.mosip.commons.khazana.constant.KhazanaErrorCodes.OBJECT_STORE_NOT_ACCESSIBLE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.OBJECT_STORE_ACCOUNT_NAME;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.OBJECT_STORE_ADAPTER_NAME;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.OBJECT_STORE_BUCKET_NAME;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_NOT_FOUND;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -15,13 +13,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-import io.mosip.commons.khazana.exception.ObjectStoreAdapterException;
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
-import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.identity.service.impl.IdRepoProxyServiceImpl;
 import io.mosip.kernel.core.logger.spi.Logger;
 
 /**
@@ -57,12 +52,6 @@ public class ObjectStoreHelper {
 	
 	private ObjectStoreAdapter objectStore;
 	
-	/** The mosip logger. */
-	private static final Logger mosipLogger = IdRepoLogger.getLogger(ObjectStoreHelper.class);
-	
-	/** The Constant ID_REPO_SERVICE_IMPL. */
-	private static final String ID_REPO_SERVICE_IMPL = "IdRepoServiceImpl";
-
 	@Autowired
 	public void setObjectStore(ApplicationContext context) {
 		this.objectStore = context.getBean(objectStoreAdapterName, ObjectStoreAdapter.class);

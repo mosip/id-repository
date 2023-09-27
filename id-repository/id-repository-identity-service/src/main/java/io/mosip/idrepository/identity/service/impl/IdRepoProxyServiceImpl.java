@@ -12,8 +12,8 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_STOR
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.OLD_APPLICATION_ID;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
 import static io.mosip.kernel.biometrics.constant.BiometricType.FACE;
 import static io.mosip.kernel.biometrics.constant.BiometricType.FINGER;
 import static io.mosip.kernel.biometrics.constant.BiometricType.IRIS;
@@ -21,7 +21,6 @@ import static io.mosip.kernel.biometrics.constant.BiometricType.IRIS;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
