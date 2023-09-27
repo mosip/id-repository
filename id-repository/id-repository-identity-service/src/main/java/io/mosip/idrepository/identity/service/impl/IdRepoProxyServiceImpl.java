@@ -563,11 +563,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				try {
 					String uinHash = uinObject.getUinHash().split("_")[1];
 					byte[] data = objectStoreHelper.getBiometricObject(uinHash, bio.getBioFileId());
-					if (Objects.isNull(data)) {
-						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricFiles",
-								"FILE NOT FOUND IN OBJECT STORE");
-						throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
-					}
 					if (Objects.nonNull(extractionFormats) && !extractionFormats.isEmpty()) {
 						byte[] extractedData = getBiometricsForRequestedFormats(uinHash, bio.getBioFileId(),
 								extractionFormats, data);
