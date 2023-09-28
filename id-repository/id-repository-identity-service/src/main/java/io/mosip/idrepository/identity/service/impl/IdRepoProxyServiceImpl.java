@@ -12,8 +12,8 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_STOR
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.OLD_APPLICATION_ID;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
 import static io.mosip.kernel.biometrics.constant.BiometricType.FACE;
 import static io.mosip.kernel.biometrics.constant.BiometricType.FINGER;
 import static io.mosip.kernel.biometrics.constant.BiometricType.IRIS;
@@ -21,7 +21,6 @@ import static io.mosip.kernel.biometrics.constant.BiometricType.IRIS;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +50,7 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.commons.khazana.exception.ObjectStoreAdapterException;
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.EventType;
 import io.mosip.idrepository.core.constant.IDAEventType;
@@ -563,26 +563,23 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				try {
 					String uinHash = uinObject.getUinHash().split("_")[1];
 					byte[] data = objectStoreHelper.getBiometricObject(uinHash, bio.getBioFileId());
-					if (Objects.isNull(data)) {
-						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricFiles",
-								"FILE NOT FOUND IN OBJECT STORE");
-						throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
-					}
-					if (Objects.nonNull(extractionFormats) && !extractionFormats.isEmpty()) {
-						byte[] extractedData = getBiometricsForRequestedFormats(uinHash, bio.getBioFileId(),
-								extractionFormats, data);
-						if (Objects.nonNull(extractedData)) {
-							documents.add(new DocumentsDTO(bio.getBiometricFileType(),
-									CryptoUtil.encodeBase64(extractedData)));
-						}
-
-					} else {
-						if (StringUtils.equals(bio.getBiometricFileHash(), securityManager.hash(data))) {
-							documents.add(new DocumentsDTO(bio.getBiometricFileType(), CryptoUtil.encodeBase64(data)));
+					if (Objects.nonNull(data)) {
+						if (Objects.nonNull(extractionFormats) && !extractionFormats.isEmpty()) {
+							byte[] extractedData = getBiometricsForRequestedFormats(uinHash, bio.getBioFileId(),
+									extractionFormats, data);
+							if (Objects.nonNull(extractedData)) {
+								documents.add(new DocumentsDTO(bio.getBiometricFileType(),
+										CryptoUtil.encodeBase64(extractedData)));
+							}
 						} else {
-							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
-									DOCUMENT_HASH_MISMATCH.getErrorMessage());
-							throw new IdRepoAppException(DOCUMENT_HASH_MISMATCH);
+							if (StringUtils.equals(bio.getBiometricFileHash(), securityManager.hash(data))) {
+								documents.add(
+										new DocumentsDTO(bio.getBiometricFileType(), CryptoUtil.encodeBase64(data)));
+							} else {
+								mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
+										DOCUMENT_HASH_MISMATCH.getErrorMessage());
+								throw new IdRepoAppException(DOCUMENT_HASH_MISMATCH);
+							}
 						}
 					}
 				} catch (IdRepoAppException e) {
@@ -591,6 +588,10 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				} catch (IOException e) {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES, e.getMessage());
 					throw new IdRepoAppUncheckedException(FILE_STORAGE_ACCESS_ERROR, e);
+				} catch (ObjectStoreAdapterException e) {
+					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricFiles",
+							"FILE NOT FOUND IN OBJECT STORE");
+					throw new IdRepoAppUncheckedException(FILE_NOT_FOUND);
 				}
 			}
 		});

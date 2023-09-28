@@ -49,7 +49,7 @@ public class ObjectStoreHelper {
 	private String objectStoreAdapterName;
 	
 	private ObjectStoreAdapter objectStore;
-
+	
 	@Autowired
 	public void setObjectStore(ApplicationContext context) {
 		this.objectStore = context.getBean(objectStoreAdapterName, ObjectStoreAdapter.class);
@@ -96,7 +96,8 @@ public class ObjectStoreHelper {
 
 	private byte[] getObject(String uinHash, boolean isBio, String fileRefId, String refId) throws IdRepoAppException, IOException {
 		String objectName = uinHash + SLASH + (isBio ? BIOMETRICS : DEMOGRAPHICS) + SLASH + fileRefId;
-		return securityManager.decrypt(IOUtils.toByteArray(
-				objectStore.getObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName)), refId);
+			return securityManager.decrypt(IOUtils.toByteArray(
+					objectStore.getObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName)), refId);
+	
 	}
 }
