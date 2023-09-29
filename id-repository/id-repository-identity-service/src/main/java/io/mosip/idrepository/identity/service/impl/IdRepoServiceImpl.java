@@ -697,9 +697,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						Collectors.collectingAndThen(
 						          Collectors.toList(),
 						          list -> {
-						            // Sort the BIR list by creationDate in Descending order to get latest record in the type
-									list.sort(BIR_COMPARATOR_BY_CREATION_DATE_DESC);
-						            // Return the first element of the BIR list
+									if (list.size() > 1) {
+										mosipLogger.warn("More than one record is present for the type - %s", getKeyByTypeAndSubType(list.get(0)));
+										// Sort the BIR list by creationDate in Descending order to get latest record in
+										// the type
+										list.sort(BIR_COMPARATOR_BY_CREATION_DATE_DESC);
+										// Return the first element of the BIR list
+									}
 						            return list.get(0);
 						          }
 						        )
