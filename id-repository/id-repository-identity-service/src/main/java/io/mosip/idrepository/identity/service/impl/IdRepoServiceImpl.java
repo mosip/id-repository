@@ -666,7 +666,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateCbeff",
 								"\n" + ExceptionUtils.getStackTrace(e));
 						throw new IdRepoAppUncheckedException(INVALID_INPUT_PARAMETER.getErrorCode(), String.format(
-								INVALID_INPUT_PARAMETER.getErrorMessage(), DOCUMENTS + " - " + doc.getCategory()));
+								INVALID_INPUT_PARAMETER.getErrorMessage(), DOCUMENTS + " - " + doc.getCategory()), e);
 					}
 				}));
 	}
