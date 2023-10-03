@@ -8,14 +8,15 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.charset.Charset;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -37,7 +38,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -74,8 +74,13 @@ import io.mosip.idrepository.identity.service.impl.DefaultShardResolver;
 import io.mosip.idrepository.identity.service.impl.IdRepoProxyServiceImpl;
 import io.mosip.idrepository.identity.service.impl.IdRepoServiceImpl;
 import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.BDBInfoType;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRInfoType;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.QualityType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleAnySubtypeType;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.http.ResponseWrapper;
 
@@ -1244,6 +1249,216 @@ public class IdRepoServiceTest {
 		IdResponseDTO updateIdentity = proxyService.updateIdentity(request, "1234");
 		assertEquals(ACTIVATED, updateIdentity.getResponse().getStatus());
 	}
+	
+	@Test
+	public void testIdentityUpdateBioDocuments_duplicateBiometrics() throws Exception {
+		Uin uinObj = new Uin();
+		uinObj.setUin("1234");
+		uinObj.setUinRefId("1234");
+		uinObj.setStatusCode(ACTIVATED);
+		uinObj.setUinHash("123_1122334455AABB");
+		RequestDTO req = mapper
+				.readValue(("{\"identity\":{\"individualBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\""
+						+ IdRepoConstants.FILE_NAME_ATTRIBUTE
+						+ "\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"individualBiometrics\",\"value\":\"dGVzdA\"}]}")
+								.getBytes(),
+						RequestDTO.class);
+		req.setRegistrationId("27841457360002620190730095024");
+		request.setRequest(req);
+		UinBiometric biometrics = new UinBiometric();
+		biometrics.setBiometricFileType("individualBiometrics");
+		biometrics.setBiometricFileHash("12058869D451800667C1F43654C9810A39C9DED448A0424254B5C84F38EEBA5C");
+		biometrics.setBioFileId("1234.cbeff");
+		biometrics.setBiometricFileName("name");
+		uinObj.setBiometrics(Collections.singletonList(biometrics));
+		uinObj.setUinData(
+				("{\"status\": \"ACTIVATED\",\"individualBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\""
+						+ IdRepoConstants.FILE_NAME_ATTRIBUTE + "\":\"fileReferenceID\"}}").getBytes());
+		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
+		when(uinRepo.existsByRegId(Mockito.any())).thenReturn(false);
+		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(uinObj);
+		when(uinRepo.save(Mockito.any())).thenReturn(uinObj);
+		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+		when(cbeffUtil.updateXML(Mockito.any(), Mockito.any())).thenReturn("value".getBytes());
+		when(cbeffUtil.createXML(Mockito.any())).thenReturn("dGVzdA".getBytes());
+		when(cbeffUtil.validateXML(Mockito.any())).thenReturn(true);
+		when(connection.getObject(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),Mockito.any()))
+				.thenReturn(IOUtils.toInputStream("dGVzdA", Charset.defaultCharset()));
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("http://localhost/v1/vid/{uin}");
+		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
+		ResponseWrapper<IDAEventsDTO> eventsResponse = new ResponseWrapper<>();
+		IDAEventsDTO IDAEventsDTO = new IDAEventsDTO();
+		IDAEventsDTO.setEvents(Collections.singletonList(new IDAEventDTO()));
+		eventsResponse.setResponse(IDAEventsDTO);
+		when(restHelper.requestSync(Mockito.any())).thenReturn(
+				mapper.readValue("{\"response\":{\"data\":\"1234\"}}".getBytes(), ObjectNode.class),
+				mapper.readValue("{\"response\":{\"data\":\"1234\"}}".getBytes(), ObjectNode.class), eventsResponse);
+		when(objectStoreHelper.biometricObjectExists(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+		when(objectStoreHelper.getBiometricObject(Mockito.anyString(), Mockito.anyString())).thenReturn("biometrics".getBytes());
+		List<BIRType> inputBiometrics = new ArrayList<>();
+		BIRType birType;
+		BDBInfoType bdbInfoType;
+		RegistryIDType regIdType;
+		BIRInfoType birInfoType;
+		
+		birType = new BIRType();
+		birInfoType = new BIRInfoType();
+		birInfoType.setIntegrity(true);
+		birType.setBIRInfo(birInfoType);
+		bdbInfoType = new BDBInfoType();
+		regIdType = new RegistryIDType();
+		regIdType.setOrganization("MOSIP");
+		regIdType.setType("1");
+		bdbInfoType.setFormat(regIdType);
+		bdbInfoType.setType(List.of(SingleType.FINGER));
+		bdbInfoType.setSubtype(List.of(SingleAnySubtypeType.LEFT.name(), SingleAnySubtypeType.INDEX_FINGER.name()));
+		birType.setBDBInfo(bdbInfoType);
+		bdbInfoType.setCreationDate(LocalDateTime.now());
+		inputBiometrics.add(birType);
+		
+		birType = new BIRType();
+		birInfoType = new BIRInfoType();
+		birInfoType.setIntegrity(true);
+		birType.setBIRInfo(birInfoType);
+		birType.setBIRInfo(birInfoType);
+		bdbInfoType = new BDBInfoType();
+		regIdType = new RegistryIDType();
+		regIdType.setOrganization("MOSIP");
+		regIdType.setType("1");
+		bdbInfoType.setFormat(regIdType);
+		bdbInfoType.setType(List.of(SingleType.FINGER));
+		bdbInfoType.setSubtype(List.of(SingleAnySubtypeType.LEFT.name(), SingleAnySubtypeType.THUMB.name()));
+		birType.setBDBInfo(bdbInfoType);
+		bdbInfoType.setCreationDate(LocalDateTime.now());
+		inputBiometrics.add(birType);
+		
+		birType = new BIRType();
+		birInfoType = new BIRInfoType();
+		birInfoType.setIntegrity(true);
+		birType.setBIRInfo(birInfoType);
+		bdbInfoType = new BDBInfoType();
+		regIdType = new RegistryIDType();
+		regIdType.setOrganization("MOSIP");
+		regIdType.setType("1");
+		bdbInfoType.setFormat(regIdType);
+		bdbInfoType.setType(List.of(SingleType.IRIS));
+		bdbInfoType.setSubtype(List.of(SingleAnySubtypeType.LEFT.name()));
+		birType.setBDBInfo(bdbInfoType);
+		bdbInfoType.setCreationDate(LocalDateTime.now());
+		inputBiometrics.add(birType);
+		
+		birType = new BIRType();
+		birInfoType = new BIRInfoType();
+		birInfoType.setIntegrity(true);
+		birType.setBIRInfo(birInfoType);
+		bdbInfoType = new BDBInfoType();
+		regIdType = new RegistryIDType();
+		regIdType.setOrganization("MOSIP");
+		regIdType.setType("1");
+		bdbInfoType.setFormat(regIdType);
+		bdbInfoType.setType(List.of(SingleType.FACE));
+		birType.setBDBInfo(bdbInfoType);
+		bdbInfoType.setCreationDate(LocalDateTime.now());
+		inputBiometrics.add(birType);
+		
+		when(cbeffUtil.getBIRDataFromXML("test".getBytes())).thenReturn(inputBiometrics);
+		List<BIRType> existingBiometrics = new ArrayList<>();
+		
+		birType = new BIRType();
+		birInfoType = new BIRInfoType();
+		birInfoType.setIntegrity(true);
+		birType.setBIRInfo(birInfoType);
+		bdbInfoType = new BDBInfoType();
+		regIdType = new RegistryIDType();
+		regIdType.setOrganization("MOSIP");
+		regIdType.setType("1");
+		bdbInfoType.setFormat(regIdType);
+		bdbInfoType.setType(List.of(SingleType.FINGER));
+		bdbInfoType.setSubtype(List.of(SingleAnySubtypeType.LEFT.name(), SingleAnySubtypeType.INDEX_FINGER.name()));
+		birType.setBDBInfo(bdbInfoType);
+		bdbInfoType.setCreationDate(LocalDateTime.now());
+		existingBiometrics.add(birType);
+		
+		birType = new BIRType();
+		birInfoType = new BIRInfoType();
+		birInfoType.setIntegrity(true);
+		birType.setBIRInfo(birInfoType);
+		bdbInfoType = new BDBInfoType();
+		regIdType = new RegistryIDType();
+		regIdType.setOrganization("MOSIP");
+		regIdType.setType("1");
+		bdbInfoType.setFormat(regIdType);
+		bdbInfoType.setType(List.of(SingleType.FINGER));
+		bdbInfoType.setSubtype(List.of(SingleAnySubtypeType.RIGHT.name(), SingleAnySubtypeType.THUMB.name()));
+		birType.setBDBInfo(bdbInfoType);
+		bdbInfoType.setCreationDate(LocalDateTime.now());
+		existingBiometrics.add(birType);
+		
+		birType = new BIRType();
+		birInfoType = new BIRInfoType();
+		birInfoType.setIntegrity(true);
+		birType.setBIRInfo(birInfoType);
+		bdbInfoType = new BDBInfoType();
+		regIdType = new RegistryIDType();
+		regIdType.setOrganization("MOSIP");
+		regIdType.setType("1");
+		bdbInfoType.setFormat(regIdType);
+		bdbInfoType.setType(List.of(SingleType.IRIS));
+		bdbInfoType.setSubtype(List.of(SingleAnySubtypeType.RIGHT.name()));
+		birType.setBDBInfo(bdbInfoType);
+		bdbInfoType.setCreationDate(LocalDateTime.now());
+		existingBiometrics.add(birType);
+		
+		birType = new BIRType();
+		birInfoType = new BIRInfoType();
+		birInfoType.setIntegrity(true);
+		birType.setBIRInfo(birInfoType);
+		bdbInfoType = new BDBInfoType();
+		regIdType = new RegistryIDType();
+		regIdType.setOrganization("MOSIP");
+		regIdType.setType("1");
+		bdbInfoType.setFormat(regIdType);
+		bdbInfoType.setType(List.of(SingleType.IRIS));
+		bdbInfoType.setSubtype(List.of(SingleAnySubtypeType.RIGHT.name()));
+		birType.setBDBInfo(bdbInfoType);
+		bdbInfoType.setCreationDate(LocalDateTime.now());
+		existingBiometrics.add(birType);
+		
+		birType = new BIRType();
+		birInfoType = new BIRInfoType();
+		birInfoType.setIntegrity(true);
+		birType.setBIRInfo(birInfoType);
+		bdbInfoType = new BDBInfoType();
+		regIdType = new RegistryIDType();
+		regIdType.setOrganization("MOSIP");
+		regIdType.setType("1");
+		bdbInfoType.setFormat(regIdType);
+		bdbInfoType.setType(List.of(SingleType.FACE));
+		birType.setBDBInfo(bdbInfoType);
+		bdbInfoType.setCreationDate(LocalDateTime.now());
+		existingBiometrics.add(birType);
+		
+		birType = new BIRType();
+		birInfoType = new BIRInfoType();
+		birInfoType.setIntegrity(true);
+		birType.setBIRInfo(birInfoType);
+		bdbInfoType = new BDBInfoType();
+		regIdType = new RegistryIDType();
+		regIdType.setOrganization("MOSIP");
+		regIdType.setType("1");
+		bdbInfoType.setFormat(regIdType);
+		bdbInfoType.setType(List.of(SingleType.FACE));
+		birType.setBDBInfo(bdbInfoType);
+		bdbInfoType.setCreationDate(LocalDateTime.now());
+		existingBiometrics.add(birType);
+		
+		when(cbeffUtil.getBIRDataFromXML("biometrics".getBytes())).thenReturn(existingBiometrics);
+		IdResponseDTO updateIdentity = proxyService.updateIdentity(request, "1234");
+		assertEquals(ACTIVATED, updateIdentity.getResponse().getStatus());
+	}
+
 
 	@Test
 	public void testIdentityUpdateNewBioDocument() throws Exception {

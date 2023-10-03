@@ -173,7 +173,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	@Value("${mosip.idrepo.anonymous-profiling-enabled:false}")
 	private boolean isprofilingEnabled;
 
-	private static final Comparator<BIR> BIR_COMPARATOR_BY_CREATION_DATE_DESC = Comparator.comparing((BIR bir) -> bir.getBirInfo().getCreationDate()).reversed();
+	private static final Comparator<BIR> BIR_COMPARATOR_BY_CREATION_DATE_DESC = Comparator.comparing((BIR bir) -> bir.getBdbInfo().getCreationDate()).reversed();
 	
 	@PostConstruct
 	public void init() {
