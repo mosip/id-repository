@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.hibernate.exception.JDBCConnectionException;
@@ -74,6 +75,7 @@ import io.mosip.idrepository.identity.service.impl.DefaultShardResolver;
 import io.mosip.idrepository.identity.service.impl.IdRepoProxyServiceImpl;
 import io.mosip.idrepository.identity.service.impl.IdRepoServiceImpl;
 import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
+import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.BDBInfoType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRInfoType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
@@ -1281,7 +1283,20 @@ public class IdRepoServiceTest {
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 		when(cbeffUtil.updateXML(Mockito.any(), Mockito.any())).thenReturn("value".getBytes());
-		when(cbeffUtil.createXML(Mockito.any())).thenReturn("dGVzdA".getBytes());
+		when(cbeffUtil.createXML(Mockito.any())).thenAnswer(args -> {
+			List<BIR> argument = args.getArgument(0);
+			assertEquals(6, argument.size());
+			Map<String, List<BIR>> result = argument.stream().collect(Collectors.groupingBy(bir -> bir.getBdbInfo().getType().get(0).name() 
+					+ (bir.getBdbInfo().getSubtype().isEmpty() ? "" : "_"+bir.getBdbInfo().getSubtype().get(0))));
+			assertEquals(result.get("FACE").size(), 1);
+			//Check if returning second face as it is recent one.
+			assertEquals(result.get("FACE").get(0).getBdbInfo().getFormat().getType(), "22");
+			
+			assertEquals(result.get("IRIS_RIGHT").size(), 1);
+			//Check if returning first iris right as it is recent one.
+			assertEquals(result.get("IRIS_RIGHT").get(0).getBdbInfo().getFormat().getType(), "111");
+			return "dGVzdA".getBytes();	
+		});
 		when(cbeffUtil.validateXML(Mockito.any())).thenReturn(true);
 		when(connection.getObject(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),Mockito.any()))
 				.thenReturn(IOUtils.toInputStream("dGVzdA", Charset.defaultCharset()));
@@ -1349,20 +1364,6 @@ public class IdRepoServiceTest {
 		bdbInfoType.setCreationDate(LocalDateTime.now());
 		inputBiometrics.add(birType);
 		
-		birType = new BIRType();
-		birInfoType = new BIRInfoType();
-		birInfoType.setIntegrity(true);
-		birType.setBIRInfo(birInfoType);
-		bdbInfoType = new BDBInfoType();
-		regIdType = new RegistryIDType();
-		regIdType.setOrganization("MOSIP");
-		regIdType.setType("1");
-		bdbInfoType.setFormat(regIdType);
-		bdbInfoType.setType(List.of(SingleType.FACE));
-		birType.setBDBInfo(bdbInfoType);
-		bdbInfoType.setCreationDate(LocalDateTime.now());
-		inputBiometrics.add(birType);
-		
 		when(cbeffUtil.getBIRDataFromXML("test".getBytes())).thenReturn(inputBiometrics);
 		List<BIRType> existingBiometrics = new ArrayList<>();
 		
@@ -1403,7 +1404,22 @@ public class IdRepoServiceTest {
 		bdbInfoType = new BDBInfoType();
 		regIdType = new RegistryIDType();
 		regIdType.setOrganization("MOSIP");
-		regIdType.setType("1");
+		regIdType.setType("111");
+		bdbInfoType.setFormat(regIdType);
+		bdbInfoType.setType(List.of(SingleType.IRIS));
+		bdbInfoType.setSubtype(List.of(SingleAnySubtypeType.RIGHT.name()));
+		birType.setBDBInfo(bdbInfoType);
+		bdbInfoType.setCreationDate(LocalDateTime.now().plusMinutes(1));
+		existingBiometrics.add(birType);
+		
+		birType = new BIRType();
+		birInfoType = new BIRInfoType();
+		birInfoType.setIntegrity(true);
+		birType.setBIRInfo(birInfoType);
+		bdbInfoType = new BDBInfoType();
+		regIdType = new RegistryIDType();
+		regIdType.setOrganization("MOSIP");
+		regIdType.setType("222");
 		bdbInfoType.setFormat(regIdType);
 		bdbInfoType.setType(List.of(SingleType.IRIS));
 		bdbInfoType.setSubtype(List.of(SingleAnySubtypeType.RIGHT.name()));
@@ -1418,22 +1434,7 @@ public class IdRepoServiceTest {
 		bdbInfoType = new BDBInfoType();
 		regIdType = new RegistryIDType();
 		regIdType.setOrganization("MOSIP");
-		regIdType.setType("1");
-		bdbInfoType.setFormat(regIdType);
-		bdbInfoType.setType(List.of(SingleType.IRIS));
-		bdbInfoType.setSubtype(List.of(SingleAnySubtypeType.RIGHT.name()));
-		birType.setBDBInfo(bdbInfoType);
-		bdbInfoType.setCreationDate(LocalDateTime.now());
-		existingBiometrics.add(birType);
-		
-		birType = new BIRType();
-		birInfoType = new BIRInfoType();
-		birInfoType.setIntegrity(true);
-		birType.setBIRInfo(birInfoType);
-		bdbInfoType = new BDBInfoType();
-		regIdType = new RegistryIDType();
-		regIdType.setOrganization("MOSIP");
-		regIdType.setType("1");
+		regIdType.setType("11");
 		bdbInfoType.setFormat(regIdType);
 		bdbInfoType.setType(List.of(SingleType.FACE));
 		birType.setBDBInfo(bdbInfoType);
@@ -1447,11 +1448,11 @@ public class IdRepoServiceTest {
 		bdbInfoType = new BDBInfoType();
 		regIdType = new RegistryIDType();
 		regIdType.setOrganization("MOSIP");
-		regIdType.setType("1");
+		regIdType.setType("22");
 		bdbInfoType.setFormat(regIdType);
 		bdbInfoType.setType(List.of(SingleType.FACE));
 		birType.setBDBInfo(bdbInfoType);
-		bdbInfoType.setCreationDate(LocalDateTime.now());
+		bdbInfoType.setCreationDate(LocalDateTime.now().plusMinutes(1));
 		existingBiometrics.add(birType);
 		
 		when(cbeffUtil.getBIRDataFromXML("biometrics".getBytes())).thenReturn(existingBiometrics);
