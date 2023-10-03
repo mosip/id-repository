@@ -693,7 +693,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	
 	private Map<String, BIR> getBIRByType(List<BIR> inputBIRData) {
 		return inputBIRData.stream().collect(Collectors.groupingBy(this::getKeyByTypeAndSubType,
-				Collectors.collectingAndThen(Collectors.toList(), list -> {
+				Collectors.collectingAndThen(Collectors.toCollection(() -> new ArrayList<BIR>()), list -> {
 					if (list.size() > 1) {
 						mosipLogger.warn("More than one record is present for the type - %s",
 								getKeyByTypeAndSubType(list.get(0)));
