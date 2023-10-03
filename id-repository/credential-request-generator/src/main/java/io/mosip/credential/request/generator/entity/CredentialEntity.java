@@ -74,6 +74,9 @@ public class CredentialEntity {
 	/** The deleted date time. */
 	@Column(name = "del_dtimes")
 	private LocalDateTime deletedDateTime;
+	
+	@Column(name = "status_comment")
+	private String statusComment;
 
 	/**
 	 * Gets the request id.
@@ -289,6 +292,14 @@ public class CredentialEntity {
 
 	public void setSignature(String signature) {
 		this.signature = signature;
+	}
+
+	public String getStatusComment() {
+		return statusComment;
+	}
+
+	public void setStatusComment(String statusComment) {
+		this.statusComment = statusComment;
 	}
 
 }
