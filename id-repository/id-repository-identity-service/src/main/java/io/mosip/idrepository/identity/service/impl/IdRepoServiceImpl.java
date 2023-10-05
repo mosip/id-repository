@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -171,6 +172,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	
 	@Value("${mosip.idrepo.anonymous-profiling-enabled:false}")
 	private boolean isprofilingEnabled;
+
+	private static final Comparator<BIR> BIR_COMPARATOR_BY_CREATION_DATE_DESC = Comparator.comparing((BIR bir) -> bir.getBdbInfo().getCreationDate()).reversed();
 	
 	@PostConstruct
 	public void init() {
@@ -663,7 +666,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateCbeff",
 								"\n" + ExceptionUtils.getStackTrace(e));
 						throw new IdRepoAppUncheckedException(INVALID_INPUT_PARAMETER.getErrorCode(), String.format(
-								INVALID_INPUT_PARAMETER.getErrorMessage(), DOCUMENTS + " - " + doc.getCategory()));
+								INVALID_INPUT_PARAMETER.getErrorMessage(), DOCUMENTS + " - " + doc.getCategory()), e);
 					}
 				}));
 	}
@@ -671,14 +674,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	private String updateXML(byte[] inputBioData, byte[] existingBioData,AnonymousProfileDto anonymousProfileDto) throws Exception {
 		List<BIR> existingBIRData = CbeffValidator.convertBIRTypeToBIR(cbeffUtil.getBIRDataFromXML(existingBioData));
 		List<BIR> inputBIRData = CbeffValidator.convertBIRTypeToBIR(cbeffUtil.getBIRDataFromXML(inputBioData));
-		Map<String, BIR> inputBIRDataMap = inputBIRData.stream()
-				.collect(Collectors.toMap(bir -> bir.getBdbInfo().getType().stream().map(bioType -> bioType.value())
-						.collect(Collectors.joining())
-						.concat(bir.getBdbInfo().getSubtype().stream().collect(Collectors.joining())), bir -> bir));
-		Map<String, BIR> existingBIRDataMap = existingBIRData.stream()
-				.collect(Collectors.toMap(bir -> bir.getBdbInfo().getType().stream().map(bioType -> bioType.value())
-						.collect(Collectors.joining())
-						.concat(bir.getBdbInfo().getSubtype().stream().collect(Collectors.joining())), bir -> bir));
+		
+		Map<String, BIR> inputBIRDataMap = getBIRDataMapByType(inputBIRData);
+		Map<String, BIR> existingBIRDataMap = getBIRDataMapByType(existingBIRData);
+		
 		inputBIRDataMap.entrySet().forEach(entry -> {
 			if (existingBIRDataMap.containsKey(entry.getKey())) {
 				existingBIRDataMap.replace(entry.getKey(), entry.getValue());
@@ -690,6 +689,27 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		String encodeUpdateCbeff = CryptoUtil.encodeBase64(updatedCbeff);
 		anonymousProfileDto.setNewCbeff(encodeUpdateCbeff);
 		return encodeUpdateCbeff;
+	}
+	
+	private Map<String, BIR> getBIRDataMapByType(List<BIR> cbeffBIRData) {
+		return cbeffBIRData.stream().collect(Collectors.groupingBy(this::getKeyByTypeAndSubType,
+				Collectors.collectingAndThen(Collectors.toCollection(() -> new ArrayList<BIR>()), list -> {
+					if (list.size() > 1) {
+						mosipLogger.warn("More than one record is present for the type - %s",
+								getKeyByTypeAndSubType(list.get(0)));
+						// Sort the BIR list by creationDate in Descending order to get latest record in
+						// the type
+						list.sort(BIR_COMPARATOR_BY_CREATION_DATE_DESC);
+						// Return the first element of the BIR list
+					}
+					return list.get(0);
+				})));
+	}
+	
+	public String getKeyByTypeAndSubType(BIR bir) {
+		return bir.getBdbInfo().getType().stream().map(bioType -> bioType.value())
+				.collect(Collectors.joining())
+				.concat(bir.getBdbInfo().getSubtype().stream().collect(Collectors.joining()));
 	}
 
 	/**
