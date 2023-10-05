@@ -691,8 +691,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		return encodeUpdateCbeff;
 	}
 	
-	private Map<String, BIR> getBIRDataMapByType(List<BIR> inputBIRData) {
-		return inputBIRData.stream().collect(Collectors.groupingBy(this::getKeyByTypeAndSubType,
+	private Map<String, BIR> getBIRDataMapByType(List<BIR> cbeffBIRData) {
+		return cbeffBIRData.stream().collect(Collectors.groupingBy(this::getKeyByTypeAndSubType,
 				Collectors.collectingAndThen(Collectors.toCollection(() -> new ArrayList<BIR>()), list -> {
 					if (list.size() > 1) {
 						mosipLogger.warn("More than one record is present for the type - %s",
