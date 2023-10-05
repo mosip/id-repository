@@ -675,8 +675,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		List<BIR> existingBIRData = CbeffValidator.convertBIRTypeToBIR(cbeffUtil.getBIRDataFromXML(existingBioData));
 		List<BIR> inputBIRData = CbeffValidator.convertBIRTypeToBIR(cbeffUtil.getBIRDataFromXML(inputBioData));
 		
-		Map<String, BIR> inputBIRDataMap = getBIRByType(inputBIRData);
-		Map<String, BIR> existingBIRDataMap = getBIRByType(existingBIRData);
+		Map<String, BIR> inputBIRDataMap = getBIRDataMapByType(inputBIRData);
+		Map<String, BIR> existingBIRDataMap = getBIRDataMapByType(existingBIRData);
 		
 		inputBIRDataMap.entrySet().forEach(entry -> {
 			if (existingBIRDataMap.containsKey(entry.getKey())) {
@@ -691,7 +691,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		return encodeUpdateCbeff;
 	}
 	
-	private Map<String, BIR> getBIRByType(List<BIR> inputBIRData) {
+	private Map<String, BIR> getBIRDataMapByType(List<BIR> inputBIRData) {
 		return inputBIRData.stream().collect(Collectors.groupingBy(this::getKeyByTypeAndSubType,
 				Collectors.collectingAndThen(Collectors.toCollection(() -> new ArrayList<BIR>()), list -> {
 					if (list.size() > 1) {
