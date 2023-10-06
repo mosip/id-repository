@@ -367,10 +367,10 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			restUtil.postApi(ApiName.KERNELAUDITMANAGER, null, id, desc, MediaType.APPLICATION_JSON, httpEntity,
 					AuditResponseDTO.class);
 		} catch (IdRepoDataValidationException e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), "AuditRequestBuilder", "audit",
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, "audit",
 					"Exception : " + ExceptionUtils.getStackTrace(e));
 		} catch (Exception e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), "AuditRequestBuilder", "audit",
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, "audit",
 					"Exception : " + ExceptionUtils.getStackTrace(e));
 		}
 	}
