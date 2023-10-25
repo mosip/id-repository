@@ -19,4 +19,14 @@ public class RequestDTO extends BaseRequestResponseDTO {
 	
 	@Deprecated(since = "1.1.4")
 	private String biometricReferenceId;
+
+	@Override
+	public String toString() {
+		return "RequestDTO [registrationId=" + registrationId + ", uin=" + uin + ", biometricReferenceId="
+				+ biometricReferenceId + ", getRegistrationId()=" + getRegistrationId() + ", getUin()=" + getUin()
+				+ ", getBiometricReferenceId()=" + getBiometricReferenceId() + ", hashCode()=" + hashCode()
+				+ ", getStatus()=" + getStatus() + ", getIdentity()=" + getIdentity() + ", getDocuments()="
+				+ getDocuments() + ", getVerifiedAttributes()=" + getVerifiedAttributes() + ", toString()="
+				+ super.toString() + ", getClass()=" + getClass() + "]";
+	}
 }
