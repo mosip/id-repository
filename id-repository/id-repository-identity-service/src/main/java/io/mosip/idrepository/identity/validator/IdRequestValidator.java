@@ -385,10 +385,9 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 * @return the schema
 	 */
 	private String getSchema(String schemaVersion) {
-		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "getSchema",
-				"Schema Version......." + schemaVersion);
 		if (Objects.isNull(schemaVersion) || schemaVersion.contentEquals("null")) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "getSchema", "\n" + "schemaVersion is null");
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "getSchema",
+					"\n" + "schemaVersion is null");
 			throw new IdRepoAppUncheckedException(MISSING_INPUT_PARAMETER.getErrorCode(),
 					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(),
 							ROOT_PATH + IdObjectValidatorConstant.PATH_SEPERATOR + "IDSchemaVersion"));

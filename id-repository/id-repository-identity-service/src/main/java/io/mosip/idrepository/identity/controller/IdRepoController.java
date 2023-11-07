@@ -182,8 +182,6 @@ public class IdRepoController {
 		String regId = Optional.ofNullable(request.getRequest()).map(req -> String.valueOf(req.getRegistrationId()))
 				.orElse("null");
 		try {
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY,
-					"Add Identity Request......." + request.getRequest());
 			String uin = getUin(request.getRequest());
 			validator.validateId(request.getId(), CREATE);
 			DataValidationUtil.validate(errors);
