@@ -1,27 +1,24 @@
 package io.mosip.credential.request.generator.util;
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
 
-import javax.net.ssl.SSLContext;
-
+import com.google.gson.Gson;
+import io.mosip.credential.request.generator.constants.ApiName;
+import io.mosip.idrepository.core.dto.Metadata;
+import io.mosip.idrepository.core.dto.SecretKeyRequest;
+import io.mosip.idrepository.core.dto.TokenRequestDTO;
+import io.mosip.idrepository.core.util.EnvUtil;
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.core.util.TokenHandlerUtil;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -34,16 +31,12 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.google.gson.Gson;
-
-import io.mosip.credential.request.generator.constants.ApiName;
-import io.mosip.idrepository.core.dto.Metadata;
-import io.mosip.idrepository.core.dto.SecretKeyRequest;
-import io.mosip.idrepository.core.dto.TokenRequestDTO;
-import io.mosip.idrepository.core.util.EnvUtil;
-import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.core.util.StringUtils;
-import io.mosip.kernel.core.util.TokenHandlerUtil;
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -60,6 +53,14 @@ public class RestUtil {
     private static final String AUTHORIZATION = "Authorization=";
 
 	private static final String CONTENT_TYPE = "Content-Type";
+
+	@Value("${idrepo.default.processor.httpclient.connections.max.per.host:20}")
+	private int maxConnectionPerRoute;
+
+	@Value("${idrepo.default.processor.httpclient.connections.max:100}")
+	private int totalMaxConnection;
+
+	private RestTemplate restTemplate;
 
 	/**
 	 * Post api.
@@ -181,18 +182,17 @@ public class RestUtil {
 	 * @throws NoSuchAlgorithmException the no such algorithm exception
 	 * @throws KeyStoreException        the key store exception
 	 */
-    public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
-        TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
-        SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
-                .loadTrustMaterial(null, acceptingTrustStrategy).build();
-        SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
-        CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
-        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-        requestFactory.setHttpClient(httpClient);
+	public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
+		if (restTemplate != null) {
+			HttpClientBuilder httpClientBuilder = HttpClients.custom().setMaxConnPerRoute(maxConnectionPerRoute)
+					.setMaxConnTotal(totalMaxConnection).disableCookieManagement();
+			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+			requestFactory.setHttpClient(httpClientBuilder.build());
 
-        return new RestTemplate(requestFactory);
-
-    }
+			restTemplate = new RestTemplate(requestFactory);
+		}
+		return restTemplate;
+	}
 
 	/**
 	 * Sets the request header.
