@@ -102,7 +102,9 @@ public class RestRequestBuilder {
 			Object requestBody, Class<?> returnType) throws IdRepoDataValidationException {
 		RestRequestDTO request = new RestRequestDTO();
 		MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
+		// Map<String, String> pathVariables = new HashMap<>();
 		String serviceName = restService.getServiceName();
+System.out.println(serviceName);
 		String uri = getProperty(serviceName, REST_URI);
 		String httpMethod = getProperty(serviceName, REST_HTTP_METHOD);
 		String timeout = getProperty(serviceName, REST_TIMEOUT);
@@ -153,6 +155,7 @@ public class RestRequestBuilder {
 	 */
 	private HttpHeaders constructHttpHeaders(String serviceName) throws IdRepoDataValidationException {
 		try {
+			System.out.println("service name httpheaders....."+ serviceName );
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.valueOf(getProperty(serviceName, REST_HEADERS_MEDIA_TYPE)));
 			return headers;
