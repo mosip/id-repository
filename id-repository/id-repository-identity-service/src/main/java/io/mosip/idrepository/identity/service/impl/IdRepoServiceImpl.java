@@ -196,6 +196,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	@Autowired
 	private IdentityUpdateTrackerRepo identityUpdateTracker;
 	
+
+	@Value("${mosip.idrepo.credential.request.enable-convention-based-id:false}")
+	private boolean isCredentialrequestv2;
+	
 	/**
 	 * Adds the identity to DB.
 	 *
@@ -243,7 +247,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				new UinHistory(uinRefId, DateUtils.getUTCCurrentDateTime(), uinEntity.getUin(), uinEntity.getUinHash(),
 						uinEntity.getUinData(), uinEntity.getUinDataHash(), uinEntity.getRegId(), activeStatus,
 						IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), null, null, false, null));
-		issueCredential(uinEntity.getUin(), uinHashWithSalt, activeStatus, null);
+		issueCredential(uinEntity.getUin(), uinHashWithSalt, activeStatus, null,uinEntity.getRegId());
 		anonymousProfileHelper.buildAndsaveProfile(false);
 		return uinEntity;
 	}
@@ -446,7 +450,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					DateUtils.getUTCCurrentDateTime(), IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), false, null));
 			issueCredential(uinObject.getUin(), uinHashWithSalt, uinObject.getStatusCode(),
-					DateUtils.getUTCCurrentDateTime());
+					DateUtils.getUTCCurrentDateTime(),uinObject.getRegId());
 			anonymousProfileHelper.buildAndsaveProfile(false);
 			return uinObject;
 		} catch (JSONException | InvalidJsonException | IOException e) {
@@ -810,7 +814,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
-	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp) {
+	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp,String requestId) {
 		List<CredentialRequestStatus> credStatusList = credRequestRepo.findByIndividualIdHash(uinHash);
 		if (!credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {
@@ -836,6 +840,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
 			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
 			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
+			if(isCredentialrequestv2 && (requestId != null)) {
+				credStatus.setRequestId(requestId);
+			} 
 			credRequestRepo.save(credStatus);
 		}
 	}
