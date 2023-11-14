@@ -94,7 +94,7 @@ public class CredentialStatusManager {
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), "BLOCKED",
 						true, null,
 						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer,
-						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()));
+						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()),credentialRequestStatus.getRequestId());
 			}
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleDeletedRequests", ExceptionUtils.getStackTrace(e));
@@ -125,7 +125,7 @@ public class CredentialStatusManager {
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), activeStatus,
 						Objects.nonNull(credentialRequestStatus.getUpdatedBy()), null,
 						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer,
-						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()));
+						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()),credentialRequestStatus.getRequestId());
 				deleteDummyPartner(credentialRequestStatus);
 			}
 		} catch (Exception e) {

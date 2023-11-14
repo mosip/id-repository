@@ -39,7 +39,9 @@ public enum RestServicesConstants {
 	
 	RETRIEVE_UIN_BY_VID("mosip.idrepo.retrieve-uin-by-vid"),
 	
-	BIO_EXTRACTOR_SERVICE("mosip.idrepo.bio-extractor-service");
+	BIO_EXTRACTOR_SERVICE("mosip.idrepo.bio-extractor-service"),
+	
+	CREDENTIAL_REQUEST_SERVICE_V2("mosip.idrepo.credential.request.v2");
 
 	/** The service name. */
 	private final String serviceName;
