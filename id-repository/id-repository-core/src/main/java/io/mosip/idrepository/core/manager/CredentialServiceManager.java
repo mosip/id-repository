@@ -117,7 +117,6 @@ public class CredentialServiceManager {
 	@Value("$mosip.idrepo.vid.active-status}")
 	private String vidActiveStatus;
 	
-	
 	/** The token ID generator. */
 	@Autowired
 	private TokenIDGenerator tokenIDGenerator;
@@ -428,11 +427,14 @@ public class CredentialServiceManager {
 		try {
 
 			Map<String, Object> response = Map.of();
-			RestServicesConstants restServicesConstants = requestWrapper.getRequest().getRequestId() != null && !requestWrapper.getRequest().getRequestId().isEmpty()
-					? RestServicesConstants.CREDENTIAL_REQUEST_SERVICE_V2
-					: RestServicesConstants.CREDENTIAL_REQUEST_SERVICE;
-			Map<String, String> pathParam = requestWrapper.getRequest().getRequestId() != null && !requestWrapper.getRequest().getRequestId().isEmpty() ? Map.of(RID, requestWrapper.getRequest().getRequestId())
-					: Map.of();
+			RestServicesConstants restServicesConstants = requestWrapper.getRequest().getRequestId() != null
+					&& !requestWrapper.getRequest().getRequestId().isEmpty()
+							? RestServicesConstants.CREDENTIAL_REQUEST_SERVICE_V2
+							: RestServicesConstants.CREDENTIAL_REQUEST_SERVICE;
+			Map<String, String> pathParam = requestWrapper.getRequest().getRequestId() != null
+					&& !requestWrapper.getRequest().getRequestId().isEmpty()
+							? Map.of(RID, requestWrapper.getRequest().getRequestId())
+							: Map.of();
 			response = restHelper
 					.requestSync(restBuilder.buildRequest(restServicesConstants, pathParam, requestWrapper, Map.class));
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(),
