@@ -6,7 +6,7 @@ import java.util.Map;
 import lombok.Data;
 
 @Data
-public class CredentialIssueRequestDto {
+public class CredentialIssueRequestDto extends CredentialRequestV2DTO  {
 
 
 	
@@ -20,6 +20,6 @@ public class CredentialIssueRequestDto {
 	private String encryptionKey;
     private List<String> sharableAttributes;
     private Map<String,Object> additionalData;
-    private String requestId;
+    
 	
 }
