@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
+import io.mosip.idrepository.core.dto.CredentialRequestV2DTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import org.junit.Before;
 import org.junit.Test;
@@ -191,7 +192,7 @@ public class CredentialStatusManagerTest {
 		request.setId("1");
 		request.setVersion("2.0");
 		request.setRequesttime(LocalDateTime.now());
-		request.setRequest(req);
+		request.setRequest((CredentialRequestV2DTO) req);
 		Map<String, Object> response = new HashMap<String, Object>();
 		response.put("response", "value1");
 		credentialStatusManager.credentialRequestResponseConsumer(request, response);
@@ -207,7 +208,7 @@ public class CredentialStatusManagerTest {
 		additionalData.put("transaction_limit", 3);
 		additionalData.put("expiry_timestamp", LocalDateTime.now());
 		req.setAdditionalData(additionalData);
-		request.setRequest(req);
+		request.setRequest((CredentialRequestV2DTO) req);
 		credentialStatusManagerSpy.credentialRequestResponseConsumer(request, response);
 
 		CredentialRequestStatus credentialRequestStatus = new CredentialRequestStatus();
@@ -217,7 +218,7 @@ public class CredentialStatusManagerTest {
 
 		additionalData.remove("transaction_limit", 3);
 		req.setAdditionalData(additionalData);
-		request.setRequest(req);
+		request.setRequest((CredentialRequestV2DTO) req);
 		credentialStatusManagerSpy.credentialRequestResponseConsumer(request, response);
 	}
 

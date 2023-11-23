@@ -32,6 +32,7 @@ import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
+import io.mosip.idrepository.core.dto.CredentialRequestV2DTO;
 import io.mosip.idrepository.core.dto.CredentialStatusUpdateEvent;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.dto.VidInfoDTO;
@@ -405,7 +406,7 @@ public class CredentialServiceManager {
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
 		eventRequestsList.forEach(reqDto -> {
 			CredentialIssueRequestWrapperDto requestWrapper = new CredentialIssueRequestWrapperDto();
-			requestWrapper.setRequest(reqDto);
+			requestWrapper.setRequest((CredentialRequestV2DTO) reqDto);
 			requestWrapper.setRequesttime(DateUtils.getUTCCurrentDateTime());
 			String eventTypeDisplayName = isUpdate ? "Update ID" : "Create ID";
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
@@ -427,13 +428,13 @@ public class CredentialServiceManager {
 		try {
 
 			Map<String, Object> response = Map.of();
-			RestServicesConstants restServicesConstants = requestWrapper.getRequest().getRequestId() != null
-					&& !requestWrapper.getRequest().getRequestId().isEmpty()
+			RestServicesConstants restServicesConstants = ((CredentialRequestV2DTO) requestWrapper.getRequest()).getRequestId() != null
+					&& !((CredentialRequestV2DTO) requestWrapper.getRequest()).getRequestId().isEmpty()
 							? RestServicesConstants.CREDENTIAL_REQUEST_SERVICE_V2
 							: RestServicesConstants.CREDENTIAL_REQUEST_SERVICE;
-			Map<String, String> pathParam = requestWrapper.getRequest().getRequestId() != null
-					&& !requestWrapper.getRequest().getRequestId().isEmpty()
-							? Map.of(RID, requestWrapper.getRequest().getRequestId())
+			Map<String, String> pathParam = ((CredentialRequestV2DTO) requestWrapper.getRequest()).getRequestId() != null
+					&& !((CredentialRequestV2DTO) requestWrapper.getRequest()).getRequestId().isEmpty()
+							? Map.of(RID, ((CredentialRequestV2DTO) requestWrapper.getRequest()).getRequestId())
 							: Map.of();
 			response = restHelper
 					.requestSync(restBuilder.buildRequest(restServicesConstants, pathParam, requestWrapper, Map.class));
@@ -482,7 +483,7 @@ public class CredentialServiceManager {
 		data.put(IdRepoConstants.TRANSACTION_LIMIT, transactionLimit);
 		data.put(IdRepoConstants.TOKEN, token);
 
-		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
+		CredentialRequestV2DTO credentialIssueRequestDto = new CredentialRequestV2DTO();
 		credentialIssueRequestDto.setId(id);
 		credentialIssueRequestDto.setRequestId(requetId);
 		credentialIssueRequestDto.setCredentialType(credentialType);

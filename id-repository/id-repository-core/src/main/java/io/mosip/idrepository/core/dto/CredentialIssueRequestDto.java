@@ -6,7 +6,7 @@ import java.util.Map;
 import lombok.Data;
 
 @Data
-public class CredentialIssueRequestDto extends CredentialRequestV2DTO  {
+public class CredentialIssueRequestDto   {
 
 
 	
