@@ -11,5 +11,5 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class CredentialIssueRequestWrapperDto extends RequestWrapper<CredentialIssueRequestDto> {
+public class CredentialIssueRequestWrapperDto extends RequestWrapper<CredentialRequestV2DTO> {
 }
