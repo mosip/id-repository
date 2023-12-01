@@ -91,6 +91,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UPDATE_COUNT_LIMIT_EXCEEDED;
 
 /**
  * The Class IdRepoServiceImpl - Service implementation for Identity service.
@@ -116,6 +117,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	/** The Constant ADD_IDENTITY. */
 	private static final String ADD_IDENTITY = "addIdentity";
+	private static final String COMMA = ",";
 
 	/** The mosip logger. */
 	Logger mosipLogger = IdRepoLogger.getLogger(IdRepoServiceImpl.class);
@@ -510,14 +512,26 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				.encodeToURLSafeBase64(mapper.writeValueAsString(updateCountTrackerMap).getBytes()).getBytes()));
 	}
 
-	private void updateCount(Map<String, Integer> updateCountTrackerMap, Set<String> attributeSet) {
-		for(String attribute: attributeSet) {
-			if (IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap().containsKey(attribute)) {
-				updateCountTrackerMap.compute(attribute,
-						(k, v) -> (Objects.nonNull(v) ? v + 1 : 1) < IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(k)
-								? (Objects.nonNull(v) ? v + 1 : 1)
-								: IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(k));
-			}
+	private void updateCount(Map<String, Integer> updateCountTrackerMap, Set<String> attributeSet) throws IdRepoAppException {
+		List<String> attributesHavingLimitExceeded = new ArrayList<>();
+		attributeSet.forEach( attribute -> {
+					if (IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap().containsKey(attribute)) {
+							if (updateCountTrackerMap.get(attribute)!=null &&
+							(IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(attribute) -
+									updateCountTrackerMap.get(attribute)) <= 0) {
+								attributesHavingLimitExceeded.add(attribute);
+							}
+						updateCountTrackerMap.compute(attribute,
+								(k, v) -> (Objects.nonNull(v) ? v + 1 : 1) < IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(k)
+										? (Objects.nonNull(v) ? v + 1 : 1)
+										: IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(k));
+					}
+				}
+		);
+		if(!attributesHavingLimitExceeded.isEmpty()){
+			throw new IdRepoAppException(UPDATE_COUNT_LIMIT_EXCEEDED.getErrorCode(),
+					String.format(UPDATE_COUNT_LIMIT_EXCEEDED.getErrorMessage(),
+							String.join(COMMA, attributesHavingLimitExceeded)));
 		}
 	}
 
