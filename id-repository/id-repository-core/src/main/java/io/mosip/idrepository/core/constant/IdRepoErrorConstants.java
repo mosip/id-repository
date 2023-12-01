@@ -51,6 +51,9 @@ public enum IdRepoErrorConstants {
 	/** The record exists. */
 	RECORD_EXISTS("IDR-IDC-012", "Record already exists in DB"),
 
+	/** The update count limit for attributes exceeded. */
+	UPDATE_COUNT_LIMIT_EXCEEDED("IDR-IDC-013", "Update count limit for the attributes exceeded:- %s"),
+
 	// Identity Service
 	
 	/** The identity mismatch. */
