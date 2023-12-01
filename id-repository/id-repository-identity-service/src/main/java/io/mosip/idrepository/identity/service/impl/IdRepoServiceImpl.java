@@ -517,8 +517,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		attributeSet.forEach( attribute -> {
 					if (IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap().containsKey(attribute)) {
 							if (updateCountTrackerMap.get(attribute)!=null &&
-							IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(attribute) -
-									updateCountTrackerMap.get(attribute) <= 0) {
+							(IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(attribute) -
+									updateCountTrackerMap.get(attribute)) <= 0) {
 								attributesHavingLimitExceeded.add(attribute);
 							}
 						updateCountTrackerMap.compute(attribute,
