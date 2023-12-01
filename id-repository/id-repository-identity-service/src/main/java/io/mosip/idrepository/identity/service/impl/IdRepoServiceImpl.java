@@ -79,7 +79,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -485,21 +485,22 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			JSONCompareResult comparisonResult) throws JSONException, IOException, IdRepoAppException {
 		Entry<String, Map<String, Integer>> updateCountTracker = getUpdateCountTracker(uinHash, dbData);
 		Map<String, Integer> updateCountTrackerMap = updateCountTracker.getValue();
-		Consumer<String> incrementUpdateCountForAttribute = attribute -> updateCount(updateCountTrackerMap, attribute);
+		Set<String> attribute = new HashSet<>();
+
 		if (comparisonResult.isMissingOnField()) {
-			updateMissingFields(dbData, comparisonResult, incrementUpdateCountForAttribute);
+			updateMissingFields(dbData, comparisonResult, attribute);
 		}
 
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
 		if (comparisonResult.isFailureOnField()) {
-			updateFailingFields(inputData, dbData, comparisonResult, incrementUpdateCountForAttribute);
+			updateFailingFields(inputData, dbData, comparisonResult, attribute);
 		}
 
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
 		if (!comparisonResult.getMessage().isEmpty()) {
-			updateMissingValues(inputData, dbData, comparisonResult, incrementUpdateCountForAttribute);
+			updateMissingValues(inputData, dbData, comparisonResult, attribute);
 		}
-
+		updateCount(updateCountTrackerMap, attribute);
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
 		if (comparisonResult.failed()) {
 			// Code should never reach here
@@ -509,12 +510,14 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				.encodeToURLSafeBase64(mapper.writeValueAsString(updateCountTrackerMap).getBytes()).getBytes()));
 	}
 
-	private void updateCount(Map<String, Integer> updateCountTrackerMap, String attribute) {
-		if (IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap().containsKey(attribute)) {
-			updateCountTrackerMap.compute(attribute,
-					(k, v) -> (Objects.nonNull(v) ? v+1 : 1) < IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(k)
-							? (Objects.nonNull(v) ? v+1 : 1)
-							: IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(k));
+	private void updateCount(Map<String, Integer> updateCountTrackerMap, Set<String> attributeSet) {
+		for(String attribute: attributeSet) {
+			if (IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap().containsKey(attribute)) {
+				updateCountTrackerMap.compute(attribute,
+						(k, v) -> (Objects.nonNull(v) ? v + 1 : 1) < IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(k)
+								? (Objects.nonNull(v) ? v + 1 : 1)
+								: IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(k));
+			}
 		}
 	}
 
@@ -536,12 +539,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 *
 	 * @param dbData           the db data
 	 * @param comparisonResult the comparison result
-	 * @param isUpdateAllowedAsPerPolicy 
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void updateMissingFields(DocumentContext dbData, JSONCompareResult comparisonResult,
-			Consumer<String> incrementUpdateCountForAttribute) {
+									 Set<String> attribute) {
 		for (FieldComparisonFailure failure : comparisonResult.getFieldMissing()) {
 			if (StringUtils.contains(failure.getField(), OPEN_SQUARE_BRACE)) {
 				String path = StringUtils.substringBefore(failure.getField(), OPEN_SQUARE_BRACE);
@@ -552,7 +554,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					key = path;
 					path = ROOT;
 				}
-				incrementUpdateCountForAttribute.accept(key);
+				attribute.add(key);
 				List value = dbData.read(path + DOT + key, List.class);
 				value.addAll(Collections
 						.singletonList(convertToObject(failure.getExpected().toString().getBytes(), Map.class)));
@@ -564,7 +566,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					path = ROOT;
 				}
 				String key = StringUtils.substringAfterLast(failure.getField(), DOT);
-				incrementUpdateCountForAttribute.accept(key);
+				attribute.add(key);
 				dbData.put(path, (String) failure.getExpected(), key);
 			}
 		}
@@ -576,12 +578,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @param inputData        the input data
 	 * @param dbData           the db data
 	 * @param comparisonResult the comparison result
-	 * @param isUpdateAllowedAsPerPolicy 
-	 * @return 
+	 * @return
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	private void updateFailingFields(DocumentContext inputData, DocumentContext dbData,
-			JSONCompareResult comparisonResult, Consumer<String> incrementUpdateCountForAttribute) {
+									 JSONCompareResult comparisonResult, Set<String> attribute) {
 		for (FieldComparisonFailure failure : comparisonResult.getFieldFailures()) {
 
 			String path = StringUtils.substringBeforeLast(failure.getField(), DOT);
@@ -596,7 +597,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				key = failure.getField();
 				path = ROOT;
 			}
-			incrementUpdateCountForAttribute.accept(StringUtils.substringBefore(failure.getField(), OPEN_SQUARE_BRACE));
+			attribute.add(StringUtils.substringBefore(failure.getField(), OPEN_SQUARE_BRACE));
 			if (failure.getExpected() instanceof JSONArray) {
 				dbData.put(path, key, convertToObject(failure.getExpected().toString().getBytes(), List.class));
 				inputData.put(path, key, convertToObject(failure.getExpected().toString().getBytes(), List.class));
@@ -621,12 +622,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @param inputData        the input data
 	 * @param dbData           the db data
 	 * @param comparisonResult the comparison result
-	 * @param incrementUpdateCountForAttribute 
-	 * @return 
+	 * @return
 	 */
 	@SuppressWarnings("unchecked")
 	private void updateMissingValues(DocumentContext inputData, DocumentContext dbData,
-			JSONCompareResult comparisonResult, Consumer<String> incrementUpdateCountForAttribute) {
+									 JSONCompareResult comparisonResult, Set<String> attribute) {
 		String path = StringUtils.substringBefore(comparisonResult.getMessage(), OPEN_SQUARE_BRACE);
 		String key = StringUtils.substringAfterLast(path, DOT);
 		path = StringUtils.substringBeforeLast(path, DOT);
@@ -635,7 +635,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			key = path;
 			path = ROOT;
 		}
-		incrementUpdateCountForAttribute.accept(key);
+		attribute.add(key);
 		JsonPath jsonPath = JsonPath.compile(path + DOT + key);
 		List<Map<String, String>> dbDataList = dbData.read(path + DOT + key, List.class);
 		List<Map<String, String>> inputDataList = inputData.read(path + DOT + key, List.class);
@@ -646,14 +646,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		dbDataList.stream()
 				.filter(map -> map.containsKey(LANGUAGE)
 						&& inputDataList.stream().filter(inputDataMap -> inputDataMap.containsKey(LANGUAGE)).allMatch(
-								inputDataMap -> !StringUtils.equalsIgnoreCase(inputDataMap.get(LANGUAGE), map.get(LANGUAGE))))
+						inputDataMap -> !StringUtils.equalsIgnoreCase(inputDataMap.get(LANGUAGE), map.get(LANGUAGE))))
 				.forEach(value -> inputData.add(jsonPath, value));
 	}
 
 	/**
 	 * Update documents.
 	 *
-	 * @param uinHash    the uin hash
 	 * @param uinObject  the uin object
 	 * @param requestDTO the request DTO
 	 * @throws IdRepoAppException the id repo app exception
@@ -763,8 +762,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	/**
 	 * This function is used to get the maximum allowed update count of an attribute
 	 * for the given individual id
-	 * 
-	 * @param individualId  The UIN of the individual
+	 *
 	 * @param idType        The type of the ID. For example, UIN, RID, VID, etc.
 	 * @param attributeList List of attributes for which the update count is to be
 	 *                      retrieved.
