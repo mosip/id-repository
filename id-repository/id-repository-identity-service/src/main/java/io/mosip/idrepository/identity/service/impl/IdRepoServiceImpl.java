@@ -513,26 +513,36 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	}
 
 	private void updateCount(Map<String, Integer> updateCountTrackerMap, Set<String> attributeSet) throws IdRepoAppException {
+		mosipLogger.debug("Entering updateCount");
 		List<String> attributesHavingLimitExceeded = new ArrayList<>();
 		attributeSet.forEach( attribute -> {
+			mosipLogger.debug("Processing attribute: {}", attribute);
 					if (IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap().containsKey(attribute)) {
-							if (updateCountTrackerMap.get(attribute)!=null &&
-							(IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(attribute) -
-									updateCountTrackerMap.get(attribute)) <= 0) {
+						Integer currentUpdateCount = updateCountTrackerMap.get(attribute);
+						mosipLogger.debug("Current Update Count for {}: {}", attribute, currentUpdateCount);
+						if (currentUpdateCount != null) {
+							int maxUpdateCountLimit = IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(attribute);
+							mosipLogger.debug("Max Update Count Limit for {}: {}", attribute, maxUpdateCountLimit);
+							if (maxUpdateCountLimit - currentUpdateCount <= 0) {
 								attributesHavingLimitExceeded.add(attribute);
+								mosipLogger.debug("Limit exceeded for {}: {}", attribute, currentUpdateCount);
 							}
+						}
 						updateCountTrackerMap.compute(attribute,
 								(k, v) -> (Objects.nonNull(v) ? v + 1 : 1) < IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(k)
 										? (Objects.nonNull(v) ? v + 1 : 1)
 										: IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(k));
+						mosipLogger.debug("Updated count for {}: {}", attribute, updateCountTrackerMap.get(attribute));
 					}
-				}
-		);
-		if(!attributesHavingLimitExceeded.isEmpty()){
-			throw new IdRepoAppException(UPDATE_COUNT_LIMIT_EXCEEDED.getErrorCode(),
-					String.format(UPDATE_COUNT_LIMIT_EXCEEDED.getErrorMessage(),
-							String.join(COMMA, attributesHavingLimitExceeded)));
 		}
+		);
+		if (!attributesHavingLimitExceeded.isEmpty()) {
+			String exceededAttributes = String.join(COMMA, attributesHavingLimitExceeded);
+			mosipLogger.debug("Limit exceeded for attributes: {}", exceededAttributes);
+			throw new IdRepoAppException(UPDATE_COUNT_LIMIT_EXCEEDED.getErrorCode(),
+					String.format(UPDATE_COUNT_LIMIT_EXCEEDED.getErrorMessage(), exceededAttributes));
+		}
+		mosipLogger.debug("Exiting updateCount");
 	}
 
 	private Entry<String, Map<String, Integer>> getUpdateCountTracker(String uinHash, DocumentContext dbData)
