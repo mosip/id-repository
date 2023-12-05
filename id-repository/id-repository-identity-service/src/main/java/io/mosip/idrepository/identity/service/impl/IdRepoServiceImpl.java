@@ -29,6 +29,7 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.IdRepoService;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.EnvUtil;
+import io.mosip.idrepository.identity.dto.UpdateCountDto;
 import io.mosip.idrepository.identity.entity.IdentityUpdateTracker;
 import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.entity.UinBiometric;
@@ -820,15 +821,30 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 												- entry.getValue())))
 						.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 			} else {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
-						"getMaxAllowedUpdateCountForIndividualId", "NO_RECORD_FOUND");
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+				return getRemainingUpdateCountFromConfig(attributeList);
 			}
 		} catch (IOException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
 					"getMaxAllowedUpdateCountForIndividualId", ExceptionUtils.getStackTrace(e));
 			throw new IdRepoAppException(UNKNOWN_ERROR);
 		}
+	}
+
+	private Map<String, Integer> getRemainingUpdateCountFromConfig(List<String> attributeList) {
+		if(attributeList == null || attributeList.isEmpty()){
+			return IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap();
+		} else {
+			Map<String, Integer> updateCountMapFromPolicy = IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap();
+			return attributeList.stream()
+					.filter(updateCountMapFromPolicy::containsKey)
+					.collect(Collectors.toMap(attribute -> attribute, updateCountMapFromPolicy::get));
+		}
+	}
+	private void addAttributeInUpdateCountDtoList(String key, Map<String, Integer> attributeUpdateCountLimit, List<UpdateCountDto> updateCountDtoList){
+		UpdateCountDto updateCountDto= new UpdateCountDto();
+		updateCountDto.setAttributeName(key);
+		updateCountDto.setNoOfUpdatesLeft((Integer) attributeUpdateCountLimit.get(key));
+		updateCountDtoList.add(updateCountDto);
 	}
 
 	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp) {
