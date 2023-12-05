@@ -1,47 +1,5 @@
 package io.mosip.idrepository.identity.service.impl;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.CBEFF_FORMAT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_FORMAT_ATTRIBUTE;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_NAME_ATTRIBUTE;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
-
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import javax.annotation.Resource;
-
-import org.apache.commons.lang3.RegExUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.skyscreamer.jsonassert.FieldComparisonFailure;
-import org.skyscreamer.jsonassert.JSONCompare;
-import org.skyscreamer.jsonassert.JSONCompareMode;
-import org.skyscreamer.jsonassert.JSONCompareResult;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -55,7 +13,6 @@ import com.jayway.jsonpath.InvalidJsonException;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
-
 import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
@@ -94,6 +51,47 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.UUIDUtils;
+import org.apache.commons.lang3.RegExUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.skyscreamer.jsonassert.FieldComparisonFailure;
+import org.skyscreamer.jsonassert.JSONCompare;
+import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.skyscreamer.jsonassert.JSONCompareResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Resource;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static io.mosip.idrepository.core.constant.IdRepoConstants.CBEFF_FORMAT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_FORMAT_ATTRIBUTE;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_NAME_ATTRIBUTE;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UPDATE_COUNT_LIMIT_EXCEEDED;
 
 /**
  * The Class IdRepoServiceImpl - Service implementation for Identity service.
@@ -119,6 +117,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	/** The Constant ADD_IDENTITY. */
 	private static final String ADD_IDENTITY = "addIdentity";
+	private static final String COMMA = ",";
 
 	/** The mosip logger. */
 	Logger mosipLogger = IdRepoLogger.getLogger(IdRepoServiceImpl.class);
@@ -419,7 +418,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						dbData.jsonString(), JSONCompareMode.LENIENT);
 
 				if (comparisonResult.failed()) {
-					updateJsonObject(uinHash, inputData, dbData, comparisonResult);
+					updateJsonObject(uinHash, inputData, dbData, comparisonResult, true);
 				}
 				uinObject.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
 				uinObject.setUinDataHash(securityManager.hash(uinObject.getUinData()));
@@ -485,40 +484,67 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	protected void updateJsonObject(String uinHash, DocumentContext inputData, DocumentContext dbData,
-			JSONCompareResult comparisonResult) throws JSONException, IOException, IdRepoAppException {
+			JSONCompareResult comparisonResult, boolean canPersistUpdateCount) throws JSONException, IOException, IdRepoAppException {
 		Entry<String, Map<String, Integer>> updateCountTracker = getUpdateCountTracker(uinHash, dbData);
 		Map<String, Integer> updateCountTrackerMap = updateCountTracker.getValue();
-		Consumer<String> incrementUpdateCountForAttribute = attribute -> updateCount(updateCountTrackerMap, attribute);
+		Set<String> attribute = new HashSet<>();
+
 		if (comparisonResult.isMissingOnField()) {
-			updateMissingFields(dbData, comparisonResult, incrementUpdateCountForAttribute);
+			updateMissingFields(dbData, comparisonResult, attribute);
 		}
 
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
 		if (comparisonResult.isFailureOnField()) {
-			updateFailingFields(inputData, dbData, comparisonResult, incrementUpdateCountForAttribute);
+			updateFailingFields(inputData, dbData, comparisonResult, attribute);
 		}
 
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
 		if (!comparisonResult.getMessage().isEmpty()) {
-			updateMissingValues(inputData, dbData, comparisonResult, incrementUpdateCountForAttribute);
+			updateMissingValues(inputData, dbData, comparisonResult, attribute);
 		}
-
+		if(canPersistUpdateCount) {
+			updateCount(updateCountTrackerMap, attribute);
+		}
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
 		if (comparisonResult.failed()) {
 			// Code should never reach here
-			updateJsonObject(uinHash, inputData, dbData, comparisonResult);
+			updateJsonObject(uinHash, inputData, dbData, comparisonResult, true);
 		}
 		identityUpdateTracker.save(new IdentityUpdateTracker(updateCountTracker.getKey(), CryptoUtil
 				.encodeToURLSafeBase64(mapper.writeValueAsString(updateCountTrackerMap).getBytes()).getBytes()));
 	}
 
-	private void updateCount(Map<String, Integer> updateCountTrackerMap, String attribute) {
-		if (IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap().containsKey(attribute)) {
-			updateCountTrackerMap.compute(attribute,
-					(k, v) -> (Objects.nonNull(v) ? ++v : 1) < IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(k)
-							? (Objects.nonNull(v) ? ++v : 1)
-							: IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(k));
+	private void updateCount(Map<String, Integer> updateCountTrackerMap, Set<String> attributeSet) throws IdRepoAppException {
+		mosipLogger.debug("Entering updateCount");
+		List<String> attributesHavingLimitExceeded = new ArrayList<>();
+		attributeSet.forEach( attribute -> {
+			mosipLogger.debug("Processing attribute: {}", attribute);
+					if (IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap().containsKey(attribute)) {
+						Integer currentUpdateCount = updateCountTrackerMap.get(attribute);
+						mosipLogger.debug("Current Update Count for {}: {}", attribute, currentUpdateCount);
+						if (currentUpdateCount != null) {
+							int maxUpdateCountLimit = IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(attribute);
+							mosipLogger.debug("Max Update Count Limit for {}: {}", attribute, maxUpdateCountLimit);
+							if (maxUpdateCountLimit - currentUpdateCount <= 0) {
+								attributesHavingLimitExceeded.add(attribute);
+								mosipLogger.debug("Limit exceeded for {}: {}", attribute, currentUpdateCount);
+							}
+						}
+						updateCountTrackerMap.compute(attribute,
+								(k, v) -> (Objects.nonNull(v) ? v + 1 : 1) < IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(k)
+										? (Objects.nonNull(v) ? v + 1 : 1)
+										: IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(k));
+						mosipLogger.debug("Updated count for {}: {}", attribute, updateCountTrackerMap.get(attribute));
+					}
 		}
+		);
+		if (!attributesHavingLimitExceeded.isEmpty()) {
+			String exceededAttributes = String.join(COMMA, attributesHavingLimitExceeded);
+			mosipLogger.debug("Limit exceeded for attributes: {}", exceededAttributes);
+			throw new IdRepoAppException(UPDATE_COUNT_LIMIT_EXCEEDED.getErrorCode(),
+					String.format(UPDATE_COUNT_LIMIT_EXCEEDED.getErrorMessage(), exceededAttributes));
+		}
+		mosipLogger.debug("Exiting updateCount");
 	}
 
 	private Entry<String, Map<String, Integer>> getUpdateCountTracker(String uinHash, DocumentContext dbData)
@@ -539,12 +565,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 *
 	 * @param dbData           the db data
 	 * @param comparisonResult the comparison result
-	 * @param isUpdateAllowedAsPerPolicy 
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void updateMissingFields(DocumentContext dbData, JSONCompareResult comparisonResult,
-			Consumer<String> incrementUpdateCountForAttribute) {
+									 Set<String> attribute) {
 		for (FieldComparisonFailure failure : comparisonResult.getFieldMissing()) {
 			if (StringUtils.contains(failure.getField(), OPEN_SQUARE_BRACE)) {
 				String path = StringUtils.substringBefore(failure.getField(), OPEN_SQUARE_BRACE);
@@ -555,7 +580,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					key = path;
 					path = ROOT;
 				}
-				incrementUpdateCountForAttribute.accept(key);
+				attribute.add(key);
 				List value = dbData.read(path + DOT + key, List.class);
 				value.addAll(Collections
 						.singletonList(convertToObject(failure.getExpected().toString().getBytes(), Map.class)));
@@ -567,7 +592,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					path = ROOT;
 				}
 				String key = StringUtils.substringAfterLast(failure.getField(), DOT);
-				incrementUpdateCountForAttribute.accept(key);
+				attribute.add(key);
 				dbData.put(path, (String) failure.getExpected(), key);
 			}
 		}
@@ -579,12 +604,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @param inputData        the input data
 	 * @param dbData           the db data
 	 * @param comparisonResult the comparison result
-	 * @param isUpdateAllowedAsPerPolicy 
-	 * @return 
+	 * @return
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	private void updateFailingFields(DocumentContext inputData, DocumentContext dbData,
-			JSONCompareResult comparisonResult, Consumer<String> incrementUpdateCountForAttribute) {
+									 JSONCompareResult comparisonResult, Set<String> attribute) {
 		for (FieldComparisonFailure failure : comparisonResult.getFieldFailures()) {
 
 			String path = StringUtils.substringBeforeLast(failure.getField(), DOT);
@@ -599,7 +623,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				key = failure.getField();
 				path = ROOT;
 			}
-			incrementUpdateCountForAttribute.accept(StringUtils.substringBefore(failure.getField(), OPEN_SQUARE_BRACE));
+			attribute.add(StringUtils.substringBefore(failure.getField(), OPEN_SQUARE_BRACE));
 			if (failure.getExpected() instanceof JSONArray) {
 				dbData.put(path, key, convertToObject(failure.getExpected().toString().getBytes(), List.class));
 				inputData.put(path, key, convertToObject(failure.getExpected().toString().getBytes(), List.class));
@@ -624,12 +648,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @param inputData        the input data
 	 * @param dbData           the db data
 	 * @param comparisonResult the comparison result
-	 * @param incrementUpdateCountForAttribute 
-	 * @return 
+	 * @return
 	 */
 	@SuppressWarnings("unchecked")
 	private void updateMissingValues(DocumentContext inputData, DocumentContext dbData,
-			JSONCompareResult comparisonResult, Consumer<String> incrementUpdateCountForAttribute) {
+									 JSONCompareResult comparisonResult, Set<String> attribute) {
 		String path = StringUtils.substringBefore(comparisonResult.getMessage(), OPEN_SQUARE_BRACE);
 		String key = StringUtils.substringAfterLast(path, DOT);
 		path = StringUtils.substringBeforeLast(path, DOT);
@@ -638,7 +661,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			key = path;
 			path = ROOT;
 		}
-		incrementUpdateCountForAttribute.accept(key);
+		attribute.add(key);
 		JsonPath jsonPath = JsonPath.compile(path + DOT + key);
 		List<Map<String, String>> dbDataList = dbData.read(path + DOT + key, List.class);
 		List<Map<String, String>> inputDataList = inputData.read(path + DOT + key, List.class);
@@ -649,14 +672,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		dbDataList.stream()
 				.filter(map -> map.containsKey(LANGUAGE)
 						&& inputDataList.stream().filter(inputDataMap -> inputDataMap.containsKey(LANGUAGE)).allMatch(
-								inputDataMap -> !StringUtils.equalsIgnoreCase(inputDataMap.get(LANGUAGE), map.get(LANGUAGE))))
+						inputDataMap -> !StringUtils.equalsIgnoreCase(inputDataMap.get(LANGUAGE), map.get(LANGUAGE))))
 				.forEach(value -> inputData.add(jsonPath, value));
 	}
 
 	/**
 	 * Update documents.
 	 *
-	 * @param uinHash    the uin hash
 	 * @param uinObject  the uin object
 	 * @param requestDTO the request DTO
 	 * @throws IdRepoAppException the id repo app exception
@@ -772,8 +794,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	/**
 	 * This function is used to get the maximum allowed update count of an attribute
 	 * for the given individual id
-	 * 
-	 * @param individualId  The UIN of the individual
+	 *
 	 * @param idType        The type of the ID. For example, UIN, RID, VID, etc.
 	 * @param attributeList List of attributes for which the update count is to be
 	 *                      retrieved.
