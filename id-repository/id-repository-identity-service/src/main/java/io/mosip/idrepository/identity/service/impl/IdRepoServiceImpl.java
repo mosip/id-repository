@@ -484,7 +484,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	protected void updateJsonObject(String uinHash, DocumentContext inputData, DocumentContext dbData,
-			JSONCompareResult comparisonResult, boolean isPersistTrue) throws JSONException, IOException, IdRepoAppException {
+			JSONCompareResult comparisonResult, boolean canPersistUpdateCount) throws JSONException, IOException, IdRepoAppException {
 		Entry<String, Map<String, Integer>> updateCountTracker = getUpdateCountTracker(uinHash, dbData);
 		Map<String, Integer> updateCountTrackerMap = updateCountTracker.getValue();
 		Set<String> attribute = new HashSet<>();
@@ -502,7 +502,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		if (!comparisonResult.getMessage().isEmpty()) {
 			updateMissingValues(inputData, dbData, comparisonResult, attribute);
 		}
-		if(isPersistTrue) {
+		if(canPersistUpdateCount) {
 			updateCount(updateCountTrackerMap, attribute);
 		}
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
