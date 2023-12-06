@@ -812,22 +812,39 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						CryptoUtil.decodeURLSafeBase64(new String(trackRecord.getIdentityUpdateCount())),
 						new TypeReference<Map<String, Integer>>() {
 						});
-				return updateCountMap.entrySet().stream()
+				return addMissingAttributes(updateCountMap.entrySet().stream()
 						.filter(entry -> attributeList.isEmpty() ? true : attributeList.contains(entry.getKey()))
 						.map(entry -> Map.entry(entry.getKey(),
 								Math.max(0,
 										IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(entry.getKey())
 												- entry.getValue())))
-						.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+						.collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
 			} else {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
-						"getMaxAllowedUpdateCountForIndividualId", "NO_RECORD_FOUND");
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+				return getRemainingUpdateCountFromConfig(attributeList);
 			}
 		} catch (IOException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
 					"getMaxAllowedUpdateCountForIndividualId", ExceptionUtils.getStackTrace(e));
 			throw new IdRepoAppException(UNKNOWN_ERROR);
+		}
+	}
+
+	private Map<String, Integer> addMissingAttributes(Map<String, Integer> updateCountTracker) {
+		IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap().entrySet().stream()
+				.filter(entry -> !updateCountTracker.containsKey(entry.getKey()))
+				.forEach(entry -> updateCountTracker.put(entry.getKey(), entry.getValue()));
+		return updateCountTracker;
+	}
+
+
+	private Map<String, Integer> getRemainingUpdateCountFromConfig(List<String> attributeList) {
+		if(attributeList == null || attributeList.isEmpty()){
+			return IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap();
+		} else {
+			Map<String, Integer> updateCountMapFromPolicy = IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap();
+			return attributeList.stream()
+					.filter(updateCountMapFromPolicy::containsKey)
+					.collect(Collectors.toMap(attribute -> attribute, updateCountMapFromPolicy::get));
 		}
 	}
 
