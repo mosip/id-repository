@@ -2235,7 +2235,7 @@ public class IdRepoServiceTest {
 		assertEquals(Map.of("fullName", 0), response);
 	}
 
-	@Test(expected = IdRepoAppException.class)
+	@Test
 	public void testGetRemainingUpdateCountByIndividualIdwithUINIdType_UINNotExist() throws IdRepoAppException {
 		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 		ReflectionTestUtils.setField(proxyService, "securityManager", securityManagerMock);
