@@ -29,7 +29,6 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.IdRepoService;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.EnvUtil;
-import io.mosip.idrepository.identity.dto.UpdateCountDto;
 import io.mosip.idrepository.identity.entity.IdentityUpdateTracker;
 import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.entity.UinBiometric;
@@ -813,13 +812,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						CryptoUtil.decodeURLSafeBase64(new String(trackRecord.getIdentityUpdateCount())),
 						new TypeReference<Map<String, Integer>>() {
 						});
-				return updateCountMap.entrySet().stream()
+				return addMissingAttributes(updateCountMap.entrySet().stream()
 						.filter(entry -> attributeList.isEmpty() ? true : attributeList.contains(entry.getKey()))
 						.map(entry -> Map.entry(entry.getKey(),
 								Math.max(0,
 										IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(entry.getKey())
 												- entry.getValue())))
-						.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+						.collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
 			} else {
 				return getRemainingUpdateCountFromConfig(attributeList);
 			}
@@ -830,6 +829,14 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
+	private Map<String, Integer> addMissingAttributes(Map<String, Integer> updateCountTracker) {
+		IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap().entrySet().stream()
+				.filter(entry -> !updateCountTracker.containsKey(entry.getKey()))
+				.forEach(entry -> updateCountTracker.put(entry.getKey(), entry.getValue()));
+		return updateCountTracker;
+	}
+
+
 	private Map<String, Integer> getRemainingUpdateCountFromConfig(List<String> attributeList) {
 		if(attributeList == null || attributeList.isEmpty()){
 			return IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap();
@@ -839,12 +846,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					.filter(updateCountMapFromPolicy::containsKey)
 					.collect(Collectors.toMap(attribute -> attribute, updateCountMapFromPolicy::get));
 		}
-	}
-	private void addAttributeInUpdateCountDtoList(String key, Map<String, Integer> attributeUpdateCountLimit, List<UpdateCountDto> updateCountDtoList){
-		UpdateCountDto updateCountDto= new UpdateCountDto();
-		updateCountDto.setAttributeName(key);
-		updateCountDto.setNoOfUpdatesLeft((Integer) attributeUpdateCountLimit.get(key));
-		updateCountDtoList.add(updateCountDto);
 	}
 
 	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp) {
