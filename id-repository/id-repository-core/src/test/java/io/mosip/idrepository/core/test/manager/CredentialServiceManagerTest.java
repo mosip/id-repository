@@ -113,7 +113,7 @@ public class CredentialServiceManagerTest {
 		partnerIds.add(txnId);
 		String requestId = "123465";
 		credentialServiceManager.notifyUinCredential(uin, expiryTimestamp, status, isUpdate, txnId,
-				saltRetreivalFunction, credentialRequestResponseConsumer, idaEventModelConsumer, partnerIds,requestId);
+				saltRetreivalFunction, credentialRequestResponseConsumer, idaEventModelConsumer, partnerIds, requestId);
 	}
 
 }

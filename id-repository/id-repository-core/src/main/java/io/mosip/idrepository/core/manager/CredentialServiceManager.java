@@ -32,7 +32,6 @@ import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
-import io.mosip.idrepository.core.dto.CredentialRequestV2DTO;
 import io.mosip.idrepository.core.dto.CredentialStatusUpdateEvent;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.dto.VidInfoDTO;
@@ -164,7 +163,7 @@ public class CredentialServiceManager {
 	 * @param isUpdate                   the is update
 	 * @param txnId                      the txn id
 	 * @param saltRetreivalFunction      the salt retreival function
-	 * @param credentialResponseConsumer the credential response consumer
+	 * @param credentialRequestResponseConsumer the credential response consumer
 	 * @param idaEventModelConsumer
 	 * @param requestId 
 	 */
@@ -211,7 +210,7 @@ public class CredentialServiceManager {
 	 * @param vids                       the vids
 	 * @param isUpdated                  the is updated
 	 * @param saltRetreivalFunction      the salt retreival function
-	 * @param credentialResponseConsumer the credential response consumer
+	 * @param credentialRequestResponseConsumer the credential response consumer
 	 * @param idaEventModelConsumer
 	 */
 	@Async
@@ -307,7 +306,6 @@ public class CredentialServiceManager {
 	 * Creates the ida event model.
 	 *
 	 * @param eventType        the event type
-	 * @param id               the id
 	 * @param expiryTimestamp  the expiry timestamp
 	 * @param transactionLimit the transaction limit
 	 * @param partnerIds       the partner ids
@@ -330,7 +328,7 @@ public class CredentialServiceManager {
 	 * @param vidInfoDtos                the vid info dtos
 	 * @param partnerIds                 the partner ids
 	 * @param saltRetreivalFunction      the salt retreival function
-	 * @param credentialResponseConsumer the credential response consumer
+	 * @param credentialRequestResponseConsumer the credential response consumer
 	 */
 	public void  sendUinEventsToCredService(String uin, LocalDateTime expiryTimestamp, boolean isUpdate,
 				List<VidInfoDTO> vidInfoDtos, List<String> partnerIds, IntFunction<String> saltRetreivalFunction,
@@ -376,7 +374,7 @@ public class CredentialServiceManager {
 	 * @param isUpdate                   the is update
 	 * @param partnerIds                 the partner ids
 	 * @param saltRetreivalFunction      the salt retreival function
-	 * @param credentialResponseConsumer the credential response consumer
+	 * @param credentialRequestResponseConsumer the credential response consumer
 	 */
 	public void sendVidEventsToCredService(String uin, String status, List<VidInfoDTO> vids, boolean isUpdate,
 			List<String> partnerIds, IntFunction<String> saltRetreivalFunction,
@@ -400,13 +398,13 @@ public class CredentialServiceManager {
 	 *
 	 * @param eventRequestsList          the event requests list
 	 * @param isUpdate                   the is update
-	 * @param credentialResponseConsumer the credential response consumer
+	 * @param credentialRequestResponseConsumer the credential response consumer
 	 */
 	public void sendRequestToCredService(List<CredentialIssueRequestDto> eventRequestsList, boolean isUpdate,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
 		eventRequestsList.forEach(reqDto -> {
 			CredentialIssueRequestWrapperDto requestWrapper = new CredentialIssueRequestWrapperDto();
-			requestWrapper.setRequest((CredentialRequestV2DTO) reqDto);
+			requestWrapper.setRequest(reqDto);
 			requestWrapper.setRequesttime(DateUtils.getUTCCurrentDateTime());
 			String eventTypeDisplayName = isUpdate ? "Update ID" : "Create ID";
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
@@ -428,17 +426,17 @@ public class CredentialServiceManager {
 		try {
 
 			Map<String, Object> response = Map.of();
-			RestServicesConstants restServicesConstants = ((CredentialRequestV2DTO) requestWrapper.getRequest()).getRequestId() != null
-					&& !((CredentialRequestV2DTO) requestWrapper.getRequest()).getRequestId().isEmpty()
+			RestServicesConstants restServicesConstants = requestWrapper.getRequest().getRequestId() != null
+					&& !requestWrapper.getRequest().getRequestId().isEmpty()
 							? RestServicesConstants.CREDENTIAL_REQUEST_SERVICE_V2
 							: RestServicesConstants.CREDENTIAL_REQUEST_SERVICE;
-			Map<String, String> pathParam = ((CredentialRequestV2DTO) requestWrapper.getRequest()).getRequestId() != null
-					&& !((CredentialRequestV2DTO) requestWrapper.getRequest()).getRequestId().isEmpty()
-							? Map.of(RID, ((CredentialRequestV2DTO) requestWrapper.getRequest()).getRequestId())
+			Map<String, String> pathParam = requestWrapper.getRequest().getRequestId() != null
+					&& !requestWrapper.getRequest().getRequestId().isEmpty()
+							? Map.of(RID, requestWrapper.getRequest().getRequestId())
 							: Map.of();
 			response = restHelper
 					.requestSync(restBuilder.buildRequest(restServicesConstants, pathParam, requestWrapper, Map.class));
-			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(),
+			mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(),
 					SEND_REQUEST_TO_CRED_SERVICE,
 					"Response of Credential Request: " + mapper.writeValueAsString(response));
 
@@ -463,7 +461,6 @@ public class CredentialServiceManager {
 	 * @param expiryTimestamp  the expiry timestamp
 	 * @param transactionLimit the transaction limit
 	 * @param token            the token
-	 * @param idType           the id type
 	 * @param idHashAttributes the id hash attributes
 	 * @return the credential issue request dto
 	 */
@@ -474,7 +471,7 @@ public class CredentialServiceManager {
 		return createCredReqDto(id,partnerId,expiryTimestamp,transactionLimit,token,idHashAttributes,null);
 	}
 	public CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp,
-			Integer transactionLimit, String token, Map<? extends String, ? extends Object> idHashAttributes,String requetId
+			Integer transactionLimit, String token, Map<? extends String, ? extends Object> idHashAttributes,String requestId
 			) {
 		Map<String, Object> data = new HashMap<>();
 		data.putAll(idHashAttributes);
@@ -483,9 +480,9 @@ public class CredentialServiceManager {
 		data.put(IdRepoConstants.TRANSACTION_LIMIT, transactionLimit);
 		data.put(IdRepoConstants.TOKEN, token);
 
-		CredentialRequestV2DTO credentialIssueRequestDto = new CredentialRequestV2DTO();
+		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
 		credentialIssueRequestDto.setId(id);
-		credentialIssueRequestDto.setRequestId(requetId);
+		credentialIssueRequestDto.setRequestId(requestId);
 		credentialIssueRequestDto.setCredentialType(credentialType);
 		credentialIssueRequestDto.setIssuer(partnerId);
 		credentialIssueRequestDto.setRecepiant(credentialRecepiant);
@@ -541,7 +538,6 @@ public class CredentialServiceManager {
 	 * Creates the event model.
 	 *
 	 * @param <T> the generic type
-	 * @param <S> the generic type
 	 * @param topic the topic
 	 * @param event the event
 	 * @return the event model
@@ -560,7 +556,6 @@ public class CredentialServiceManager {
 	 *
 	 * @param requestId the request id
 	 * @param status the status
-	 * @param updatedTimestamp the updated timestamp
 	 * @return the credential status update event
 	 */
 	private CredentialStatusUpdateEvent createCredentialStatusUpdateEvent(String requestId, String status) {

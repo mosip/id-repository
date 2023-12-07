@@ -4,23 +4,12 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.CBEFF_FORMAT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_FORMAT_ATTRIBUTE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_NAME_ATTRIBUTE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.*;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -199,7 +188,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	
 
 	@Value("${mosip.idrepo.credential.request.enable-convention-based-id:false}")
-	private boolean isCredentialrequestv2;
+	private boolean enableConventionBasedId;
 	
 	/**
 	 * Adds the identity to DB.
@@ -571,7 +560,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 *
 	 * @param dbData           the db data
 	 * @param comparisonResult the comparison result
-	 * @param isUpdateAllowedAsPerPolicy 
+	 * @param attribute
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -686,7 +675,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	/**
 	 * Update documents.
 	 *
-	 * @param uinHash    the uin hash
+	 * @param uinHashwithSalt    the uin hash
 	 * @param uinObject  the uin object
 	 * @param requestDTO the request DTO
 	 * @throws IdRepoAppException the id repo app exception
@@ -856,7 +845,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
-	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp) {
+	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp, String requestId) {
 		List<CredentialRequestStatus> credStatusList = credRequestRepo.findByIndividualIdHash(uinHash);
 		if (!credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {
@@ -882,7 +871,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
 			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
 			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
-			if(isCredentialrequestv2 && (requestId != null)) {
+			if(enableConventionBasedId && (requestId != null)) {
 				credStatus.setRequestId(requestId);
 			} 
 			credRequestRepo.save(credStatus);

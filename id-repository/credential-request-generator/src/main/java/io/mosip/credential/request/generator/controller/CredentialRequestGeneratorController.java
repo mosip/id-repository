@@ -6,12 +6,7 @@ import io.mosip.credential.request.generator.init.CredentialInstializer;
 import io.mosip.credential.request.generator.init.SubscribeEvent;
 import io.mosip.credential.request.generator.service.CredentialRequestService;
 import io.mosip.credential.request.generator.validator.RequestValidator;
-import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
-import io.mosip.idrepository.core.dto.CredentialIssueResponse;
-import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
-import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
-import io.mosip.idrepository.core.dto.CredentialRequestIdsDto;
-import io.mosip.idrepository.core.dto.PageDto;
+import io.mosip.idrepository.core.dto.*;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.kernel.core.http.RequestWrapper;
@@ -89,7 +84,7 @@ public class CredentialRequestGeneratorController {
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<Object> credentialIssue(
-			@RequestBody  RequestWrapper<CredentialIssueRequestDto>  credentialIssueRequestDto) throws IdRepoAppException {
+			@RequestBody  RequestWrapper<CredentialIssueRequest>  credentialIssueRequestDto) throws IdRepoAppException {
 
 		requestValidator.validateRequestGeneratorRequest(credentialIssueRequestDto);
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = credentialRequestService
@@ -114,7 +109,7 @@ public class CredentialRequestGeneratorController {
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<Object> credentialIssueByRid(
-			@RequestBody  RequestWrapper<CredentialIssueRequestDto>  credentialIssueRequestDto, @PathVariable("rid") String rid) {
+			@RequestBody  RequestWrapper<CredentialIssueRequest>  credentialIssueRequestDto, @PathVariable("rid") String rid) {
 
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = credentialRequestService
 				.createCredentialIssuanceByRid(credentialIssueRequestDto.getRequest(),rid);
