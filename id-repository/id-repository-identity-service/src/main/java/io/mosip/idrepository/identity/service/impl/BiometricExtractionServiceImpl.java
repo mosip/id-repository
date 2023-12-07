@@ -91,12 +91,13 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 							"RETURNING EXISTING EXTRACTED BIOMETRICS FOR FORMAT: " + extractionType +" : "+ extractionFormat);
 					byte[] xmlBytes = objectStoreHelper.getBiometricObject(uinHash, extractionFileName);
 					List<BIR> existingBirs = cbeffUtil.convertBIRTypeToBIR(cbeffUtil.getBIRDataFromXML(xmlBytes));
-					if(existingBirs.size() == 0) {
+					if (existingBirs.size() == 0 || existingBirs.stream()
+							.anyMatch(cbeff -> cbeff.getBdb() == null || cbeff.getBdb().length == 0)) {
 						List<BIR> extractedBiometrics = extractBiometricTemplate(formatFlag, birsForModality);
-						objectStoreHelper.putBiometricObject(uinHash, extractionFileName, cbeffUtil.createXML(extractedBiometrics));
+						objectStoreHelper.putBiometricObject(uinHash, extractionFileName,
+								cbeffUtil.createXML(extractedBiometrics));
 						return CompletableFuture.completedFuture(extractedBiometrics);
 					}
-
 					return CompletableFuture.completedFuture(existingBirs);
 				}
 			} catch (AmazonS3Exception e) {
