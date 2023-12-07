@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
-import io.mosip.idrepository.core.dto.CredentialRequestV2DTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +18,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -33,8 +31,6 @@ import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
-import io.mosip.idrepository.core.manager.CredentialServiceManager;
-import io.mosip.idrepository.core.manager.CredentialStatusManager;
 import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
@@ -42,7 +38,6 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.model.Event;
 import io.mosip.kernel.core.websub.model.EventModel;
 
@@ -196,7 +191,7 @@ public class CredentialStatusManagerTest {
 		request.setId("1");
 		request.setVersion("2.0");
 		request.setRequesttime(LocalDateTime.now());
-		request.setRequest((CredentialRequestV2DTO) req);
+		request.setRequest(req);
 		Map<String, Object> response = new HashMap<String, Object>();
 		response.put("response", "value1");
 		credentialStatusManager.credentialRequestResponseConsumer(request, response);
@@ -212,7 +207,7 @@ public class CredentialStatusManagerTest {
 		additionalData.put("transaction_limit", 3);
 		additionalData.put("expiry_timestamp", LocalDateTime.now());
 		req.setAdditionalData(additionalData);
-		request.setRequest((CredentialRequestV2DTO) req);
+		request.setRequest(req);
 		credentialStatusManagerSpy.credentialRequestResponseConsumer(request, response);
 
 		CredentialRequestStatus credentialRequestStatus = new CredentialRequestStatus();
@@ -222,7 +217,7 @@ public class CredentialStatusManagerTest {
 
 		additionalData.remove("transaction_limit", 3);
 		req.setAdditionalData(additionalData);
-		request.setRequest((CredentialRequestV2DTO) req);
+		request.setRequest(req);
 		credentialStatusManagerSpy.credentialRequestResponseConsumer(request, response);
 	}
 

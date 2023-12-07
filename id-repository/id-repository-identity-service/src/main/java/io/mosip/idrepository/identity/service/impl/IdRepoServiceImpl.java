@@ -7,20 +7,16 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -42,10 +38,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -191,7 +184,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	private String activeStatus;	
 
 	@Value("${mosip.idrepo.credential.request.enable-convention-based-id:false}")
-	private boolean isCredentialrequestv2;
+	private boolean enableConventionBasedId;
 	
 	/**
 	 * Adds the identity to DB.
@@ -509,7 +502,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 *
 	 * @param dbData           the db data
 	 * @param comparisonResult the comparison result
-	 * @param isUpdateAllowedAsPerPolicy 
+	 * @param attribute
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -618,7 +611,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	/**
 	 * Update documents.
 	 *
-	 * @param uinHash    the uin hash
+	 * @param uinHashwithSalt    the uin hash
 	 * @param uinObject  the uin object
 	 * @param requestDTO the request DTO
 	 * @throws IdRepoAppException the id repo app exception
@@ -720,7 +713,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		return updatedCbeff;
 	}
 
-	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp) {
+	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp, String requestId) {
 		List<CredentialRequestStatus> credStatusList = credRequestRepo.findByIndividualIdHash(uinHash);
 		if (!credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {
@@ -746,7 +739,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
 			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
 			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
-			if(isCredentialrequestv2 && (requestId != null)) {
+			if(enableConventionBasedId && (requestId != null)) {
 				credStatus.setRequestId(requestId);
 			} 
 			credRequestRepo.save(credStatus);

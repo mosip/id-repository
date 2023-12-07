@@ -101,7 +101,6 @@ public class RestRequestBuilder {
 			Object requestBody, Class<?> returnType) throws IdRepoDataValidationException {
 		RestRequestDTO request = new RestRequestDTO();
 		MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
-		// Map<String, String> pathVariables = new HashMap<>();
 		String serviceName = restService.getServiceName();
 		String uri = getProperty(serviceName, REST_URI);
 		String httpMethod = getProperty(serviceName, REST_HTTP_METHOD);
