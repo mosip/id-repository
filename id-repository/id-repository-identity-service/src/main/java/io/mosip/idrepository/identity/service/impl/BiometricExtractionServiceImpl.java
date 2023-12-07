@@ -4,6 +4,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRA
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_NOT_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_BIOMETRIC;
 
 import java.io.IOException;
 import java.util.List;
@@ -82,6 +83,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 			String extractionType, String extractionFormat, List<BIR> birsForModality) throws IdRepoAppException {
 		try {
 			String extractionFileName = fileName.split("\\.")[0] + DOT + getModalityForFormat(extractionType) + DOT + extractionFormat;
+			Map<String, String> formatFlag = Map.of(getFormatFlag(extractionType), extractionFormat);
 			// TODO need to remove AmazonS3Exception handling
 			try {
 				if (objectStoreHelper.biometricObjectExists(uinHash, extractionFileName)) {
@@ -89,6 +91,12 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 							"RETURNING EXISTING EXTRACTED BIOMETRICS FOR FORMAT: " + extractionType +" : "+ extractionFormat);
 					byte[] xmlBytes = objectStoreHelper.getBiometricObject(uinHash, extractionFileName);
 					List<BIR> existingBirs = cbeffUtil.convertBIRTypeToBIR(cbeffUtil.getBIRDataFromXML(xmlBytes));
+					if(existingBirs.size() == 0) {
+						List<BIR> extractedBiometrics = extractBiometricTemplate(formatFlag, birsForModality);
+						objectStoreHelper.putBiometricObject(uinHash, extractionFileName, cbeffUtil.createXML(extractedBiometrics));
+						return CompletableFuture.completedFuture(extractedBiometrics);
+					}
+
 					return CompletableFuture.completedFuture(existingBirs);
 				}
 			} catch (AmazonS3Exception e) {
@@ -98,7 +106,6 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 			
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
 					"EXTRATCING BIOMETRICS FOR FORMAT: " + extractionType +" : "+ extractionFormat);
-			Map<String, String> formatFlag = Map.of(getFormatFlag(extractionType), extractionFormat);
 			List<BIR> extractedBiometrics = extractBiometricTemplate(formatFlag, birsForModality);
 		
 			objectStoreHelper.putBiometricObject(uinHash, extractionFileName, cbeffUtil.createXML(extractedBiometrics));
@@ -107,6 +114,9 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE, e.getMessage());
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);
 		} catch (BiometricExtractionException e) {
+			if(e.getErrorCode().equalsIgnoreCase(INVALID_BIOMETRIC.getErrorCode())) {
+				throw new BiometricExtractionException(INVALID_BIOMETRIC, e);
+			}
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE, e.getMessage());
 			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
 		} catch (IOException e) {
@@ -148,7 +158,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	 * @param extractionFormats the extraction formats
 	 * @param birs the birs
 	 * @return the list
-	 * @throws BiometricExtractionException the biometric extraction exception
+	 * @throws IdRepoAppException 
 	 */
 	private List<BIR> extractBiometricTemplate(Map<String, String> extractionFormats, List<BIR> birs)
 			throws BiometricExtractionException {
@@ -160,7 +170,14 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 		bioExtractReq.setExtractionFormats(extractionFormats);
 		
 		BioExtractResponseDTO bioExtractResponseDTO = extractBiometrics(bioExtractReq);
+		if (bioExtractResponseDTO.getExtractedBiometrics().size() == 0 || bioExtractResponseDTO.getExtractedBiometrics()
+				.stream().anyMatch(bio -> bio.getBdb() == null || bio.getBdb().length == 0)) {
+			throw new BiometricExtractionException(INVALID_BIOMETRIC.getErrorCode(),
+					String.format(INVALID_BIOMETRIC.getErrorMessage()));
+		}
 		return bioExtractResponseDTO.getExtractedBiometrics();
+		
+		
 	}
 
 	/**
