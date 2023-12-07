@@ -105,8 +105,6 @@ import io.mosip.kernel.core.websub.spi.PublisherClient;
 @Service
 public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdResponseDTO> {
 
-	private static final String EXTRACT_TEMPLATE = "extractTemplate";
-
 	private static final List<BiometricType> SUPPORTED_MODALITIES = List.of(FINGER, IRIS, FACE);
 
 	private static final String ID_TYPE = "idType";
@@ -625,7 +623,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 					extractionFutures.add(extractTemplateFuture);
 					
 				} else {
-					mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, EXTRACT_TEMPLATE,
+					mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
 							"GETTING NON EXTRACTED FORMAT for Modality: " + modality.name());
 					finalBirs.addAll(cbeffUtil.convertBIRTypeToBIR(birTypesForModality));
 				}
@@ -638,7 +636,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			
 			return  cbeffUtil.createXML(finalBirs);
 		} catch (IdRepoAppUncheckedException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, EXTRACT_TEMPLATE, e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} catch (AmazonS3Exception e) {
 			// TODO need to remove AmazonS3Exception handling
