@@ -432,10 +432,19 @@ public class CredentialServiceManager {
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
 		try {
 			Map<String, Object> response = Map.of();
-				response = restHelper.requestSync(
-						restBuilder.buildRequest(RestServicesConstants.CREDENTIAL_REQUEST_SERVICE, requestWrapper, Map.class));
-				mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_REQUEST_TO_CRED_SERVICE,
-						"Response of Credential Request: " + mapper.writeValueAsString(response));
+			RestServicesConstants restServicesConstants = requestWrapper.getRequest().getRequestId() != null
+					&& !requestWrapper.getRequest().getRequestId().isEmpty()
+					? RestServicesConstants.CREDENTIAL_REQUEST_SERVICE_V2
+					: RestServicesConstants.CREDENTIAL_REQUEST_SERVICE;
+			Map<String, String> pathParam = requestWrapper.getRequest().getRequestId() != null
+					&& !requestWrapper.getRequest().getRequestId().isEmpty()
+					? Map.of(RID, requestWrapper.getRequest().getRequestId())
+					: Map.of();
+			response = restHelper
+					.requestSync(restBuilder.buildRequest(restServicesConstants, pathParam, requestWrapper, Map.class));
+			mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(),
+					SEND_REQUEST_TO_CRED_SERVICE,
+					"Response of Credential Request: " + mapper.writeValueAsString(response));
 
 			if (credentialRequestResponseConsumer != null) {
 				credentialRequestResponseConsumer.accept(requestWrapper, response);
