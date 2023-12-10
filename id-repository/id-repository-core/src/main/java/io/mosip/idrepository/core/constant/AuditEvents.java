@@ -59,7 +59,7 @@ public enum AuditEvents {
 	
 	GET_RID_BY_INDIVIDUALID("IDR-026", "System Event"),
 
-	RETRIEVE_HANDLE_BY_VID("IDR-027", "System Event");
+	RETRIEVE_HANDLE_BY_UIN("IDR-027", "System Event");
 	
 	
 

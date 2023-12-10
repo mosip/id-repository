@@ -513,7 +513,7 @@ public class IdRepoController {
 			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
 		} finally {
-			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.RETRIEVE_HANDLE_BY_VID, uin, IdType.UIN,
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.RETRIEVE_HANDLE_BY_UIN, uin, IdType.UIN,
 					"Retrieve Vids By UIN requested");
 		}
 	}
