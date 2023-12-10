@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.mosip.idrepository.core.constant.IdType;
+import io.mosip.idrepository.core.dto.HandleInfoDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 
 /**
@@ -86,4 +87,7 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 */
 	Map<String, Integer> getRemainingUpdateCountByIndividualId(String individualId, IdType idType,
 			List<String> attributeList) throws IdRepoAppException;
+
+
+	List<HandleInfoDTO> retrieveHandlesByUIN(String uin) throws IdRepoAppException;
 }
