@@ -45,9 +45,6 @@ public class AuthorizedRolesDto {
 	
 	private List<String> remainingUpdateCountByIndividualId;
 
-	private List<String> getdraftUIN;
-
 	private List<String> gethandleuin;
-
 
 }
