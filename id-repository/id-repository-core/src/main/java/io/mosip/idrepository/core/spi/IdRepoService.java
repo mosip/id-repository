@@ -1,8 +1,10 @@
 package io.mosip.idrepository.core.spi;
 
+import java.util.List;
 import java.util.Map;
 
 import io.mosip.idrepository.core.constant.IdType;
+import io.mosip.idrepository.core.dto.HandleInfoDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 
 /**
@@ -60,4 +62,6 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	RESPONSE updateIdentity(REQUEST request, String uin) throws IdRepoAppException;
+
+	List<HandleInfoDTO> retrieveHandlesByUIN(String uin) throws IdRepoAppException;
 }

@@ -56,7 +56,10 @@ public enum AuditEvents {
 	GET_DRAFT_REQUEST_RESPONSE("IDR-024", "System Event"),
 	
 	EXTRACT_BIOMETRICS_DRAFT_REQUEST_RESPONSE("IDR-025", "System Event"),
-	;
+	
+	GET_RID_BY_INDIVIDUALID("IDR-026", "System Event"),
+
+	RETRIEVE_HANDLE_BY_VID("IDR-027", "System Event");
 	
 	
 

@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import io.mosip.idrepository.identity.entity.*;
 import org.apache.commons.codec.binary.StringUtils;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
@@ -22,10 +23,6 @@ import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.identity.entity.Uin;
-import io.mosip.idrepository.identity.entity.UinDraft;
-import io.mosip.idrepository.identity.entity.UinHistory;
-import io.mosip.idrepository.identity.entity.UinInfo;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 
@@ -39,6 +36,7 @@ import io.mosip.kernel.core.util.CryptoUtil;
 public class IdRepoEntityInterceptor extends EmptyInterceptor {
 
 	private static final String UIN = "uin";
+	private static final String HANDLE = "handle";
 
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
@@ -76,7 +74,10 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 	public boolean onSave(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
 		try {
 			List<String> propertyNamesList = Arrays.asList(propertyNames);
-			if (entity instanceof UinInfo) {
+			if (entity instanceof HandleInfo) {
+				encryptDataOnSave(id, state, propertyNamesList, types, (HandleInfo) entity);
+			}
+			else if (entity instanceof UinInfo) {
 				encryptDataOnSave(id, state, propertyNamesList, types, (UinInfo) entity);
 			}
 		} catch (IdRepoAppException e) {
@@ -87,22 +88,33 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 	}
 
 	private <T extends UinInfo> void encryptDataOnSave(Serializable id, Object[] state, List<String> propertyNamesList,
-			Type[] types, T uinEntity) throws IdRepoAppException {
-		if (Objects.nonNull(uinEntity.getUinData())) {
-			byte[] encryptedData = securityManager.encrypt(uinEntity.getUinData(), uinDataRefId);
-			uinEntity.setUinData(encryptedData);
+			Type[] types, T entity) throws IdRepoAppException {
+		if (Objects.nonNull(entity.getUinData())) {
+			byte[] encryptedData = securityManager.encrypt(entity.getUinData(), uinDataRefId);
+			entity.setUinData(encryptedData);
 			int indexOfData = propertyNamesList.indexOf(UIN_DATA);
 			state[indexOfData] = encryptedData;
 		}
 
-		List<String> uinList = Arrays.asList(uinEntity.getUin().split(SPLITTER));
-		byte[] encryptedUinByteWithSalt = securityManager.encryptWithSalt(uinList.get(1).getBytes(),
-				CryptoUtil.decodePlainBase64(uinList.get(2)), uinRefId);
-		String encryptedUinWithSalt = uinList.get(0) + SPLITTER + new String(encryptedUinByteWithSalt);
-		uinEntity.setUin(encryptedUinWithSalt);
+		if (Objects.nonNull(entity.getUin()) && !(entity instanceof UinHistory)) {
+			List<String> uinList = Arrays.asList(entity.getUin().split(SPLITTER));
+			byte[] encryptedUinByteWithSalt = securityManager.encryptWithSalt(uinList.get(1).getBytes(),
+					CryptoUtil.decodePlainBase64(uinList.get(2)), uinRefId);
+			String encryptedUinWithSalt = uinList.get(0) + SPLITTER + new String(encryptedUinByteWithSalt);
+			entity.setUin(encryptedUinWithSalt);
+			int indexOfUin = propertyNamesList.indexOf(UIN);
+			state[indexOfUin] = encryptedUinWithSalt;
+		}
 
-		int indexOfUin = propertyNamesList.indexOf(UIN);
-		state[indexOfUin] = encryptedUinWithSalt;
+		if ((entity instanceof HandleInfo)) {
+			List<String> parts = Arrays.asList(((HandleInfo) entity).getHandle().split(SPLITTER));
+			byte[] encryptedHandleByteWithSalt = securityManager.encryptWithSalt(parts.get(1).getBytes(),
+					CryptoUtil.decodePlainBase64(parts.get(2)), uinRefId);
+			String encryptedHandleWithSalt = parts.get(0) + SPLITTER + new String(encryptedHandleByteWithSalt);
+			((HandleInfo) entity).setHandle(encryptedHandleWithSalt);
+			int indexOfUin = propertyNamesList.indexOf(HANDLE);
+			state[indexOfUin] = encryptedHandleWithSalt;
+		}
 	}
 
 	/*
