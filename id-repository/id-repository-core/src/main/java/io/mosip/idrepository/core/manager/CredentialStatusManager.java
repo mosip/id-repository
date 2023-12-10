@@ -202,7 +202,7 @@ public class CredentialStatusManager {
 	}
 
 	public String encryptId(String individualId) throws IdRepoAppException {
-		int saltId = securityManager.getSaltKeyForId(individualId);
+		int saltId = securityManager.getSaltKeyForHashOfId(individualId);
 		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(saltId);
 		return saltId + SPLITTER + new String(securityManager.encryptWithSalt(individualId.getBytes(),
 				CryptoUtil.decodePlainBase64(encryptSalt), uinRefId));

@@ -1,9 +1,6 @@
 package io.mosip.idrepository.identity.service.impl;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.CBEFF_FORMAT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_FORMAT_ATTRIBUTE;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_NAME_ATTRIBUTE;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.*;
 
 import java.io.IOException;
@@ -47,9 +44,7 @@ import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 
 import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.DocumentsDTO;
-import io.mosip.idrepository.core.dto.IdRequestDTO;
-import io.mosip.idrepository.core.dto.RequestDTO;
+import io.mosip.idrepository.core.dto.*;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
@@ -61,21 +56,13 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.IdRepoService;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.EnvUtil;
-import io.mosip.idrepository.identity.entity.IdentityUpdateTracker;
-import io.mosip.idrepository.identity.entity.Uin;
-import io.mosip.idrepository.identity.entity.UinBiometric;
-import io.mosip.idrepository.identity.entity.UinBiometricHistory;
-import io.mosip.idrepository.identity.entity.UinDocument;
-import io.mosip.idrepository.identity.entity.UinDocumentHistory;
-import io.mosip.idrepository.identity.entity.UinHistory;
+import io.mosip.idrepository.identity.dto.HandleDto;
+import io.mosip.idrepository.identity.entity.*;
 import io.mosip.idrepository.identity.helper.AnonymousProfileHelper;
+import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 import io.mosip.idrepository.identity.provider.IdentityUpdateTrackerPolicyProvider;
-import io.mosip.idrepository.identity.repository.IdentityUpdateTrackerRepo;
-import io.mosip.idrepository.identity.repository.UinBiometricHistoryRepo;
-import io.mosip.idrepository.identity.repository.UinDocumentHistoryRepo;
-import io.mosip.idrepository.identity.repository.UinHistoryRepo;
-import io.mosip.idrepository.identity.repository.UinRepo;
+import io.mosip.idrepository.identity.repository.*;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
@@ -83,6 +70,9 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.UUIDUtils;
+import org.hibernate.exception.JDBCConnectionException;
+import org.springframework.dao.DataAccessException;
+import org.springframework.transaction.TransactionException;
 
 /**
  * The Class IdRepoServiceImpl - Service implementation for Identity service.
@@ -108,6 +98,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	/** The Constant ADD_IDENTITY. */
 	private static final String ADD_IDENTITY = "addIdentity";
+
+	private static final String ADD_IDENTITY_HANDLE = "addIdentityHandle";
+
 	private static final String COMMA = ",";
 
 	/** The mosip logger. */
@@ -185,10 +178,18 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	
 	@Autowired
 	private IdentityUpdateTrackerRepo identityUpdateTracker;
-	
 
 	@Value("${mosip.idrepo.credential.request.enable-convention-based-id:false}")
 	private boolean enableConventionBasedId;
+
+	@Autowired
+	private HandleRepo handleRepo;
+
+	@Autowired
+	private IdRepoServiceHelper idRepoServiceHelper;
+
+	@Value("${" + UIN_REFID + "}")
+	private String uinRefId;
 	
 	/**
 	 * Adds the identity to DB.
@@ -208,6 +209,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		String uinHash = getUinHash(uin);
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
 		String uinToEncrypt = getUinToEncrypt(uin);
+
+		Map<String, HandleDto> selectedUniqueHandlesMap = checkAndGetHandles(request);
+
 		anonymousProfileHelper
 			.setRegId(request.getRequest().getRegistrationId())
 			.setNewUinData(identityInfo);
@@ -233,13 +237,53 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					"Record successfully saved in db without documents");
 		}
 
-		uinHistoryRepo.save(
-				new UinHistory(uinRefId, DateUtils.getUTCCurrentDateTime(), uinEntity.getUin(), uinEntity.getUinHash(),
+		uinHistoryRepo.save(new UinHistory(uinRefId, DateUtils.getUTCCurrentDateTime(), uinEntity.getUin(), uinEntity.getUinHash(),
 						uinEntity.getUinData(), uinEntity.getUinDataHash(), uinEntity.getRegId(), activeStatus,
 						IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), null, null, false, null));
-		issueCredential(uinEntity.getUin(), uinHashWithSalt, activeStatus, null,uinEntity.getRegId());
+
+		addIdentityHandle(uinEntity, selectedUniqueHandlesMap);
+
+		issueCredential(uinEntity.getUin(), uinHashWithSalt, activeStatus, null, uinEntity.getRegId());
 		anonymousProfileHelper.buildAndsaveProfile(false);
 		return uinEntity;
+	}
+
+	@Override
+	public List<HandleInfoDTO> retrieveHandlesByUIN(String uin) throws IdRepoAppException {
+		try {
+			List<Handle> list = handleRepo.findByUinHash(getUinHash(uin));
+			if(list == null || list.isEmpty())
+				return List.of();
+
+			return list.stream()
+					.map(entity -> {
+						HandleInfoDTO handleInfoDTO = new HandleInfoDTO();
+						String encryptSalt = uinEncryptSaltRepo
+								.retrieveSaltById(Integer.valueOf(io.mosip.kernel.core.util.StringUtils.substringBefore(entity.getHandle(), SPLITTER)));
+                        try {
+                            handleInfoDTO.setHandle(new String(securityManager.decryptWithSalt(
+                                    CryptoUtil.decodeURLSafeBase64(io.mosip.kernel.core.util.StringUtils.substringAfter(entity.getHandle(), SPLITTER)),
+                                    CryptoUtil.decodePlainBase64(encryptSalt), uinRefId)));
+                        } catch (IdRepoAppException e) {
+							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveHandlesByUIN",
+									"\n Failed to decrypt handle due to " + e.getMessage());
+                        }
+                        handleInfoDTO.setHashAttributes(
+								securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(entity.getHandle(),
+										uinEncryptSaltRepo::retrieveSaltById));
+						handleInfoDTO.getHashAttributes().put("idType", "handle");
+						return handleInfoDTO;
+					})
+					.collect(Collectors.toList());
+		} catch (IdRepoAppUncheckedException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveHandlesByUIN",
+				"\n" + e.getMessage());
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveHandlesByUIN",
+					e.getMessage());
+				throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
+		}
 	}
 
 	protected String getUinToEncrypt(String uin) {
@@ -911,4 +955,40 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
+	private Map<String, HandleDto> checkAndGetHandles(IdRequestDTO request) throws IdRepoAppException {
+		Map<String, HandleDto> handles = idRepoServiceHelper.getSelectedHandles(request.getRequest());
+		if(handles != null && !handles.isEmpty()) {
+			boolean duplicateHandlesFound = handles.keySet()
+					.stream()
+					.anyMatch(handleName -> handleRepo.existsByHandleHash(handles.get(handleName).getHandleHash()));
+
+			if(duplicateHandlesFound) {
+				//Giving out information about which handle is already registered will be a privacy concern.
+				throw new IdRepoAppException(RECORD_EXISTS);
+			}
+		}
+		return handles;
+	}
+
+	private void addIdentityHandle(Uin uinEntity, Map<String, HandleDto> handles) {
+		if (handles != null && !handles.isEmpty()) {
+			for (Entry<String, HandleDto> handleDtoEntry : handles.entrySet()) {
+				int saltId = securityManager.getSaltKeyForHashOfId(handleDtoEntry.getValue().getHandle());
+				String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(saltId);
+				String handleToEncrypt = saltId + SPLITTER + handleDtoEntry.getValue().getHandle() + SPLITTER + encryptSalt;
+
+				Handle handleEntity = new Handle();
+				handleEntity.setHandleHash(handleDtoEntry.getValue().getHandleHash());
+				handleEntity.setId(UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID,
+						handleDtoEntry.getValue().getHandle() + SPLITTER + DateUtils.getUTCCurrentDateTime()).toString());
+				handleEntity.setHandle(handleToEncrypt);
+				handleEntity.setUinHash(uinEntity.getUinHash());
+				handleEntity.setCreatedBy(IdRepoSecurityManager.getUser());
+				handleEntity.setCreatedDateTime(DateUtils.getUTCCurrentDateTime());
+				handleRepo.save(handleEntity);
+				mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY_HANDLE,
+						"Record successfully saved in db");
+			}
+		}
+	}
 }
