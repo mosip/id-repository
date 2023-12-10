@@ -6,12 +6,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_I
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -19,6 +14,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Option;
+import io.mosip.idrepository.identity.dto.HandleDto;
+import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -125,23 +125,9 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	@Autowired
 	private IdObjectValidator idObjectValidator;
 
-	/** The mapper. */
-	@Autowired
-	private ObjectMapper mapper;
-
 	/** The allowed types. */
 	private List<String> allowedTypes = List.of("bio", "demo", "metadata", "all");
 
-	/** The rest helper. */
-	@Autowired
-	private RestHelper restHelper;
-
-	/** The rest builder. */
-	@Autowired
-	private RestRequestBuilder restBuilder;
-
-	/** The schema map. */
-	private Map<String, String> schemaMap = new HashMap<>();
 
 	/** The uin validator. */
 	@Autowired
@@ -150,6 +136,10 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	/** The vid validator. */
 	@Autowired
 	private VidValidator<String> vidValidator;
+
+	@Autowired
+	private IdRepoServiceHelper idRepoServiceHelper;
+
 
 	@PostConstruct
 	public void init() {
@@ -240,7 +230,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	public void validateRequest(Object request, Errors errors, String method) {
 		try {
 			if (Objects.nonNull(request)) {
-				Map<String, Object> requestMap = convertToMap(request);
+				Map<String, Object> requestMap = idRepoServiceHelper.convertToMap(request);
 				if (!(requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH)))) {
 					if (method.equals(CREATE)) {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateRequest",
@@ -262,9 +252,9 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 							schemaVersion = String
 									.valueOf(((Map<String, Object>) requestMap.get(ROOT_PATH)).get("IDSchemaVersion"));
 							if (method.equals(CREATE)) {
-								idObjectValidator.validateIdObject(getSchema(schemaVersion), requestMap, newRegistrationFields);
+								idObjectValidator.validateIdObject(idRepoServiceHelper.getSchema(schemaVersion), requestMap, newRegistrationFields);
 							} else {
-								idObjectValidator.validateIdObject(getSchema(schemaVersion), requestMap, updateUinFields);
+								idObjectValidator.validateIdObject(idRepoServiceHelper.getSchema(schemaVersion), requestMap, updateUinFields);
 							}
 						}
 					}
@@ -315,7 +305,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 		try {
 			if (requestMap.containsKey(DOCUMENTS) && requestMap.containsKey(ROOT_PATH)
 					&& Objects.nonNull(requestMap.get(ROOT_PATH))) {
-				Map<String, Object> identityMap = convertToMap(requestMap.get(ROOT_PATH));
+				Map<String, Object> identityMap = idRepoServiceHelper.convertToMap(requestMap.get(ROOT_PATH));
 				List<Map<String, String>> list = (List<Map<String, String>>) requestMap.get(DOCUMENTS);
 				if (Objects.nonNull(requestMap.get(DOCUMENTS)) && requestMap.get(DOCUMENTS) instanceof List
 						&& !list.isEmpty()) {
@@ -375,54 +365,6 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), DOCUMENTS + "/" + i + "/" + DOC_CAT));
 				break;
 			}
-		}
-	}
-
-	/**
-	 * Gets the schema.
-	 *
-	 * @param schemaVersion the schema version
-	 * @return the schema
-	 */
-	private String getSchema(String schemaVersion) {
-		if (Objects.isNull(schemaVersion) || schemaVersion.contentEquals("null")) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "getSchema", "\n" + "schemaVersion is null");
-			throw new IdRepoAppUncheckedException(MISSING_INPUT_PARAMETER.getErrorCode(),
-					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(),
-							ROOT_PATH + IdObjectValidatorConstant.PATH_SEPERATOR + "IDSchemaVersion"));
-		}
-		try {
-			if (schemaMap.containsKey(schemaVersion)) {
-				return schemaMap.get(schemaVersion);
-			} else {
-				RestRequestDTO restRequest;
-				restRequest = restBuilder.buildRequest(RestServicesConstants.SYNCDATA_SERVICE, null, ResponseWrapper.class);
-				restRequest.setUri(restRequest.getUri().concat("?schemaVersion=" + schemaVersion));
-				ResponseWrapper<Map<String, String>> response = restHelper.requestSync(restRequest);
-				schemaMap.put(schemaVersion, response.getResponse().get("schemaJson"));
-				return getSchema(schemaVersion);
-			}
-		} catch (IdRepoDataValidationException | RestServiceException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "getSchema", "\n" + e.getMessage());
-			throw new IdRepoAppUncheckedException(IdRepoErrorConstants.SCHEMA_RETRIEVE_ERROR);
-		}
-	}
-
-	/**
-	 * Convert to map.
-	 *
-	 * @param identity the identity
-	 * @return the map
-	 * @throws IdRepoAppException the id repo app exception
-	 */
-	private Map<String, Object> convertToMap(Object identity) throws IdRepoAppException {
-		try {
-			return mapper.readValue(mapper.writeValueAsBytes(identity), new TypeReference<Map<String, Object>>() {
-			});
-		} catch (IOException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "convertToMap", "\n" + e.getMessage());
-			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
-					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), REQUEST), e);
 		}
 	}
 

@@ -1,12 +1,7 @@
 package io.mosip.idrepository.core.manager;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
@@ -17,6 +12,7 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import io.mosip.idrepository.core.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -30,12 +26,6 @@ import io.mosip.idrepository.core.constant.EventType;
 import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
-import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
-import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
-import io.mosip.idrepository.core.dto.CredentialStatusUpdateEvent;
-import io.mosip.idrepository.core.dto.RestRequestDTO;
-import io.mosip.idrepository.core.dto.VidInfoDTO;
-import io.mosip.idrepository.core.dto.VidsInfosDTO;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.RestServiceException;
@@ -187,10 +177,17 @@ public class CredentialServiceManager {
 				sendUINEventToIDA(uin, expiryTimestamp, status, vidInfoDtos, partnerIds, txnId,
 						id -> securityManager.getIdHashWithSaltModuloByPlainIdHash(id, saltRetreivalFunction), idaEventModelConsumer);
 			} else {
+
+				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_HANDLES_BY_UIN, null,
+						HandleInfosDTO.class);
+				restRequest.setUri(restRequest.getUri().replace("{uin}", uin));
+				HandleInfosDTO response = restHelper.requestSync(restRequest);
+				List<HandleInfoDTO> handleList = response.getResponse();
+
 				// For create uin, or update uin with null expiry (active status), send event to
 				// credential service.
-				sendUinEventsToCredService(uin, expiryTimestamp, isUpdate, vidInfoDtos, partnerIds,
-						saltRetreivalFunction, credentialRequestResponseConsumer);
+				sendUinEventsToCredService(uin, expiryTimestamp, isUpdate, vidInfoDtos, handleList, partnerIds,
+						saltRetreivalFunction, credentialRequestResponseConsumer,requestId);
 			}
 
 		} catch (Exception e) {
@@ -324,18 +321,29 @@ public class CredentialServiceManager {
 	 * @param expiryTimestamp            the expiry timestamp
 	 * @param isUpdate                   the is update
 	 * @param vidInfoDtos                the vid info dtos
+	 * @param handleList                 Handle dto list
 	 * @param partnerIds                 the partner ids
 	 * @param saltRetreivalFunction      the salt retreival function
 	 * @param credentialResponseConsumer the credential response consumer
 	 */
+	public void  sendUinEventsToCredService(String uin, LocalDateTime expiryTimestamp, boolean isUpdate,
+				List<VidInfoDTO> vidInfoDtos, List<HandleInfoDTO> handleList, List<String> partnerIds, IntFunction<String> saltRetreivalFunction,
+				BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
+		
+		sendUinEventsToCredService( uin,  expiryTimestamp,  isUpdate,
+				 vidInfoDtos, handleList,  partnerIds,  saltRetreivalFunction,
+				 credentialRequestResponseConsumer,null);
+		
+	}
+	
 	public void sendUinEventsToCredService(String uin, LocalDateTime expiryTimestamp, boolean isUpdate,
-			List<VidInfoDTO> vidInfoDtos, List<String> partnerIds, IntFunction<String> saltRetreivalFunction,
-			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
+			List<VidInfoDTO> vidInfoDtos, List<HandleInfoDTO> handleList, List<String> partnerIds, IntFunction<String> saltRetreivalFunction,
+			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,String requestId) {
 		List<CredentialIssueRequestDto> eventRequestsList = new ArrayList<>();
 		eventRequestsList.addAll(partnerIds.stream().map(partnerId -> {
 			String token = tokenIDGenerator.generateTokenID(uin, partnerId);
 			return createCredReqDto(uin, partnerId, expiryTimestamp, null, token,
-					securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(uin, saltRetreivalFunction));
+					securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(uin, saltRetreivalFunction), requestId);
 		}).collect(Collectors.toList()));
 
 		if (vidInfoDtos != null) {
@@ -348,6 +356,17 @@ public class CredentialServiceManager {
 				});
 			}).collect(Collectors.toList());
 			eventRequestsList.addAll(vidRequests);
+		}
+
+		if(handleList != null) {
+			List<CredentialIssueRequestDto> handleRequests = handleList.stream().flatMap(handleInfoDTO -> {
+				return partnerIds.stream().map(partnerId -> {
+					String token = tokenIDGenerator.generateTokenID(uin, partnerId);
+					return createCredReqDto(handleInfoDTO.getHandle(), partnerId, null, null,
+							token, handleInfoDTO.getHashAttributes(), requestId);
+				});
+			}).collect(Collectors.toList());
+			eventRequestsList.addAll(handleRequests);
 		}
 
 		sendRequestToCredService(eventRequestsList, isUpdate, credentialRequestResponseConsumer);

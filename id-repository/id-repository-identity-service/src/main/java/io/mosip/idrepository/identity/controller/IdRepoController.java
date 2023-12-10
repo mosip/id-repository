@@ -17,6 +17,8 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.annotation.Resource;
 
+import io.mosip.idrepository.core.dto.*;
+import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -42,11 +44,6 @@ import com.jayway.jsonpath.JsonPathException;
 import io.mosip.idrepository.core.constant.AuditEvents;
 import io.mosip.idrepository.core.constant.AuditModules;
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.AuthTypeStatusRequestDto;
-import io.mosip.idrepository.core.dto.AuthtypeResponseDto;
-import io.mosip.idrepository.core.dto.AuthtypeStatus;
-import io.mosip.idrepository.core.dto.IdRequestDTO;
-import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.helper.AuditHelper;
@@ -421,6 +418,39 @@ public class IdRepoController {
 					individualId,
 					IdType.valueOf(authTypeStatusRequest.getIndividualIdType()), e);
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		}
+	}
+
+	/**
+	 * This method will accept uin as parameter, it will return
+	 * all its associated handles.
+	 *
+	 * @param uin the UIN
+	 * @return the response entity
+	 * @throws IdRepoAppException the id repo app exception
+	 */
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGethandleuin())")
+	@GetMapping(path = "/handle/uin/{UIN}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "retrieveHandlesByUin", description = "retrieveHandlesByUin", tags = { "id-repo-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
+	public ResponseEntity<ResponseWrapper<List<HandleInfoDTO>>> retrieveHandlesByUin(@PathVariable("UIN") String uin)
+			throws IdRepoAppException {
+		try {
+			ResponseWrapper<List<HandleInfoDTO>> responseWrapper = new ResponseWrapper<>();
+			responseWrapper.setResponse(idRepoService.retrieveHandlesByUIN(uin));
+			responseWrapper.setResponsetime(DateUtils.getUTCCurrentDateTime());
+			return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
+		} catch (InvalidIDException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "retrieveHandlesByUin", e.getMessage());
+			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
+		} finally {
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.RETRIEVE_HANDLE_BY_VID, uin, IdType.UIN,
+					"Retrieve Vids By UIN requested");
 		}
 	}
 
