@@ -16,5 +16,5 @@ public class HandleInfoDTO {
     private LocalDateTime expiryTimestamp;
     private LocalDateTime genratedOnTimestamp;
     private Integer transactionLimit;
-    private Map<String, String> hashAttributes;
+    private Map<String, String> additionalData;
 }

@@ -1,4 +1,4 @@
-package io.mosip.idrepository.identity.entity;
+package io.mosip.idrepository.core.entity;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

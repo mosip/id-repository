@@ -1,6 +1,6 @@
-package io.mosip.idrepository.identity.repository;
+package io.mosip.idrepository.core.repository;
 
-import io.mosip.idrepository.identity.entity.Handle;
+import io.mosip.idrepository.core.entity.Handle;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
