@@ -86,7 +86,4 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 */
 	Map<String, Integer> getRemainingUpdateCountByIndividualId(String individualId, IdType idType,
 			List<String> attributeList) throws IdRepoAppException;
-
-
-	List<HandleInfoDTO> retrieveHandlesByUIN(String uin) throws IdRepoAppException;
 }

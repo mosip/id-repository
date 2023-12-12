@@ -41,6 +41,4 @@ public class AuthorizedRolesDto {
 
 	private List<String> putdraftextractbiometricsregistrationId;
 
-	private List<String> gethandleuin;
-
 }

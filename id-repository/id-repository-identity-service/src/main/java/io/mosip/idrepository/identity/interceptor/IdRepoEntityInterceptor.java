@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import io.mosip.idrepository.core.entity.HandleInfo;
+import io.mosip.idrepository.core.entity.UinInfo;
 import io.mosip.idrepository.identity.entity.*;
 import org.apache.commons.codec.binary.StringUtils;
 import org.hibernate.EmptyInterceptor;
