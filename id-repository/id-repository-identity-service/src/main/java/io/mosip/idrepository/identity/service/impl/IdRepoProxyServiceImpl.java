@@ -590,10 +590,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				Objects.isNull(attributeList) ? List.of() : attributeList);
 	}
 
-	@Override
-	public List<HandleInfoDTO> retrieveHandlesByUIN(String uin) throws IdRepoAppException {
-		return service.retrieveHandlesByUIN(uin);
-	}
 
 	/**
 	 * It takes in an individualId and an IdType, and returns the UIN hash of the
