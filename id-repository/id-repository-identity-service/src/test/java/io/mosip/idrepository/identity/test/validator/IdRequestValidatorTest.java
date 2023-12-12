@@ -20,6 +20,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import org.junit.Before;
 import org.junit.Test;
@@ -150,6 +151,16 @@ public class IdRequestValidatorTest {
 		ReflectionTestUtils.setField(idRepoServiceHelper, "mapper", mapper);
 		ReflectionTestUtils.setField(idRepoServiceHelper, "restBuilder", restBuilder);
 		ReflectionTestUtils.setField(idRepoServiceHelper, "restHelper", restHelper);
+
+		IdentityMapping identityMapping = new IdentityMapping();
+		identityMapping.setIdentity(new IdentityMapping.Identity());
+		IdentityMapping.IDSchemaVersion idSchemaVersion = new IdentityMapping.IDSchemaVersion();
+		idSchemaVersion.setValue("IDSchemaVersion");
+		IdentityMapping.SelectedHandles selectedHandles = new IdentityMapping.SelectedHandles();
+		selectedHandles.setValue("selectedHandles");
+		identityMapping.getIdentity().setIDSchemaVersion(idSchemaVersion);
+		identityMapping.getIdentity().setSelectedHandles(selectedHandles);
+		ReflectionTestUtils.setField(idRepoServiceHelper, "identityMapping", identityMapping);
 
 		errors = new BeanPropertyBindingResult(new IdRequestDTO(), "idRequestDto");
 		RestRequestDTO restReq = new RestRequestDTO();

@@ -52,11 +52,6 @@ public class IdRepoServiceHelper {
 
     private static final String REQUEST = "request";
 
-    /** Reserved keyword to hold resident chosen handle field Ids */
-    private static final String SELECTED_HANDLES = "selectedHandles";
-
-    private static final String ID_SCHEMA_VERSION = "IDSchemaVersion";
-
     /** The schema map. */
     private static Map<String, String> schemaMap = new HashMap<>();
     private static Map<String, List<String>> supportedHandlesInSchema = new HashMap<>();
@@ -150,10 +145,11 @@ public class IdRepoServiceHelper {
         if (requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH))) {
             Map<String, Object> identityMap = (Map<String, Object>) requestMap.get(ROOT_PATH);
             String schemaVersion = String.valueOf(identityMap.get(identityMapping.getIdentity().getIDSchemaVersion().getValue()));
-            if(identityMap.containsKey(SELECTED_HANDLES) && Objects.nonNull(identityMap.get(identityMapping.getIdentity().getSelectedHandles().getValue()))) {
+            String selectedHandlesFieldId = identityMapping.getIdentity().getSelectedHandles().getValue();
+            if(identityMap.containsKey(selectedHandlesFieldId) && Objects.nonNull(identityMap.get(selectedHandlesFieldId))) {
                 mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER, "getSelectedHandles",
-                        requestMap.get(SELECTED_HANDLES));
-                List<String> selectedHandleFieldIds = (List<String>) identityMap.get(SELECTED_HANDLES);
+                        requestMap.get(selectedHandlesFieldId));
+                List<String> selectedHandleFieldIds = (List<String>) identityMap.get(selectedHandlesFieldId);
                 return selectedHandleFieldIds.stream()
                         .filter( handleFieldId -> supportedHandlesInSchema.get(schemaVersion).contains(handleFieldId))
                         .collect(Collectors.toMap(handleName->handleName,
