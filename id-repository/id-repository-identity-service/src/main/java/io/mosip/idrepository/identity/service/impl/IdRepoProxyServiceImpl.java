@@ -18,10 +18,9 @@ import javax.annotation.Resource;
 
 import io.mosip.idrepository.core.constant.*;
 import io.mosip.idrepository.core.dto.*;
-import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
-import io.mosip.idrepository.identity.entity.Handle;
+import io.mosip.idrepository.core.entity.Handle;
 import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
-import io.mosip.idrepository.identity.repository.HandleRepo;
+import io.mosip.idrepository.core.repository.HandleRepo;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.model.Event;
 import io.mosip.kernel.core.websub.model.EventModel;
@@ -506,11 +505,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				throw new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR);
 			}
 		}
-	}
-
-	@Override
-	public List<HandleInfoDTO> retrieveHandlesByUIN(String uin) throws IdRepoAppException {
-		return service.retrieveHandlesByUIN(uin);
 	}
 
 	/**

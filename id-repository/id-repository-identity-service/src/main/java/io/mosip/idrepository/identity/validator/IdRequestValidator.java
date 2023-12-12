@@ -236,7 +236,8 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 						String schemaVersion;
 						if (requestMap.get(ROOT_PATH) != null) {
 							schemaVersion = String
-									.valueOf(((Map<String, Object>) requestMap.get(ROOT_PATH)).get("IDSchemaVersion"));
+									.valueOf(((Map<String, Object>) requestMap.get(ROOT_PATH))
+											.get(idRepoServiceHelper.getIdentityMapping().getIdentity().getIDSchemaVersion().getValue()));
 							if (method.equals(CREATE)) {
 								idObjectValidator.validateIdObject(idRepoServiceHelper.getSchema(schemaVersion), requestMap, newRegistrationFields);
 							} else {

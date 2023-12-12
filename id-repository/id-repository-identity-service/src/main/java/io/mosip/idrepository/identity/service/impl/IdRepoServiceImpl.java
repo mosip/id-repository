@@ -18,6 +18,8 @@ import java.util.stream.IntStream;
 
 import javax.annotation.Resource;
 
+import io.mosip.idrepository.core.entity.Handle;
+import io.mosip.idrepository.core.repository.HandleRepo;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -72,9 +74,6 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.UUIDUtils;
-import org.hibernate.exception.JDBCConnectionException;
-import org.springframework.dao.DataAccessException;
-import org.springframework.transaction.TransactionException;
 
 /**
  * The Class IdRepoServiceImpl - Service implementation for Identity service.
@@ -243,44 +242,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		issueCredential(uinEntity.getUin(), uinHashWithSalt, activeStatus, null, uinEntity.getRegId());
 		anonymousProfileHelper.buildAndsaveProfile(false);
 		return uinEntity;
-	}
-
-	@Override
-	public List<HandleInfoDTO> retrieveHandlesByUIN(String uin) throws IdRepoAppException {
-		try {
-			List<Handle> list = handleRepo.findByUinHash(getUinHash(uin));
-			if(list == null || list.isEmpty())
-				return List.of();
-
-			return list.stream()
-					.map(entity -> {
-						HandleInfoDTO handleInfoDTO = new HandleInfoDTO();
-						String encryptSalt = uinEncryptSaltRepo
-								.retrieveSaltById(Integer.valueOf(io.mosip.kernel.core.util.StringUtils.substringBefore(entity.getHandle(), SPLITTER)));
-                        try {
-                            handleInfoDTO.setHandle(new String(securityManager.decryptWithSalt(
-                                    CryptoUtil.decodeURLSafeBase64(io.mosip.kernel.core.util.StringUtils.substringAfter(entity.getHandle(), SPLITTER)),
-                                    CryptoUtil.decodePlainBase64(encryptSalt), uinRefId)));
-                        } catch (IdRepoAppException e) {
-							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveHandlesByUIN",
-									"\n Failed to decrypt handle due to " + e.getMessage());
-                        }
-                        handleInfoDTO.setHashAttributes(
-								securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(entity.getHandle(),
-										uinEncryptSaltRepo::retrieveSaltById));
-						handleInfoDTO.getHashAttributes().put("idType", "handle");
-						return handleInfoDTO;
-					})
-					.collect(Collectors.toList());
-		} catch (IdRepoAppUncheckedException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveHandlesByUIN",
-				"\n" + e.getMessage());
-			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
-		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveHandlesByUIN",
-					e.getMessage());
-				throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
-		}
 	}
 
 	protected String getUinToEncrypt(String uin) {
