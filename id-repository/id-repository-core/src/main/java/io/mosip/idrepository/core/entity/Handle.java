@@ -7,16 +7,12 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-
 import java.time.LocalDateTime;
 
 @Data
 @Entity
 @NoArgsConstructor
 @Table(name = "handle", schema = "idrepo")
-@ConditionalOnBean(name = { "idRepoDataSource" })
 public class Handle implements HandleInfo {
 
     @Id

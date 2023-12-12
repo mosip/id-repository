@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
+import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
+import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
@@ -17,15 +19,22 @@ import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.dto.HandleDto;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.idobjectvalidator.constant.IdObjectValidatorConstant;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -66,6 +75,24 @@ public class IdRepoServiceHelper {
 
     @Autowired
     private UinHashSaltRepo uinHashSaltRepo;
+
+    @Value("${mosip.identity.mapping-file}")
+    private String identityMappingJson;
+
+    private IdentityMapping identityMapping;
+
+
+    @PostConstruct
+    private void initialize() throws IOException {
+        try (InputStream xsdBytes = new URL(identityMappingJson).openStream()) {
+            identityMapping = mapper.readValue(IOUtils.toString(xsdBytes, StandardCharsets.UTF_8),
+                    IdentityMapping.class);;
+        }
+    }
+
+    public IdentityMapping getIdentityMapping() {
+        return this.identityMapping;
+    }
 
 
     /**
@@ -122,8 +149,8 @@ public class IdRepoServiceHelper {
         Map<String, Object> requestMap = convertToMap(identity);
         if (requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH))) {
             Map<String, Object> identityMap = (Map<String, Object>) requestMap.get(ROOT_PATH);
-            String schemaVersion = String.valueOf(identityMap.get(ID_SCHEMA_VERSION));
-            if(identityMap.containsKey(SELECTED_HANDLES) && Objects.nonNull(identityMap.get(SELECTED_HANDLES))) {
+            String schemaVersion = String.valueOf(identityMap.get(identityMapping.getIdentity().getIDSchemaVersion().getValue()));
+            if(identityMap.containsKey(SELECTED_HANDLES) && Objects.nonNull(identityMap.get(identityMapping.getIdentity().getSelectedHandles().getValue()))) {
                 mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER, "getSelectedHandles",
                         requestMap.get(SELECTED_HANDLES));
                 List<String> selectedHandleFieldIds = (List<String>) identityMap.get(SELECTED_HANDLES);
@@ -145,7 +172,8 @@ public class IdRepoServiceHelper {
         //handle is converted to lowercase. It is language neutral conversion.
         int saltId = securityManager.getSaltKeyForHashOfId(handle.toLowerCase(Locale.ROOT));
         String salt = uinHashSaltRepo.retrieveSaltById(saltId);
-        String saltedHash = securityManager.hashwithSalt(handle.getBytes(), CryptoUtil.decodePlainBase64(salt));
+        String saltedHash = securityManager.hashwithSalt(handle.getBytes(StandardCharsets.UTF_8),
+                CryptoUtil.decodePlainBase64(salt));
         return saltId + SPLITTER + saltedHash;
     }
 
