@@ -788,13 +788,14 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	private Map<String, HandleDto> checkAndGetHandles(IdRequestDTO request) throws IdRepoAppException {
 		Map<String, HandleDto> handles = idRepoServiceHelper.getSelectedHandles(request.getRequest());
 		if(handles != null && !handles.isEmpty()) {
-			boolean duplicateHandlesFound = handles.keySet()
+			List<String> duplicateHandles = handles.keySet()
 					.stream()
-					.anyMatch(handleName -> handleRepo.existsByHandleHash(handles.get(handleName).getHandleHash()));
+					.filter(handleName -> handleRepo.existsByHandleHash(handles.get(handleName).getHandleHash()))
+					.collect(Collectors.toList());
 
-			if(duplicateHandlesFound) {
-				//Giving out information about which handle is already registered will be a privacy concern.
-				throw new IdRepoAppException(RECORD_EXISTS);
+			if(duplicateHandles != null && !duplicateHandles.isEmpty()) {
+				throw new IdRepoAppException(HANDLE_RECORD_EXISTS.getErrorCode(),
+						String.format(HANDLE_RECORD_EXISTS.getErrorMessage(), duplicateHandles));
 			}
 		}
 		return handles;
