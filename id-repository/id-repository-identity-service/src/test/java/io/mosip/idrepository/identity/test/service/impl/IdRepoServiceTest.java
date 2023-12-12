@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.Before;
@@ -188,6 +189,9 @@ public class IdRepoServiceTest {
 	
 	@Mock
 	private BiometricExtractionService biometricExtractionService;
+
+	@Mock
+	private IdRepoServiceHelper idRepoServiceHelper;
 
 	/** The id. */
 	private Map<String, String> id;
