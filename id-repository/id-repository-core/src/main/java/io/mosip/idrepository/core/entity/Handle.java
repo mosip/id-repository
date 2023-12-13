@@ -2,6 +2,7 @@ package io.mosip.idrepository.core.entity;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @Entity
 @NoArgsConstructor
 @Table(name = "handle", schema = "idrepo")
+@ConditionalOnBean(name = { "idRepoDataSource" })
 public class Handle implements HandleInfo {
 
     @Id

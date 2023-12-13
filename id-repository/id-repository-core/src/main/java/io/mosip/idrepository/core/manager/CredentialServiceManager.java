@@ -136,7 +136,7 @@ public class CredentialServiceManager {
 	@Autowired
 	private PartnerServiceManager partnerServiceManager;
 
-	@Autowired
+	@Autowired(required = false)
 	private HandleRepo handleRepo;
 
 	@Autowired
