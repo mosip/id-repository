@@ -114,8 +114,8 @@ public class CredentialServiceManager {
 	@Value("${mosip.idrepo.vid.active-status}")
 	private String vidActiveStatus;
 
-	@Value("${mosip.idrepo.vid.enabled:true}")
-	private boolean vidEnabled;
+	@Value("${mosip.idrepo.vid.disable-support:false}")
+	private boolean vidSupportDisabled;
 
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
@@ -186,7 +186,7 @@ public class CredentialServiceManager {
 			Consumer<EventModel> idaEventModelConsumer, List<String> partnerIds, String requestId) {
 		try {
 			List<VidInfoDTO> vidInfoDtos = null;
-			if (isUpdate && vidEnabled) {
+			if (isUpdate && !vidSupportDisabled) {
 				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_VIDS_BY_UIN, null,
 						VidsInfosDTO.class);
 				restRequest.setUri(restRequest.getUri().replace("{uin}", uin));
@@ -358,6 +358,7 @@ public class CredentialServiceManager {
 			List<VidInfoDTO> vidInfoDtos, List<HandleInfoDTO> handleList, List<String> partnerIds, IntFunction<String> saltRetreivalFunction,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,String requestId) {
 		List<CredentialIssueRequestDto> eventRequestsList = new ArrayList<>();
+
 		eventRequestsList.addAll(partnerIds.stream().map(partnerId -> {
 			String token = tokenIDGenerator.generateTokenID(uin, partnerId);
 			return createCredReqDto(uin, partnerId, expiryTimestamp, null, token,
@@ -380,6 +381,8 @@ public class CredentialServiceManager {
 			List<CredentialIssueRequestDto> handleRequests = handleList.stream().flatMap(handleInfoDTO -> {
 				return partnerIds.stream().map(partnerId -> {
 					String token = tokenIDGenerator.generateTokenID(uin, partnerId);
+					//Given requestId and the handle value is hashed together to generate a unique requestId for handle credential.
+					//Credential issuance status check systems should generate the handle requestId in the same way to get latest issuance status.
 					String handleRequestId = requestId.concat(handleInfoDTO.getHandle());
 					return createCredReqDto(handleInfoDTO.getHandle(), partnerId, null, null,
 							token, handleInfoDTO.getAdditionalData(),
