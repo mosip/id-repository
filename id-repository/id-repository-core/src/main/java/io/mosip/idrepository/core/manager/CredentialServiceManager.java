@@ -1,12 +1,8 @@
 package io.mosip.idrepository.core.manager;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
@@ -17,6 +13,14 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import io.mosip.idrepository.core.constant.*;
+import io.mosip.idrepository.core.dto.*;
+import io.mosip.idrepository.core.entity.Handle;
+import io.mosip.idrepository.core.exception.IdRepoAppException;
+import io.mosip.idrepository.core.repository.HandleRepo;
+import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
+import io.mosip.idrepository.core.repository.UinHashSaltRepo;
+import io.mosip.kernel.core.util.CryptoUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -26,16 +30,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
-import io.mosip.idrepository.core.constant.EventType;
-import io.mosip.idrepository.core.constant.IDAEventType;
-import io.mosip.idrepository.core.constant.IdRepoConstants;
-import io.mosip.idrepository.core.constant.RestServicesConstants;
-import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
-import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
-import io.mosip.idrepository.core.dto.CredentialStatusUpdateEvent;
-import io.mosip.idrepository.core.dto.RestRequestDTO;
-import io.mosip.idrepository.core.dto.VidInfoDTO;
-import io.mosip.idrepository.core.dto.VidsInfosDTO;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.RestServiceException;
@@ -52,6 +46,9 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.model.EventModel;
+
+import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
 
 /**
  * The Class CredentialServiceManager.
@@ -114,9 +111,15 @@ public class CredentialServiceManager {
 	@Value("${id-repo-ida-credential-recepiant:" + IDA + "}")
 	private String credentialRecepiant;
 	
-	@Value("$mosip.idrepo.vid.active-status}")
+	@Value("${mosip.idrepo.vid.active-status}")
 	private String vidActiveStatus;
-	
+
+	@Value("${mosip.idrepo.vid.disable-support:false}")
+	private boolean vidSupportDisabled;
+
+	@Value("${" + UIN_REFID + "}")
+	private String uinRefId;
+
 	/** The token ID generator. */
 	@Autowired
 	private TokenIDGenerator tokenIDGenerator;
@@ -132,6 +135,16 @@ public class CredentialServiceManager {
 	
 	@Autowired
 	private PartnerServiceManager partnerServiceManager;
+
+	@Autowired
+	private HandleRepo handleRepo;
+
+	@Autowired
+	private UinHashSaltRepo uinHashSaltRepo;
+
+	@Autowired
+	private UinEncryptSaltRepo uinEncryptSaltRepo;
+
 	
 	@Value("${" + PROP_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS + ":"
 			+ DEFAULT_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS + "}")
@@ -173,7 +186,7 @@ public class CredentialServiceManager {
 			Consumer<EventModel> idaEventModelConsumer, List<String> partnerIds, String requestId) {
 		try {
 			List<VidInfoDTO> vidInfoDtos = null;
-			if (isUpdate) {
+			if (isUpdate && !vidSupportDisabled) {
 				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_VIDS_BY_UIN, null,
 						VidsInfosDTO.class);
 				restRequest.setUri(restRequest.getUri().replace("{uin}", uin));
@@ -192,7 +205,7 @@ public class CredentialServiceManager {
 			} else {
 				// For create uin, or update uin with null expiry (active status), send event to
 				// credential service.
-				sendUinEventsToCredService(uin, expiryTimestamp, isUpdate, vidInfoDtos, partnerIds,
+				sendUinEventsToCredService(uin, expiryTimestamp, isUpdate, vidInfoDtos, getHandles(uin), partnerIds,
 						saltRetreivalFunction, credentialRequestResponseConsumer,requestId);
 			}
 
@@ -326,28 +339,30 @@ public class CredentialServiceManager {
 	 * @param expiryTimestamp            the expiry timestamp
 	 * @param isUpdate                   the is update
 	 * @param vidInfoDtos                the vid info dtos
+	 * @param handleList                 Handle dto list
 	 * @param partnerIds                 the partner ids
 	 * @param saltRetreivalFunction      the salt retreival function
 	 * @param credentialRequestResponseConsumer the credential response consumer
 	 */
 	public void  sendUinEventsToCredService(String uin, LocalDateTime expiryTimestamp, boolean isUpdate,
-				List<VidInfoDTO> vidInfoDtos, List<String> partnerIds, IntFunction<String> saltRetreivalFunction,
+				List<VidInfoDTO> vidInfoDtos, List<HandleInfoDTO> handleList, List<String> partnerIds, IntFunction<String> saltRetreivalFunction,
 				BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
 		
 		sendUinEventsToCredService( uin,  expiryTimestamp,  isUpdate,
-				 vidInfoDtos,  partnerIds,  saltRetreivalFunction,
+				 vidInfoDtos, handleList,  partnerIds,  saltRetreivalFunction,
 				 credentialRequestResponseConsumer,null);
 		
 	}
 	
 	public void sendUinEventsToCredService(String uin, LocalDateTime expiryTimestamp, boolean isUpdate,
-			List<VidInfoDTO> vidInfoDtos, List<String> partnerIds, IntFunction<String> saltRetreivalFunction,
+			List<VidInfoDTO> vidInfoDtos, List<HandleInfoDTO> handleList, List<String> partnerIds, IntFunction<String> saltRetreivalFunction,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,String requestId) {
 		List<CredentialIssueRequestDto> eventRequestsList = new ArrayList<>();
+
 		eventRequestsList.addAll(partnerIds.stream().map(partnerId -> {
 			String token = tokenIDGenerator.generateTokenID(uin, partnerId);
 			return createCredReqDto(uin, partnerId, expiryTimestamp, null, token,
-					securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(uin, saltRetreivalFunction),requestId);
+					securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(uin, saltRetreivalFunction), requestId);
 		}).collect(Collectors.toList()));
 
 		if (vidInfoDtos != null) {
@@ -360,6 +375,21 @@ public class CredentialServiceManager {
 				});
 			}).collect(Collectors.toList());
 			eventRequestsList.addAll(vidRequests);
+		}
+
+		if(handleList != null) {
+			List<CredentialIssueRequestDto> handleRequests = handleList.stream().flatMap(handleInfoDTO -> {
+				return partnerIds.stream().map(partnerId -> {
+					String token = tokenIDGenerator.generateTokenID(uin, partnerId);
+					//Given requestId and the handle value is hashed together to generate a unique requestId for handle credential.
+					//Credential issuance status check systems should generate the handle requestId in the same way to get latest issuance status.
+					String handleRequestId = requestId.concat(handleInfoDTO.getHandle());
+					return createCredReqDto(handleInfoDTO.getHandle(), partnerId, null, null,
+							token, handleInfoDTO.getAdditionalData(),
+							securityManager.hash(handleRequestId.getBytes(StandardCharsets.UTF_8)));
+				});
+			}).collect(Collectors.toList());
+			eventRequestsList.addAll(handleRequests);
 		}
 
 		sendRequestToCredService(eventRequestsList, isUpdate, credentialRequestResponseConsumer);
@@ -428,12 +458,12 @@ public class CredentialServiceManager {
 			Map<String, Object> response = Map.of();
 			RestServicesConstants restServicesConstants = requestWrapper.getRequest().getRequestId() != null
 					&& !requestWrapper.getRequest().getRequestId().isEmpty()
-							? RestServicesConstants.CREDENTIAL_REQUEST_SERVICE_V2
-							: RestServicesConstants.CREDENTIAL_REQUEST_SERVICE;
+					? RestServicesConstants.CREDENTIAL_REQUEST_SERVICE_V2
+					: RestServicesConstants.CREDENTIAL_REQUEST_SERVICE;
 			Map<String, String> pathParam = requestWrapper.getRequest().getRequestId() != null
 					&& !requestWrapper.getRequest().getRequestId().isEmpty()
-							? Map.of(RID, requestWrapper.getRequest().getRequestId())
-							: Map.of();
+					? Map.of(RID, requestWrapper.getRequest().getRequestId())
+					: Map.of();
 			response = restHelper
 					.requestSync(restBuilder.buildRequest(restServicesConstants, pathParam, requestWrapper, Map.class));
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(),
@@ -564,5 +594,32 @@ public class CredentialServiceManager {
 		credentialStatusUpdateEvent.setRequestId(requestId);
 		credentialStatusUpdateEvent.setTimestamp(DateUtils.formatToISOString(LocalDateTime.now()));
 		return credentialStatusUpdateEvent;
+	}
+
+	private List<HandleInfoDTO> getHandles(String uin) {
+		int modResult = securityManager.getSaltKeyForId(uin);
+		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
+		String uinHash = modResult + SPLITTER + securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
+		List<Handle> list = handleRepo.findByUinHash(uinHash);
+
+		return list.stream()
+				.map(entity -> {
+					HandleInfoDTO handleInfoDTO = new HandleInfoDTO();
+					String encryptSalt = uinEncryptSaltRepo
+							.retrieveSaltById(Integer.valueOf(io.mosip.kernel.core.util.StringUtils.substringBefore(entity.getHandle(), SPLITTER)));
+					try {
+						handleInfoDTO.setHandle(new String(securityManager.decryptWithSalt(
+								CryptoUtil.decodeURLSafeBase64(io.mosip.kernel.core.util.StringUtils.substringAfter(entity.getHandle(), SPLITTER)),
+								CryptoUtil.decodePlainBase64(encryptSalt), uinRefId)));
+					} catch (IdRepoAppException e) {
+						mosipLogger.error(IdRepoSecurityManager.getUser(), SEND_REQUEST_TO_CRED_SERVICE, "getHandles",
+								"\n Failed to decrypt handle due to " + e.getMessage());
+					}
+					handleInfoDTO.setAdditionalData(securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(entity.getHandle(),
+									uinEncryptSaltRepo::retrieveSaltById));
+					handleInfoDTO.getAdditionalData().put("idType", IdType.HANDLE.getIdType());
+					return handleInfoDTO;
+				})
+				.collect(Collectors.toList());
 	}
 }
