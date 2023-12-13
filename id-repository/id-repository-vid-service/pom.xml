@@ -32,7 +32,7 @@
 		<dependency>
 			<groupId>io.mosip.idrepository</groupId>
 			<artifactId>id-repository-core</artifactId>
-			<version>${id.repository.core.version}</version>
+			<version>1.2.0.1-B1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>io.mosip.kernel</groupId>
