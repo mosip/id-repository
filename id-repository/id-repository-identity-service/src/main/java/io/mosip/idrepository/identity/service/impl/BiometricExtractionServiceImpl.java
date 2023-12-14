@@ -98,8 +98,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 						mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
 								EXTRACT_TEMPLATE, e.getMessage());
 					}
-					if (existingBirs.size() == 0 || existingBirs.stream()
-							.anyMatch(cbeff -> cbeff.getBdb() == null || cbeff.getBdb().length == 0)) {
+					if (validateCbeff(existingBirs)) {
 						List<BIR> extractedBiometrics = extractBiometricTemplate(formatFlag, birsForModality);
 						objectStoreHelper.putBiometricObject(uinHash, extractionFileName,
 								cbeffUtil.createXML(extractedBiometrics));
@@ -178,8 +177,8 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 		bioExtractReq.setExtractionFormats(extractionFormats);
 		
 		BioExtractResponseDTO bioExtractResponseDTO = extractBiometrics(bioExtractReq);
-		if (bioExtractResponseDTO.getExtractedBiometrics().size() == 0 || bioExtractResponseDTO.getExtractedBiometrics()
-				.stream().anyMatch(bio -> bio.getBdb() == null || bio.getBdb().length == 0)) {
+		
+		if (validateCbeff(bioExtractResponseDTO.getExtractedBiometrics())) {
 			throw new BiometricExtractionException(INVALID_BIOMETRIC.getErrorCode(),
 					String.format(INVALID_BIOMETRIC.getErrorMessage()));
 		}
@@ -215,6 +214,14 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	private List<BIR> doBioExtraction(List<BIR> birs, Map<String, String> extractionFormats)
 			throws BiometricExtractionException {
 		return bioExractionHelper.extractTemplates(birs, extractionFormats);
+	}
+	
+	private boolean validateCbeff(List<BIR> existingBirs) {
+		if (existingBirs.size() == 0
+				|| existingBirs.stream().anyMatch(cbeff -> cbeff.getBdb() == null || cbeff.getBdb().length == 0)) {
+			return true;
+		}
+		return false;
 	}
 
 }
