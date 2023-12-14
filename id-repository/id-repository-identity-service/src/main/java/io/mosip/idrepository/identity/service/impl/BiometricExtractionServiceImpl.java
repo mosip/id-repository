@@ -97,7 +97,6 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 						existingBirs = List.of();
 						mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
 								EXTRACT_TEMPLATE, e.getMessage());
-
 					}
 					if (existingBirs.size() == 0 || existingBirs.stream()
 							.anyMatch(cbeff -> cbeff.getBdb() == null || cbeff.getBdb().length == 0)) {
