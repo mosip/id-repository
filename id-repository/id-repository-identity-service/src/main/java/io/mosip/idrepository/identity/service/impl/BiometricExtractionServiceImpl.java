@@ -90,7 +90,15 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 					mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
 							"RETURNING EXISTING EXTRACTED BIOMETRICS FOR FORMAT: " + extractionType +" : "+ extractionFormat);
 					byte[] xmlBytes = objectStoreHelper.getBiometricObject(uinHash, extractionFileName);
-					List<BIR> existingBirs = cbeffUtil.convertBIRTypeToBIR(cbeffUtil.getBIRDataFromXML(xmlBytes));
+					List<BIR> existingBirs;
+					try {
+						existingBirs = cbeffUtil.convertBIRTypeToBIR(cbeffUtil.getBIRDataFromXML(xmlBytes));
+					} catch (Exception e) {
+						existingBirs = List.of();
+						mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
+								EXTRACT_TEMPLATE, e.getMessage());
+
+					}
 					if (existingBirs.size() == 0 || existingBirs.stream()
 							.anyMatch(cbeff -> cbeff.getBdb() == null || cbeff.getBdb().length == 0)) {
 						List<BIR> extractedBiometrics = extractBiometricTemplate(formatFlag, birsForModality);
