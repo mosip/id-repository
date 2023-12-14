@@ -136,7 +136,7 @@ public class CredentialServiceManager {
 	@Autowired
 	private PartnerServiceManager partnerServiceManager;
 
-	@Autowired
+	@Autowired(required = false)
 	private HandleRepo handleRepo;
 
 	@Autowired
@@ -377,7 +377,9 @@ public class CredentialServiceManager {
 			eventRequestsList.addAll(vidRequests);
 		}
 
-		if(handleList != null) {
+		if(handleList != null && !handleList.isEmpty()) {
+			mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendUinEventsToCredService",
+					"Number of handles identified >> " + handleList.size());
 			List<CredentialIssueRequestDto> handleRequests = handleList.stream().flatMap(handleInfoDTO -> {
 				return partnerIds.stream().map(partnerId -> {
 					String token = tokenIDGenerator.generateTokenID(uin, partnerId);
@@ -597,6 +599,12 @@ public class CredentialServiceManager {
 	}
 
 	private List<HandleInfoDTO> getHandles(String uin) {
+		if(handleRepo == null) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "getHandles",
+					"HandleRepo is NULL");
+			return List.of();
+		}
+
 		int modResult = securityManager.getSaltKeyForId(uin);
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
 		String uinHash = modResult + SPLITTER + securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
