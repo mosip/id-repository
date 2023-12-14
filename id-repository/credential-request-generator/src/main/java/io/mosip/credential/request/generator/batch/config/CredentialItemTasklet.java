@@ -7,10 +7,12 @@ import io.mosip.credential.request.generator.dao.CredentialDao;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.ApiNotAccessibleException;
 import io.mosip.credential.request.generator.util.RestUtil;
+import io.mosip.credential.request.generator.util.TrimExceptionMessage;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
 import io.mosip.idrepository.core.dto.CredentialServiceResponse;
 import io.mosip.idrepository.core.dto.CredentialServiceResponseDto;
+import io.mosip.idrepository.core.dto.ErrorDTO;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -91,6 +93,7 @@ public class CredentialItemTasklet implements Tasklet {
 
 		try {
 			forkJoinPool.submit(() -> credentialEntities.parallelStream().forEach(credential -> {
+				TrimExceptionMessage trimMessage = new TrimExceptionMessage();
 				try {
 					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, "batchid = " + batchId,
 							"started processing item : " + credential.getRequestId());
@@ -122,8 +125,9 @@ public class CredentialItemTasklet implements Tasklet {
 							responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
 						LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, "batchid = " + batchId,
 								responseObject.toString());
-
+						ErrorDTO error = responseObject.getErrors().get(0);
 						credential.setStatusCode(CredentialStatusCode.FAILED.name());
+						credential.setStatusComment(error.getMessage());
 
 					} else {
 						CredentialServiceResponse credentialServiceResponse = responseObject.getResponse();
@@ -132,6 +136,7 @@ public class CredentialItemTasklet implements Tasklet {
 						credential.setIssuanceDate(credentialServiceResponse.getIssuanceDate());
 						credential.setStatusCode(credentialServiceResponse.getStatus());
 						credential.setSignature(credentialServiceResponse.getSignature());
+						credential.setStatusComment("credentials issued to partner");
 
 					}
 					credential.setUpdatedBy(CREDENTIAL_USER);
@@ -143,6 +148,7 @@ public class CredentialItemTasklet implements Tasklet {
 					LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, "batchid = " + batchId,
 							ExceptionUtils.getStackTrace(e));
 					credential.setStatusCode("FAILED");
+					credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
 					credential.setUpdateDateTime(DateUtils.getUTCCurrentDateTime());
 					credential.setUpdatedBy(CREDENTIAL_USER);
 				} catch (IOException e) {
@@ -150,6 +156,7 @@ public class CredentialItemTasklet implements Tasklet {
 					LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, "batchid = " + batchId,
 							ExceptionUtils.getStackTrace(e));
 					credential.setStatusCode("FAILED");
+					credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
 					credential.setUpdateDateTime(DateUtils.getUTCCurrentDateTime());
 					credential.setUpdatedBy(CREDENTIAL_USER);
 				} catch (Exception e) {
@@ -157,6 +164,7 @@ public class CredentialItemTasklet implements Tasklet {
 					LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_PROCESSOR, "batchid = " + batchId,
 							ExceptionUtils.getStackTrace(e));
 					credential.setStatusCode("FAILED");
+					credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
 					credential.setUpdateDateTime(DateUtils.getUTCCurrentDateTime());
 					credential.setUpdatedBy(CREDENTIAL_USER);
 				}
