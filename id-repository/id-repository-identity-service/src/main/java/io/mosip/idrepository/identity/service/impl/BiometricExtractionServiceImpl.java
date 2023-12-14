@@ -217,7 +217,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	}
 	
 	private boolean validateCbeff(List<BIR> birs) {
-		return birs.size() > 0 && birs.stream().anyMatch(cbeff -> cbeff.getBdb() != null && cbeff.getBdb().length > 0);
+		return birs.size() > 0 && birs.stream().allMatch(cbeff -> cbeff.getBdb() != null && cbeff.getBdb().length > 0);
 	}
 
 }
