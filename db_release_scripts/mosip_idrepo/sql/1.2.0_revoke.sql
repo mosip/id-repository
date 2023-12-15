@@ -28,4 +28,8 @@ DROP TABLE IF EXISTS idrepo.anonymous_profile;
 DROP TABLE IF EXISTS idrepo.channel_info;
 ------------------------------------------------------------------------------------------------------
 
-DROP TABLE IF EXISTS idrepo.idrepo-identity_update_count_tracker;
+DROP TABLE IF EXISTS idrepo.identity_update_count_tracker;
+
+------------------------------------------------------------------------------------------------------
+
+DROP TABLE IF EXISTS idrepo.handle;

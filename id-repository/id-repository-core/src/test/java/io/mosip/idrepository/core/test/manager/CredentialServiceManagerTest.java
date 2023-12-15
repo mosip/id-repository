@@ -111,8 +111,9 @@ public class CredentialServiceManagerTest {
 		Consumer<EventModel> idaEventModelConsumer = null;
 		List<String> partnerIds = new ArrayList<String>();
 		partnerIds.add(txnId);
+		String requestId = "123465";
 		credentialServiceManager.notifyUinCredential(uin, expiryTimestamp, status, isUpdate, txnId,
-				saltRetreivalFunction, credentialRequestResponseConsumer, idaEventModelConsumer, partnerIds);
+				saltRetreivalFunction, credentialRequestResponseConsumer, idaEventModelConsumer, partnerIds, requestId);
 	}
 
 }

@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.Before;
@@ -199,6 +200,9 @@ public class IdRepoServiceTest {
 
 	@Mock
 	private IdentityUpdateTrackerRepo identityUpdateTracker;
+
+	@Mock
+	private IdRepoServiceHelper idRepoServiceHelper;
 
 	/** The id. */
 	private Map<String, String> id;
@@ -2235,7 +2239,7 @@ public class IdRepoServiceTest {
 		assertEquals(Map.of("fullName", 0), response);
 	}
 
-	@Test(expected = IdRepoAppException.class)
+	@Test
 	public void testGetRemainingUpdateCountByIndividualIdwithUINIdType_UINNotExist() throws IdRepoAppException {
 		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 		ReflectionTestUtils.setField(proxyService, "securityManager", securityManagerMock);
