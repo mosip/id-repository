@@ -69,11 +69,11 @@ public class IdRepoSecurityManager {
 
 	private static final String STRING = "string";
 
-	private static final String SALT = "SALT";
+	public static final String SALT = "SALT";
 
-	private static final String MODULO = "MODULO";
+	public static final String MODULO = "MODULO";
 
-	private static final String ID_HASH = "id_hash";
+	public static final String ID_HASH = "id_hash";
 
 	/** The mosip logger. */
 	private Logger mosipLogger = IdRepoLogger.getLogger(IdRepoSecurityManager.class);
