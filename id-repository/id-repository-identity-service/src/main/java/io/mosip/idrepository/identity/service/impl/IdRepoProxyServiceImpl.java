@@ -715,7 +715,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		eventData.put(REGISTRATION_ID, registrationId);
 		String topic = eventType.toString();
 		EventModel eventModel = createEventModel(topic, eventData, registrationId);
-		mosipLogger.info(String.valueOf(eventModel));
 		sendEventToWebsub(eventModel);
 	}
 
