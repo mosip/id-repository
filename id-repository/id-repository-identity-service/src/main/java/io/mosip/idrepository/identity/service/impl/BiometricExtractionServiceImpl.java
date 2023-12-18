@@ -4,6 +4,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRA
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_NOT_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_BIOMETRIC;
 
 import java.io.IOException;
 import java.util.List;
@@ -82,13 +83,27 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 			String extractionType, String extractionFormat, List<BIR> birsForModality) throws IdRepoAppException {
 		try {
 			String extractionFileName = fileName.split("\\.")[0] + DOT + getModalityForFormat(extractionType) + DOT + extractionFormat;
+			Map<String, String> formatFlag = Map.of(getFormatFlag(extractionType), extractionFormat);
 			// TODO need to remove AmazonS3Exception handling
 			try {
 				if (objectStoreHelper.biometricObjectExists(uinHash, extractionFileName)) {
 					mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
 							"RETURNING EXISTING EXTRACTED BIOMETRICS FOR FORMAT: " + extractionType +" : "+ extractionFormat);
 					byte[] xmlBytes = objectStoreHelper.getBiometricObject(uinHash, extractionFileName);
-					List<BIR> existingBirs = cbeffUtil.convertBIRTypeToBIR(cbeffUtil.getBIRDataFromXML(xmlBytes));
+					List<BIR> existingBirs;
+					try {
+						existingBirs = cbeffUtil.convertBIRTypeToBIR(cbeffUtil.getBIRDataFromXML(xmlBytes));
+					} catch (Exception e) {
+						existingBirs = List.of();
+						mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
+								EXTRACT_TEMPLATE, e.getMessage());
+					}
+					if (!validateCbeff(existingBirs)) {
+						List<BIR> extractedBiometrics = extractBiometricTemplate(formatFlag, birsForModality);
+						objectStoreHelper.putBiometricObject(uinHash, extractionFileName,
+								cbeffUtil.createXML(extractedBiometrics));
+						return CompletableFuture.completedFuture(extractedBiometrics);
+					}
 					return CompletableFuture.completedFuture(existingBirs);
 				}
 			} catch (AmazonS3Exception e) {
@@ -98,7 +113,6 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 			
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
 					"EXTRATCING BIOMETRICS FOR FORMAT: " + extractionType +" : "+ extractionFormat);
-			Map<String, String> formatFlag = Map.of(getFormatFlag(extractionType), extractionFormat);
 			List<BIR> extractedBiometrics = extractBiometricTemplate(formatFlag, birsForModality);
 		
 			objectStoreHelper.putBiometricObject(uinHash, extractionFileName, cbeffUtil.createXML(extractedBiometrics));
@@ -107,6 +121,9 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE, e.getMessage());
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);
 		} catch (BiometricExtractionException e) {
+			if(e.getErrorCode().equalsIgnoreCase(INVALID_BIOMETRIC.getErrorCode())) {
+				throw e;
+			}
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE, e.getMessage());
 			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
 		} catch (IOException e) {
@@ -160,6 +177,11 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 		bioExtractReq.setExtractionFormats(extractionFormats);
 		
 		BioExtractResponseDTO bioExtractResponseDTO = extractBiometrics(bioExtractReq);
+		
+		if (!validateCbeff(bioExtractResponseDTO.getExtractedBiometrics())) {
+			throw new BiometricExtractionException(INVALID_BIOMETRIC.getErrorCode(),
+					String.format(INVALID_BIOMETRIC.getErrorMessage()));
+		}
 		return bioExtractResponseDTO.getExtractedBiometrics();
 	}
 
@@ -190,6 +212,10 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	private List<BIR> doBioExtraction(List<BIR> birs, Map<String, String> extractionFormats)
 			throws BiometricExtractionException {
 		return bioExractionHelper.extractTemplates(birs, extractionFormats);
+	}
+	
+	private boolean validateCbeff(List<BIR> birs) {
+		return birs.size() > 0 && birs.stream().allMatch(cbeff -> cbeff.getBdb() != null && cbeff.getBdb().length > 0);
 	}
 
 }

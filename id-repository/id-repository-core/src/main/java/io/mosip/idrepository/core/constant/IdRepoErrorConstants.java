@@ -83,6 +83,8 @@ public enum IdRepoErrorConstants {
 	
 	OLD_APPLICATION_ID("IDR-IDS-011", "This is an old application Id"),
 	
+	INVALID_BIOMETRIC("IDR-IDS-012", "Failed to extract the valid biometric data"),
+	
 	// VID Service
 	
 	/** The invalid vid. */

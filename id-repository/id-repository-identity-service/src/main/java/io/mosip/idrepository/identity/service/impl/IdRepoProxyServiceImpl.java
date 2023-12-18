@@ -10,6 +10,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DOCUMENT_
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_NOT_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_BIOMETRIC;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.OLD_APPLICATION_ID;
@@ -641,11 +642,15 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			// TODO need to remove AmazonS3Exception handling
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES, e.getMessage());
 			throw new IdRepoAppUncheckedException(FILE_NOT_FOUND, e);
-		} catch (Exception e) {
+		}catch(Exception e) {
 			ExceptionUtils.getStackTrace(e);
+			if(e.getMessage().contains(INVALID_BIOMETRIC.getErrorCode())) {
+				throw new IdRepoAppException(INVALID_BIOMETRIC, e);
+			}
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
 			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
 		}
+		
 	}
 
 	
