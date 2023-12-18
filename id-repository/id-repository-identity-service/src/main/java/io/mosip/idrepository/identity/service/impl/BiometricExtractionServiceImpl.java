@@ -165,7 +165,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	 * @param extractionFormats the extraction formats
 	 * @param birs the birs
 	 * @return the list
-	 * @throws BiometricExtractionException the biometric extraction exceptions 
+	 * @throws BiometricExtractionException the biometric extraction exception
 	 */
 	private List<BIR> extractBiometricTemplate(Map<String, String> extractionFormats, List<BIR> birs)
 			throws BiometricExtractionException {
