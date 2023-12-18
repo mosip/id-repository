@@ -122,7 +122,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);
 		} catch (BiometricExtractionException e) {
 			if(e.getErrorCode().equalsIgnoreCase(INVALID_BIOMETRIC.getErrorCode())) {
-				throw new BiometricExtractionException(INVALID_BIOMETRIC, e);
+				throw e;
 			}
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE, e.getMessage());
 			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
@@ -165,7 +165,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	 * @param extractionFormats the extraction formats
 	 * @param birs the birs
 	 * @return the list
-	 * @throws IdRepoAppException 
+	 * @throws BiometricExtractionException the biometric extraction exceptions 
 	 */
 	private List<BIR> extractBiometricTemplate(Map<String, String> extractionFormats, List<BIR> birs)
 			throws BiometricExtractionException {
@@ -183,8 +183,6 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 					String.format(INVALID_BIOMETRIC.getErrorMessage()));
 		}
 		return bioExtractResponseDTO.getExtractedBiometrics();
-		
-		
 	}
 
 	/**
