@@ -123,7 +123,7 @@ public class CredentialServiceManager {
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
 
-	@Value("${mosip.idrepo.uin.disable-support:false}")
+	@Value("${mosip.idrepo.identity.disable-uin-based-credential-request:false}")
 	private boolean uinSupportDisabled;
 
 	/** The token ID generator. */
