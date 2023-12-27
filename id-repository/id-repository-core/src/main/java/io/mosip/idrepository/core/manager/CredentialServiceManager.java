@@ -123,6 +123,9 @@ public class CredentialServiceManager {
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
 
+	@Value("${mosip.idrepo.identity.disable-uin-based-credential-request:false}")
+	private boolean disableUINBasedCredentialRequest;
+
 	/** The token ID generator. */
 	@Autowired
 	private TokenIDGenerator tokenIDGenerator;
@@ -362,11 +365,13 @@ public class CredentialServiceManager {
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,String requestId) {
 		List<CredentialIssueRequestDto> eventRequestsList = new ArrayList<>();
 
-		eventRequestsList.addAll(partnerIds.stream().map(partnerId -> {
-			String token = tokenIDGenerator.generateTokenID(uin, partnerId);
-			return createCredReqDto(uin, partnerId, expiryTimestamp, null, token,
-					securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(uin, saltRetreivalFunction), requestId);
-		}).collect(Collectors.toList()));
+		if(!disableUINBasedCredentialRequest) {
+			eventRequestsList.addAll(partnerIds.stream().map(partnerId -> {
+				String token = tokenIDGenerator.generateTokenID(uin, partnerId);
+				return createCredReqDto(uin, partnerId, expiryTimestamp, null, token,
+						securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(uin, saltRetreivalFunction), requestId);
+			}).collect(Collectors.toList()));
+		}
 
 		if (vidInfoDtos != null) {
 			List<CredentialIssueRequestDto> vidRequests = vidInfoDtos.stream().flatMap(vidInfoDTO -> {
