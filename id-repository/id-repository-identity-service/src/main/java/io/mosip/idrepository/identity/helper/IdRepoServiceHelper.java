@@ -29,6 +29,8 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -73,6 +75,9 @@ public class IdRepoServiceHelper {
 
     @Value("${mosip.identity.mapping-file}")
     private String identityMappingJson;
+
+    @Value("#{${mosip.identity.fieldid.handle-postfix.mapping}}")
+    private Map<String, String> fieldIdHandlePostfixMapping;
 
     private IdentityMapping identityMapping;
 
@@ -155,7 +160,7 @@ public class IdRepoServiceHelper {
                         .collect(Collectors.toMap(handleName->handleName,
                                 handleFieldId-> {
                                     String handle = ((String) identityMap.get(handleFieldId))
-                                            .concat("@").concat(handleFieldId)
+                                            .concat(getHandlePostfix(handleFieldId))
                                             .toLowerCase(Locale.ROOT);
                                     return new HandleDto(handle, getHandleHash(handle));
                                 }));
@@ -185,5 +190,16 @@ public class IdRepoServiceHelper {
                     .replace("']", ""));
         });
         return supportedHandles;
+    }
+
+    private String getHandlePostfix(String fieldId) {
+        if(CollectionUtils.isEmpty(fieldIdHandlePostfixMapping)) {
+            return "@".concat(fieldId);
+        }
+        String postfix = fieldIdHandlePostfixMapping.get(fieldId);
+        if(postfix == null) {
+            return "@".concat(fieldId);
+        }
+        return postfix;
     }
 }
