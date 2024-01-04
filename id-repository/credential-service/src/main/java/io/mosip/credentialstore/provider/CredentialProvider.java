@@ -645,10 +645,9 @@ public class CredentialProvider {
 		}else if (isFullAddressAttribute(attribute) ) {
 			List<String> identityAttributesList = attributeFormat==null?List.of():Arrays.asList(attributeFormat.split(","));
 			formattedObject = formatData(identity, FULLADDRESS, identityAttributesList, source.getFilter());
-		} else{
-			formattedObject = formatData(identity, attribute, List.of(), source.getFilter());
+		} else if(identity.get(attribute) instanceof List){
+				formattedObject = formatData(identity, attribute, List.of(), source.getFilter());
 		}
-
 		return formattedObject;
 	}
 
