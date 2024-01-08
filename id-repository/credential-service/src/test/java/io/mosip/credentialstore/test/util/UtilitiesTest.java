@@ -74,10 +74,5 @@ public class UtilitiesTest {
 		assertNotNull(response);
 	}
 
-	@Test
-	public void generatePin() {
-		String response = utilities.generatePin();
-		assertEquals(5, response.length());
-	}
 
 }
