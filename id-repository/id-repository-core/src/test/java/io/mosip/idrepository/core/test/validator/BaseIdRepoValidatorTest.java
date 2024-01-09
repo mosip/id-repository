@@ -28,6 +28,7 @@ import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.core.validator.BaseIdRepoValidator;
 import io.mosip.kernel.core.util.DateUtils;
+import java.time.LocalDateTime;
 
 /**
  * 
@@ -36,32 +37,36 @@ import io.mosip.kernel.core.util.DateUtils;
  */
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
-@WebMvcTest @Import(EnvUtil.class)
+@WebMvcTest
+@Import(EnvUtil.class)
 @ActiveProfiles("test")
 @ConfigurationProperties("mosip.idrepo.identity")
 public class BaseIdRepoValidatorTest {
 
-	BaseIdRepoValidator requestValidator=new BaseIdRepoValidator() {
-		
+	BaseIdRepoValidator requestValidator = new BaseIdRepoValidator() {
+
 	};
-	
+
 	/** The id. */
 	private Map<String, String> id;
 
 	public Map<String, String> getId() {
 		return id;
 	}
+
 	public void setId(Map<String, String> id) {
 		this.id = id;
 	}
 
 	Errors errors;
+
 	@Before
 	public void before() {
 		EnvUtil.setVersionPattern("^v\\\\d+(\\\\.\\\\d+)?$");
 		ReflectionTestUtils.setField(requestValidator, "id", id);
 		errors = new BeanPropertyBindingResult(new IdRequestDTO(), "idRequestDto");
 	}
+
 	@Test
 	public void testValidateReqTimeNullReqTime() {
 		ReflectionTestUtils.invokeMethod(requestValidator, "validateReqTime", null, errors);
@@ -73,7 +78,7 @@ public class BaseIdRepoValidatorTest {
 			assertEquals("requesttime", ((FieldError) error).getField());
 		});
 	}
-	
+
 	@Test
 	public void testValidateReqTimeFutureReqTime() {
 		ReflectionTestUtils.invokeMethod(requestValidator, "validateReqTime",
@@ -86,7 +91,21 @@ public class BaseIdRepoValidatorTest {
 			assertEquals("requesttime", ((FieldError) error).getField());
 		});
 	}
-	
+
+	@Test
+	public void testvalidateReqtimeneg() {
+		ReflectionTestUtils.invokeMethod(requestValidator, "validateReqTime", LocalDateTime.now().minusSeconds(90),
+				errors);
+		assertTrue(errors.hasErrors());
+		errors.getAllErrors().forEach(error -> {
+			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), error.getCode());
+			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(),
+					"requesttime - the timestamp value can be at most 60 seconds before and after the current time."),
+					error.getDefaultMessage());
+			assertEquals("requesttime", ((FieldError) error).getField());
+		});
+	}
+
 	@Test
 	public void testValidateVerNullVer() {
 		ReflectionTestUtils.invokeMethod(requestValidator, "validateVersion", null, errors);
@@ -110,26 +129,28 @@ public class BaseIdRepoValidatorTest {
 			assertEquals("version", ((FieldError) error).getField());
 		});
 	}
-	
+
 	@Test
 	public void testValidateIdInvalidId() {
 		try {
-			ReflectionTestUtils.invokeMethod(requestValidator, "validateId", "abc","read");
-			}catch (UndeclaredThrowableException e) {
-				IdRepoAppException cause = (IdRepoAppException) e.getCause();
-				assertEquals(cause.getErrorCode(), IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode());
-				assertEquals(cause.getErrorText(), String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "id"));
-			}
+			ReflectionTestUtils.invokeMethod(requestValidator, "validateId", "abc", "read");
+		} catch (UndeclaredThrowableException e) {
+			IdRepoAppException cause = (IdRepoAppException) e.getCause();
+			assertEquals(cause.getErrorCode(), IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode());
+			assertEquals(cause.getErrorText(),
+					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "id"));
+		}
 	}
-	
+
 	@Test
 	public void testValidate_NullId() throws Throwable {
 		try {
-		ReflectionTestUtils.invokeMethod(requestValidator, "validateId", null,"read");
-		}catch (UndeclaredThrowableException e) {
+			ReflectionTestUtils.invokeMethod(requestValidator, "validateId", null, "read");
+		} catch (UndeclaredThrowableException e) {
 			IdRepoAppException cause = (IdRepoAppException) e.getCause();
 			assertEquals(cause.getErrorCode(), IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode());
-			assertEquals(cause.getErrorText(), String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), "id"));
+			assertEquals(cause.getErrorText(),
+					String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), "id"));
 		}
 	}
 }
