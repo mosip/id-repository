@@ -1,13 +1,13 @@
 package io.mosip.credential.request.generator.validator;
 
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
+
+import org.springframework.stereotype.Component;
+
 import io.mosip.idrepository.core.dto.CredentialIssueRequest;
-import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.util.StringUtils;
-import org.springframework.stereotype.Component;
-
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 
 /**
  * @author Kamesh Shekhar Prasad

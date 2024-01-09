@@ -22,6 +22,7 @@ import io.mosip.credential.request.generator.exception.CredentialRequestGenerato
 import io.mosip.credential.request.generator.init.CredentialInstializer;
 import io.mosip.credential.request.generator.init.SubscribeEvent;
 import io.mosip.credential.request.generator.service.CredentialRequestService;
+import io.mosip.credential.request.generator.validator.RequestValidator;
 import io.mosip.idrepository.core.dto.CredentialIssueRequest;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
@@ -66,6 +67,9 @@ public class CredentialRequestGeneratorController {
 	private SubscribeEvent subscribeEvent;
 
 	@Autowired
+	RequestValidator requestValidator;
+
+	@Autowired
 	JobLauncher jobLauncher;
 
 	/**
@@ -87,7 +91,7 @@ public class CredentialRequestGeneratorController {
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<Object> credentialIssue(
 			@RequestBody  RequestWrapper<CredentialIssueRequest>  credentialIssueRequestDto) throws IdRepoAppException {
-
+		requestValidator.validateRequestGeneratorRequest(credentialIssueRequestDto);
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = credentialRequestService
 				.createCredentialIssuance(credentialIssueRequestDto.getRequest());
 		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseWrapper);
