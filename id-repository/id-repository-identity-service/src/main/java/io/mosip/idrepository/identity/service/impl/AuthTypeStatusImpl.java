@@ -18,6 +18,7 @@ import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.AuthtypeStatus;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
+import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
@@ -87,8 +88,10 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	public List<AuthtypeStatus> fetchAuthTypeStatus(String individualId, IdType idType) throws IdRepoAppException {
 		List<AuthtypeLock> authTypeLockList;
 		List<Object[]> authTypeLockObjectsList = fetchAuthTypeStatusRecords(individualId, idType);
-		authTypeLockList = authTypeLockObjectsList.stream().map(obj -> new AuthtypeLock((String) obj[0], (String) obj[1],
-				Objects.nonNull(obj[2]) ? ((Timestamp) obj[2]).toLocalDateTime() : null)).collect(Collectors.toList());
+		authTypeLockList = authTypeLockObjectsList.stream()
+				.map(obj -> new AuthtypeLock((String) obj[0], (String) obj[1],
+						Objects.nonNull(obj[2]) ? ((Timestamp) obj[2]).toLocalDateTime() : null))
+				.collect(Collectors.toList());
 		return processAuthtypeList(authTypeLockList);
 	}
 
@@ -111,14 +114,17 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	 * duration. After that duration, auth type will be re-locked.
 	 */
 	@Override
-	public IdResponseDTO updateAuthTypeStatus(String individualId, IdType idType, List<AuthtypeStatus> authTypeStatusList)
+	public IdResponseDTO updateAuthTypeStatus(String individualId, IdType idType,
+			List<AuthtypeStatus> authTypeStatusList)
 			throws IdRepoAppException {
 		authTypeStatusList.stream().filter(
-				status -> !status.getLocked() && Objects.nonNull(status.getUnlockForSeconds()) && status.getUnlockForSeconds() > 0)
+				status -> !status.getLocked() && Objects.nonNull(status.getUnlockForSeconds())
+						&& status.getUnlockForSeconds() > 0)
 				.forEach(status -> {
 					status.setLocked(true);
 					status.setMetadata(Collections.singletonMap(UNLOCK_EXP_TIMESTAMP, DateUtils
-							.formatToISOString(DateUtils.getUTCCurrentDateTime().plusSeconds(status.getUnlockForSeconds()))));
+							.formatToISOString(
+									DateUtils.getUTCCurrentDateTime().plusSeconds(status.getUnlockForSeconds()))));
 				});
 		String uin = idType == IdType.VID ? getUin(individualId) : individualId;
 		IdResponseDTO updateAuthTypeStatus = doUpdateAuthTypeStatus(uin, authTypeStatusList);
@@ -148,7 +154,8 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 				}
 			}
 		} catch (RestServiceException | IdRepoDataValidationException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSuperclass().getSimpleName(), "getPartnerIds",
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSuperclass().getSimpleName(),
+					"getPartnerIds",
 					e.getMessage());
 		}
 		return Collections.emptyList();
@@ -197,7 +204,8 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 		authtypeLock.setCrDTimes(DateUtils.getUTCCurrentDateTime());
 		authtypeLock.setLockrequestDTtimes(DateUtils.getUTCCurrentDateTime());
 		authtypeLock.setLockstartDTtimes(DateUtils.getUTCCurrentDateTime());
-		if (Objects.nonNull(authtypeStatus.getMetadata()) && authtypeStatus.getMetadata().containsKey(UNLOCK_EXP_TIMESTAMP)) {
+		if (Objects.nonNull(authtypeStatus.getMetadata())
+				&& authtypeStatus.getMetadata().containsKey(UNLOCK_EXP_TIMESTAMP)) {
 			authtypeLock.setUnlockExpiryDTtimes(
 					DateUtils.parseToLocalDateTime((String) authtypeStatus.getMetadata().get(UNLOCK_EXP_TIMESTAMP)));
 		}
@@ -216,6 +224,10 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	private IdResponseDTO buildResponse() {
 		IdResponseDTO authtypeStatusResponseDto = new IdResponseDTO();
 		authtypeStatusResponseDto.setResponsetime(DateUtils.getUTCCurrentDateTime());
+		ResponseDTO response = new ResponseDTO();
+		response.setStatus("Success");
+		authtypeStatusResponseDto.setResponse(response);
+		authtypeStatusResponseDto.setErrors(null);
 		return authtypeStatusResponseDto;
 	}
 
