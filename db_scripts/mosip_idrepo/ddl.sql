@@ -16,8 +16,4 @@
 \ir ddl/idrepo-uin_document_draft.sql
 \ir ddl/idrepo-anonymous_profile.sql
 \ir ddl/idrepo-channel_info.sql
-<<<<<<< HEAD
-=======
-\ir ddl/idrepo-identity_update_count_tracker.sql
 \ir ddl/idrepo-handle.sql
->>>>>>> 9e5b534c (ES-421)
