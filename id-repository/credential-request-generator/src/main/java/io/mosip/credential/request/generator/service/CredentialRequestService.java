@@ -73,6 +73,4 @@ public interface CredentialRequestService {
 	 * @return the response wrapper
 	 */
 	public ResponseWrapper<CredentialIssueResponse> retriggerCredentialRequest(String requestId);
-
-    ResponseWrapper<CredentialIssueResponse> createCredentialIssuanceByRid(CredentialIssueRequest request, String rid);
 }
