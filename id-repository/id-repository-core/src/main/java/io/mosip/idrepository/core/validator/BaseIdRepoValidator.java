@@ -12,6 +12,7 @@ import javax.annotation.Resource;
 
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
+import org.springframework.beans.factory.annotation.Value;
 
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
@@ -48,6 +49,9 @@ public abstract class BaseIdRepoValidator {
 	/** The id. */
 	@Resource
 	protected Map<String, String> id;
+	
+	@Value("${mosip.idrepo.identity.idrepo-max-request-time-deviation-seconds}")
+	private int maxRequestTimeDeviationSeconds;
 
 	/**
 	 * Validate request time.
@@ -62,18 +66,25 @@ public abstract class BaseIdRepoValidator {
 			errors.rejectValue(REQUEST_TIME, MISSING_INPUT_PARAMETER.getErrorCode(),
 					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), REQUEST_TIME));
 		} else {
-			if (DateUtils.after(reqTime, DateUtils.getUTCCurrentDateTime()
-					.plusMinutes(EnvUtil.getDateTimeAdjustment()))) {
+			LocalDateTime currentUtcTime = DateUtils.getUTCCurrentDateTime();
+			LocalDateTime adjustedCurrentUtcTime = currentUtcTime.plusSeconds(EnvUtil.getDateTimeAdjustment());
+			int maxDeviationSeconds = maxRequestTimeDeviationSeconds;
+			if (DateUtils.after(reqTime, adjustedCurrentUtcTime.plusSeconds(maxDeviationSeconds))
+					|| DateUtils.before(reqTime, adjustedCurrentUtcTime.minusSeconds(maxDeviationSeconds))) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateReqTime",
-						"requesttime is future dated");
+						"requesttime is outside the allowed deviation");
 				mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateReqTime",
-						"reqTime" + reqTime.toString());
+						"reqTime: " + reqTime.toString());
 				mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateReqTime",
-						"vmTime" + DateUtils.getUTCCurrentDateTime());
+						"vmTime: " + adjustedCurrentUtcTime.toString());
+				String deviationMessage = String.format(
+						"%s - the timestamp value can be at most %d seconds before and after the current time.",
+						REQUEST_TIME, maxDeviationSeconds);
 				errors.rejectValue(REQUEST_TIME, INVALID_INPUT_PARAMETER.getErrorCode(),
-						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), REQUEST_TIME));
+						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), deviationMessage));
 			}
 		}
+
 	}
 
 	/**
