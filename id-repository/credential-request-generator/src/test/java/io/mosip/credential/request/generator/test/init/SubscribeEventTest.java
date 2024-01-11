@@ -1,11 +1,16 @@
 package io.mosip.credential.request.generator.test.init;
 
+import io.mosip.credential.request.generator.constants.SubscriptionMessage;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.context.ContextConfiguration;
@@ -19,10 +24,15 @@ import io.mosip.credential.request.generator.integration.WebSubSubscriptionHelpe
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.kernel.core.logger.spi.Logger;
 
+import java.util.Date;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+
 @RunWith(SpringRunner.class)
 @WebMvcTest
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
-@Ignore
 public class SubscribeEventTest {
 
 	@InjectMocks
@@ -48,6 +58,25 @@ public class SubscribeEventTest {
 	@Before
 	public void before() {
 		ReflectionTestUtils.setField(subscribeEvent, "taskSubsctiptionDelay", 60000);
+	}
+
+	@Test
+	public void testScheduleSubscription() {
+		String result = subscribeEvent.scheduleSubscription();
+		assertEquals(SubscriptionMessage.SUCCESS, result);
+	}
+
+	@Test
+	public void testOnApplicationEvent() {
+		ApplicationReadyEvent event = new ApplicationReadyEvent(new SpringApplication(), null, null);
+		int delayMilliseconds = 60000;
+		ArgumentMatcher<Date> dateMatcher = argument -> {
+			long expectedTime = System.currentTimeMillis() + delayMilliseconds;
+			long actualTime = argument.getTime();
+			return Math.abs(expectedTime - actualTime) <= 1000;
+		};
+		subscribeEvent.onApplicationEvent(event);
+		Mockito.verify(taskScheduler).schedule(any(Runnable.class), argThat(dateMatcher));
 	}
 
 }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.PathNotFoundException;
 import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
@@ -29,6 +30,8 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -73,6 +76,9 @@ public class IdRepoServiceHelper {
 
     @Value("${mosip.identity.mapping-file}")
     private String identityMappingJson;
+
+    @Value("#{${mosip.identity.fieldid.handle-postfix.mapping}}")
+    private Map<String, String> fieldIdHandlePostfixMapping;
 
     private IdentityMapping identityMapping;
 
@@ -155,7 +161,7 @@ public class IdRepoServiceHelper {
                         .collect(Collectors.toMap(handleName->handleName,
                                 handleFieldId-> {
                                     String handle = ((String) identityMap.get(handleFieldId))
-                                            .concat("@").concat(handleFieldId)
+                                            .concat(getHandlePostfix(handleFieldId))
                                             .toLowerCase(Locale.ROOT);
                                     return new HandleDto(handle, getHandleHash(handle));
                                 }));
@@ -175,9 +181,13 @@ public class IdRepoServiceHelper {
 
     private List<String> getSupportedHandles(String schema) {
         List<String> supportedHandles = new ArrayList<>();
-        List<String> paths = JsonPath.using(Configuration.builder().options(Option.AS_PATH_LIST).build())
-                .parse(schema)
-                .read("$['properties']['identity']['properties'][*][?(@['handle']==true)]");
+        List<String> paths = new ArrayList<>();
+        try {
+            paths = JsonPath.using(Configuration.builder().options(Option.AS_PATH_LIST).build())
+                    .parse(schema)
+                    .read("$['properties']['identity']['properties'][*][?(@['handle']==true)]");
+        } catch (PathNotFoundException ex) { /*ignore this exception*/ }
+
         paths.forEach( path -> {
             // returns in below format, so need to remove parent paths
             //Eg: "$['properties']['identity']['properties']['phone']"
@@ -185,5 +195,16 @@ public class IdRepoServiceHelper {
                     .replace("']", ""));
         });
         return supportedHandles;
+    }
+
+    private String getHandlePostfix(String fieldId) {
+        if(CollectionUtils.isEmpty(fieldIdHandlePostfixMapping)) {
+            return "@".concat(fieldId);
+        }
+        String postfix = fieldIdHandlePostfixMapping.get(fieldId);
+        if(postfix == null) {
+            return "@".concat(fieldId);
+        }
+        return postfix;
     }
 }
