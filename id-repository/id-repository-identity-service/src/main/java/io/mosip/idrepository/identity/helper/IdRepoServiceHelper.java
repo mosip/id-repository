@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.PathNotFoundException;
+
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
@@ -177,9 +179,12 @@ public class IdRepoServiceHelper {
 
     private List<String> getSupportedHandles(String schema) {
         List<String> supportedHandles = new ArrayList<>();
-        List<String> paths = JsonPath.using(Configuration.builder().options(Option.AS_PATH_LIST).build())
-                .parse(schema)
-                .read("$['properties']['identity']['properties'][*][?(@['handle']==true)]");
+        List<String> paths = new ArrayList<>();
+        try {
+            paths = JsonPath.using(Configuration.builder().options(Option.AS_PATH_LIST).build())
+                    .parse(schema)
+                    .read("$['properties']['identity']['properties'][*][?(@['handle']==true)]");
+        } catch (PathNotFoundException ex) { /*ignore this exception*/ }
         paths.forEach( path -> {
             // returns in below format, so need to remove parent paths
             //Eg: "$['properties']['identity']['properties']['phone']"
