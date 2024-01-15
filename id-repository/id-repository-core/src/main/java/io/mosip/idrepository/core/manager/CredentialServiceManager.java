@@ -505,6 +505,7 @@ public class CredentialServiceManager {
 			) {
 		return createCredReqDto(id,partnerId,expiryTimestamp,transactionLimit,token,idHashAttributes,null);
 	}
+
 	public CredentialIssueRequestDto createCredReqDto(String id, String partnerId, LocalDateTime expiryTimestamp,
 			Integer transactionLimit, String token, Map<? extends String, ? extends Object> idHashAttributes,String requestId
 			) {
@@ -623,25 +624,14 @@ public class CredentialServiceManager {
 						CryptoUtil.decodeURLSafeBase64(io.mosip.kernel.core.util.StringUtils.substringAfter(entity.getHandle(), SPLITTER)),
 						CryptoUtil.decodePlainBase64(encryptSalt), uinRefId)));
 
-				Map<String, String> additionalData = new HashMap<>();
-				int handleSaltId = securityManager.getSaltKeyForHashOfId(handleInfoDTO.getHandle());
-				String handleSalt = saltRetreivalFunction.apply(handleSaltId);
-				String handleHash = HMACUtils2.digestAsPlainTextWithSalt(handleInfoDTO.getHandle().getBytes(), handleSalt.getBytes());
-				additionalData.put(ID_HASH, handleHash);
-				additionalData.put(MODULO, String.valueOf(handleSaltId));
-				additionalData.put(SALT, handleSalt);
-				additionalData.put("idType", IdType.HANDLE.getIdType());
-				handleInfoDTO.setAdditionalData(additionalData);
-				mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "getHandles",
-						"handleInfoDTO >>>" + handleInfoDTO.getAdditionalData());
+				handleInfoDTO.setAdditionalData(securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(handleInfoDTO.getHandle(),
+						saltRetreivalFunction));
+				handleInfoDTO.getAdditionalData().put("idType", IdType.HANDLE.getIdType());
 				handleInfoDTOS.add(handleInfoDTO);
 			} catch (IdRepoAppException e) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), SEND_REQUEST_TO_CRED_SERVICE, "getHandles",
 						"\n Failed to decrypt handle due to " + e.getMessage());
-			} catch (NoSuchAlgorithmException e) {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), SEND_REQUEST_TO_CRED_SERVICE, "getHandles",
-						"\n Failed to generate handle hash " + e.getMessage());
-            }
+			}
 		}
 		return handleInfoDTOS;
 	}
