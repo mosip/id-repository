@@ -129,10 +129,24 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	private BiometricExtractionService biometricExtractionService;
 
 	@Autowired
+	private PublisherClient<String, EventModel, HttpHeaders> pb;
+
+	@Autowired
+	private Environment env;
+
+	@Autowired
 	private HandleRepo handleRepo;
 
 	@Autowired
 	private IdRepoServiceHelper idRepoServiceHelper;
+
+	private static final String REGISTRATION_ID = "registration_id";
+
+	@Value("${id-repo-ida-event-type-namespace:mosip}")
+	private String idaEventTypeNamespace;
+
+	@Value("${id-repo-ida-event-type-name:ida}")
+	private String idaEventTypeName;
 
 	/*
 	 * (non-Javadoc)
@@ -154,7 +168,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 			Uin uinEntity = service.addIdentity(request, uin);
 
-//			notify(uin, false, request.getRequest().getRegistrationId());
+			notify(uin, false, request.getRequest().getRegistrationId());
 			return constructIdResponse(this.id.get(CREATE), uinEntity, null);
 
 		} catch (IdRepoAppException e) {
@@ -462,10 +476,10 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				}
 				Uin uinObject=service.updateIdentity(request, uin);
 				mosipLogger.info("Uin updated");
-//				if (env.getProperty(ACTIVE_STATUS).equalsIgnoreCase(uinObject.getStatusCode())) {
-//					mosipLogger.info("Uin is in active status");
-//					notify(uin, true, request.getRequest().getRegistrationId());
-//				}
+				if (env.getProperty(ACTIVE_STATUS).equalsIgnoreCase(uinObject.getStatusCode())) {
+					mosipLogger.info("Uin is in active status");
+					notify(uin, true, request.getRequest().getRegistrationId());
+				}
 				return constructIdResponse(MOSIP_ID_UPDATE, service.retrieveIdentity(uinHash, IdType.UIN, null, null),
 						null);
 			} else {
@@ -552,6 +566,66 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "convertToObject", e.getMessage());
 			throw new IdRepoAppException(ID_OBJECT_PROCESSING_FAILED, e);
 		}
+	}
+
+	private void notify(String uin,boolean isUpdate, String txnId) {
+		try {
+			sendGenericIdentityEvents(uin, isUpdate, txnId);
+		} catch (Exception e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "notify", e.getMessage());
+		}
+	}
+
+	private EventModel createEventModel(String topic, Map<String, Object> eventData, String transactionId) {
+		EventModel model = new EventModel();
+		model.setPublisher(ID_REPO);
+		String dateTime = DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime());
+		model.setPublishedOn(dateTime);
+		Event event = new Event();
+		event.setTimestamp(dateTime);
+		String eventId = UUID.randomUUID().toString();
+		event.setId(eventId);
+		event.setTransactionId(transactionId);
+		Type type = new Type();
+		type.setNamespace(idaEventTypeNamespace);
+		type.setName(idaEventTypeName);
+		event.setType(type);
+		event.setData(eventData);
+		model.setEvent(event);
+		model.setTopic(topic);
+		return model;
+	}
+	private void sendEventToWebsub(EventModel model) {
+		try {
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendEventToWebsub",
+					"Trying registering topic: " + model.getTopic());
+			pb.registerTopic(model.getTopic(), env.getProperty(WEB_SUB_PUBLISH_URL));
+		} catch (Exception e) {
+			// Exception will be there if topic already registered. Ignore that
+			mosipLogger.warn(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendEventToWebsub",
+					"Error in registering topic: " + model.getTopic() + " : " + e.getMessage());
+		}
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "sendEventToWebsub",
+				"Publising event to topic: " + model.getTopic());
+		pb.publishUpdate(model.getTopic(), model, MediaType.APPLICATION_JSON_VALUE, null,
+				env.getProperty(WEB_SUB_PUBLISH_URL));
+	}
+
+	private void sendGenericIdentityEvents(String uin, boolean isUpdate, String registrationId) {
+		mosipLogger.info("Inside sendGenericIdentityEvents");
+		EventType eventType = isUpdate ? IDAEventType.IDENTITY_UPDATED : IDAEventType.IDENTITY_CREATED;
+		Map<String, Object> eventData = new HashMap<>();
+		eventData.put(ID_HASH, getIdHash(uin));
+		eventData.put(REGISTRATION_ID, registrationId);
+		String topic = eventType.toString();
+		EventModel eventModel = createEventModel(topic, eventData, registrationId);
+		sendEventToWebsub(eventModel);
+	}
+
+	private String getIdHash(String uin) {
+		int saltId = securityManager.getSaltKeyForId(uin);
+		String hashSalt = uinHashSaltRepo.retrieveSaltById(saltId);
+		return securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
 	}
 
 	private IdResponseDTO retrieveIdentityByHandle(String handle, String type, Map<String, String> extractionFormats)
