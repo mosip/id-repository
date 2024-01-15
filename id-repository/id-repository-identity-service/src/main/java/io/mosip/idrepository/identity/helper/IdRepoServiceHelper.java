@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
-import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
@@ -19,7 +18,6 @@ import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.dto.HandleDto;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -29,6 +27,7 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -73,6 +72,9 @@ public class IdRepoServiceHelper {
 
     @Value("${mosip.identity.mapping-file}")
     private String identityMappingJson;
+
+    @Value("#{${mosip.identity.fieldid.handle-postfix.mapping}}")
+    private Map<String, String> fieldIdHandlePostfixMapping;
 
     private IdentityMapping identityMapping;
 
@@ -155,7 +157,7 @@ public class IdRepoServiceHelper {
                         .collect(Collectors.toMap(handleName->handleName,
                                 handleFieldId-> {
                                     String handle = ((String) identityMap.get(handleFieldId))
-                                            .concat("@").concat(handleFieldId)
+                                    		.concat(getHandlePostfix(handleFieldId))
                                             .toLowerCase(Locale.ROOT);
                                     return new HandleDto(handle, getHandleHash(handle));
                                 }));
@@ -185,5 +187,16 @@ public class IdRepoServiceHelper {
                     .replace("']", ""));
         });
         return supportedHandles;
+    }
+
+    private String getHandlePostfix(String fieldId) {
+        if(CollectionUtils.isEmpty(fieldIdHandlePostfixMapping)) {
+            return "@".concat(fieldId);
+        }
+        String postfix = fieldIdHandlePostfixMapping.get(fieldId);
+        if(postfix == null) {
+            return "@".concat(fieldId);
+        }
+        return postfix;
     }
 }
