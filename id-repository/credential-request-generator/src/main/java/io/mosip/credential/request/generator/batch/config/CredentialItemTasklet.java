@@ -174,9 +174,9 @@ public class CredentialItemTasklet implements Tasklet {
 				}
 			})).get();
 		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 					ExceptionUtils.getStackTrace(e));
+			throw e;
 		} catch (ExecutionException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 						ExceptionUtils.getStackTrace(e));
