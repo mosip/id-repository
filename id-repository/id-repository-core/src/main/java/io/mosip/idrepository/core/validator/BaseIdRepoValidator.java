@@ -50,7 +50,7 @@ public abstract class BaseIdRepoValidator {
 	@Resource
 	protected Map<String, String> id;
 
-	@Value("${mosip.idrepo.identity.idrepo-max-request-time-deviation-seconds}")
+	@Value("${mosip.idrepo.identity.idrepo-max-request-time-deviation-seconds:60}")
 	private int maxRequestTimeDeviationSeconds;
 
 	/**
