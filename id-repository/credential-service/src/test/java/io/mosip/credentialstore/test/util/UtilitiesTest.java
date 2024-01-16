@@ -1,6 +1,5 @@
 package io.mosip.credentialstore.test.util;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
@@ -72,12 +71,6 @@ public class UtilitiesTest {
 	public void generateId() {
 		String response = utilities.generateId();
 		assertNotNull(response);
-	}
-
-	@Test
-	public void generatePin() {
-		String response = utilities.generatePin();
-		assertEquals(5, response.length());
 	}
 
 }

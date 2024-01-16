@@ -73,7 +73,6 @@ import io.mosip.idrepository.identity.entity.UinBiometricDraft;
 import io.mosip.idrepository.identity.entity.UinDocument;
 import io.mosip.idrepository.identity.entity.UinDocumentDraft;
 import io.mosip.idrepository.identity.entity.UinDraft;
-import io.mosip.idrepository.identity.helper.AnonymousProfileHelper;
 import io.mosip.idrepository.identity.helper.VidDraftHelper;
 import io.mosip.idrepository.identity.repository.UinBiometricRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentRepo;
@@ -151,14 +150,13 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			if (!super.uinHistoryRepo.existsByRegId(registrationId) && !uinDraftRepo.existsByRegId(registrationId)) {
 				UinDraft newDraft;
 				if (Objects.nonNull(uin)) {
-					int modValue = securityManager.getSaltKeyForId(uin);
-					Optional<Uin> uinObjectOptional = super.uinRepo.findByUinHash(super.getUinHash(uin, modValue));
+					Optional<Uin> uinObjectOptional = super.uinRepo.findByUinHash(super.getUinHash(uin));
 					if (uinObjectOptional.isPresent()) {
 						Uin uinObject = uinObjectOptional.get();
 						newDraft = mapper.convertValue(uinObject, UinDraft.class);
 						updateBiometricAndDocumentDrafts(registrationId, newDraft, uinObject);
 						newDraft.setRegId(registrationId);
-						newDraft.setUin(super.getUinToEncrypt(uin, securityManager.getSaltKeyForId(uin)));
+						newDraft.setUin(super.getUinToEncrypt(uin));
 					} else {
 						idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT,
 								"UIN NOT EXIST");
@@ -167,9 +165,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				} else {
 					newDraft = new UinDraft();
 					uin = generateUin();
-					int modValue = securityManager.getSaltKeyForId(uin);
-					newDraft.setUin(super.getUinToEncrypt(uin, modValue));
-					newDraft.setUinHash(super.getUinHash(uin, modValue));
+					newDraft.setUin(super.getUinToEncrypt(uin));
+					newDraft.setUinHash(super.getUinHash(uin));
 					byte[] uinData = convertToBytes(generateIdentityObject(uin));
 					newDraft.setUinData(uinData);
 					newDraft.setUinDataHash(securityManager.hash(uinData));
@@ -436,7 +433,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		String uin = new String(securityManager.decryptWithSalt(
 				CryptoUtil.decodeURLSafeBase64(StringUtils.substringAfter(encryptedUin, SPLITTER)),
 				CryptoUtil.decodePlainBase64(salt), uinRefId));
-		if (!StringUtils.equals(super.getUinHash(uin, securityManager.getSaltKeyForId(uin)), uinHash)) {
+		if (!StringUtils.equals(super.getUinHash(uin), uinHash)) {
 			throw new IdRepoAppUncheckedException(UIN_HASH_MISMATCH);
 		}
 		return uin;

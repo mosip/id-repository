@@ -1,22 +1,9 @@
 package io.mosip.credential.request.generator.controller;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.annotation.Nullable;
 
-import io.mosip.idrepository.core.dto.*;
-import io.mosip.idrepository.core.logger.IdRepoLogger;
-import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.swagger.annotations.ApiParam;
-
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameter;
-import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,12 +22,20 @@ import io.mosip.credential.request.generator.exception.CredentialRequestGenerato
 import io.mosip.credential.request.generator.init.CredentialInstializer;
 import io.mosip.credential.request.generator.init.SubscribeEvent;
 import io.mosip.credential.request.generator.service.CredentialRequestService;
-import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.credential.request.generator.validator.RequestValidator;
+import io.mosip.idrepository.core.dto.CredentialIssueRequest;
+import io.mosip.idrepository.core.dto.CredentialIssueResponse;
+import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
+import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
+import io.mosip.idrepository.core.dto.CredentialRequestIdsDto;
+import io.mosip.idrepository.core.dto.PageDto;
+import io.mosip.idrepository.core.exception.IdRepoAppException;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.websub.api.annotation.PreAuthenticateContentAndVerifyIntent;
+import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -72,6 +67,9 @@ public class CredentialRequestGeneratorController {
 	private SubscribeEvent subscribeEvent;
 
 	@Autowired
+	RequestValidator requestValidator;
+
+	@Autowired
 	JobLauncher jobLauncher;
 
 	/**
@@ -92,12 +90,13 @@ public class CredentialRequestGeneratorController {
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<Object> credentialIssue(
-			@RequestBody  RequestWrapper<CredentialIssueRequestDto>  credentialIssueRequestDto) {
-
+			@RequestBody  RequestWrapper<CredentialIssueRequest>  credentialIssueRequestDto) throws IdRepoAppException {
+		requestValidator.validateRequestGeneratorRequest(credentialIssueRequestDto);
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = credentialRequestService
 				.createCredentialIssuance(credentialIssueRequestDto.getRequest());
 		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseWrapper);
 	}
+
 	//@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetcancelrequestid())")
 	@GetMapping(path = "/cancel/{requestId}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
