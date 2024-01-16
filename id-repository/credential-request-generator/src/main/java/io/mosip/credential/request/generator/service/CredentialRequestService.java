@@ -1,14 +1,10 @@
 package io.mosip.credential.request.generator.service;
 
+import io.mosip.idrepository.core.dto.*;
 import org.springframework.stereotype.Service;
 
 import io.mosip.credential.request.generator.dto.CredentialStatusEvent;
 import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorException;
-import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
-import io.mosip.idrepository.core.dto.CredentialIssueResponse;
-import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
-import io.mosip.idrepository.core.dto.CredentialRequestIdsDto;
-import io.mosip.idrepository.core.dto.PageDto;
 import io.mosip.kernel.core.http.ResponseWrapper;
 
 
@@ -27,7 +23,7 @@ public interface CredentialRequestService {
 	 * @param credentialIssueRequestDto the credential issue request dto
 	 * @return the credential issue response
 	 */
-	public ResponseWrapper<CredentialIssueResponse> createCredentialIssuance(CredentialIssueRequestDto credentialIssueRequestDto);
+	public ResponseWrapper<CredentialIssueResponse> createCredentialIssuance(CredentialIssueRequest credentialIssueRequestDto);
 
 	/**
 	 * Cancel credential request.
@@ -77,5 +73,4 @@ public interface CredentialRequestService {
 	 * @return the response wrapper
 	 */
 	public ResponseWrapper<CredentialIssueResponse> retriggerCredentialRequest(String requestId);
-
 }

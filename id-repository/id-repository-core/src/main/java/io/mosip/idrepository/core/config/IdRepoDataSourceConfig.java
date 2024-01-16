@@ -27,15 +27,17 @@ import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
+import io.mosip.idrepository.core.entity.Handle;
 import io.mosip.idrepository.core.entity.UinEncryptSalt;
 import io.mosip.idrepository.core.entity.UinHashSalt;
 import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
+import io.mosip.idrepository.core.repository.HandleRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 
 @EnableAsync
 @EnableJpaRepositories(basePackageClasses = { UinHashSaltRepo.class, UinEncryptSaltRepo.class,
-		CredentialRequestStatusRepo.class })
+		CredentialRequestStatusRepo.class, HandleRepo.class })
 @EnableCaching
 public class IdRepoDataSourceConfig {
 
@@ -67,6 +69,7 @@ public class IdRepoDataSourceConfig {
 				pui.addManagedClassName(UinEncryptSalt.class.getName());
 				pui.addManagedClassName(UinHashSalt.class.getName());
 				pui.addManagedClassName(CredentialRequestStatus.class.getName());
+				pui.addManagedClassName(Handle.class.getName());
 			}
 		});
 		return em;

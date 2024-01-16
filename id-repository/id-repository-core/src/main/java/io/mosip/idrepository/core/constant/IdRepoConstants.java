@@ -1,5 +1,13 @@
 package io.mosip.idrepository.core.constant;
 
+import static io.mosip.kernel.biometrics.constant.BiometricType.FACE;
+import static io.mosip.kernel.biometrics.constant.BiometricType.FINGER;
+import static io.mosip.kernel.biometrics.constant.BiometricType.IRIS;
+
+import java.util.List;
+
+import io.mosip.kernel.biometrics.constant.BiometricType;
+
 /**
  * The Enum IdRepoConstants - contains constants used internally by the
  * application.
@@ -163,6 +171,47 @@ public class IdRepoConstants {
 	public static final String VID_UPDATE_ID = "mosip.idrepo.vid.id.update";
 	
 	public static final String ERRORS = "errors";
+
+	public static final List<BiometricType> SUPPORTED_MODALITIES = List.of(FINGER, IRIS, FACE);
+
+	/** The Constant GET_FILES. */
+	public static final String GET_FILES = "getFiles";
+
+	/** The Constant UPDATE_IDENTITY. */
+	public static final String UPDATE_IDENTITY = "updateIdentity";
+
+	/** The Constant MOSIP_ID_UPDATE. */
+	public static final String MOSIP_ID_UPDATE = "mosip.id.update";
+
+	/** The Constant ADD_IDENTITY. */
+	public static final String ADD_IDENTITY = "addIdentity";
+
+	/** The Constant RETRIEVE_IDENTITY. */
+	public static final String RETRIEVE_IDENTITY = "retrieveIdentity";
+
+	/** The Constant BIOMETRICS. */
+	public static final String BIOMETRICS = "Biometrics";
+
+	/** The Constant BIO. */
+	public static final String BIO = "bio";
+
+	/** The Constant DEMO. */
+	public static final String DEMO = "demo";
+
+	/** The Constant ID_REPO_SERVICE_IMPL. */
+	public static final String ID_REPO_SERVICE_IMPL = "IdRepoServiceImpl";
+
+	/** The Constant CREATE. */
+	public static final String CREATE = "create";
+
+	/** The Constant READ. */
+	public static final String READ = "read";
+
+	/** The Constant ALL. */
+	public static final String ALL = "all";
+
+	/** The Constant DEMOGRAPHICS. */
+	public static final String DEMOGRAPHICS = "Demographics";
 
 	/**
 	 * Instantiates a new id repo constants.

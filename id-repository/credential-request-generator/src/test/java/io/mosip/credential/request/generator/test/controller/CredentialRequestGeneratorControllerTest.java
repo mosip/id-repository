@@ -31,6 +31,7 @@ import io.mosip.credential.request.generator.init.SubscribeEvent;
 import io.mosip.credential.request.generator.service.CredentialRequestService;
 import io.mosip.credential.request.generator.test.TestBootApplication;
 import io.mosip.credential.request.generator.test.config.TestConfig;
+import io.mosip.credential.request.generator.validator.RequestValidator;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
@@ -73,6 +74,8 @@ public class CredentialRequestGeneratorControllerTest {
 	@Mock
 	JobLauncher jobLauncher;
 
+	@Mock
+	private RequestValidator requestValidator;
 
 	@Before
 	public void setup() throws Exception {

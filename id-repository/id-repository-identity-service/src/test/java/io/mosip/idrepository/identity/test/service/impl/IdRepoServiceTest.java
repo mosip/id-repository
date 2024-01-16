@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.Before;
@@ -31,7 +32,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -75,8 +76,8 @@ import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.BiometricExtractionService;
-import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.entity.UinBiometric;
 import io.mosip.idrepository.identity.entity.UinDocument;
@@ -97,6 +98,7 @@ import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.http.ResponseWrapper;
+import io.mosip.kernel.core.util.CryptoUtil;
 
 /**
  * The Class IdRepoServiceTest.
@@ -105,7 +107,7 @@ import io.mosip.kernel.core.http.ResponseWrapper;
  */
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest @Import(EnvUtil.class)
 @ActiveProfiles("test")
 @ConfigurationProperties("mosip.idrepo.identity")
 public class IdRepoServiceTest {
@@ -119,6 +121,9 @@ public class IdRepoServiceTest {
 
 	@Mock
 	AuditHelper auditHelper;
+
+	@Mock
+	Environment environment;
 
 	@Mock
 	ObjectStoreAdapter connection;
@@ -145,7 +150,7 @@ public class IdRepoServiceTest {
 
 	/** The env. */
 	@Autowired
-	private Environment env;
+	private EnvUtil env;
 
 	/** The rest template. */
 	@Mock
@@ -189,6 +194,9 @@ public class IdRepoServiceTest {
 	@Mock
 	private BiometricExtractionService biometricExtractionService;
 
+	@Mock
+	private IdRepoServiceHelper idRepoServiceHelper;
+
 	/** The id. */
 	private Map<String, String> id;
 
@@ -221,20 +229,15 @@ public class IdRepoServiceTest {
 		registryIDType.setType("7");
 		QualityType quality = new QualityType();
 		quality.setScore(95l);
-		ReflectionTestUtils.setField(securityManager, "env", env);
 		ReflectionTestUtils.setField(securityManager, "mapper", mapper);
 		ReflectionTestUtils.setField(service, "securityManager", securityManager);
 		ReflectionTestUtils.setField(proxyService, "securityManager", securityManager);
-		when(connection.exists(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
-				.thenReturn(true);
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new RestRequestDTO());
 		when(restHelper.requestSync(Mockito.any()))
 				.thenReturn(mapper.readValue("{\"response\":{\"data\":\"1234\"}}".getBytes(), ObjectNode.class));
 		ReflectionTestUtils.setField(proxyService, "mapper", mapper);
-		ReflectionTestUtils.setField(proxyService, "env", env);
 		ReflectionTestUtils.setField(proxyService, "id", id);
 		ReflectionTestUtils.setField(service, "mapper", mapper);
-		ReflectionTestUtils.setField(service, "env", env);
 		ReflectionTestUtils.setField(service, "activeStatus", ACTIVATED);
 		ReflectionTestUtils.setField(proxyService, "service", service);
 		ReflectionTestUtils.setField(proxyService, "allowedBioAttributes",
@@ -247,7 +250,7 @@ public class IdRepoServiceTest {
 		uin.setUin("1234");
 		uin.setUinRefId("uinRefId");
 		uin.setUinData(mapper.writeValueAsBytes(request));
-		uin.setStatusCode(env.getProperty("mosip.idrepo.status.registered"));
+		uin.setStatusCode(EnvUtil.getUinActiveStatus());
 		when(credRequestRepo.findByIndividualIdHash(Mockito.any())).thenReturn(List.of());
 		when(dummyPartner.getDummyOLVPartnerId()).thenReturn("");
 		when(anonymousProfileHelper.setRegId(Mockito.any())).thenReturn(anonymousProfileHelper);
@@ -1042,6 +1045,7 @@ public class IdRepoServiceTest {
 						.getBytes(),
 				Object.class);
 		uinObj.setUinData(mapper.writeValueAsBytes(obj2));
+		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn("ACTIVE");
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
@@ -1114,6 +1118,7 @@ public class IdRepoServiceTest {
 				Object.class);
 		uinObj.setUinData(mapper.writeValueAsBytes(obj2));
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
+		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn("ACTIVE");
 		when(uinRepo.getStatusByUin(Mockito.any())).thenReturn(ACTIVATED);
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
@@ -1234,6 +1239,7 @@ public class IdRepoServiceTest {
 		uinObj.setUinData(new byte[] { 0 });
 		uinObj.setUinDataHash("");
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
+		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn("ACTIVE");
 		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
 		when(uinRepo.save(Mockito.any())).thenReturn(uinObj);
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
@@ -1324,6 +1330,7 @@ public class IdRepoServiceTest {
 				("{\"status\": \"ACTIVATED\",\"individualBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\""
 						+ IdRepoConstants.FILE_NAME_ATTRIBUTE + "\":\"fileReferenceID\"}}").getBytes());
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
+		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn(ACTIVATED);
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinRepo.existsByRegId(Mockito.any())).thenReturn(false);
 		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
@@ -1400,9 +1407,9 @@ public class IdRepoServiceTest {
 	@Test
 	public void testIdentityUpdateNewBioDocument() throws Exception {
 		MockEnvironment mockEnv = new MockEnvironment();
-		mockEnv.merge((ConfigurableEnvironment) env);
 		mockEnv.setProperty("mosip.fingerprint.fmr.enabled", "true");
-		ReflectionTestUtils.setField(service, "env", mockEnv);
+		env.merge(mockEnv);
+		ReflectionTestUtils.setField(service, "env", env);
 		Uin uinObj = new Uin();
 		uinObj.setUin("1234");
 		uinObj.setUinRefId("1234");
@@ -1424,6 +1431,7 @@ public class IdRepoServiceTest {
 		uinObj.setBiometrics(Lists.newArrayList(biometrics));
 		uinObj.setUinData(("{\"individualBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\""
 				+ IdRepoConstants.FILE_NAME_ATTRIBUTE + "\":\"fileReferenceID\"}}").getBytes());
+		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn(ACTIVATED);
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinRepo.existsByRegId(Mockito.any())).thenReturn(false);
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
@@ -1448,9 +1456,9 @@ public class IdRepoServiceTest {
 	public void testIdentityUpdateNewBioDocumentCredentialExists() throws Exception {
 		when(credRequestRepo.findByIndividualIdHash(any())).thenReturn(List.of(new CredentialRequestStatus()));
 		MockEnvironment mockEnv = new MockEnvironment();
-		mockEnv.merge((ConfigurableEnvironment) env);
 		mockEnv.setProperty("mosip.fingerprint.fmr.enabled", "true");
-		ReflectionTestUtils.setField(service, "env", mockEnv);
+		env.merge(mockEnv);
+		ReflectionTestUtils.setField(service, "env", env);
 		Uin uinObj = new Uin();
 		uinObj.setUin("1234");
 		uinObj.setUinRefId("1234");
@@ -1472,6 +1480,7 @@ public class IdRepoServiceTest {
 		uinObj.setBiometrics(Lists.newArrayList(biometrics));
 		uinObj.setUinData(("{\"individualBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\""
 				+ IdRepoConstants.FILE_NAME_ATTRIBUTE + "\":\"fileReferenceID\"}}").getBytes());
+		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn(ACTIVATED);
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinRepo.existsByRegId(Mockito.any())).thenReturn(false);
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
@@ -1502,9 +1511,9 @@ public class IdRepoServiceTest {
 	public void testIdentityUpdateNewBioDocumentCredentialExistsRecordNotActive() throws Exception {
 		when(credRequestRepo.findByIndividualIdHash(any())).thenReturn(List.of(new CredentialRequestStatus()));
 		MockEnvironment mockEnv = new MockEnvironment();
-		mockEnv.merge((ConfigurableEnvironment) env);
 		mockEnv.setProperty("mosip.fingerprint.fmr.enabled", "true");
-		ReflectionTestUtils.setField(service, "env", mockEnv);
+		env.merge(mockEnv);
+		ReflectionTestUtils.setField(service, "env", env);
 		Uin uinObj = new Uin();
 		uinObj.setUin("1234");
 		uinObj.setUinRefId("1234");
@@ -1526,6 +1535,7 @@ public class IdRepoServiceTest {
 		uinObj.setBiometrics(Lists.newArrayList(biometrics));
 		uinObj.setUinData(("{\"individualBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\""
 				+ IdRepoConstants.FILE_NAME_ATTRIBUTE + "\":\"fileReferenceID\"}}").getBytes());
+		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn(ACTIVATED);
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinRepo.existsByRegId(Mockito.any())).thenReturn(false);
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
@@ -1574,6 +1584,7 @@ public class IdRepoServiceTest {
 		uinObj.setBiometrics(Lists.newArrayList(biometrics));
 		uinObj.setUinData(("{\"individualBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\""
 				+ IdRepoConstants.FILE_NAME_ATTRIBUTE + "\":\"fileReferenceID\"}}").getBytes());
+		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn(ACTIVATED);
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinRepo.existsByRegId(Mockito.any())).thenReturn(false);
@@ -1725,6 +1736,7 @@ public class IdRepoServiceTest {
 		uinObj.setDocuments(Lists.newArrayList(document));
 		uinObj.setUinData(("{\"ProofOfIdentity\":{\"format\":\"pdf\",\"version\":1.0,\""
 				+ IdRepoConstants.FILE_NAME_ATTRIBUTE + "\":\"fileReferenceID\"}}").getBytes());
+		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn(ACTIVATED);
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinRepo.existsByRegId(Mockito.any())).thenReturn(false);
@@ -1764,6 +1776,7 @@ public class IdRepoServiceTest {
 		uinObj.setDocuments(Lists.newArrayList(document));
 		uinObj.setUinData(("{\"ProofOfIdentity\":{\"format\":\"pdf\",\"version\":1.0,\""
 				+ IdRepoConstants.FILE_NAME_ATTRIBUTE + "\":\"fileReferenceID\"}}").getBytes());
+		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn(ACTIVATED);
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinRepo.existsByRegId(Mockito.any())).thenReturn(false);
@@ -1942,8 +1955,8 @@ public class IdRepoServiceTest {
 		when(cbeffUtil.createXML(any())).thenReturn(cbeffXml);
 		when(objectStoreHelper.getBiometricObject(Mockito.any(), Mockito.any()))
 				.thenReturn(cbeffXml);
-		when(biometricExtractionService.extractTemplate(any(), any(), any(), any(), any()))
-				.thenReturn(CompletableFuture.completedFuture(CbeffValidator.getBIRFromXML(cbeffXml).getBirs()));
+//		when(biometricExtractionService.extractTemplate(any(), any(), any(), any(), any()))
+//				.thenReturn(CompletableFuture.completedFuture(CbeffValidator.getBIRFromXML(cbeffXml).getBirs()));
 		Uin uinObj = new Uin();
 		uinObj.setUin("1234");
 		uinObj.setUinRefId("1234");
@@ -1974,8 +1987,7 @@ public class IdRepoServiceTest {
 		when(cbeffUtil.createXML(any())).thenReturn(cbeffXml);
 		when(objectStoreHelper.getBiometricObject(Mockito.any(), Mockito.any()))
 				.thenReturn(cbeffXml);
-		when(biometricExtractionService.extractTemplate(any(), any(), any(), any(), any()))
-				.thenReturn(CompletableFuture.completedFuture(CbeffValidator.getBIRFromXML(cbeffXml).getBirs()));
+		when(biometricExtractionService.extractTemplate(any(), any(), any(), any(), any())).thenReturn(CompletableFuture.completedFuture(CbeffValidator.getBIRFromXML(cbeffXml).getBirs()));
 		Uin uinObj = new Uin();
 		uinObj.setUin("1234");
 		uinObj.setUinRefId("1234");
