@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -46,6 +47,7 @@ import org.skyscreamer.jsonassert.JSONCompareResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.annotation.Transactional;
@@ -135,11 +137,22 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	@Autowired
 	private VidDraftHelper vidDraftHelper;
 	
+	@Value("${mosip.idrepo.create-identity.enable-force-merge:false}")
+	private boolean isForceMergeEnabled;
+	
 	@Override
 	public IdResponseDTO createDraft(String registrationId, String uin) throws IdRepoAppException {
 		try {
-			if (!super.uinHistoryRepo.existsByRegId(registrationId) && !uinDraftRepo.existsByRegId(registrationId)) {
-				UinDraft newDraft;
+			UinDraft newDraft;
+
+			if (isForceMergeEnabled || (!super.uinHistoryRepo.existsByRegId(registrationId)
+					&& !uinDraftRepo.existsByRegId(registrationId))) {
+				if (isForceMergeEnabled) {
+					IdResponseDTO response = proxyService.retrieveIdentityByRid(registrationId, uin, null);
+					Object res = response.getResponse().getIdentity();
+					LinkedHashMap<String, Object> map = mapper.convertValue(res, LinkedHashMap.class);
+					uin = String.valueOf(map.get("UIN"));
+				}
 				if (Objects.nonNull(uin)) {
 					Optional<Uin> uinObjectOptional = super.uinRepo.findByUinHash(super.getUinHash(uin));
 					if (uinObjectOptional.isPresent()) {
@@ -149,8 +162,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 						newDraft.setRegId(registrationId);
 						newDraft.setUin(super.getUinToEncrypt(uin));
 					} else {
-						idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT,
-								"UIN NOT EXIST");
+						idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+								CREATE_DRAFT, "UIN NOT EXIST");
 						throw new IdRepoAppException(NO_RECORD_FOUND);
 					}
 				} else {
@@ -169,7 +182,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				uinDraftRepo.save(newDraft);
 				return constructIdResponse(null, DRAFTED, null, null);
 			} else {
-				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT, "RID ALREADY EXIST");
+				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, CREATE_DRAFT,
+						"RID ALREADY EXIST");
 				throw new IdRepoAppException(RECORD_EXISTS);
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
