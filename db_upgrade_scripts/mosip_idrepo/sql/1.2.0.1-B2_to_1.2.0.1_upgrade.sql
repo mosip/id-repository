@@ -1,6 +1,5 @@
 -- -------------------------------------------------------------------------------------------------
 -- Database Name: mosip_idrepo
--- Release Version 	: 1.2.1
 -- Purpose    		: Database Alter scripts for the release for ID Repository DB.       
 -- Create By   		: Anusha SE
 -- Created Date		: Dec-2023
