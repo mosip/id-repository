@@ -1,14 +1,20 @@
 -- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_repo
--- Table Name 	: idrepo.handle
--- Purpose    	: Handle and handle hash mapped to UIN.
---           
--- Create By   	: Anusha S E
--- Created Date	: 11-Dec-2023
+-- Database Name: mosip_idrepo
+-- Release Version 	: 1.2.1
+-- Purpose    		: Database Alter scripts for the release for ID Repository DB.       
+-- Create By   		: Anusha SE
+-- Created Date		: Dec-2023
 -- 
 -- Modified Date        Modified By         Comments / Remarks
--- ------------------------------------------------------------------------------------------
--- ------------------------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------
+
+\c mosip_idrepo sysadmin
+---------------------------------------------------------------------------------------------------
+
+ALTER TABLE idrepo.credential_request_status ALTER COLUMN request_id type character varying(64);
+
+------------------------------------------------------------------------------------------------
 
 -- object: idrepo.handle | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.handle CASCADE;
@@ -35,3 +41,5 @@ COMMENT ON COLUMN idrepo.handle.cr_by IS 'Created By : ID or name of the user wh
 -- ddl-end --
 COMMENT ON COLUMN idrepo.handle.cr_dtimes IS 'Created DateTimestamp : Date and Timestamp when the record is created/inserted';
 -- ddl-end --
+
+-------------------------------------------------------------------------------------------------
