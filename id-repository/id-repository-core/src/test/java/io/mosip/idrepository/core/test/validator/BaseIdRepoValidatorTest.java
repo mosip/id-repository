@@ -64,6 +64,7 @@ public class BaseIdRepoValidatorTest {
 	public void before() {
 		EnvUtil.setVersionPattern("^v\\\\d+(\\\\.\\\\d+)?$");
 		ReflectionTestUtils.setField(requestValidator, "id", id);
+		ReflectionTestUtils.setField(requestValidator, "maxRequestTimeDeviationSeconds", 60);
 		errors = new BeanPropertyBindingResult(new IdRequestDTO(), "idRequestDto");
 	}
 
@@ -86,7 +87,7 @@ public class BaseIdRepoValidatorTest {
 		assertTrue(errors.hasErrors());
 		errors.getAllErrors().forEach(error -> {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), error.getCode());
-			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "requesttime"),
+			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "requesttime - the timestamp value can be at most 60 seconds before and after the current time."),
 					error.getDefaultMessage());
 			assertEquals("requesttime", ((FieldError) error).getField());
 		});
