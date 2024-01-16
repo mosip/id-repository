@@ -200,7 +200,7 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 					return new ResponseEntity<>(
 							buildExceptionResponse(ex, ((ServletWebRequest) request).getHttpMethod(), null), HttpStatus.OK);
 				}
-				else {
+				else{
 					throw new IllegalStateException();
 				}
 			}
