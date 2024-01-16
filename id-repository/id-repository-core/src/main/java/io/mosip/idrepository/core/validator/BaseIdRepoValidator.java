@@ -12,6 +12,7 @@ import javax.annotation.Resource;
 
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
+import org.springframework.beans.factory.annotation.Value;
 
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
@@ -49,6 +50,9 @@ public abstract class BaseIdRepoValidator {
 	@Resource
 	protected Map<String, String> id;
 
+	@Value("${mosip.idrepo.identity.idrepo-max-request-time-deviation-seconds}")
+	private int maxRequestTimeDeviationSeconds;
+
 	/**
 	 * Validate request time.
 	 *
@@ -65,7 +69,7 @@ public abstract class BaseIdRepoValidator {
 			LocalDateTime currentUtcTime = DateUtils.getUTCCurrentDateTime();
 			LocalDateTime adjustedCurrentUtcTime = currentUtcTime.plusSeconds(EnvUtil.getDateTimeAdjustment());
 
-			int maxDeviationSeconds = 60;
+			int maxDeviationSeconds = maxRequestTimeDeviationSeconds;
 
 			if (DateUtils.after(reqTime, adjustedCurrentUtcTime.plusSeconds(maxDeviationSeconds))
 					|| DateUtils.before(reqTime, adjustedCurrentUtcTime.minusSeconds(maxDeviationSeconds))) {
