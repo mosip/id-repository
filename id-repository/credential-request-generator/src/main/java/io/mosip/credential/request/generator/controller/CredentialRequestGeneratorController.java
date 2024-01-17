@@ -2,6 +2,7 @@ package io.mosip.credential.request.generator.controller;
 
 import javax.annotation.Nullable;
 
+import io.mosip.idrepository.core.dto.*;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,12 +24,6 @@ import io.mosip.credential.request.generator.init.CredentialInstializer;
 import io.mosip.credential.request.generator.init.SubscribeEvent;
 import io.mosip.credential.request.generator.service.CredentialRequestService;
 import io.mosip.credential.request.generator.validator.RequestValidator;
-import io.mosip.idrepository.core.dto.CredentialIssueRequest;
-import io.mosip.idrepository.core.dto.CredentialIssueResponse;
-import io.mosip.idrepository.core.dto.CredentialIssueResponseDto;
-import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
-import io.mosip.idrepository.core.dto.CredentialRequestIdsDto;
-import io.mosip.idrepository.core.dto.PageDto;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.kernel.core.http.RequestWrapper;
@@ -97,6 +92,30 @@ public class CredentialRequestGeneratorController {
 		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseWrapper);
 	}
 
+	/**
+	 * Credential issue.
+	 *
+	 * @param credentialIssueRequestDto the credential issue request dto
+	 * @return the response entity
+	 */
+	//@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostv2requestgeneratorrid())")
+	@PostMapping(path = "/v2/requestgenerator/{rid}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "Create the  credential issuance request", description = "Create the  credential issuance request", tags = { "Credential Request Generator" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Created request id successfully"),
+			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Unable to get request id" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
+	public ResponseEntity<Object> credentialIssueByRid(
+			@RequestBody  RequestWrapper<CredentialIssueRequestDto>  credentialIssueRequestDto, @PathVariable("rid") String rid) {
+
+		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = credentialRequestService
+				.createCredentialIssuanceByRid(credentialIssueRequestDto.getRequest(),rid);
+		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseWrapper);
+	}
 	//@PreAuthorize("hasAnyRole('CREDENTIAL_REQUEST')")
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetcancelrequestid())")
 	@GetMapping(path = "/cancel/{requestId}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
