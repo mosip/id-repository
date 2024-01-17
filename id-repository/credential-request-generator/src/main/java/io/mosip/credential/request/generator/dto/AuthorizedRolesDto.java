@@ -17,7 +17,9 @@ public class AuthorizedRolesDto {
 
 //Credential request genrator controller   
    private List<String> postrequestgenerator;
-    
+
+   private List<String> postv2requestgeneratorrid;
+
    private List<String> getcancelrequestid;
 
    private List<String> getgetrequestid;
