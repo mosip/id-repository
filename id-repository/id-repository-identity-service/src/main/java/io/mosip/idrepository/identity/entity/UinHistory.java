@@ -11,6 +11,7 @@ import javax.persistence.IdClass;
 import javax.persistence.Lob;
 import javax.persistence.Table;
 
+import io.mosip.idrepository.core.entity.UinInfo;
 import org.hibernate.annotations.Type;
 import org.springframework.data.domain.Persistable;
 
