@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.mosip.idrepository.core.dto.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +23,6 @@ import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
-import io.mosip.idrepository.core.dto.AuthtypeStatus;
-import io.mosip.idrepository.core.dto.RestRequestDTO;
-import io.mosip.idrepository.core.dto.VidInfoDTO;
-import io.mosip.idrepository.core.dto.VidsInfosDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
@@ -112,7 +109,7 @@ public class CredentialsFeedingWriter implements ItemWriter<Uin> {
 	 * @param uin The UIN of the resident
 	 */
 	private void issueUinCredential(String uin) {
-		credentialServiceManager.sendUinEventsToCredService(uin, null, false, null,
+		credentialServiceManager.sendUinEventsToCredService(uin, null, false, null, null,
 				Arrays.asList(onlineVerificationPartnerIds), uinHashSaltRepo::retrieveSaltById,
 				credentialStatusManager::credentialRequestResponseConsumer);
 	}

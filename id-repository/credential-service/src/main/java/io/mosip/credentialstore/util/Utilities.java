@@ -11,7 +11,6 @@ import java.util.UUID;
 import com.apicatalog.jsonld.JsonLdError;
 import com.apicatalog.jsonld.document.JsonDocument;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,10 +78,6 @@ public class Utilities {
 	
 	public String generateId() {
 		return UUID.randomUUID().toString();
-	}
-	
-	public String generatePin() {
-		return  RandomStringUtils.randomAlphabetic(5);
 	}
 
 	public JSONObject getVCContext(String configServerFileStorageURL, String uri) {

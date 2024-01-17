@@ -90,14 +90,18 @@ public class RestRequestBuilder {
 	 * @return the rest request DTO
 	 * @throws IdRepoDataValidationException the ID data validation exception
 	 */
+	
 	public RestRequestDTO buildRequest(RestServicesConstants restService, Object requestBody, Class<?> returnType)
 			throws IdRepoDataValidationException {
+		return buildRequest(restService,Map.of(),requestBody,returnType);
+		
+	}
+	
+	public RestRequestDTO buildRequest(RestServicesConstants restService, Map<String, String> pathVariables,
+			Object requestBody, Class<?> returnType) throws IdRepoDataValidationException {
 		RestRequestDTO request = new RestRequestDTO();
 		MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
-		Map<String, String> pathVariables = new HashMap<>();
-
 		String serviceName = restService.getServiceName();
-
 		String uri = getProperty(serviceName, REST_URI);
 		String httpMethod = getProperty(serviceName, REST_HTTP_METHOD);
 		String timeout = getProperty(serviceName, REST_TIMEOUT);
