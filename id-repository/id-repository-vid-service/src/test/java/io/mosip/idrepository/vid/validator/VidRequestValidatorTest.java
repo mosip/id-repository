@@ -102,6 +102,7 @@ public class VidRequestValidatorTest {
 		ReflectionTestUtils.setField(requestValidator, "vidValidator", vidValidator);
 		ReflectionTestUtils.setField(requestValidator, "policyProvider", policyProvider);
 		ReflectionTestUtils.setField(requestValidator, "uinValidator", uinValidator);
+		ReflectionTestUtils.setField(requestValidator, "maxRequestTimeDeviationSeconds", 60);
 	}
 
 	@Test
@@ -133,7 +134,7 @@ public class VidRequestValidatorTest {
 		assertTrue(errors.hasErrors());
 		errors.getAllErrors().forEach(error -> {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), error.getCode());
-			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "requesttime"),
+			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "requesttime - the timestamp value can be at most 60 seconds before and after the current time."),
 					error.getDefaultMessage());
 			assertEquals("requesttime", ((FieldError) error).getField());
 		});
