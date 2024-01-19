@@ -30,13 +30,13 @@ import io.mosip.kernel.core.util.DateUtils;
  */
 @Component
 public abstract class BaseIdRepoValidator {
-	
+
 	/** The Constant BASE_ID_REPO_VALIDATOR. */
 	private static final String BASE_ID_REPO_VALIDATOR = "BaseIdRepoValidator";
 
 	/** The mosip logger. */
 	Logger mosipLogger = IdRepoLogger.getLogger(BaseIdRepoValidator.class);
-	
+
 	/** The Constant TIMESTAMP. */
 	private static final String REQUEST_TIME = "requesttime";
 
@@ -50,7 +50,7 @@ public abstract class BaseIdRepoValidator {
 	@Resource
 	protected Map<String, String> id;
 	
-	@Value("${mosip.idrepo.identity.idrepo-max-request-time-deviation-seconds}")
+	@Value("${mosip.idrepo.identity.max-request-time-deviation-seconds:60}")
 	private int maxRequestTimeDeviationSeconds;
 
 	/**
@@ -95,12 +95,14 @@ public abstract class BaseIdRepoValidator {
 	 */
 	protected void validateVersion(String ver, Errors errors) {
 		if (Objects.isNull(ver)) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateVersion", "version is null");
+			mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateVersion",
+					"version is null");
 			errors.rejectValue(VER, MISSING_INPUT_PARAMETER.getErrorCode(),
 					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), VER));
 		} else if ((!Pattern.compile(EnvUtil.getVersionPattern()).matcher(ver)
 				.matches())) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateVersion", "version is InValid");
+			mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateVersion",
+					"version is InValid");
 			errors.rejectValue(VER, INVALID_INPUT_PARAMETER.getErrorCode(),
 					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), VER));
 		}
@@ -109,11 +111,11 @@ public abstract class BaseIdRepoValidator {
 	/**
 	 * This method will validate the id field in the request.
 	 *
-	 * @param id the id
+	 * @param id        the id
 	 * @param operation the operation
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	public void validateId(String id,String operation) throws IdRepoAppException {
+	public void validateId(String id, String operation) throws IdRepoAppException {
 		if (Objects.isNull(id)) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateId", "id is null");
 			throw new IdRepoAppException(MISSING_INPUT_PARAMETER.getErrorCode(),
