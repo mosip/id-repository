@@ -33,6 +33,9 @@ CREATE TABLE credential.credential_transaction(
 	CONSTRAINT pk_credtrn_id PRIMARY KEY (id)
 
 );
+
+CREATE INDEX cred_tran_NEW_status_cr_dtimes ON credential.credential_transaction USING btree (cr_dtimes) WHERE status_code = 'NEW';
+
 -- ddl-end --
 COMMENT ON TABLE credential.credential_transaction IS 'Credential: The credential share is a functional service that interacts with the ID Repository and collects the user attributes for printing';
 -- ddl-end --
