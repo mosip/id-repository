@@ -389,6 +389,7 @@ public class IdRequestValidatorTest {
 	@Test
 	public void testValidateCreate() throws JsonParseException, JsonMappingException, JsonProcessingException,
 			IOException, IdObjectIOException, IdObjectValidationFailedException, InvalidIdSchemaException, IdRepoAppException {
+		ReflectionTestUtils.setField(validator, "maxRequestTimeDeviationSeconds", 60);
 		Mockito.when(idObjectValidator.validateIdObject(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(true);
 		Mockito.when(uinValidator.validateId(Mockito.anyString())).thenReturn(true);
 
@@ -412,6 +413,7 @@ public class IdRequestValidatorTest {
 	@Test
 	public void testValidateUpdate() throws JsonParseException, JsonMappingException, JsonProcessingException,
 			IOException, IdObjectIOException, IdObjectValidationFailedException, InvalidIdSchemaException {
+		ReflectionTestUtils.setField(validator, "maxRequestTimeDeviationSeconds", 60);
 		Mockito.when(idObjectValidator.validateIdObject(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(true);
 		Mockito.when(uinValidator.validateId(Mockito.anyString())).thenReturn(true);
 		IdRequestDTO request = new IdRequestDTO();

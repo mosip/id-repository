@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
@@ -29,13 +30,13 @@ import io.mosip.kernel.core.util.DateUtils;
  */
 @Component
 public abstract class BaseIdRepoValidator {
-	
+
 	/** The Constant BASE_ID_REPO_VALIDATOR. */
 	private static final String BASE_ID_REPO_VALIDATOR = "BaseIdRepoValidator";
 
 	/** The mosip logger. */
 	Logger mosipLogger = IdRepoLogger.getLogger(BaseIdRepoValidator.class);
-	
+
 	/** The Constant TIMESTAMP. */
 	private static final String REQUEST_TIME = "requesttime";
 
@@ -48,6 +49,9 @@ public abstract class BaseIdRepoValidator {
 	/** The id. */
 	@Resource
 	protected Map<String, String> id;
+
+	@Value("${mosip.idrepo.identity.max-request-time-deviation-seconds:60}")
+	private int maxRequestTimeDeviationSeconds;
 
 	/**
 	 * Validate request time.
@@ -62,16 +66,24 @@ public abstract class BaseIdRepoValidator {
 			errors.rejectValue(REQUEST_TIME, MISSING_INPUT_PARAMETER.getErrorCode(),
 					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), REQUEST_TIME));
 		} else {
-			if (DateUtils.after(reqTime, DateUtils.getUTCCurrentDateTime()
-					.plusMinutes(EnvUtil.getDateTimeAdjustment()))) {
+			LocalDateTime currentUtcTime = DateUtils.getUTCCurrentDateTime();
+			LocalDateTime adjustedCurrentUtcTime = currentUtcTime.plusSeconds(EnvUtil.getDateTimeAdjustment());
+
+			int maxDeviationSeconds = maxRequestTimeDeviationSeconds;
+
+			if (DateUtils.after(reqTime, adjustedCurrentUtcTime.plusSeconds(maxDeviationSeconds))
+					|| DateUtils.before(reqTime, adjustedCurrentUtcTime.minusSeconds(maxDeviationSeconds))) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateReqTime",
-						"requesttime is future dated");
+						"requesttime is outside the allowed deviation");
 				mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateReqTime",
-						"reqTime" + reqTime.toString());
+						"reqTime: " + reqTime.toString());
 				mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateReqTime",
-						"vmTime" + DateUtils.getUTCCurrentDateTime());
+						"vmTime: " + adjustedCurrentUtcTime.toString());
+				String deviationMessage = String.format(
+						"%s - the timestamp value can be at most %d seconds before and after the current time.",
+						REQUEST_TIME, maxDeviationSeconds);
 				errors.rejectValue(REQUEST_TIME, INVALID_INPUT_PARAMETER.getErrorCode(),
-						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), REQUEST_TIME));
+						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), deviationMessage));
 			}
 		}
 	}
@@ -84,12 +96,14 @@ public abstract class BaseIdRepoValidator {
 	 */
 	protected void validateVersion(String ver, Errors errors) {
 		if (Objects.isNull(ver)) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateVersion", "version is null");
+			mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateVersion",
+					"version is null");
 			errors.rejectValue(VER, MISSING_INPUT_PARAMETER.getErrorCode(),
 					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), VER));
 		} else if ((!Pattern.compile(EnvUtil.getVersionPattern()).matcher(ver)
 				.matches())) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateVersion", "version is InValid");
+			mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateVersion",
+					"version is InValid");
 			errors.rejectValue(VER, INVALID_INPUT_PARAMETER.getErrorCode(),
 					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), VER));
 		}
@@ -102,7 +116,7 @@ public abstract class BaseIdRepoValidator {
 	 * @param operation the operation
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	public void validateId(String id,String operation) throws IdRepoAppException {
+	public void validateId(String id, String operation) throws IdRepoAppException {
 		if (Objects.isNull(id)) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateId", "id is null");
 			throw new IdRepoAppException(MISSING_INPUT_PARAMETER.getErrorCode(),
