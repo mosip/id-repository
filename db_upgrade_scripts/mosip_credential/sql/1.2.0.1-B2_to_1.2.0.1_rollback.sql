@@ -11,4 +11,6 @@
 
 ALTER TABLE credential.credential_transaction ALTER COLUMN id type character varying(36);
 
+DROP INDEX IF EXISTS cred_tran_NEW_status_cr_dtimes;
+
 -----------------------------------------------------------------------------------------------------
