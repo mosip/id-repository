@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -145,20 +144,11 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	@Autowired
 	private VidDraftHelper vidDraftHelper;
 	
-	@Value("${mosip.idrepo.create-identity.enable-force-merge:false}")
-	private boolean isForceMergeEnabled;
-	
 	@Override
 	public IdResponseDTO createDraft(String registrationId, String uin) throws IdRepoAppException {
 		try {
-			UinDraft newDraft;
-			if (isForceMergeEnabled || (!super.uinHistoryRepo.existsByRegId(registrationId) && !uinDraftRepo.existsByRegId(registrationId))) {
-				if (isForceMergeEnabled) {
-					IdResponseDTO response = proxyService.retrieveIdentityByRid(registrationId, uin, null);
-					Object res = response.getResponse().getIdentity();
-					LinkedHashMap<String, Object> map = mapper.convertValue(res, LinkedHashMap.class);
-					uin = String.valueOf(map.get("UIN"));
-				}
+			if (!super.uinHistoryRepo.existsByRegId(registrationId) && !uinDraftRepo.existsByRegId(registrationId)) {
+				UinDraft newDraft;
 				if (Objects.nonNull(uin)) {
 					Optional<Uin> uinObjectOptional = super.uinRepo.findByUinHash(super.getUinHash(uin));
 					if (uinObjectOptional.isPresent()) {
