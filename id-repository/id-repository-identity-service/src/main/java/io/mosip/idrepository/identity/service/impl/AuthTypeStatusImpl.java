@@ -18,6 +18,7 @@ import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.AuthtypeStatus;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
+import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
@@ -216,6 +217,10 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	private IdResponseDTO buildResponse() {
 		IdResponseDTO authtypeStatusResponseDto = new IdResponseDTO();
 		authtypeStatusResponseDto.setResponsetime(DateUtils.getUTCCurrentDateTime());
+		ResponseDTO response = new ResponseDTO();
+		response.setStatus("Success");
+		authtypeStatusResponseDto.setResponse(response);
+		authtypeStatusResponseDto.setErrors(null);
 		return authtypeStatusResponseDto;
 	}
 
