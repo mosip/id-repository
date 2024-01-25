@@ -89,6 +89,8 @@ public enum IdRepoErrorConstants {
 	
 	UIN_GENERATION_FAILED("IDR-IDS-011","Failed to generate UIN"),
 	
+	INVALID_BIOMETRIC("IDR-IDS-012", "Failed to extract the valid biometric data"),
+
 	// VID Service
 	
 	/** The invalid vid. */
