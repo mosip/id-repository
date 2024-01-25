@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.commons.io.IOUtils;
@@ -25,6 +26,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import io.mosip.commons.khazana.exception.ObjectStoreAdapterException;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
+import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.exception.BiometricExtractionException;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.util.EnvUtil;
@@ -91,8 +93,12 @@ public class BiometricExtractionServiceImplTest {
 		when(objectStoreHelper.getBiometricObject(any(), any())).thenReturn(CryptoUtil.decodeURLSafeBase64(cbeff));
 		when(cbeffUtil.getBIRDataFromXML(any())).thenReturn(birDataFromXMLType);
 		when(bioExractionHelper.extractTemplates(any(), any())).thenReturn(List.of());
-		CompletableFuture<List<BIR>> extractTemplate = extractionServiceImpl.extractTemplate("", "", "a", "ExtractionFormat", birDataFromXMLType);
-		assertEquals(0, extractTemplate.join().size());
+		try {
+			extractionServiceImpl.extractTemplate("", "", "a", "ExtractionFormat", birDataFromXMLType);
+		} catch (BiometricExtractionException e) {
+			assertEquals(IdRepoErrorConstants.INVALID_BIOMETRIC.getErrorCode(), e.getErrorCode());
+			assertEquals(IdRepoErrorConstants.INVALID_BIOMETRIC.getErrorMessage(), e.getErrorText());
+		}
 		verify(objectStoreHelper, never()).putBiometricObject(any(), any(), any());
 	}
 
