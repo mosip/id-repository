@@ -1,10 +1,12 @@
 package io.mosip.idrepository.identity.validator;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.AUTH_TYPE_SEPERATOR;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +27,7 @@ import org.springframework.validation.Validator;
 
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.AuthTypeStatusRequestDto;
+import io.mosip.idrepository.core.dto.AuthtypeStatus;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
@@ -114,6 +117,8 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	/** The allowed types. */
 	private List<String> allowedTypes = List.of("bio", "demo", "metadata", "all");
 
+	@Value("${auth.types.allowed}")
+	private String allowedAuthTypes;
 
 	/** The uin validator. */
 	@Autowired
@@ -449,5 +454,34 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "individualId"));
 		}
+	}
+
+	public void validateAuthTypes(List<AuthtypeStatus> authTypeStatusList) throws IdRepoAppException {
+		if (authTypeStatusList == null || authTypeStatusList.isEmpty()) {
+			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "authTypes"));
+		}
+
+		String[] authTypesArray = allowedAuthTypes.toLowerCase().split(",");
+		List<String> authTypesAllowed = new ArrayList<>(Arrays.asList(authTypesArray));
+		for (AuthtypeStatus authTypeStatus : authTypeStatusList) {
+			String authType = getAuthTypeStatus(authTypeStatus);
+			if (authType == null || !authTypesAllowed.contains(authType.toLowerCase())) {
+				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "authTypes"));
+			}
+		}
+	}
+
+	private String getAuthTypeStatus(AuthtypeStatus authTypeStatus) {
+		if (authTypeStatus.getAuthType() != null && !authTypeStatus.getAuthType().isEmpty()) {
+			if (authTypeStatus.getAuthSubType() != null && !authTypeStatus.getAuthSubType().isEmpty()) {
+				return String.format("%s%s%s", authTypeStatus.getAuthType(), AUTH_TYPE_SEPERATOR,
+						authTypeStatus.getAuthSubType());
+			} else {
+				return authTypeStatus.getAuthType();
+			}
+		}
+		return null;
 	}
 }
