@@ -221,6 +221,8 @@ public class IdRepoConstants {
 	/** The Constant DEMOGRAPHICS. */
 	public static final String DEMOGRAPHICS = "Demographics";
 
+	public static final String AUTH_TYPE_SEPERATOR = "-";
+
 	/**
 	 * Instantiates a new id repo constants.
 	 *
