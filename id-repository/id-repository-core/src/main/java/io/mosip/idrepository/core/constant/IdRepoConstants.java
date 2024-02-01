@@ -243,6 +243,8 @@ public class IdRepoConstants {
 
 	public static final String ID_REPO_DRAFT_SERVICE_IMPL = "IdRepoDraftServiceImpl";
 
+	public static final String AUTH_TYPE_SEPERATOR = "-";
+
 	/**
 	 * Instantiates a new id repo constants.
 	 *
