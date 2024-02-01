@@ -1,12 +1,17 @@
 package io.mosip.idrepository.identity.validator;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.AUTH_TYPE_SEPERATOR;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -14,36 +19,21 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.Option;
-import io.mosip.idrepository.identity.dto.HandleDto;
-import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.mosip.idrepository.core.builder.RestRequestBuilder;
-import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.AuthTypeStatusRequestDto;
+import io.mosip.idrepository.core.dto.AuthtypeStatus;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
-import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
-import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
-import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
-import io.mosip.idrepository.core.exception.RestServiceException;
-import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.validator.BaseIdRepoValidator;
-import io.mosip.kernel.core.http.ResponseWrapper;
+import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import io.mosip.kernel.core.idobjectvalidator.constant.IdObjectValidatorErrorConstant;
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectIOException;
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailedException;
@@ -54,7 +44,6 @@ import io.mosip.kernel.core.idvalidator.spi.UinValidator;
 import io.mosip.kernel.core.idvalidator.spi.VidValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
-import io.mosip.kernel.idobjectvalidator.constant.IdObjectValidatorConstant;
 
 /**
  * The Class IdRequestValidator - Validator for {@code IdRequestDTO}.
@@ -128,6 +117,8 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	/** The allowed types. */
 	private List<String> allowedTypes = List.of("bio", "demo", "metadata", "all");
 
+	@Value("${auth.types.allowed}")
+	private String allowedAuthTypes;
 
 	/** The uin validator. */
 	@Autowired
@@ -464,5 +455,34 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "individualId"));
 		}
+	}
+
+	public void validateAuthTypes(List<AuthtypeStatus> authTypeStatusList) throws IdRepoAppException {
+		if (authTypeStatusList == null || authTypeStatusList.isEmpty()) {
+			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "authTypes"));
+		}
+
+		String[] authTypesArray = allowedAuthTypes.toLowerCase().split(",");
+		List<String> authTypesAllowed = new ArrayList<>(Arrays.asList(authTypesArray));
+		for (AuthtypeStatus authTypeStatus : authTypeStatusList) {
+			String authType = getAuthTypeStatus(authTypeStatus);
+			if (authType == null || !authTypesAllowed.contains(authType.toLowerCase())) {
+				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "authTypes"));
+			}
+		}
+	}
+
+	private String getAuthTypeStatus(AuthtypeStatus authTypeStatus) {
+		if (authTypeStatus.getAuthType() != null && !authTypeStatus.getAuthType().isEmpty()) {
+			if (authTypeStatus.getAuthSubType() != null && !authTypeStatus.getAuthSubType().isEmpty()) {
+				return String.format("%s%s%s", authTypeStatus.getAuthType(), AUTH_TYPE_SEPERATOR,
+						authTypeStatus.getAuthSubType());
+			} else {
+				return authTypeStatus.getAuthType();
+			}
+		}
+		return null;
 	}
 }
