@@ -80,10 +80,6 @@ public class Utilities {
 	public String generateId() {
 		return UUID.randomUUID().toString();
 	}
-	
-	public String generatePin() {
-		return  RandomStringUtils.randomAlphabetic(5);
-	}
 
 	public JSONObject getVCContext(String configServerFileStorageURL, String uri) {
 		try {

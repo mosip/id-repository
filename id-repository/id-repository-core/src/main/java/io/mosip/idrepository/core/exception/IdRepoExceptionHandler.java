@@ -196,8 +196,13 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 						buildExceptionResponse(ex, ((ServletWebRequest) request).getHttpMethod(), REACTIVATE),
 						HttpStatus.OK);
 			} else {
-				return new ResponseEntity<>(
-						buildExceptionResponse(ex, ((ServletWebRequest) request).getHttpMethod(), null), HttpStatus.OK);
+				if (request instanceof ServletWebRequest) {
+					return new ResponseEntity<>(
+							buildExceptionResponse(ex, ((ServletWebRequest) request).getHttpMethod(), null), HttpStatus.OK);
+				}
+				else{
+					throw new IllegalStateException();
+				}
 			}
 		} else if (ex instanceof HttpMessageNotReadableException || ex instanceof ServletException
 				|| ex instanceof BeansException) {

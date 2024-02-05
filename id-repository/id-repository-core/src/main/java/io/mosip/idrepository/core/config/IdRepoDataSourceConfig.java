@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
+import io.mosip.idrepository.core.entity.Handle;
+import io.mosip.idrepository.core.repository.HandleRepo;
 import org.hibernate.Interceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
@@ -37,7 +39,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
 
 @EnableAsync
 @EnableJpaRepositories(basePackageClasses = { UinHashSaltRepo.class, UinEncryptSaltRepo.class,
-		CredentialRequestStatusRepo.class })
+		CredentialRequestStatusRepo.class, HandleRepo.class })
 @EnableCaching
 public class IdRepoDataSourceConfig {
 
@@ -69,6 +71,7 @@ public class IdRepoDataSourceConfig {
 				pui.addManagedClassName(UinEncryptSalt.class.getName());
 				pui.addManagedClassName(UinHashSalt.class.getName());
 				pui.addManagedClassName(CredentialRequestStatus.class.getName());
+				pui.addManagedClassName(Handle.class.getName());
 			}
 		});
 		return em;

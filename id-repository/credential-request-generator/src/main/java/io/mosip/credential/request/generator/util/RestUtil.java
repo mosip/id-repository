@@ -49,6 +49,11 @@ public class RestUtil {
     @Autowired
     private EnvUtil environment;
 
+	/** The Constant AUTHORIZATION. */
+    private static final String AUTHORIZATION = "Authorization=";
+
+	private static final String CONTENT_TYPE = "Content-Type";
+
 	@Value("${idrepo.default.processor.httpclient.connections.max.per.host:20}")
 	private int maxConnectionPerRoute;
 
@@ -56,11 +61,6 @@ public class RestUtil {
 	private int totalMaxConnection;
 
 	private RestTemplate restTemplate;
-
-	/** The Constant AUTHORIZATION. */
-    private static final String AUTHORIZATION = "Authorization=";
-
-	private static final String CONTENT_TYPE = "Content-Type";
 
 	/**
 	 * Post api.
@@ -183,7 +183,7 @@ public class RestUtil {
 	 * @throws KeyStoreException        the key store exception
 	 */
 	public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
-		if (restTemplate != null) {
+		if (restTemplate == null) {
 			HttpClientBuilder httpClientBuilder = HttpClients.custom().setMaxConnPerRoute(maxConnectionPerRoute)
 					.setMaxConnTotal(totalMaxConnection).disableCookieManagement();
 			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();

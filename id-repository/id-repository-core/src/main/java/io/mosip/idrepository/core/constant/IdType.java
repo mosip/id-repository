@@ -13,7 +13,9 @@ public enum IdType {
 	/** The uin. */
 	UIN("UIN"),
 	
-	ID("ID");
+	ID("ID"),
+
+	HANDLE("HANDLE");
 	
 	/** The id Type. */
 	private final String idType;
