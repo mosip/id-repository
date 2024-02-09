@@ -575,4 +575,26 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			idResponse.setMetadata(Map.of("vid", vid));
 		return idResponse;
 	}
+
+	@Override
+	public IdResponseDTO getDraftUin(String uin) throws IdRepoAppException{
+		String uinHash = super.getUinHash(uin);
+		try {
+			Optional<String> regIds = uinDraftRepo.getRidByUinHash(uinHash);
+			if (regIds.isPresent()) {
+				IdResponseDTO idResponseDTO = new IdResponseDTO();
+				ResponseDTO responseDTO = new ResponseDTO();
+				responseDTO.setIdentity(regIds);
+				idResponseDTO.setResponse(responseDTO);
+				return idResponseDTO;
+			} else {
+				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+						DRAFT_RECORD_NOT_FOUND);
+				throw new IdRepoAppException(NO_RECORD_FOUND);
+			}
+		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
+			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
+		}
+	}
 }
