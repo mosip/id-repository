@@ -282,7 +282,7 @@ public class IdRepoDraftController {
 	}
 
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetdraftUIN())")
-	@GetMapping(path = "/{UIN}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(path = "/uin/{UIN}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "getDraftUIN", description = "getDraft", tags = { "id-repo-draft-controller" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK"),
@@ -290,18 +290,18 @@ public class IdRepoDraftController {
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true))),
 	})
-	public ResponseEntity<IdResponseDTO> getDraftUIN(@PathVariable String uin)
+	public ResponseEntity<IdResponseDTO> getDraftUIN(@PathVariable String UIN)
 			throws IdRepoAppException {
 		try {
-			return new ResponseEntity<>(draftService.getDraftUin(uin),
+			return new ResponseEntity<>(draftService.getDraftUin(UIN),
 					HttpStatus.OK);
 		} catch (IdRepoAppException e) {
-			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_DRAFT_UIN_REQUEST_RESPONSE, uin,
+			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_DRAFT_UIN_REQUEST_RESPONSE, UIN,
 					IdType.ID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "getDraftUin", e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
-			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_DRAFT_UIN_REQUEST_RESPONSE, uin,
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_DRAFT_UIN_REQUEST_RESPONSE, UIN,
 					IdType.ID, "Get Draft UIN requested");
 		}
 	}
