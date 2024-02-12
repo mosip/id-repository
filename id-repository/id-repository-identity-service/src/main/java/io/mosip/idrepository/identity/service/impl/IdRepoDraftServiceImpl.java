@@ -39,6 +39,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import io.mosip.idrepository.core.constant.IdRepoConstants;
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
+import io.mosip.idrepository.core.dto.DraftUinResponseDto;
+import io.mosip.kernel.core.exception.ServiceError;
 import org.hibernate.exception.JDBCConnectionException;
 import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONCompare;
@@ -46,8 +50,8 @@ import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.skyscreamer.jsonassert.JSONCompareResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.annotation.Transactional;
@@ -106,6 +110,7 @@ import io.mosip.kernel.core.util.StringUtils;
 public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoDraftService<IdRequestDTO, IdResponseDTO> {
 
 	private static final Logger idrepoDraftLogger = IdRepoLogger.getLogger(IdRepoDraftServiceImpl.class);
+	private static final int SIZE = 0;
 
 	@Value("${" + MOSIP_KERNEL_IDREPO_JSON_PATH + "}")
 	private String uinPath;
@@ -136,6 +141,9 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	
 	@Autowired
 	private VidDraftHelper vidDraftHelper;
+
+	@Autowired
+	private Environment environment;
 	
 	@Value("${mosip.idrepo.create-identity.enable-force-merge:false}")
 	private boolean isForceMergeEnabled;
@@ -577,24 +585,28 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	}
 
 	@Override
-	public IdResponseDTO getDraftUin(String uin) throws IdRepoAppException{
+	public ResponseWrapper<DraftUinResponseDto> getDraftUin(String uin) throws IdRepoAppException{
 		String uinHash = super.getUinHash(uin);
+		ResponseWrapper<DraftUinResponseDto> responseWrapper = new ResponseWrapper<>();
 		try {
-			Optional<String> regIds = uinDraftRepo.getRidByUinHash(uinHash);
-			if (regIds.isPresent()) {
-				IdResponseDTO idResponseDTO = new IdResponseDTO();
-				ResponseDTO responseDTO = new ResponseDTO();
-				responseDTO.setIdentity(regIds);
-				idResponseDTO.setResponse(responseDTO);
-				return idResponseDTO;
+			List<String> regIds = uinDraftRepo.getRidByUinHash(uinHash);
+			DraftUinResponseDto draftUinResponseDto = new DraftUinResponseDto();
+			responseWrapper.setId(environment.getProperty(IdRepoConstants.GET_DRAFT_UIN_ID));
+			responseWrapper.setVersion(environment.getProperty(IdRepoConstants.GET_DRAFT_UIN_VERSION));
+			responseWrapper.setResponsetime(DateUtils.getUTCCurrentDateTime());
+			if (!regIds.isEmpty()) {
+				draftUinResponseDto.setRids(regIds);
+				responseWrapper.setResponse(draftUinResponseDto);
 			} else {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
 						DRAFT_RECORD_NOT_FOUND);
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+				responseWrapper.setErrors(List.of(new ServiceError(NO_RECORD_FOUND.getErrorCode(),
+						NO_RECORD_FOUND.getErrorMessage())));
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 		}
+		return responseWrapper;
 	}
 }

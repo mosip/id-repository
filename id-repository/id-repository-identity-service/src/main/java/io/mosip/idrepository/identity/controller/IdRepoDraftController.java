@@ -10,6 +10,8 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
+import io.mosip.idrepository.core.dto.DraftUinResponseDto;
+import io.mosip.kernel.core.http.ResponseWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -290,7 +292,7 @@ public class IdRepoDraftController {
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true))),
 	})
-	public ResponseEntity<IdResponseDTO> getDraftUIN(@PathVariable String UIN)
+	public ResponseEntity<ResponseWrapper<DraftUinResponseDto>> getDraftUIN(@PathVariable String UIN)
 			throws IdRepoAppException {
 		try {
 			return new ResponseEntity<>(draftService.getDraftUin(UIN),

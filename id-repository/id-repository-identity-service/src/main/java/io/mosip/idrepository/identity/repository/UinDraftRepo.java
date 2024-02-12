@@ -1,5 +1,6 @@
 package io.mosip.idrepository.identity.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -72,6 +73,6 @@ public interface UinDraftRepo extends JpaRepository<UinDraft, String> {
 	 * @param uinHash the uinHash
 	 * @return regId the reg id
 	 */
-	@Query("select regId from Uin where uinHash = :uinHash")
-	Optional<String> getRidByUinHash(@Param("uinHash") String uinHash);
+	@Query("select regId from UinDraft where uinHash = :uinHash")
+	List<String> getRidByUinHash(@Param("uinHash") String uinHash);
 }
