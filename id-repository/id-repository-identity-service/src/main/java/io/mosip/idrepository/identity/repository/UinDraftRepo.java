@@ -67,12 +67,4 @@ public interface UinDraftRepo extends JpaRepository<UinDraft, String> {
 	 */
 	boolean existsByUinHash(String uinHash);
 
-	/**
-	 * Gets the uin by refId .
-	 *
-	 * @param uinHash the uinHash
-	 * @return regId the reg id
-	 */
-	@Query("select regId from UinDraft where uinHash = :uinHash")
-	List<String> getRidByUinHash(@Param("uinHash") String uinHash);
 }

@@ -2,7 +2,7 @@ package io.mosip.idrepository.core.spi;
 
 import java.util.Map;
 
-import io.mosip.idrepository.core.dto.DraftUinResponseDto;
+import io.mosip.idrepository.core.dto.DraftResponseDto;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.kernel.core.http.ResponseWrapper;
 
@@ -28,5 +28,5 @@ public interface IdRepoDraftService<REQUEST, RESPONSE> {
 	
 	public RESPONSE extractBiometrics(String registrationId, Map<String, String> extractionFormats) throws IdRepoAppException;
 
-    public ResponseWrapper<DraftUinResponseDto> getDraftUin(String uin) throws IdRepoAppException;
+    public ResponseWrapper<DraftResponseDto> getDraftUin(String uin) throws IdRepoAppException;
 }

@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import io.mosip.idrepository.core.constant.IdRepoConstants;
-import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
+import io.mosip.idrepository.core.dto.DraftResponseDto;
 import io.mosip.idrepository.core.dto.DraftUinResponseDto;
 import io.mosip.kernel.core.exception.ServiceError;
 import org.hibernate.exception.JDBCConnectionException;
@@ -585,18 +585,22 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	}
 
 	@Override
-	public ResponseWrapper<DraftUinResponseDto> getDraftUin(String uin) throws IdRepoAppException{
+	public ResponseWrapper<DraftResponseDto> getDraftUin(String uin) throws IdRepoAppException{
 		String uinHash = super.getUinHash(uin);
-		ResponseWrapper<DraftUinResponseDto> responseWrapper = new ResponseWrapper<>();
+		ResponseWrapper<DraftResponseDto> responseWrapper = new ResponseWrapper<>();
 		try {
-			List<String> regIds = uinDraftRepo.getRidByUinHash(uinHash);
+			UinDraft uinDraft = uinDraftRepo.findByUinHash(uinHash);
 			DraftUinResponseDto draftUinResponseDto = new DraftUinResponseDto();
+			DraftResponseDto draftResponseDto = new DraftResponseDto();
 			responseWrapper.setId(environment.getProperty(IdRepoConstants.GET_DRAFT_UIN_ID));
 			responseWrapper.setVersion(environment.getProperty(IdRepoConstants.GET_DRAFT_UIN_VERSION));
 			responseWrapper.setResponsetime(DateUtils.getUTCCurrentDateTime());
-			if (!regIds.isEmpty()) {
-				draftUinResponseDto.setRids(regIds);
-				responseWrapper.setResponse(draftUinResponseDto);
+			if (uinDraft!=null) {
+				draftUinResponseDto.setRid(uinDraft.getRegId());
+				draftUinResponseDto.setCreatedDTimes(uinDraft.getCreatedDateTime().toString());
+				draftUinResponseDto.setAttributes(getAttributeListFromUinData(uinDraft.getUinData()));
+				draftResponseDto.setDrafts(draftUinResponseDto);
+				responseWrapper.setResponse(draftResponseDto);
 			} else {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
 						DRAFT_RECORD_NOT_FOUND);
@@ -608,5 +612,9 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 		}
 		return responseWrapper;
+	}
+
+	private List<String> getAttributeListFromUinData(byte[] uinData) {
+		return List.of();
 	}
 }

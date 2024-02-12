@@ -11,5 +11,7 @@ import java.util.List;
  */
 @Data
 public class DraftUinResponseDto {
-	private List<String> rids;
+	private String rid;
+	private String createdDTimes;
+	private List<String> attributes;
 }
