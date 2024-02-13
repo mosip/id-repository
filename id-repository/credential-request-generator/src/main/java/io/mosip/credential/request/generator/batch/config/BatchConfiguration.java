@@ -3,9 +3,6 @@ package io.mosip.credential.request.generator.batch.config;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.persistence.QueryHint;
@@ -19,22 +16,13 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.integration.async.AsyncItemProcessor;
-import org.springframework.batch.integration.async.AsyncItemWriter;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.data.RepositoryItemReader;
-import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
@@ -42,6 +30,10 @@ import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import io.mosip.credential.request.generator.util.RestUtil;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
 
 
 
@@ -85,6 +77,9 @@ public class BatchConfiguration {
 	@Autowired
 	private Job credentialReProcessJob;
 	
+	private static final String BATCH_CONFIGURATION = "BatchConfiguration";
+	private static final Logger LOGGER = IdRepoLogger.getLogger(BatchConfiguration.class);
+	
 	/**
 	 * Process job.
 	 */
@@ -96,7 +91,8 @@ public class BatchConfiguration {
 			jobLauncher.run(credentialProcessJob, jobParameters);
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(IdRepoSecurityManager.getUser(), BATCH_CONFIGURATION,
+					"error in JobLauncher " + ExceptionUtils.getStackTrace(e));
 		}
 	}
 
@@ -111,7 +107,8 @@ public class BatchConfiguration {
 			jobLauncher.run(credentialReProcessJob, jobParameters);
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(IdRepoSecurityManager.getUser(), BATCH_CONFIGURATION,
+					"error in JobLauncher " + ExceptionUtils.getStackTrace(e));
 		}
 	}
 	
