@@ -14,7 +14,6 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.MOSIP_KERNEL_I
 import static io.mosip.idrepository.core.constant.IdRepoConstants.PUBLISH_DRAFT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_DATA_REFID;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UPDATE_DRAFT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VERIFIED_ATTRIBUTES;
@@ -48,7 +47,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.dto.DraftResponseDto;
 import io.mosip.idrepository.core.dto.DraftUinResponseDto;
-import io.mosip.kernel.core.exception.ServiceError;
 import org.hibernate.exception.JDBCConnectionException;
 import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONCompare;
@@ -591,28 +589,23 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	}
 
 	@Override
-	public ResponseWrapper<DraftResponseDto> getDraftUin(String uin) throws IdRepoAppException{
+	public DraftResponseDto getDraftUin(String uin) throws IdRepoAppException{
 		String uinHash = super.getUinHash(uin);
-		ResponseWrapper<DraftResponseDto> responseWrapper = new ResponseWrapper<>();
+		DraftResponseDto draftResponseDto = new DraftResponseDto();
 		try {
 			UinDraft uinDraft = uinDraftRepo.findByUinHash(uinHash);
 			DraftUinResponseDto draftUinResponseDto = new DraftUinResponseDto();
-			DraftResponseDto draftResponseDto = new DraftResponseDto();
-			responseWrapper.setId(environment.getProperty(IdRepoConstants.GET_DRAFT_UIN_ID));
-			responseWrapper.setVersion(environment.getProperty(IdRepoConstants.GET_DRAFT_UIN_VERSION));
-			responseWrapper.setResponsetime(DateUtils.getUTCCurrentDateTime());
 			if (uinDraft!=null) {
 				draftUinResponseDto.setRid(uinDraft.getRegId());
 				draftUinResponseDto.setCreatedDTimes(uinDraft.getCreatedDateTime().toString());
 				draftUinResponseDto.setAttributes(getAttributeListFromUinData(uinDraft.getUinData()));
 				draftResponseDto.setDrafts(draftUinResponseDto);
-				responseWrapper.setResponse(draftResponseDto);
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException | JsonProcessingException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 		}
-		return responseWrapper;
+		return draftResponseDto;
 	}
 
 	private List<String> getAttributeListFromUinData(byte[] uinData) throws IdRepoAppException, JsonProcessingException {
