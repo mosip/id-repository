@@ -262,7 +262,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * @param uin the uin
 	 * @return the string
 	 */
-	private String retrieveUinHash(String uin) {
+	protected String retrieveUinHash(String uin) {
 		int saltId = securityManager.getSaltKeyForId(uin);
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(saltId);
 		String hashwithSalt = securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
@@ -553,7 +553,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * @param vid Virtual ID
 	 * @return The response is a map of key value pairs.
 	 */
-	private String getUinByVid(String vid) throws IdRepoDataValidationException, IdRepoAppException {
+	protected String getUinByVid(String vid) throws IdRepoDataValidationException, IdRepoAppException {
 		try {
 			RestRequestDTO request = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_UIN_BY_VID, null,
 					ResponseWrapper.class);

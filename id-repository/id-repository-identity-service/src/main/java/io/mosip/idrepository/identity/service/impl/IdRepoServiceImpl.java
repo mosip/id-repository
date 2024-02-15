@@ -369,9 +369,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * String, io.mosip.idrepository.core.constant.IdType, java.lang.String)
 	 */
 	@Override
-	public Uin retrieveIdentity(String id, IdType idType, String type, Map<String, String> extractionFormats)
+	public Uin retrieveIdentity(String uinHash, IdType idType, String type, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
-		Optional<Uin> uinObjOptional = uinRepo.findByUinHash(id);
+		Optional<Uin> uinObjOptional = uinRepo.findByUinHash(uinHash);
 		if (uinObjOptional.isPresent()) {
 			return uinObjOptional.get();
 		} else {

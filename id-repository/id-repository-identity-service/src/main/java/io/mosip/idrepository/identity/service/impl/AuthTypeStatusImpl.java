@@ -77,6 +77,12 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	@Autowired
 	private IdRepoWebSubHelper webSubHelper;
 
+	@Autowired
+	private IdRepoProxyServiceImpl idRepoProxyServiceImpl;
+
+	@Autowired
+	private IdRepoServiceImpl idRepoServiceImpl;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -94,8 +100,11 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	}
 
 	private List<Object[]> fetchAuthTypeStatusRecords(String individualId, IdType idType) throws IdRepoAppException {
-		if (idType == IdType.VID) {
-			individualId = getUin(individualId);
+		if (idType == IdType.UIN) {
+			String uinHash = idRepoProxyServiceImpl.retrieveUinHash(individualId);
+			idRepoServiceImpl.retrieveIdentity(uinHash, IdType.UIN, null, null);
+		} else if (idType == IdType.VID) {
+			individualId = idRepoProxyServiceImpl.getUinByVid(individualId);
 		}
 		String idHash = securityManager.hash(individualId.getBytes());
 		return authLockRepository.findByUinHash(idHash);
