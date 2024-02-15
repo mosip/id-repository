@@ -3,6 +3,7 @@ package io.mosip.idrepository.identity.controller;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FACE_EXTRACTION_FORMAT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FINGER_EXTRACTION_FORMAT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.IRIS_EXTRACTION_FORMAT;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -66,6 +67,7 @@ public class IdRepoDraftController {
 	private static final String UIN = "UIN";
 
 	private static final String ID_REPO_DRAFT_CONTROLLER = "IdRepoDraftController";
+	private static final String GET_DRAFT_UIN = "getDraftUin";
 
 	private final Logger mosipLogger = IdRepoLogger.getLogger(IdRepoDraftController.class);
 
@@ -296,12 +298,17 @@ public class IdRepoDraftController {
 	public ResponseEntity<ResponseWrapper<DraftResponseDto>> getDraftUIN(@PathVariable String UIN)
 			throws IdRepoAppException {
 		try {
+			if (!validator.validateUin(UIN)) {
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, GET_DRAFT_UIN, "Invalid uin");
+				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), IdType.UIN));
+			}
 			return new ResponseEntity<>(draftService.getDraftUin(UIN),
 					HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_DRAFT_UIN_REQUEST_RESPONSE, UIN,
 					IdType.ID, e);
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "getDraftUin", e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, GET_DRAFT_UIN, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_DRAFT_UIN_REQUEST_RESPONSE, UIN,
