@@ -5,6 +5,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.DISCARD_DRAFT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DOT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DRAFTED;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DRAFT_RECORD_NOT_FOUND;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.EXCLUDED_ATTRIBUTE_LIST;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.GENERATE_UIN;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.GET_DRAFT;
@@ -13,6 +14,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.MOSIP_KERNEL_I
 import static io.mosip.idrepository.core.constant.IdRepoConstants.PUBLISH_DRAFT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_DATA_REFID;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UPDATE_DRAFT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VERIFIED_ATTRIBUTES;
@@ -25,6 +27,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_HASH_
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,6 +42,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.dto.DraftResponseDto;
 import io.mosip.idrepository.core.dto.DraftUinResponseDto;
@@ -110,7 +116,7 @@ import io.mosip.kernel.core.util.StringUtils;
 public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoDraftService<IdRequestDTO, IdResponseDTO> {
 
 	private static final Logger idrepoDraftLogger = IdRepoLogger.getLogger(IdRepoDraftServiceImpl.class);
-	private static final int SIZE = 0;
+	private static final String COMMA = ",";
 
 	@Value("${" + MOSIP_KERNEL_IDREPO_JSON_PATH + "}")
 	private String uinPath;
@@ -601,20 +607,30 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				draftUinResponseDto.setAttributes(getAttributeListFromUinData(uinDraft.getUinData()));
 				draftResponseDto.setDrafts(draftUinResponseDto);
 				responseWrapper.setResponse(draftResponseDto);
-			} else {
-				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
-						DRAFT_RECORD_NOT_FOUND);
-				responseWrapper.setErrors(List.of(new ServiceError(NO_RECORD_FOUND.getErrorCode(),
-						NO_RECORD_FOUND.getErrorMessage())));
 			}
-		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
+		} catch (DataAccessException | TransactionException | JDBCConnectionException | JsonProcessingException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 		}
 		return responseWrapper;
 	}
 
-	private List<String> getAttributeListFromUinData(byte[] uinData) {
-		return List.of();
+	private List<String> getAttributeListFromUinData(byte[] uinData) throws IdRepoAppException, JsonProcessingException {
+
+		List<String> attributeList = new ArrayList<>();
+		String resultString = new String(uinData, StandardCharsets.UTF_8);
+		String excludedAttributeListProperty = environment.getProperty(EXCLUDED_ATTRIBUTE_LIST);
+		if(excludedAttributeListProperty==null){
+			excludedAttributeListProperty = "UIN,verifiedAttributes,IDSchemaVersion";
+		}
+		List<String> excludedListPropertyList = List.of(excludedAttributeListProperty.split(COMMA));
+		ObjectMapper objectMapper = new ObjectMapper();
+		JsonNode jsonNode = objectMapper.readTree(resultString);
+		jsonNode.fieldNames().forEachRemaining(key -> {
+			if(!excludedListPropertyList.contains(key)){
+				attributeList.add(key);
+			}
+		});
+		return attributeList;
 	}
 }
