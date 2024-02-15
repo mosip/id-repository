@@ -141,12 +141,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	private static final String REGISTRATION_ID = "registration_id";
 
-	private static final String PARTNER_ACTIVE_STATUS = "Active";
-
-	private static final String ACTIVE = "ACTIVE";
-
-	private static final String ACTIVATED = "ACTIVATED";
-
 	@Value("${id-repo-ida-event-type-namespace:mosip}")
 	private String idaEventTypeNamespace;
 
