@@ -34,7 +34,7 @@ public class CredentialDaoTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+//        MockitoAnnotations.initMocks(this);
     }
 
     @Test
