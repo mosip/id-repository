@@ -342,8 +342,9 @@ public class IdRepoController {
 			@PathVariable("IDType") String individualIdType) throws IdRepoAppException {
 		AuthtypeResponseDto authtypeResponseDto = new AuthtypeResponseDto();
 		boolean isIdTypeValid = false;
+		IdType idType = null;
 		try {
-			IdType idType = validator.validateIdType(individualIdType);
+			idType = validator.validateIdType(individualIdType);
 			isIdTypeValid = true;
 			validator.validateIdvId(individualId, idType);
 			List<AuthtypeStatus> authtypeStatusList = authTypeStatusService.fetchAuthTypeStatus(individualId, idType);
@@ -353,13 +354,13 @@ public class IdRepoController {
 			authtypeResponseDto.setResponsetime(DateUtils.getUTCCurrentDateTime());
 
 			auditHelper.audit(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
-					individualId, IdType.valueOf(individualIdType), "auth type status update status : " + true);
+					individualId, idType, "auth type status update status : " + true);
 
 			return new ResponseEntity<>(authtypeResponseDto, HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "getAuthTypeStatus", e.getMessage());
 			auditHelper.auditError(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
-					individualId, isIdTypeValid ? IdType.valueOf(individualIdType) : IdType.UIN, e);
+					individualId, isIdTypeValid ? idType : IdType.UIN, e);
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		}
 	}
