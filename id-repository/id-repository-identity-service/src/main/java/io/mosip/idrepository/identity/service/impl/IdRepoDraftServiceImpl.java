@@ -116,6 +116,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	private static final Logger idrepoDraftLogger = IdRepoLogger.getLogger(IdRepoDraftServiceImpl.class);
 	private static final String COMMA = ",";
 
+	private static final String DEFAULT_ATTRIBUTE_LIST = "UIN,verifiedAttributes,IDSchemaVersion";
+
 	@Value("${" + MOSIP_KERNEL_IDREPO_JSON_PATH + "}")
 	private String uinPath;
 
@@ -599,7 +601,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				draftUinResponseDto.setRid(uinDraft.getRegId());
 				draftUinResponseDto.setCreatedDTimes(uinDraft.getCreatedDateTime().toString());
 				draftUinResponseDto.setAttributes(getAttributeListFromUinData(uinDraft.getUinData()));
-				draftResponseDto.setDrafts(draftUinResponseDto);
+				draftResponseDto.setDrafts(List.of(draftUinResponseDto));
 			}
 		} catch (DataAccessException | TransactionException | JDBCConnectionException | JsonProcessingException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
@@ -608,14 +610,10 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		return draftResponseDto;
 	}
 
-	private List<String> getAttributeListFromUinData(byte[] uinData) throws IdRepoAppException, JsonProcessingException {
-
+	private List<String> getAttributeListFromUinData(byte[] uinData) throws JsonProcessingException {
 		List<String> attributeList = new ArrayList<>();
 		String resultString = new String(uinData, StandardCharsets.UTF_8);
-		String excludedAttributeListProperty = environment.getProperty(EXCLUDED_ATTRIBUTE_LIST);
-		if(excludedAttributeListProperty==null){
-			excludedAttributeListProperty = "UIN,verifiedAttributes,IDSchemaVersion";
-		}
+		String excludedAttributeListProperty = environment.getProperty(EXCLUDED_ATTRIBUTE_LIST, DEFAULT_ATTRIBUTE_LIST);
 		List<String> excludedListPropertyList = List.of(excludedAttributeListProperty.split(COMMA));
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode jsonNode = objectMapper.readTree(resultString);

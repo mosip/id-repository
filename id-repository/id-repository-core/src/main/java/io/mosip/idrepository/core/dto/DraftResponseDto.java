@@ -2,6 +2,8 @@ package io.mosip.idrepository.core.dto;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * The DraftResponseDto.
  * 
@@ -9,5 +11,5 @@ import lombok.Data;
  */
 @Data
 public class DraftResponseDto {
-	private DraftUinResponseDto drafts;
+	private List<DraftUinResponseDto> drafts;
 }
