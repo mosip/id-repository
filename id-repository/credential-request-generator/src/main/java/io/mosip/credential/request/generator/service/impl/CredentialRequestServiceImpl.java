@@ -226,7 +226,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 					credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 					credentialEntity.setUpdatedBy(IdRepoSecurityManager.getUser());
 					credentialEntity.setStatusComment("Cancel the request");
-					credentialDao.update(credentialEntity);
+					credentialDao.save(credentialEntity);
 					CredentialIssueRequestDto credentialIssueRequestDto = mapper
 							.readValue(credentialEntity.getRequest(),
 									CredentialIssueRequestDto.class);
@@ -374,7 +374,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 				credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 				credentialEntity.setUpdatedBy(PRINT_USER);
 				credentialEntity.setStatusComment("updated the status from partner");
-				credentialDao.update(credentialEntity);
+				credentialDao.save(credentialEntity);
 				LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CANCEL_CREDENTIAL,
 						"updated the status of  " + requestId);
 			} else {

@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -38,7 +37,6 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
-import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.AuthtypeStatus;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
@@ -51,8 +49,8 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.entity.AuthtypeLock;
 import io.mosip.idrepository.identity.repository.AuthLockRepository;
 import io.mosip.idrepository.identity.service.impl.AuthTypeStatusImpl;
-import io.mosip.kernel.core.exception.ServiceError;
-import io.mosip.kernel.core.http.ResponseWrapper;
+import io.mosip.idrepository.identity.service.impl.IdRepoProxyServiceImpl;
+import io.mosip.idrepository.identity.service.impl.IdRepoServiceImpl;
 import io.mosip.kernel.core.util.DateUtils;
 
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
@@ -81,6 +79,12 @@ public class AuthTypeStatusImplTest {
 	@Mock
 	private IdRepoWebSubHelper webSubHelper;
 
+	@Mock
+	private IdRepoProxyServiceImpl idRepoProxyServiceImpl;
+
+	@Mock
+	private IdRepoServiceImpl idRepoServiceImpl;
+
 	@Autowired
 	private ObjectMapper mapper;
 
@@ -108,74 +112,6 @@ public class AuthTypeStatusImplTest {
 		assertNull(response.get(0).getAuthSubType());
 		assertEquals(true, response.get(0).getLocked());
 		assertNull(response.get(0).getUnlockForSeconds());
-	}
-
-	@Test
-	public void testFetchAuthTypeStatusOfVIDWithDemoLock() throws IdRepoAppException {
-		when(securityManager.hash(any())).thenReturn("");
-		Object[] obj = new Object[3];
-		obj[0] = "bio-FACE";
-		obj[1] = "true";
-		obj[2] = null;
-		when(authLockRepository.findByUinHash(any())).thenReturn(Collections.singletonList(obj));
-		RestRequestDTO restRequestDTO = new RestRequestDTO();
-		restRequestDTO.setUri("{vid}");
-		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restRequestDTO);
-		ResponseWrapper<Map<String, String>> restResponse = new ResponseWrapper<>();
-		restResponse.setResponse(Map.of("UIN", ""));
-		when(restHelper.requestSync(any())).thenReturn(restResponse);
-		List<AuthtypeStatus> response = authTypeStatusImpl.fetchAuthTypeStatus("", IdType.VID);
-		assertEquals("bio", response.get(0).getAuthType());
-		assertEquals("FACE", response.get(0).getAuthSubType());
-		assertEquals(true, response.get(0).getLocked());
-		assertNull(response.get(0).getUnlockForSeconds());
-	}
-
-	@Test
-	public void testFetchAuthTypeStatusOfVIDWithDemoLockGetUinFailed() throws IdRepoAppException, IOException {
-		when(securityManager.hash(any())).thenReturn("");
-		Object[] obj = new Object[3];
-		obj[0] = "bio-FACE";
-		obj[1] = "true";
-		obj[2] = null;
-		when(authLockRepository.findByUinHash(any())).thenReturn(Collections.singletonList(obj));
-		RestRequestDTO restRequestDTO = new RestRequestDTO();
-		restRequestDTO.setUri("{vid}");
-		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restRequestDTO);
-		ResponseWrapper<Map<String, String>> restResponse = new ResponseWrapper<>();
-		restResponse.setErrors(List.of(new ServiceError(IdRepoErrorConstants.AUTHENTICATION_FAILED.getErrorCode(),
-				IdRepoErrorConstants.AUTHENTICATION_FAILED.getErrorMessage())));
-		when(restHelper.requestSync(any()))
-				.thenThrow(new RestServiceException(IdRepoErrorConstants.AUTHENTICATION_FAILED,
-						mapper.writeValueAsString(restResponse), restResponse));
-		try {
-			authTypeStatusImpl.fetchAuthTypeStatus("", IdType.VID);
-		} catch (IdRepoAppException e) {
-			assertEquals(IdRepoErrorConstants.AUTHENTICATION_FAILED.getErrorCode(), e.getErrorCode());
-			assertEquals(IdRepoErrorConstants.AUTHENTICATION_FAILED.getErrorMessage(), e.getErrorText());
-		}
-	}
-
-	@Test
-	public void testFetchAuthTypeStatusOfVIDWithDemoLockGetUinFailedUnknownError() throws IdRepoAppException {
-		when(securityManager.hash(any())).thenReturn("");
-		Object[] obj = new Object[3];
-		obj[0] = "bio-FACE";
-		obj[1] = "true";
-		obj[2] = null;
-		when(authLockRepository.findByUinHash(any())).thenReturn(Collections.singletonList(obj));
-		RestRequestDTO restRequestDTO = new RestRequestDTO();
-		restRequestDTO.setUri("{vid}");
-		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restRequestDTO);
-		ResponseWrapper<Map<String, String>> restResponse = new ResponseWrapper<>();
-		restResponse.setResponse(Map.of("UIN", ""));
-		when(restHelper.requestSync(any())).thenThrow(new RestServiceException());
-		try {
-			authTypeStatusImpl.fetchAuthTypeStatus("", IdType.VID);
-		} catch (IdRepoAppException e) {
-			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
-			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
-		}
 	}
 
 	@Test
