@@ -166,7 +166,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			Optional<CredentialEntity> entity = credentialDao.findById(rid);
 			if (entity.isPresent()) {
 				LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL,
-						"Duplicate Rid is found........ " + rid);
+						"Duplicate Rid is found........ " + rid + "StatusCode" + entity.get().getStatusCode());
 			}
 			CredentialEntity credential=new CredentialEntity();
 			credential.setRequestId(rid);
