@@ -462,6 +462,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
+	/**
+	 * trim data inside identity
+	 * 
+	 * @param request
+	 * @throws IdRepoAppException
+	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void updateRequestBodyData(IdRequestDTO request) throws IdRepoAppException {
 		if (Objects.nonNull(request.getRequest().getIdentity())) {
