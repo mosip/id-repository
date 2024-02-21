@@ -464,21 +464,23 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void updateRequestBodyData(IdRequestDTO request) throws IdRepoAppException {
-		Map<String, Object> identityData = idRepoServiceHelper.convertToMap(request.getRequest().getIdentity());
-		Map<String, Object> updatedIdentityData = identityData.entrySet().stream().map(attributeData -> {
-			if (attributeData.getValue() instanceof String) {
-				attributeData.setValue(((String) attributeData.getValue()).trim());
-			} else if (attributeData.getValue() instanceof List) {
-				((List<Map<String, Object>>) attributeData.getValue()).stream()
-						.filter(map -> map.get(VALUE) instanceof String)
-						.map(map -> map.put(VALUE, ((String) map.get(VALUE)).trim())).collect(Collectors.toList());
-			} else if (attributeData.getValue() instanceof Map) {
-				String trimValue = ((String) ((Map) attributeData.getValue()).get(VALUE)).trim();
-				((Map) attributeData.getValue()).put(VALUE, trimValue);
-			}
-			return attributeData;
-		}).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-		request.getRequest().setIdentity(updatedIdentityData);
+		if (Objects.nonNull(request.getRequest().getIdentity())) {
+			Map<String, Object> identityData = idRepoServiceHelper.convertToMap(request.getRequest().getIdentity());
+			Map<String, Object> updatedIdentityData = identityData.entrySet().stream().map(attributeData -> {
+				if (attributeData.getValue() instanceof String) {
+					attributeData.setValue(((String) attributeData.getValue()).trim());
+				} else if (attributeData.getValue() instanceof List) {
+					((List<Map<String, Object>>) attributeData.getValue()).stream()
+							.filter(map -> map.get(VALUE) instanceof String)
+							.map(map -> map.put(VALUE, ((String) map.get(VALUE)).trim())).collect(Collectors.toList());
+				} else if (attributeData.getValue() instanceof Map) {
+					String trimValue = ((String) ((Map) attributeData.getValue()).get(VALUE)).trim();
+					((Map) attributeData.getValue()).put(VALUE, trimValue);
+				}
+				return attributeData;
+			}).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+			request.getRequest().setIdentity(updatedIdentityData);
+		}
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
