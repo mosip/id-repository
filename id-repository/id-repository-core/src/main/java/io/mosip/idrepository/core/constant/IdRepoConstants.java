@@ -245,6 +245,12 @@ public class IdRepoConstants {
 
 	public static final String AUTH_TYPE_SEPERATOR = "-";
 
+	public static final String GET_DRAFT_UIN_ID = "mosip.identity.get.drafts.id";
+
+	public static final String GET_DRAFT_UIN_VERSION = "mosip.identity.get.drafts.version";
+
+	public static final String EXCLUDED_ATTRIBUTE_LIST = "mosip.identity.get.excluded.attribute.list";
+
 	/**
 	 * Instantiates a new id repo constants.
 	 *

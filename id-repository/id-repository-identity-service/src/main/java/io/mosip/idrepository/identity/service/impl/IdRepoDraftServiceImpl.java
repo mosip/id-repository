@@ -5,6 +5,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.DISCARD_DRAFT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DOT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DRAFTED;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DRAFT_RECORD_NOT_FOUND;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.EXCLUDED_ATTRIBUTE_LIST;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.GENERATE_UIN;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.GET_DRAFT;
@@ -25,6 +26,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_HASH_
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,6 +41,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.idrepository.core.constant.IdRepoConstants;
+import io.mosip.idrepository.core.dto.DraftResponseDto;
+import io.mosip.idrepository.core.dto.DraftUinResponseDto;
 import org.hibernate.exception.JDBCConnectionException;
 import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONCompare;
@@ -46,8 +54,8 @@ import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.skyscreamer.jsonassert.JSONCompareResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.annotation.Transactional;
@@ -106,6 +114,9 @@ import io.mosip.kernel.core.util.StringUtils;
 public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoDraftService<IdRequestDTO, IdResponseDTO> {
 
 	private static final Logger idrepoDraftLogger = IdRepoLogger.getLogger(IdRepoDraftServiceImpl.class);
+	private static final String COMMA = ",";
+
+	private static final String DEFAULT_ATTRIBUTE_LIST = "UIN,verifiedAttributes,IDSchemaVersion";
 
 	@Value("${" + MOSIP_KERNEL_IDREPO_JSON_PATH + "}")
 	private String uinPath;
@@ -136,6 +147,9 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	
 	@Autowired
 	private VidDraftHelper vidDraftHelper;
+
+	@Autowired
+	private Environment environment;
 	
 	@Value("${mosip.idrepo.create-identity.enable-force-merge:false}")
 	private boolean isForceMergeEnabled;
@@ -574,5 +588,40 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		if(Objects.nonNull(vid))
 			idResponse.setMetadata(Map.of("vid", vid));
 		return idResponse;
+	}
+
+	@Override
+	public DraftResponseDto getDraftUin(String uin) throws IdRepoAppException{
+		String uinHash = super.getUinHash(uin);
+		DraftResponseDto draftResponseDto = new DraftResponseDto();
+		try {
+			UinDraft uinDraft = uinDraftRepo.findByUinHash(uinHash);
+			DraftUinResponseDto draftUinResponseDto = new DraftUinResponseDto();
+			if (uinDraft!=null) {
+				draftUinResponseDto.setRid(uinDraft.getRegId());
+				draftUinResponseDto.setCreatedDTimes(uinDraft.getCreatedDateTime().toString());
+				draftUinResponseDto.setAttributes(getAttributeListFromUinData(uinDraft.getUinData()));
+				draftResponseDto.setDrafts(List.of(draftUinResponseDto));
+			}
+		} catch (DataAccessException | TransactionException | JDBCConnectionException | JsonProcessingException e) {
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
+			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
+		}
+		return draftResponseDto;
+	}
+
+	private List<String> getAttributeListFromUinData(byte[] uinData) throws JsonProcessingException {
+		List<String> attributeList = new ArrayList<>();
+		String resultString = new String(uinData, StandardCharsets.UTF_8);
+		String excludedAttributeListProperty = environment.getProperty(EXCLUDED_ATTRIBUTE_LIST, DEFAULT_ATTRIBUTE_LIST);
+		List<String> excludedListPropertyList = List.of(excludedAttributeListProperty.split(COMMA));
+		ObjectMapper objectMapper = new ObjectMapper();
+		JsonNode jsonNode = objectMapper.readTree(resultString);
+		jsonNode.fieldNames().forEachRemaining(key -> {
+			if(!excludedListPropertyList.contains(key)){
+				attributeList.add(key);
+			}
+		});
+		return attributeList;
 	}
 }
