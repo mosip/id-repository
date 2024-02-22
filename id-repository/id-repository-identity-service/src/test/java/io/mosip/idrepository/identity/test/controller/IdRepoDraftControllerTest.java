@@ -1,19 +1,28 @@
 package io.mosip.idrepository.identity.test.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
+import io.mosip.idrepository.core.constant.IdType;
+import io.mosip.idrepository.core.dto.DraftResponseDto;
+import io.mosip.idrepository.core.dto.IdRequestDTO;
+import io.mosip.idrepository.core.dto.IdResponseDTO;
+import io.mosip.idrepository.core.dto.RequestDTO;
+import io.mosip.idrepository.core.exception.IdRepoAppException;
+import io.mosip.idrepository.core.helper.AuditHelper;
+import io.mosip.idrepository.core.spi.IdRepoDraftService;
+import io.mosip.idrepository.core.util.EnvUtil;
+import io.mosip.idrepository.identity.controller.IdRepoDraftController;
+import io.mosip.idrepository.identity.validator.IdRequestValidator;
+import io.mosip.kernel.core.http.ResponseWrapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -25,16 +34,12 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.context.WebApplicationContext;
 
-import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
-import io.mosip.idrepository.core.dto.IdRequestDTO;
-import io.mosip.idrepository.core.dto.IdResponseDTO;
-import io.mosip.idrepository.core.dto.RequestDTO;
-import io.mosip.idrepository.core.exception.IdRepoAppException;
-import io.mosip.idrepository.core.helper.AuditHelper;
-import io.mosip.idrepository.core.spi.IdRepoDraftService;
-import io.mosip.idrepository.core.util.EnvUtil;
-import io.mosip.idrepository.identity.controller.IdRepoDraftController;
-import io.mosip.idrepository.identity.validator.IdRequestValidator;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
@@ -53,6 +58,9 @@ public class IdRepoDraftControllerTest {
 
 	@Mock
 	private AuditHelper auditHelper;
+
+	@Mock
+	private Environment environment;
 
 	private Errors errors;
 
@@ -244,6 +252,17 @@ public class IdRepoDraftControllerTest {
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
 		}
+	}
+
+	@Test
+	public void testGetDraftUinException() throws IdRepoAppException {
+		when(environment.getProperty(Mockito.anyString())).thenReturn("id");
+		when(validator.validateUin(Mockito.anyString()))
+				.thenReturn(false);
+		ResponseWrapper<DraftResponseDto> responseWrapper = controller.getDraftUIN("123").getBody();
+		assert responseWrapper != null;
+		assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), responseWrapper.getErrors().get(0).getErrorCode());
+		assertEquals(String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), IdType.UIN), responseWrapper.getErrors().get(0).getMessage());
 	}
 
 }
