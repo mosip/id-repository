@@ -449,7 +449,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	}
 
 	public void validateIdvId(String individualId, IdType idType) throws IdRepoAppException {
-		if ((idType == IdType.UIN && !this.validateUin(individualId))
+		if ((idType != IdType.UIN && idType != IdType.VID) || (idType == IdType.UIN && !this.validateUin(individualId))
 				|| (idType == IdType.VID && !this.validateVid(individualId))) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "getIdType", "Invalid ID");
 			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
