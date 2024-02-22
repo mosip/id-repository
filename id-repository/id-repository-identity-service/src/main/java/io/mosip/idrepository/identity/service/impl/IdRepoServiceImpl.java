@@ -191,7 +191,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
-	
+
+	@Value("${mosip.idrepo.update-identity.trim-whitespaces:true}")
+	private boolean trimWhitespaces;
+
 	/**
 	 * Adds the identity to DB.
 	 *
@@ -470,7 +473,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void updateRequestBodyData(IdRequestDTO request) throws IdRepoAppException {
-		if (Objects.nonNull(request.getRequest().getIdentity())) {
+		if (trimWhitespaces && Objects.nonNull(request.getRequest().getIdentity())) {
 			Map<String, Object> identityData = idRepoServiceHelper.convertToMap(request.getRequest().getIdentity());
 			Map<String, Object> updatedIdentityData = identityData.entrySet().stream().map(attributeData -> {
 				if (attributeData.getValue() instanceof String) {
