@@ -137,8 +137,12 @@ public class CredentialStatusManager {
 	public void deleteDummyPartner(CredentialRequestStatus credentialRequestStatus) {
 		Optional<CredentialRequestStatus> idWithDummyPartnerOptional = statusRepo.findByIndividualIdHashAndPartnerId(
 				credentialRequestStatus.getIndividualIdHash(), dummyPartner.getDummyOLVPartnerId());
+		mosipLogger.debug("Entry present : "
+				+ (idWithDummyPartnerOptional.isPresent() ? idWithDummyPartnerOptional.get().getStatus()
+						: "Not found"));
 		if (idWithDummyPartnerOptional.isPresent() && !idWithDummyPartnerOptional.get().getStatus()
 				.contentEquals(CredentialRequestStatusLifecycle.FAILED.toString())) {
+			mosipLogger.debug("Inside dummy partner deletion");
 			statusRepo.delete(idWithDummyPartnerOptional.get());
 		}
 	}
