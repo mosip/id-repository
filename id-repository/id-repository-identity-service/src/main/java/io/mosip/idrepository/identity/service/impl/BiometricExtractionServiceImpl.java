@@ -215,7 +215,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	
 	private boolean validateCbeff(List<BIR> extractedBirs, List<BIR> cbeffBirsForModality) {
 		return extractedBirs != null && cbeffBirsForModality != null
-				&& extractedBirs.size() == cbeffBirsForModality.size();
+				&& Integer.valueOf(extractedBirs.size()).equals(Integer.valueOf(cbeffBirsForModality.size()));
 	}
 
 }
