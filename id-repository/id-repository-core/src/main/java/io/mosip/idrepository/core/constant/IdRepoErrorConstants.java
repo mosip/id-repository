@@ -89,7 +89,10 @@ public enum IdRepoErrorConstants {
 	
 	UIN_GENERATION_FAILED("IDR-IDS-011","Failed to generate UIN"),
 	
-	INVALID_BIOMETRIC("IDR-IDS-012", "Failed to extract the valid biometric data"),
+	/** The authorization failed. */
+	AUTHENTICATION_FAILED("IDR-IDS-012", "Authentication Failed"),
+	
+	INVALID_BIOMETRIC("IDR-IDS-013", "Failed to extract the valid biometric data"),
 
 	// VID Service
 	
@@ -111,9 +114,6 @@ public enum IdRepoErrorConstants {
 	/** The uin hash mismatch. */
 	UIN_HASH_MISMATCH("IDR-VID-006", "Uin hash does not match"),
 	
-	/** The authorization failed. */
-	/** The document hash mismatch. */
-	AUTHENTICATION_FAILED("IDR-IDS-012", "Authentication Failed"),
 	
 	INVALID_CBEFF("IDR-BIE-001", "Invalid CBEFF"),
 	

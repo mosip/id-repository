@@ -64,13 +64,13 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	 * @param fileName the file name
 	 * @param extractionType the extraction type
 	 * @param extractionFormat the extraction format
-	 * @param birsForModality the birs for modality
+	 * @param cbeffBirsForModality the birs for modality
 	 * @return the completable future
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	@Async
 	public CompletableFuture<List<BIR>> extractTemplate(String uinHash, String fileName,
-			String extractionType, String extractionFormat, List<BIR> birsForModality) throws IdRepoAppException {
+			String extractionType, String extractionFormat, List<BIR> cbeffBirsForModality) throws IdRepoAppException {
 		try {
 			String extractionFileName = fileName.split("\\.")[0] + DOT + getModalityForFormat(extractionType) + DOT + extractionFormat;
 			Map<String, String> formatFlag = Map.of(getFormatFlag(extractionType), extractionFormat);
@@ -87,8 +87,8 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 						mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
 								EXTRACT_TEMPLATE, e.getMessage());
 					}
-					if (!validateCbeff(existingBirs)) {
-						List<BIR> extractedBiometrics = extractBiometricTemplate(formatFlag, birsForModality);
+					if (!validateCbeff(existingBirs, cbeffBirsForModality)) {
+						List<BIR> extractedBiometrics = extractBiometricTemplate(formatFlag, cbeffBirsForModality);
 						objectStoreHelper.putBiometricObject(uinHash, extractionFileName,
 								cbeffUtil.createXML(extractedBiometrics));
 						return CompletableFuture.completedFuture(extractedBiometrics);
@@ -102,7 +102,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 			
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
 					"EXTRATCING BIOMETRICS FOR FORMAT: " + extractionType +" : "+ extractionFormat);
-			List<BIR> extractedBiometrics = extractBiometricTemplate(formatFlag, birsForModality);
+			List<BIR> extractedBiometrics = extractBiometricTemplate(formatFlag, cbeffBirsForModality);
 			if (!extractedBiometrics.isEmpty()) {
 				objectStoreHelper.putBiometricObject(uinHash, extractionFileName, cbeffUtil.createXML(extractedBiometrics));
 			}
@@ -143,21 +143,21 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	 * Extract biometric template.
 	 *
 	 * @param extractionFormats the extraction formats
-	 * @param birs the birs
+	 * @param cbeffBirsForModality the birs
 	 * @return the list
 	 * @throws BiometricExtractionException the biometric extraction exception
 	 */
-	private List<BIR> extractBiometricTemplate(Map<String, String> extractionFormats, List<BIR> birs)
+	private List<BIR> extractBiometricTemplate(Map<String, String> extractionFormats, List<BIR> cbeffBirsForModality)
 			throws BiometricExtractionException {
 		mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "extractBiometricTemplate",
 				"INVOKING BIOMETRIC EXTRACTION FOR THE FORMAT: " + extractionFormats);
 		
 		BioExtractRequestDTO bioExtractReq = new BioExtractRequestDTO();
-		bioExtractReq.setBiometrics(birs);
+		bioExtractReq.setBiometrics(cbeffBirsForModality);
 		bioExtractReq.setExtractionFormats(extractionFormats);
 		
 		BioExtractResponseDTO bioExtractResponseDTO = extractBiometrics(bioExtractReq);
-		if (!validateCbeff(bioExtractResponseDTO.getExtractedBiometrics())) {
+		if (!validateCbeff(bioExtractResponseDTO.getExtractedBiometrics(), cbeffBirsForModality)) {
 			throw new BiometricExtractionException(INVALID_BIOMETRIC.getErrorCode(),
 					String.format(INVALID_BIOMETRIC.getErrorMessage()));
 		}
@@ -174,8 +174,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	private BioExtractResponseDTO extractBiometrics(BioExtractRequestDTO bioExtractRequestDTO)
 			throws BiometricExtractionException {
 		BioExtractResponseDTO bioExtractPromiseResponseDTO = new BioExtractResponseDTO();
-		List<BIR> birs = bioExtractRequestDTO.getBiometrics();
-		List<BIR> encodedExtractedBiometrics = doBioExtraction(birs, bioExtractRequestDTO.getExtractionFormats());
+		List<BIR> encodedExtractedBiometrics = doBioExtraction(bioExtractRequestDTO.getBiometrics(), bioExtractRequestDTO.getExtractionFormats());
 		bioExtractPromiseResponseDTO.setExtractedBiometrics(encodedExtractedBiometrics);
 		return bioExtractPromiseResponseDTO;
 	}
@@ -183,17 +182,18 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	/**
 	 * Do bio extraction.
 	 *
-	 * @param birs the birs
+	 * @param cbeffBirsForModality the birs
 	 * @param extractionFormats the extraction formats
 	 * @return the list
 	 * @throws BiometricExtractionException the biometric extraction exception
 	 */
-	private List<BIR> doBioExtraction(List<BIR> birs, Map<String, String> extractionFormats)
+	private List<BIR> doBioExtraction(List<BIR> cbeffBirsForModality, Map<String, String> extractionFormats)
 			throws BiometricExtractionException {
-		return bioExractionHelper.extractTemplates(birs, extractionFormats);
+		return bioExractionHelper.extractTemplates(cbeffBirsForModality, extractionFormats);
 	}
 
-	private boolean validateCbeff(List<BIR> birs) {
-		return birs.size() > 0 && birs.stream().allMatch(cbeff -> cbeff.getBdb() != null && cbeff.getBdb().length > 0);
+	private boolean validateCbeff(List<BIR> extractedBirs, List<BIR> cbeffBirsForModality) {
+		return extractedBirs != null && cbeffBirsForModality != null
+				&& Integer.valueOf(extractedBirs.size()).equals(Integer.valueOf(cbeffBirsForModality.size()));
 	}
 }
