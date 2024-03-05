@@ -88,10 +88,8 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 								EXTRACT_TEMPLATE, e.getMessage());
 					}
 					if (!validateCbeff(existingBirs, cbeffBirsForModality)) {
-						List<BIR> extractedBiometrics = extractBiometricTemplate(formatFlag, cbeffBirsForModality);
-						objectStoreHelper.putBiometricObject(uinHash, extractionFileName,
-								cbeffUtil.createXML(extractedBiometrics));
-						return CompletableFuture.completedFuture(extractedBiometrics);
+						return extractBiometricTemplateData(uinHash, extractionFileName, formatFlag,
+								cbeffBirsForModality);
 					}
 					return CompletableFuture.completedFuture(existingBirs);
 				}
@@ -102,11 +100,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 			
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
 					"EXTRATCING BIOMETRICS FOR FORMAT: " + extractionType +" : "+ extractionFormat);
-			List<BIR> extractedBiometrics = extractBiometricTemplate(formatFlag, cbeffBirsForModality);
-			if (!extractedBiometrics.isEmpty()) {
-				objectStoreHelper.putBiometricObject(uinHash, extractionFileName, cbeffUtil.createXML(extractedBiometrics));
-			}
-			return CompletableFuture.completedFuture(extractedBiometrics);
+			return extractBiometricTemplateData(uinHash, extractionFileName, formatFlag, cbeffBirsForModality);
 		} catch (BiometricExtractionException e) {
 			if(e.getErrorCode().equalsIgnoreCase(INVALID_BIOMETRIC.getErrorCode())) {
 				throw e;
@@ -117,6 +111,16 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE, e.getMessage());
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);
 		}
+	}
+
+	private CompletableFuture<List<BIR>> extractBiometricTemplateData(String uinHash, String extractionFileName,
+			Map<String, String> formatFlag, List<BIR> cbeffBirsForModality)
+			throws BiometricExtractionException, IdRepoAppException, Exception {
+		List<BIR> extractedBiometrics = extractBiometricTemplate(formatFlag, cbeffBirsForModality);
+		if (!extractedBiometrics.isEmpty()) {
+			objectStoreHelper.putBiometricObject(uinHash, extractionFileName, cbeffUtil.createXML(extractedBiometrics));
+		}
+		return CompletableFuture.completedFuture(extractedBiometrics);
 	}
 	
 	/**
