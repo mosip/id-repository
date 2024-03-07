@@ -95,6 +95,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	/** The Constant LANGUAGE. */
 	private static final String LANGUAGE = "language";
 
+	private static final String VALUE = "value";
+
 	/** The Constant ADD_IDENTITY. */
 	private static final String ADD_IDENTITY = "addIdentity";
 
@@ -189,7 +191,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
-	
+
+	@Value("${mosip.idrepo.update-identity.trim-whitespaces:true}")
+	private boolean trimWhitespaces;
+
 	/**
 	 * Adds the identity to DB.
 	 *
@@ -393,6 +398,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		String uinHash = getUinHash(uin);
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
 		try {
+			updateRequestBodyData(request);
+			
 			Uin uinObject = retrieveIdentity(uinHash, IdType.UIN, null, null);
 			anonymousProfileHelper.setOldCbeff(uinHash,
 					!anonymousProfileHelper.isOldCbeffPresent() && Objects.nonNull(uinObject.getBiometrics())
@@ -455,6 +462,34 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, UPDATE_IDENTITY,
 					"\n" + e.getErrorText());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		}
+	}
+
+	/**
+	 * trim data inside identity
+	 * 
+	 * @param request
+	 * @throws IdRepoAppException
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private void updateRequestBodyData(IdRequestDTO request) throws IdRepoAppException {
+		if (trimWhitespaces && Objects.nonNull(request.getRequest().getIdentity())) {
+			Map<String, Object> identityData = idRepoServiceHelper.convertToMap(request.getRequest().getIdentity());
+			Map<String, Object> updatedIdentityData = identityData.entrySet().stream().map(attributeData -> {
+				if (attributeData.getValue() instanceof String) {
+					attributeData.setValue(((String) attributeData.getValue()).trim());
+				} else if (attributeData.getValue() instanceof List) {
+					((List<Map<String, Object>>) attributeData.getValue()).forEach(map -> {
+						String trimValue = ((String) map.get(VALUE)).trim();
+						map.put(VALUE, trimValue);
+					});
+				} else if (attributeData.getValue() instanceof Map) {
+					String trimValue = ((String) ((Map) attributeData.getValue()).get(VALUE)).trim();
+					((Map) attributeData.getValue()).put(VALUE, trimValue);
+				}
+				return attributeData;
+			}).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+			request.getRequest().setIdentity(updatedIdentityData);
 		}
 	}
 
