@@ -217,7 +217,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 * @param errors  the errors
 	 * @param method  the method
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings("rawtypes")
 	public void validateRequest(Object request, Errors errors, String method) {
 		try {
 			if (Objects.nonNull(request)) {
@@ -238,15 +238,12 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					validateDocuments(requestMap, errors);
 					requestMap.keySet().parallelStream().filter(key -> !key.contentEquals(ROOT_PATH)).forEach(requestMap::remove);
 					if (!errors.hasErrors()) {
-						String schemaVersion;
 						if (requestMap.get(ROOT_PATH) != null) {
-							schemaVersion = String
-									.valueOf(((Map<String, Object>) requestMap.get(ROOT_PATH))
-											.get(idRepoServiceHelper.getIdentityMapping().getIdentity().getIDSchemaVersion().getValue()));
+							String schema = fetchSchemaJson(requestMap);
 							if (method.equals(CREATE)) {
-								idObjectValidator.validateIdObject(idRepoServiceHelper.getSchema(schemaVersion), requestMap, newRegistrationFields);
+								idObjectValidator.validateIdObject(schema, requestMap, newRegistrationFields);
 							} else {
-								idObjectValidator.validateIdObject(idRepoServiceHelper.getSchema(schemaVersion), requestMap, updateUinFields);
+								idObjectValidator.validateIdObject(schema, requestMap, updateUinFields);
 							}
 						}
 					}
@@ -284,6 +281,14 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 			errors.rejectValue(REQUEST, ID_OBJECT_PROCESSING_FAILED.getErrorCode(),
 					ID_OBJECT_PROCESSING_FAILED.getErrorMessage());
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public String fetchSchemaJson(Map<String, Object> requestMap) {
+		String schemaVersion = String
+				.valueOf(((Map<String, Object>) requestMap.get(ROOT_PATH))
+						.get(idRepoServiceHelper.getIdentityMapping().getIdentity().getIDSchemaVersion().getValue()));
+		return idRepoServiceHelper.getSchema(schemaVersion);
 	}
 
 	/**
