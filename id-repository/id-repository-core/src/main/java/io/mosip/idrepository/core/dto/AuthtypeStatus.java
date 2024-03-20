@@ -1,5 +1,6 @@
 package io.mosip.idrepository.core.dto;
 
+import java.util.List;
 import java.util.Map;
 
 import lombok.AllArgsConstructor;
@@ -27,5 +28,7 @@ public class AuthtypeStatus {
 	private Boolean locked;
 	private Long unlockForSeconds;
 	private String requestId;
+	private List<String> excludeLockForResidentLogin;
+	private boolean lockExcludedAuthPartners;
 	private Map<String, Object> metadata;
 }

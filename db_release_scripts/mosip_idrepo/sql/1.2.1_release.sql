@@ -14,6 +14,7 @@
 
 ALTER TABLE idrepo.credential_request_status ALTER COLUMN request_id type character varying(64);
 
+ALTER TABLE idrepo.uin_auth_lock ADD COLUMN lock_excluded_auth_partners character varying(256);
 ------------------------------------------------------------------------------------------------
 
 \ir ../ddl/idrepo-handle.sql
