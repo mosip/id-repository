@@ -3,6 +3,7 @@ package io.mosip.credential.request.generator.api;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
@@ -18,6 +19,7 @@ import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
  *
  * @author Sowmya
  */
+@EnableCaching
 @SpringBootApplication(exclude = HibernateDaoConfig.class)
 @Import(value = { java.lang.String.class, DummyPartnerCheckUtil.class, RestHelper.class, IdRepoSecurityManager.class })
 @ComponentScan(basePackages = { "io.mosip.*",
