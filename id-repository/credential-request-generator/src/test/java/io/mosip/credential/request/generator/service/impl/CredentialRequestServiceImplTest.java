@@ -34,6 +34,7 @@ import io.mosip.credential.request.generator.dto.CredentialStatusEvent;
 import io.mosip.credential.request.generator.dto.Event;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorException;
+import io.mosip.credential.request.generator.util.CacheUtil;
 import io.mosip.credential.request.generator.util.Utilities;
 import io.mosip.idrepository.core.dto.CredentialIssueRequest;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
@@ -59,6 +60,9 @@ public class CredentialRequestServiceImplTest {
 
 	@Mock
 	private EnvUtil env;
+	
+	@Mock
+	private CacheUtil cacheUtil;
 
 	@Mock
 	CredentialEntity credentialEntity;
@@ -87,6 +91,7 @@ public class CredentialRequestServiceImplTest {
 		credentialIssueRequestDto.setCredentialType("MOSIP");
 		credentialIssueRequestDto.setId("123");
 		credentialIssueRequestDto.setEncrypt(true);
+		Mockito.when(cacheUtil.setCredentialTransaction(Mockito.any(), Mockito.any())).thenReturn(credentialEntity);
 		Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenReturn(credentialIssueRequestDto.toString());
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto=credentialRequestServiceImpl.createCredentialIssuance(credentialIssueRequestDto);
 		assertEquals("123456", credentialIssueResponseDto.getResponse().getRequestId());
@@ -98,6 +103,7 @@ public class CredentialRequestServiceImplTest {
 		credentialIssueRequestDto.setCredentialType("MOSIP");
 		credentialIssueRequestDto.setId("123");
 		credentialIssueRequestDto.setEncrypt(true);
+		Mockito.when(cacheUtil.setCredentialTransaction(Mockito.any(), Mockito.any())).thenReturn(credentialEntity);
 		Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenReturn(credentialIssueRequestDto.toString());
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto=credentialRequestServiceImpl.createCredentialIssuanceByRid(credentialIssueRequestDto,"123456");
 		assertEquals("123456", credentialIssueResponseDto.getResponse().getRequestId());
@@ -222,6 +228,7 @@ public class CredentialRequestServiceImplTest {
 
 	@Test
 	public void testEntityEmptyForGetCredentialRequestStatus() throws JsonProcessingException {
+		Mockito.when(cacheUtil.getCredentialTransaction(Mockito.anyString())).thenReturn(null);
 		Mockito.when(credentialDao.findById(Mockito.any())).thenReturn(Optional.empty());
 		ResponseWrapper<CredentialIssueStatusResponse> credentialIssueResponseDto=credentialRequestServiceImpl.getCredentialRequestStatus("1234");
 		assertNotNull(credentialIssueResponseDto.getErrors().get(0));
