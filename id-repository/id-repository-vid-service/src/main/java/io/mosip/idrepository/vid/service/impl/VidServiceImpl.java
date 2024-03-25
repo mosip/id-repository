@@ -436,7 +436,6 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 						THROWING_NO_RECORD_FOUND_VID);
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
-			//checkStatus(vidObject.getStatusCode());
 			checkExpiry(vidObject.getExpiryDTimes());
 			String decryptedUin = decryptUin(vidObject.getUin(), vidObject.getUinHash());
 			VidPolicy policy = policyProvider.getPolicy(vidObject.getVidTypeCode());
