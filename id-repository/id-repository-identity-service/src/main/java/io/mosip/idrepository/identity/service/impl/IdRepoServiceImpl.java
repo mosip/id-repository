@@ -849,13 +849,15 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						CryptoUtil.decodeURLSafeBase64(new String(trackRecord.getIdentityUpdateCount())),
 						new TypeReference<Map<String, Integer>>() {
 						});
-				return addMissingAttributes(updateCountMap.entrySet().stream()
-						.filter(entry -> attributeList.isEmpty() ? true : attributeList.contains(entry.getKey()))
-						.map(entry -> Map.entry(entry.getKey(),
-								Math.max(0,
-										IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(entry.getKey())
-												- entry.getValue())))
-						.collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
+				return addMissingAttributes(
+						updateCountMap.entrySet().stream()
+								.filter(entry -> attributeList.isEmpty() || attributeList.contains(entry.getKey()))
+								.filter(entry -> IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap().containsKey(entry.getKey()))
+								.collect(Collectors.toMap(
+										Map.Entry::getKey,
+										entry -> Math.max(0, IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(entry.getKey()) - entry.getValue())
+								))
+				);
 			} else {
 				return getRemainingUpdateCountFromConfig(attributeList);
 			}
