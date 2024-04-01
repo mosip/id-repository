@@ -39,7 +39,7 @@ public class CacheUtil {
 	  }
 	  
 	  public CredentialEntity getCredentialTransaction(String requestId) {
-	        return cacheManager.getCache("credential_transaction").get(requestId, CredentialEntity.class);	//NOSONAR getCache() will not be returning null here.
+	        return cacheManager.getCache("credential_transaction").get(requestId, CredentialEntity.class);
 	    }
 
 }
