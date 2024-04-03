@@ -265,4 +265,28 @@ public class IdRepoDraftControllerTest {
 		assertEquals(String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), IdType.UIN), responseWrapper.getErrors().get(0).getMessage());
 	}
 
+	@Test
+	public void testGetDraftUinSuccess() throws IdRepoAppException {
+		when(environment.getProperty(Mockito.anyString())).thenReturn("id");
+		when(validator.validateUin(Mockito.anyString()))
+				.thenReturn(true);
+		when(draftService.getDraftUin(Mockito.anyString())).thenReturn(new DraftResponseDto());
+		ResponseEntity<ResponseWrapper<DraftResponseDto>> response = controller.getDraftUIN("123");
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+	}
+
+	@Test
+	public void testGetDraftUinSuccessIdRepoAppException() throws IdRepoAppException {
+		when(environment.getProperty(Mockito.anyString())).thenReturn("id");
+		when(validator.validateUin(Mockito.anyString()))
+				.thenReturn(true);
+		when(draftService.getDraftUin(Mockito.anyString())).thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
+		try {
+			controller.getDraftUIN("123");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
+		}
+	}
+
 }
