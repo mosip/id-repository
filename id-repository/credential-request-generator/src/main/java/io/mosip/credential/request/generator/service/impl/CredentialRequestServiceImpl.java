@@ -312,6 +312,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			else {
 				Optional<CredentialEntity> entity = credentialDao.findById(requestId);
 				if(entity.isPresent()) credentialEntity = entity.get();
+				cacheUtil. setCredentialTransaction(requestId, credentialEntity);
 			}
 			if (credentialEntity!=null && credentialEntity.getRequestId()!=null) {
 				CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credentialEntity.getRequest(),
