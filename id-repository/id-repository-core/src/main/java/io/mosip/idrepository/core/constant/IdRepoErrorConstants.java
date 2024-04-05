@@ -1,9 +1,15 @@
 package io.mosip.idrepository.core.constant;
 
+import io.mosip.kernel.biometrics.constant.BiometricType;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static io.mosip.kernel.biometrics.constant.BiometricType.FACE;
+import static io.mosip.kernel.biometrics.constant.BiometricType.FINGER;
+import static io.mosip.kernel.biometrics.constant.BiometricType.IRIS;
 
 /**
  * The Enum IdRepoErrorConstants - contains error codes and messages thrown by
@@ -117,7 +123,68 @@ public enum IdRepoErrorConstants {
 	
 	TECHNICAL_ERROR("IDR-BIE-001", "Technical Error in Biometric Extraction"),
 	
-	JOB_FAILED("IDR-CFJ-001", "Credential Feeder job failed")
+	JOB_FAILED("IDR-CFJ-001", "Credential Feeder job failed");
+
+	public static final List<BiometricType> SUPPORTED_MODALITIES = List.of(FINGER, IRIS, FACE);
+
+	/** The Constant GET_FILES. */
+	public static final String GET_FILES = "getFiles";
+
+	/** The Constant UPDATE_IDENTITY. */
+	public static final String UPDATE_IDENTITY = "updateIdentity";
+
+	/** The Constant MOSIP_ID_UPDATE. */
+	public static final String MOSIP_ID_UPDATE = "mosip.id.update";
+
+	/** The Constant ADD_IDENTITY. */
+	public static final String ADD_IDENTITY = "addIdentity";
+
+	/** The Constant RETRIEVE_IDENTITY. */
+	public static final String RETRIEVE_IDENTITY = "retrieveIdentity";
+
+	/** The Constant BIOMETRICS. */
+	public static final String BIOMETRICS = "Biometrics";
+
+	/** The Constant BIO. */
+	public static final String BIO = "bio";
+
+	/** The Constant DEMO. */
+	public static final String DEMO = "demo";
+
+	/** The Constant ID_REPO_SERVICE_IMPL. */
+	public static final String ID_REPO_SERVICE_IMPL = "IdRepoServiceImpl";
+
+	/** The Constant CREATE. */
+	public static final String CREATE = "create";
+
+	/** The Constant READ. */
+	public static final String READ = "read";
+
+	/** The Constant ALL. */
+	public static final String ALL = "all";
+
+	/** The Constant DEMOGRAPHICS. */
+	public static final String DEMOGRAPHICS = "Demographics";
+
+	public static final String DRAFT_RECORD_NOT_FOUND = "DRAFT RECORD NOT FOUND";
+
+	public static final String VERIFIED_ATTRIBUTES = "verifiedAttributes";
+
+	public static final String GET_DRAFT = "getDraft";
+
+	public static final String DISCARD_DRAFT = "discardDraft";
+
+	public static final String PUBLISH_DRAFT = "publishDraft";
+
+	public static final String DRAFTED = "DRAFTED";
+
+	public static final String UPDATE_DRAFT = "UpdateDraft";
+
+	public static final String GENERATE_UIN = "generateUin";
+
+	public static final String CREATE_DRAFT = "createDraft";
+
+	public static final String ID_REPO_DRAFT_SERVICE_IMPL = "IdRepoDraftServiceImpl";
 	
 	;
 	
@@ -129,7 +196,7 @@ public enum IdRepoErrorConstants {
 	private final String errorMessage;
 
 	/**
-	 * Constructor for {@link IdAuthenticationErrorConstants}.
+	 * Constructor for {@link IdRepoErrorConstants}.
 	 *
 	 * @param errorCode    - id-usage error codes which follows
 	 *                     "<product>-<component>-<number>" pattern

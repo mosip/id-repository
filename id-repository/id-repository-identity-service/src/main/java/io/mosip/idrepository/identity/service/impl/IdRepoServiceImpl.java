@@ -420,7 +420,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						dbData.jsonString(), JSONCompareMode.LENIENT);
 
 				if (comparisonResult.failed()) {
-					updateJsonObject(inputData, dbData, comparisonResult);
+					updateJsonObject(uinHash, inputData, dbData, comparisonResult);
 				}
 				uinObject.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
 				uinObject.setUinDataHash(securityManager.hash(uinObject.getUinData()));
@@ -520,13 +520,14 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	/**
 	 * Update identity.
 	 *
+	 * @param uinHash
 	 * @param inputData        the input data
 	 * @param dbData           the db data
 	 * @param comparisonResult the comparison result
 	 * @throws JSONException      the JSON exception
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	protected void updateJsonObject(DocumentContext inputData, DocumentContext dbData, JSONCompareResult comparisonResult)
+	protected void updateJsonObject(String uinHash, DocumentContext inputData, DocumentContext dbData, JSONCompareResult comparisonResult)
 			throws JSONException, IdRepoAppException {
 		if (comparisonResult.isMissingOnField()) {
 			updateMissingFields(dbData, comparisonResult);
@@ -545,7 +546,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
 		if (comparisonResult.failed()) {
 			// Code should never reach here
-			updateJsonObject(inputData, dbData, comparisonResult);
+			updateJsonObject(uinHash, inputData, dbData, comparisonResult);
 		}
 	}
 

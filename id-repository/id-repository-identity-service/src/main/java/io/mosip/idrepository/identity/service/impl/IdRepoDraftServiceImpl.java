@@ -7,13 +7,24 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.CREATE_DRAFT;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DISCARD_DRAFT;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DRAFTED;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DRAFT_RECORD_NOT_FOUND;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.GENERATE_UIN;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.GET_DRAFT;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_REPO_DRAFT_SERVICE_IMPL;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.PUBLISH_DRAFT;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_GENERATION_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_HASH_MISMATCH;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UPDATE_DRAFT;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.VERIFIED_ATTRIBUTES;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -93,25 +104,6 @@ import io.mosip.kernel.core.util.StringUtils;
 @Transactional(rollbackFor = { IdRepoAppException.class, IdRepoAppUncheckedException.class })
 public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoDraftService<IdRequestDTO, IdResponseDTO> {
 
-	private static final String DRAFT_RECORD_NOT_FOUND = "DRAFT RECORD NOT FOUND";
-
-	private static final String VERIFIED_ATTRIBUTES = "verifiedAttributes";
-
-	private static final String GET_DRAFT = "getDraft";
-
-	private static final String DISCARD_DRAFT = "discardDraft";
-
-	private static final String PUBLISH_DRAFT = "publishDraft";
-
-	private static final String DRAFTED = "DRAFTED";
-
-	private static final String UPDATE_DRAFT = "UpdateDraft";
-
-	private static final String GENERATE_UIN = "generateUin";
-
-	private static final String CREATE_DRAFT = "createDraft";
-
-	private static final String ID_REPO_DRAFT_SERVICE_IMPL = "IdRepoDraftServiceImpl";
 
 	private static final Logger idrepoDraftLogger = IdRepoLogger.getLogger(IdRepoDraftServiceImpl.class);
 
@@ -273,7 +265,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 					JSONCompareMode.LENIENT);
 
 			if (comparisonResult.failed()) {
-				super.updateJsonObject(inputData, dbData, comparisonResult);
+				super.updateJsonObject(draftToUpdate.getUinHash(), inputData, dbData, comparisonResult);
 			}
 			draftToUpdate.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
 			draftToUpdate.setUinDataHash(securityManager.hash(draftToUpdate.getUinData()));
