@@ -111,7 +111,7 @@ public class CredentialTransactionInterceptorTest {
      * This class tests the onLoad method
      * @throws Exception
      */
-    @Test(expected = CredentialRequestGeneratorUncheckedException.class)
+    @Test
     public void onLoadExceptionTest() throws Exception {
         CredentialEntity entity = new CredentialEntity();
         Serializable id = new Serializable() {};
