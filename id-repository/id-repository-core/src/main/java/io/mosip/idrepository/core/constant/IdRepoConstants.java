@@ -222,6 +222,7 @@ public class IdRepoConstants {
 	public static final String DEMOGRAPHICS = "Demographics";
 
 	public static final String AUTH_TYPE_SEPERATOR = "-";
+	public static final String IDENTITY_UPDATE_COUNT_POLICY_FILE_URL = "mosip.identity-update-count-policy-file-url";
 
 	/**
 	 * Instantiates a new id repo constants.

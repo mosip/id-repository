@@ -18,6 +18,7 @@ import javax.annotation.Nullable;
 import javax.annotation.Resource;
 
 import io.mosip.idrepository.core.dto.*;
+import io.mosip.kernel.core.http.ResponseWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -421,6 +422,32 @@ public class IdRepoController {
 		}
 	}
 
+	//	@PreAuthorize("hasAnyRole(@authorizedRoles.getRemainingUpdateCountByIndividualId())")
+	@GetMapping(path = "/update-count/{individualId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "Get Remaining update count by Individual Id Request", description = "Get Remaining update count by Individual Id Request", tags = {
+			"id-repo-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Request authenticated successfully", content = @Content(array = @ArraySchema(schema = @Schema(implementation = IdRepoAppException.class)))),
+			@ApiResponse(responseCode = "400", description = "No Records Found", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
+	public ResponseEntity<ResponseWrapper<Map<String, Integer>>> getRemainingUpdateCountByIndividualId(
+			@PathVariable String individualId, @RequestParam(name = ID_TYPE, required = false) @Nullable String idType,
+			@RequestParam(name = "attribute_list", required = false) @Nullable List<String> attributeList)
+			throws IdRepoAppException {
+		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
+		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID, individualId,
+				individualIdType, "Get Remaining update count by Individual Id Request received");
+		ResponseWrapper<Map<String, Integer>> responseWrapper = new ResponseWrapper<>();
+		Map<String, Integer> countMap = idRepoService.getRemainingUpdateCountByIndividualId(individualId,
+				individualIdType, attributeList);
+		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID, individualId,
+				individualIdType, "Get Remaining update count by Individual Id Request success");
+		responseWrapper.setResponse(countMap);
+		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
+	}
+
 	/**
 	 * This Method returns Uin from the Identity Object.
 	 *
@@ -460,4 +487,5 @@ public class IdRepoController {
 			return IdType.VID;
 		return IdType.ID;
 	}
+
 }

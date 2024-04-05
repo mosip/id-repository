@@ -18,8 +18,10 @@ import java.util.stream.IntStream;
 
 import javax.annotation.Resource;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.mosip.idrepository.core.entity.Handle;
 import io.mosip.idrepository.core.repository.HandleRepo;
+import io.mosip.idrepository.identity.provider.IdentityUpdateTrackerProvider;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -186,6 +188,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
+
+	@Autowired
+	private IdentityUpdateTrackerRepo identityUpdateTracker;
 	
 	/**
 	 * Adds the identity to DB.
@@ -455,6 +460,47 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
+	/**
+	 * This function is used to get the maximum allowed update count of an attribute
+	 * for the given individual id
+	 *
+	 * @param uinHash  The UIN Hash of the individual id.
+	 * @param idType        The type of the ID. For example, UIN, RID, VID, etc.
+	 * @param attributeList List of attributes for which the update count is to be
+	 *                      retrieved.
+	 * @return A map of attribute name and the maximum allowed update count for that
+	 *         attribute.
+	 */
+	@Override
+	public Map<String, Integer> getRemainingUpdateCountByIndividualId(String uinHash, IdType idType,
+																	  List<String> attributeList) throws IdRepoAppException {
+		try {
+			Optional<IdentityUpdateTracker> updateTrackerOptional = identityUpdateTracker.findById(uinHash);
+			if (updateTrackerOptional.isPresent()) {
+				IdentityUpdateTracker trackRecord = updateTrackerOptional.get();
+				Map<String, Integer> updateCountMap = mapper.readValue(
+						CryptoUtil.decodeURLSafeBase64(new String(trackRecord.getIdentityUpdateCount())),
+						new TypeReference<Map<String, Integer>>() {
+						});
+				return updateCountMap.entrySet().stream()
+						.filter(entry -> attributeList.isEmpty() ? true : attributeList.contains(entry.getKey()))
+						.map(entry -> Map.entry(entry.getKey(),
+								Math.max(0,
+										IdentityUpdateTrackerProvider.getMaxUpdateCountLimit(entry.getKey())
+												- entry.getValue())))
+						.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+			} else {
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
+						"getMaxAllowedUpdateCountForIndividualId", "NO_RECORD_FOUND");
+				throw new IdRepoAppException(NO_RECORD_FOUND);
+			}
+		} catch (IOException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
+					"getMaxAllowedUpdateCountForIndividualId", ExceptionUtils.getStackTrace(e));
+			throw new IdRepoAppException(UNKNOWN_ERROR);
+		}
+	}
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected void updateVerifiedAttributes(RequestDTO requestDTO, DocumentContext inputData, DocumentContext dbData) {
 		List dbVerifiedAttributes = (List) dbData.read(".verifiedAttributes");
@@ -508,7 +554,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 *
 	 * @param dbData           the db data
 	 * @param comparisonResult the comparison result
-	 * @param attribute
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })

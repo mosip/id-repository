@@ -498,6 +498,52 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	}
 
 	/**
+	 * This function is used to get the maximum allowed update count of an attribute
+	 * for the given individual id
+	 *
+	 * @param individualId  The UIN of the individual
+	 * @param idType        The type of the ID. For example, UIN, RID, VID, etc.
+	 * @param attributeList List of attributes for which the update count is to be
+	 *                      retrieved.
+	 * @return A map of attribute name and the maximum allowed update count for that
+	 *         attribute.
+	 */
+	@Override
+	public Map<String, Integer> getRemainingUpdateCountByIndividualId(String individualId, IdType idType,
+																	  List<String> attributeList) throws IdRepoAppException {
+		String uinHash = getUinHash(individualId, idType);
+		return service.getRemainingUpdateCountByIndividualId(uinHash, idType,
+				Objects.isNull(attributeList) ? List.of() : attributeList);
+	}
+
+	/**
+	 * It takes in an individualId and an IdType, and returns the UIN hash of the
+	 * individualId
+	 *
+	 * @param individualId The ID of the individual.
+	 * @param idType       This is the type of the id that you are passing. It can
+	 *                     be UIN, VID or RID.
+	 * @return The UIN hash is being returned.
+	 */
+	private String getUinHash(String individualId, IdType idType)
+			throws IdRepoDataValidationException, IdRepoAppException {
+		switch (idType) {
+			case VID:
+				individualId = getUinByVid(individualId);
+			case UIN:
+				return retrieveUinHash(individualId);
+			case ID:
+				if (uinRepo.existsByRegId(individualId)) {
+					return uinRepo.getUinHashByRid(individualId);
+				}
+			default:
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getRidByIndividualId",
+						"NO_RECORD_FOUND");
+				throw new IdRepoAppException(NO_RECORD_FOUND);
+		}
+	}
+
+	/**
 	 * It takes a VID as input and returns the corresponding UIN
 	 *
 	 * @param vid Virtual ID
