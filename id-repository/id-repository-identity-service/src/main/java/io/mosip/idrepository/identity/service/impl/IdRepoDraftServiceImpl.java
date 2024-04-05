@@ -241,7 +241,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 						"RID NOT FOUND IN DB");
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
-		} catch (JSONException | InvalidJsonException e) {
+		} catch (JSONException | IOException | InvalidJsonException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT, e.getMessage());
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
@@ -251,7 +251,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		return constructIdResponse(null, DRAFTED, null, null);
 	}
 
-	private void updateDemographicData(IdRequestDTO request, UinDraft draftToUpdate) throws JSONException, IdRepoAppException {
+	private void updateDemographicData(IdRequestDTO request, UinDraft draftToUpdate) throws JSONException, IdRepoAppException, IOException {
 		if (Objects.nonNull(request.getRequest()) && Objects.nonNull(request.getRequest().getIdentity())) {
 			RequestDTO requestDTO = request.getRequest();
 			Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
