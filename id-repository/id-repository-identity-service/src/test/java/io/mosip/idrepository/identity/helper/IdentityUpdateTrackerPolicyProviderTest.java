@@ -36,23 +36,23 @@ import io.mosip.idrepository.identity.provider.IdentityUpdateTrackerPolicyProvid
 @RunWith(SpringRunner.class)
 @WebMvcTest @Import(EnvUtil.class)
 @ActiveProfiles("test")
-public class IdentityUpdateTrackerProviderTest {
+public class IdentityUpdateTrackerPolicyProviderTest {
 
 	@Mock
 	private ObjectMapper mapper;
-	
+
 	@InjectMocks
 	private IdentityUpdateTrackerPolicyProvider provider;
-	
+
 	private JsonNode policy;
-	private String policyJson = "{\"identity\":{\"fullName\":2}}";
-	
+	private String policyJson = "{\"attributeUpdateCountLimit\":{\"fullName\":2}}";
+
 	@PostConstruct
 	public void init() throws JsonMappingException, JsonProcessingException {
-		EnvUtil.setIdentityUpdateCountPolicyFileUrl("https://localhost:8090");
+		EnvUtil.setIdentityMappingJsonUrl("https://localhost:8090");
 		policy = new ObjectMapper().readValue(policyJson, JsonNode.class);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testLoadUpdateCountPolicies() throws IOException {
