@@ -146,7 +146,6 @@ public class CredentialProvider {
 	/**
 	 * Gets the formatted credential data.
 	 *
-	 * @param encryptMap                  the encrypt map
 	 * @param credentialServiceRequestDto the credential service request dto
 	 * @param sharableAttributeMap        the sharable attribute map
 	 * @return the formatted credential data
@@ -252,16 +251,22 @@ public class CredentialProvider {
 							.collect(Collectors.toCollection(ArrayList<AllowedKycDto>::new));
 					final List<AllowedKycDto> sharableAttributeListRef = sharableAttributeList;
 					List<AllowedKycDto> intermediateList = userSharableAttributeList.stream().filter(attrib -> {
-						//Check if name attribute and it is equals to 'name' of 'fullName' and if it is present in the sharable attributes from policy
-						return (isNameAttribute(attrib.getAttributeName())
-								&& sharableAttributeFromPolicy.stream()
-								.anyMatch(sharableAttrib -> isNameAttribute(sharableAttrib.getAttributeName())))
-								//Check if photo attribute
-								|| isPhotoAttribute(attrib.getAttributeName());
-					})
-					// Checks if the attribute is already in the sharable attributes list
-					.filter(attrib -> sharableAttributeListRef.stream().noneMatch(sharableAttrib -> attrib.getAttributeName().equals(sharableAttrib.getAttributeName())))
-					.collect(Collectors.toList());
+								//Check if name attribute and it is equals to 'name' of 'fullName' and if it is present in the sharable attributes from policy
+								return (isNameAttribute(attrib.getAttributeName())
+										&& sharableAttributeFromPolicy.stream()
+										.anyMatch(sharableAttrib -> isNameAttribute(sharableAttrib.getAttributeName())))
+										//Check if photo attribute
+										|| isPhotoAttribute(attrib.getAttributeName());
+							})
+							// Checks if the attribute is already in the sharable attributes list
+							.filter(attrib -> sharableAttributeListRef.stream().noneMatch(sharableAttrib -> attrib.getAttributeName().equals(sharableAttrib.getAttributeName())))
+							.map(dto -> {
+								// if the attribute is present in the policy taking that instead of creating one.
+								Optional<AllowedKycDto> dtoFromPolicy =
+										sharableAttributeFromPolicy.stream().filter(dto2 -> dto2.getAttributeName().equals(dto.getAttributeName())).findAny();
+								return dtoFromPolicy.orElse(dto);
+							})
+							.collect(Collectors.toList());
 					sharableAttributeList.addAll(intermediateList);
 				}
 			}
@@ -575,33 +580,39 @@ public class CredentialProvider {
 		String userSpecifiedAttributeFormat = userReqFormatingAttributes == null? null : (String) userReqFormatingAttributes.get(attribute);
 		String attributeFormat = userSpecifiedAttributeFormat != null ? userSpecifiedAttributeFormat 
 				: key.getFormat();
-		if(attributeFormat != null) {
-			if (attribute.equals(CredentialConstants.DATEOFBIRTH)) {
-					formattedObject = formatDate(identity.get(CredentialConstants.DATEOFBIRTH), attributeFormat);
-			} else if (isNameAttribute(attribute) || isFullAddressAttribute(attribute)) {
-				List<String> identityAttributesList = Arrays.asList(attributeFormat.split(","));
-				formattedObject = formatData(identity, attribute, identityAttributesList);
+		if (attribute.equals(CredentialConstants.DATEOFBIRTH)) {
+			if(attributeFormat!=null) {
+				formattedObject = formatDate(identity.get(CredentialConstants.DATEOFBIRTH), attributeFormat);
 			}
+		} else if (isNameAttribute(attribute)) {
+			List<String> identityAttributesList = attributeFormat==null?List.of():Arrays.asList(attributeFormat.split(","));
+			formattedObject = formatData(identity, CredentialConstants.NAME, identityAttributesList, source.getFilter());
+		}else if (isFullAddressAttribute(attribute) ) {
+			List<String> identityAttributesList = attributeFormat==null?List.of():Arrays.asList(attributeFormat.split(","));
+			formattedObject = formatData(identity, FULLADDRESS, identityAttributesList, source.getFilter());
+		} else{
+			formattedObject = formatData(identity, attribute, List.of(), source.getFilter());
 		}
+
 		return formattedObject;
 	}
 
 	/**
-	 * 
 	 * @param identity
-	 * @param format   the name and address attributes
+	 * @param filter
 	 * @return
 	 * @throws Exception
 	 */
-	private JSONArray formatData(JSONObject identity, String formatAttrName, List<String> identityAttributesList)
+	private JSONArray formatData(JSONObject identity, String formatAttrName, List<String> identityAttributesList, List<Filter> filter)
 			throws Exception {
 		String formattedData = "";
 		if (identityAttributesList == null || identityAttributesList.isEmpty()) {
-			if (formatAttrName.equals(CredentialConstants.NAME)
-					|| formatAttrName.equals(CredentialConstants.FULLNAME)) {
+			if (formatAttrName.equals(CredentialConstants.NAME)) {
 				identityAttributesList = getNameAttributes();
 			} else if (formatAttrName.equals(CredentialConstants.FULLADDRESS)) {
 				identityAttributesList = getAddressAttributes();
+			} else {
+				identityAttributesList = List.of(formatAttrName);
 			}
 		}
 		Map<String, Map<String, String>> languageMap = new HashMap<>();
@@ -615,9 +626,16 @@ public class CredentialProvider {
 				getIdentityAttribute(identity, identityAttr, languageMap);
 			}
 		}
+		Set<String> filteredLanguages =filter==null|| filter.isEmpty()?Set.of():filter.stream().map(filterEntry ->
+				filterEntry.getLanguage()).filter(lang -> lang!=null).collect(Collectors.toSet());
+
 		for (Entry<String, Map<String, String>> languageSpecificEntry : languageMap.entrySet()) {
 			Map<String, String> langSpecificIdentity = new HashMap<>();
 			String lang = languageSpecificEntry.getKey();
+			// if the language filter is present allow only that filter language otherwise return all languages.
+			if(!filteredLanguages.isEmpty() && !filteredLanguages.contains(lang)){
+				continue;
+			}
 			List<String> formatDataList = new ArrayList<>();
 			Map<String, String> languageSpecificValues = languageSpecificEntry.getValue();
 			for (String identityAttr : identityAttributesList) {
@@ -625,10 +643,15 @@ public class CredentialProvider {
 					formatDataList.add(languageSpecificValues.get(identityAttr));
 				}
 			}
-			if (formatAttrName.equals(CredentialConstants.NAME))
+			if (formatAttrName.equals(CredentialConstants.NAME)) {
 				formattedData = formatName(formatDataList);
-			else if (formatAttrName.equals(CredentialConstants.FULLADDRESS))
+			}
+			else if (formatAttrName.equals(CredentialConstants.FULLADDRESS)) {
 				formattedData = formatAddress(formatDataList);
+			}
+			else{
+				formattedData = formatName(formatDataList);
+			}
 			langSpecificIdentity.put("language", lang);
 			langSpecificIdentity.put("value", formattedData);
 			JSONObject jsonObject = new JSONObject(langSpecificIdentity);
@@ -733,7 +756,7 @@ public class CredentialProvider {
 	/**
 	 * format the name attribute
 	 * 
-	 * @param name
+	 * @param names
 	 * @return
 	 */
 	private String formatName(List<String> names) {
