@@ -806,13 +806,15 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						CryptoUtil.decodeURLSafeBase64(new String(trackRecord.getIdentityUpdateCount())),
 						new TypeReference<Map<String, Integer>>() {
 						});
-				return updateCountMap.entrySet().stream()
-						.filter(entry -> attributeList.isEmpty() ? true : attributeList.contains(entry.getKey()))
-						.map(entry -> Map.entry(entry.getKey(),
-								Math.max(0,
-										IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(entry.getKey())
-												- entry.getValue())))
-						.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+				return addMissingAttributes(
+						updateCountMap.entrySet().stream()
+								.filter(entry -> attributeList.isEmpty() || attributeList.contains(entry.getKey()))
+								.filter(entry -> IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap().containsKey(entry.getKey()))
+								.collect(Collectors.toMap(
+										Map.Entry::getKey,
+										entry -> Math.max(0, IdentityUpdateTrackerPolicyProvider.getMaxUpdateCountLimit(entry.getKey()) - entry.getValue())
+								))
+				);
 			} else {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
 						"getMaxAllowedUpdateCountForIndividualId", "NO_RECORD_FOUND");
@@ -823,6 +825,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					"getMaxAllowedUpdateCountForIndividualId", ExceptionUtils.getStackTrace(e));
 			throw new IdRepoAppException(UNKNOWN_ERROR);
 		}
+	}
+
+	private Map<String, Integer> addMissingAttributes(Map<String, Integer> updateCountTracker) {
+		IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap().entrySet().stream()
+				.filter(entry -> !updateCountTracker.containsKey(entry.getKey()))
+				.forEach(entry -> updateCountTracker.put(entry.getKey(), entry.getValue()));
+		return updateCountTracker;
 	}
 
 	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp) {
