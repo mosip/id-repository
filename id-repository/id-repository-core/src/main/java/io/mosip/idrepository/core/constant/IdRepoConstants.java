@@ -223,6 +223,7 @@ public class IdRepoConstants {
 	/** The Constant DEMOGRAPHICS. */
 	public static final String DEMOGRAPHICS = "Demographics";
 
+
 	public static final String DRAFT_RECORD_NOT_FOUND = "DRAFT RECORD NOT FOUND";
 
 	public static final String VERIFIED_ATTRIBUTES = "verifiedAttributes";
@@ -250,6 +251,9 @@ public class IdRepoConstants {
 	public static final String GET_DRAFT_UIN_VERSION = "mosip.identity.get.drafts.version";
 
 	public static final String EXCLUDED_ATTRIBUTE_LIST = "mosip.identity.get.excluded.attribute.list";
+
+
+	public static final String AUTH_TYPE_SEPERATOR = "-";
 
 	/**
 	 * Instantiates a new id repo constants.

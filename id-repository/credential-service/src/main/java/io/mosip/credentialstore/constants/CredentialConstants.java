@@ -47,6 +47,7 @@ public class CredentialConstants {
 
 	public static final String BF_RANK = "rank";
 	
+
 	public static final String MASKING_ATTRIBUTES = "maskingAttributes";
 	
 	public static final String FORMATTING_ATTRIBUTES = "formatingAttributes";
@@ -78,5 +79,4 @@ public class CredentialConstants {
 	public static final String CREDENTIAL_NAME_ATTRIBUTE_NAMES = "mosip.credential.name.attribute.names";
 	public static final String CREDENTIAL_ADDRESS_ATTRIBUTE_NAMES = "mosip.credential.address.attribute.names";
 
-	
 }

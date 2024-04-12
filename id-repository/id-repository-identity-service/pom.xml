@@ -10,7 +10,11 @@
 
 	<artifactId>id-repository-identity-service</artifactId>
 	<version>1.2.1.0</version>
-	<name>identity-service</name>
+	</parent>
+
+	<artifactId>id-repository-identity-service</artifactId>
+	<version>1.2.0.1</version>
+  <name>identity-service</name>
 	<description>ID-Repository Identity service</description>
 
 	<properties>

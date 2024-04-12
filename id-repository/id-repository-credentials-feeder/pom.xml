@@ -6,8 +6,7 @@
 	<artifactId>id-repository-credentials-feeder</artifactId>
 	<version>1.2.1.0</version>
 	<name>ID-Repository Credentials Feeder</name>
-
-	<parent>
+<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
 		<version>1.2.1.0</version>
