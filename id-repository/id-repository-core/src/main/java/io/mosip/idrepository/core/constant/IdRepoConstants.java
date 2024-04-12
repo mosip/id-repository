@@ -253,8 +253,6 @@ public class IdRepoConstants {
 	public static final String EXCLUDED_ATTRIBUTE_LIST = "mosip.identity.get.excluded.attribute.list";
 
 
-	public static final String AUTH_TYPE_SEPERATOR = "-";
-
 	/**
 	 * Instantiates a new id repo constants.
 	 *
