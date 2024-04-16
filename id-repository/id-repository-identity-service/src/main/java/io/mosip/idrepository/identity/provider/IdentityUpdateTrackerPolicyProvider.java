@@ -18,7 +18,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
 
 /**
  * @author Manoj SP
- * @since 1.2.0.2
+ * @since 1.2.1.0
  *
  */
 @Component
