@@ -282,64 +282,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		return uinEntity;
 	}
 
-
-
-
-	private Map<String, HandleDto> checkAndGetHandles(IdRequestDTO request) throws IdRepoAppException {
-		Map<String, HandleDto> handles = idRepoServiceHelper.getSelectedHandles(request.getRequest());
-		if (handles != null && !handles.isEmpty()) {
-			List<String> duplicateHandles = handles.keySet()
-					.stream()
-					.filter(handleName -> handleRepo.existsByHandleHash(handles.get(handleName).getHandleHash()))
-					.collect(Collectors.toList());
-
-			if (duplicateHandles != null && !duplicateHandles.isEmpty()) {
-				throw new IdRepoAppException(HANDLE_RECORD_EXISTS.getErrorCode(),
-						String.format(HANDLE_RECORD_EXISTS.getErrorMessage(), duplicateHandles));
-			}
-		}
-		return handles;
-	}
-
-	@Override
-	public List<HandleInfoDTO> retrieveHandlesByUIN(String uin) throws IdRepoAppException {
-		try {
-			List<Handle> list = handleRepo.findByUinHash(getUinHash(uin));
-			if(list == null || list.isEmpty())
-				return List.of();
-
-			return list.stream()
-					.map(entity -> {
-						HandleInfoDTO handleInfoDTO = new HandleInfoDTO();
-						String encryptSalt = uinEncryptSaltRepo
-								.retrieveSaltById(Integer.valueOf(io.mosip.kernel.core.util.StringUtils.substringBefore(entity.getHandle(), SPLITTER)));
-                        try {
-                            handleInfoDTO.setHandle(new String(securityManager.decryptWithSalt(
-                                    CryptoUtil.decodeURLSafeBase64(io.mosip.kernel.core.util.StringUtils.substringAfter(entity.getHandle(), SPLITTER)),
-                                    CryptoUtil.decodePlainBase64(encryptSalt), uinRefId)));
-                        } catch (IdRepoAppException e) {
-							mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveHandlesByUIN",
-									"\n Failed to decrypt handle due to " + e.getMessage());
-                        }
-                        handleInfoDTO.setHashAttributes(
-								securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(entity.getHandle(),
-										uinEncryptSaltRepo::retrieveSaltById));
-						handleInfoDTO.getHashAttributes().put("idType", "handle");
-						return handleInfoDTO;
-					})
-					.collect(Collectors.toList());
-		} catch (IdRepoAppUncheckedException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveHandlesByUIN",
-				"\n" + e.getMessage());
-			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
-		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveHandlesByUIN",
-					e.getMessage());
-				throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
-		}
-
-	}
-
 	protected String getUinToEncrypt(String uin) {
 		int modResult = securityManager.getSaltKeyForId(uin);
 		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(modResult);
@@ -993,7 +935,21 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
+	private Map<String, HandleDto> checkAndGetHandles(IdRequestDTO request) throws IdRepoAppException {
+		Map<String, HandleDto> handles = idRepoServiceHelper.getSelectedHandles(request.getRequest());
+		if (handles != null && !handles.isEmpty()) {
+			List<String> duplicateHandles = handles.keySet()
+					.stream()
+					.filter(handleName -> handleRepo.existsByHandleHash(handles.get(handleName).getHandleHash()))
+					.collect(Collectors.toList());
 
+			if (duplicateHandles != null && !duplicateHandles.isEmpty()) {
+				throw new IdRepoAppException(HANDLE_RECORD_EXISTS.getErrorCode(),
+						String.format(HANDLE_RECORD_EXISTS.getErrorMessage(), duplicateHandles));
+			}
+		}
+		return handles;
+	}
 
 	private void addIdentityHandle(Uin uinEntity, Map<String, HandleDto> handles) {
 		if (handles != null && !handles.isEmpty()) {
