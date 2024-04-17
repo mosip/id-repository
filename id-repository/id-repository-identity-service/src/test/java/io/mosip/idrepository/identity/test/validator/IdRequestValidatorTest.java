@@ -161,6 +161,7 @@ public class IdRequestValidatorTest {
 		identityMapping.getIdentity().setIDSchemaVersion(idSchemaVersion);
 		identityMapping.getIdentity().setSelectedHandles(selectedHandles);
 
+		ReflectionTestUtils.setField(idRepoServiceHelper, "identityMapping", identityMapping);
 		errors = new BeanPropertyBindingResult(new IdRequestDTO(), "idRequestDto");
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("");

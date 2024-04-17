@@ -410,6 +410,7 @@ public class IdRepoController {
 					: getIdType(individualId).getIdType());
 			IdType idType = validator.validateIdType(authTypeStatusRequest.getIndividualIdType());
 			validator.validateIdvId(individualId, idType);
+			validator.validateAuthTypes(authTypeStatusRequest.getRequest());
 			IdResponseDTO updateAuthtypeStatus = authTypeStatusService.updateAuthTypeStatus(
 					individualId, idType, authTypeStatusRequest.getRequest());
 			String individualIdType = authTypeStatusRequest.getIndividualIdType();
