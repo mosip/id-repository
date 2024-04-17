@@ -132,7 +132,7 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 	public boolean onLoad(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
 		try {
 			List<String> propertyNamesList = Arrays.asList(propertyNames);
-			if (entity instanceof Uin || entity instanceof UinDraft) {
+			if (entity instanceof Uin || entity instanceof UinHistory || entity instanceof UinDraft) {
 				int indexOfData = propertyNamesList.indexOf(UIN_DATA);
 				if (Objects.nonNull(state[indexOfData])) {
 					state[indexOfData] = securityManager.decrypt((byte[]) state[indexOfData], uinDataRefId);
