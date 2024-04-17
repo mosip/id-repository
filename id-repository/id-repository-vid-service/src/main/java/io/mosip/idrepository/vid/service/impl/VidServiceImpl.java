@@ -1,16 +1,12 @@
 package io.mosip.idrepository.vid.service.impl;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.APPLICATION_VERSION_VID;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DRAFT_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_ACTIVE_STATUS;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_DEACTIVATED;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_EVENT_TOPIC;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_REGENERATE_ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_REGENERATE_ALLOWED_STATUS;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_UNLIMITED_TRANSACTION_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_UIN;
@@ -21,11 +17,13 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_RETRI
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.VID_GENERATION_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.VID_POLICY_FAILED;
 
+import java.io.Serializable;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -34,7 +32,11 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 
 import org.hibernate.exception.JDBCConnectionException;
+import org.mvel2.MVEL;
+import org.mvel2.integration.VariableResolverFactory;
+import org.mvel2.integration.impl.MapVariableResolverFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
@@ -64,7 +66,7 @@ import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.VidService;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.vid.entity.Vid;
 import io.mosip.idrepository.vid.provider.VidPolicyProvider;
 import io.mosip.idrepository.vid.repository.VidRepo;
@@ -72,6 +74,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.UUIDUtils;
 import io.mosip.kernel.core.websub.model.Event;
@@ -133,10 +136,6 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	@Value("${" + VID_REGENERATE_ALLOWED_STATUS + "}")
 	private String allowedStatus;
 
-	/** The env. */
-	@Autowired
-	private Environment env;
-
 	/** The vid repo. */
 	@Autowired
 	private VidRepo vidRepo;
@@ -175,6 +174,15 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	@Autowired
 	private IdRepoWebSubHelper websubHelper;
 	
+	@Autowired
+	private Environment env;
+
+	@Autowired(required = true)
+	@Qualifier("mask")
+	VariableResolverFactory functionFactory;
+	
+	@Value("${mosip.mask.function.identityAttributes}")
+	private String identityAttribute;
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -206,7 +214,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	
 	private Vid generateVidWithActiveUin(String uin, String vidType) throws IdRepoAppException {
 		checkUinStatus(uin);
-		return generateVid(uin, vidType, env.getProperty(VID_ACTIVE_STATUS));
+		return generateVid(uin, vidType, EnvUtil.getVidActiveStatus());
 	}
 
 	/**
@@ -245,12 +253,12 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			// UIN value in VID entity
 			if (!vidStatus.contentEquals(DRAFT_STATUS))
 				notify(uin, vidStatus,
-						Collections.singletonList(createVidInfo(vidEntity, getIdHashAndAttributes(vidEntity.getVid()))),
+						Collections.singletonList(createVidInfo(vidEntity, getIdHashAndAttributesForIDAEvent(vidEntity.getVid()))),
 						false);
 			return vidRepo.save(vidEntity);
 		} else if (vidDetails.size() == policy.getAllowedInstances() && Boolean.TRUE.equals(policy.getAutoRestoreAllowed())) {
 			Vid vidObject = vidDetails.get(0);
-			Map<String, String> idHashAndAttributes = getIdHashAndAttributes(vidObject.getVid());
+			Map<String, String> idHashAndAttributes = getIdHashAndAttributesForIDAEvent(vidObject.getVid());
 			vidObject.setStatusCode(policy.getRestoreOnAction());
 			vidObject.setUpdatedBy(IdRepoSecurityManager.getUser());
 			vidObject.setUpdatedDTimes(DateUtils.getUTCCurrentDateTime());
@@ -260,7 +268,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			// onFlushDirty call in the interceptor resulting in inconsistently encrypted
 			// UIN value in VID entity
 			if (!vidStatus.contentEquals(DRAFT_STATUS))
-				notify(uin, env.getProperty(VID_DEACTIVATED),
+				notify(uin, EnvUtil.getVidDeactivatedStatus(),
 						Collections.singletonList(createVidInfo(vidObject, idHashAndAttributes)), true);
 			return generateVid(uin, vidType, vidStatus);
 		} else {
@@ -309,7 +317,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			request.setPathVariables(Collections.singletonMap("uin", uin));
 			IdResponseDTO identityResponse = restHelper.requestSync(request);
 			String uinStatus = identityResponse.getResponse().getStatus();
-			if (!uinStatus.equals(env.getProperty(ACTIVE_STATUS))) {
+			if (!uinStatus.equals(EnvUtil.getUinActiveStatus())) {
 				throw new IdRepoAppException(INVALID_UIN.getErrorCode(),
 						String.format(INVALID_UIN.getErrorMessage(), uinStatus));
 			}
@@ -385,12 +393,12 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			String uinHash = String.valueOf(saltId) + SPLITTER
 					+ securityManager.hashwithSalt(uin.getBytes(), CryptoUtil.decodePlainBase64(hashSalt));
 			List<Vid> vidList = vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(uinHash,
-					env.getProperty(VID_ACTIVE_STATUS), DateUtils.getUTCCurrentDateTime());
+					EnvUtil.getVidActiveStatus(), DateUtils.getUTCCurrentDateTime());
 			// Get the salted ID Hash before modifiying the vid entity, otherwise result in
 			// onFlushDirty call in the interceptor resulting in inconsistently encrypted
 			// UIN value in VID entity
 			List<VidInfoDTO> vidInfos = vidList.stream()
-					.map(vid -> createVidInfo(vid, getIdHashAndAttributes(vid.getVid())))
+					.map(vid -> createVidInfo(vid, getIdHashAndAttributesForIDAEvent(vid.getVid())))
 					.collect(Collectors.toList());
 			VidsInfosDTO response = new VidsInfosDTO();
 			response.setResponse(vidInfos);
@@ -459,8 +467,8 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		// Get the salted ID Hash before modifiying the vid entity, otherwise result in
 		// onFlushDirty call in the interceptor resulting in inconsistently encrypted
 		// UIN value in VID entity
-		Map<String, String> idHashAndAttributes = getIdHashAndAttributes(vidObject.getVid());
-		if (!(vidStatus.equals(env.getProperty(VID_UNLIMITED_TRANSACTION_STATUS))
+		Map<String, String> idHashAndAttributes = getIdHashAndAttributesForIDAEvent(vidObject.getVid());
+		if (!(vidStatus.equals(EnvUtil.getVidUnlimitedTxnStatus())
 				&& Objects.isNull(policy.getAllowedTransactions()))) {
 			vidObject.setStatusCode(vidStatus);
 			vidObject.setUpdatedBy(IdRepoSecurityManager.getUser());
@@ -483,8 +491,9 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		return response;
 	}
 
-	private Map<String, String> getIdHashAndAttributes(String id) {
-		return securityManager.getIdHashAndAttributes(id, uinHashSaltRepo::retrieveSaltById);
+	private Map<String, String> getIdHashAndAttributesForIDAEvent(String id) {
+		//Note this ID Hash is only to be sent in IDA event.
+		return securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(id, uinHashSaltRepo::retrieveSaltById);
 	}
 
 	/*
@@ -536,7 +545,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	 */
 	@Override
 	public ResponseWrapper<VidResponseDTO> deactivateVIDsForUIN(String uin) throws IdRepoAppException {
-		return applyVIDStatus(uin, env.getProperty(VID_DEACTIVATED), DEACTIVATE, env.getProperty(VID_ACTIVE_STATUS));
+		return applyVIDStatus(uin, EnvUtil.getVidDeactivatedStatus(), DEACTIVATE, EnvUtil.getVidActiveStatus());
 	}
 
 	/*
@@ -548,7 +557,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	 */
 	@Override
 	public ResponseWrapper<VidResponseDTO> reactivateVIDsForUIN(String uin) throws IdRepoAppException {
-		return applyVIDStatus(uin, env.getProperty(VID_ACTIVE_STATUS), REACTIVATE, env.getProperty(VID_DEACTIVATED));
+		return applyVIDStatus(uin, EnvUtil.getVidActiveStatus(), REACTIVATE, EnvUtil.getVidDeactivatedStatus());
 	}
 
 	/**
@@ -580,7 +589,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			// Get the salted ID Hash before modifiying the vid entity, otherwise result in
 			// onFlushDirty call in the interceptor resulting in inconsistently encrypted
 			// UIN value in VID entity
-			Map<String, Map<String, String>> vidHashAttributesMap = vidList.stream().collect(Collectors.toMap(Vid::getVid, vid -> getIdHashAndAttributes(vid.getVid())));
+			Map<String, Map<String, String>> vidHashAttributesMap = vidList.stream().collect(Collectors.toMap(Vid::getVid, vid -> getIdHashAndAttributesForIDAEvent(vid.getVid())));
 			vidList.forEach(vid -> {
 				Map<String, String> idHashAndAttributes = vidHashAttributesMap.get(vid.getVid());
 				vid.setStatusCode(status);
@@ -603,10 +612,9 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	}
 
 	private VidInfoDTO createVidInfo(Vid vid, Map<String, String> idHashAttributes) {
-		return new VidInfoDTO(vid.getVid(), 
-				vid.getVidTypeCode(),
-				vid.getExpiryDTimes(), 
-				policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(), 
+
+		return new VidInfoDTO(vid.getVid(), vid.getVidTypeCode(),vid.getExpiryDTimes(), vid.getGeneratedDTimes(),
+				policyProvider.getPolicy(vid.getVidTypeCode()).getAllowedTransactions(),
 				idHashAttributes);
 	}
 
@@ -666,7 +674,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	 *             the id repo app exception
 	 */
 	private void checkStatus(String statusCode) throws IdRepoAppException {
-		if (!(statusCode.equalsIgnoreCase(env.getProperty(VID_ACTIVE_STATUS))
+		if (!(statusCode.equalsIgnoreCase(EnvUtil.getVidActiveStatus())
 				|| statusCode.contentEquals(DRAFT_STATUS))) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, "checkStatus",
 					"throwing INVALID_VID with status - " + statusCode);
@@ -713,7 +721,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	private ResponseWrapper<VidResponseDTO> buildResponse(VidResponseDTO response, String id) {
 		ResponseWrapper<VidResponseDTO> responseDto = new ResponseWrapper<>();
 		responseDto.setId(id);
-		responseDto.setVersion(env.getProperty(APPLICATION_VERSION_VID));
+		responseDto.setVersion(EnvUtil.getVidAppVersion());
 		responseDto.setResponse(response);
 		return responseDto;
 	}
@@ -727,7 +735,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		eventModel.setTopic(vidEventTopic);
 		Event event = new Event();
 		event.setData(Map.of(
-				"status", env.getProperty(VID_ACTIVE_STATUS),
+				"status", EnvUtil.getVidActiveStatus(),
 				"request", request, 
 				"response", response));
 		eventModel.setEvent(event);
@@ -745,4 +753,14 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		eventModel.setEvent(event);
 		websubHelper.publishEvent(eventModel);
 	}
+	private String maskData(String maskData) {
+		Map<String, String> context = new HashMap<>();
+		context.put("maskData", maskData);
+		VariableResolverFactory myVarFactory = new MapVariableResolverFactory(context);
+		myVarFactory.setNextFactory(functionFactory);
+		Serializable serializable = MVEL.compileExpression(identityAttribute + "(maskData);");
+		return MVEL.executeExpression(serializable, context, myVarFactory, String.class);
+	}
+
 }
+

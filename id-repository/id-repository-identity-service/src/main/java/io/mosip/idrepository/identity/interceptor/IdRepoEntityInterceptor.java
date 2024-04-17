@@ -13,7 +13,9 @@ import java.util.Objects;
 
 import io.mosip.idrepository.core.entity.HandleInfo;
 import io.mosip.idrepository.core.entity.UinInfo;
-import io.mosip.idrepository.identity.entity.*;
+import io.mosip.idrepository.identity.entity.Uin;
+import io.mosip.idrepository.identity.entity.UinDraft;
+import io.mosip.idrepository.identity.entity.UinHistory;
 import org.apache.commons.codec.binary.StringUtils;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
@@ -67,7 +69,7 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.hibernate.EmptyInterceptor#onSave(java.lang.Object,
 	 * java.io.Serializable, java.lang.Object[], java.lang.String[],
 	 * org.hibernate.type.Type[])
@@ -90,7 +92,7 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 	}
 
 	private <T extends UinInfo> void encryptDataOnSave(Serializable id, Object[] state, List<String> propertyNamesList,
-			Type[] types, T entity) throws IdRepoAppException {
+													   Type[] types, T entity) throws IdRepoAppException {
 		if (Objects.nonNull(entity.getUinData())) {
 			byte[] encryptedData = securityManager.encrypt(entity.getUinData(), uinDataRefId);
 			entity.setUinData(encryptedData);
@@ -121,7 +123,7 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.hibernate.EmptyInterceptor#onLoad(java.lang.Object,
 	 * java.io.Serializable, java.lang.Object[], java.lang.String[],
 	 * org.hibernate.type.Type[])
@@ -150,14 +152,14 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.hibernate.EmptyInterceptor#onFlushDirty(java.lang.Object,
 	 * java.io.Serializable, java.lang.Object[], java.lang.Object[],
 	 * java.lang.String[], org.hibernate.type.Type[])
 	 */
 	@Override
 	public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState,
-			String[] propertyNames, Type[] types) {
+								String[] propertyNames, Type[] types) {
 		try {
 			if (entity instanceof UinInfo) {
 				UinInfo uinEntity = (UinInfo) entity;
@@ -173,7 +175,7 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 	}
 
 	private <T extends UinInfo> boolean encryptOnDirtyFlush(Serializable id, Object[] currentState, Object[] previousState,
-			String[] propertyNames, Type[] types, T uinEntity) throws IdRepoAppException {
+															String[] propertyNames, Type[] types, T uinEntity) throws IdRepoAppException {
 		byte[] encryptedData = securityManager.encrypt(uinEntity.getUinData(), uinDataRefId);
 		List<String> propertyNamesList = Arrays.asList(propertyNames);
 		int indexOfData = propertyNamesList.indexOf(UIN_DATA);
