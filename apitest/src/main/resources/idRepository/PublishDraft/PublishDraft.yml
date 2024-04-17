@@ -1,0 +1,29 @@
+PublishDraft:
+  IdRepository_PublishDraft_VID_all_valid_smoke:
+      endPoint: /idrepository/v1/identity/draft/publish/{registrationId}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/PublishDraft/publishDraft
+      outputTemplate: idRepository/PublishDraft/publishDraftResult
+      input: '{
+      "registrationId":"$RID$"
+      }'
+      output: '{
+      "status": "ACTIVATED"
+}'
+  IdRepository_RePublishDraft_VID_Invalid_Neg:
+      endPoint: /idrepository/v1/identity/draft/publish/{registrationId}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/PublishDraft/publishDraft
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RID$"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'

@@ -1,0 +1,134 @@
+RetrieveAuthTypeStatus:
+  IdRepository_RetrieveAuthTypeStatus_Uin_Active_smoke:
+      endPoint: /idrepository/v1/identity/authtypes/status/{ID}
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatus
+      outputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatusResult
+      input: '{
+    "ID": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$"
+}'
+      output: '{
+"authTypes": [{
+       
+      }]
+}'
+
+  IdRepository_RetrieveAuthTypeStatus_Vid_Active_smoke:
+      endPoint: /idrepository/v1/identity/authtypes/status/{ID}
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatus
+      outputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatusResult
+      input: '{
+    "ID": "$ID:CreateVID_withValidParameters_AuthStatus_Smoke_Perpetual_sid_VID$"
+}'
+      output: '{
+"authTypes": [{
+       
+      }]
+}'
+
+  IdRepository_RetrieveAuthTypeStatus_Uin_Invalid_Id_Neg:
+      endPoint: /idrepository/v1/identity/authtypes/status/{ID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatus
+      outputTemplate: idRepository/error
+      input: '{
+    "ID": "kajnfajk"
+}'
+      output: '{
+        "errors": [
+    {
+      "errorCode": "IDR-IDC-004"
+    }
+  ]
+}'
+
+  IdRepository_RetrieveAuthTypeStatus_Uin_Empty_Id_Neg:
+      endPoint: /idrepository/v1/identity/authtypes/status/{ID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatus
+      outputTemplate: idRepository/error
+      input: '{
+    "ID": ""
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+  IdRepository_RetrieveAuthTypeStatus_Uin_SpaceVal_Id_Neg:
+      endPoint: /idrepository/v1/identity/authtypes/status/{ID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatus
+      outputTemplate: idRepository/error
+      input: '{
+    "ID": " "
+}'
+      output: '{
+        "errors": [
+    {
+      "errorCode": "IDR-IDC-004"
+    }
+  ]
+}'
+
+  IdRepository_RetrieveAuthTypeStatus_Vid_Invalid_Id_Neg:
+      endPoint: /idrepository/v1/identity/authtypes/status/{ID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatus
+      outputTemplate: idRepository/error
+      input: '{
+    "ID": "kajnfajk"
+}'
+      output: '{
+        "errors": [
+    {
+      "errorCode": "IDR-IDC-004"
+    }
+  ]
+}'
+
+  IdRepository_RetrieveAuthTypeStatus_Vid_Empty_Id_Neg:
+      endPoint: /idrepository/v1/identity/authtypes/status/{ID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatus
+      outputTemplate: idRepository/error
+      input: '{
+    "ID": ""
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+  IdRepository_RetrieveAuthTypeStatus_Vid_SpaceVal_Id_Neg:
+      endPoint: /idrepository/v1/identity/authtypes/status/{ID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatus
+      outputTemplate: idRepository/error
+      input: '{
+    "ID": " "
+}'
+      output: '{
+        "errors": [
+    {
+      "errorCode": "IDR-IDC-004"
+    }
+  ]
+}'

@@ -1,0 +1,298 @@
+Retrieve_VID_pos:
+  IdRepository_Retrieve_VID_pos_perpetual_Active_smoke:
+      endPoint: /idrepository/v1/vid/{VID}
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVIDResult
+      input: '{
+    "VID": "$ID:CreateVID_withValidParameters_For_VidType_Smoke_Perpetual_sid_VID$"
+}'
+      output: '{
+       "vidStatus": "$IGNORE$",
+        "UIN": "$IGNORE$"
+}'
+
+  IdRepository_Retrieve_VID_pos_Temp_Active_smoke:
+      endPoint: /idrepository/v1/vid/{VID}
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVIDResult
+      input: '{
+    "VID": "$ID:CreateVID_withValidParameters_Smoke_Temp1_sid_VID$"
+}'
+      output: '{
+       "vidStatus": "$IGNORE$",
+        "UIN": "$IGNORE$"
+      
+}'
+
+  IdRepository_Retrieve_VID_pos_Onetimeuse_Active_smoke:
+      endPoint: /idrepository/v1/vid/{VID}
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVIDResult
+      input: '{
+    "VID": "$ID:CreateVID_withValidParameters_Smoke_Onetime_sid_VID$"
+}'
+      output: '{
+      "vidStatus": "$IGNORE$",
+        "UIN": "$IGNORE$"
+}'
+
+  IdRepository_Retrieve_VID_pos_perpetual_DEACTIVATED:
+      endPoint: /idrepository/v1/vid/{VID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": "$ID:CreateVID_withValidParameters_pdea_Smoke_Perpetual_sid_VID$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-VID-001"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_VID_pos_Onetimeuse_DEACTIVATED:
+      endPoint: /idrepository/v1/vid/{VID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": "$ID:CreateVID_withValidParameters_For_VidType_Smoke_Onetimeuse_sid_VID$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-VID-001"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_VID_pos_perpetual_Expired:
+      endPoint: /idrepository/v1/vid/{VID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": "$ID:CreateVID_withValidParameters_pexp_Smoke_Perpetual_sid_VID$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-VID-001"
+    }
+  ]
+}'
+  IdRepository_Retrieve_VID_pos_perpetual_Revoked:
+      endPoint: /idrepository/v1/vid/{VID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": "$ID:CreateVID_withValidParameters_pre_Smoke_Perpetual_sid_VID$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-VID-001"
+    }
+  ]
+}'
+  IdRepository_Retrieve_VID_pos_Temperory_DEACTIVATED:
+      endPoint: /idrepository/v1/vid/{VID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": "$ID:CreateVID_withValidParameters_tdea_Smoke_Temporary_sid_VID$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-VID-001"
+    }
+  ]
+}'
+  IdRepository_Retrieve_VID_pos_Temperory_Revoked:
+      endPoint: /idrepository/v1/vid/{VID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": "$ID:CreateVID_withValidParameters_tre_Smoke_Temporary_sid_VID$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-VID-001"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_PVID_with_invalid_vid_data:
+      endPoint: /idrepository/v1/vid/{VID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": "nbdsfjas"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_PVID_with_Empty_vid:
+      endPoint: /idrepository/v1/vid/{VID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": ""
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_PVID_with_SpaceVal_vid_data:
+      endPoint: /idrepository/v1/vid/{VID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": " "
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_VID_with_invalid_vid_data:
+      endPoint: /idrepository/v1/vid/{VID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": "nbdsfjas"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_VID_Temp_Empty_vid:
+      endPoint: /idrepository/v1/vid/{VID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": ""
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_VID_with_SpaceVal_vid_data:
+      endPoint: /idrepository/v1/vid/{VID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": " "
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_VID_with_Invalid_vid:
+      endPoint: /idrepository/v1/vid/{VID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": "nbdsfjas"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_VID_with_Empty_vid:
+      endPoint: /idrepository/v1/vid/{VID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": ""
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_VID_with_SpaceVal_vid:
+      endPoint: /idrepository/v1/vid/{VID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": " "
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'

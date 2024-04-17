@@ -1,0 +1,654 @@
+AuthInternalLock:
+  IdRepository_AuthInternalLock_Uin_Demo_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
+      input: '{
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$",
+    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualIdType": "UIN",
+    "authType": "demo",
+    "authSubType": "",
+    "locked": "true",
+    "unlockForSeconds": 0
+}'
+      output: '{
+      "responsetime": "$IGNORE$"
+}'
+
+  IdRepository_AuthInternalLock_Vid_Demo_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
+      input: '{
+    "individualId": "$ID:CreateVID_withValidParameters_AuthStatus_Smoke_Perpetual_sid_VID$",
+    "individualIdType": "VID",
+    "authType": "demo",
+    "authSubType": "",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+}'
+
+  IdRepository_AuthInternalLock_Uin_FACE_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
+      input: '{
+    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualIdType": "UIN",
+    "authType": "bio",
+    "authSubType": "FACE",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+      "responsetime": "$IGNORE$"
+}'
+
+  IdRepository_AuthInternalLock_Vid_FACE_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
+      input: '{
+    "individualId": "$ID:CreateVID_withValidParameters_AuthStatus_Smoke_Perpetual_sid_VID$",
+    "individualIdType": "VID",
+    "authType": "bio",
+    "authSubType": "FACE",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+}'
+
+  IdRepository_AuthInternalLock_Uin_IRIS_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
+      input: '{
+    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualIdType": "UIN",
+    "authType": "bio",
+    "authSubType": "IRIS",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+}'
+
+  IdRepository_AuthInternalLock_Vid_IRIS_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
+      input: '{
+    "individualId": "$ID:CreateVID_withValidParameters_AuthStatus_Smoke_Perpetual_sid_VID$",
+    "individualIdType": "VID",
+    "authType": "bio",
+    "authSubType": "IRIS",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+}'
+
+  IdRepository_AuthInternalLock_Uin_FINGER_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
+      input: '{
+    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualIdType": "UIN",
+    "authType": "bio",
+    "authSubType": "FINGER",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+}'
+
+  IdRepository_AuthInternalLock_Vid_FINGER_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
+      input: '{
+    "individualId": "$ID:CreateVID_withValidParameters_AuthStatus_Smoke_Perpetual_sid_VID$",
+    "individualIdType": "VID",
+    "authType": "bio",
+    "authSubType": "FINGER",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+}'
+
+  IdRepository_AuthInternalLock_Uin_email_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
+      input: '{
+    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualIdType": "UIN",
+    "authType": "otp",
+    "authSubType": "email",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+}'
+
+  IdRepository_AuthInternalLock_Vid_email_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
+      input: '{
+    "individualId": "$ID:CreateVID_withValidParameters_AuthStatus_Smoke_Perpetual_sid_VID$",
+    "individualIdType": "VID",
+    "authType": "otp",
+    "authSubType": "email",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+}'
+
+  IdRepository_AuthInternalLock_Uin_phone_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
+      input: '{
+    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualIdType": "UIN",
+    "authType": "otp",
+    "authSubType": "phone",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+}'
+
+  IdRepository_AuthInternalLock_Vid_phone_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
+      input: '{
+    "individualId": "$ID:CreateVID_withValidParameters_AuthStatus_Smoke_Perpetual_sid_VID$",
+    "individualIdType": "VID",
+    "authType": "otp",
+    "authSubType": "phone",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+}'
+
+  IdRepository_AuthInternalLock_Uin_Empty_Authtype:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/error
+      input: '{
+    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualIdType": "UIN",
+    "authType": "",
+    "authSubType": "FACE",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_AuthInternalLock_Vid_Empty_Authtype:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/error
+      input: '{
+    "individualId": "$ID:CreateVID_withValidParameters_AuthStatus_Smoke_Perpetual_sid_VID$",
+    "individualIdType": "VID",
+    "authType": "",
+    "authSubType": "FACE",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_AuthInternalLock_Uin_Empty_authSubType:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/error
+      input: '{
+    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualIdType": "UIN",
+    "authType": "bio",
+    "authSubType": "",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_AuthInternalLock_Vid_Empty_authSubType:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/error
+      input: '{
+    "individualId": "$ID:CreateVID_withValidParameters_AuthStatus_Smoke_Perpetual_sid_VID$",
+    "individualIdType": "VID",
+    "authType": "bio",
+    "authSubType": "",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_AuthInternalLock_Uin_Empty_locked:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/error
+      input: '{
+    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualIdType": "UIN",
+    "authType": "bio",
+    "authSubType": "FACE",
+    "locked": "",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-004"
+    }
+  ]
+}'
+
+  IdRepository_AuthInternalLock_Vid_Empty_locked:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/error
+      input: '{
+    "individualId": "$ID:CreateVID_withValidParameters_AuthStatus_Smoke_Perpetual_sid_VID$",
+    "individualIdType": "VID",
+    "authType": "bio",
+    "authSubType": "FACE",
+    "locked": "",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-004"
+    }
+  ]
+}'
+
+  IdRepository_AuthInternalLock_Uin_Empty_id:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/error
+      input: '{
+    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualIdType": "UIN",
+    "authType": "bio",
+    "authSubType": "FACE",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+  IdRepository_AuthInternalLock_Vid_Empty_id:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/error
+      input: '{
+    "individualId": "$ID:CreateVID_withValidParameters_AuthStatus_Smoke_Perpetual_sid_VID$",
+    "individualIdType": "VID",
+    "authType": "bio",
+    "authSubType": "FACE",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+  IdRepository_AuthInternalLock_Uin_Empty_version:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/error
+      input: '{
+    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualIdType": "UIN",
+    "authType": "bio",
+    "authSubType": "FACE",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+  IdRepository_AuthInternalLock_Vid_Empty_version:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/error
+      input: '{
+    "individualId": "$ID:CreateVID_withValidParameters_AuthStatus_Smoke_Perpetual_sid_VID$",
+    "individualIdType": "VID",
+    "authType": "bio",
+    "authSubType": "FACE",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+  IdRepository_AuthInternalLock_Uin_Empty_requestTime:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/error
+      input: '{
+    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualIdType": "UIN",
+    "authType": "bio",
+    "authSubType": "FACE",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": ""
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+  IdRepository_AuthInternalLock_Vid_Empty_requestTime:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/error
+      input: '{
+    "individualId": "$ID:CreateVID_withValidParameters_AuthStatus_Smoke_Perpetual_sid_VID$",
+    "individualIdType": "VID",
+    "authType": "bio",
+    "authSubType": "FACE",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": ""
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+  IdRepository_AuthInternalLock_Uin_Empty_individualId:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/error
+      input: '{
+    "individualId": "",
+    "individualIdType": "UIN",
+    "authType": "bio",
+    "authSubType": "FACE",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_AuthInternalLock_Vid_Empty_individualId:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/error
+      input: '{
+    "individualId": "",
+    "individualIdType": "VID",
+    "authType": "bio",
+    "authSubType": "FACE",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_AuthInternalLock_Uin_Empty_individualIdType:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/error
+      input: '{
+    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualIdType": "",
+    "authType": "bio",
+    "authSubType": "FACE",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-004"
+    }
+  ]
+}'
+
+  IdRepository_AuthInternalLock_Vid_Empty_individualIdType:
+      endPoint: /idrepository/v1/identity/authtypes/status
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AuthInternalLock/authInternalLock
+      outputTemplate: idRepository/error
+      input: '{
+    "individualId": "$ID:CreateVID_withValidParameters_AuthStatus_Smoke_Perpetual_sid_VID$",
+    "individualIdType": "",
+    "authType": "bio",
+    "authSubType": "FACE",
+    "locked": "true",
+    "unlockForSeconds": 0,
+  "id": "string",
+  "version": "string",
+  "requestTime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-004"
+    }
+  ]
+}'
