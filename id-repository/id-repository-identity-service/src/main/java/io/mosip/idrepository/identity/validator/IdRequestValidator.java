@@ -140,7 +140,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.springframework.validation.Validator#supports(java.lang.Class)
 	 */
 	@Override
@@ -150,7 +150,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.springframework.validation.Validator#validate(java.lang.Object,
 	 * org.springframework.validation.Errors)
 	 */
@@ -269,13 +269,13 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 							index -> errors.rejectValue(REQUEST,
 									e.getCodes().get(index).equals(
 											IdObjectValidatorErrorConstant.INVALID_INPUT_PARAMETER.getErrorCode())
-													? INVALID_INPUT_PARAMETER.getErrorCode()
-													: MISSING_INPUT_PARAMETER.getErrorCode(),
+											? INVALID_INPUT_PARAMETER.getErrorCode()
+											: MISSING_INPUT_PARAMETER.getErrorCode(),
 									String.format(
 											e.getCodes().get(index)
 													.equals(IdObjectValidatorErrorConstant.INVALID_INPUT_PARAMETER.getErrorCode())
-															? INVALID_INPUT_PARAMETER.getErrorMessage()
-															: MISSING_INPUT_PARAMETER.getErrorMessage(),
+													? INVALID_INPUT_PARAMETER.getErrorMessage()
+													: MISSING_INPUT_PARAMETER.getErrorMessage(),
 											Arrays.asList(e.getErrorTexts().get(index).split("-")[1].trim().split("\\|")).stream()
 													.collect(Collectors.joining(" | ")))));
 		} catch (InvalidIdSchemaException | IdObjectIOException e) {

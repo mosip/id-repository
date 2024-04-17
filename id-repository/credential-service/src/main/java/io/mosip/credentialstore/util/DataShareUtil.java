@@ -81,7 +81,7 @@ public class DataShareUtil {
 			map.add("file", contentsAsResource);
 			fileLengthInBytes = contentsAsResource.contentLength();
 		List<String> pathsegments = new ArrayList<>();
-		pathsegments.add(policyId);
+		pathsegments.add(policyId == null? partnerId : policyId);
 		pathsegments.add(partnerId);
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.MULTIPART_FORM_DATA);

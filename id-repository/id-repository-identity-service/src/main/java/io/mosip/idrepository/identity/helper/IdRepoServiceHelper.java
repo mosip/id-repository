@@ -159,7 +159,7 @@ public class IdRepoServiceHelper {
                         .collect(Collectors.toMap(handleName->handleName,
                                 handleFieldId-> {
                                     String handle = ((String) identityMap.get(handleFieldId))
-                                    		.concat(getHandlePostfix(handleFieldId))
+                                            .concat(getHandlePostfix(handleFieldId))
                                             .toLowerCase(Locale.ROOT);
                                     return new HandleDto(handle, getHandleHash(handle));
                                 }));

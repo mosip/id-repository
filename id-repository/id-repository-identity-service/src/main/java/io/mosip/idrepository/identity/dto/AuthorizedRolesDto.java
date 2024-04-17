@@ -40,5 +40,14 @@ public class AuthorizedRolesDto {
 	private List<String> getdraftregistrationId;
 
 	private List<String> putdraftextractbiometricsregistrationId;
+	
+	private List<String> getRidByIndividualId;
+	
+	private List<String> remainingUpdateCountByIndividualId;
+
+	private List<String> getdraftUIN;
+
+	private List<String> gethandleuin;
+
 
 }

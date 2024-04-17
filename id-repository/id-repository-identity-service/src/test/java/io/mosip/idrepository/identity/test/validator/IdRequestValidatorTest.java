@@ -86,7 +86,7 @@ public class IdRequestValidatorTest {
 
 	@InjectMocks
 	IdRequestValidator validator;
-	
+
 	@Mock
 	private HttpServletRequest servletRequest;
 
@@ -109,7 +109,7 @@ public class IdRequestValidatorTest {
 
 	@Mock
 	private UinValidatorImpl uinValidator;
-	
+
 	@Mock
 	private VidValidator<String> vidValidator;
 
@@ -160,8 +160,8 @@ public class IdRequestValidatorTest {
 		selectedHandles.setValue("selectedHandles");
 		identityMapping.getIdentity().setIDSchemaVersion(idSchemaVersion);
 		identityMapping.getIdentity().setSelectedHandles(selectedHandles);
-		ReflectionTestUtils.setField(idRepoServiceHelper, "identityMapping", identityMapping);
 
+		ReflectionTestUtils.setField(idRepoServiceHelper, "identityMapping", identityMapping);
 		errors = new BeanPropertyBindingResult(new IdRequestDTO(), "idRequestDto");
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("");
@@ -474,45 +474,45 @@ public class IdRequestValidatorTest {
 		boolean flag = validator.validateVid("cvb");
 		assertTrue(flag);
 	}
-	
+
 	@Test
 	public void testValidateVidwithException() {
 		when(vidValidator.validateId(Mockito.anyString())).thenThrow(InvalidIDException.class);
 		boolean flag = validator.validateVid("cvb");
-		assertFalse(flag);		
+		assertFalse(flag);
 	}
-	
+
 	@Test
 	public void testValidateUin() throws IdRepoAppException {
 		when(uinValidator.validateId(Mockito.anyString())).thenReturn(true);
 		boolean flag = validator.validateUin("vcbhg");
 		assertTrue(flag);
 	}
-	
+
 	@Test(expected = IdRepoAppUncheckedException.class)
 	public void testGetSchemawithIdRepoAppUncheckedException() {
 		String response = ReflectionTestUtils.invokeMethod(idRepoServiceHelper, "getSchema", "null");
 		assertNotNull(response);
 	}
-	
+
 	@Test
 	public void testGetSchema() throws IdRepoDataValidationException {
 		try{
 			when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(IdRepoDataValidationException.class);
 			//String response = ReflectionTestUtils.invokeMethod(validator, "getSchema", "cvhgfvbn");
-			}
+		}
 		catch(IdRepoAppUncheckedException e) {
-			assertEquals(IdRepoErrorConstants.SCHEMA_RETRIEVE_ERROR.getErrorCode(), e.getErrorCode());	
+			assertEquals(IdRepoErrorConstants.SCHEMA_RETRIEVE_ERROR.getErrorCode(), e.getErrorCode());
 		}
 	}
-	
+
 	@Test(expected = IdRepoAppException.class)
 	public void testValidateIdvId() throws IdRepoAppException {
 		IdType id = IdType.VID;
 		when(vidValidator.validateId(Mockito.anyString())).thenThrow(InvalidIDException.class);
 		validator.validateIdvId("edcvbj", id);
 	}
-	
+
 	@Test(expected = IdRepoAppException.class)
 	public void testValidateTypeAndExtractionFormatswithTypeNull() throws IdRepoAppException {
 		Map<String, String> extractionFormats = new HashMap<>();
@@ -521,7 +521,7 @@ public class IdRequestValidatorTest {
 		extractionFormats.put(FACE_EXTRACTION_FORMAT, "faceFormat");
 		validator.validateTypeAndExtractionFormats(null,extractionFormats);
 	}
-	
+
 	@Test(expected = IdRepoAppException.class)
 	public void testValidateTypeAndExtractionFormats() throws IdRepoAppException {
 		Map<String, String> extractionFormats = new HashMap<>();
@@ -530,7 +530,7 @@ public class IdRequestValidatorTest {
 		extractionFormats.put(FACE_EXTRACTION_FORMAT, "faceFormat");
 		validator.validateTypeAndExtractionFormats("cvbhgfc",extractionFormats);
 	}
-	
+
 	@Test
 	public void testValidateIdTypewithIllegalArgumentException() throws IdRepoAppException {
 		try{
@@ -540,41 +540,41 @@ public class IdRequestValidatorTest {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
 		}
 	}
-	
+
 	@Test
 	public void testValidateIdTypeWithTypeNull() throws IdRepoAppException {
 		IdType id = validator.validateIdType(null);
 		assertNull(id);
 	}
-	
+
 	@Test
 	public void testValidateIdType() throws IdRepoAppException {
 		IdType id = validator.validateIdType("VID");
 		assertNotNull(id);
 	}
-	
+
 	@Test(expected = IdRepoAppException.class)
 	public void testValidateTypeWithIdRepoAppException() throws IdRepoAppException {
-		allowedTypes = List.of("bio", "demo", "all");	
+		allowedTypes = List.of("bio", "demo", "all");
 		ReflectionTestUtils.setField(validator, "allowedTypes", allowedTypes);
 		String response = validator.validateType("metadata");
 		assertNotNull(response);
 	}
-	
+
 	@Test
 	public void testValidateTypeWithTypeAll() throws IdRepoAppException {
-		allowedTypes = List.of("bio", "demo", "metadata", "all");	
+		allowedTypes = List.of("bio", "demo", "metadata", "all");
 		ReflectionTestUtils.setField(validator, "allowedTypes", allowedTypes);
 		String response = validator.validateType("bio,demo,metadata,all");
 		assertNotNull(response);
 	}
-	
+
 	@Test(expected = IdRepoAppException.class)
 	public void testValidateType() throws IdRepoAppException {
-		allowedTypes = List.of("bio", "demo", "all");		
+		allowedTypes = List.of("bio", "demo", "all");
 		ReflectionTestUtils.setField(validator, "allowedTypes", allowedTypes);
 		String response = validator.validateType("metadata,bio");
 		assertNotNull(response);
 	}
-	
+
 }
