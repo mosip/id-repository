@@ -1,0 +1,13 @@
+ExtractBiometrics:
+  IdRepository_ExtractBiometrics_all_valid_smoke:
+      endPoint: /idrepository/v1/identity/draft/extractbiometrics/{registrationId}
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
+      input: '{
+      "registrationId":"$RID$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'

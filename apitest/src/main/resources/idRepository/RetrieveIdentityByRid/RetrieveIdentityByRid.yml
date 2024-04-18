@@ -1,0 +1,57 @@
+RetrieveIdentityByRid:
+  IdRepository_RetrieveIdentityByRid_With_Valid_Smoke_Rid:
+      endPoint: /idrepository/v1/identity/idvid/{RID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveIdentityByRid/retrieveIdentityByRid
+      outputTemplate: idRepository/RetrieveIdentityByRid/retrieveIdentityByRidResult
+      input: '{
+      "RID":"$ID:AddIdentity_withValidParameters_smoke_Pos_RID$"
+      }'
+      output: '{
+}'
+
+  IdRepository_RetrieveIdentityByRid_Invalid_Rid_Neg:
+      endPoint: /idrepository/v1/identity/idvid/{RID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveIdentityByRid/retrieveIdentityByRid
+      outputTemplate: idRepository/error
+      input: '{
+      "RID":"fgsfg34234"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+
+  IdRepository_RetrieveIdentityByRid_StatusCode_Empty_Rid_Neg:
+      endPoint: /idrepository/v1/identity/idvid/{RID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveIdentityByRid/retrieveIdentityByRid
+      outputTemplate: idRepository/error
+      input: '{
+      "RID":""
+      }'
+      output: "404"
+
+  IdRepository_RetrieveIdentityByRid_SpaceVal_Rid_Neg:
+      endPoint: /idrepository/v1/identity/idvid/{RID}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveIdentityByRid/retrieveIdentityByRid
+      outputTemplate: idRepository/error
+      input: '{
+      "RID":" "
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'

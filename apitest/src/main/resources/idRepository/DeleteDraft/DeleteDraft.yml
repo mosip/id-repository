@@ -1,0 +1,13 @@
+DeleteDraft:
+  IdRepository_DeleteDraft_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/discard/{registrationId}
+      role: idrepo
+      restMethod: delete
+      inputTemplate: idRepository/DeleteDraft/deleteDraft
+      outputTemplate: idRepository/DeleteDraft/deleteDraftResult
+      input: '{
+      "registrationId":"$RIDDEL$"
+      }'
+      output: '{
+    "status": "DISCARDED"
+}'
