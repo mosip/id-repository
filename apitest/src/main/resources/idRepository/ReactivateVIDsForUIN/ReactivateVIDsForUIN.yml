@@ -1,0 +1,409 @@
+ReactivateVIDs:
+  IdRepository_ReactivateVIDs_Smoke_Pos:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUINResult
+      input: '{
+    "UIN": "$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
+    "requesttime": "$TIMESTAMP$",
+    "id": "mosip.vid.reactivate",
+    "version": "v1"
+}'  
+      output: '{
+    "vidStatus": "ACTIVE"
+}'
+
+  IdRepository_ReactivateVIDs_Deactivated_Uin:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      checkErrorsOnlyInResponse: true
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUINResult
+      input: '{
+    "UIN": "$ID:AddIdentity_For_DeactivateScen_smoke_Pos_UIN$",
+    "requesttime": "$TIMESTAMP$",
+    "id": "mosip.vid.reactivate",
+    "version": "v1"
+}'  
+      output: '{
+  "errors": [
+    {
+    }
+  ]
+}'
+
+  IdRepository_ReactivateVIDs_Onetime_Smoke_Pos:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUINResult
+      input: '{
+    "UIN": "$ID:AddIdentity_For_Onetimeusevid_smoke_Pos_UIN$",
+    "requesttime": "$TIMESTAMP$",
+    "id": "mosip.vid.reactivate",
+    "version": "v1"
+}'  
+      output: '{
+    "vidStatus": "ACTIVE"
+}'
+
+  IdRepository_ReactivateVIDs_Invalid_ID_Neg:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/error
+      input: '{
+    "UIN": "$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
+    "requesttime": "$TIMESTAMP$",
+    "id": "moeactivate",
+    "version": "v1"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+  IdRepository_ReactivateVIDs_Missing_ID_Neg:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/error
+      input: '{
+    "UIN": "$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
+    "requesttime": "$TIMESTAMP$",
+    "id": "$REMOVE$",
+    "version": "v1"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-001"
+    }
+  ]
+}'
+
+  IdRepository_ReactivateVIDs_Empty_ID_Neg:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/error
+      input: '{
+    "UIN": "$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
+    "requesttime": "$TIMESTAMP$",
+    "id": "",
+    "version": "v1"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_ReactivateVIDs_Spaceval_ID_Neg:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/error
+      input: '{
+    "UIN": "$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
+    "requesttime": "$TIMESTAMP$",
+    "id": " ",
+    "version": "v1"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_ReactivateVIDs_Missing_UIN_Neg:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/error
+      input: '{
+    "UIN": "$REMOVE$",
+    "requesttime": "$TIMESTAMP$",
+    "id": "mosip.vid.reactivate",
+    "version": "v1"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-001"
+    }
+  ]
+}'
+
+  IdRepository_ReactivateVIDs_Invalid_UIN_Neg:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/error
+      input: '{
+    "UIN": "ksfjsdf",
+    "requesttime": "$TIMESTAMP$",
+    "id": "mosip.vid.reactivate",
+    "version": "v1"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_ReactivateVIDs_Empty_UIN_Neg:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/error
+      input: '{
+    "UIN": "",
+    "requesttime": "$TIMESTAMP$",
+    "id": "mosip.vid.reactivate",
+    "version": "v1"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_ReactivateVIDs_SpaceVal_UIN_Neg:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/error
+      input: '{
+    "UIN": " ",
+    "requesttime": "$TIMESTAMP$",
+    "id": "mosip.vid.reactivate",
+    "version": "v1"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_ReactivateVIDs_Invalid_Timestamp_Neg:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/error
+      input: '{
+    "UIN": "$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
+    "requesttime": "$TIMES",
+    "id": "mosip.vid.reactivate",
+    "version": "v1"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+  IdRepository_ReactivateVIDs_Missing_Timestamp_Neg:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/error
+      input: '{
+    "UIN": "$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
+    "requesttime": "$REMOVE$",
+    "id": "mosip.vid.reactivate",
+    "version": "v1"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-001"
+    }
+  ]
+}'
+
+  IdRepository_ReactivateVIDs_with_Past_Timestamp_Neg:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/error
+      input: '{
+    "UIN": "$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
+    "requesttime": "2022-05-23T06:56:01.667Z",
+    "id": "mosip.vid.reactivate",
+    "version": "v1"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_ReactivateVIDs_Future_Timestamp_Neg:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/error
+      input: '{
+    "UIN": "$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
+    "requesttime": "2072-05-23T06:56:01.667Z",
+    "id": "mosip.vid.reactivate",
+    "version": "v1"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_ReactivateVIDs_Empty_Timestamp_Neg:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/error
+      input: '{
+    "UIN": "$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
+    "requesttime": "",
+    "id": "mosip.vid.reactivate",
+    "version": "v1"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-001"
+    }
+  ]
+}'
+
+  IdRepository_ReactivateVIDs_Spaceval_Timestamp_Neg:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/error
+      input: '{
+    "UIN": "$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
+    "requesttime": " ",
+    "id": "mosip.vid.reactivate",
+    "version": "v1"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-001"
+    }
+  ]
+}'
+
+  IdRepository_ReactivateVIDs_Invalid_version_Neg:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/error
+      input: '{
+    "UIN": "$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
+    "requesttime": "$TIMESTAMP$",
+    "id": "mosip.vid.reactivate",
+    "version": "#rrdg"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+  IdRepository_ReactivateVIDs_Missing_version_Neg:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/error
+      input: '{
+    "UIN": "$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
+    "requesttime": "$TIMESTAMP$",
+    "id": "mosip.vid.reactivate",
+    "version": "$REMOVE$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-001"
+    }
+  ]
+}'
+
+  IdRepository_ReactivateVIDs_Empty_version_Neg:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/error
+      input: '{
+    "UIN": "$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
+    "requesttime": "$TIMESTAMP$",
+    "id": "mosip.vid.reactivate",
+    "version": ""
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_ReactivateVIDs_Spaceval_version_Neg:
+      endPoint: /idrepository/v1/vid/reactivate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
+      outputTemplate: idRepository/error
+      input: '{
+    "UIN": "$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
+    "requesttime": "$TIMESTAMP$",
+    "id": "mosip.vid.reactivate",
+    "version": " "
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
