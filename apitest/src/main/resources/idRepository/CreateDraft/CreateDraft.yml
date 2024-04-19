@@ -1,0 +1,74 @@
+CreateDraft:
+  IdRepository_CreateDraft_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/create/{registrationId}
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: post
+      inputTemplate: idRepository/CreateDraft/createDraft
+      outputTemplate: idRepository/CreateDraft/createDraftResult
+      input: '{
+      "registrationId":"$RID$"
+      }'
+      output: '{
+    "status": "DRAFTED"
+}'
+  IdRepository_Verify_UIN_Only_One_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/create/{registrationId}
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/CreateDraft/createDraft
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RID$"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-012"
+    }
+  ]
+}'
+  IdRepository_CreateDraft_delete_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/create/{registrationId}
+      role: idrepo
+      restMethod: post
+      checkErrorsOnlyInResponse: true
+      inputTemplate: idRepository/CreateDraft/createDraft
+      outputTemplate: idRepository/CreateDraft/createDraftResult
+      input: '{
+      "registrationId":"$RIDDEL$"
+      }'
+      output: '{
+}'
+  IdRepository_CreateDraft_invalid_rid:
+      endPoint: /idrepository/v1/identity/draft/create/{registrationId}
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/CreateDraft/createDraft
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"ajajaj@gddb#$"
+      }'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-012"
+    }
+  ]
+}'
+  IdRepository_CreateDraft_blank_rid:
+      endPoint: /idrepository/v1/identity/draft/create/{registrationId}
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/CreateDraft/createDraft
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":""
+      }'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'

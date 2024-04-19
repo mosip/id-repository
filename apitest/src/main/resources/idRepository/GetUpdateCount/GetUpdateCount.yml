@@ -1,0 +1,275 @@
+GetUpdateCount:
+   IdRepository_GetUpdateCount_Uin_Valid_Smoke:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      role: resident
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/GetUpdateCount/GetUpdateCountResult
+      input: '{
+      "individualId": "$ID:AddIdentity_UpdateCount_smoke_Pos_UIN$",
+      "idType": "UIN",
+       "attribute_list": "fullName"
+}'
+      output: '{
+       
+}'
+
+   IdRepository_GetUpdateCount_Uin_Invalid_IndivualId:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$123ds",
+      "idType": "UIN",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-004"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Uin_StatusCode_Empty_IndivId:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "",
+      "idType": "UIN",
+       "attribute_list": "fullName"
+}'
+      output: "404"
+
+   IdRepository_GetUpdateCount_Uin_SpaceVal_IndivId:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": " ",
+      "idType": "UIN",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-004"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Uin_StatusCode_Invalid_Token:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      role: invalid
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$ID:AddIdentity_UpdateCount_smoke_Pos_UIN$",
+      "idType": "UIN",
+       "attribute_list": "fullName"
+}'
+      output: "500"
+
+   IdRepository_GetUpdateCount_Vid_Valid_Smoke:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      role: resident
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/GetUpdateCount/GetUpdateCountResult
+      input: '{
+      "individualId": "$ID:CreateVID_UpdateCount_Smoke_Perpetual_sid_VID$",
+      "idType": "VID",
+       "attribute_list": "fullName"
+}'
+      output: '{
+       
+}'
+
+   IdRepository_GetUpdateCount_Uin_Invalid_IndivId:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$123ds",
+      "idType": "VID",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Uin_StaatusCode_Empty_IndivId:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "",
+      "idType": "VID",
+       "attribute_list": "fullName"
+}'
+      output: "404"
+
+   IdRepository_GetUpdateCount_Uin_SppaceVal_IndivId:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": " ",
+      "idType": "VID",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Uinn_StatusCode_Invalid_Token:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      role: invalid
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$ID:CreateVID_UpdateCount_Smoke_Perpetual_sid_VID$",
+      "idType": "VID",
+       "attribute_list": "fullName"
+}'
+      output: "500"
+      
+   IdRepository_GetUpdateCount_Uin_Invalid_idType:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$ID:AddIdentity_UpdateCount_smoke_Pos_UIN$",
+      "idType": "dfsdf",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Uin_Empty_idType:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$ID:AddIdentity_UpdateCount_smoke_Pos_UIN$",
+      "idType": "",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Uin_Spaceval_idType:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$ID:AddIdentity_UpdateCount_smoke_Pos_UIN$",
+      "idType": " ",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Vid_Invalid_idType:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$ID:CreateVID_UpdateCount_Smoke_Perpetual_sid_VID$",
+      "idType": "dfsdf",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Vid_Empty_idType:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$ID:CreateVID_UpdateCount_Smoke_Perpetual_sid_VID$",
+      "idType": "",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002",
+      "message": "Invalid Input Parameter - idType"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Vid_Spaceval_idType:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$ID:CreateVID_UpdateCount_Smoke_Perpetual_sid_VID$",
+      "idType": " ",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
