@@ -7,6 +7,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import io.mosip.credential.request.generator.entity.CredentialEntity;
+import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -18,8 +19,13 @@ public class CacheUtil {
     
 
 	  @Cacheable(value = "credential_transaction", key = "#requestId")
-	  public CredentialEntity setCredentialTransaction(String requestId, CredentialEntity credentialEntity) {
-	      return credentialEntity;
+	  public CredentialIssueStatusResponse setCredentialTransaction(String requestId, CredentialEntity credentialEntity, String id) {
+		  CredentialIssueStatusResponse credentialIssueStatusResponse = new CredentialIssueStatusResponse();
+		  credentialIssueStatusResponse.setId(id);
+		  credentialIssueStatusResponse.setRequestId(requestId);
+		  credentialIssueStatusResponse.setStatusCode(credentialEntity.getStatusCode());
+		  credentialIssueStatusResponse.setUrl(credentialEntity.getDataShareUrl());
+	      return credentialIssueStatusResponse;
 	  }
     
 	  @CacheEvict(value = "credential_transaction", key = "#requestId")
@@ -28,18 +34,18 @@ public class CacheUtil {
 	      return ;
 	  } 
 	  
-	  public void updateCredentialTransaction(String requestId, CredentialEntity credentialEntity) {
+	  public void updateCredentialTransaction(String requestId, CredentialEntity credentialEntity, String id) {
 		  if(getCredentialTransaction(requestId)!=null) {
-			  evictCredentialTransaction(requestId,credentialEntity);
-			  setCredentialTransaction(requestId,credentialEntity);
+			  evictCredentialTransaction(requestId, credentialEntity);
+			  setCredentialTransaction(requestId, credentialEntity, id);
 		  }
 		  else {
-			  setCredentialTransaction(requestId,credentialEntity);
+			  setCredentialTransaction(requestId, credentialEntity, id);
 		  }
 	  }
 	  
-	  public CredentialEntity getCredentialTransaction(String requestId) {
-	        return cacheManager.getCache("credential_transaction").get(requestId, CredentialEntity.class);
+	  public CredentialIssueStatusResponse getCredentialTransaction(String requestId) {
+	        return cacheManager.getCache("credential_transaction").get(requestId, CredentialIssueStatusResponse.class);
 	    }
 
 }
