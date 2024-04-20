@@ -1,4 +1,4 @@
-package io.mosip.credential.request.generator.api.config;
+package io.mosip.idrepository.core.config;
 
 import java.util.ArrayList;
 import java.util.Arrays;
