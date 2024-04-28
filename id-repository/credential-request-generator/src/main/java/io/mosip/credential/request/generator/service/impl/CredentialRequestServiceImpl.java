@@ -241,7 +241,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 				cacheUtil.updateCredentialTransaction(requestId, credentialEntity,credentialIssueRequestDto.getId());
 
 				LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CANCEL_CREDENTIAL,
-						"Cancelling credential status of " + requested);
+						"Cancelling credential status of " + requestId);
 				return credentialIssueResponseWrapper;
 			}
 
