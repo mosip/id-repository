@@ -142,12 +142,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL, ExceptionUtils.getStackTrace(e));
 		} finally {
 			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
-			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
-
-			credentialIssueResponseWrapper
-					.setResponsetime(localdatetime);
+			credentialIssueResponseWrapper.setResponsetime(getCurrentDateTime());
 			credentialIssueResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialIssueResponseWrapper.setErrors(errorList);
@@ -199,9 +194,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL, ExceptionUtils.getStackTrace(e));
 		} finally {
 			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
-
-			credentialIssueResponseWrapper
-					.setResponsetime(DateUtils.getUTCCurrentDateTime());
+			credentialIssueResponseWrapper.setResponsetime(getCurrentDateTime());
 			credentialIssueResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialIssueResponseWrapper.setErrors(errorList);
@@ -215,7 +208,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 
 	@Override
 	public ResponseWrapper<CredentialIssueResponse> cancelCredentialRequest(String requestId) {
-		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), 
 				requestId,
 				"started cancelling credential");
 		List<ServiceError> errorList = new ArrayList<>();
@@ -224,39 +217,42 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		CredentialIssueResponse credentialIssueResponse = null;
 		try {
 			Optional<CredentialEntity> entity = credentialDao.findById(requestId);
-			if (entity.isPresent()) {
-				CredentialEntity credentialEntity = entity.get();
-				if (credentialEntity.getStatusCode().equalsIgnoreCase("NEW")) {
-					credentialEntity.setStatusCode(CredentialStatusCode.CANCELLED.name());
-					credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-					credentialEntity.setUpdatedBy(IdRepoSecurityManager.getUser());
-					credentialEntity.setStatusComment("Cancel the request");
-					credentialDao.save(credentialEntity);
-					CredentialIssueRequestDto credentialIssueRequestDto = mapper
-							.readValue(credentialEntity.getRequest(),
-									CredentialIssueRequestDto.class);
-					credentialIssueResponse = new CredentialIssueResponse();
-					credentialIssueResponse.setId(credentialIssueRequestDto.getId());
-					credentialIssueResponse.setRequestId(requestId);
-					cacheUtil.updateCredentialTransaction(requestId, credentialEntity,credentialIssueRequestDto.getId());
-
-					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CANCEL_CREDENTIAL,
-							"Cancelling credential status of " + requestId);
-				} else {
-					ServiceError error = new ServiceError();
-					error.setErrorCode(CredentialRequestErrorCodes.REQUEST_ID_PROCESSED_ERROR.getErrorCode());
-					error.setMessage(CredentialRequestErrorCodes.REQUEST_ID_PROCESSED_ERROR.getErrorMessage());
-					errorList.add(error);
-				}
-
-			} else {
+			if(!entity.isPresent()) {
 				ServiceError error = new ServiceError();
 				error.setErrorCode(CredentialRequestErrorCodes.REQUEST_ID_ERROR.getErrorCode());
 				error.setMessage(CredentialRequestErrorCodes.REQUEST_ID_ERROR.getErrorMessage());
 				errorList.add(error);
+				return credentialIssueResponseWrapper;
 			}
+
+			CredentialEntity credentialEntity = entity.get();
+			if (credentialEntity.getStatusCode().equalsIgnoreCase("NEW")) {
+				credentialEntity.setStatusCode(CredentialStatusCode.CANCELLED.name());
+				credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+				credentialEntity.setUpdatedBy(IdRepoSecurityManager.getUser());
+				credentialEntity.setStatusComment("Cancel the request");
+				credentialDao.save(credentialEntity);
+				CredentialIssueRequestDto credentialIssueRequestDto = mapper
+						.readValue(credentialEntity.getRequest(),
+								CredentialIssueRequestDto.class);
+				credentialIssueResponse = new CredentialIssueResponse();
+				credentialIssueResponse.setId(credentialIssueRequestDto.getId());
+				credentialIssueResponse.setRequestId(requestId);
+				cacheUtil.updateCredentialTransaction(requestId, credentialEntity,credentialIssueRequestDto.getId());
+
+				LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CANCEL_CREDENTIAL,
+						"Cancelling credential status of " + requested);
+				return credentialIssueResponseWrapper;
+			}
+
+			ServiceError error = new ServiceError();
+			error.setErrorCode(CredentialRequestErrorCodes.REQUEST_ID_PROCESSED_ERROR.getErrorCode());
+			error.setMessage(CredentialRequestErrorCodes.REQUEST_ID_PROCESSED_ERROR.getErrorMessage());
+			errorList.add(error);
+		
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ended cancelling credential");
+			
 		} catch (DataAccessLayerException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CANCEL_CREDENTIAL_REQUEST, requestId, IdType.ID,e);
 			ServiceError error = new ServiceError();
@@ -277,12 +273,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 					ExceptionUtils.getStackTrace(e));
 		} finally {
 			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
-			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
-
-			credentialIssueResponseWrapper
-					.setResponsetime(localdatetime);
+			credentialIssueResponseWrapper.setResponsetime(getCurrentDateTime());
 			credentialIssueResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialIssueResponseWrapper.setErrors(errorList);
@@ -304,62 +295,58 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 
 		CredentialIssueStatusResponse credentialIssueStatusResponse = new CredentialIssueStatusResponse();
 		try {
-			Optional<CredentialIssueStatusResponse> cachedEntity = Optional.ofNullable(cacheUtil.getCredentialTransaction(requestId));
-			if(cachedEntity.isPresent()) {
-				credentialIssueStatusResponse = cachedEntity.get();
+			Optional<CredentialIssueStatusResponse> cachedResponse = Optional.ofNullable(cacheUtil.getCredentialTransaction(requestId));
+			if(cachedResponse.isPresent()) {
+				credentialIssueStatusResponse = cachedResponse.get();
+				return credentialIssueStatusResponseWrapper;
 			}
-			else {
-					Optional<CredentialEntity> entity = credentialDao.findById(requestId);
-					CredentialEntity credentialEntity = entity.isPresent() ? entity.get() : null;
-					if (credentialEntity!=null && credentialEntity.getRequestId()!=null) {
-						CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credentialEntity.getRequest(),
-								CredentialIssueRequestDto.class);
-						credentialIssueStatusResponse.setId(credentialIssueRequestDto.getId());
-						credentialIssueStatusResponse.setRequestId(requestId);
-						credentialIssueStatusResponse.setStatusCode(credentialEntity.getStatusCode());
-						credentialIssueStatusResponse.setUrl(credentialEntity.getDataShareUrl());
-						LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CANCEL_CREDENTIAL,
-								"get credential status of " + requestId);
-					} else {
-						ServiceError error = new ServiceError();
-						error.setErrorCode(CredentialRequestErrorCodes.REQUEST_ID_ERROR.getErrorCode());
-						error.setMessage(CredentialRequestErrorCodes.REQUEST_ID_ERROR.getErrorMessage());
-						errorList.add(error);
-		
-					}
-					LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-							"ended getting  credential status");
-				}
-			} catch (DataAccessLayerException e) {
-				ServiceError error = new ServiceError();
-				error.setErrorCode(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorCode());
-				error.setMessage(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorMessage());
-				errorList.add(error);
-				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-						ExceptionUtils.getStackTrace(e));
-			} catch (JsonProcessingException e) {
-	
-				ServiceError error = new ServiceError();
-				error.setErrorCode(CredentialRequestErrorCodes.IO_EXCEPTION.getErrorCode());
-				error.setMessage(CredentialRequestErrorCodes.IO_EXCEPTION.getErrorMessage());
-				errorList.add(error);
-				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-						ExceptionUtils.getStackTrace(e));
+			
+			Optional<CredentialEntity> result = credentialDao.findById(requestId);
+			CredentialEntity credentialEntity = result.isPresent() ? result.get() : null;
+			if (credentialEntity!=null && credentialEntity.getRequestId() != null) {
+				CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credentialEntity.getRequest(),
+						CredentialIssueRequestDto.class);
+				credentialIssueStatusResponse.setId(credentialIssueRequestDto.getId());
+				credentialIssueStatusResponse.setRequestId(requestId);
+				credentialIssueStatusResponse.setStatusCode(credentialEntity.getStatusCode());
+				credentialIssueStatusResponse.setUrl(credentialEntity.getDataShareUrl());
+				LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						"Built credential issue status response from entity object");
+				return credentialIssueStatusResponseWrapper;
 			}
+
+			ServiceError error = new ServiceError();
+			error.setErrorCode(CredentialRequestErrorCodes.REQUEST_ID_ERROR.getErrorCode());
+			error.setMessage(CredentialRequestErrorCodes.REQUEST_ID_ERROR.getErrorMessage());
+			errorList.add(error);			
+				
+		} catch (DataAccessLayerException e) {
+			ServiceError error = new ServiceError();
+			error.setErrorCode(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialRequestErrorCodes.DATA_ACCESS_LAYER_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
+		} catch (JsonProcessingException e) {
+
+			ServiceError error = new ServiceError();
+			error.setErrorCode(CredentialRequestErrorCodes.IO_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialRequestErrorCodes.IO_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
+		}
 		finally {
 			credentialIssueStatusResponseWrapper.setId(EnvUtil.getCredReqServiceId());
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
-			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
-
-			credentialIssueStatusResponseWrapper
-					.setResponsetime(localdatetime);
+			credentialIssueStatusResponseWrapper.setResponsetime(getCurrentDateTime());
 			credentialIssueStatusResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialIssueStatusResponseWrapper.setErrors(errorList);
 			} else {
 				credentialIssueStatusResponseWrapper.setResponse(credentialIssueStatusResponse);
 			}
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Ended getting credential status");
 
 		}
 		return credentialIssueStatusResponseWrapper;
@@ -376,25 +363,22 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"started updating  credential status");
 			Optional<CredentialEntity> entity = credentialDao.findById(requestId);
-			if (entity.isPresent()) {
-				CredentialEntity credentialEntity = entity.get();
-				credentialEntity.setStatusCode(event.getStatus());
-				if(!StringUtils.isEmpty(event.getUrl())) {
-					credentialEntity.setDataShareUrl(event.getUrl());
-				}
-				credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-				credentialEntity.setUpdatedBy(PRINT_USER);
-				credentialEntity.setStatusComment("updated the status from partner");
-				credentialDao.save(credentialEntity);
-				CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credentialEntity.getRequest(),
-						CredentialIssueRequestDto.class);
-				cacheUtil.updateCredentialTransaction(requestId, credentialEntity, credentialIssueRequestDto.getId());
-				LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CANCEL_CREDENTIAL,
-						"updated the status of  " + requestId);
-			} else {
-
+			if(!entity.isPresent())
 				throw new CredentialRequestGeneratorException();
+
+			CredentialEntity credentialEntity = entity.get();
+			credentialEntity.setStatusCode(event.getStatus());
+			if(!StringUtils.isEmpty(event.getUrl())) {
+				credentialEntity.setDataShareUrl(event.getUrl());
 			}
+			credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+			credentialEntity.setUpdatedBy(PRINT_USER);
+			credentialEntity.setStatusComment("updated the status from partner");
+			credentialDao.save(credentialEntity);
+			CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credentialEntity.getRequest(),
+					CredentialIssueRequestDto.class);
+			cacheUtil.updateCredentialTransaction(requestId, credentialEntity, credentialIssueRequestDto.getId());
+			
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ended updating  credential status");
 			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,"update the request");
@@ -402,11 +386,8 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, UPDATE_STATUS_CREDENTIAL,
 					ExceptionUtils.getStackTrace(e));
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,e);
-
 			throw new CredentialRequestGeneratorException();
-
 		}
-
 	}
 
 	@Override
@@ -489,11 +470,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 					ExceptionUtils.getStackTrace(e));
 		} finally {
 			credentialRequestIdsResponseWrapper.setId(EnvUtil.getCredReqServiceId());
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
-			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
-
-			credentialRequestIdsResponseWrapper.setResponsetime(localdatetime);
+			credentialRequestIdsResponseWrapper.setResponsetime(getCurrentDateTime());
 			credentialRequestIdsResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialRequestIdsResponseWrapper.setErrors(errorList);
@@ -561,11 +538,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 					ExceptionUtils.getStackTrace(e));
 		} finally {
 			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
-			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
-
-			credentialIssueResponseWrapper.setResponsetime(localdatetime);
+			credentialIssueResponseWrapper.setResponsetime(getCurrentDateTime());
 			credentialIssueResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialIssueResponseWrapper.setErrors(errorList);
@@ -576,6 +549,11 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 					requestId, IdType.ID, "retrigger the request");
 		}
 		return credentialIssueResponseWrapper;
+	}
+
+	private LocalDateTime getCurrentDateTime() {
+		DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
+		return LocalDateTime.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);	
 	}
 
 }
