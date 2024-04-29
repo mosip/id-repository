@@ -142,7 +142,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL, ExceptionUtils.getStackTrace(e));
 		} finally {
 			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
-			credentialIssueResponseWrapper.setResponsetime(getCurrentDateTime());
+			credentialIssueResponseWrapper.setResponsetime(DateUtils.getUTCCurrentDateTime());
 			credentialIssueResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialIssueResponseWrapper.setErrors(errorList);
@@ -194,7 +194,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL, ExceptionUtils.getStackTrace(e));
 		} finally {
 			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
-			credentialIssueResponseWrapper.setResponsetime(getCurrentDateTime());
+			credentialIssueResponseWrapper.setResponsetime(DateUtils.getUTCCurrentDateTime());
 			credentialIssueResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialIssueResponseWrapper.setErrors(errorList);
@@ -273,7 +273,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 					ExceptionUtils.getStackTrace(e));
 		} finally {
 			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
-			credentialIssueResponseWrapper.setResponsetime(getCurrentDateTime());
+			credentialIssueResponseWrapper.setResponsetime(DateUtils.getUTCCurrentDateTime());
 			credentialIssueResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialIssueResponseWrapper.setErrors(errorList);
@@ -338,7 +338,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		}
 		finally {
 			credentialIssueStatusResponseWrapper.setId(EnvUtil.getCredReqServiceId());
-			credentialIssueStatusResponseWrapper.setResponsetime(getCurrentDateTime());
+			credentialIssueStatusResponseWrapper.setResponsetime(DateUtils.getUTCCurrentDateTime());
 			credentialIssueStatusResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialIssueStatusResponseWrapper.setErrors(errorList);
@@ -470,7 +470,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 					ExceptionUtils.getStackTrace(e));
 		} finally {
 			credentialRequestIdsResponseWrapper.setId(EnvUtil.getCredReqServiceId());
-			credentialRequestIdsResponseWrapper.setResponsetime(getCurrentDateTime());
+			credentialRequestIdsResponseWrapper.setResponsetime(DateUtils.getUTCCurrentDateTime());
 			credentialRequestIdsResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialRequestIdsResponseWrapper.setErrors(errorList);
@@ -538,7 +538,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 					ExceptionUtils.getStackTrace(e));
 		} finally {
 			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
-			credentialIssueResponseWrapper.setResponsetime(getCurrentDateTime());
+			credentialIssueResponseWrapper.setResponsetime(DateUtils.getUTCCurrentDateTime());
 			credentialIssueResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialIssueResponseWrapper.setErrors(errorList);
@@ -551,9 +551,5 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		return credentialIssueResponseWrapper;
 	}
 
-	private LocalDateTime getCurrentDateTime() {
-		DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
-		return LocalDateTime.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);	
-	}
 
 }
