@@ -1,13 +1,10 @@
 package io.mosip.idrepository.core.config;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.Cache;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
@@ -17,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.google.common.cache.CacheBuilder;
 
+@ConditionalOnProperty(value = "spring.cache.type", havingValue = "simple", matchIfMissing = true)
 @Configuration
 public class SimpleCacheConfig extends CachingConfigurerSupport {
 	
