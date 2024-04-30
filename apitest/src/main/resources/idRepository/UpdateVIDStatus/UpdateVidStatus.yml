@@ -848,12 +848,12 @@ UpdateVidStatus:
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/UpdateVIDStatus/UpdateVidStatusResult
       input: '{
-    "vidStatus": "ACTIVATED",
+    "vidStatus": "ACTIVE",
     "id": "mosip.vid.update",
     "VID": "$ID:CreateVID_withValidParameters_For_VidType_Smoke_Temporary_sid_VID$",
     "version": "v1",
   "requesttime": "$TIMESTAMP$"
 }'
       output: '{
-    "vidStatus": "ACTIVATED"
+    "vidStatus": "ACTIVE"
 }'
