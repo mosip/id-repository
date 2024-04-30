@@ -16,7 +16,6 @@ import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
-import io.mosip.idrepository.core.dto.HandleInfoDTO;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.RequestDTO;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
@@ -59,7 +58,6 @@ import io.mosip.kernel.core.util.UUIDUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.hibernate.exception.JDBCConnectionException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -70,9 +68,7 @@ import org.skyscreamer.jsonassert.JSONCompareResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
@@ -96,7 +92,6 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_FORMAT_AT
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_NAME_ATTRIBUTE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.HANDLE_RECORD_EXISTS;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
@@ -832,7 +827,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 */
 	@Override
 	public Map<String, Integer> getRemainingUpdateCountByIndividualId(String uinHash, IdType idType,
-			List<String> attributeList) throws IdRepoAppException {
+																	  List<String> attributeList) throws IdRepoAppException {
 		try {
 			Optional<IdentityUpdateTracker> updateTrackerOptional = identityUpdateTracker.findById(uinHash);
 			if (updateTrackerOptional.isPresent()) {
@@ -851,9 +846,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 								))
 				);
 			} else {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
-						"getMaxAllowedUpdateCountForIndividualId", "NO_RECORD_FOUND");
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+				return getRemainingUpdateCountFromConfig(attributeList);
 			}
 		} catch (IOException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
@@ -868,6 +861,19 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				.forEach(entry -> updateCountTracker.put(entry.getKey(), entry.getValue()));
 		return updateCountTracker;
 	}
+
+
+	private Map<String, Integer> getRemainingUpdateCountFromConfig(List<String> attributeList) {
+		if(attributeList == null || attributeList.isEmpty()){
+			return IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap();
+		} else {
+			Map<String, Integer> updateCountMapFromPolicy = IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap();
+			return attributeList.stream()
+					.filter(updateCountMapFromPolicy::containsKey)
+					.collect(Collectors.toMap(attribute -> attribute, updateCountMapFromPolicy::get));
+		}
+	}
+
 
 	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp, String requestId) {
 		List<CredentialRequestStatus> credStatusList = credRequestRepo.findByIndividualIdHash(uinHash);
