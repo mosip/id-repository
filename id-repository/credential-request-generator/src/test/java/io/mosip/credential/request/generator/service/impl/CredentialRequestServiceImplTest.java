@@ -169,7 +169,7 @@ public class CredentialRequestServiceImplTest {
 		credentialEntity.setRequestId("1234");
 		credentialEntity.setStatusCode("NEW");
 		Optional<CredentialEntity> entity = Optional.of(credentialEntity);
-		org.mockito.Mockito.doThrow(new DataAccessLayerException("", "", new Throwable())).when(credentialDao).update(Mockito.any());
+		org.mockito.Mockito.doThrow(new DataAccessLayerException("", "", new Throwable())).when(credentialDao).save(Mockito.any());
 		Mockito.when(credentialDao.findById(Mockito.any())).thenReturn(entity);
 
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto=credentialRequestServiceImpl.cancelCredentialRequest("1234");
@@ -284,7 +284,7 @@ public class CredentialRequestServiceImplTest {
 		CredentialEntity credentialEntity = new CredentialEntity();
 		credentialEntity.setRequestId("1234");
 		Optional<CredentialEntity> entity = Optional.of(credentialEntity);
-		org.mockito.Mockito.doThrow(new DataAccessLayerException("", "", new Throwable())).when(credentialDao).update(Mockito.any());
+		org.mockito.Mockito.doThrow(new DataAccessLayerException("", "", new Throwable())).when(credentialDao).save(Mockito.any());
 		Mockito.when(credentialDao.findById(Mockito.any())).thenReturn(entity);
 		Event event = new Event();
 		CredentialStatusEvent credentialStatusEvent = new CredentialStatusEvent();
