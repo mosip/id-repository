@@ -29,7 +29,18 @@ As handles are revocable they provide strong privacy by default. If a user feels
     8. Issue credentials with the UIN. As part of handle support, we have made this issuance configurable.
     9. Issue credentials with the handle for each selected handle.
 * There were changes in IDA to support handle as a new IDType and also introduced regex-based handle validation.
-* Changes in `update_identity` API: (Not implemented)
+* Changes in `update_identity` API:
+	1. Identify if any handle is selected in the input.
+	2. Check if the selected handles are configured as a HANDLE in `identity_schema`(JSON schema validation).
+	3. If no handles are selected, proceed with step 9.
+	4. If selected, remove the existing selected handles from `mosip_idrepo.handle` table.
+	5. Revoke the credentials issued for existing selected handles from IDA through websub event.
+	6. Get the salt for the input handles and generate the selected handles salted hash.
+    7. Check if an entry exists with the same handle hash in the `mosip_idrepo.handle` table.
+    8. Fails the `update_identity` request if an entry exists.
+	9. Otherwise, update an identity with UIN and Create an entry in the `mosip_idrepo.handle` table for each selected handle.
+    10. Issue credentials with the UIN. As part of handle support, we have made this issuance configurable.
+    11. Issue credentials with the handle for each selected handle.
 
 ### How is the credential request ID created for handles?
 
