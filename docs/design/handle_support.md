@@ -34,11 +34,11 @@ As handles are revocable they provide strong privacy by default. If a user feels
 	2. Check if the selected handles are configured as a HANDLE in `identity_schema`(JSON schema validation).
 	3. If no handles are selected, proceed with step 6.
 	4. If selected, get the salt for the input handles and generate the selected handles salted hash.
-	5. Follow below operations in `mosip_idrepo.handle` table.
-		a. If the handle is selected and the same handle is mapped to DIFFERENT user then fail the `update_identity` request.
-		b. If the handle is selected and the same handle is mapped to SAME user then do nothing.
-		c. If the handle is selected and the handle does NOT EXIST in `mosip_idrepo.handle` table, create entry in handle table.
-		d. If there are any unselected handles (when compared with stored selectedHandles and input selectedHandles), mark the handles as deleted in the `mosip_idrepo.handle` table.
+	5. Follow below operations in `mosip_idrepo.handle` table.  
+		a) If the handle is selected and the same handle is mapped to DIFFERENT user then fail the `update_identity` request.
+		b) If the handle is selected and the same handle is mapped to SAME user then do nothing.
+		c) If the handle is selected and the handle does NOT EXIST in `mosip_idrepo.handle` table, create entry in handle table.
+		d) If there are any unselected handles (when compared with stored selectedHandles and input selectedHandles), mark the handles as deleted in the `mosip_idrepo.handle` table.  
 	Note: Add is_active and is_deleted columns in the `mosip_idrepo.handle` table.
 	6. Update identity data (demo, docs & bio) in the uin table.
 
