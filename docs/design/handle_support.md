@@ -32,16 +32,20 @@ As handles are revocable they provide strong privacy by default. If a user feels
 * Changes in `update_identity` API:
 	1. Identify if any handle is selected in the input.
 	2. Check if the selected handles are configured as a HANDLE in `identity_schema`(JSON schema validation).
-	3. If no handles are selected, proceed with step 10.
+	3. If no handles are selected, proceed with step 6.
 	4. If selected, get the salt for the input handles and generate the selected handles salted hash.
-	5. Check if any entry exists with the same handle_hash in the `mosip_idrepo.handle` table.
-	6. If not exists, revoke the credentials issued for existing selected handles from IDA through websub event and remove the existing selected handles from `mosip_idrepo.handle` table.
-	7. If exists, check whether the uin_hash is same or not.
-	8. Fails the `update_identity` request with error `HANDLE_RECORD_EXISTS` if not same.
-	9. If same, remove that specific handle data from the input.
-	10. Update an identity with UIN and Create an entry in the `mosip_idrepo.handle` table for each selected handle.
-    11. Issue credentials with the UIN. As part of handle support, we have made this issuance configurable.
-    12. Issue credentials with the handle for each selected handle.
+	5. Follow below operations in `mosip_idrepo.handle` table.
+	5.a. If the handle is selected and the same handle is mapped to DIFFERENT user then fail the `update_identity` request.
+	5.b. If the handle is selected and the same handle is mapped to SAME user then do nothing.
+	5.c. If the handle is selected and the handle does NOT EXIST in `mosip_idrepo.handle` table, create entry in handle table.
+	5.d. If there are any unselected handles (when compared with stored selectedHandles and input selectedHandles), mark the handles as deleted in the `mosip_idrepo.handle` table.
+	Note: Add is_active and is_deleted columns in the `mosip_idrepo.handle` table.
+	6. Update identity data (demo, docs & bio) in the uin table.
+
+	In CredentialServiceManager, when we fetch the list of handles for a UIN to issue credentials:
+	1. Issue credential event to be raised if the record is active and not deleted.
+	2. If the record is deleted, then send "REMOVE_ID" event to IDA.
+	3. We should change in the IDA to acknowledge REMOVE_ID events to identity-service. On receiving successful acknowledgment delete the entry from `mosip_idrepo.handle` table.
 
 ### How is the credential request ID created for handles?
 
