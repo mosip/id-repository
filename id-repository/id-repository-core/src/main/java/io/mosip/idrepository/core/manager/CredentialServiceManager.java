@@ -211,7 +211,7 @@ public class CredentialServiceManager {
 				// For create uin, or update uin with null expiry (active status), send event to
 				// credential service.
 				List<HandleInfoDTO> handleInfoDtos = handles.isEmpty() ? List.of()
-						: getHandlesInfo(handles, saltRetreivalFunction, partnerIds);
+						: getHandlesInfo(handles, partnerIds, saltRetreivalFunction, idaEventModelConsumer);
 				sendUinEventsToCredService(uin, expiryTimestamp, isUpdate, vidInfoDtos, handleInfoDtos, partnerIds,
 						saltRetreivalFunction, credentialRequestResponseConsumer,requestId);
 			}
@@ -631,15 +631,15 @@ public class CredentialServiceManager {
 		return handleRepo.findByUinHash(uinHash);
 	}
 
-	private List<HandleInfoDTO> getHandlesInfo(List<Handle> handles, IntFunction<String> saltRetreivalFunction,
-			List<String> partnerIds) {
+	private List<HandleInfoDTO> getHandlesInfo(List<Handle> handles, List<String> partnerIds,
+			IntFunction<String> saltRetreivalFunction, Consumer<EventModel> idaEventModelConsumer) {
 		List<HandleInfoDTO> handleInfoDTOS = new ArrayList<>();
 		for(Handle entity : handles) {
 			if (entity.getIsDeleted()) {
 				List<EventModel> eventList = new ArrayList<>();
 				eventList.addAll(createIdaEventModel(IDAEventType.REMOVE_ID, null, null, partnerIds, null,
 						entity.getHandleHash()).collect(Collectors.toList()));
-				sendEventsToIDA(eventList, IDAEventType.REMOVE_ID, null);
+				sendEventsToIDA(eventList, IDAEventType.REMOVE_ID, idaEventModelConsumer);
 			} else {
 				HandleInfoDTO handleInfoDTO = new HandleInfoDTO();
 				String encryptSalt = uinEncryptSaltRepo
