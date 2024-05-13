@@ -8,6 +8,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+
 import java.time.LocalDateTime;
 
 @Data
@@ -33,6 +35,14 @@ public class Handle implements HandleInfo {
 
     @Column(name = "cr_dtimes")
     private LocalDateTime createdDateTime;
+
+	@NotNull
+	@Column(name = "is_active")
+	private Boolean isActive = true;
+
+	@NotNull
+	@Column(name = "is_deleted")
+	private Boolean isDeleted = false;
 
     @Override
     public String getHandle() {
