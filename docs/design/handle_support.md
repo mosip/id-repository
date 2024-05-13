@@ -45,7 +45,7 @@ As handles are revocable they provide strong privacy by default. If a user feels
 	In CredentialServiceManager, when we fetch the list of handles for a UIN to issue credentials:
 	1. Issue credential event to be raised if the record is active and not deleted.
 	2. If the record is deleted, then send `REMOVE_ID` event to IDA.  
-	Note: If the UIN will be blocked or deactivated, then revoke credentials for list of handles for a UIN.
+	Note: If the UIN will be blocked or deactivated, then revoke credentials for all selected handles for a UIN.
 	3. We should change in the IDA to acknowledge `REMOVE_ID` events to identity-service. On receiving successful acknowledgment delete the entry from `mosip_idrepo.handle` table.
 
 ### How is the credential request ID created for handles?
