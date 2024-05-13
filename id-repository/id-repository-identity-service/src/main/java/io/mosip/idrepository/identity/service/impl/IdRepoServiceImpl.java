@@ -401,9 +401,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
 		try {
 			updateRequestBodyData(request);
-			
+			Map<String, HandleDto> inputSelectedHandlesMap = null;
 			Uin uinObject = retrieveIdentity(uinHash, IdType.UIN, null, null);
-			Map<String, HandleDto> inputSelectedHandlesMap = getNewAndDeleteExistingHandles(request, uinObject, UPDATE);
 			anonymousProfileHelper.setOldCbeff(uinHash,
 					!anonymousProfileHelper.isOldCbeffPresent() && Objects.nonNull(uinObject.getBiometrics())
 							&& !uinObject.getBiometrics().isEmpty()
@@ -417,6 +416,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
 			}
 			if (Objects.nonNull(request.getRequest()) && Objects.nonNull(request.getRequest().getIdentity())) {
+				inputSelectedHandlesMap = getNewAndDeleteExistingHandles(request, uinObject, UPDATE);
 				RequestDTO requestDTO = request.getRequest();
 				Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
 						.mappingProvider(new JacksonMappingProvider()).build();
