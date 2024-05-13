@@ -214,6 +214,9 @@ public class IdRepoConstants {
 	/** The Constant CREATE. */
 	public static final String CREATE = "create";
 
+	/** The Constant UPDATE. */
+	public static final String UPDATE = "update";
+
 	/** The Constant READ. */
 	public static final String READ = "read";
 
