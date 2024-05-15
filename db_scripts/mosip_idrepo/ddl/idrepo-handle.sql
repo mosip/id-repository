@@ -19,6 +19,8 @@ CREATE TABLE idrepo.handle(
 	handle_hash character varying NOT NULL,
 	cr_by character varying(256) NOT NULL,
 	cr_dtimes timestamp NOT NULL,
+	is_active boolean NOT NULL DEFAULT false,
+	is_deleted boolean NOT NULL DEFAULT false
 	CONSTRAINT pk_handle PRIMARY KEY (id),
 	CONSTRAINT uk_handle UNIQUE (handle_hash)
 );
@@ -34,4 +36,8 @@ COMMENT ON COLUMN idrepo.handle.handle_hash IS 'Handle Hash: Hash value of Uniqu
 COMMENT ON COLUMN idrepo.handle.cr_by IS 'Created By : ID or name of the user who create / insert record';
 -- ddl-end --
 COMMENT ON COLUMN idrepo.handle.cr_dtimes IS 'Created DateTimestamp : Date and Timestamp when the record is created/inserted';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.handle.is_active IS 'The flag to identify if the handle is active or not';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.handle.is_deleted IS 'The flag to identify if the handle needs to be deleted or not';
 -- ddl-end --
