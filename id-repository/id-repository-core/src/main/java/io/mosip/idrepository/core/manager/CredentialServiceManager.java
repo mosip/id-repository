@@ -298,10 +298,10 @@ public class CredentialServiceManager {
 	private void sendEventsToIDA(List<EventModel> eventList, EventType eventType, Consumer<EventModel> idaEventModelConsumer) {
 		eventList.forEach(eventDto -> {
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
-					"notifying IDA for event" + eventType.toString());
+					"notifying IDA for event " + eventType.toString());
 			websubHelper.sendEventToIDA(eventDto, idaEventModelConsumer);
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
-					"notified IDA for event" + eventType.toString());
+					"notified IDA for event " + eventType.toString());
 		});
 	}
 
@@ -462,7 +462,7 @@ public class CredentialServiceManager {
 					"notifying Credential Service for event " + eventTypeDisplayName);
 			sendRequestToCredService(reqDto.getIssuer(), requestWrapper, credentialRequestResponseConsumer);
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
-					"notified Credential Service for event" + eventTypeDisplayName);
+					"notified Credential Service for event " + eventTypeDisplayName);
 		});
 	}
 

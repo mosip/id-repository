@@ -424,7 +424,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				DocumentContext dbData = JsonPath.using(configuration).parse(new String(uinObject.getUinData()));
 				anonymousProfileHelper.setOldUinData(dbData.jsonString().getBytes());
 				updateVerifiedAttributes(requestDTO, inputData, dbData);
-				updateSelectedHandles(inputSelectedHandlesMap, inputData, dbData);
+				updateSelectedHandles(inputData, dbData);
 				JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(),
 						dbData.jsonString(), JSONCompareMode.LENIENT);
 
@@ -516,12 +516,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		dbData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
 	}
 
-	private void updateSelectedHandles(Map<String, HandleDto> selectedHandlesMap, DocumentContext inputData,
-			DocumentContext dbData) {
-		List<String> selectedHandlesList = selectedHandlesMap.keySet().stream().collect(Collectors.toList());
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private void updateSelectedHandles(DocumentContext inputData, DocumentContext dbData) {
+		List inputSelectedHandles = (List) inputData.read(".selectedHandles");
+		List selectedHandlesList = (List) inputSelectedHandles.get(0);
 		if (Objects.nonNull(selectedHandlesList)) {
 			HashSet<String> selectedHandlesSet = new HashSet<>(selectedHandlesList);
-			inputData.put("$", SELECTED_HANDLES, selectedHandlesSet);
 			dbData.put("$", SELECTED_HANDLES, selectedHandlesSet);
 		}
 	}
