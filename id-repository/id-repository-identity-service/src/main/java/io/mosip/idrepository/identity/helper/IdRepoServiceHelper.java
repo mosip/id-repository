@@ -178,7 +178,7 @@ public class IdRepoServiceHelper {
 						}));
 			}
 		}
-		return Map.of();
+		return null;
 	}
 
     public String getHandleHash(String handle) {
