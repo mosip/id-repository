@@ -519,10 +519,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void updateSelectedHandles(DocumentContext inputData, DocumentContext dbData) {
 		List inputSelectedHandles = (List) inputData.read(".selectedHandles");
-		List selectedHandlesList = (List) inputSelectedHandles.get(0);
-		if (Objects.nonNull(selectedHandlesList)) {
-			HashSet<String> selectedHandlesSet = new HashSet<>(selectedHandlesList);
-			dbData.put("$", SELECTED_HANDLES, selectedHandlesSet);
+		if (!inputSelectedHandles.isEmpty()) {
+			List selectedHandlesList = (List) inputSelectedHandles.get(0);
+			if (Objects.nonNull(selectedHandlesList)) {
+				HashSet<String> selectedHandlesSet = new HashSet<>(selectedHandlesList);
+//				inputData.put("$", SELECTED_HANDLES, selectedHandlesSet);
+				dbData.put("$", SELECTED_HANDLES, selectedHandlesSet);
+			}
 		}
 	}
 
