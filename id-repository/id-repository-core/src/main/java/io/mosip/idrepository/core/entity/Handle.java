@@ -8,7 +8,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-
 import java.time.LocalDateTime;
 
 @Data
@@ -29,8 +28,8 @@ public class Handle implements HandleInfo {
     @Column(name = "handle_hash")
     private String handleHash;
 
-	@Column(name = "status")
-	private String status;
+    @Column(name = "status")
+    private String status;
 
     @Column(name = "cr_by")
     private String createdBy;
