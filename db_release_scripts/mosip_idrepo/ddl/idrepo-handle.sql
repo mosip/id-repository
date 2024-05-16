@@ -17,6 +17,7 @@ CREATE TABLE idrepo.handle(
 	uin_hash character varying NOT NULL,
 	handle character varying NOT NULL,
 	handle_hash character varying NOT NULL,
+	status character varying(32) NOT NULL,
 	cr_by character varying(256) NOT NULL,
 	cr_dtimes timestamp NOT NULL,
 	CONSTRAINT pk_handle PRIMARY KEY (id),
@@ -30,6 +31,8 @@ COMMENT ON COLUMN idrepo.handle.id IS 'ID: System generated UUID';
 COMMENT ON COLUMN idrepo.handle.handle IS 'Handle : Unique username of the individual.';
 -- ddl-end --
 COMMENT ON COLUMN idrepo.handle.handle_hash IS 'Handle Hash: Hash value of Unique username of the individual.';
+-- ddl-end --
+COMMENT ON COLUMN idrepo.handle.status IS 'Status:  Current Status of the Handle.';
 -- ddl-end --
 COMMENT ON COLUMN idrepo.handle.cr_by IS 'Created By : ID or name of the user who create / insert record';
 -- ddl-end --

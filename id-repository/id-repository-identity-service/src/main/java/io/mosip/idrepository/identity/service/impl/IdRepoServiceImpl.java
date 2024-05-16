@@ -45,6 +45,7 @@ import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 
 import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
+import io.mosip.idrepository.core.constant.HandleStatusLifecycle;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.*;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
@@ -1012,6 +1013,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						handleDtoEntry.getValue().getHandle() + SPLITTER + DateUtils.getUTCCurrentDateTime()).toString());
 				handleEntity.setHandle(handleToEncrypt);
 				handleEntity.setUinHash(uinEntity.getUinHash());
+				handleEntity.setStatus(HandleStatusLifecycle.ACTIVATED.name());
 				handleEntity.setCreatedBy(IdRepoSecurityManager.getUser());
 				handleEntity.setCreatedDateTime(DateUtils.getUTCCurrentDateTime());
 				handleRepo.save(handleEntity);
@@ -1036,15 +1038,16 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				for (Entry<String, HandleDto> handleDtoEntry : existingSelectedHandlesMap.entrySet()) {
 					if (handleRepo.existsByHandleHash(handleDtoEntry.getValue().getHandleHash())) {
 //						if same handle hash present in "inputSelectedHandlesMap" then
-//						remove from "inputSelectedHandlesMap" otherwise update "IsDeleted" column.
+//						remove from "inputSelectedHandlesMap" otherwise update handle status as 'Deleted'.
 						if (inputSelectedHandlesMap.containsKey(handleDtoEntry.getKey())
 								&& inputSelectedHandlesMap.get(handleDtoEntry.getKey()).getHandleHash()
 										.equals(handleDtoEntry.getValue().getHandleHash())) {
 							inputSelectedHandlesMap.remove(handleDtoEntry.getKey());
 						} else {
-//							Mark the handles as deleted in the "mosip_idrepo.handle" table. Don't delete
-//							now, will delete after getting an event from IDA.
-							handleRepo.updateIsDeleted(handleDtoEntry.getValue().getHandleHash());
+//							Mark the handle status as 'Deleted' in the "mosip_idrepo.handle" table.
+//							Don't delete now, will delete after getting an acknowledgement from IDA.
+							handleRepo.updateStatus(handleDtoEntry.getValue().getHandleHash(),
+									HandleStatusLifecycle.DELETED.name());
 							mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
 									"getNewAndDeleteExistingHandles", "Record successfully updated in db");
 						}
