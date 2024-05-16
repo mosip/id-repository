@@ -635,12 +635,7 @@ public class CredentialServiceManager {
 			IntFunction<String> saltRetreivalFunction, Consumer<EventModel> idaEventModelConsumer) {
 		List<HandleInfoDTO> handleInfoDTOS = new ArrayList<>();
 		for(Handle entity : handles) {
-			if (entity.getIsDeleted()) {
-				List<EventModel> eventList = new ArrayList<>();
-				eventList.addAll(createIdaEventModel(IDAEventType.REMOVE_ID, null, null, partnerIds, null,
-						entity.getHandleHash()).collect(Collectors.toList()));
-				sendEventsToIDA(eventList, IDAEventType.REMOVE_ID, idaEventModelConsumer);
-			} else {
+			if (HandleStatusLifecycle.ACTIVATED.name().equals(entity.getStatus())) {
 				HandleInfoDTO handleInfoDTO = new HandleInfoDTO();
 				String encryptSalt = uinEncryptSaltRepo
 						.retrieveSaltById(Integer.valueOf(io.mosip.kernel.core.util.StringUtils.substringBefore(entity.getHandle(), SPLITTER)));
@@ -657,6 +652,12 @@ public class CredentialServiceManager {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), SEND_REQUEST_TO_CRED_SERVICE, "getHandlesInfo",
 							"\n Failed to decrypt handle due to " + e.getMessage());
 				}
+			} else if (HandleStatusLifecycle.DELETED.name().equals(entity.getStatus())) {
+				List<EventModel> eventList = new ArrayList<>();
+				eventList.addAll(createIdaEventModel(IDAEventType.REMOVE_ID, null, null, partnerIds, null,
+						entity.getHandleHash()).collect(Collectors.toList()));
+				sendEventsToIDA(eventList, IDAEventType.REMOVE_ID, idaEventModelConsumer);
+				handleRepo.updateStatus(entity.getHandleHash(), HandleStatusLifecycle.DELETE_REQUESTED.name());
 			}
 		}
 		return handleInfoDTOS;
