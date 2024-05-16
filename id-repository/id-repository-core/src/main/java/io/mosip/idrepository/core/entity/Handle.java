@@ -30,19 +30,14 @@ public class Handle implements HandleInfo {
     @Column(name = "handle_hash")
     private String handleHash;
 
+	@Column(name = "status")
+	private String status;
+
     @Column(name = "cr_by")
     private String createdBy;
 
     @Column(name = "cr_dtimes")
     private LocalDateTime createdDateTime;
-
-	@NotNull
-	@Column(name = "is_active")
-	private Boolean isActive = true;
-
-	@NotNull
-	@Column(name = "is_deleted")
-	private Boolean isDeleted = false;
 
     @Override
     public String getHandle() {

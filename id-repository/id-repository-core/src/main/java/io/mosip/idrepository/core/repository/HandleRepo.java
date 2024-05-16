@@ -28,6 +28,6 @@ public interface HandleRepo extends JpaRepository<Handle, String> {
 
 	@Modifying
 	@Transactional
-	@Query("update Handle set is_deleted='true' where handle_hash=:handleHash")
-	int updateIsDeleted(@Param("handleHash") String handleHash);
+	@Query("update Handle set status=:status where handle_hash=:handleHash")
+	int updateStatus(@Param("handleHash") String handleHash, @Param("status") String status);
 }
