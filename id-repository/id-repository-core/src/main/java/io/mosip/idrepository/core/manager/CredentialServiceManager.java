@@ -197,7 +197,7 @@ public class CredentialServiceManager {
 				vidInfoDtos = response.getResponse();
 			}
 
-			List<Handle> handles = getHandlesList(uin);
+			List<Handle> handles = getHandles(uin);
 
 			if (partnerIds.isEmpty() || (partnerIds.size() == 1 && dummyCheck.isDummyOLVPartner(partnerIds.get(0)))) {
 				partnerIds = partnerServiceManager.getOLVPartnerIds();
@@ -616,9 +616,9 @@ public class CredentialServiceManager {
 		return credentialStatusUpdateEvent;
 	}
 
-	private List<Handle> getHandlesList(String uin) {
+	private List<Handle> getHandles(String uin) {
 		if(handleRepo == null) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "getHandlesList",
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "getHandles",
 					"HandleRepo is NULL");
 			return List.of();
 		}
@@ -648,8 +648,8 @@ public class CredentialServiceManager {
 						handleInfoDTO.getAdditionalData().put("idType", IdType.HANDLE.getIdType());
 						handleInfoDTOS.add(handleInfoDTO);
 					} catch (IdRepoAppException e) {
-						mosipLogger.error(IdRepoSecurityManager.getUser(), SEND_REQUEST_TO_CRED_SERVICE, "getHandlesInfo",
-								"\n Failed to decrypt handle due to " + e.getMessage());
+						mosipLogger.error(IdRepoSecurityManager.getUser(), SEND_REQUEST_TO_CRED_SERVICE,
+								"getHandlesInfo", "\n Failed to decrypt handle due to " + e.getMessage());
 					}
 				} else if (HandleStatusLifecycle.DELETED.name().equals(entity.getStatus())) {
 					List<EventModel> eventList = new ArrayList<>();
