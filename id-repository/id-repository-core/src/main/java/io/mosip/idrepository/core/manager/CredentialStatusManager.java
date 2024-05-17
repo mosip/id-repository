@@ -24,6 +24,7 @@ import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
+import io.mosip.idrepository.core.repository.HandleRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
@@ -52,6 +53,9 @@ public class CredentialStatusManager {
 
 	@Autowired
 	private CredentialRequestStatusRepo statusRepo;
+
+	@Autowired
+	private HandleRepo handleRepo;
 
 	@Autowired
 	private CredentialServiceManager credManager;
@@ -198,6 +202,18 @@ public class CredentialStatusManager {
 			}
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "idaEventConsumer", ExceptionUtils.getStackTrace(e));
+		}
+	}
+
+	public void handleRemoveIdStatusEvent(EventModel eventModel, String partnerId) {
+		try {
+			mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
+					"handleRemoveIdStatusEvent", "inside handleRemoveIdStatusEvent for partnerId: " + partnerId);
+			String idHash = (String) eventModel.getEvent().getData().get(ID_HASH);
+			handleRepo.deleteByHandleHash(idHash);
+		} catch (Exception e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
+					"handleRemoveIdStatusEvent", ExceptionUtils.getStackTrace(e));
 		}
 	}
 

@@ -132,7 +132,15 @@ public class IdRepoConstants {
 	public static final String  VID_EVENT_CALLBACK_URL = "mosip.idrepo.websub.vid-credential-update.callback-url";
 	
 	public static final String CREDENTIAL_STATUS_UPDATE_TOPIC = "mosip.idrepo.websub.credential-status-update.topic";
-	
+
+	public static final String REMOVE_ID_STATUS_EVENT_TOPIC = "mosip.idrepo.websub.remove-id-status.topic";
+
+	public static final String REMOVE_ID_STATUS_EVENT_SECRET = "mosip.idrepo.websub.remove-id-status.secret";
+
+	public static final String REMOVE_ID_STATUS_EVENT_CALLBACK_RELATIVE_URL = "idrepo.websub.callback.remove-id-status.relative.url";
+
+	public static final String REMOVE_ID_STATUS_EVENT_CALLBACK_URL = "mosip.idrepo.websub.remove-id-status.callback-url";
+
 	public static final String FACE_EXTRACTION_FORMAT = "faceExtractionFormat";
 
 	public static final String IRIS_EXTRACTION_FORMAT = "irisExtractionFormat";
