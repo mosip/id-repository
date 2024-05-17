@@ -205,10 +205,10 @@ public class CredentialStatusManager {
 		}
 	}
 
-	public void handleRemoveIdStatusEvent(EventModel eventModel, String partnerId) {
+	public void handleRemoveIdStatusEvent(EventModel eventModel) {
 		try {
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
-					"handleRemoveIdStatusEvent", "inside handleRemoveIdStatusEvent for partnerId: " + partnerId);
+					"handleRemoveIdStatusEvent", "inside handleRemoveIdStatusEvent()");
 			String idHash = (String) eventModel.getEvent().getData().get(ID_HASH);
 			handleRepo.deleteByHandleHash(idHash);
 		} catch (Exception e) {
