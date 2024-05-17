@@ -10,7 +10,6 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -63,7 +62,7 @@ public class VidEventCallbackController {
 		}
 	}
 
-	@PostMapping(path = "/callback/remove_id_status/{partnerId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(path = "/callback/remove_id_status", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "handleRemoveIdStatusEvent", description = "handleRemoveIdStatusEvent", tags = {
 			"vid-event-callback-controller" })
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Request authenticated successfully"),
@@ -73,8 +72,7 @@ public class VidEventCallbackController {
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
 	@PreAuthenticateContentAndVerifyIntent(secret = "${" + REMOVE_ID_STATUS_EVENT_SECRET + "}", callback = "${"
 			+ REMOVE_ID_STATUS_EVENT_CALLBACK_RELATIVE_URL + "}", topic = "${" + REMOVE_ID_STATUS_EVENT_TOPIC + "}")
-	public void handleRemoveIdStatusEvent(@PathVariable("partnerId") String partnerId,
-			@RequestBody EventModel eventModel) {
-		statusManager.handleRemoveIdStatusEvent(eventModel, partnerId);
+	public void handleRemoveIdStatusEvent(@RequestBody EventModel eventModel) {
+		statusManager.handleRemoveIdStatusEvent(eventModel);
 	}
 }
