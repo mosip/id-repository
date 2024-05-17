@@ -32,8 +32,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  *
  */
 @RestController
-@Tag(name = "vid-event-callback-controller", description = "Vid Event Callback Controller")
-public class VidEventCallbackController {
+@Tag(name = "websub-event-callback-controller", description = "Websub Event Callback Controller")
+public class WebsubEventCallbackController {
 
 	@Autowired
 	private CredentialStatusManager statusManager;
@@ -43,7 +43,7 @@ public class VidEventCallbackController {
 
 	@SuppressWarnings("unchecked")
 	@PostMapping(path = "/callback/vid_credential_status_update", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "handleVidEvent", description = "handleVidEvent", tags = { "vid-event-callback-controller" })
+	@Operation(summary = "handleVidEvent", description = "handleVidEvent", tags = { "websub-event-callback-controller" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "Request authenticated successfully"),
 			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
@@ -64,7 +64,7 @@ public class VidEventCallbackController {
 
 	@PostMapping(path = "/callback/remove_id_status", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "handleRemoveIdStatusEvent", description = "handleRemoveIdStatusEvent", tags = {
-			"vid-event-callback-controller" })
+			"websub-event-callback-controller" })
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Request authenticated successfully"),
 			@ApiResponse(responseCode = "201", description = "Created", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
