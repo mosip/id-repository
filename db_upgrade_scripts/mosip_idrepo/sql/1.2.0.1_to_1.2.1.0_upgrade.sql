@@ -1,8 +1,8 @@
 -- -------------------------------------------------------------------------------------------------
 -- Database Name: mosip_idrepo
--- Purpose    		: Database Alter scripts for release of ID Repository DB.       
--- Create By   		: Ritik Jain
--- Created Date		: May-2024
+-- Purpose    	: Database alter scripts for release of ID Repository DB.       
+-- Create By   	: Ritik Jain
+-- Created Date	: May-2024
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- -------------------------------------------------------------------------------------------------
