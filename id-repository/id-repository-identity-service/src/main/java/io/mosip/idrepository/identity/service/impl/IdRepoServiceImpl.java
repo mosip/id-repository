@@ -487,14 +487,16 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				if (attributeData.getValue() instanceof String) {
 					attributeData.setValue(((String) attributeData.getValue()).trim());
 				} else if (attributeData.getValue() instanceof List) {
-					((List<Object>) attributeData.getValue()).forEach(obj -> {
+					List<Object> updatedListData = ((List<Object>) attributeData.getValue()).stream().map(obj -> {
 						if (obj instanceof Map) {
 							String trimValue = ((String) ((Map) obj).get(VALUE)).trim();
 							((Map) obj).put(VALUE, trimValue);
 						} else if (obj instanceof String) {
-							// TODO trim whitespaces
+							obj = ((String) obj).trim();
 						}
-					});
+						return obj;
+					}).collect(Collectors.toList());
+					attributeData.setValue(updatedListData);
 				} else if (attributeData.getValue() instanceof Map) {
 					String trimValue = ((String) ((Map) attributeData.getValue()).get(VALUE)).trim();
 					((Map) attributeData.getValue()).put(VALUE, trimValue);
