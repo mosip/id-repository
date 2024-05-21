@@ -1,7 +1,7 @@
 package io.mosip.idrepository.core.constant;
 
 /**
- * @author Ritik
+ * @author Ritik Jain
  *
  */
 public enum HandleStatusLifecycle {
