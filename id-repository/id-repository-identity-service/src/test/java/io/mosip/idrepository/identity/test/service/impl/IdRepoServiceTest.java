@@ -1045,7 +1045,7 @@ public class IdRepoServiceTest {
 	public void testUpdateIdentity() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
 		ReflectionTestUtils.setField(service, "trimWhitespaces", true);
 		Object obj = mapper.readValue(
-				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}],\"selectedHandles\":[\"email\",\"dateOfBirth\"],\"email\":\"ritik8989@gmail.com\",\"dateOfBirth\":\"2000/01/01\"}}"
+				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"    Manoj       \",\"label\":\"string\"}],\"selectedHandles\":[\"    email     \",\"       dateOfBirth   \"],\"email\":\"   ritik8989@gmail.com     \",\"dateOfBirth\":\"  2000/01/01    \",\"individualBiometrics\":{\"format\":\"cbeff\",\"value\":\"      fileReferenceID   \"}}}"
 						.getBytes(),
 				Object.class);
 		RequestDTO req = new RequestDTO();
@@ -1053,18 +1053,22 @@ public class IdRepoServiceTest {
 		req.setRegistrationId("27841457360002620190730095024");
 		req.setIdentity(obj);
 		request.setRequest(req);
+		Map<String, Object> identityData = new HashMap<String, Object>();
+		identityData.put("email", "   ritik8989@gmail.com     ");
+		identityData.put("dateOfBirth", "  2000/01/01    ");
 		Map<String, Object> firstNameMap = new HashMap<String, Object>();
 		firstNameMap.put("language", "AR");
 		firstNameMap.put("value", "    Manoj       ");
 		firstNameMap.put("label", "string");
-		Map<String, Object> identityData = new HashMap<String, Object>();
 		identityData.put("firstName", List.of(firstNameMap));
 		List<String> handlesList = new ArrayList<String>();
-		handlesList.add("email");
-		handlesList.add("dateOfBirth");
+		handlesList.add("    email     ");
+		handlesList.add("       dateOfBirth   ");
 		identityData.put("selectedHandles", handlesList);
-		identityData.put("email", "ritik8989@gmail.com");
-		identityData.put("dateOfBirth", "2000/01/01");
+		Map<String, Object> individualBioMap = new HashMap<String, Object>();
+		individualBioMap.put("format", "cbeff");
+		individualBioMap.put("value", "      fileReferenceID   ");
+		identityData.put("individualBiometrics", individualBioMap);
 		when(idRepoServiceHelper.convertToMap(any())).thenReturn(identityData);
 		Uin uinObj = new Uin();
 		uinObj.setUin("1234");
@@ -1097,6 +1101,8 @@ public class IdRepoServiceTest {
 		when(idRepoServiceHelper.getSelectedHandles(any())).thenReturn(inputHandlesMap).thenReturn(existingHandlesMap);
 		when(handleRepo.existsByHandleHash(Mockito.anyString())).thenReturn(true);
 		when(handleRepo.existsByHandleHashAndUinHash(anyString(), anyString())).thenReturn(true);
+		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
+		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
 		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
