@@ -1,10 +1,14 @@
 package io.mosip.idrepository.core.config;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
@@ -17,29 +21,46 @@ import com.google.common.cache.CacheBuilder;
 @ConditionalOnProperty(value = "spring.cache.type", havingValue = "simple", matchIfMissing = true)
 @Configuration
 public class SimpleCacheConfig extends CachingConfigurerSupport {
+    @Value("${mosip.idrepo.cache.names}")
+    private List<String> cacheNames;
+
+    @Value("#{${mosip.idrepo.cache.size}}")
+    private Map<String, Integer> cacheMaxSize;
+
+    @Value("#{${mosip.idrepo.cache.expire-in-seconds}}")
+    private Map<String, Integer> cacheExpireInSeconds;
+
+
+    @Bean
+    @Override
+    public CacheManager cacheManager() {
+        SimpleCacheManager cacheManager = new SimpleCacheManager();
+        List<Cache> caches = new ArrayList<>();
+        for(String name : cacheNames) {
+        	if(cacheExpireInSeconds.containsKey(name)) {
+        		caches.add(buildMapCachewithTTL(name));
+        	}
+        	else {
+        		caches.add(buildMapCache(name));
+        	}
+        }
+        cacheManager.setCaches(caches);
+        return cacheManager;
+    }
+
+    private ConcurrentMapCache buildMapCache(String name) {
+        return new ConcurrentMapCache(name,
+                CacheBuilder.newBuilder()
+                        .build()
+                        .asMap(), true);
+    }
 	
-	    @Value("${mosip.credential.cache.size:100}")
-	    private Integer cacheMaxSize;
-
-	    @Value("${mosip.credential.cache.expire-in-seconds:60}")
-	    private Integer cacheExpireInSeconds;
-
-
-	    @Bean
-	    @Override
-	    public CacheManager cacheManager() {
-	        SimpleCacheManager cacheManager = new SimpleCacheManager();
-	        cacheManager.setCaches(Arrays.asList(buildMapCache("credential_transaction")));
-	        return cacheManager;
-	    }
-
-	    private ConcurrentMapCache buildMapCache(String name) {
-	        return new ConcurrentMapCache(name,
-	                CacheBuilder.newBuilder()
-	                        .expireAfterWrite(cacheExpireInSeconds, TimeUnit.SECONDS)
-	                        .maximumSize(cacheMaxSize)
-	                        .build()
-	                        .asMap(), true);
-	    }
-	
+    private ConcurrentMapCache buildMapCachewithTTL(String name) {
+        return new ConcurrentMapCache(name,
+                CacheBuilder.newBuilder()
+                        .maximumSize(cacheMaxSize.getOrDefault(name, 100))
+                		.expireAfterWrite(cacheExpireInSeconds.get(name), TimeUnit.SECONDS)
+                        .build()
+                        .asMap(), true);
+    }
 }

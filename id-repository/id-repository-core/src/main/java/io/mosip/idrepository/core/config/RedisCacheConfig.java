@@ -11,23 +11,37 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @ConditionalOnProperty(value = "spring.cache.type", havingValue = "redis")
 @Configuration
 public class RedisCacheConfig {
 
-	@Value("${mosip.credential.cache.expire-in-seconds:60}")
-    private Integer cacheExpireInSeconds;
+    @Value("${mosip.idrepo.cache.names}")
+    private List<String> cacheNames;
     
+    @Value("#{${mosip.idrepo.cache.expire-in-seconds}}")
+    private Map<String, Integer> cacheNamesWithTTLMap;
+
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-      Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
-      cacheConfigurations.put("credential_transaction", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofSeconds(cacheExpireInSeconds)));
-      
-      return RedisCacheManager.builder(connectionFactory)
-          .withInitialCacheConfigurations(cacheConfigurations)
-          .build();
+            Map<String, RedisCacheConfiguration> configurationMap = new HashMap<>();
+            cacheNames.forEach((cacheName)->{
+            	 configurationMap.put(cacheName, RedisCacheConfiguration
+                         .defaultCacheConfig()
+                             .disableCachingNullValues());
+            });
+            cacheNamesWithTTLMap.forEach((cacheName, ttl) -> {
+                configurationMap.put(cacheName, RedisCacheConfiguration
+                					.defaultCacheConfig()
+                					.disableCachingNullValues()
+                                    .entryTtl(Duration.ofSeconds(ttl)));
+            });
+            return RedisCacheManager.builder(connectionFactory)
+                    .withInitialCacheConfigurations(configurationMap)
+                    .build();
+        
     }
     
 
