@@ -38,13 +38,13 @@ As handles are revocable they provide strong privacy by default. If a user feels
 		a) If the handle is selected and the same handle is mapped to DIFFERENT user then fail the `update_identity` request.  
 		b) If the handle is selected and the same handle is mapped to SAME user then do nothing.  
 		c) If the handle is selected and the handle does NOT EXIST in `mosip_idrepo.handle` table, create entry in handle table.  
-		d) If there are any unselected handles (when compared with stored selectedHandles and input selectedHandles), mark the handle status as `DELETED` in the `mosip_idrepo.handle` table.  
+		d) If there are any unselected handles (when compared with stored selectedHandles and input selectedHandles), mark the handle status as `DELETE` in the `mosip_idrepo.handle` table.  
 	Note: Add `status` column in the `mosip_idrepo.handle` table.
 	6. Update identity data (demo, docs & bio) in the uin table.
 
 	In CredentialServiceManager, when we fetch the list of handles for a UIN to issue credentials:
 	1. Issue credential event to be raised if the handle status is `ACTIVATED`.
-	2. If the handle status is `DELETED`, then send `REMOVE_ID` event to IDA and mark the handle status as `DELETE REQUESTED`.  
+	2. If the handle status is `DELETE`, then send `REMOVE_ID` event to IDA and mark the handle status as `DELETE_REQUESTED`.  
 	Note: If the UIN will be blocked or deactivated, then revoke credentials for all selected handles for a UIN.
 	3. We should change in the IDA to acknowledge `REMOVE_ID` event to identity-service as `REMOVE_ID_STATUS` event. On receiving successful acknowledgment from `REMOVE_ID_STATUS` event, delete the entry from `mosip_idrepo.handle` table.
 
