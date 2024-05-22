@@ -651,7 +651,7 @@ public class CredentialServiceManager {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), SEND_REQUEST_TO_CRED_SERVICE,
 								"getHandlesInfo", "\n Failed to decrypt handle due to " + e.getMessage());
 					}
-				} else if (HandleStatusLifecycle.DELETED.name().equals(entity.getStatus())) {
+				} else if (HandleStatusLifecycle.DELETE.name().equals(entity.getStatus())) {
 					List<EventModel> eventList = new ArrayList<>();
 					eventList.addAll(createIdaEventModel(IDAEventType.REMOVE_ID, null, null, partnerIds, null,
 							entity.getHandleHash()).collect(Collectors.toList()));

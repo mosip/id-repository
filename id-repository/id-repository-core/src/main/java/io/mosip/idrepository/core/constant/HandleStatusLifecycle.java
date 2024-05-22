@@ -5,5 +5,5 @@ package io.mosip.idrepository.core.constant;
  *
  */
 public enum HandleStatusLifecycle {
-	ACTIVATED, DELETED, DELETE_REQUESTED;
+	ACTIVATED, DELETE, DELETE_REQUESTED;
 }
