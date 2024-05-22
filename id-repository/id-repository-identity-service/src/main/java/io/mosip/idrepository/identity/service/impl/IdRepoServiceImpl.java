@@ -1052,7 +1052,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 //							Mark the handle status as 'Deleted' in the "mosip_idrepo.handle" table.
 //							Don't delete now, will delete after getting an acknowledgement from IDA.
 						handleRepo.updateStatus(handleDtoEntry.getValue().getHandleHash(),
-								HandleStatusLifecycle.DELETED.name());
+								HandleStatusLifecycle.DELETE.name());
 						mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
 								"getNewAndDeleteExistingHandles", "Record successfully updated in db");
 					}
