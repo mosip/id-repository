@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
-import io.mosip.idrepository.core.constant.IdRepoConstants;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -19,13 +18,13 @@ public class CacheUtil {
     CacheManager cacheManager;
     
 
-	  @Cacheable(cacheNames = IdRepoConstants.CREDENTIAL_TRANSACTION_CACHE, key = "#requestId")
+	  @Cacheable(value = "credential_transaction", key = "#requestId")
 	  public CredentialIssueStatusResponse setCredentialTransaction(String requestId, CredentialEntity credentialEntity, String id) {
 		  
 		  return createCredentialIssueStatusResponse(requestId, credentialEntity, id);
 	  }
     
-	  @CachePut(cacheNames = IdRepoConstants.CREDENTIAL_TRANSACTION_CACHE, key = "#requestId")
+	  @CachePut(value = "credential_transaction", key = "#requestId")
 	  public CredentialIssueStatusResponse updateCredentialTransaction(String requestId, CredentialEntity credentialEntity, String id) {
 		  
 	      return createCredentialIssueStatusResponse(requestId, credentialEntity, id);
