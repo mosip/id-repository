@@ -1,9 +1,9 @@
 package io.mosip.idrepository.signup.integration.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import io.micrometer.core.annotation.Timed;
 import io.mosip.idrepository.signup.integration.dto.*;
 import io.mosip.idrepository.signup.integration.util.ProfileCacheService;
@@ -27,7 +27,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
@@ -46,7 +45,7 @@ public class ProfileRegistryPluginImpl implements ProfileRegistryPlugin {
     private static final String ID_SCHEMA_VERSION_FIELD_ID = "IDSchemaVersion";
     private static final String SELECTED_HANDLES_FIELD_ID = "selectedHandles";
     private static final String UTC_DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
-    private Map<Double, SchemaResponse> schemaMap;
+    private final Map<Double, SchemaResponse> schemaMap = new HashMap<>();
 
     @Value("#{'${mosip.signup.idrepo.default.selected-handles:phone}'.split(',')}")
     private List<String> defaultSelectedHandles;
@@ -127,18 +126,11 @@ public class ProfileRegistryPluginImpl implements ProfileRegistryPlugin {
     @Override
     public ProfileResult createProfile(String requestId, ProfileDto profileDto) throws ProfileException {
         JsonNode inputJson = profileDto.getIdentity();
-        double version = inputJson.has(ID_SCHEMA_VERSION_FIELD_ID) ? inputJson.get(ID_SCHEMA_VERSION_FIELD_ID).asDouble() : 0;
-        SchemaResponse schemaResponse = getSchemaJson(version);
-        ((ObjectNode) inputJson).set(ID_SCHEMA_VERSION_FIELD_ID, objectMapper.valueToTree(schemaResponse.getIdVersion()));
-
         //set UIN
         ((ObjectNode) inputJson).set("UIN", objectMapper.valueToTree(getUniqueIdentifier()));
-
-        //generate salted hash for password, if exists
-        if(inputJson.has("password")) {
-            Password password = generateSaltedHash(inputJson.get("password").asText());
-            ((ObjectNode) inputJson).set("password", objectMapper.valueToTree(password));
-        }
+        //Build identity request
+        IdentityRequest identityRequest = buildIdentityRequest(inputJson, false);
+        identityRequest.setRegistrationId(requestId);
 
         if(!inputJson.has(SELECTED_HANDLES_FIELD_ID) && !CollectionUtils.isEmpty(defaultSelectedHandles)){
             ((ObjectNode) inputJson).set(SELECTED_HANDLES_FIELD_ID, objectMapper.valueToTree(defaultSelectedHandles));
@@ -148,7 +140,7 @@ public class ProfileRegistryPluginImpl implements ProfileRegistryPlugin {
         if(inputJson.has(SELECTED_HANDLES_FIELD_ID)) {
             Iterator itr = inputJson.get(SELECTED_HANDLES_FIELD_ID).iterator();
             while(itr.hasNext()) {
-                String selectedHandle = (String) itr.next();
+                String selectedHandle = ((TextNode)itr.next()).textValue();
                 if(!inputJson.get(selectedHandle).isArray()) {
                     String value = inputJson.get(selectedHandle).textValue();
                     requestIdsToTrack.add(getHandleRequestId(requestId, selectedHandle, value));
@@ -156,12 +148,7 @@ public class ProfileRegistryPluginImpl implements ProfileRegistryPlugin {
             }
         }
         profileCacheService.setHandleRequestIds(requestId, requestIdsToTrack);
-
-        IdentityRequest identityRequest = new IdentityRequest();
-        identityRequest.setIdentity(inputJson);
-        identityRequest.setRegistrationId(requestId);
         IdentityResponse identityResponse = addIdentity(identityRequest);
-
         ProfileResult profileResult = new ProfileResult();
         profileResult.setStatus(identityResponse.getStatus());
         return profileResult;
@@ -169,7 +156,19 @@ public class ProfileRegistryPluginImpl implements ProfileRegistryPlugin {
 
     @Override
     public ProfileResult updateProfile(String requestId, ProfileDto profileDto) throws ProfileException {
-        return null;
+        JsonNode inputJson = profileDto.getIdentity();
+        //set UIN
+        ((ObjectNode) inputJson).set("UIN", objectMapper.valueToTree(profileDto.getUniqueUserId()));
+        //Build identity request
+        IdentityRequest identityRequest = buildIdentityRequest(inputJson, true);
+        identityRequest.setRegistrationId(requestId);
+
+        IdentityResponse identityResponse = updateIdentity(identityRequest);
+        profileCacheService.setHandleRequestIds(requestId, Arrays.asList(requestId));
+
+        ProfileResult profileResult = new ProfileResult();
+        profileResult.setStatus(identityResponse.getStatus());
+        return profileResult;
     }
 
     @Override
@@ -187,7 +186,8 @@ public class ProfileRegistryPluginImpl implements ProfileRegistryPlugin {
     public ProfileDto getProfile(String individualId) throws ProfileException {
         try {
             String endpoint = String.format(getIdentityEndpoint, individualId);
-            ResponseWrapper<IdentityResponse> responseWrapper = request(endpoint, HttpMethod.GET, null);
+            ResponseWrapper<IdentityResponse> responseWrapper = request(endpoint, HttpMethod.GET, null,
+                    new ParameterizedTypeReference<ResponseWrapper<IdentityResponse>>() {});
             ProfileDto profileDto = new ProfileDto();
             profileDto.setIndividualId(individualId);
             profileDto.setUniqueUserId(responseWrapper.getResponse().getIdentity().get("UIN").textValue());
@@ -208,14 +208,15 @@ public class ProfileRegistryPluginImpl implements ProfileRegistryPlugin {
     @Override
     public boolean isMatch(@NotNull JsonNode identity, @NotNull JsonNode inputChallenge) {
         int matchCount = 0;
-        while(inputChallenge.fieldNames().hasNext()) {
-            String fieldName = inputChallenge.fieldNames().next();
+        Iterator itr = inputChallenge.fieldNames();
+        while(itr.hasNext()) {
+            String fieldName = (String) itr.next();
             if(!identity.has(fieldName))
                 break;
 
             if(identity.get(fieldName).isArray()) {
-                while(identity.get(fieldName).iterator().hasNext()) {
-                    JsonNode jsonNode = identity.get(fieldName).iterator().next();
+                for (JsonNode jsonNode : identity.get(fieldName)) {
+                    //As of now assumption is we take user input only in single language
                     matchCount = matchCount + ((jsonNode.equals(inputChallenge.get(fieldName).get(0))) ? 1 : 0);
                 }
             }
@@ -223,7 +224,7 @@ public class ProfileRegistryPluginImpl implements ProfileRegistryPlugin {
                 matchCount = matchCount + ((identity.get(fieldName).equals(inputChallenge.get(fieldName))) ? 1 : 0);
             }
         }
-        return inputChallenge.size() > 0 && matchCount >= inputChallenge.size();
+        return !inputChallenge.isEmpty() && matchCount >= inputChallenge.size();
     }
 
     private SchemaResponse getSchemaJson(double version) throws ProfileException {
@@ -231,17 +232,13 @@ public class ProfileRegistryPluginImpl implements ProfileRegistryPlugin {
             return schemaMap.get(version);
 
         ResponseWrapper<SchemaResponse> responseWrapper = request(schemaUrl+version,
-                HttpMethod.GET, null);
-        if (!StringUtils.isEmpty(responseWrapper.getResponse().getSchemaJson()) ) {
-            try {
-                responseWrapper.getResponse().setParsedSchemaJson(objectMapper.readTree(responseWrapper.getResponse().getSchemaJson()));
-                responseWrapper.getResponse().setSchemaJson(null);
-                schemaMap.put(version, responseWrapper.getResponse());
-                return schemaMap.get(version);
-            } catch (JsonProcessingException e) {
-                log.error("Failed to parse the latest schema json", e);
-                throw new ProfileException(REQUEST_FAILED);
-            }
+                HttpMethod.GET, null, new ParameterizedTypeReference<ResponseWrapper<SchemaResponse>>() {});
+        if (responseWrapper.getResponse().getSchemaJson()!=null) {
+            SchemaResponse schemaResponse = new SchemaResponse();
+            schemaResponse.setParsedSchemaJson(objectMapper.valueToTree(responseWrapper.getResponse().getSchemaJson()));
+            schemaResponse.setIdVersion(responseWrapper.getResponse().getIdVersion());
+            schemaMap.put(version, schemaResponse);
+            return schemaMap.get(version);
         }
         log.error("Failed to fetch the latest schema json due to {}", responseWrapper);
         throw new ProfileException(REQUEST_FAILED);
@@ -249,7 +246,8 @@ public class ProfileRegistryPluginImpl implements ProfileRegistryPlugin {
 
     @Timed(value = "getuin.api.timer", percentiles = {0.9})
     private String getUniqueIdentifier() throws ProfileException {
-        ResponseWrapper<UINResponse> responseWrapper = request(getUinEndpoint, HttpMethod.GET, null);
+        ResponseWrapper<UINResponse> responseWrapper = request(getUinEndpoint, HttpMethod.GET, null,
+                new ParameterizedTypeReference<ResponseWrapper<UINResponse>>() {});
         if (!StringUtils.isEmpty(responseWrapper.getResponse().getUIN()) ) {
             return responseWrapper.getResponse().getUIN();
         }
@@ -262,7 +260,8 @@ public class ProfileRegistryPluginImpl implements ProfileRegistryPlugin {
         RequestWrapper<Password.PasswordPlaintext> requestWrapper = new RequestWrapper<>();
         requestWrapper.setRequesttime(getUTCDateTime());
         requestWrapper.setRequest(new Password.PasswordPlaintext(password));
-        ResponseWrapper<Password.PasswordHash> responseWrapper = request(generateHashEndpoint, HttpMethod.POST, requestWrapper);
+        ResponseWrapper<Password.PasswordHash> responseWrapper = request(generateHashEndpoint, HttpMethod.POST, requestWrapper,
+                new ParameterizedTypeReference<ResponseWrapper<Password.PasswordHash>>() {});
         if (!StringUtils.isEmpty(responseWrapper.getResponse().getHashValue()) &&
                 !StringUtils.isEmpty(responseWrapper.getResponse().getSalt())) {
             return new Password(responseWrapper.getResponse().getHashValue(),
@@ -279,17 +278,30 @@ public class ProfileRegistryPluginImpl implements ProfileRegistryPlugin {
         restRequest.setVersion(identityRequestVersion);
         restRequest.setRequesttime(getUTCDateTime());
         restRequest.setRequest(identityRequest);
-        ResponseWrapper<IdentityResponse> responseWrapper = request(identityEndpoint, HttpMethod.POST, restRequest);
+        ResponseWrapper<IdentityResponse> responseWrapper = request(identityEndpoint, HttpMethod.POST, restRequest,
+                new ParameterizedTypeReference<ResponseWrapper<IdentityResponse>>() {});
+        return responseWrapper.getResponse();
+    }
+
+    @Timed(value = "updateidentity.api.timer", percentiles = {0.9})
+    private IdentityResponse updateIdentity(IdentityRequest identityRequest) throws ProfileException{
+        RequestWrapper<IdentityRequest> restRequest = new RequestWrapper<>();
+        restRequest.setId(updateIdentityRequestID);
+        restRequest.setVersion(identityRequestVersion);
+        restRequest.setRequesttime(getUTCDateTime());
+        restRequest.setRequest(identityRequest);
+        ResponseWrapper<IdentityResponse> responseWrapper = request(identityEndpoint, HttpMethod.PATCH, restRequest,
+                new ParameterizedTypeReference<ResponseWrapper<IdentityResponse>>() {});
         return responseWrapper.getResponse();
     }
 
     @Timed(value = "getstatus.api.timer", percentiles = {0.9})
     private ProfileCreateUpdateStatus getRequestStatusFromServer(String applicationId) {
-        ResponseWrapper<Map<String, String>> responseWrapper = request(getStatusEndpoint+applicationId,
-                HttpMethod.GET, null);
+        ResponseWrapper<IdentityStatusResponse> responseWrapper = request(getStatusEndpoint+applicationId,
+                HttpMethod.GET, null, new ParameterizedTypeReference<ResponseWrapper<IdentityStatusResponse>>() {});
         if (responseWrapper != null && responseWrapper.getResponse() != null &&
-                !StringUtils.isEmpty(responseWrapper.getResponse().get("statusCode"))) {
-            switch (responseWrapper.getResponse().get("statusCode")) {
+                !StringUtils.isEmpty(responseWrapper.getResponse().getStatusCode())) {
+            switch (responseWrapper.getResponse().getStatusCode()) {
                 case "STORED":
                     return ProfileCreateUpdateStatus.COMPLETED;
                 case "FAILED":
@@ -303,19 +315,20 @@ public class ProfileRegistryPluginImpl implements ProfileRegistryPlugin {
         return ProfileCreateUpdateStatus.PENDING;
     }
 
-    private <T> ResponseWrapper<T> request(String url, HttpMethod method, Object request) {
+    private <T> ResponseWrapper<T> request(String url, HttpMethod method, Object request,
+                                           ParameterizedTypeReference<ResponseWrapper<T>> responseType) {
         try {
             HttpEntity<?> httpEntity = null;
             if(request != null) {
                 httpEntity = new HttpEntity<>(request);
             }
-            ResponseWrapper<?> responseWrapper = restTemplate.exchange(
+            ResponseWrapper<T> responseWrapper = restTemplate.exchange(
                     url,
                     method,
                     httpEntity,
-                    new ParameterizedTypeReference<ResponseWrapper<T>>() {}).getBody();
+                    responseType).getBody();
             if (responseWrapper != null && responseWrapper.getResponse() != null) {
-                return (ResponseWrapper<T>) responseWrapper;
+                return responseWrapper;
             }
             log.error("{} endpoint returned error response {} ", url, responseWrapper);
             throw new ProfileException(responseWrapper != null && !CollectionUtils.isEmpty(responseWrapper.getErrors()) ?
@@ -336,6 +349,22 @@ public class ProfileRegistryPluginImpl implements ProfileRegistryPlugin {
             log.error("Failed to generate handleRequestId", e);
         }
         return requestId;
+    }
+
+    private IdentityRequest buildIdentityRequest(JsonNode inputJson, boolean isUpdate) {
+        double version = inputJson.has(ID_SCHEMA_VERSION_FIELD_ID) ? inputJson.get(ID_SCHEMA_VERSION_FIELD_ID).asDouble() : 0;
+        SchemaResponse schemaResponse = getSchemaJson(version);
+        ((ObjectNode) inputJson).set(ID_SCHEMA_VERSION_FIELD_ID, objectMapper.valueToTree(schemaResponse.getIdVersion()));
+
+        //generate salted hash for password, if exists
+        if(inputJson.has("password")) {
+            Password password = generateSaltedHash(inputJson.get("password").asText());
+            ((ObjectNode) inputJson).set("password", objectMapper.valueToTree(password));
+        }
+
+        IdentityRequest identityRequest = new IdentityRequest();
+        identityRequest.setIdentity(inputJson);
+        return identityRequest;
     }
 
     private String getUTCDateTime() {

@@ -15,9 +15,9 @@ public class ProfileCacheService {
     private static final String REQUEST_IDS = "request_ids";
 
     @Autowired
-    CacheManager cacheManager;
+    private CacheManager cacheManager;
 
-    @Cacheable(value = REQUEST_IDS, key = "#key")
+    @Cacheable(value = REQUEST_IDS, key = "#requestId")
     public List<String> setHandleRequestIds(String requestId, List<String> handleRequestIds) {
         return handleRequestIds;
     }

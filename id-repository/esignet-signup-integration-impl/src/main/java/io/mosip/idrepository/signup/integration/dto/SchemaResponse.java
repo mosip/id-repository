@@ -10,7 +10,6 @@ public class SchemaResponse {
 
     private double idVersion;
     private String schemaJson;
-
     private JsonNode parsedSchemaJson;
 
 }
