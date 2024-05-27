@@ -197,7 +197,8 @@ public class CredentialServiceManager {
 				vidInfoDtos = response.getResponse();
 			}
 
-			List<Handle> handles = getHandles(uin);
+			String uinHash = getUinHash(uin);
+			List<Handle> handles = getHandles(uinHash);
 
 			if (partnerIds.isEmpty() || (partnerIds.size() == 1 && dummyCheck.isDummyOLVPartner(partnerIds.get(0)))) {
 				partnerIds = partnerServiceManager.getOLVPartnerIds();
@@ -205,12 +206,12 @@ public class CredentialServiceManager {
 
 			if ((status != null && isUpdate) && (!ACTIVATED.equals(status) || expiryTimestamp != null)) {
 				// Event to be sent to IDA for deactivation/blocked uin state
-				sendUINEventToIDA(uin, expiryTimestamp, status, vidInfoDtos, handles, partnerIds, txnId,
+				sendUINEventToIDA(uin, uinHash, expiryTimestamp, status, vidInfoDtos, handles, partnerIds, txnId,
 						id -> securityManager.getIdHashWithSaltModuloByPlainIdHash(id, saltRetreivalFunction), idaEventModelConsumer);
 			} else {
 				// For create uin, or update uin with null expiry (active status), send event to
 				// credential service.
-				sendUinEventsToCredService(uin, expiryTimestamp, isUpdate, vidInfoDtos, getHandlesInfo(handles, partnerIds, saltRetreivalFunction, idaEventModelConsumer), partnerIds,
+				sendUinEventsToCredService(uin, expiryTimestamp, isUpdate, vidInfoDtos, getHandlesInfo(uinHash, handles, partnerIds, saltRetreivalFunction, idaEventModelConsumer), partnerIds,
 						saltRetreivalFunction, credentialRequestResponseConsumer,requestId);
 			}
 
@@ -263,7 +264,7 @@ public class CredentialServiceManager {
 	 * @param getIdHashFunction     the get id hash function
 	 * @param idaEventModelConsumer
 	 */
-	private void sendUINEventToIDA(String uin, LocalDateTime expiryTimestamp, String status, List<VidInfoDTO> vidInfoDtos,
+	private void sendUINEventToIDA(String uin, String uinHash, LocalDateTime expiryTimestamp, String status, List<VidInfoDTO> vidInfoDtos,
 			List<Handle> handles, List<String> partnerIds, String txnId, UnaryOperator<String> getIdHashFunction,
 			Consumer<EventModel> idaEventModelConsumer) {
 		List<EventModel> eventList = new ArrayList<>();
@@ -288,6 +289,7 @@ public class CredentialServiceManager {
 							null, handle.getHandleHash()))
 					.collect(Collectors.toList());
 			eventList.addAll(handleEvents);
+			handleRepo.updateStatusByUinHash(uinHash, HandleStatusLifecycle.DELETE_REQUESTED.name());
 		}
 
 		sendEventsToIDA(eventList, eventType, idaEventModelConsumer);
@@ -616,50 +618,60 @@ public class CredentialServiceManager {
 		return credentialStatusUpdateEvent;
 	}
 
-	private List<Handle> getHandles(String uin) {
-		if(handleRepo == null) {
+	private String getUinHash(String uin) {
+		int modResult = securityManager.getSaltKeyForId(uin);
+		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
+		return modResult + SPLITTER + securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
+	}
+
+	private List<Handle> getHandles(String uinHash) {
+		if (handleRepo == null) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "getHandles",
 					"HandleRepo is NULL");
 			return List.of();
 		}
-
-		int modResult = securityManager.getSaltKeyForId(uin);
-		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
-		String uinHash = modResult + SPLITTER + securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
 		return handleRepo.findByUinHash(uinHash);
 	}
 
-	private List<HandleInfoDTO> getHandlesInfo(List<Handle> handles, List<String> partnerIds,
+	private List<HandleInfoDTO> getHandlesInfo(String uinHash, List<Handle> handles, List<String> partnerIds,
 			IntFunction<String> saltRetreivalFunction, Consumer<EventModel> idaEventModelConsumer) {
 		List<HandleInfoDTO> handleInfoDTOS = new ArrayList<>();
 		if (handles != null && !handles.isEmpty()) {
-			for(Handle entity : handles) {
+			for (Handle entity : handles) {
 				if (HandleStatusLifecycle.ACTIVATED.name().equals(entity.getStatus())) {
-					HandleInfoDTO handleInfoDTO = new HandleInfoDTO();
-					String encryptSalt = uinEncryptSaltRepo
-							.retrieveSaltById(Integer.valueOf(io.mosip.kernel.core.util.StringUtils.substringBefore(entity.getHandle(), SPLITTER)));
 					try {
-						handleInfoDTO.setHandle(new String(securityManager.decryptWithSalt(
-								CryptoUtil.decodeURLSafeBase64(io.mosip.kernel.core.util.StringUtils.substringAfter(entity.getHandle(), SPLITTER)),
-								CryptoUtil.decodePlainBase64(encryptSalt), uinRefId)));
-	
-						handleInfoDTO.setAdditionalData(securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(handleInfoDTO.getHandle(),
-								saltRetreivalFunction));
-						handleInfoDTO.getAdditionalData().put("idType", IdType.HANDLE.getIdType());
+						HandleInfoDTO handleInfoDTO = buildHandleInfoDTO(entity, saltRetreivalFunction);
 						handleInfoDTOS.add(handleInfoDTO);
 					} catch (IdRepoAppException e) {
 						mosipLogger.error(IdRepoSecurityManager.getUser(), SEND_REQUEST_TO_CRED_SERVICE,
-								"getHandlesInfo", "\n Failed to decrypt handle due to " + e.getMessage());
+								"getHandlesInfo", "\n *****Failed to decrypt handle due to " + e.getMessage());
 					}
 				} else if (HandleStatusLifecycle.DELETE.name().equals(entity.getStatus())) {
 					List<EventModel> eventList = new ArrayList<>();
 					eventList.addAll(createIdaEventModel(IDAEventType.REMOVE_ID, null, null, partnerIds, null,
 							entity.getHandleHash()).collect(Collectors.toList()));
 					sendEventsToIDA(eventList, IDAEventType.REMOVE_ID, idaEventModelConsumer);
-					handleRepo.updateStatus(entity.getHandleHash(), HandleStatusLifecycle.DELETE_REQUESTED.name());
 				}
 			}
+			handleRepo.updateStatusByUinHashAndStatus(uinHash, HandleStatusLifecycle.DELETE.name(),
+					HandleStatusLifecycle.DELETE_REQUESTED.name());
 		}
 		return handleInfoDTOS;
+	}
+
+	private HandleInfoDTO buildHandleInfoDTO(Handle entity, IntFunction<String> saltRetreivalFunction)
+			throws IdRepoAppException {
+		HandleInfoDTO handleInfoDTO = new HandleInfoDTO();
+		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(
+				Integer.valueOf(io.mosip.kernel.core.util.StringUtils.substringBefore(entity.getHandle(), SPLITTER)));
+		handleInfoDTO.setHandle(new String(securityManager.decryptWithSalt(
+				CryptoUtil.decodeURLSafeBase64(
+						io.mosip.kernel.core.util.StringUtils.substringAfter(entity.getHandle(), SPLITTER)),
+				CryptoUtil.decodePlainBase64(encryptSalt), uinRefId)));
+
+		handleInfoDTO.setAdditionalData(securityManager
+				.getIdHashAndAttributesWithSaltModuloByPlainIdHash(handleInfoDTO.getHandle(), saltRetreivalFunction));
+		handleInfoDTO.getAdditionalData().put("idType", IdType.HANDLE.getIdType());
+		return handleInfoDTO;
 	}
 }

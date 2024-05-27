@@ -4,7 +4,6 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_I
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -1042,7 +1041,7 @@ public class IdRepoServiceTest {
 	}
 
 	@Test
-	public void testUpdateIdentity() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
+	public void updateIdentity_withValidDetail_thenPass() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
 		ReflectionTestUtils.setField(service, "trimWhitespaces", true);
 		Object obj = mapper.readValue(
 				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"    Manoj       \",\"label\":\"string\"}],\"selectedHandles\":[\"    email     \",\"       dateOfBirth   \"],\"email\":\"   ritik8989@gmail.com     \",\"dateOfBirth\":\"  2000/01/01    \",\"individualBiometrics\":{\"format\":\"cbeff\",\"value\":\"      fileReferenceID   \"}}}"
@@ -1099,8 +1098,7 @@ public class IdRepoServiceTest {
 		existingHandlesMap.put("phone", new HandleDto("8987989789@phone", "341_AAFB5CBEB3878A4we3"));
 		existingHandlesMap.put("email", new HandleDto("ritik8989@gmail.com@email", "341_AAFB5CBEB3878A4BA9"));
 		when(idRepoServiceHelper.getSelectedHandles(any())).thenReturn(inputHandlesMap).thenReturn(existingHandlesMap);
-		when(handleRepo.existsByHandleHash(Mockito.anyString())).thenReturn(true);
-		when(handleRepo.existsByHandleHashAndUinHash(anyString(), anyString())).thenReturn(true);
+		when(handleRepo.findUinHashByHandleHash(Mockito.anyString())).thenReturn(null).thenReturn("375848393846348345");
 		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
@@ -1110,7 +1108,7 @@ public class IdRepoServiceTest {
 	}
 
 	@Test
-	public void testUpdateIdentityDuplicateHandleError()
+	public void updateIdentity_withDuplicateHandle_thenFail()
 			throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
 		try {
 			Object obj = mapper.readValue(
@@ -1134,8 +1132,7 @@ public class IdRepoServiceTest {
 			Map<String, HandleDto> inputHandlesMap = new HashMap<String, HandleDto>();
 			inputHandlesMap.put("email", new HandleDto("ritik8989@gmail.com@email", "341_AAFB5CBEB3878A4BA9"));
 			when(idRepoServiceHelper.getSelectedHandles(any())).thenReturn(inputHandlesMap);
-			when(handleRepo.existsByHandleHash(Mockito.anyString())).thenReturn(true);
-			when(handleRepo.existsByHandleHashAndUinHash(anyString(), anyString())).thenReturn(false);
+			when(handleRepo.findUinHashByHandleHash(Mockito.anyString())).thenReturn("125355668848368");
 			proxyService.updateIdentity(request, "234");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.HANDLE_RECORD_EXISTS.getErrorCode(), e.getErrorCode());
