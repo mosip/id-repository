@@ -42,7 +42,7 @@ public class CacheUtil {
 	  }
 	  
 	  public CredentialIssueStatusResponse getCredentialTransaction(String requestId) {
-	        return cacheManager.getCache("credential_transaction").get(requestId, CredentialIssueStatusResponse.class);
+	        return cacheManager.getCache(IdRepoConstants.CREDENTIAL_TRANSACTION_CACHE).get(requestId, CredentialIssueStatusResponse.class); //NOSONAR getCache() will not be returning null here.
 	    }
 
 }
