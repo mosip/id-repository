@@ -997,10 +997,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			List<String> duplicateHandles = handles.keySet().stream().filter(handleName -> {
 				String uinHashFromDB = handleRepo.findUinHashByHandleHash(handles.get(handleName).getHandleHash());
 				if (Objects.nonNull(uinHashFromDB)) {
-					if (method.equals(UPDATE)) {
-						if (uinHashFromDB.equals(uinHash)) {
-							return false;
-						}
+					if (method.equals(UPDATE) && uinHashFromDB.equals(uinHash)) {
+						return false;
 					}
 					return true;
 				}

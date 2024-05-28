@@ -637,6 +637,7 @@ public class CredentialServiceManager {
 			IntFunction<String> saltRetreivalFunction, Consumer<EventModel> idaEventModelConsumer) {
 		List<HandleInfoDTO> handleInfoDTOS = new ArrayList<>();
 		if (handles != null && !handles.isEmpty()) {
+			List<EventModel> eventList = new ArrayList<>();
 			for (Handle entity : handles) {
 				if (HandleStatusLifecycle.ACTIVATED.name().equals(entity.getStatus())) {
 					try {
@@ -647,14 +648,15 @@ public class CredentialServiceManager {
 								"getHandlesInfo", "\n *****Failed to decrypt handle due to " + e.getMessage());
 					}
 				} else if (HandleStatusLifecycle.DELETE.name().equals(entity.getStatus())) {
-					List<EventModel> eventList = new ArrayList<>();
 					eventList.addAll(createIdaEventModel(IDAEventType.REMOVE_ID, null, null, partnerIds, null,
 							entity.getHandleHash()).collect(Collectors.toList()));
-					sendEventsToIDA(eventList, IDAEventType.REMOVE_ID, idaEventModelConsumer);
 				}
 			}
-			handleRepo.updateStatusByUinHashAndStatus(uinHash, HandleStatusLifecycle.DELETE.name(),
-					HandleStatusLifecycle.DELETE_REQUESTED.name());
+			if (!eventList.isEmpty()) {
+				sendEventsToIDA(eventList, IDAEventType.REMOVE_ID, idaEventModelConsumer);
+				handleRepo.updateStatusByUinHashAndStatus(uinHash, HandleStatusLifecycle.DELETE.name(),
+						HandleStatusLifecycle.DELETE_REQUESTED.name());
+			}
 		}
 		return handleInfoDTOS;
 	}
