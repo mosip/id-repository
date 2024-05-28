@@ -17,31 +17,22 @@ import java.util.Map;
 @ConditionalOnProperty(value = "spring.cache.type", havingValue = "redis")
 @Configuration
 public class RedisCacheConfig {
-
-    @Value("${mosip.idrepo.cache.names}")
-    private List<String> cacheNames;
     
     @Value("#{${mosip.idrepo.cache.expire-in-seconds}}")
-    private Map<String, Integer> cacheNamesWithTTLMap;
+    private Map<String, Integer> cacheNames;
 
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-            Map<String, RedisCacheConfiguration> configurationMap = new HashMap<>();
-            cacheNames.forEach((cacheName)->{
-            	 configurationMap.put(cacheName, RedisCacheConfiguration
-                         .defaultCacheConfig()
-                             .disableCachingNullValues());
-            });
-            cacheNamesWithTTLMap.forEach((cacheName, ttl) -> {
-                configurationMap.put(cacheName, RedisCacheConfiguration
-                					.defaultCacheConfig()
-                					.disableCachingNullValues()
-                                    .entryTtl(Duration.ofSeconds(ttl)));
-            });
-            return RedisCacheManager.builder(connectionFactory)
-                    .withInitialCacheConfigurations(configurationMap)
-                    .build();
-        
+    	Map<String, RedisCacheConfiguration> configurationMap = new HashMap<>();
+    	cacheNames.forEach((cacheName, ttl) -> {
+            configurationMap.put(cacheName, RedisCacheConfiguration
+            					.defaultCacheConfig()
+            					.disableCachingNullValues()
+                                .entryTtl(Duration.ofSeconds(ttl)));
+        });
+    	 return RedisCacheManager.builder(connectionFactory)
+                 .withInitialCacheConfigurations(configurationMap)
+                 .build();
     }
     
 

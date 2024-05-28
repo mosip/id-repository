@@ -342,11 +342,4 @@ public class IdRepoSecurityManager {
 		Integer saltKeyLength = EnvUtil.getIdrepoSaltKeyLength();
 		return SaltUtil.getIdvidHashModulo(id, saltKeyLength);
 	}
-	
-	@Scheduled(initialDelayString = "${" + IDREPO_CACHE_UPDATE_INTERVAL + ":" + CACHE_UPDATE_DEFAULT_INTERVAL + "}", fixedDelayString = "${" + IDREPO_CACHE_UPDATE_INTERVAL + ":" + CACHE_UPDATE_DEFAULT_INTERVAL + "}")
-	public void evictIdAttributeCacheAtInterval() {
-		Cache idAttrCache = cacheManager.getCache(IdRepoConstants.ID_ATTRIBUTES_CACHE);
-		if (Objects.nonNull(idAttrCache))
-			idAttrCache.clear();
-	}
 }
