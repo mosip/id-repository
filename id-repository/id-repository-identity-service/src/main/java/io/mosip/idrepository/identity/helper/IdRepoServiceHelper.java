@@ -156,6 +156,8 @@ public class IdRepoServiceHelper {
 			String schemaVersion = String
 					.valueOf(identityMap.get(identityMapping.getIdentity().getIDSchemaVersion().getValue()));
 			String selectedHandlesFieldId = identityMapping.getIdentity().getSelectedHandles().getValue();
+//			if 'selectedHandles' is not coming in the request body itself
+//			(UPDATE scenario- it means there will be no change in handles) and will return 'null'.
 			if (identityMap.containsKey(selectedHandlesFieldId)
 					&& Objects.nonNull(identityMap.get(selectedHandlesFieldId))) {
 				mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER, "getSelectedHandles",

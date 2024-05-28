@@ -980,25 +980,32 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
-	private Map<String, HandleDto> checkAndGetHandles(IdRequestDTO request, String uinHash, String method) throws IdRepoAppException {
+	/**
+	 * Get handles map and check duplicate handles, if duplicate exists then throw
+	 * HANDLE_RECORD_EXISTS error.
+	 * 
+	 * @param request IdRequestDTO
+	 * @param uinHash
+	 * @param method
+	 * @return handles map
+	 * @throws IdRepoAppException
+	 */
+	private Map<String, HandleDto> checkAndGetHandles(IdRequestDTO request, String uinHash, String method)
+			throws IdRepoAppException {
 		Map<String, HandleDto> handles = idRepoServiceHelper.getSelectedHandles(request.getRequest());
-		if(handles != null && !handles.isEmpty()) {
-			List<String> duplicateHandles = handles.keySet()
-					.stream()
-					.filter(handleName -> handleRepo.existsByHandleHash(handles.get(handleName).getHandleHash()))
-					// query to check the uinhash for handle hash
-					.filter(handleName -> {
-						if (method.equals(UPDATE)) {
-							if (handleRepo.existsByHandleHashAndUinHash(handles.get(handleName).getHandleHash(),
-									uinHash)) {
-								return false;
-							}
-						}
-						return true;
-					})
-					.collect(Collectors.toList());
+		if (handles != null && !handles.isEmpty()) {
+			List<String> duplicateHandles = handles.keySet().stream().filter(handleName -> {
+				String uinHashFromDB = handleRepo.findUinHashByHandleHash(handles.get(handleName).getHandleHash());
+				if (Objects.nonNull(uinHashFromDB)) {
+					if (method.equals(UPDATE) && uinHashFromDB.equals(uinHash)) {
+						return false;
+					}
+					return true;
+				}
+				return false;
+			}).collect(Collectors.toList());
 
-			if(duplicateHandles != null && !duplicateHandles.isEmpty()) {
+			if (duplicateHandles != null && !duplicateHandles.isEmpty()) {
 				throw new IdRepoAppException(HANDLE_RECORD_EXISTS.getErrorCode(),
 						String.format(HANDLE_RECORD_EXISTS.getErrorMessage(), duplicateHandles));
 			}
@@ -1031,10 +1038,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	private Map<String, HandleDto> getNewAndDeleteExistingHandles(IdRequestDTO request, Uin uinObject, String method)
 			throws IdRepoAppException {
-		// new handles
+//		new handles
 		Map<String, HandleDto> inputSelectedHandlesMap = checkAndGetHandles(request, uinObject.getUinHash(), method);
 		if (inputSelectedHandlesMap != null && method.equals(UPDATE)) {
-			// existing handles
+//			if 'inputSelectedHandlesMap' comes as empty map then we should revoke all existing handles
+//			by updating the handle status as 'DELETE'.
+//			fetch existing handles
 			ObjectNode identityObject = convertToObject(uinObject.getUinData(), ObjectNode.class);
 			RequestDTO requestDto = new RequestDTO();
 			requestDto.setIdentity(identityObject);
@@ -1043,15 +1052,15 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			if (existingSelectedHandlesMap != null && !existingSelectedHandlesMap.isEmpty()) {
 				for (Entry<String, HandleDto> handleDtoEntry : existingSelectedHandlesMap.entrySet()) {
 //						if same handle hash present in "inputSelectedHandlesMap" then
-//						remove from "inputSelectedHandlesMap" otherwise update handle status as 'Deleted'.
+//						remove from "inputSelectedHandlesMap" otherwise update handle status as 'DELETE'.
 					if (inputSelectedHandlesMap.containsKey(handleDtoEntry.getKey())
 							&& inputSelectedHandlesMap.get(handleDtoEntry.getKey()).getHandleHash()
 									.equals(handleDtoEntry.getValue().getHandleHash())) {
 						inputSelectedHandlesMap.remove(handleDtoEntry.getKey());
 					} else {
-//							Mark the handle status as 'Deleted' in the "mosip_idrepo.handle" table.
-//							Don't delete now, will delete after getting an acknowledgement from IDA.
-						handleRepo.updateStatus(handleDtoEntry.getValue().getHandleHash(),
+//							Update the handle status as 'DELETE' in the "mosip_idrepo.handle" table
+//							and will delete the record after getting an acknowledgement from IDA.
+						handleRepo.updateStatusByHandleHash(handleDtoEntry.getValue().getHandleHash(),
 								HandleStatusLifecycle.DELETE.name());
 						mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
 								"getNewAndDeleteExistingHandles", "Record successfully updated in db");
