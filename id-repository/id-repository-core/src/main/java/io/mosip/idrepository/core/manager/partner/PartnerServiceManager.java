@@ -114,14 +114,4 @@ public class PartnerServiceManager {
 			return partners;
 		}
 	}
-	
-	/**
-	 * Clear OLV partners cache.
-	 */
-	@CacheEvict(value=IdRepoConstants.ONLINE_VERIFICATION_PARTNERS_CACHE)
-	public void clearOLVPartnersCache() {
-		mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "clearOLVPartnersCache",
-				IdRepoConstants.ONLINE_VERIFICATION_PARTNERS_CACHE + " cache cleared");
-	}
-
 }

@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
@@ -48,9 +47,6 @@ public class PolicyUtil {
 
 	@Autowired
 	Utilities utilities;
-	
-	@Autowired
-	private CacheManager cacheManager;
 	
 	Map<String, PartnerCredentialTypePolicyDto> policyMap = new HashMap();
 	
@@ -173,22 +169,6 @@ public class PolicyUtil {
 
 		}
 
-	}
-	
-	public void clearDataSharePoliciesCache() {
-		Cache cache = cacheManager.getCache(IdRepoConstants.DATASHARE_POLICIES_CACHE);
-		if (cache != null)
-			cache.clear();
-		LOGGER.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "clearDataSharePoliciesCache",
-				IdRepoConstants.DATASHARE_POLICIES_CACHE + " cache cleared");
-	}
-
-	public void clearPartnerExtractorFormatsCache() {
-		Cache cache = cacheManager.getCache(IdRepoConstants.PARTNER_EXTRACTOR_FORMATS_CACHE);
-		if (cache != null)
-			cache.clear();
-		LOGGER.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
-				"clearPartnerExtractorFormatsCache", IdRepoConstants.PARTNER_EXTRACTOR_FORMATS_CACHE + " cache cleared");
 	}
 	
 }
