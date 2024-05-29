@@ -10,8 +10,8 @@ $ helm -n idrepo install my-release mosip/credential
 ```
 ## Prerequisites
 
-- Kubernetes 1.12+
-- Helm 3.1.0
+- Kubernetes 1.22.+
+- Helm 3.12.+
 - PV provisioner support in the underlying infrastructure
 - ReadWriteMany volumes for deployment scaling
 
