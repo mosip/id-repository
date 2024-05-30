@@ -26,9 +26,7 @@ import org.springframework.context.annotation.FilterType;
 						"io.mosip.kernel.crypto.*",
 						"io.mosip.kernel.clientcrypto.*",
 						"io.mosip.commons.khazana.impl.PosixAdapter",
-						"io.mosip.commons.khazana.util.*",
-						"io.mosip.kernel.auth.defaultadapter.handler.VertxAuthHandler",
-						"io.mosip.kernel.auth.defaultadapter.helper.VertxTokenValidationHelper"
+						"io.mosip.commons.khazana.util.*"
 }) })
 public class IdRepoBootApplication {
 
