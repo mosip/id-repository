@@ -17,6 +17,12 @@ import org.springframework.context.annotation.Configuration;
 
 import com.google.common.cache.CacheBuilder;
 
+
+/**
+ * The Class SimpleCacheConfig - this class is a configuration for simple spring cache.
+ * 
+ * @author Balaji
+ */
 @ConditionalOnProperty(value = "spring.cache.type", havingValue = "simple", matchIfMissing = true)
 @Configuration
 public class SimpleCacheConfig extends CachingConfigurerSupport {

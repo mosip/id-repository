@@ -14,6 +14,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
+/**
+ * The Class RedisCacheConfig - this class is a configuration class for redis cache if cache type is redis..
+ * 
+ * @author Balaji
+ */
 @ConditionalOnProperty(value = "spring.cache.type", havingValue = "redis")
 @Configuration
 public class RedisCacheConfig {
