@@ -20,6 +20,7 @@ on:
       - 1.*
       - develop
       - MOSIP*
+      - ES-803
 
 jobs:
   build-maven-id-repository:
