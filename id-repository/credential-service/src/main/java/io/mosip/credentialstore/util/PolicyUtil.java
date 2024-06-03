@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
@@ -24,6 +23,7 @@ import io.mosip.credentialstore.dto.PolicyManagerResponseDto;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.PartnerException;
 import io.mosip.credentialstore.exception.PolicyException;
+import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -34,10 +34,6 @@ import io.mosip.kernel.core.logger.spi.Logger;
 @Component
 public class PolicyUtil {
 
-
-	private static final String PARTNER_EXTRACTOR_FORMATS = "PARTNER_EXTRACTOR_FORMATS";
-
-	private static final String DATASHARE_POLICIES = "DATASHARE_POLICIES";
 
 	/** The rest template. */
 	@Autowired
@@ -52,14 +48,11 @@ public class PolicyUtil {
 	@Autowired
 	Utilities utilities;
 	
-	@Autowired
-	private CacheManager cacheManager;
-	
 	Map<String, PartnerCredentialTypePolicyDto> policyMap = new HashMap();
 	
 	Map<String, PartnerExtractorResponse> extractorMap = new HashMap();
 	
-	@Cacheable(cacheNames = DATASHARE_POLICIES, key="{ #credentialType, #subscriberId }")
+	@Cacheable(cacheNames = IdRepoConstants.DATASHARE_POLICIES_CACHE, key="{ #credentialType, #subscriberId }")
 	public PartnerCredentialTypePolicyDto getPolicyDetail(String credentialType, String subscriberId, String requestId)
 			throws PolicyException, ApiNotAccessibleException {
 
@@ -118,7 +111,7 @@ public class PolicyUtil {
 	}
 
 
-	@Cacheable(cacheNames = PARTNER_EXTRACTOR_FORMATS, key="{ #subscriberId, #policyId }")
+	@Cacheable(cacheNames = IdRepoConstants.PARTNER_EXTRACTOR_FORMATS_CACHE, key="{ #subscriberId, #policyId }")
 	public PartnerExtractorResponse getPartnerExtractorFormat(String policyId, String subscriberId, String requestId)
 			throws ApiNotAccessibleException, PartnerException {
 		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
@@ -176,22 +169,6 @@ public class PolicyUtil {
 
 		}
 
-	}
-	
-	public void clearDataSharePoliciesCache() {
-		Cache cache = cacheManager.getCache(DATASHARE_POLICIES);
-		if (cache != null)
-			cache.clear();
-		LOGGER.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "clearDataSharePoliciesCache",
-				DATASHARE_POLICIES + " cache cleared");
-	}
-
-	public void clearPartnerExtractorFormatsCache() {
-		Cache cache = cacheManager.getCache(PARTNER_EXTRACTOR_FORMATS);
-		if (cache != null)
-			cache.clear();
-		LOGGER.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
-				"clearPartnerExtractorFormatsCache", PARTNER_EXTRACTOR_FORMATS + " cache cleared");
 	}
 	
 }
