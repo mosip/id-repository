@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
+import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
@@ -312,7 +313,7 @@ public class IdRepoSecurityManager {
 		return getIdHashAndAttributesWithSaltModuloByPlainIdHash(uin, saltRetreivalFunction).get(ID_HASH);
 	}
 	
-	@Cacheable(cacheNames = "id_attributes")
+	@Cacheable(cacheNames = IdRepoConstants.ID_ATTRIBUTES_CACHE)
 	public Map<String, String> getIdHashAndAttributes(String id, IntFunction<String> saltRetreivalFunction) {
 		return getIdHashAndAttributes(id, saltRetreivalFunction, this::getSaltKeyForId);
 	}
@@ -340,12 +341,5 @@ public class IdRepoSecurityManager {
 	public int getSaltKeyForHashOfId(String id) {
 		Integer saltKeyLength = EnvUtil.getIdrepoSaltKeyLength();
 		return SaltUtil.getIdvidHashModulo(id, saltKeyLength);
-	}
-	
-	@Scheduled(initialDelayString = "${" + IDREPO_CACHE_UPDATE_INTERVAL + ":" + CACHE_UPDATE_DEFAULT_INTERVAL + "}", fixedDelayString = "${" + IDREPO_CACHE_UPDATE_INTERVAL + ":" + CACHE_UPDATE_DEFAULT_INTERVAL + "}")
-	public void evictIdAttributeCacheAtInterval() {
-		Cache idAttrCache = cacheManager.getCache("id_attributes");
-		if (Objects.nonNull(idAttrCache))
-			idAttrCache.clear();
 	}
 }
