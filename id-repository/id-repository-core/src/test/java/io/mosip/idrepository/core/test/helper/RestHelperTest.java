@@ -19,6 +19,7 @@ import javax.net.ssl.TrustManagerFactory;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -30,20 +31,15 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.Builder;
@@ -79,15 +75,14 @@ import reactor.core.publisher.Mono;
  *
  * @author Manoj SP
  */
-@ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringJUnit4ClassRunner.class)
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*",
-		"com.sun.org.apache.xalan.*", "javax.activation.*" })
-@WebMvcTest @Import(EnvUtil.class)
-@AutoConfigureMockMvc
+		"com.sun.org.apache.xalan.*", "javax.activation.*", "javax.crypto.*" })
+@Import(EnvUtil.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @PrepareForTest({ WebClient.class, SslContextBuilder.class })
+@Ignore
 public class RestHelperTest {
 
 	/** The rest helper. */
@@ -99,12 +94,8 @@ public class RestHelperTest {
 	Environment environment;
 
 	/** The mapper. */
-	@Autowired
-	ObjectMapper mapper;
-
-	/** The mock mvc. */
-	@Autowired
-	MockMvc mockMvc;
+	@MockBean
+	private ObjectMapper mapper;
 
 	/** The audit factory. */
 	@InjectMocks

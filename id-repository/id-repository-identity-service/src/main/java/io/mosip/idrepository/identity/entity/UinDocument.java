@@ -2,14 +2,14 @@ package io.mosip.idrepository.identity.entity;
 
 import java.time.LocalDateTime;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -56,29 +56,36 @@ public class UinDocument {
 
 	/** The uin ref id. */
 	@Id
+	@Column(name = "uin_ref_id")
 	private String uinRefId;
 
 	/** The doccat code. */
 	@Id
+	@Column(name = "doccat_code")
 	private String doccatCode;
 
 	/** The doctyp code. */
-	@Id
+	@Column(name = "doctyp_code")
 	private String doctypCode;
 
 	/** The doc id. */
+	@Column(name = "doc_id")
 	private String docId;
 
 	/** The doc name. */
+	@Column(name = "doc_name")
 	private String docName;
 
 	/** The docfmt code. */
+	@Column(name = "docfmt_code")
 	private String docfmtCode;
 
 	/** The doc hash. */
+	@Column(name = "doc_hash")
 	private String docHash;
 
 	/** The lang code. */
+	@Column(name = "lang_code")
 	private String langCode;
 
 	/** The created by. */
@@ -98,6 +105,7 @@ public class UinDocument {
 	private LocalDateTime updatedDateTime;
 
 	/** The is deleted. */
+	@Column(name = "is_deleted")
 	private Boolean isDeleted;
 
 	/** The deleted date time. */

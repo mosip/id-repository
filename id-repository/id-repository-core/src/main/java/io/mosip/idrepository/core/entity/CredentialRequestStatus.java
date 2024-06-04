@@ -3,12 +3,12 @@ package io.mosip.idrepository.core.entity;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 
@@ -23,22 +23,30 @@ import lombok.NoArgsConstructor;
 @ConditionalOnBean(name = { "idRepoDataSource" })
 public class CredentialRequestStatus {
 
+	@Column(name = "individual_id")
 	private String individualId;
 
 	@Id
+	@Column(name = "individual_id_hash")
 	private String individualIdHash;
 
 	@Id
+	@Column(name = "partner_id")
 	private String partnerId;
 
+	@Column(name = "request_id")
 	private String requestId;
 
+	@Column(name = "token_id")
 	private String tokenId;
 
+	@Column(name = "status")
 	private String status;
 
+	@Column(name = "id_transaction_limit")
 	private Integer idTransactionLimit;
 
+	@Column(name = "id_expiry_timestamp")
 	private LocalDateTime idExpiryTimestamp;
 
 	@NotNull

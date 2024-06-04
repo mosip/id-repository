@@ -1,6 +1,5 @@
 package io.mosip.credentialstore.test.util;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
@@ -19,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
@@ -32,6 +32,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
 @WebMvcTest
 @Import(EnvUtil.class)
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
+@TestPropertySource(locations="classpath:CredentialType.json")
 public class UtilitiesTest {
 
 	String credentialTypeJson;

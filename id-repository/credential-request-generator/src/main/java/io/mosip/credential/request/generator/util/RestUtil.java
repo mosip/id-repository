@@ -9,14 +9,17 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.TokenHandlerUtil;
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -183,9 +186,20 @@ public class RestUtil {
 	 * @throws KeyStoreException        the key store exception
 	 */
 	public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
-		if (restTemplate == null) {
-			HttpClientBuilder httpClientBuilder = HttpClients.custom().setMaxConnPerRoute(maxConnectionPerRoute)
-					.setMaxConnTotal(totalMaxConnection).disableCookieManagement();
+		if (restTemplate == null) {	
+			
+			
+//			HttpClientBuilder httpClientBuilder = HttpClients.custom().setMaxConnPerRoute(maxConnectionPerRoute)
+//					.setMaxConnTotal(totalMaxConnection).disableCookieManagement();
+			
+			var connnectionManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create()
+				     .setMaxConnPerRoute(maxConnectionPerRoute)
+				     .setMaxConnTotal(totalMaxConnection);
+			var connectionManager = connnectionManagerBuilder.build();
+			HttpClientBuilder httpClientBuilder = HttpClients.custom()
+					.setConnectionManager(connectionManager)
+					.disableCookieManagement();
+			
 			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
 			requestFactory.setHttpClient(httpClientBuilder.build());
 
@@ -193,6 +207,9 @@ public class RestUtil {
 		}
 		return restTemplate;
 	}
+	
+	
+	
 
 	/**
 	 * Sets the request header.
@@ -255,7 +272,7 @@ public class RestUtil {
 			tokenRequestDTO.setVersion(EnvUtil.getCredReqTokenVersion());
 
             Gson gson = new Gson();
-            HttpClient httpClient = HttpClientBuilder.create().build();
+            CloseableHttpClient httpClient = HttpClientBuilder.create().build();
             // HttpPost post = new
             // HttpPost(environment.getProperty("PASSWORDBASEDTOKENAPI"));
             HttpPost post = new HttpPost(environment.getProperty("KEYBASEDTOKENAPI"));
@@ -263,8 +280,8 @@ public class RestUtil {
                 StringEntity postingString = new StringEntity(gson.toJson(tokenRequestDTO));
                 post.setEntity(postingString);
                 post.setHeader("Content-type", "application/json");
-                HttpResponse response = httpClient.execute(post);
-                org.apache.http.HttpEntity entity = response.getEntity();
+                CloseableHttpResponse response = httpClient.execute(post);
+                org.apache.hc.core5.http.HttpEntity entity = response.getEntity();
                 String responseBody = EntityUtils.toString(entity, "UTF-8");
                 Header[] cookie = response.getHeaders("Set-Cookie");
                 if (cookie.length == 0)
@@ -274,6 +291,8 @@ public class RestUtil {
                 return token.substring(0, token.indexOf(';'));
             } catch (IOException e) {
                 throw e;
+            }catch (ParseException e) {
+                throw new RuntimeException(e);
             }
         }
         return AUTHORIZATION + token;

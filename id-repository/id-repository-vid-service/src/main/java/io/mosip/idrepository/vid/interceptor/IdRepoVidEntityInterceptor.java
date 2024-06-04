@@ -12,6 +12,7 @@ import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import io.mosip.idrepository.core.exception.IdRepoAppException;
@@ -44,6 +45,7 @@ public class IdRepoVidEntityInterceptor extends EmptyInterceptor {
 	private static final long serialVersionUID = 4985336846122302850L;
 	
 	/** The IdRepo Security Manager */
+	@Lazy
 	@Autowired
 	private transient IdRepoSecurityManager securityManager;
 

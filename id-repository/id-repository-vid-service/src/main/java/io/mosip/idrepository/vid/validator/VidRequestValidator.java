@@ -6,7 +6,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_I
 import java.util.List;
 import java.util.Objects;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;

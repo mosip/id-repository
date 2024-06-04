@@ -13,8 +13,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
-import javax.annotation.Resource;
-import javax.servlet.ServletException;
+import jakarta.annotation.Resource;
+import jakarta.servlet.ServletException;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.BeansException;
@@ -175,7 +175,6 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	 * org.springframework.http.HttpStatus,
 	 * org.springframework.web.context.request.WebRequest)
 	 */
-	@Override
 	protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object errorMessage,
 			HttpHeaders headers, HttpStatus status, WebRequest request) {
 		Throwable rootCause = getRootCause(ex);

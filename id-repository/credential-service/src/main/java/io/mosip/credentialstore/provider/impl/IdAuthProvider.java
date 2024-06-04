@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -79,6 +80,7 @@ public class IdAuthProvider extends CredentialProvider {
 
 	private static final Logger LOGGER = IdRepoLogger.getLogger(IdAuthProvider.class);
 
+	@Lazy
 	@Autowired
 	private ObjectMapper mapper;
 	

@@ -1,57 +1,34 @@
 package io.mosip.idrepository.identity.config;
 
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.CLIENT_ERROR;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MASTERDATA_RETRIEVE_ERROR;
-
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
-
-import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.client.DefaultResponseErrorHandler;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
-import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
-import io.mosip.idrepository.core.exception.AuthenticationException;
-import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.helper.IdRepoWebSubHelper;
-import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
-import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.manager.CredentialStatusManager;
-import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.EnvUtil;
-import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
 
@@ -66,7 +43,7 @@ import io.mosip.kernel.core.util.StringUtils;
 @EnableJpaRepositories(basePackages = "io.mosip.idrepository.*")
 @Import({ CredentialStatusManager.class, DummyPartnerCheckUtil.class })
 public class IdRepoConfig extends IdRepoDataSourceConfig
-		implements WebMvcConfigurer, ApplicationListener<ApplicationReadyEvent> {
+		implements WebMvcConfigurer {
 
 	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISH_URL + "}")
 	public String publisherHubURL;
@@ -75,8 +52,8 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 	Logger mosipLogger = IdRepoLogger.getLogger(IdRepoConfig.class);
 
 	/** The env. */
-	@Autowired
-	private RestTemplate restTemplate;
+//	@Autowired
+//	private RestTemplate restTemplate;
 
 	/** The db. */
 //	If sharding is enabled, need to uncomment
@@ -94,62 +71,18 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 	/** The id. */
 	private Map<String, String> id;
 
-	@Autowired
-	private CredentialStatusManager credStatusManager;
+//	@Autowired
+//	private CredentialStatusManager credStatusManager;
 
-	@Autowired
-	private IdRepoWebSubHelper websubHelper;
-	
-	@Autowired
-	private ObjectMapper mapper;
-
-	@Override
-	public void onApplicationEvent(ApplicationReadyEvent event) {
-		websubHelper.subscribeForVidEvent();
-	}
-
-	@PostConstruct
-	public void init() {
-		mapper.registerModule(new Jdk8Module()).registerModule(new JavaTimeModule());
-		SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
-		restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
-
-			@Override
-			protected void handleError(ClientHttpResponse response, HttpStatus statusCode) throws IOException {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError", "Rest Template logs",
-						"Status error : " + response.getRawStatusCode() + " " + response.getStatusCode() + "  "
-								+ response.getStatusText());
-				if (response.getStatusCode().is4xxClientError()) {
-					if (response.getRawStatusCode() == 401 || response.getRawStatusCode() == 403) {
-						mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError",
-								"request failed with status code :" + response.getRawStatusCode(),
-								"\n\n" + new String(super.getResponseBody(response)));
-						List<ServiceError> errorList = ExceptionUtils
-								.getServiceErrorList(new String(super.getResponseBody(response)));
-						mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError",
-								"Throwing AuthenticationException", errorList.toString());
-						if (errorList.isEmpty()) {
-							throw new AuthenticationException(IdRepoErrorConstants.AUTHENTICATION_FAILED,
-									response.getRawStatusCode());
-						} else {
-							throw new AuthenticationException(errorList.get(0).getErrorCode(),
-									errorList.get(0).getMessage(), response.getRawStatusCode());
-						}
-					} else {
-						mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError",
-								"Rest Template logs", "Status error - returning RestServiceException - CLIENT_ERROR -- "
-										+ new String(super.getResponseBody(response)));
-						throw new IdRepoAppUncheckedException(CLIENT_ERROR);
-					}
-				} else {
-					mosipLogger.error(IdRepoSecurityManager.getUser(), "restTemplate - handleError",
-							"Rest Template logs", "Status error - returning RestServiceException - CLIENT_ERROR -- "
-									+ new String(super.getResponseBody(response)));
-					throw new IdRepoAppUncheckedException(MASTERDATA_RETRIEVE_ERROR);
-				}
-			}
-		});
-	}
+//	@Autowired
+//	private IdRepoWebSubHelper websubHelper;
+//	
+//
+//
+//	@Override
+//	public void onApplicationEvent(ApplicationReadyEvent event) {
+//		websubHelper.subscribeForVidEvent();
+//	}
 
 	/**
 	 * Gets the db.
@@ -263,26 +196,6 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 		return Collections.unmodifiableList(uinStatus);
 	}
 
-	@Scheduled(fixedDelayString = "${" + IdRepoConstants.CREDENTIAL_STATUS_JOB_DELAY + ":1000}")
-	public void credentialStatusHandlerJob() {
-		credStatusManager.triggerEventNotifications();
-	}
-
-	@Bean
-	public CredentialServiceManager credentialServiceManager(@Qualifier("selfTokenWebClient") WebClient webClient) {
-		return new CredentialServiceManager(restHelperWithAuth(webClient));
-	}
-
-	@Bean
-	public RestHelper restHelperWithAuth(@Qualifier("selfTokenWebClient") WebClient webClient) {
-		return new RestHelper(webClient);
-	}
-
-	@Bean
-	public IdRepoSecurityManager securityManagerWithAuth(@Qualifier("selfTokenWebClient") WebClient webClient) {
-		return new IdRepoSecurityManager(restHelperWithAuth(webClient));
-	}
-	
 	@Bean
 	@Primary
 	public Executor executor() {

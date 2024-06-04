@@ -11,20 +11,23 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import io.mosip.idrepository.core.entity.HandleInfo;
-import io.mosip.idrepository.core.entity.UinInfo;
-import io.mosip.idrepository.identity.entity.*;
 import org.apache.commons.codec.binary.StringUtils;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import io.mosip.idrepository.core.entity.HandleInfo;
+import io.mosip.idrepository.core.entity.UinInfo;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.identity.entity.Uin;
+import io.mosip.idrepository.identity.entity.UinDraft;
+import io.mosip.idrepository.identity.entity.UinHistory;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 
@@ -62,6 +65,7 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 	private static final long serialVersionUID = 4985336846122302850L;
 
 	/** The security manager. */
+	@Lazy
 	@Autowired
 	private transient IdRepoSecurityManager securityManager;
 
