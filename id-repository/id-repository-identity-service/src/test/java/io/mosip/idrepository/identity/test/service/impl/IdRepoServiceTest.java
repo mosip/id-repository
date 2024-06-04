@@ -1579,7 +1579,7 @@ public class IdRepoServiceTest {
 		IdResponseDTO updateIdentity = proxyService.updateIdentity(request, "1234");
 		assertEquals(ACTIVATED, updateIdentity.getResponse().getStatus());
 		ArgumentCaptor<CredentialRequestStatus> argCapture = ArgumentCaptor.forClass(CredentialRequestStatus.class);
-		verify(credRequestRepo).save(argCapture.capture());
+		verify(credRequestRepo).saveAndFlush(argCapture.capture());
 		CredentialRequestStatus credStatus = argCapture.getValue();
 		assertEquals(CredentialRequestStatusLifecycle.NEW.toString(), credStatus.getStatus());
 		assertEquals("", credStatus.getUpdatedBy());
@@ -1634,7 +1634,7 @@ public class IdRepoServiceTest {
 		IdResponseDTO updateIdentity = proxyService.updateIdentity(request, "1234");
 		assertEquals("DEACTIVATED", updateIdentity.getResponse().getStatus());
 		ArgumentCaptor<CredentialRequestStatus> argCapture = ArgumentCaptor.forClass(CredentialRequestStatus.class);
-		verify(credRequestRepo).save(argCapture.capture());
+		verify(credRequestRepo).saveAndFlush(argCapture.capture());
 		CredentialRequestStatus credStatus = argCapture.getValue();
 		assertEquals(CredentialRequestStatusLifecycle.DELETED.toString(), credStatus.getStatus());
 		assertEquals("", credStatus.getUpdatedBy());
