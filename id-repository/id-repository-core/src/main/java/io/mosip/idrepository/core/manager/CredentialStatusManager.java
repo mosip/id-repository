@@ -143,6 +143,8 @@ public class CredentialStatusManager {
 				credentialRequestStatus.getIndividualIdHash(), dummyPartner.getDummyOLVPartnerId());
 		if (idWithDummyPartnerOptional.isPresent() && !idWithDummyPartnerOptional.get().getStatus()
 				.contentEquals(CredentialRequestStatusLifecycle.FAILED.toString())) {
+			//for testing
+			mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "deleteDummyPartner", idWithDummyPartnerOptional.get().getIndividualIdHash());
 			statusRepo.delete(idWithDummyPartnerOptional.get());
 		}
 	}
@@ -198,6 +200,8 @@ public class CredentialStatusManager {
 			List<CredentialRequestStatus> credStatusList = statusRepo
 					.findByIndividualIdHash((String) event.getEvent().getData().get(ID_HASH));
 			if (!credStatusList.isEmpty()) {
+				//for testing
+				mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "idaEventConsumer", credStatusList.get(0).getIndividualIdHash());
 				statusRepo.deleteAll(credStatusList);
 			}
 		} catch (Exception e) {
