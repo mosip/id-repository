@@ -3,6 +3,7 @@ package io.mosip.idrepository.identity;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 
@@ -12,6 +13,7 @@ import org.springframework.context.annotation.FilterType;
  * @author Manoj SP
  */
 @SpringBootApplication(exclude = MailSenderAutoConfiguration.class)
+@EnableCaching
 @ComponentScan(basePackages={ "io.mosip.*" ,"${mosip.auth.adapter.impl.basepackage}"}, excludeFilters = {
 		@ComponentScan.Filter(type = FilterType.ASPECTJ, 
 				pattern = {"io.mosip.kernel.zkcryptoservice.*",
@@ -26,9 +28,7 @@ import org.springframework.context.annotation.FilterType;
 						"io.mosip.kernel.crypto.*",
 						"io.mosip.kernel.clientcrypto.*",
 						"io.mosip.commons.khazana.impl.PosixAdapter",
-						"io.mosip.commons.khazana.util.*",
-						"io.mosip.kernel.auth.defaultadapter.handler.VertxAuthHandler",
-						"io.mosip.kernel.auth.defaultadapter.helper.VertxTokenValidationHelper"
+						"io.mosip.commons.khazana.util.*"
 }) })
 public class IdRepoBootApplication {
 
