@@ -26,9 +26,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Async;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
@@ -87,10 +84,6 @@ public class CredentialServiceManager {
 
 	/** The Constant REVOKED. */
 	private static final String REVOKED = "REVOKED";
-
-	/** The mapper. */
-	@Autowired
-	private ObjectMapper mapper;
 
 	/** The rest helper. */
 	private RestHelper restHelper;
@@ -217,7 +210,7 @@ public class CredentialServiceManager {
 
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
-					e.getMessage());
+					e);
 		}
 	}
 
@@ -489,7 +482,7 @@ public class CredentialServiceManager {
 					.requestSync(restBuilder.buildRequest(restServicesConstants, pathParam, requestWrapper, Map.class));
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(),
 					SEND_REQUEST_TO_CRED_SERVICE,
-					"Response of Credential Request: " + mapper.writeValueAsString(response));
+					"Errors in response of Credential Request: " + response.getOrDefault("errors", "[]"));
 
 			if (credentialRequestResponseConsumer != null) {
 				credentialRequestResponseConsumer.accept(requestWrapper, response);
@@ -498,7 +491,7 @@ public class CredentialServiceManager {
 		} catch (RestServiceException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_REQUEST_TO_CRED_SERVICE,
 					e.getResponseBodyAsString().orElseGet(() -> ExceptionUtils.getStackTrace(e)));
-		} catch (IdRepoDataValidationException | JsonProcessingException e) {
+		} catch (IdRepoDataValidationException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_REQUEST_TO_CRED_SERVICE,
 					ExceptionUtils.getStackTrace(e));
 		}
