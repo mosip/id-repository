@@ -921,14 +921,14 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				credStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
-				credRequestRepo.saveAndFlush(credStatus);
+				credRequestRepo.save(credStatus);
 			});
 		} else if (!credStatusList.isEmpty() && !uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {
 				credStatus.setStatus(CredentialRequestStatusLifecycle.DELETED.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
-				credRequestRepo.saveAndFlush(credStatus);
+				credRequestRepo.save(credStatus);
 			});
 		} else if (credStatusList.isEmpty()) {
 			CredentialRequestStatus credStatus = new CredentialRequestStatus();
@@ -940,10 +940,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
 			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
 			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
-			if(enableConventionBasedId && (requestId != null)) {
+			if (enableConventionBasedId && requestId != null && !requestId.isEmpty()) {
 				credStatus.setRequestId(requestId);
-			} 
-			credRequestRepo.saveAndFlush(credStatus);
+			} else {
+				credStatus.setRequestId(
+						UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, DateUtils.getUTCCurrentDateTimeString()).toString());
+			}
+			credRequestRepo.save(credStatus);
 		}
 	}
 

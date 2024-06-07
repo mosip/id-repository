@@ -152,6 +152,7 @@ public class CredentialServiceManagerTest {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");
 		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
+		when(restHelper.requestSync(any())).thenReturn(Map.of());
 		EventModel eventModel = new EventModel();
 		when(websubHelper.createEventModel(any(), any(), any(), any(), any(), any()))
 				.thenReturn(new AsyncResult<>(eventModel));
@@ -175,6 +176,7 @@ public class CredentialServiceManagerTest {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");
 		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
+		when(restHelper.requestSync(any())).thenReturn(Map.of());
 		EventModel eventModel = new EventModel();
 		when(websubHelper.createEventModel(any(), any(), any(), any(), any(), any()))
 				.thenReturn(new AsyncResult<>(eventModel));
