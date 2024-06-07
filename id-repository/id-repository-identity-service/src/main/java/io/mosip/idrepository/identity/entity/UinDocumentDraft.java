@@ -30,7 +30,7 @@ import lombok.ToString;
 @Entity
 @NoArgsConstructor
 @IdClass(DocumentDraftPK.class)
-@Table(schema = "idrepo")
+@Table(schema = "idrepo", name = "uin_document_draft" )
 public class UinDocumentDraft {
 
 	public UinDocumentDraft(String regId, String doccatCode, String doctypCode, String docId, String docName,

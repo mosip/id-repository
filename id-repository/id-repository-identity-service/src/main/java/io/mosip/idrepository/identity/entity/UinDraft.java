@@ -36,7 +36,7 @@ import lombok.ToString;
 @ToString(exclude = { "biometrics", "documents" })
 @Entity
 @NoArgsConstructor
-@Table(schema = "idrepo")
+@Table(schema = "idrepo", name = "uin_draft")
 public class UinDraft implements Persistable<String>, UinInfo, Serializable {
 
 	/**

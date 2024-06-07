@@ -24,7 +24,7 @@ import lombok.Data;
 @Data
 @Entity
 @IdClass(BiometricDraftPK.class)
-@Table(schema = "idrepo")
+@Table(schema = "idrepo", name = "uin_biometric_draft")
 public class UinBiometricDraft implements Serializable {
 	
 	public UinBiometricDraft() {

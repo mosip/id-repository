@@ -3,6 +3,10 @@ package io.mosip.idrepository.identity.entity;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.springframework.data.domain.Persistable;
+
+import io.mosip.idrepository.core.entity.UinInfo;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -12,13 +16,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-
-import io.mosip.idrepository.core.entity.UinInfo;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
-import org.hibernate.annotations.Type;
-import org.springframework.data.domain.Persistable;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -73,11 +70,11 @@ public class Uin implements Persistable<String>, UinInfo {
 
 	/** The uin data. */
 	@Lob
-	//@Type(type = "org.hibernate.type.BinaryType")
+	@JdbcTypeCode(java.sql.Types.BINARY)
 	@Basic(fetch = FetchType.LAZY)
 	@Getter(AccessLevel.NONE)
 	@Setter(AccessLevel.NONE)
-	@Column(name="uin_data", columnDefinition = "text")
+	@Column(name="uin_data", nullable = false, columnDefinition = "bytea")
 	private byte[] uinData;
 
 	/** The uin data hash. */

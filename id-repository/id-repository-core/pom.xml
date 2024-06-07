@@ -20,7 +20,7 @@
 		<maven.compiler.target>21</maven.compiler.target>
 		<spring-cloud-config.version>2.0.0.RELEASE</spring-cloud-config.version>
 		<swagger.version>2.9.2</swagger.version>
-		<lombok.version>1.18.2</lombok.version>
+		<lombok.version>1.18.32</lombok.version>
 		<postgresql.version>42.2.2</postgresql.version>
 		<powermock.version>2.0.9</powermock.version>
 	</properties>

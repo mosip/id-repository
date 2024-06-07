@@ -3,6 +3,8 @@ package io.mosip.idrepository.identity.entity;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -11,9 +13,6 @@ import jakarta.persistence.IdClass;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import lombok.Data;
 
 /**
@@ -24,7 +23,7 @@ import lombok.Data;
 @Data
 @Entity
 @IdClass(BiometricPK.class)
-@Table(schema = "idrepo")
+@Table(schema = "idrepo", name = "uin_biometric")
 public class UinBiometric implements Serializable {
 	
 	public UinBiometric() {
@@ -104,7 +103,7 @@ public class UinBiometric implements Serializable {
 	private LocalDateTime deletedDateTime;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "uinRefId", insertable = false, updatable = false)
+	@JoinColumn(name = "uin_ref_id", insertable = false, updatable = false)
 	@JsonBackReference
 	private Uin uin;
 }

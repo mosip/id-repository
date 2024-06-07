@@ -30,7 +30,7 @@ import lombok.ToString;
 @Entity
 @NoArgsConstructor
 @IdClass(DocumentPK.class)
-@Table(schema = "idrepo")
+@Table(schema = "idrepo", name="uin_document")
 @JsonIgnoreProperties(value = { "uin" })
 public class UinDocument {
 
@@ -113,7 +113,7 @@ public class UinDocument {
 	private LocalDateTime deletedDateTime;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "uinRefId", insertable = false, updatable = false)
+	@JoinColumn(name = "uin_document_id", referencedColumnName="uin_ref_id", insertable = false, updatable = false)
 	@JsonBackReference
 	private Uin uin;
 }
