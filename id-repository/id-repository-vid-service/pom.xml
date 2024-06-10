@@ -19,8 +19,8 @@
 		<spring.boot.version>2.0.2.RELEASE</spring.boot.version>
 		<kernel.core.version>1.2.0.1</kernel.core.version>
 		<kernel.idvalidator.uin.version>1.2.0.1</kernel.idvalidator.uin.version>
-		<kernel.idgenerator.vid.version>1.2.1-SNAPSHOT</kernel.idgenerator.vid.version>
-		<kernel.idvalidator.vid.version>1.2.1-SNAPSHOT</kernel.idvalidator.vid.version>
+		<kernel.idgenerator.vid.version>1.2.0.1</kernel.idgenerator.vid.version>
+		<kernel.idvalidator.vid.version>1.2.0.1</kernel.idvalidator.vid.version>
 		<kernel.dataaccess.hibernate.version>1.2.0.1</kernel.dataaccess.hibernate.version>
 		<json.schema.validator.version>2.2.10</json.schema.validator.version>
 		<powermock.beta.version>2.0.7</powermock.beta.version>
