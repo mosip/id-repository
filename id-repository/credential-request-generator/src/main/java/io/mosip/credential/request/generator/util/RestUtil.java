@@ -41,7 +41,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Objects;
 
-
 /**
  * @author Sowmya The Class RestUtil.
  */
@@ -188,10 +187,6 @@ public class RestUtil {
 	public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
 		if (restTemplate == null) {	
 			
-			
-//			HttpClientBuilder httpClientBuilder = HttpClients.custom().setMaxConnPerRoute(maxConnectionPerRoute)
-//					.setMaxConnTotal(totalMaxConnection).disableCookieManagement();
-			
 			var connnectionManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create()
 				     .setMaxConnPerRoute(maxConnectionPerRoute)
 				     .setMaxConnTotal(totalMaxConnection);
@@ -207,8 +202,6 @@ public class RestUtil {
 		}
 		return restTemplate;
 	}
-	
-	
 	
 
 	/**

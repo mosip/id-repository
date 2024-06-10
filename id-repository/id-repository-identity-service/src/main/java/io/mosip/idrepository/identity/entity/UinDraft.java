@@ -116,11 +116,9 @@ public class UinDraft implements Persistable<String>, UinInfo, Serializable {
 	private LocalDateTime deletedDateTime;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "uin", cascade = CascadeType.ALL)
-	//@NotFound(action = NotFoundAction.IGNORE)
 	private List<UinBiometricDraft> biometrics;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "uin", cascade = CascadeType.ALL)
-	//@NotFound(action = NotFoundAction.IGNORE)
 	private List<UinDocumentDraft> documents;
 
 	/**

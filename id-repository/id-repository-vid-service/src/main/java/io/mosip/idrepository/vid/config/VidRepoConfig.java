@@ -231,23 +231,5 @@ public class VidRepoConfig {
 					threadPoolTaskExecutor.getActiveCount(),
 					threadPoolTaskExecutor.getThreadPoolExecutor().getTaskCount(), threadPoolQueueSize);
 	}
-	
-//	@Value("${config.server.file.storage.uri}")
-//	private String configServerFileStorageURL;
-//
-//	@Value("${credential.service.mvel.file}")
-//	private String mvelFile;
-//
-//	@Autowired
-//	@Qualifier("restTemplate")
-//	private RestTemplate restTemplate;	
-//
-//	@Bean("mask")
-//	public VariableResolverFactory getVariableResolverFactory() {
-//		String mvelExpression = restTemplate.getForObject(configServerFileStorageURL + mvelFile, String.class);
-//		VariableResolverFactory functionFactory = new MapVariableResolverFactory();
-//		MVEL.eval(mvelExpression, functionFactory);
-//		return functionFactory;
-//	}
-	
+
 }

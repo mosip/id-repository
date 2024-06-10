@@ -71,19 +71,6 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 	/** The id. */
 	private Map<String, String> id;
 
-//	@Autowired
-//	private CredentialStatusManager credStatusManager;
-
-//	@Autowired
-//	private IdRepoWebSubHelper websubHelper;
-//	
-//
-//
-//	@Override
-//	public void onApplicationEvent(ApplicationReadyEvent event) {
-//		websubHelper.subscribeForVidEvent();
-//	}
-
 	/**
 	 * Gets the db.
 	 *

@@ -13,6 +13,10 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 
+/**
+ * @author Neha Farheen The Class RestUtil.
+ */
+
 @Configuration
 public class CredentialScheduleJobConfiguration {
 

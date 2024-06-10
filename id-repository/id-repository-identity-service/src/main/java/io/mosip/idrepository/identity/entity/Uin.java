@@ -120,11 +120,9 @@ public class Uin implements Persistable<String>, UinInfo {
 	private LocalDateTime deletedDateTime;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "uin", cascade = CascadeType.ALL)
-	//@NotFound(action = NotFoundAction.IGNORE)
 	private List<UinBiometric> biometrics;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "uin", cascade = CascadeType.ALL)
-	//@NotFound(action = NotFoundAction.IGNORE)
 	private List<UinDocument> documents;
 
 	/**
