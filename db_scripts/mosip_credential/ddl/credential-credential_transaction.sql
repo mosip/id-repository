@@ -29,7 +29,8 @@ CREATE TABLE credential.credential_transaction(
 	upd_dtimes timestamp,
 	is_deleted boolean DEFAULT FALSE,
 	del_dtimes timestamp,
-	status_comment character varying(512)
+	status_comment character varying(512),
+	CONSTRAINT pk_credtrn_id PRIMARY KEY (id)
 );
 
 CREATE INDEX cred_tran_NEW_status_cr_dtimes ON credential.credential_transaction USING btree (cr_dtimes) WHERE status_code = 'NEW';
