@@ -11,6 +11,7 @@
 	<artifactId>id-repository-core</artifactId>
 	<name>idrepo-core</name>
 	<description>ID-Repository core</description>
+	<version>1.2.1-java21-SNAPSHOT</version>
 
 	<properties>
 		<kernel-biosdk-provider.version>1.2.1-java21-SNAPSHOT</kernel-biosdk-provider.version>
