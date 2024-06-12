@@ -1,9 +1,16 @@
 package io.mosip.idrepository.core.manager;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
+
 import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
@@ -14,15 +21,6 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
-import io.mosip.idrepository.core.constant.*;
-import io.mosip.idrepository.core.dto.*;
-import io.mosip.idrepository.core.entity.Handle;
-import io.mosip.idrepository.core.exception.IdRepoAppException;
-import io.mosip.idrepository.core.repository.HandleRepo;
-import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
-import io.mosip.idrepository.core.repository.UinHashSaltRepo;
-import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.HMACUtils2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -32,13 +30,30 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
+import io.mosip.idrepository.core.constant.EventType;
+import io.mosip.idrepository.core.constant.IDAEventType;
+import io.mosip.idrepository.core.constant.IdRepoConstants;
+import io.mosip.idrepository.core.constant.IdType;
+import io.mosip.idrepository.core.constant.RestServicesConstants;
+import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
+import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
+import io.mosip.idrepository.core.dto.CredentialStatusUpdateEvent;
+import io.mosip.idrepository.core.dto.HandleInfoDTO;
+import io.mosip.idrepository.core.dto.RestRequestDTO;
+import io.mosip.idrepository.core.dto.VidInfoDTO;
+import io.mosip.idrepository.core.dto.VidsInfosDTO;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
+import io.mosip.idrepository.core.entity.Handle;
+import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.IdRepoWebSubHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.manager.partner.PartnerServiceManager;
+import io.mosip.idrepository.core.repository.HandleRepo;
+import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
+import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.EnvUtil;
@@ -46,12 +61,9 @@ import io.mosip.idrepository.core.util.SupplierWithException;
 import io.mosip.idrepository.core.util.TokenIDGenerator;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.model.EventModel;
-
-import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
-import static io.mosip.idrepository.core.security.IdRepoSecurityManager.*;
 
 /**
  * The Class CredentialServiceManager.

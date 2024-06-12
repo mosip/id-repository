@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.HandleInfoDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 
 /**
