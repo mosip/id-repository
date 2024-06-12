@@ -272,7 +272,7 @@ public class IdRepoConstants {
 	
 	public static final String WEBSUB_TOPICS_CACHE = "topics";
 	
-	public static final String ONLINE_VERIFICATION_PARTNERS_CACHE = "online_Verification_Partners";
+	public static final String ONLINE_VERIFICATION_PARTNERS_CACHE = "online_verification_partners";
 	
 	public static final String UIN_ENCRYPT_SALT_CACHE = "uin_encrypt_salt";
 
