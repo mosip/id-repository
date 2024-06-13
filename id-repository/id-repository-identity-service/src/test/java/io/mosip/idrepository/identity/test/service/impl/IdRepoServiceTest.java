@@ -1,5 +1,6 @@
 package io.mosip.idrepository.identity.test.service.impl;
 
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_BIOMETRIC;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -65,6 +66,7 @@ import io.mosip.idrepository.core.dto.RequestDTO;
 import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
+import io.mosip.idrepository.core.exception.BiometricExtractionException;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
@@ -2027,7 +2029,8 @@ public class IdRepoServiceTest {
 		when(cbeffUtil.createXML(any())).thenReturn(cbeffXml);
 		when(objectStoreHelper.getBiometricObject(Mockito.any(), Mockito.any())).thenReturn(cbeffXml);
 		when(biometricExtractionService.extractTemplate(any(), any(), any(), any(), any()))
-				.thenThrow(new NullPointerException());
+				.thenThrow(new BiometricExtractionException(INVALID_BIOMETRIC.getErrorCode(),
+						String.format(INVALID_BIOMETRIC.getErrorMessage())));
 		Uin uinObj = new Uin();
 		uinObj.setUin("1234");
 		uinObj.setUinRefId("1234");
@@ -2048,8 +2051,8 @@ public class IdRepoServiceTest {
 		try {
 			proxyService.retrieveIdentity("1234", IdType.UIN, "bio", Map.of("fingerExtractionFormat", "format"));
 		} catch (IdRepoAppException e) {
-			assertEquals(IdRepoErrorConstants.BIO_EXTRACTION_ERROR.getErrorCode(), e.getErrorCode());
-			assertEquals(IdRepoErrorConstants.BIO_EXTRACTION_ERROR.getErrorMessage(), e.getErrorText());
+			assertEquals(IdRepoErrorConstants.INVALID_BIOMETRIC.getErrorCode(), e.getErrorCode());
+			assertEquals(IdRepoErrorConstants.INVALID_BIOMETRIC.getErrorMessage(), e.getErrorText());
 		}
 	}
 
