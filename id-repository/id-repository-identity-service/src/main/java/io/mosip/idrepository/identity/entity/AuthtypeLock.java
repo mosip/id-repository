@@ -79,6 +79,9 @@ public class AuthtypeLock {
 	@Column(name = "del_dtimes")
 	private LocalDateTime delDTimes;
 
+	@Column(name = "lock_excluded_auth_partners")
+	private String lockExcludedAuthPartners;
+
 	/**
 	 * Instantiates a new compositeclass.
 	 */
