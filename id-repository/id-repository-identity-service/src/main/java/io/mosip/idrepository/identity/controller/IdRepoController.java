@@ -102,6 +102,9 @@ public class IdRepoController {
 	/** The Constant TYPE. */
 	private static final String TYPE = "type";
 
+	/** The Constant ID. */
+	private static final String ID = "id";
+
 	/** The Constant ID_REPO_CONTROLLER. */
 	private static final String ID_REPO_CONTROLLER = "IdRepoController";
 
@@ -267,6 +270,8 @@ public class IdRepoController {
 	 * @throws IdRepoAppException
 	 *             the id repo app exception
 	 */
+
+	@Deprecated
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetidvidid())")
 	@GetMapping(path = "/idvid/{id}", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "retrieveIdentity", description = "retrieveIdentity", tags = { "id-repo-controller" })
@@ -306,6 +311,44 @@ public class IdRepoController {
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, id,
+					IdType.UIN, "Retrieve Identity requested");
+		}
+	}
+
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostidvidid())")
+	@PostMapping(path = "/idvid/", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "retrieveIdentityById", description = "retrieveIdentityById", tags = { "id-repo-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
+	public ResponseEntity<IdResponseDTO> retrieveIdentityById(@Validated @RequestBody IdRequestByIdDTO requestById,
+														   @ApiIgnore Errors errors) throws IdRepoAppException {
+		try {
+			String type = validator.validateType(requestById.getType());
+			Map<String, String> extractionFormats = new HashMap<>();
+			if(Objects.nonNull(requestById.getFingerExtractionFormat())) {
+				extractionFormats.put(FINGER_EXTRACTION_FORMAT, requestById.getFingerExtractionFormat());
+			}
+			if(Objects.nonNull(requestById.getIrisExtractionFormat())) {
+				extractionFormats.put(IRIS_EXTRACTION_FORMAT, requestById.getIrisExtractionFormat());
+			}
+			if(Objects.nonNull(requestById.getFaceExtractionFormat())) {
+				extractionFormats.put(FACE_EXTRACTION_FORMAT, requestById.getFaceExtractionFormat());
+			}
+			extractionFormats.remove(null);
+			validator.validateTypeAndExtractionFormats(type, extractionFormats);
+			return new ResponseEntity<>(idRepoService.retrieveIdentity(requestById.getId(),
+					Objects.isNull(requestById.getIdType()) ? getIdType(requestById.getId()) : validator.validateIdType(requestById.getIdType()), type, extractionFormats),
+					HttpStatus.OK);
+		} catch (IdRepoAppException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE,
+					AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, requestById.getId(), IdType.UIN, e);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY, e.getMessage());
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		} finally {
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, requestById.getId(),
 					IdType.UIN, "Retrieve Identity requested");
 		}
 	}
