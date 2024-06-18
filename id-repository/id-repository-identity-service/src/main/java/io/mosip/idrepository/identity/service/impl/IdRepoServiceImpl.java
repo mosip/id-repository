@@ -940,11 +940,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
 			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
 			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
-			if (enableConventionBasedId && requestId != null && !requestId.isEmpty()) {
+			if(enableConventionBasedId && (requestId != null)) {
 				credStatus.setRequestId(requestId);
-			} else {
-				credStatus.setRequestId(
-						UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, DateUtils.getUTCCurrentDateTimeString()).toString());
 			}
 			credRequestRepo.save(credStatus);
 		}
