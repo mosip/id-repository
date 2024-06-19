@@ -22,6 +22,7 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.identity.dto.HandleDto;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.idobjectvalidator.constant.IdObjectValidatorConstant;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
 
@@ -184,9 +186,10 @@ public class IdRepoServiceHelper {
     public String getHandleHash(String handle) {
         //handle is converted to lowercase. It is language neutral conversion.
         int saltId = securityManager.getSaltKeyForHashOfId(handle.toLowerCase(Locale.ROOT));
-        String hashSalt = uinHashSaltRepo.retrieveSaltById(saltId);
-        String saltedHash = securityManager.hashwithSalt(handle.getBytes(), hashSalt.getBytes());
-        return saltedHash;
+        String salt = uinHashSaltRepo.retrieveSaltById(saltId);
+        String saltedHash = securityManager.hashwithSalt(handle.getBytes(StandardCharsets.UTF_8),
+                CryptoUtil.decodePlainBase64(salt));
+        return saltId + SPLITTER + saltedHash;
     }
 
     private List<String> getSupportedHandles(String schema) {
