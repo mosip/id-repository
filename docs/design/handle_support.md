@@ -31,12 +31,11 @@ As handles are revocable they provide strong privacy by default. If a user feels
 * There were changes in IDA to support handle as a new IDType and also introduced regex-based handle validation.
 * Changes in `update_identity` API:
 
-	1. selectedHandles not present or selectedHandles is set as null in the request:
+	1. selectedHandles not present or selectedHandles is set as null in the request: (consider the saved selectedhandles)
 
 		a. Fields to update are marked as handle in the identity schema:
 		 - Check the saved identity object to see if any fields are selected as Handle.
-		 - If any input field is selected as handle in the saved object, remove the fieldId from the selectedHandles list and update the respective handle as `DELETE`.
-   		 - Should we promote the updated value as handle by considering the previously selectedHandles list??
+		 - If any input field is selected as handle in the saved object, remove the fieldId from the selectedHandles list and update the respective handle as `DELETE`. And promote the updated value as handle by considering the previously selectedHandles list in the saved identity object.
 		 - If none of the input fields are selected as handle, proceed with (iii)
 
 		b. Fields to update are NOT marked as handle in identity schema, proceed with  (iii)
@@ -60,6 +59,10 @@ As handles are revocable they provide strong privacy by default. If a user feels
 	3. Update identity data (demo, docs & bio) as requested in the input and publish credentials for UIN and all the handles linked to that UIN.
 
 	Note: selectedHandles is replaced NOT appended in the updateIdentity endpoint.
+
+* Change in the schema:
+    - Published schema, particular fieldId is unmarked as handle
+    - Published schema, particular fieldId is marked as handle
 
 * Change in the `mosip_idrepo.handle` table:
     - Add `status` column in the `mosip_idrepo.handle` table.
