@@ -31,43 +31,47 @@ As handles are revocable they provide strong privacy by default. If a user feels
 * There were changes in IDA to support handle as a new IDType and also introduced regex-based handle validation.
 * Changes in `update_identity` API:
 
-	1. selectedHandles not present or selectedHandles is set as null in the request:
+	1. selectedHandles not present or selectedHandles is set as null in the request: ( should consider the saved selectedhandles )
 
 		a. Fields to update are marked as handle in the identity schema:
-			i. check the saved identity object if any of the fields are selected as Handle?
-			ii. If any input field is selected as handle in the saved object, remove the fieldId from the selectedHandles list and update the respective handle as `DELETED`.
-			iii. if none of the input fields are selected as handle, proceed with (3)
+		 - Check the saved identity object to see if any fields are selected as Handle.
+		 - If any input field is selected as handle in the saved object, update the old value as `DELETE` in the `mosip_idrepo.handle` table. And add the new value as handle by considering the previously selectedHandles list in the saved identity object.
+		 - If none of the input fields are selected as handle, proceed with (iii)
 
-		b. Fields to update are NOT marked as handle in identity schema, proceed with (3)
+		b. Fields to update are NOT marked as handle in identity schema, proceed with (iii)
 
 	2. selectedHandles present in the request:
 
 		a. selectedHandles is an empty list:
-			i. Fetch the saved identity object, identify the fields selected as handle previously, update all the previously selected handles as `DELETED`.
-			ii.Proceed with (3)
+		 - Fetch the saved identity object, identify the fields selected as handle previously, and update all the previously selected handles as `DELETE`.
+		 - Proceed with  (iii)
 
 		b. selectedHandles is not an empty list:
-			i. Ignore unknown non-handle fieldIds in the selectedHandles list.
-			ii. Identify unselected handle fieldIds comparing the selectedHandles in the request and the selectedHandles in the saved object.
-				-> update the unselected handles as `DELETED`.
-			ii. If the valid handle fieldId is found in the selectedHandles list, get the salt for the input handles and generate the selected handles salted hash.
-				-> handle hash does NOT EXIST in `mosip_idrepo.handle` table, create entry in handle table.
-				-> handle hash exists for the SAME user then do nothing.
-				-> handle hash exists for the DIFFERENT user then fail the `update_identity` request.
+		 - Ignore unknown non-handle fieldIds in the selectedHandles list, before saving identity object cleanup selectedHanldes list to hold only valid fieldIds.
+		 - Identify unselected handle fieldIds comparing the selectedHandles in the request and the selectedHandles in the saved object.
+		 - update the unselected handles as `DELETE` in the `mosip_idrepo.handle` table.
+   		 - If a fieldId is in the selectedHandles list, but not present in the update identity request, we should us the value from savedObject to create handle.
+		 - If the valid handle fieldId is found in the selectedHandles list, get the salt for the input handles and generate the selected handles salted hash.
+		    - handle hash does NOT EXIST in the `mosip_idrepo.handle` table, create an entry in handle table.
+		    - handle hash exists for the SAME user then do nothing.
+		    - handle hash exists for the DIFFERENT user then fail the `update_identity` request.
+		    - No matter what status the handle entry is in, any new entry with the same handle hash MUST not be allowed.
 
-	3. Update identity data (demo, docs & bio) as requested in the input and publish credential for UIN and all the handles linked to that UIN.
+	3. Update identity data (demo, docs & bio) as requested in the input and publish credentials for UIN and all the handles linked to that UIN.
 
-	Note: selectedHandles is replaced NOT appended in updateIdentity endpoint.
+	Note: selectedHandles is replaced NOT appended in the updateIdentity endpoint.
 
-	Change in the `mosip_idrepo.handle` table: 
-		1. Add `status` column in the `mosip_idrepo.handle` table.
+* Change in the schema:
+    - Particular fieldId is marked/unmarked as handle in the published schema, until the identity is updated using the new published schema, previously selected handles will be supported.
 
-	Jobs: 
-		1. In CredentialServiceManager, when we fetch the list of handles for a UIN to issue credentials:
-			-> Issue credential event to be raised if the handle status is `ACTIVATED`.
-			-> If the handle status is `DELETED`, then send `REMOVE_ID` event to IDA and mark the handle status as `DELETE_REQUESTED`.  
-			-> If the UIN will be blocked or deactivated, then revoke credentials for all selected handles for a UIN.
-			-> We should change in the IDA to acknowledge `REMOVE_ID` event to identity-service as `REMOVE_ID_STATUS` event. On receiving successful acknowledgment from `REMOVE_ID_STATUS` event, delete the entry from `mosip_idrepo.handle` table.
+* Change in the `mosip_idrepo.handle` table:
+    - Add `status` column in the `mosip_idrepo.handle` table.
+
+* Changes in Job: In CredentialServiceManager, when we fetch the list of handles for a UIN to issue credentials:
+    - Issue credential event to be raised if the handle status is `ACTIVATED`.
+    - If the handle status is `DELETE`, then send `REMOVE_ID` event to IDA and mark the handle status as `DELETE_REQUESTED`.
+    - If the UIN will be blocked or deactivated, then revoke credentials for all selected handles for a UIN.
+    - We should change in the IDA to acknowledge `REMOVE_ID` event to identity-service as `REMOVE_ID_STATUS` event. On receiving successful acknowledgment from `REMOVE_ID_STATUS` event, delete the entry from `mosip_idrepo.handle` table.
 
 
 ### How is the credential request ID created for handles?
