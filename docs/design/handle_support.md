@@ -35,7 +35,7 @@ As handles are revocable they provide strong privacy by default. If a user feels
 
 		a. Fields to update are marked as handle in the identity schema:
 		 - check the saved identity object if any of the fields are selected as Handle?
-		 - If any input field is selected as handle in the saved object, remove the fieldId from the selectedHandles list and update the respective handle as `DELETED`.
+		 - If any input field is selected as handle in the saved object, remove the fieldId from the selectedHandles list and update the respective handle as `DELETE`.
 		 - If none of the input fields are selected as handle, proceed with (iii)
 
 		b. Fields to update are NOT marked as handle in identity schema, proceed with  (iii)
@@ -43,13 +43,13 @@ As handles are revocable they provide strong privacy by default. If a user feels
 	2. selectedHandles present in the request:
 
 		a. selectedHandles is an empty list:
-		 - Fetch the saved identity object, identify the fields selected as handle previously, update all the previously selected handles as `DELETED`.
+		 - Fetch the saved identity object, identify the fields selected as handle previously, update all the previously selected handles as `DELETE`.
 		 - Proceed with  (iii)
 
 		b. selectedHandles is not an empty list:
 		 - Ignore unknown non-handle fieldIds in the selectedHandles list.
 		 - Identify unselected handle fieldIds comparing the selectedHandles in the request and the selectedHandles in the saved object.
-		 - update the unselected handles as `DELETED`.
+		 - update the unselected handles as `DELETE`.
 		 - If the valid handle fieldId is found in the selectedHandles list, get the salt for the input handles and generate the selected handles salted hash.
 		    - handle hash does NOT EXIST in `mosip_idrepo.handle` table, create entry in handle table.
 		    - handle hash exists for the SAME user then do nothing.
@@ -64,7 +64,7 @@ As handles are revocable they provide strong privacy by default. If a user feels
 
 * Changes in Job: In CredentialServiceManager, when we fetch the list of handles for a UIN to issue credentials:
     - Issue credential event to be raised if the handle status is `ACTIVATED`.
-    - If the handle status is `DELETED`, then send `REMOVE_ID` event to IDA and mark the handle status as `DELETE_REQUESTED`.
+    - If the handle status is `DELETE`, then send `REMOVE_ID` event to IDA and mark the handle status as `DELETE_REQUESTED`.
     - If the UIN will be blocked or deactivated, then revoke credentials for all selected handles for a UIN.
     - We should change in the IDA to acknowledge `REMOVE_ID` event to identity-service as `REMOVE_ID_STATUS` event. On receiving successful acknowledgment from `REMOVE_ID_STATUS` event, delete the entry from `mosip_idrepo.handle` table.
 
