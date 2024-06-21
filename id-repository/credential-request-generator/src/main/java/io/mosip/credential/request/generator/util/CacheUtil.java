@@ -26,9 +26,10 @@ public class CacheUtil {
 	  }
     
 	  @CachePut(cacheNames = IdRepoConstants.CREDENTIAL_TRANSACTION_CACHE, key = "#requestId")
-	  public CredentialIssueStatusResponse updateCredentialTransaction(String requestId, CredentialEntity credentialEntity, String id) {
-		  
-	      return createCredentialIssueStatusResponse(requestId, credentialEntity, id);
+	  public CredentialIssueStatusResponse updateCredentialTransaction(String requestId, String statusCode) {
+		  CredentialIssueStatusResponse credentialIssueStatusResponse = getCredentialTransaction(requestId);
+		  credentialIssueStatusResponse.setStatusCode(statusCode); 
+	      return credentialIssueStatusResponse;
 	  }
 	  
 	  

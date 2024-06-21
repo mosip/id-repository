@@ -2,7 +2,6 @@ package io.mosip.credential.request.generator.service.impl;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -238,7 +237,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 				credentialIssueResponse = new CredentialIssueResponse();
 				credentialIssueResponse.setId(credentialIssueRequestDto.getId());
 				credentialIssueResponse.setRequestId(requestId);
-				cacheUtil.updateCredentialTransaction(requestId, credentialEntity,credentialIssueRequestDto.getId());
+				cacheUtil.updateCredentialTransaction(requestId, credentialEntity.getStatusCode());
 
 				LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CANCEL_CREDENTIAL,
 						"Cancelling credential status of " + requestId);
@@ -375,14 +374,12 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credentialEntity.setUpdatedBy(PRINT_USER);
 			credentialEntity.setStatusComment("updated the status from partner");
 			credentialDao.save(credentialEntity);
-			CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credentialEntity.getRequest(),
-					CredentialIssueRequestDto.class);
-			cacheUtil.updateCredentialTransaction(requestId, credentialEntity, credentialIssueRequestDto.getId());
+			cacheUtil.updateCredentialTransaction(requestId, credentialEntity.getStatusCode());
 			
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ended updating  credential status");
 			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,"update the request");
-		}catch (DataAccessLayerException | JsonProcessingException e) {
+		}catch (DataAccessLayerException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, UPDATE_STATUS_CREDENTIAL,
 					ExceptionUtils.getStackTrace(e));
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,e);
@@ -505,7 +502,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 				credentialIssueResponse = new CredentialIssueResponse();
 				credentialIssueResponse.setId(credentialIssueRequestDto.getId());
 				credentialIssueResponse.setRequestId(requestId);
-				cacheUtil.updateCredentialTransaction(requestId, credentialEntity, credentialIssueRequestDto.getId());
+				cacheUtil.updateCredentialTransaction(requestId, credentialEntity.getStatusCode());
 
 				LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CANCEL_CREDENTIAL,
 						"updated to RETRY credential status of " + requestId);
