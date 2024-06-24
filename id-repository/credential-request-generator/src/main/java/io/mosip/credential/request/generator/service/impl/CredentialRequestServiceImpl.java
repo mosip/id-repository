@@ -117,7 +117,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credential.setCreatedBy(IdRepoSecurityManager.getUser());
 			credential.setStatusComment("Request created");
 			credentialDao.save(credential);
-			cacheUtil. setCredentialTransaction(requestId, credential,credentialIssueRequestDto.getId());
+			cacheUtil. updateCredentialTransaction(requestId, credential,credentialIssueRequestDto.getId());
 			credentialIssueResponse = new CredentialIssueResponse();
 			credentialIssueResponse.setRequestId(requestId);
 			credentialIssueResponse.setId(credentialIssueRequestDto.getId());
@@ -169,7 +169,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credential.setCreatedBy(IdRepoSecurityManager.getUser());
 			credential.setStatusComment("Request created");
 			credentialDao.save(credential);
-			cacheUtil. setCredentialTransaction(rid, credential,credentialIssueRequestDto.getId());
+			cacheUtil. updateCredentialTransaction(rid, credential,credentialIssueRequestDto.getId());
 			credentialIssueResponse = new CredentialIssueResponse();
 			credentialIssueResponse.setRequestId(rid);
 			credentialIssueResponse.setId(credentialIssueRequestDto.getId());
@@ -237,7 +237,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 				credentialIssueResponse = new CredentialIssueResponse();
 				credentialIssueResponse.setId(credentialIssueRequestDto.getId());
 				credentialIssueResponse.setRequestId(requestId);
-				cacheUtil.updateCredentialTransaction(requestId, credentialEntity.getStatusCode());
+				cacheUtil.updateCredentialTransaction(requestId, credentialEntity, credentialIssueResponse.getId());
 
 				LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CANCEL_CREDENTIAL,
 						"Cancelling credential status of " + requestId);
@@ -374,12 +374,14 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credentialEntity.setUpdatedBy(PRINT_USER);
 			credentialEntity.setStatusComment("updated the status from partner");
 			credentialDao.save(credentialEntity);
-			cacheUtil.updateCredentialTransaction(requestId, credentialEntity.getStatusCode());
+			CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credentialEntity.getRequest(),
+					CredentialIssueRequestDto.class);
+			cacheUtil.updateCredentialTransaction(requestId, credentialEntity, credentialIssueRequestDto.getId());
 			
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ended updating  credential status");
 			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,"update the request");
-		}catch (DataAccessLayerException e) {
+		}catch (DataAccessLayerException| JsonProcessingException  e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, UPDATE_STATUS_CREDENTIAL,
 					ExceptionUtils.getStackTrace(e));
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,e);
@@ -502,7 +504,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 				credentialIssueResponse = new CredentialIssueResponse();
 				credentialIssueResponse.setId(credentialIssueRequestDto.getId());
 				credentialIssueResponse.setRequestId(requestId);
-				cacheUtil.updateCredentialTransaction(requestId, credentialEntity.getStatusCode());
+				cacheUtil.updateCredentialTransaction(requestId, credentialEntity,credentialIssueResponse.getId());
 
 				LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CANCEL_CREDENTIAL,
 						"updated to RETRY credential status of " + requestId);
