@@ -4,6 +4,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_I
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -1097,7 +1098,7 @@ public class IdRepoServiceTest {
 		Map<String, HandleDto> existingHandlesMap = new HashMap<String, HandleDto>();
 		existingHandlesMap.put("phone", new HandleDto("8987989789@phone", "341_AAFB5CBEB3878A4we3"));
 		existingHandlesMap.put("email", new HandleDto("ritik8989@gmail.com@email", "341_AAFB5CBEB3878A4BA9"));
-		when(idRepoServiceHelper.getSelectedHandles(any())).thenReturn(inputHandlesMap).thenReturn(existingHandlesMap);
+		when(idRepoServiceHelper.getSelectedHandles(any(), nullable(Map.class))).thenReturn(existingHandlesMap).thenReturn(inputHandlesMap);
 		when(handleRepo.findUinHashByHandleHash(Mockito.anyString())).thenReturn(null).thenReturn("375848393846348345");
 		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
@@ -1125,13 +1126,20 @@ public class IdRepoServiceTest {
 			uinObj.setUinRefId("1234");
 			uinObj.setStatusCode("ACTIVATED");
 			uinObj.setUinHash("375848393846348345");
+			Object obj2 = mapper.readValue(
+					"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}}"
+							.getBytes(),
+					Object.class);
+			uinObj.setUinData(mapper.writeValueAsBytes(obj2));
 			when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 			when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
 			when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
 			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 			Map<String, HandleDto> inputHandlesMap = new HashMap<String, HandleDto>();
 			inputHandlesMap.put("email", new HandleDto("ritik8989@gmail.com@email", "341_AAFB5CBEB3878A4BA9"));
-			when(idRepoServiceHelper.getSelectedHandles(any())).thenReturn(inputHandlesMap);
+			Map<String, HandleDto> existingHandlesMap = new HashMap<String, HandleDto>();
+			existingHandlesMap.put("phone", new HandleDto("8987989789@phone", "341_AAFB5CBEB3878A4we3"));
+			when(idRepoServiceHelper.getSelectedHandles(any(), nullable(Map.class))).thenReturn(existingHandlesMap).thenReturn(inputHandlesMap);
 			when(handleRepo.findUinHashByHandleHash(Mockito.anyString())).thenReturn("125355668848368");
 			proxyService.updateIdentity(request, "234");
 		} catch (IdRepoAppException e) {
