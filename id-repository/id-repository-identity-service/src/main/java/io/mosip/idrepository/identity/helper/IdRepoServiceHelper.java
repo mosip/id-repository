@@ -149,15 +149,15 @@ public class IdRepoServiceHelper {
 	 * @return handles map
 	 * @throws IdRepoAppException
 	 */
-	public Map<String, HandleDto> getSelectedHandles(Object identity) throws IdRepoAppException {
+	public Map<String, HandleDto> getSelectedHandles(Object identity, Map<String, HandleDto> existingSelectedHandlesMap)
+			throws IdRepoAppException {
 		Map<String, Object> requestMap = convertToMap(identity);
 		if (requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH))) {
 			Map<String, Object> identityMap = (Map<String, Object>) requestMap.get(ROOT_PATH);
 			String schemaVersion = String
 					.valueOf(identityMap.get(identityMapping.getIdentity().getIDSchemaVersion().getValue()));
 			String selectedHandlesFieldId = identityMapping.getIdentity().getSelectedHandles().getValue();
-//			if 'selectedHandles' is not coming in the request body itself
-//			(UPDATE scenario- it means there will be no change in handles) and will return 'null'.
+//			if 'selectedHandles' is not coming in the request body itself then will execute else if block.
 			if (identityMap.containsKey(selectedHandlesFieldId)
 					&& Objects.nonNull(identityMap.get(selectedHandlesFieldId))) {
 				mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER, "getSelectedHandles",
@@ -177,6 +177,26 @@ public class IdRepoServiceHelper {
 										String.format(MISSING_INPUT_PARAMETER.getErrorMessage(),
 												ROOT_PATH + IdObjectValidatorConstant.PATH_SEPERATOR + handleFieldId));
 							}
+						}));
+			} else if (existingSelectedHandlesMap != null && !existingSelectedHandlesMap.isEmpty()) {
+				List<String> existingSelectedHandlesList = existingSelectedHandlesMap.keySet().stream()
+						.collect(Collectors.toList());
+				return existingSelectedHandlesList.stream()
+						.filter(handleFieldId -> {
+							if (identityMap.containsKey(handleFieldId) && Objects.nonNull(identityMap.get(handleFieldId))) {
+								if (supportedHandlesInSchema.get(schemaVersion).contains(handleFieldId)) {
+									return true;
+								} else {
+									return false;
+								}
+							}
+							existingSelectedHandlesMap.remove(handleFieldId);
+							return false;
+						})
+						.collect(Collectors.toMap(handleName -> handleName, handleFieldId -> {
+							String handle = ((String) identityMap.get(handleFieldId))
+									.concat(getHandlePostfix(handleFieldId)).toLowerCase(Locale.ROOT);
+							return new HandleDto(handle, getHandleHash(handle));
 						}));
 			}
 		}
