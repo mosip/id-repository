@@ -149,8 +149,8 @@ public class IdRepoServiceHelper {
 	 * @return handles map
 	 * @throws IdRepoAppException
 	 */
-	public Map<String, HandleDto> getSelectedHandles(Object identity, Map<String, HandleDto> existingSelectedHandlesMap)
-			throws IdRepoAppException {
+	public Map<String, HandleDto> getSelectedHandles(Object identity, Map<String, HandleDto> existingSelectedHandlesMap,
+			boolean fetchExistingHandles) throws IdRepoAppException {
 		Map<String, Object> requestMap = convertToMap(identity);
 		if (requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH))) {
 			Map<String, Object> identityMap = (Map<String, Object>) requestMap.get(ROOT_PATH);
@@ -164,7 +164,9 @@ public class IdRepoServiceHelper {
 						identityMap.get(selectedHandlesFieldId));
 				List<String> selectedHandleFieldIds = (List<String>) identityMap.get(selectedHandlesFieldId);
 				return selectedHandleFieldIds.stream()
-						.filter(handleFieldId -> supportedHandlesInSchema.get(schemaVersion).contains(handleFieldId))
+						.filter(handleFieldId -> !fetchExistingHandles
+								? supportedHandlesInSchema.get(schemaVersion).contains(handleFieldId)
+								: true)
 						.collect(Collectors.toMap(handleName -> handleName, handleFieldId -> {
 							try {
 								String handle = ((String) identityMap.get(handleFieldId))
