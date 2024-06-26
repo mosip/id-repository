@@ -993,7 +993,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	private Map<String, HandleDto> checkAndGetHandles(IdRequestDTO request, String uinHash,
 			Map<String, HandleDto> existingSelectedHandlesMap, String method) throws IdRepoAppException {
 		Map<String, HandleDto> handles = idRepoServiceHelper.getSelectedHandles(request.getRequest(),
-				existingSelectedHandlesMap);
+				existingSelectedHandlesMap, false);
 		if (handles != null && !handles.isEmpty()) {
 			List<String> duplicateHandles = handles.keySet().stream().filter(handleName -> {
 				String uinHashFromDB = handleRepo.findUinHashByHandleHash(handles.get(handleName).getHandleHash());
@@ -1044,7 +1044,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		RequestDTO existingIdentityRequestDto = new RequestDTO();
 		existingIdentityRequestDto.setIdentity(identityObject);
 		Map<String, HandleDto> existingSelectedHandlesMap = idRepoServiceHelper
-				.getSelectedHandles(existingIdentityRequestDto, null);
+				.getSelectedHandles(existingIdentityRequestDto, null, true);
 
 //		new handles
 		Map<String, HandleDto> inputSelectedHandlesMap = checkAndGetHandles(inputRequestDto, uinObject.getUinHash(),
