@@ -70,7 +70,6 @@ public class Uin implements Persistable<String>, UinInfo {
 
 	/** The uin data. */
 	@Lob
-	@JdbcTypeCode(java.sql.Types.BINARY)
 	@Basic(fetch = FetchType.LAZY)
 	@Getter(AccessLevel.NONE)
 	@Setter(AccessLevel.NONE)
