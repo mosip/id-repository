@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.idrepository.core.dto.IdRequestByIdDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -29,6 +31,8 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
+
+import javax.persistence.Id;
 
 @Component
 public class IdrepositaryUtil {
@@ -120,4 +124,75 @@ public class IdrepositaryUtil {
 		}
 	}
 
+	public IdResponseDTO getDataById(CredentialServiceRequestDto credentialServiceRequestDto,
+								 Map<String, String> bioAttributeFormatterMap)
+			throws ApiNotAccessibleException, IdRepoException, JsonParseException, JsonMappingException, IOException {
+		String requestId=credentialServiceRequestDto.getRequestId();
+		try {
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					requestId, "Id repository getDataById entry");
+			LOGGER.debug(String.format("Formatters: %s", bioAttributeFormatterMap.toString()));
+			Map<String, Object> map = credentialServiceRequestDto.getAdditionalData();
+			String idType = null;
+			idType = (String) map.get("idType");
+
+			String fingerExtractionFormat = bioAttributeFormatterMap.get(CredentialConstants.FINGER);
+			String faceExtractionFormat = bioAttributeFormatterMap.get(CredentialConstants.FACE);
+			String irisExtractionFormat = bioAttributeFormatterMap.get(CredentialConstants.IRIS);
+			IdRequestByIdDTO requestByIdDTO = new IdRequestByIdDTO();
+
+			requestByIdDTO.setId(credentialServiceRequestDto.getId());
+			requestByIdDTO.setType(identityType);
+
+			if (StringUtils.isNotEmpty(idType)) {
+				requestByIdDTO.setIdType(idType);
+			}
+			if (StringUtils.isNotEmpty(fingerExtractionFormat)) {
+				requestByIdDTO.setFingerExtractionFormat(fingerExtractionFormat);
+			}
+			if (StringUtils.isNotEmpty(faceExtractionFormat)) {
+				requestByIdDTO.setFaceExtractionFormat(faceExtractionFormat);
+			}
+			if (StringUtils.isNotEmpty(irisExtractionFormat)) {
+				requestByIdDTO.setIrisExtractionFormat(irisExtractionFormat);
+			}
+
+			LOGGER.debug(String.format("getIdentity request: %s", requestByIdDTO.toString()));
+
+			String responseString = restUtil.postApi(ApiName.IDREPORETRIEVEIDBYID, null, "", "",
+					MediaType.APPLICATION_JSON, requestByIdDTO, String.class);
+
+			IdResponseDTO responseObject = mapper.readValue(responseString, IdResponseDTO.class);
+			if (responseObject == null) {
+				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						CredentialServiceErrorCodes.IPREPO_EXCEPTION.getErrorMessage());
+				throw new IdRepoException();
+			}
+			if (responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
+
+				ServiceError error = responseObject.getErrors().get(0);
+				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						error.getMessage());
+				throw new IdRepoException(error.getMessage());
+			} else {
+				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						"Id repository getDataById exit");
+				return responseObject;
+			}
+		} catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
+			if (e.getCause() instanceof HttpClientErrorException) {
+				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
+				throw new io.mosip.credentialstore.exception.ApiNotAccessibleException(
+						httpClientException.getResponseBodyAsString());
+			} else if (e.getCause() instanceof HttpServerErrorException) {
+				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
+				throw new ApiNotAccessibleException(httpServerException.getResponseBodyAsString());
+			} else {
+				throw new IdRepoException(e);
+			}
+
+		}
+	}
 }
