@@ -113,7 +113,7 @@ public class UinDocument {
 	private LocalDateTime deletedDateTime;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "uin_document_id", referencedColumnName="uin_ref_id", insertable = false, updatable = false)
+	@JoinColumn(name = "uin_ref_id", insertable = false, updatable = false)
 	@JsonBackReference
 	private Uin uin;
 }

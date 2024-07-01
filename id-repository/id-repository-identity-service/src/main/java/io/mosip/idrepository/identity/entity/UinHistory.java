@@ -97,7 +97,6 @@ public class UinHistory implements UinInfo, Persistable<String> {
 	private String uinHash;
 
 	/** The uin data. */
-	@Lob
 	@Basic(fetch = FetchType.LAZY)
 	@Getter(AccessLevel.NONE)
 	@Setter(AccessLevel.NONE)
