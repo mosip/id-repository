@@ -18,13 +18,6 @@ public class CacheUtil {
     @Autowired
     CacheManager cacheManager;
     
-
-	  @Cacheable(cacheNames = IdRepoConstants.CREDENTIAL_TRANSACTION_CACHE, key = "#requestId")
-	  public CredentialIssueStatusResponse setCredentialTransaction(String requestId, CredentialEntity credentialEntity, String id) {
-		  
-		  return createCredentialIssueStatusResponse(requestId, credentialEntity, id);
-	  }
-    
 	  @CachePut(cacheNames = IdRepoConstants.CREDENTIAL_TRANSACTION_CACHE, key = "#requestId")
 	  public CredentialIssueStatusResponse updateCredentialTransaction(String requestId, CredentialEntity credentialEntity, String id) {
 		  
