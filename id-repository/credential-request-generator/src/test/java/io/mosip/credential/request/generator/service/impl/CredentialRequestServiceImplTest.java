@@ -92,7 +92,7 @@ public class CredentialRequestServiceImplTest {
 		credentialIssueRequestDto.setId("123");
 		credentialIssueRequestDto.setEncrypt(true);
 		CredentialIssueStatusResponse credentialIssueStatusResponse = new CredentialIssueStatusResponse();
-		Mockito.when(cacheUtil.setCredentialTransaction(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(credentialIssueStatusResponse);
+		Mockito.when(cacheUtil.updateCredentialTransaction(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(credentialIssueStatusResponse);
 		Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenReturn(credentialIssueRequestDto.toString());
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto=credentialRequestServiceImpl.createCredentialIssuance(credentialIssueRequestDto);
 		assertEquals("123456", credentialIssueResponseDto.getResponse().getRequestId());
@@ -105,7 +105,7 @@ public class CredentialRequestServiceImplTest {
 		credentialIssueRequestDto.setId("123");
 		credentialIssueRequestDto.setEncrypt(true);
 		CredentialIssueStatusResponse credentialIssueStatusResponse = new CredentialIssueStatusResponse();
-		Mockito.when(cacheUtil.setCredentialTransaction(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(credentialIssueStatusResponse);
+		Mockito.when(cacheUtil.updateCredentialTransaction(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(credentialIssueStatusResponse);
 		Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenReturn(credentialIssueRequestDto.toString());
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto=credentialRequestServiceImpl.createCredentialIssuanceByRid(credentialIssueRequestDto,"123456");
 		assertEquals("123456", credentialIssueResponseDto.getResponse().getRequestId());
@@ -232,7 +232,7 @@ public class CredentialRequestServiceImplTest {
 	public void testEntityEmptyForGetCredentialRequestStatus() throws JsonProcessingException {
 		Mockito.when(cacheUtil.getCredentialTransaction(Mockito.anyString())).thenReturn(null);
 		CredentialIssueStatusResponse credentialIssueStatusResponse = new CredentialIssueStatusResponse();
-		Mockito.when(cacheUtil.setCredentialTransaction(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(credentialIssueStatusResponse);
+		Mockito.when(cacheUtil.updateCredentialTransaction(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(credentialIssueStatusResponse);
 		Mockito.when(credentialDao.findById(Mockito.any())).thenReturn(Optional.empty());
 		ResponseWrapper<CredentialIssueStatusResponse> credentialIssueResponseDto=credentialRequestServiceImpl.getCredentialRequestStatus("1234");
 		assertNotNull(credentialIssueResponseDto.getErrors().get(0));

@@ -118,7 +118,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credential.setCreatedBy(IdRepoSecurityManager.getUser());
 			credential.setStatusComment("Request created");
 			credentialDao.save(credential);
-			cacheUtil. setCredentialTransaction(requestId, credential,credentialIssueRequestDto.getId());
+			cacheUtil. updateCredentialTransaction(requestId, credential,credentialIssueRequestDto.getId());
 			credentialIssueResponse = new CredentialIssueResponse();
 			credentialIssueResponse.setRequestId(requestId);
 			credentialIssueResponse.setId(credentialIssueRequestDto.getId());
@@ -170,7 +170,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credential.setCreatedBy(IdRepoSecurityManager.getUser());
 			credential.setStatusComment("Request created");
 			credentialDao.save(credential);
-			cacheUtil. setCredentialTransaction(rid, credential,credentialIssueRequestDto.getId());
+			cacheUtil. updateCredentialTransaction(rid, credential,credentialIssueRequestDto.getId());
 			credentialIssueResponse = new CredentialIssueResponse();
 			credentialIssueResponse.setRequestId(rid);
 			credentialIssueResponse.setId(credentialIssueRequestDto.getId());
