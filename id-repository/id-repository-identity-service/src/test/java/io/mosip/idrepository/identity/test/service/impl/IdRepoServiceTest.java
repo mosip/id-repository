@@ -4,6 +4,8 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_I
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -13,13 +15,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.Before;
@@ -72,17 +75,20 @@ import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
+import io.mosip.idrepository.core.repository.HandleRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.BiometricExtractionService;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.EnvUtil;
+import io.mosip.idrepository.identity.dto.HandleDto;
 import io.mosip.idrepository.identity.entity.IdentityUpdateTracker;
 import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.entity.UinBiometric;
 import io.mosip.idrepository.identity.entity.UinDocument;
 import io.mosip.idrepository.identity.helper.AnonymousProfileHelper;
+import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 import io.mosip.idrepository.identity.provider.IdentityUpdateTrackerPolicyProvider;
 import io.mosip.idrepository.identity.repository.IdentityUpdateTrackerRepo;
@@ -203,6 +209,9 @@ public class IdRepoServiceTest {
 
 	@Mock
 	private IdRepoServiceHelper idRepoServiceHelper;
+
+	@Mock
+	private HandleRepo handleRepo;
 
 	/** The id. */
 	private Map<String, String> id;
@@ -1034,9 +1043,10 @@ public class IdRepoServiceTest {
 	}
 
 	@Test
-	public void testUpdateIdentity() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
+	public void updateIdentity_withValidDetail_thenPass() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
+		ReflectionTestUtils.setField(service, "trimWhitespaces", true);
 		Object obj = mapper.readValue(
-				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
+				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"    Manoj       \",\"label\":\"string\"}],\"selectedHandles\":[\"    email     \",\"       dateOfBirth   \"],\"email\":\"   ritik8989@gmail.com     \",\"dateOfBirth\":\"  2000/01/01    \",\"individualBiometrics\":{\"format\":\"cbeff\",\"value\":\"      fileReferenceID   \"}}}"
 						.getBytes(),
 				Object.class);
 		RequestDTO req = new RequestDTO();
@@ -1044,10 +1054,28 @@ public class IdRepoServiceTest {
 		req.setRegistrationId("27841457360002620190730095024");
 		req.setIdentity(obj);
 		request.setRequest(req);
+		Map<String, Object> identityData = new HashMap<String, Object>();
+		identityData.put("email", "   ritik8989@gmail.com     ");
+		identityData.put("dateOfBirth", "  2000/01/01    ");
+		Map<String, Object> firstNameMap = new HashMap<String, Object>();
+		firstNameMap.put("language", "AR");
+		firstNameMap.put("value", "    Manoj       ");
+		firstNameMap.put("label", "string");
+		identityData.put("firstName", List.of(firstNameMap));
+		List<String> handlesList = new ArrayList<String>();
+		handlesList.add("    email     ");
+		handlesList.add("       dateOfBirth   ");
+		identityData.put("selectedHandles", handlesList);
+		Map<String, Object> individualBioMap = new HashMap<String, Object>();
+		individualBioMap.put("format", "cbeff");
+		individualBioMap.put("value", "      fileReferenceID   ");
+		identityData.put("individualBiometrics", individualBioMap);
+		when(idRepoServiceHelper.convertToMap(any())).thenReturn(identityData);
 		Uin uinObj = new Uin();
 		uinObj.setUin("1234");
 		uinObj.setUinRefId("1234");
 		uinObj.setStatusCode("REGISTERED");
+		uinObj.setUinHash("375848393846348345");
 		Object obj2 = mapper.readValue(
 				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}}"
 						.getBytes(),
@@ -1065,10 +1093,63 @@ public class IdRepoServiceTest {
 		restReq.setUri("http://localhost/v1/vid/{uin}");
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
 		when(identityUpdateTracker.findById(any())).thenReturn(Optional.empty());
+		Map<String, HandleDto> inputHandlesMap = new HashMap<String, HandleDto>();
+		inputHandlesMap.put("email", new HandleDto("ritik8989@gmail.com@email", "341_AAFB5CBEB3878A4BA9"));
+		inputHandlesMap.put("dateOfBirth", new HandleDto("2000/01/01@dateOfBirth", "341_AAFB5CBEB38ert4r59"));
+		Map<String, HandleDto> existingHandlesMap = new HashMap<String, HandleDto>();
+		existingHandlesMap.put("phone", new HandleDto("8987989789@phone", "341_AAFB5CBEB3878A4we3"));
+		existingHandlesMap.put("email", new HandleDto("ritik8989@gmail.com@email", "341_AAFB5CBEB3878A4BA9"));
+		when(idRepoServiceHelper.getSelectedHandles(any(), nullable(Map.class), anyBoolean()))
+				.thenReturn(existingHandlesMap).thenReturn(inputHandlesMap);
+		when(handleRepo.findUinHashByHandleHash(Mockito.anyString())).thenReturn(null).thenReturn("375848393846348345");
+		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
+		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
 		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
 		proxyService.updateIdentity(request, "234").getResponse().equals(obj2);
+	}
+
+	@Test
+	public void updateIdentity_withDuplicateHandle_thenFail()
+			throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
+		try {
+			Object obj = mapper.readValue(
+					"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}],\"selectedHandles\":[\"email\"],\"email\":\"ritik8989@gmail.com\"}}"
+							.getBytes(),
+					Object.class);
+			RequestDTO req = new RequestDTO();
+			req.setStatus("ACTIVATED");
+			req.setRegistrationId("27841457360002620190730095024");
+			req.setIdentity(obj);
+			request.setRequest(req);
+			Uin uinObj = new Uin();
+			uinObj.setUin("1234");
+			uinObj.setUinRefId("1234");
+			uinObj.setStatusCode("ACTIVATED");
+			uinObj.setUinHash("375848393846348345");
+			Object obj2 = mapper.readValue(
+					"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}}"
+							.getBytes(),
+					Object.class);
+			uinObj.setUinData(mapper.writeValueAsBytes(obj2));
+			when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
+			when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
+			when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
+			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+			Map<String, HandleDto> inputHandlesMap = new HashMap<String, HandleDto>();
+			inputHandlesMap.put("email", new HandleDto("ritik8989@gmail.com@email", "341_AAFB5CBEB3878A4BA9"));
+			Map<String, HandleDto> existingHandlesMap = new HashMap<String, HandleDto>();
+			existingHandlesMap.put("phone", new HandleDto("8987989789@phone", "341_AAFB5CBEB3878A4we3"));
+			when(idRepoServiceHelper.getSelectedHandles(any(), nullable(Map.class), anyBoolean()))
+					.thenReturn(existingHandlesMap).thenReturn(inputHandlesMap);
+			when(handleRepo.findUinHashByHandleHash(Mockito.anyString())).thenReturn("125355668848368");
+			proxyService.updateIdentity(request, "234");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.HANDLE_RECORD_EXISTS.getErrorCode(), e.getErrorCode());
+			assertEquals(String.format(IdRepoErrorConstants.HANDLE_RECORD_EXISTS.getErrorMessage(), List.of("email")),
+					e.getErrorText());
+		}
 	}
 
 	@Test

@@ -1,7 +1,9 @@
 package io.mosip.idrepository.identity.validator;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.AUTH_TYPE_SEPERATOR;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.CREATE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.UPDATE;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
@@ -61,12 +63,6 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 
 	/** The Constant DOCUMENTS. */
 	private static final String DOCUMENTS = "documents";
-
-	/** The Constant CREATE. */
-	private static final String CREATE = "create";
-
-	/** The Constant CREATE. */
-	private static final String UPDATE = "update";
 
 	/** The Constant VALIDATE_REQUEST. */
 	private static final String VALIDATE_REQUEST = "validateRequest - ";

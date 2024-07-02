@@ -18,7 +18,6 @@ import javax.annotation.Resource;
 
 import io.mosip.idrepository.core.constant.*;
 import io.mosip.idrepository.core.dto.*;
-import io.mosip.idrepository.core.entity.Handle;
 import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import io.mosip.idrepository.core.repository.HandleRepo;
 import io.mosip.kernel.core.util.DateUtils;
@@ -727,9 +726,9 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			throws IdRepoAppException {
 		try {
 			String handleHash = idRepoServiceHelper.getHandleHash(handle);
-			Handle entity = handleRepo.findByHandleHash(handleHash);
-			if (Objects.nonNull(entity)) {
-				return retrieveIdentityByUinHash(type, entity.getUinHash(), extractionFormats);
+			String uinHash = handleRepo.findUinHashByHandleHash(handleHash);
+			if (Objects.nonNull(uinHash)) {
+				return retrieveIdentityByUinHash(type, uinHash, extractionFormats);
 			} else {
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}

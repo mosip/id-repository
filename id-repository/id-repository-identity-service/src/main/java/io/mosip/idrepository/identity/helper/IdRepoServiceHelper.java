@@ -6,7 +6,6 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.PathNotFoundException;
-import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
@@ -20,7 +19,6 @@ import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.dto.HandleDto;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -31,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -146,29 +143,67 @@ public class IdRepoServiceHelper {
         }
     }
 
-    public Map<String, HandleDto> getSelectedHandles(Object identity) throws IdRepoAppException {
-        Map<String, Object> requestMap = convertToMap(identity);
-        if (requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH))) {
-            Map<String, Object> identityMap = (Map<String, Object>) requestMap.get(ROOT_PATH);
-            String schemaVersion = String.valueOf(identityMap.get(identityMapping.getIdentity().getIDSchemaVersion().getValue()));
-            String selectedHandlesFieldId = identityMapping.getIdentity().getSelectedHandles().getValue();
-            if(identityMap.containsKey(selectedHandlesFieldId) && Objects.nonNull(identityMap.get(selectedHandlesFieldId))) {
-                mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER, "getSelectedHandles",
-                        requestMap.get(selectedHandlesFieldId));
-                List<String> selectedHandleFieldIds = (List<String>) identityMap.get(selectedHandlesFieldId);
-                return selectedHandleFieldIds.stream()
-                        .filter( handleFieldId -> supportedHandlesInSchema.get(schemaVersion).contains(handleFieldId))
-                        .collect(Collectors.toMap(handleName->handleName,
-                                handleFieldId-> {
-                                    String handle = ((String) identityMap.get(handleFieldId))
-                                            .concat(getHandlePostfix(handleFieldId))
-                                            .toLowerCase(Locale.ROOT);
-                                    return new HandleDto(handle, getHandleHash(handle));
-                                }));
-            }
-        }
-        return Map.of();
-    }
+	/**
+	 * @param identity it should contain the data for attributes coming as part of
+	 *                 selected handles.
+	 * @return handles map
+	 * @throws IdRepoAppException
+	 */
+	public Map<String, HandleDto> getSelectedHandles(Object identity, Map<String, HandleDto> existingSelectedHandlesMap,
+			boolean fetchExistingHandles) throws IdRepoAppException {
+		Map<String, Object> requestMap = convertToMap(identity);
+		if (requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH))) {
+			Map<String, Object> identityMap = (Map<String, Object>) requestMap.get(ROOT_PATH);
+			String schemaVersion = String
+					.valueOf(identityMap.get(identityMapping.getIdentity().getIDSchemaVersion().getValue()));
+			String selectedHandlesFieldId = identityMapping.getIdentity().getSelectedHandles().getValue();
+//			if 'selectedHandles' is not coming in the request body itself then will execute else if block.
+			if (identityMap.containsKey(selectedHandlesFieldId)
+					&& Objects.nonNull(identityMap.get(selectedHandlesFieldId))) {
+				mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER, "getSelectedHandles",
+						identityMap.get(selectedHandlesFieldId));
+				List<String> selectedHandleFieldIds = (List<String>) identityMap.get(selectedHandlesFieldId);
+				return selectedHandleFieldIds.stream()
+						.filter(handleFieldId -> !fetchExistingHandles
+								? supportedHandlesInSchema.get(schemaVersion).contains(handleFieldId)
+								: true)
+						.collect(Collectors.toMap(handleName -> handleName, handleFieldId -> {
+							try {
+								String handle = ((String) identityMap.get(handleFieldId))
+										.concat(getHandlePostfix(handleFieldId)).toLowerCase(Locale.ROOT);
+								return new HandleDto(handle, getHandleHash(handle));
+							} catch (NullPointerException e) {
+								mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER,
+										"getSelectedHandles", "\n" + handleFieldId + " is null");
+								throw new IdRepoAppUncheckedException(MISSING_INPUT_PARAMETER.getErrorCode(),
+										String.format(MISSING_INPUT_PARAMETER.getErrorMessage(),
+												ROOT_PATH + IdObjectValidatorConstant.PATH_SEPERATOR + handleFieldId));
+							}
+						}));
+			} else if (existingSelectedHandlesMap != null && !existingSelectedHandlesMap.isEmpty()) {
+				List<String> existingSelectedHandlesList = existingSelectedHandlesMap.keySet().stream()
+						.collect(Collectors.toList());
+				return existingSelectedHandlesList.stream()
+						.filter(handleFieldId -> {
+							if (identityMap.containsKey(handleFieldId) && Objects.nonNull(identityMap.get(handleFieldId))) {
+								if (supportedHandlesInSchema.get(schemaVersion).contains(handleFieldId)) {
+									return true;
+								} else {
+									return false;
+								}
+							}
+							existingSelectedHandlesMap.remove(handleFieldId);
+							return false;
+						})
+						.collect(Collectors.toMap(handleName -> handleName, handleFieldId -> {
+							String handle = ((String) identityMap.get(handleFieldId))
+									.concat(getHandlePostfix(handleFieldId)).toLowerCase(Locale.ROOT);
+							return new HandleDto(handle, getHandleHash(handle));
+						}));
+			}
+		}
+		return null;
+	}
 
     public String getHandleHash(String handle) {
         //handle is converted to lowercase. It is language neutral conversion.
