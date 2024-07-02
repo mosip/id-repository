@@ -20,18 +20,6 @@ public class CacheUtil {
     
 	  @CachePut(cacheNames = IdRepoConstants.CREDENTIAL_TRANSACTION_CACHE, key = "#requestId")
 	  public CredentialIssueStatusResponse updateCredentialTransaction(String requestId, CredentialEntity credentialEntity, String id) {
-		  
-	      return createCredentialIssueStatusResponse(requestId, credentialEntity, id);
-	  }
-	  
-	  @CachePut(cacheNames = IdRepoConstants.CREDENTIAL_TRANSACTION_CACHE, key = "#requestId")
-	  public CredentialIssueStatusResponse updateCredentialTransaction(String requestId, CredentialIssueStatusResponse credentialIssueStatusResponse) {
-		  
-	      return credentialIssueStatusResponse;
-	  }
-	  
-	  
-	  public CredentialIssueStatusResponse createCredentialIssueStatusResponse(String requestId, CredentialEntity credentialEntity, String id) {
 		  CredentialIssueStatusResponse credentialIssueStatusResponse = new CredentialIssueStatusResponse();
 		  credentialIssueStatusResponse.setId(id);
 		  credentialIssueStatusResponse.setRequestId(requestId);
