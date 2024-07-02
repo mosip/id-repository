@@ -312,6 +312,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 				credentialIssueStatusResponse.setUrl(credentialEntity.getDataShareUrl());
 				LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 						"Built credential issue status response from entity object");
+				cacheUtil.updateCredentialTransaction(requestId, credentialIssueStatusResponse);
 				return credentialIssueStatusResponseWrapper;
 			}
 
