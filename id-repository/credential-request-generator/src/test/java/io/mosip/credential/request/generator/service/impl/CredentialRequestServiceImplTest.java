@@ -92,6 +92,8 @@ public class CredentialRequestServiceImplTest {
 		credentialIssueRequestDto.setId("123");
 		credentialIssueRequestDto.setEncrypt(true);
 		CredentialIssueStatusResponse credentialIssueStatusResponse = new CredentialIssueStatusResponse();
+		credentialIssueStatusResponse.setId("123");
+		credentialIssueStatusResponse.setRequestId("123456");
 		Mockito.when(cacheUtil.updateCredentialTransaction(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(credentialIssueStatusResponse);
 		Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenReturn(credentialIssueRequestDto.toString());
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto=credentialRequestServiceImpl.createCredentialIssuance(credentialIssueRequestDto);
@@ -105,6 +107,8 @@ public class CredentialRequestServiceImplTest {
 		credentialIssueRequestDto.setId("123");
 		credentialIssueRequestDto.setEncrypt(true);
 		CredentialIssueStatusResponse credentialIssueStatusResponse = new CredentialIssueStatusResponse();
+		credentialIssueStatusResponse.setId("123");
+		credentialIssueStatusResponse.setRequestId("123456");
 		Mockito.when(cacheUtil.updateCredentialTransaction(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(credentialIssueStatusResponse);
 		Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenReturn(credentialIssueRequestDto.toString());
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto=credentialRequestServiceImpl.createCredentialIssuanceByRid(credentialIssueRequestDto,"123456");
@@ -213,6 +217,10 @@ public class CredentialRequestServiceImplTest {
 		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
 		credentialIssueRequestDto.setCredentialType("MOSIP");
 		credentialIssueRequestDto.setId("123");
+		CredentialIssueStatusResponse credentialIssueStatusResponse = new CredentialIssueStatusResponse();
+		credentialIssueStatusResponse.setId("123");
+		credentialIssueStatusResponse.setRequestId("1234");
+		Mockito.when(cacheUtil.updateCredentialTransaction(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(credentialIssueStatusResponse);
 		Mockito.when(objectMapper.readValue(credentialEntity.getRequest(), CredentialIssueRequestDto.class))
 				.thenReturn(credentialIssueRequestDto);
 		ResponseWrapper<CredentialIssueStatusResponse> credentialIssueResponseDto=credentialRequestServiceImpl.getCredentialRequestStatus("1234");
