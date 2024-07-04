@@ -371,14 +371,12 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credentialEntity.setUpdatedBy(PRINT_USER);
 			credentialEntity.setStatusComment("updated the status from partner");
 			credentialDao.save(credentialEntity);
-			CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credentialEntity.getRequest(),
-					CredentialIssueRequestDto.class);
-			cacheUtil.updateCredentialTransaction(requestId, credentialEntity, credentialIssueRequestDto.getId());
+			cacheUtil.updateCredentialTransaction(requestId, credentialEntity, event.getId());
 			
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId, 
 					"ended updating  credential status : "+event.getStatus());
 			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,"update the request");
-		}catch (DataAccessLayerException | JsonProcessingException e) {
+		}catch (DataAccessLayerException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, UPDATE_STATUS_CREDENTIAL,
 					ExceptionUtils.getStackTrace(e));
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,e);
