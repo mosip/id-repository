@@ -227,7 +227,7 @@ public class CredentialProvider {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public Map<AllowedKycDto, Object> prepareSharableAttributes(IdResponseDTO idResponseDto,
+	public Map<AllowedKycDto, Object> prepareSharableAttributes(IdResponseDTO<Object> idResponseDto,
 			PartnerCredentialTypePolicyDto policyResponseDto, CredentialServiceRequestDto credentialServiceRequestDto)
 			throws CredentialFormatterException {
 		String requestId = credentialServiceRequestDto.getRequestId();

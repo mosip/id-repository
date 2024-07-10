@@ -17,6 +17,7 @@ import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.repository.UinDraftRepo;
+import io.mosip.kernel.core.http.RequestWrapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -132,7 +133,7 @@ public class IdRepoProxyServiceTest {
 	@Mock
 	private TokenIDGenerator tokenIDGenerator;
 
-	IdRequestDTO request = new IdRequestDTO();
+	RequestWrapper<IdRequestDTO<Object>> request = new RequestWrapper<>();
 
 	private Map<String, String> id;
 
@@ -206,11 +207,11 @@ public class IdRepoProxyServiceTest {
 		ObjectNode obj = mapper.readValue(
 			"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
 					.getBytes(), ObjectNode.class);
-		RequestDTO req = new RequestDTO();
+		IdRequestDTO<Object> req = new IdRequestDTO<>();
 		req.setIdentity(obj);
 		req.setRegistrationId("27841457360002620190730095024");
 		request.setRequest(req);
-		IdResponseDTO addIdentity = proxyService.addIdentity(request, "1234");
+		IdResponseDTO<Object> addIdentity = proxyService.addIdentity(request.getRequest(), "1234");
 
 		assertEquals(ACTIVATED, addIdentity.getResponse().getStatus());
 		ArgumentCaptor<EventModel> argumentCaptor = ArgumentCaptor.forClass(EventModel.class);
@@ -244,12 +245,12 @@ public class IdRepoProxyServiceTest {
 			"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
 					.getBytes(),
 			Object.class);
-		RequestDTO req = new RequestDTO();
+		IdRequestDTO<Object> req = new IdRequestDTO<>();
 		req.setStatus(ACTIVATED);
 		req.setRegistrationId("27841457360002620190730095024");
 		req.setIdentity(obj);
 		request.setRequest(req);
-		proxyService.updateIdentity(request, "1234").getResponse().equals(obj2);
+		proxyService.updateIdentity(request.getRequest(), "1234").getResponse().equals(obj2);
 
 		ArgumentCaptor<EventModel> argumentCaptor = ArgumentCaptor.forClass(EventModel.class);
 		verify(publisherCient, times(1)).publishUpdate(anyString(), argumentCaptor.capture(), anyString(), 

@@ -86,7 +86,7 @@ public class IdrepositaryUtil {
 
 			String responseString = restUtil.getApi(ApiName.IDREPOGETIDBYID, pathsegments, queryParamName,
 					queryParamValue, String.class);
-			IdResponseDTO responseObject = mapper.readValue(responseString, IdResponseDTO.class);
+			IdResponseDTO<Object> responseObject = mapper.readValue(responseString, IdResponseDTO.class);
 			if (responseObject == null) {
 				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 						CredentialServiceErrorCodes.IPREPO_EXCEPTION.getErrorMessage());
