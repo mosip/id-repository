@@ -1,0 +1,18 @@
+dependencies:
+- name: idrepo-saltgen
+  repository: https://mosip.github.io/mosip-helm
+  version: 12.1.0
+- name: identity
+  repository: https://mosip.github.io/mosip-helm
+  version: 12.1.0
+- name: credential
+  repository: https://mosip.github.io/mosip-helm
+  version: 12.1.0
+- name: vid
+  repository: https://mosip.github.io/mosip-helm
+  version: 12.1.0
+- name: credentialrequest
+  repository: https://mosip.github.io/mosip-helm
+  version: 12.1.0
+digest: sha256:6b844162d4d01db4f5e1271c07af37937e62145bb3e6f1d39eb77c832c1cf7e6
+generated: "2024-06-27T07:10:51.872433247+05:30"
