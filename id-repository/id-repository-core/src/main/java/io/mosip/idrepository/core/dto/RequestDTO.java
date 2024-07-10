@@ -3,6 +3,7 @@ package io.mosip.idrepository.core.dto;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+
 /**
  * The Class RequestDTO - response DTO containing additional fields for request
  * field in {@code IdRequestDTO}.
@@ -19,5 +20,4 @@ public class RequestDTO extends BaseRequestResponseDTO {
 	
 	@Deprecated(since = "1.1.4")
 	private String biometricReferenceId;
-
 }
