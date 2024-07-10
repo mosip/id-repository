@@ -1,0 +1,81 @@
+RegenerateVid:
+  IdRepository_RegenerateVid_Smoke_Pos:
+      endPoint: /idrepository/v1/vid/{VID}/regenerate
+      role: resident
+      checkErrorsOnlyInResponse: true
+      restMethod: post
+      inputTemplate: idRepository/RegenerateVid/regenerateVid
+      outputTemplate: idRepository/RegenerateVid/regenerateVidResult
+      input: '{
+      "VID":"$ID:CreateVID_withValidParameters_For_VidType_Smoke_Temporary_sid_VID$"
+      }'
+      output: '{
+}'
+
+  IdRepository_RegenerateVid_Uin_Neg:
+      endPoint: /idrepository/v1/vid/{VID}/regenerate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/RegenerateVid/regenerateVid
+      outputTemplate: idRepository/error
+      input: '{
+      "VID":"$ID:AddIdentity_For_Onetimeusevid_smoke_Pos_UIN$"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_RegenerateVid_Invalid_Vid:
+      endPoint: /idrepository/v1/vid/{VID}/regenerate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/RegenerateVid/regenerateVid
+      outputTemplate: idRepository/error
+      input: '{
+      "VID":"sdfgsfgsg"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_RegenerateVid_Empty_Vid:
+      endPoint: /idrepository/v1/vid/{VID}/regenerate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/RegenerateVid/regenerateVid
+      outputTemplate: idRepository/error
+      input: '{
+      "VID":""
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+  IdRepository_RegenerateVid_SpaceVal_Vid:
+      endPoint: /idrepository/v1/vid/{VID}/regenerate
+      role: resident
+      restMethod: post
+      inputTemplate: idRepository/RegenerateVid/regenerateVid
+      outputTemplate: idRepository/error
+      input: '{
+      "VID":" "
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'

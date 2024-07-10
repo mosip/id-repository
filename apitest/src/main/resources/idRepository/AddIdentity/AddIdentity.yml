@@ -1,0 +1,1436 @@
+AddIdentity:
+   IdRepository_AddIdentity_withValidParameters_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_ValidParam_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+  
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+  
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+  
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_Positive_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+    
+  "dateOfBirth": "1992/04/15",
+  
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+  
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_Positive_PEXP_smoke:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+    
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+  
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_Positive_PDEA_smoke:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+  
+
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+    
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+  
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_Positive_TDEA_smoke:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+    
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+  
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_Positive_PRE_smoke:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+  
+
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+  
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+ 
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_Positive_TRE_smoke:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+  
+   "UIN": "$UIN$",
+  
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+  
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+  
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_withinvalid_UIN:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+  
+   "UIN": "@@GGHHDR",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+  
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002",
+      "message": "Invalid Input Parameter - UIN"
+    }
+  ]
+}'
+   IdRepository_AddIdentity_withInvalidVersion:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+    
+  "dateOfBirth": "1992/04/15",
+  
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "awge",
+  
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002",
+      "message": "Invalid Input Parameter - version"
+    }
+  ]
+}'
+
+   IdRepository_AddIdentity_with_Empty_Version:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+    
+  "dateOfBirth": "1992/04/15",
+  
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "",
+  
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_AddIdentity_with_Spaceval_Version:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+    
+  "dateOfBirth": "1992/04/15",
+  
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": " ",
+  
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_AddIdentity_withInvalidDOB:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+  
+  "dateOfBirth": "19-b-5",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+  
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002",
+      "message": "Invalid Input Parameter - identity/dateOfBirth"
+    }
+  ]
+}'
+
+   IdRepository_AddIdentity_with_Missing_DOB:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+  
+  "dateOfBirth": "$REMOVE$",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+  
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-001"
+    }
+  ]
+}'
+
+   IdRepository_AddIdentity_with_Empty_DOB:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+  
+  "dateOfBirth": "",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+  
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_AddIdentity_with_Spaceval_DOB:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+  
+  "dateOfBirth": " ",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+  
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_AddIdentity_withInvalidEmail:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+  
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+  
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+  
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002",
+      "message": "Invalid Input Parameter - identity/email"
+    }
+  ]
+}'
+   IdRepository_AddIdentity_withMissingVersion:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+  
+   "UIN": "$UIN$",
+ 
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "$REMOVE$",
+  
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+  
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-001",
+      "message": "Missing Input Parameter - version"
+    }
+  ]
+}'
+   IdRepository_AddIdentity_with_Missing_phone:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+  
+  "dateOfBirth": "1992/04/15",
+    
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "$REMOVE$",
+  "mobileno": "$REMOVE$",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+  
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+
+   IdRepository_AddIdentity_with_invalid_Email:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+  
+   "UIN": "$UIN$",
+    
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "sdafa%%$#$%%",
+  "phone": "9876543210",
+  "mobileno": "9876543210",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+  
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+  
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+   IdRepository_AddIdentity_with_Missing_Email:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+  
+  "dateOfBirth": "1992/04/15",
+    
+  "postalCode": "14022",
+  "email": "$REMOVE$",
+  "phone": "9876543210",
+  "mobileno": "9876543210",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+  
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+
+   IdRepository_AddIdentity_with_Empty_Email:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+  
+  "dateOfBirth": "1992/04/15",
+    
+  "postalCode": "14022",
+  "email": "",
+  "phone": "9876543210",
+  "mobileno": "9876543210",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+  
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_AddIdentity_with_SpaceVal_Email:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+  
+  "dateOfBirth": "1992/04/15",
+    
+  "postalCode": "14022",
+  "email": " ",
+  "phone": "9876543210",
+  "mobileno": "9876543210",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+  
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_AddIdentity_with_Invalid_BioVal_Neg:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "dbfkxjf",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_AddIdentity_with_Invalid_Past_Timestamp_Neg:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "2022-05-23T06:56:01.667Z"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_AddIdentity_with_Invalid_Future_Timestamp_Neg:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "2072-05-23T06:56:01.667Z"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_AddIdentity_with_Invalid_Timestamp_Neg:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "afdfgfs"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_AddIdentity_with_Empty_Timestamp_Neg:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": ""
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-001"
+    }
+  ]
+}'
+
+   IdRepository_AddIdentity_with_Missing_Timestamp_Neg:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$REMOVE$"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-001"
+    }
+  ]
+}'
+
+   IdRepository_AddIdentity_with_Invalid_Spaceval_Timestamp_Neg:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": " "
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-001"
+    }
+  ]
+}'
+
+   IdRepository_AddIdentity_For_Onetimeusevid_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+
+   IdRepository_AddIdentity_For_NewScen_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+
+   IdRepository_AddIdentity_For_DeactivateScen_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+
+   IdRepository_AddIdentity_AuthStatus_Valid_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+
+   IdRepository_AddIdentity_AuthStatus_NegScen_Valid_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+
+   IdRepository_AddIdentity_AuthStatus_Vid_Valid_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+
+   IdRepository_AddIdentity_AuthStatus_Vid_NegScen_Valid_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+
+   IdRepository_AddIdentity_UpdateCount_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+
+   IdRepository_AddIdentity_UpdateCount_Vid_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_WITH_biometricReferenceId_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "mosipuser123@mailinator.com",
+  "phone": "8249742850",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
