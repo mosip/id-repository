@@ -1,0 +1,28 @@
+apiVersion: v2
+name: idrepo
+description: A Helm chart for Idrepo module of MOSIP.
+type: application
+version: 1.2.1
+appVersion: "1.2.1"
+dependencies:
+- name: idrepo-saltgen
+  alias: saltgen
+  version: 12.1.0
+  repository: https://mosip.github.io/mosip-helm
+  condition: saltgen.enabled
+- name: identity
+  version: 12.1.0
+  repository: https://mosip.github.io/mosip-helm
+  condition: identity.enabled
+- name: credential
+  repository: https://mosip.github.io/mosip-helm
+  version: 12.1.0
+  condition: credential.enabled
+- name: vid        
+  version: 12.1.0
+  repository: https://mosip.github.io/mosip-helm
+  condition: vid.enabled
+- name: credentialrequest
+  repository: https://mosip.github.io/mosip-helm
+  version: 12.1.0
+  condition: credentialrequest.enabled
