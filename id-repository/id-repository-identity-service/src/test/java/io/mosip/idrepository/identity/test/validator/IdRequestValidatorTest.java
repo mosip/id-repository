@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
+import io.mosip.kernel.core.http.RequestWrapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -162,7 +163,8 @@ public class IdRequestValidatorTest {
 		identityMapping.getIdentity().setSelectedHandles(selectedHandles);
 		ReflectionTestUtils.setField(idRepoServiceHelper, "identityMapping", identityMapping);
 
-		errors = new BeanPropertyBindingResult(new IdRequestDTO(), "idRequestDto");
+		RequestWrapper<IdRequestDTO<Object>> request = new RequestWrapper<>();
+		errors = new BeanPropertyBindingResult(request, "idRequestDto");
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("");
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
@@ -393,14 +395,14 @@ public class IdRequestValidatorTest {
 		Mockito.when(idObjectValidator.validateIdObject(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(true);
 		Mockito.when(uinValidator.validateId(Mockito.anyString())).thenReturn(true);
 
-		IdRequestDTO request = new IdRequestDTO();
+		RequestWrapper<IdRequestDTO<Object>> request = new RequestWrapper<>();
 		request.setId("mosip.id.create");
 		request.setVersion("v1");
 		Object obj = mapper.readValue(
 				"{\"IDSchemaVersion\":0,\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}"
 						.getBytes(),
 				Object.class);
-		RequestDTO req = new RequestDTO();
+		IdRequestDTO<Object> req = new IdRequestDTO<>();
 		req.setRegistrationId("1234");
 		req.setStatus("ACTIVATED");
 		req.setIdentity(obj);
@@ -416,7 +418,7 @@ public class IdRequestValidatorTest {
 		ReflectionTestUtils.setField(validator, "maxRequestTimeDeviationSeconds", 60);
 		Mockito.when(idObjectValidator.validateIdObject(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(true);
 		Mockito.when(uinValidator.validateId(Mockito.anyString())).thenReturn(true);
-		IdRequestDTO request = new IdRequestDTO();
+		RequestWrapper<IdRequestDTO<Object>> request = new RequestWrapper<>();
 		request.setId("mosip.id.update");
 		request.setVersion("v1");
 		Object obj = mapper.readValue(
@@ -424,7 +426,7 @@ public class IdRequestValidatorTest {
 						.getBytes(),
 				Object.class);
 
-		RequestDTO req = new RequestDTO();
+		IdRequestDTO<Object> req = new IdRequestDTO<>();
 		req.setRegistrationId("1234");
 		req.setStatus("BLOCKED");
 		req.setIdentity(obj);

@@ -71,7 +71,7 @@ import io.mosip.kernel.core.util.CryptoUtil;
  * @author Manoj SP
  */
 @Service
-public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdResponseDTO> {
+public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, IdResponseDTO> {
 
 	public static final Logger mosipLogger = IdRepoLogger.getLogger(IdRepoProxyServiceImpl.class);
 
@@ -153,12 +153,12 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * io.mosip.kernel.core.idrepo.spi.IdRepoService#addIdentity(java.lang.Object)
 	 */
 	@Override
-	public IdResponseDTO addIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
+	public IdResponseDTO<T> addIdentity(IdRequestDTO<T> request, String uin) throws IdRepoAppException {
 		try {
 			String uinHash = retrieveUinHash(uin);
 			if (uinRepo.existsByUinHash(uinHash)
-					|| uinDraftRepo.existsByRegId(request.getRequest().getRegistrationId())
-					|| uinHistoryRepo.existsByRegId(request.getRequest().getRegistrationId())) {
+					|| uinDraftRepo.existsByRegId(request.getRegistrationId())
+					|| uinHistoryRepo.existsByRegId(request.getRegistrationId())) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 						RECORD_EXISTS.getErrorMessage());
 				throw new IdRepoAppException(RECORD_EXISTS);
@@ -166,7 +166,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 			Uin uinEntity = service.addIdentity(request, uin);
 
-			notify(uin, false, request.getRequest().getRegistrationId());
+			notify(uin, false, request.getRegistrationId());
 			return constructIdResponse(this.id.get(CREATE), uinEntity, null);
 
 		} catch (IdRepoAppException e) {
@@ -464,14 +464,14 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * Object, java.lang.String)
 	 */
 	@Override
-	public IdResponseDTO updateIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
-		String regId = request.getRequest().getRegistrationId();
+	public IdResponseDTO<T> updateIdentity(IdRequestDTO<T> request, String uin) throws IdRepoAppException {
+		String regId = request.getRegistrationId();
 		try {
 			String uinHash = retrieveUinHash(uin);
 			if (uinRepo.existsByUinHash(uinHash)) {
 				if (uinRepo.existsByRegId(regId)
-						|| uinDraftRepo.existsByRegId(request.getRequest().getRegistrationId())
-						|| uinHistoryRepo.existsByRegId(request.getRequest().getRegistrationId())) {
+						|| uinDraftRepo.existsByRegId(request.getRegistrationId())
+						|| uinHistoryRepo.existsByRegId(request.getRegistrationId())) {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
 							RECORD_EXISTS.getErrorMessage());
 					throw new IdRepoAppException(RECORD_EXISTS);
@@ -481,7 +481,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				String activeStatus = env.getProperty(ACTIVE_STATUS);
 				if (activeStatus != null && activeStatus.equalsIgnoreCase(uinObject.getStatusCode())) {
 					mosipLogger.info("Uin is in active status");
-					notify(uin, true, request.getRequest().getRegistrationId());
+					notify(uin, true, request.getRegistrationId());
 				}
 				return constructIdResponse(MOSIP_ID_UPDATE, service.retrieveIdentity(uinHash, IdType.UIN, null, null),
 						null);
@@ -626,7 +626,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	@SuppressWarnings("unchecked")
-	private IdResponseDTO constructIdResponse(String id, Uin uin, List<DocumentsDTO> documents)
+	private IdResponseDTO<T> constructIdResponse(String id, Uin uin, List<DocumentsDTO> documents)
 			throws IdRepoAppException {
 		IdResponseDTO idResponse = new IdResponseDTO();
 		idResponse.setId(id);

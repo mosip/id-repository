@@ -155,14 +155,14 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	private boolean isForceMergeEnabled;
 	
 	@Override
-	public IdResponseDTO createDraft(String registrationId, String uin) throws IdRepoAppException {
+	public IdResponseDTO<List<String>> createDraft(String registrationId, String uin) throws IdRepoAppException {
 		try {
 			UinDraft newDraft;
 
 			if (isForceMergeEnabled || (!super.uinHistoryRepo.existsByRegId(registrationId)
 					&& !uinDraftRepo.existsByRegId(registrationId))) {
 				if (isForceMergeEnabled) {
-					IdResponseDTO response = proxyService.retrieveIdentityByRid(registrationId, uin, null);
+					IdResponseDTO<List<String>> response = proxyService.retrieveIdentityByRid(registrationId, uin, null);
 					Object res = response.getResponse().getIdentity();
 					LinkedHashMap<String, Object> map = mapper.convertValue(res, LinkedHashMap.class);
 					uin = String.valueOf(map.get("UIN"));
@@ -238,18 +238,18 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			if (uinDraft.isPresent()) {
 				UinDraft draftToUpdate = uinDraft.get();
 				if (Objects.isNull(draftToUpdate.getUinData())) {
-					ObjectNode identityObject = mapper.convertValue(request.getRequest().getIdentity(), ObjectNode.class);
-					identityObject.putPOJO(VERIFIED_ATTRIBUTES, request.getRequest().getVerifiedAttributes());
-					byte[] uinData = super.convertToBytes(request.getRequest().getIdentity());
+					ObjectNode identityObject = mapper.convertValue(request.getIdentity(), ObjectNode.class);
+					identityObject.putPOJO(VERIFIED_ATTRIBUTES, request.getVerifiedAttributes());
+					byte[] uinData = super.convertToBytes(request.getIdentity());
 					draftToUpdate.setUinData(uinData);
 					draftToUpdate.setUinDataHash(securityManager.hash(uinData));
-					updateDocuments(request.getRequest(), draftToUpdate);
+					updateDocuments(request, draftToUpdate);
 					draftToUpdate.setUpdatedBy(IdRepoSecurityManager.getUser());
 					draftToUpdate.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
 					uinDraftRepo.save(draftToUpdate);
 				} else {
 					updateDemographicData(request, draftToUpdate);
-					updateDocuments(request.getRequest(), draftToUpdate);
+					updateDocuments(request, draftToUpdate);
 
 					uinDraftRepo.save(draftToUpdate);
 				}
@@ -269,15 +269,14 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	}
 
 	private void updateDemographicData(IdRequestDTO request, UinDraft draftToUpdate) throws JSONException, IdRepoAppException, IOException {
-		if (Objects.nonNull(request.getRequest()) && Objects.nonNull(request.getRequest().getIdentity())) {
-			RequestDTO requestDTO = request.getRequest();
+		if (Objects.nonNull(request) && Objects.nonNull(request.getIdentity())) {
 			Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
 					.mappingProvider(new JacksonMappingProvider()).build();
-			DocumentContext inputData = JsonPath.using(configuration).parse(requestDTO.getIdentity());
+			DocumentContext inputData = JsonPath.using(configuration).parse(request.getIdentity());
 			DocumentContext dbData = JsonPath.using(configuration).parse(new String(draftToUpdate.getUinData()));
 			JsonPath uinJsonPath = JsonPath.compile(uinPath.replace(ROOT_PATH, "$"));
 			inputData.set(uinJsonPath, dbData.read(uinJsonPath));
-			super.updateVerifiedAttributes(requestDTO, inputData, dbData);
+			super.updateVerifiedAttributes(request, inputData, dbData);
 			JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(),
 					JSONCompareMode.LENIENT);
 
@@ -380,7 +379,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 						? draft.getBiometrics().get(draft.getBiometrics().size() - 1).getBioFileId()
 								: null);
 				IdRequestDTO idRequest = buildRequest(regId, draft);
-				validateRequest(idRequest.getRequest());
+				validateRequest(idRequest);
 				String uin = decryptUin(draft.getUin(), draft.getUinHash());
 				final Uin uinObject;
 				if (uinRepo.existsByUinHash(draft.getUinHash())) {
@@ -410,18 +409,16 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	@SuppressWarnings("unchecked")
-	private IdRequestDTO buildRequest(String regId, UinDraft draft) {
-		IdRequestDTO idRequest = new IdRequestDTO();
-		RequestDTO request = new RequestDTO();
+	private IdRequestDTO<List<String>> buildRequest(String regId, UinDraft draft) {
+		IdRequestDTO<List<String>> request = new IdRequestDTO<>();
 		request.setRegistrationId(regId);
-		Map<String, Object> identityData = convertToObject(draft.getUinData(), Map.class);
+		Map<String, Object> identityData = (Map<String, Object>) convertToObject(draft.getUinData(), Map.class);
 		request.setVerifiedAttributes(
 				mapper.convertValue(identityData.get(VERIFIED_ATTRIBUTES), new TypeReference<List<String>>() {
 				}));
 		identityData.remove(VERIFIED_ATTRIBUTES);
 		request.setIdentity(identityData);
-		idRequest.setRequest(request);
-		return idRequest;
+		return request;
 	}
 
 	private void validateRequest(RequestDTO request) throws IdRepoDataValidationException {
@@ -572,14 +569,14 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	}
 
 	@SuppressWarnings("unchecked")
-	private IdResponseDTO constructIdResponse(byte[] uinData, String status, List<DocumentsDTO> documents, String vid) {
-		IdResponseDTO idResponse = new IdResponseDTO();
-		ResponseDTO response = new ResponseDTO();
+	private IdResponseDTO<List<String>> constructIdResponse(byte[] uinData, String status, List<DocumentsDTO> documents, String vid) {
+		IdResponseDTO<List<String>> idResponse = new IdResponseDTO<>();
+		ResponseDTO<List<String>> response = new ResponseDTO<>();
 		response.setStatus(status);
 		if (Objects.nonNull(documents))
 			response.setDocuments(documents);
 		if (Objects.nonNull(uinData)) {
-			ObjectNode identityObject = convertToObject(uinData, ObjectNode.class);
+			ObjectNode identityObject = (ObjectNode) convertToObject(uinData, ObjectNode.class);
 			response.setIdentity(identityObject);
 			response.setVerifiedAttributes(mapper.convertValue(identityObject.get(VERIFIED_ATTRIBUTES), List.class));
 			identityObject.remove(VERIFIED_ATTRIBUTES);

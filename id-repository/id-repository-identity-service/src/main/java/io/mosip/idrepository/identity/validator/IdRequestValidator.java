@@ -21,6 +21,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
+import io.mosip.kernel.core.http.RequestWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -153,7 +154,8 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	@Override
 	public void validate(@Nonnull Object target, Errors errors) {
 		if (target instanceof IdRequestDTO) {
-			IdRequestDTO request = (IdRequestDTO) target;
+			RequestWrapper<IdRequestDTO<Object>> request = new RequestWrapper();
+			request.setRequest(new IdRequestDTO<Object>());
 
 			validateReqTime(request.getRequesttime(), errors);
 
