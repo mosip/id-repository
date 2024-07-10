@@ -2,7 +2,7 @@ apiVersion: v2
 name: credentialrequest
 description: A Helm chart for MOSIP IDRepo Identity Service
 type: application
-version: 12.0.1
+version: 12.1.0-develop
 appVersion: ""
 dependencies:
   - name: common
