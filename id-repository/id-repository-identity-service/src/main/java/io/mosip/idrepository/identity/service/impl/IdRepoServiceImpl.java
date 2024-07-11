@@ -498,8 +498,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					}).collect(Collectors.toList());
 					attributeData.setValue(updatedListData);
 				} else if (attributeData.getValue() instanceof Map) {
-					String trimValue = ((String) ((Map) attributeData.getValue()).get(VALUE)).trim();
-					((Map) attributeData.getValue()).put(VALUE, trimValue);
+					if (((Map) attributeData.getValue()).containsKey(VALUE)) {
+						String trimValue = ((String) ((Map) attributeData.getValue()).get(VALUE)).trim();
+						((Map) attributeData.getValue()).put(VALUE, trimValue);
+					}
 				}
 				return attributeData;
 			}).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
