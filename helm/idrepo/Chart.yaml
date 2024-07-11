@@ -4,6 +4,13 @@ description: A Helm chart for Idrepo module of MOSIP.
 type: application
 version: 1.2.1
 appVersion: "1.2.1"
+home: https://mosip.io
+keywords:
+  - mosip
+  - idrepo
+maintainers:
+  - email: info@mosip.io
+    name: MOSIP
 dependencies:
 - name: idrepo-saltgen
   alias: saltgen
@@ -18,7 +25,7 @@ dependencies:
   repository: https://mosip.github.io/mosip-helm
   version: 0.0.1-develop
   condition: credential.enabled
-- name: vid        
+- name: vid
   version: 0.0.1-develop
   repository: https://mosip.github.io/mosip-helm
   condition: vid.enabled
