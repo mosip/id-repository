@@ -18,7 +18,7 @@ dependencies:
   repository: https://mosip.github.io/mosip-helm
   version: 12.1.0
   condition: credential.enabled
-- name: vid        
+- name: vid
   version: 12.1.0
   repository: https://mosip.github.io/mosip-helm
   condition: vid.enabled
