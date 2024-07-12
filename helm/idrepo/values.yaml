@@ -1,0 +1,22 @@
+saltgen:
+  enabled: true
+
+credential:
+  enabled: true
+  istio:
+    enabled: false
+
+vid:
+  enabled: true
+  istio:
+    enabled: false
+
+identity:
+  enabled: true
+  istio:
+    enabled: false
+
+credentialrequest:
+  enabled: true
+  istio:
+    enabled: false
