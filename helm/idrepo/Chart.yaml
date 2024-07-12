@@ -2,8 +2,8 @@ apiVersion: v2
 name: idrepo
 description: A Helm chart for Idrepo module of MOSIP.
 type: application
-version: 1.2.1
-appVersion: "1.2.1"
+version: 0.0.1-develop
+appVersion: ""
 home: https://mosip.io
 keywords:
   - mosip
