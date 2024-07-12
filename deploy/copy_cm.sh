@@ -3,8 +3,11 @@
 # DST_NS: Destination namespace
 
 function copying_cm() {
+  UTIL_URL=https://github.com/mosip/mosip-infra/blob/master/deployment/v3/utils/copy_cm_func.sh
   COPY_UTIL=./copy_cm_func.sh
   DST_NS=idrepo
+
+  wget -q $UTIL_URL -O copy_cm_func.sh && chmod +x copy_cm_func.sh
 
   $COPY_UTIL configmap global default $DST_NS
   $COPY_UTIL configmap artifactory-share artifactory $DST_NS
