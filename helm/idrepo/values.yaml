@@ -7,7 +7,7 @@ credential:
     enabled: false
 
 vid:
-  enabled: false
+  enabled: true
   istio:
     enabled: false
 
