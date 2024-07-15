@@ -28,7 +28,6 @@ public class IdentityUpdateTracker {
 	@Column(name = "id")
 	private String id;
 	
-	@Lob
 	@Getter(AccessLevel.NONE)
 	@Setter(AccessLevel.NONE)
 	@Column(name = "identity_update_count")
