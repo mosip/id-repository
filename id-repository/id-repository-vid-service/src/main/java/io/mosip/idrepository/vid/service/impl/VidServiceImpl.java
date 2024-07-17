@@ -315,7 +315,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			RestRequestDTO request = restBuilder.buildRequest(RestServicesConstants.IDREPO_IDENTITY_SERVICE, null,
 					IdResponseDTO.class);
 			request.setPathVariables(Collections.singletonMap("uin", uin));
-			IdResponseDTO identityResponse = restHelper.requestSync(request);
+			IdResponseDTO<Object> identityResponse = restHelper.requestSync(request);
 			String uinStatus = identityResponse.getResponse().getStatus();
 			if (!uinStatus.equals(EnvUtil.getUinActiveStatus())) {
 				throw new IdRepoAppException(INVALID_UIN.getErrorCode(),
