@@ -244,7 +244,6 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 							if (method.equals(CREATE)) {
 								idObjectValidator.validateIdObject(idRepoServiceHelper.getSchema(schemaVersion), requestMap, newRegistrationFields);
 							} else {
-								mosipLogger.debug("========================="+requestMap.toString()+"=========================");
 								idObjectValidator.validateIdObject(idRepoServiceHelper.getSchema(schemaVersion), requestMap, updateUinFields);
 							}
 						}
