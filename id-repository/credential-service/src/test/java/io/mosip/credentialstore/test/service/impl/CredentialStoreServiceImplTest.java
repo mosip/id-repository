@@ -230,7 +230,7 @@ public class CredentialStoreServiceImplTest {
 		Mockito.when(utilities.generateId()).thenReturn("123456");
 		Mockito.when(policyUtil.getPolicyDetail(Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenReturn(policyDetailResponseDto);
-		Mockito.when(idrepositaryUtil.getDataById(Mockito.any(),Mockito.any()))
+		Mockito.when(idrepositaryUtil.getData(Mockito.any(),Mockito.any()))
 		.thenReturn(idResponse);
 		DataProviderResponse dataProviderResponse=new DataProviderResponse();
 		JSONObject jsonObject1 = new JSONObject();
@@ -313,7 +313,7 @@ public class CredentialStoreServiceImplTest {
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		ApiNotAccessibleException e = new ApiNotAccessibleException();
-		Mockito.when(idrepositaryUtil.getDataById(Mockito.any(),Mockito.any()))
+		Mockito.when(idrepositaryUtil.getData(Mockito.any(),Mockito.any()))
 		.thenThrow(e);
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.API_NOT_ACCESSIBLE_EXCEPTION.getErrorMessage());
@@ -328,7 +328,7 @@ public class CredentialStoreServiceImplTest {
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		IdRepoException e = new IdRepoException();
-		Mockito.when(idrepositaryUtil.getDataById(Mockito.any(),Mockito.any()))
+		Mockito.when(idrepositaryUtil.getData(Mockito.any(),Mockito.any()))
 		.thenThrow(e);
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.IPREPO_EXCEPTION.getErrorMessage());
@@ -358,7 +358,7 @@ public class CredentialStoreServiceImplTest {
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		IOException e = new IOException();
-		Mockito.when(idrepositaryUtil.getDataById(Mockito.any(),Mockito.any()))
+		Mockito.when(idrepositaryUtil.getData(Mockito.any(),Mockito.any()))
 		.thenThrow(e);
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.IO_EXCEPTION.getErrorMessage());
