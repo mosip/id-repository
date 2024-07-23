@@ -47,7 +47,7 @@ RUN apt-get -y update && \
     chmod 644 /usr/local/openjdk-11/lib/security/cacerts && \
     chmod +x $work_dir/entrypoint.sh
 
-# select container user for all tasks
+#select container user for all tasks
 USER ${container_user_uid}:${container_user_gid}
 
 WORKDIR ${work_dir}
