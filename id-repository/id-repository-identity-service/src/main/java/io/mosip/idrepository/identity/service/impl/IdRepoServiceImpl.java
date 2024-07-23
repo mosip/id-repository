@@ -84,8 +84,6 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 
 	private static final String SELECTED_HANDLES = "selectedHandles";
 
-	private static final String VERIFIED_ATTRIBUTES = "verifiedAttributes";
-
 	/** The Constant UPDATE_IDENTITY. */
 	private static final String UPDATE_IDENTITY = "updateIdentity";
 
@@ -527,19 +525,35 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected void updateVerifiedAttributes(IdRequestDTO<T> requestDTO, DocumentContext inputData, DocumentContext dbData) {
+	protected void updateVerifiedAttributes(IdRequestDTO<T> requestDTO, DocumentContext inputData, DocumentContext dbData) throws IdRepoAppException {
 		List dbVerifiedAttributes = (List) dbData.read(".verifiedAttributes");
 		dbVerifiedAttributes.remove(null);
+		boolean isV2Version = requestDTO.getVerifiedAttributes() instanceof Map ? true : false;
 		if (dbVerifiedAttributes.isEmpty()) {
-			dbVerifiedAttributes.add(new ArrayList<>());
+			dbVerifiedAttributes.add(isV2Version ? new HashMap<>() : new ArrayList<>());
 		}
-		List verifiedAttributeList = (List) dbVerifiedAttributes.get(0);
-		if (Objects.nonNull(requestDTO.getVerifiedAttributes())) {
-			verifiedAttributeList.addAll((List<String>)requestDTO.getVerifiedAttributes());
+		if (isV2Version) {
+			Map dbVerifiedAttributeMap = (Map) dbVerifiedAttributes.get(0);
+			if (Objects.nonNull(requestDTO.getVerifiedAttributes())
+					&& !((Map) requestDTO.getVerifiedAttributes()).isEmpty()) {
+				dbVerifiedAttributeMap.putAll((Map) requestDTO.getVerifiedAttributes());
+			} else {
+				Map<String, Object> identityMap = idRepoServiceHelper.convertToMap(requestDTO.getIdentity());
+				dbVerifiedAttributeMap.keySet().removeIf(identityMap::containsKey);
+			}
+			HashSet<Map> verifiedAttributesSet = new HashSet<>();
+			verifiedAttributesSet.add(dbVerifiedAttributeMap);
+			inputData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
+			dbData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
+		} else {
+			List verifiedAttributeList = (List) dbVerifiedAttributes.get(0);
+			if (Objects.nonNull(requestDTO.getVerifiedAttributes())) {
+				verifiedAttributeList.addAll((List<String>)requestDTO.getVerifiedAttributes());
+			}
+			HashSet<String> verifiedAttributesSet = new HashSet<>(verifiedAttributeList);
+			inputData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
+			dbData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
 		}
-		HashSet<String> verifiedAttributesSet = new HashSet<>(verifiedAttributeList);
-		inputData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
-		dbData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
