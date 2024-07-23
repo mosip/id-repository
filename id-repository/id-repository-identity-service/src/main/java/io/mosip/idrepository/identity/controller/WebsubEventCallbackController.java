@@ -1,5 +1,8 @@
 package io.mosip.idrepository.identity.controller;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.REMOVE_ID_STATUS_EVENT_CALLBACK_RELATIVE_URL;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.REMOVE_ID_STATUS_EVENT_SECRET;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.REMOVE_ID_STATUS_EVENT_TOPIC;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_EVENT_SECRET;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_EVENT_TOPIC;
 
@@ -29,8 +32,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  *
  */
 @RestController
-@Tag(name = "vid-event-callback-controller", description = "Vid Event Callback Controller")
-public class VidEventCallbackController {
+@Tag(name = "websub-event-callback-controller", description = "Websub Event Callback Controller")
+public class WebsubEventCallbackController {
 
 	@Autowired
 	private CredentialStatusManager statusManager;
@@ -40,7 +43,7 @@ public class VidEventCallbackController {
 
 	@SuppressWarnings("unchecked")
 	@PostMapping(path = "/callback/vid_credential_status_update", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "handleVidEvent", description = "handleVidEvent", tags = { "vid-event-callback-controller" })
+	@Operation(summary = "handleVidEvent", description = "handleVidEvent", tags = { "websub-event-callback-controller" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "Request authenticated successfully"),
 			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
@@ -57,5 +60,19 @@ public class VidEventCallbackController {
 		} else {
 			statusManager.idaEventConsumer(mapper.convertValue(eventModel.getEvent().getData().get("idaEvent"), EventModel.class));
 		}
+	}
+
+	@PostMapping(path = "/callback/remove_id_status", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "handleRemoveIdStatusEvent", description = "handleRemoveIdStatusEvent", tags = {
+			"websub-event-callback-controller" })
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Request authenticated successfully"),
+			@ApiResponse(responseCode = "201", description = "Created", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
+	@PreAuthenticateContentAndVerifyIntent(secret = "${" + REMOVE_ID_STATUS_EVENT_SECRET + "}", callback = "${"
+			+ REMOVE_ID_STATUS_EVENT_CALLBACK_RELATIVE_URL + "}", topic = "${" + REMOVE_ID_STATUS_EVENT_TOPIC + "}")
+	public void handleRemoveIdStatusEvent(@RequestBody EventModel eventModel) {
+		statusManager.handleRemoveIdStatusEvent(eventModel);
 	}
 }

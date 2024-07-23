@@ -28,6 +28,9 @@ public class Handle implements HandleInfo {
     @Column(name = "handle_hash")
     private String handleHash;
 
+    @Column(name = "status")
+    private String status;
+
     @Column(name = "cr_by")
     private String createdBy;
 

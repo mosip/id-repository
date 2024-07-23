@@ -106,6 +106,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent event) {
 		websubHelper.subscribeForVidEvent();
+		websubHelper.subscribeForRemoveIdStatusEvent();
 	}
 
 	@PostConstruct
