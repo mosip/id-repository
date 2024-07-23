@@ -4,6 +4,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.AUTH_TYPE_SEPE
 import static io.mosip.idrepository.core.constant.IdRepoConstants.CREATE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UPDATE;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.VERIFIED_ATTRIBUTES;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
@@ -23,10 +24,12 @@ import javax.annotation.Resource;
 
 import io.mosip.kernel.core.http.RequestWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
+import org.springframework.web.client.RestTemplate;
 
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.AuthTypeStatusRequestDto;
@@ -103,6 +106,10 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	@Value("#{'${mosip.kernel.idobjectvalidator.mandatory-attributes.id-repository.update-uin:}'.split(',')}")
 	private List<String> updateUinFields;
 
+	/** The verified attributes fields. */
+	@Value("#{'${mosip.kernel.idobjectvalidator.mandatory-attributes.id-repository.verified-attributes:}'.split(',')}")
+	private List<String> verifiedAttributesFields;
+
 	/** The status. */
 	@Resource
 	private List<String> uinStatus;
@@ -128,6 +135,16 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	@Autowired
 	private IdRepoServiceHelper idRepoServiceHelper;
 
+	@Autowired
+	@Qualifier("plainRestTemplate")
+	private RestTemplate restTemplate;
+
+	/** The config server file storage URL. */
+	@Value("${config.server.file.storage.uri}")
+	private String configServerFileStorageURL;
+
+	@Value("${identity.service.verifiedattributes.file}")
+	private String verifiedAttributesfile;
 
 	@PostConstruct
 	public void init() {
@@ -246,6 +263,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 							} else {
 								idObjectValidator.validateIdObject(idRepoServiceHelper.getSchema(schemaVersion), requestMap, updateUinFields);
 							}
+							validateVerifiedAttributes(requestMap);
 						}
 					}
 				}
@@ -281,6 +299,27 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					VALIDATE_REQUEST + " InvalidIdSchemaException | IdObjectIOException " + e.getMessage());
 			errors.rejectValue(REQUEST, ID_OBJECT_PROCESSING_FAILED.getErrorCode(),
 					ID_OBJECT_PROCESSING_FAILED.getErrorMessage());
+		}
+	}
+
+	/**
+	 * validate verified attributes.
+	 * 
+	 * @param requestMap
+	 * @throws IdObjectValidationFailedException
+	 * @throws IdObjectIOException
+	 * @throws InvalidIdSchemaException
+	 */
+	@SuppressWarnings("unchecked")
+	private void validateVerifiedAttributes(Map<String, Object> requestMap)
+			throws IdObjectValidationFailedException, IdObjectIOException, InvalidIdSchemaException {
+		if (requestMap.containsKey(VERIFIED_ATTRIBUTES) && Objects.nonNull(requestMap.get(VERIFIED_ATTRIBUTES))
+				&& requestMap.get(VERIFIED_ATTRIBUTES) instanceof Map && requestMap.containsKey(ROOT_PATH)
+				&& Objects.nonNull(requestMap.get(ROOT_PATH))) {
+			String idSchema = restTemplate.getForObject(configServerFileStorageURL + verifiedAttributesfile,
+					String.class);
+			Map<String, Object> verifiedAttributesMap = (Map<String, Object>) requestMap.get(VERIFIED_ATTRIBUTES);
+			idObjectValidator.validateIdObject(idSchema, verifiedAttributesMap, verifiedAttributesFields);
 		}
 	}
 
