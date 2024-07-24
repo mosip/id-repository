@@ -317,8 +317,10 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	private void validateVerifiedAttributes(Map<String, Object> requestMap)
 			throws IdObjectValidationFailedException, IdObjectIOException, InvalidIdSchemaException {
 		if (requestMap.containsKey(VERIFIED_ATTRIBUTES) && Objects.nonNull(requestMap.get(VERIFIED_ATTRIBUTES))
-				&& requestMap.get(VERIFIED_ATTRIBUTES) instanceof Map && requestMap.containsKey(ROOT_PATH)
-				&& Objects.nonNull(requestMap.get(ROOT_PATH))) {
+				&& requestMap.get(VERIFIED_ATTRIBUTES) instanceof Map
+				&& !((Map<String, Object>) requestMap.get(VERIFIED_ATTRIBUTES)).isEmpty()
+				&& requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH))
+				&& !((Map<String, Object>) requestMap.get(ROOT_PATH)).isEmpty()) {
 			String idSchema = restTemplate.getForObject(configServerFileStorageURL + verifiedAttributesfile,
 					String.class);
 			Map<String, Object> verifiedAttributesMap = (Map<String, Object>) requestMap.get(VERIFIED_ATTRIBUTES);
