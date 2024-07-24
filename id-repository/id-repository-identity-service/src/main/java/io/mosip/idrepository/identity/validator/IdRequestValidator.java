@@ -50,6 +50,7 @@ import io.mosip.kernel.core.idvalidator.spi.UinValidator;
 import io.mosip.kernel.core.idvalidator.spi.VidValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.idobjectvalidator.impl.IdObjectSchemaValidator;
 
 /**
  * The Class IdRequestValidator - Validator for {@code IdRequestDTO}.
@@ -118,6 +119,9 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	@Autowired
 	private IdObjectValidator idObjectValidator;
 
+	@Autowired
+	private IdObjectSchemaValidator idObjectSchemaValidator;
+
 	/** The allowed types. */
 	private List<String> allowedTypes = List.of("bio", "demo", "metadata", "all");
 
@@ -159,7 +163,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 */
 	@Override
 	public boolean supports(Class<?> clazz) {
-		return clazz.isAssignableFrom(IdRequestDTO.class) || clazz.isAssignableFrom(AuthTypeStatusRequestDto.class);
+		return clazz.isAssignableFrom(IdRequestDTO.class) || clazz.isAssignableFrom(AuthTypeStatusRequestDto.class) || clazz.isAssignableFrom(RequestWrapper.class);
 	}
 
 	/*
@@ -170,9 +174,8 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 */
 	@Override
 	public void validate(@Nonnull Object target, Errors errors) {
-		if (target instanceof IdRequestDTO) {
-			RequestWrapper<IdRequestDTO<Object>> request = new RequestWrapper();
-			request.setRequest(new IdRequestDTO<Object>());
+		if (target instanceof RequestWrapper<?> && ((RequestWrapper<?>) target).getRequest() instanceof IdRequestDTO) {
+			RequestWrapper<IdRequestDTO<Object>> request = (RequestWrapper<IdRequestDTO<Object>>) target;
 
 			validateReqTime(request.getRequesttime(), errors);
 
@@ -251,6 +254,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 							String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), ROOT_PATH));
 				} else {
 					validateDocuments(requestMap, errors);
+					validateVerifiedAttributes(requestMap);
 					requestMap.keySet().parallelStream().filter(key -> !key.contentEquals(ROOT_PATH)).forEach(requestMap::remove);
 					if (!errors.hasErrors()) {
 						String schemaVersion;
@@ -263,7 +267,6 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 							} else {
 								idObjectValidator.validateIdObject(idRepoServiceHelper.getSchema(schemaVersion), requestMap, updateUinFields);
 							}
-							validateVerifiedAttributes(requestMap);
 						}
 					}
 				}
@@ -319,7 +322,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 			String idSchema = restTemplate.getForObject(configServerFileStorageURL + verifiedAttributesfile,
 					String.class);
 			Map<String, Object> verifiedAttributesMap = (Map<String, Object>) requestMap.get(VERIFIED_ATTRIBUTES);
-			idObjectValidator.validateIdObject(idSchema, verifiedAttributesMap, verifiedAttributesFields);
+			idObjectSchemaValidator.validateIdObject(idSchema, verifiedAttributesMap, verifiedAttributesFields);
 		}
 	}
 

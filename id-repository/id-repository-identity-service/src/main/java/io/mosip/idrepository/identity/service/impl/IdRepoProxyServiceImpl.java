@@ -638,8 +638,8 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 				response.setDocuments(documents);
 			}
 			ObjectNode identityObject = convertToObject(uin.getUinData(), ObjectNode.class);
-			response.setVerifiedAttributes(mapper.convertValue(identityObject.get("verifiedAttributes"), List.class));
-			identityObject.remove("verifiedAttributes");
+			response.setVerifiedAttributes(mapper.convertValue(identityObject.get(VERIFIED_ATTRIBUTES), Object.class));
+			identityObject.remove(VERIFIED_ATTRIBUTES);
 			response.setIdentity(identityObject);
 		}
 		idResponse.setResponse(response);
