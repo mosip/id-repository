@@ -142,7 +142,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 */
 	@Override
 	public boolean supports(Class<?> clazz) {
-		return clazz.isAssignableFrom(IdRequestDTO.class) || clazz.isAssignableFrom(AuthTypeStatusRequestDto.class);
+		return clazz.isAssignableFrom(IdRequestDTO.class) || clazz.isAssignableFrom(AuthTypeStatusRequestDto.class) || clazz.isAssignableFrom(RequestWrapper.class);
 	}
 
 	/*
@@ -153,9 +153,8 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 */
 	@Override
 	public void validate(@Nonnull Object target, Errors errors) {
-		if (target instanceof IdRequestDTO) {
-			RequestWrapper<IdRequestDTO<Object>> request = new RequestWrapper();
-			request.setRequest(new IdRequestDTO<Object>());
+		if (target instanceof RequestWrapper<?> && ((RequestWrapper<?>) target).getRequest() instanceof IdRequestDTO) {
+			RequestWrapper<IdRequestDTO<Object>> request = (RequestWrapper<IdRequestDTO<Object>>) target;
 
 			validateReqTime(request.getRequesttime(), errors);
 
