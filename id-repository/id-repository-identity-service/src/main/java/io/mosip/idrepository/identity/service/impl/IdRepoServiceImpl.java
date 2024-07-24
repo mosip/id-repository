@@ -523,10 +523,8 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 				Map<String, Object> identityMap = idRepoServiceHelper.convertToMap(requestDTO.getIdentity());
 				dbVerifiedAttributeMap.keySet().removeIf(identityMap::containsKey);
 			}
-			HashSet<Map> verifiedAttributesSet = new HashSet<>();
-			verifiedAttributesSet.add(dbVerifiedAttributeMap);
-			inputData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
-			dbData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
+			inputData.put("$", VERIFIED_ATTRIBUTES, dbVerifiedAttributeMap);
+			dbData.put("$", VERIFIED_ATTRIBUTES, dbVerifiedAttributeMap);
 		} else {
 			List verifiedAttributeList = (List) dbVerifiedAttributes.get(0);
 			if (Objects.nonNull(requestDTO.getVerifiedAttributes())) {
