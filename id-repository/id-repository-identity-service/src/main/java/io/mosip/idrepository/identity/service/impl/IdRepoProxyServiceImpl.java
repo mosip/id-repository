@@ -662,6 +662,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 			throw new IdRepoAppException(ID_OBJECT_PROCESSING_FAILED, e);
 		}
 	}
+
 	private void notify(String uin,boolean isUpdate, String txnId) {
 		try {
 			sendGenericIdentityEvents(uin, isUpdate, txnId);
