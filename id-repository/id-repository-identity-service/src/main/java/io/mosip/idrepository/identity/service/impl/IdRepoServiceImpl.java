@@ -208,6 +208,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	 */
 	@Override
 	public Uin addIdentity(IdRequestDTO<T> request, String uin) throws IdRepoAppException {
+		long epoch = System.currentTimeMillis();
 		String uinRefId = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils.getUTCCurrentDateTime())
 				.toString();
 		ObjectNode identityObject = mapper.convertValue(request.getIdentity(), ObjectNode.class);
@@ -217,7 +218,13 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
 		String uinToEncrypt = getUinToEncrypt(uin);
 
+		mosipLogger.info("Before starting the checkAndGetHandles: {}", System.currentTimeMillis()-epoch);
+		epoch = System.currentTimeMillis();
+
 		Map<String, HandleDto> selectedUniqueHandlesMap = checkAndGetHandles(request, null, null, CREATE);
+
+		mosipLogger.info("After completing with checkAndGetHandles: {}", System.currentTimeMillis()-epoch);
+		epoch = System.currentTimeMillis();
 
 		anonymousProfileHelper
 			.setRegId(request.getRegistrationId())
@@ -248,10 +255,21 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 						uinEntity.getUinData(), uinEntity.getUinDataHash(), uinEntity.getRegId(), activeStatus,
 						IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), null, null, false, null));
 
+		mosipLogger.info("After adding UIN: {}", System.currentTimeMillis()-epoch);
+		epoch = System.currentTimeMillis();
+
 		addIdentityHandle(uinEntity, selectedUniqueHandlesMap);
 
+		mosipLogger.info("After addIdentityHandle: {}", System.currentTimeMillis()-epoch);
+		epoch = System.currentTimeMillis();
+
 		issueCredential(uinEntity.getUin(), uinHashWithSalt, activeStatus, null, uinEntity.getRegId());
+
+		mosipLogger.info("After issueCredential: {}", System.currentTimeMillis()-epoch);
+		epoch = System.currentTimeMillis();
+
 		anonymousProfileHelper.buildAndsaveProfile(false);
+		mosipLogger.info("After buildAndsaveProfile: {}", System.currentTimeMillis()-epoch);
 		return uinEntity;
 	}
 
