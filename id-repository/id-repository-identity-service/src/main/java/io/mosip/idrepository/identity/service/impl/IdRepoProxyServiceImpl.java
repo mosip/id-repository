@@ -154,6 +154,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	 */
 	@Override
 	public IdResponseDTO<T> addIdentity(IdRequestDTO<T> request, String uin) throws IdRepoAppException {
+		long epoch = System.currentTimeMillis();
 		try {
 			String uinHash = retrieveUinHash(uin);
 			if (uinRepo.existsByUinHash(uinHash)
@@ -164,9 +165,17 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 				throw new IdRepoAppException(RECORD_EXISTS);
 			}
 
+			mosipLogger.info("Before starting the idreposervice addIdentity: {}", System.currentTimeMillis()-epoch);
+			epoch = System.currentTimeMillis();
+
 			Uin uinEntity = service.addIdentity(request, uin);
 
+			mosipLogger.info("After starting the idreposervice addIdentity: {}", System.currentTimeMillis()-epoch);
+			epoch = System.currentTimeMillis();
+
 			notify(uin, false, request.getRegistrationId());
+			mosipLogger.info("After notify: {}", System.currentTimeMillis()-epoch);
+
 			return constructIdResponse(this.id.get(CREATE), uinEntity, null);
 
 		} catch (IdRepoAppException e) {
