@@ -508,7 +508,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected void updateVerifiedAttributes(IdRequestDTO<T> requestDTO, DocumentContext inputData, DocumentContext dbData) throws IdRepoAppException {
-		List dbVerifiedAttributes = (List) dbData.read(".verifiedAttributes");
+		List dbVerifiedAttributes = (List) dbData.read(DOT + VERIFIED_ATTRIBUTES);
 		dbVerifiedAttributes.remove(null);
 		boolean isV2Version = requestDTO.getVerifiedAttributes() instanceof Map ? true : false;
 		if (dbVerifiedAttributes.isEmpty()) {
@@ -516,12 +516,11 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		}
 		if (isV2Version) {
 			Map dbVerifiedAttributeMap = (Map) dbVerifiedAttributes.get(0);
+			Map<String, Object> identityMap = idRepoServiceHelper.convertToMap(requestDTO.getIdentity());
+			dbVerifiedAttributeMap.keySet().removeIf(identityMap::containsKey);
 			if (Objects.nonNull(requestDTO.getVerifiedAttributes())
 					&& !((Map) requestDTO.getVerifiedAttributes()).isEmpty()) {
 				dbVerifiedAttributeMap.putAll((Map) requestDTO.getVerifiedAttributes());
-			} else {
-				Map<String, Object> identityMap = idRepoServiceHelper.convertToMap(requestDTO.getIdentity());
-				dbVerifiedAttributeMap.keySet().removeIf(identityMap::containsKey);
 			}
 			inputData.put("$", VERIFIED_ATTRIBUTES, dbVerifiedAttributeMap);
 			dbData.put("$", VERIFIED_ATTRIBUTES, dbVerifiedAttributeMap);
