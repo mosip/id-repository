@@ -143,12 +143,8 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	@Qualifier("plainRestTemplate")
 	private RestTemplate restTemplate;
 
-	/** The config server file storage URL. */
-	@Value("${config.server.file.storage.uri}")
-	private String configServerFileStorageURL;
-
-	@Value("${identity.service.verifiedattributes.file}")
-	private String verifiedAttributesfile;
+	@Value("${mosip.idrepo.verified-attributes.schema-url}")
+	private String verifiedAttributesSchemaUrl;
 
 	@PostConstruct
 	public void init() {
@@ -321,8 +317,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 				&& !((Map<String, Object>) requestMap.get(VERIFIED_ATTRIBUTES)).isEmpty()
 				&& requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH))
 				&& !((Map<String, Object>) requestMap.get(ROOT_PATH)).isEmpty()) {
-			String idSchema = restTemplate.getForObject(configServerFileStorageURL + verifiedAttributesfile,
-					String.class);
+			String idSchema = restTemplate.getForObject(verifiedAttributesSchemaUrl, String.class);
 			Map<String, Object> verifiedAttributesMap = (Map<String, Object>) requestMap.get(VERIFIED_ATTRIBUTES);
 			idObjectSchemaValidator.validateIdObject(idSchema, verifiedAttributesMap, verifiedAttributesFields);
 		}
