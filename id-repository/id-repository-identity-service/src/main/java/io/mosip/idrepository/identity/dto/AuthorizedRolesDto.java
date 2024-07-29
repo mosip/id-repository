@@ -19,9 +19,13 @@ public class AuthorizedRolesDto {
 	
 	private List<String> postidrepo;
 	
+	private List<String> postidrepov2;
+	
     private List<String> getidvidid;	
 	
 	private List<String> patchidrepo; 
+	
+	private List<String> patchidrepov2;
 	 
 	private List<String> getauthtypesstatusindividualidtypeindividualid;
 	

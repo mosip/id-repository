@@ -178,10 +178,9 @@ public class IdentityIssuanceProfileBuilder {
 		return List.of();
 	}
 
-	private List<String> getVerified(JsonNode identity) {
-		return Objects.isNull(identity.get(VERIFIED_ATTRIBUTES)) || identity.get(VERIFIED_ATTRIBUTES).isNull() ? List.of()
-				: mapper.convertValue(identity.get(VERIFIED_ATTRIBUTES), new TypeReference<List<String>>() {
-				});
+	private JsonNode getVerified(JsonNode identity) {
+		return Objects.isNull(identity.get(VERIFIED_ATTRIBUTES)) || identity.get(VERIFIED_ATTRIBUTES).isNull() ? mapper.createObjectNode()
+				: identity.get(VERIFIED_ATTRIBUTES);
 	}
 
 	private List<BiometricInfo> getBiometricInfo(List<BIR> biometrics) {

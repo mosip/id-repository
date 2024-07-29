@@ -2,6 +2,8 @@ package io.mosip.idrepository.core.dto;
 
 import java.util.List;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,7 +16,7 @@ public class AnonymousProfile {
 	private String preferredLanguage;
 	private List<String> channel;
 	private List<Exceptions> exceptions;
-	private List<String> verified;
+	private JsonNode verified;
 	private List<BiometricInfo> biometricInfo;
 	private List<String> documents;
 }
