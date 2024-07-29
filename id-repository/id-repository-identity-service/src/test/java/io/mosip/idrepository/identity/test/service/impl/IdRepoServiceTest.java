@@ -2215,6 +2215,49 @@ public class IdRepoServiceTest {
 		assertEquals(List.of("a", "b"), verifiedAttributes);
 	}
 
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testUpdateIdentityUpdateVerifiedAttributesV2()
+			throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
+		Object obj = mapper.readValue(
+				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
+						.getBytes(),
+				Object.class);
+		IdRequestDTO req = new IdRequestDTO();
+		req.setStatus("REGISTERED");
+		req.setRegistrationId("27841457360002620190730095024");
+		req.setIdentity(obj);
+		req.setVerifiedAttributes(Map.of("a", "b"));
+		request.setRequest(req);
+		Uin uinObj = new Uin();
+		uinObj.setUin("1234");
+		uinObj.setUinRefId("1234");
+		uinObj.setStatusCode("REGISTERED");
+		Object obj2 = mapper.readValue(
+				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}}"
+						.getBytes(),
+				Object.class);
+		uinObj.setUinData(mapper.writeValueAsBytes(obj2));
+		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
+		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
+		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
+		when(uinRepo.save(Mockito.any())).thenReturn(uinObj);
+		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+		when(anonymousProfileHelper.isNewCbeffPresent()).thenReturn(false);
+		when(identityUpdateTracker.findById(any())).thenReturn(Optional.empty());
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("http://localhost/v1/vid/{uin}");
+		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
+		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
+		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
+		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
+		Uin updatedIdentity = service.updateIdentity(request.getRequest(), "234");
+		Map<String, Object> verifiedAttributes = (Map) mapper.readValue(updatedIdentity.getUinData(), Map.class)
+				.get("verifiedAttributes");
+		assertEquals(Map.of("a", "b"), verifiedAttributes);
+	}
+
 	@Test
 	public void testGetRidByUin() throws IdRepoAppException {
 		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
