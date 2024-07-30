@@ -55,7 +55,7 @@ ARG container_user_gid=1001
 
 # install packages and create user
 RUN apk -q update \
-&& apk add -q unzip sudo bash "wget=1.21.4-r0" \
+&& apk add -q unzip \
 && addgroup -g ${container_user_gid} ${container_user_group} \
 && adduser -s /bin/sh -u ${container_user_uid} -G ${container_user_group} -h /home/${container_user} --disabled-password ${container_user}
 
