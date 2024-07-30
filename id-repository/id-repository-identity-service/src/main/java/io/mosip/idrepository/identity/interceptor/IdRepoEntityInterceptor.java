@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.apache.commons.codec.binary.StringUtils;
-import org.hibernate.EmptyInterceptor;
+import org.hibernate.Interceptor;
 import org.hibernate.type.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,7 +38,7 @@ import io.mosip.kernel.core.util.CryptoUtil;
  * @author Manoj SP
  */
 @Component
-public class IdRepoEntityInterceptor extends EmptyInterceptor {
+public class IdRepoEntityInterceptor implements Interceptor {
 
 	private static final String UIN = "uin";
 	private static final String HANDLE = "handle";
@@ -90,7 +90,7 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_ENTITY_INTERCEPTOR, "onSave", "\n" + e.getMessage());
 			throw new IdRepoAppUncheckedException(ENCRYPTION_DECRYPTION_FAILED, e);
 		}
-		return super.onSave(entity, id, state, propertyNames, types);
+		return Interceptor.super.onSave(entity, id, state, propertyNames, types);
 	}
 
 	private <T extends UinInfo> void encryptDataOnSave(Serializable id, Object[] state, List<String> propertyNamesList,
@@ -149,7 +149,7 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_ENTITY_INTERCEPTOR, "onLoad", "\n" + e.getMessage());
 			throw new IdRepoAppUncheckedException(ENCRYPTION_DECRYPTION_FAILED, e);
 		}
-		return super.onLoad(entity, id, state, propertyNames, types);
+		return Interceptor.super.onLoad(entity, id, state, propertyNames, types);
 	}
 
 	/*
@@ -173,7 +173,7 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_ENTITY_INTERCEPTOR, "onSave", "\n" + e.getMessage());
 			throw new IdRepoAppUncheckedException(ENCRYPTION_DECRYPTION_FAILED, e);
 		}
-		return super.onFlushDirty(entity, id, currentState, previousState, propertyNames, types);
+		return Interceptor.super.onFlushDirty(entity, id, currentState, previousState, propertyNames, types);
 	}
 
 	private <T extends UinInfo> boolean encryptOnDirtyFlush(Serializable id, Object[] currentState, Object[] previousState,
@@ -182,6 +182,6 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 		List<String> propertyNamesList = Arrays.asList(propertyNames);
 		int indexOfData = propertyNamesList.indexOf(UIN_DATA);
 		currentState[indexOfData] = encryptedData;
-		return super.onFlushDirty(uinEntity, id, currentState, previousState, propertyNames, types);
+		return Interceptor.super.onFlushDirty(uinEntity, id, currentState, previousState, propertyNames, types);
 	}
 }

@@ -129,7 +129,7 @@ public class VidRepoConfig {
 		Map<String, Object> jpaProperties = new HashMap<>();
 		jpaProperties.put("hibernate.implicit_naming_strategy", SpringImplicitNamingStrategy.class.getName());
 		jpaProperties.put("hibernate.physical_naming_strategy", org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl.class.getName());
-		jpaProperties.put("hibernate.ejb.interceptor", interceptor);
+		jpaProperties.put("hibernate.session_factory", interceptor);
 		jpaProperties.replace("hibernate.dialect", "org.hibernate.dialect.PostgreSQL92Dialect");
 		return jpaProperties;
 	}

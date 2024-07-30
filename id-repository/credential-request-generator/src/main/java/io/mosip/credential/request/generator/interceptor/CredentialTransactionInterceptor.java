@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 
-import org.hibernate.EmptyInterceptor;
+import org.hibernate.Interceptor;
 import org.hibernate.type.Type;
 import org.springframework.http.MediaType;
 
@@ -28,7 +28,7 @@ import io.mosip.kernel.core.util.DateUtils;
  * @author Manoj SP
  *
  */
-public class CredentialTransactionInterceptor extends EmptyInterceptor {
+public class CredentialTransactionInterceptor implements Interceptor {
 
 	private static final String REQUEST = "request";
 
@@ -45,7 +45,7 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 	@Override
 	public boolean onSave(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
 		encryptData(entity, state, propertyNames);
-		return super.onSave(entity, id, state, propertyNames, types);
+		return Interceptor.super.onSave(entity, id, state, propertyNames, types);
 	}
 
 	@Override
@@ -65,14 +65,14 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 			}
 			state[indexOfData] = decryptedData;
 		}
-		return super.onLoad(entity, id, state, propertyNames, types);
+		return Interceptor.super.onLoad(entity, id, state, propertyNames, types);
 	}
 	
 	@Override
 	public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState,
 			String[] propertyNames, Type[] types) {
 		encryptData(entity, currentState, propertyNames);
-		return super.onFlushDirty(entity, id, currentState, previousState, propertyNames, types);
+		return Interceptor.super.onFlushDirty(entity, id, currentState, previousState, propertyNames, types);
 	}
 
 	private void encryptData(Object entity, Object[] state, String[] propertyNames) {

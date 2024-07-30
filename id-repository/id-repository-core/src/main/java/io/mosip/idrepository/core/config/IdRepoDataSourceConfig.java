@@ -94,7 +94,7 @@ public class IdRepoDataSourceConfig {
 		jpaProperties.put("hibernate.temp.use_jdbc_metadata_defaults", Boolean.FALSE);
 		jpaProperties.put("hibernate.implicit_naming_strategy", SpringImplicitNamingStrategy.class.getName());
 		jpaProperties.put("hibernate.physical_naming_strategy", org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl.class.getName());
-		jpaProperties.put("hibernate.ejb.interceptor", interceptor);
+		jpaProperties.put("hibernate.session_factory.interceptor", interceptor);
 		return jpaProperties;
 	}
 
