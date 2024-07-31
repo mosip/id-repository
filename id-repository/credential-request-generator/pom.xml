@@ -7,11 +7,11 @@
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.2.1-java21-SNAPSHOT</version>
+		<version>1.2.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>credential-request-generator</artifactId>
-	<version>1.2.1-java21-SNAPSHOT</version>
+	<version>1.2.1-SNAPSHOT</version>
 	<name>credential-request-generator</name>
 
 	<properties>
@@ -24,16 +24,16 @@
 		<spring-cloud-config.version>2.0.0.RELEASE</spring-cloud-config.version>
 		<h2.version>1.4.197</h2.version>
 		<swagger.version>2.9.2</swagger.version>
-		<kernel.core.version>1.2.1-java21-SNAPSHOT</kernel.core.version>
+		<kernel.core.version>1.2.1-SNAPSHOT</kernel.core.version>
 		<powermock.module.junit4.version>1.7.4</powermock.module.junit4.version>
 		<powermock.api.mockito.version>1.7.4</powermock.api.mockito.version>
-		<kernel.dataaccess.hibernate.version>1.2.1-java21-SNAPSHOT</kernel.dataaccess.hibernate.version>
+		<kernel.dataaccess.hibernate.version>1.2.1-SNAPSHOT</kernel.dataaccess.hibernate.version>
 		<apache.httpcomponents.version>4.5.6</apache.httpcomponents.version>
 		<gson.version>2.8.4</gson.version>
-		<kernel.auth.adaptor.version>1.2.1-java21-SNAPSHOT</kernel.auth.adaptor.version>
+		<kernel.auth.adaptor.version>1.2.1-SNAPSHOT</kernel.auth.adaptor.version>
 		<postgresql.version>42.2.2</postgresql.version>
 		<io.micrometer.prometheus.version>1.4.2</io.micrometer.prometheus.version>
-		<kernel.websubclient.version>1.2.1-java21-SNAPSHOT</kernel.websubclient.version>
+		<kernel.websubclient.version>1.2.1-SNAPSHOT</kernel.websubclient.version>
 		<spring.batch.integration.version>4.0.1.RELEASE</spring.batch.integration.version>
 		<springdoc.version>1.5.10</springdoc.version>
 	</properties>
