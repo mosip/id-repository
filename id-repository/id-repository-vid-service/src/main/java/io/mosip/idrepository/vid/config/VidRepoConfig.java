@@ -16,12 +16,14 @@ import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
 import org.hibernate.Interceptor;
+import org.mvel2.MVEL;
+import org.mvel2.integration.VariableResolverFactory;
+import org.mvel2.integration.impl.MapVariableResolverFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
-import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -53,9 +55,6 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.vid.repository.VidRepo;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
-import org.mvel2.MVEL;
-import org.mvel2.integration.VariableResolverFactory;
-import org.mvel2.integration.impl.MapVariableResolverFactory;
 
 /**
  * The Class Vid Repo Config.
@@ -129,8 +128,8 @@ public class VidRepoConfig {
 	public Map<String, Object> jpaProperties() {
 		Map<String, Object> jpaProperties = new HashMap<>();
 		jpaProperties.put("hibernate.implicit_naming_strategy", SpringImplicitNamingStrategy.class.getName());
-		jpaProperties.put("hibernate.physical_naming_strategy", SpringPhysicalNamingStrategy.class.getName());
-		jpaProperties.put("hibernate.ejb.interceptor", interceptor);
+		jpaProperties.put("hibernate.physical_naming_strategy", org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl.class.getName());
+		jpaProperties.put("hibernate.session_factory", interceptor);
 		jpaProperties.replace("hibernate.dialect", "org.hibernate.dialect.PostgreSQL92Dialect");
 		return jpaProperties;
 	}
@@ -232,23 +231,5 @@ public class VidRepoConfig {
 					threadPoolTaskExecutor.getActiveCount(),
 					threadPoolTaskExecutor.getThreadPoolExecutor().getTaskCount(), threadPoolQueueSize);
 	}
-	
-	@Value("${config.server.file.storage.uri}")
-	private String configServerFileStorageURL;
 
-	@Value("${credential.service.mvel.file}")
-	private String mvelFile;
-
-	@Autowired
-	@Qualifier("restTemplate")
-	private RestTemplate restTemplate;	
-
-	@Bean("mask")
-	public VariableResolverFactory getVariableResolverFactory() {
-		String mvelExpression = restTemplate.getForObject(configServerFileStorageURL + mvelFile, String.class);
-		VariableResolverFactory functionFactory = new MapVariableResolverFactory();
-		MVEL.eval(mvelExpression, functionFactory);
-		return functionFactory;
-	}
-	
 }

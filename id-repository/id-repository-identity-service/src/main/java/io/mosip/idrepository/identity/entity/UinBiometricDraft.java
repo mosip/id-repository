@@ -3,14 +3,14 @@ package io.mosip.idrepository.identity.entity;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
@@ -24,7 +24,7 @@ import lombok.Data;
 @Data
 @Entity
 @IdClass(BiometricDraftPK.class)
-@Table(schema = "idrepo")
+@Table(schema = "idrepo", name = "uin_biometric_draft")
 public class UinBiometricDraft implements Serializable {
 	
 	public UinBiometricDraft() {
@@ -55,18 +55,23 @@ public class UinBiometricDraft implements Serializable {
 
 	/** The uin ref id. */
 	@Id
+	@Column(name = "reg_id")
 	private String regId;
 
 	/** The bio file id. */
+	@Column(name = "bio_file_id")
 	private String bioFileId;
 
 	@Id
+	@Column(name = "biometric_file_type")
 	private String biometricFileType;
 
 	/** The biometric file name. */
+	@Column(name = "biometric_file_name")
 	private String biometricFileName;
 
 	/** The biometric file hash. */
+	@Column(name = "biometric_file_hash")
 	private String biometricFileHash;
 
 	/** The created by. */

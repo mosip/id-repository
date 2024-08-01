@@ -2,10 +2,10 @@ package io.mosip.idrepository.core.entity;
 
 import java.time.LocalDateTime;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,11 +19,12 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @NoArgsConstructor
-@Table
+@Table(name = "uin_encrypt_salt")
 public class UinEncryptSalt {
 	
 	/**  The Id value. */
 	@Id
+	@Column(name = "id")
 	private int id;
 
 	/**  The salt value. */

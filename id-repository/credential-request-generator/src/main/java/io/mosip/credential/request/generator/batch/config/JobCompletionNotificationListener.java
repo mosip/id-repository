@@ -2,7 +2,7 @@ package io.mosip.credential.request.generator.batch.config;
 
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.listener.JobExecutionListenerSupport;
+import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.stereotype.Component;
 
 import io.mosip.credential.request.generator.constants.LoggerFileConstant;
@@ -22,7 +22,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
  * @author Sowmya
  */
 @Component
-public class JobCompletionNotificationListener extends JobExecutionListenerSupport {
+public class JobCompletionNotificationListener implements JobExecutionListener {
 
 	private static final Logger LOGGER = IdRepoLogger
 			.getLogger(JobCompletionNotificationListener.class);
@@ -30,7 +30,6 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 	/* (non-Javadoc)
 	 * @see org.springframework.batch.core.listener.JobExecutionListenerSupport#afterJob(org.springframework.batch.core.JobExecution)
 	 */
-	@Override
 	public void afterJob(JobExecution jobExecution) {
 		  if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
 			LOGGER.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.ID.toString(),

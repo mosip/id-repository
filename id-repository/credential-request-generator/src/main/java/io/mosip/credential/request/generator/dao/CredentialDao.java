@@ -35,7 +35,7 @@ public class CredentialDao {
 
 	/** The crdential repo. */
 	@Autowired
-	private CredentialRepositary<CredentialEntity, String> credentialRepo;
+	private CredentialRepositary credentialRepo;
 
 	public void update(String batchId, List<CredentialEntity> credentialEntities) {
 		credentialRepo.saveAll(credentialEntities);
