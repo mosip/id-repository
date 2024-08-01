@@ -444,8 +444,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 				anonymousProfileHelper.setOldUinData(dbData.jsonString().getBytes());
 				updateVerifiedAttributes(request, inputData, dbData);
 				updateSelectedHandles(inputData, dbData);
-				JSONObject identityObj=new JSONObject(new String(uinObject.getUinData()));
-				String schema=idRepoServiceHelper.getSchema(identityObj.getString(idRepoServiceHelper.getIdentityMapping().getIdentity().getIDSchemaVersion().getValue()));
+				String schema=idRepoServiceHelper.getSchemaBasedOnUINData(new String(uinObject.getUinData()));
 				if(!schema.contains(handleSchemaDefinition)) {
 					JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(),
 							dbData.jsonString(), JSONCompareMode.LENIENT);

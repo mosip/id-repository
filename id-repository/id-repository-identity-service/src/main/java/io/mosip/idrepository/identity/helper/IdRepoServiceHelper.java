@@ -25,6 +25,8 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.idobjectvalidator.constant.IdObjectValidatorConstant;
 import org.apache.commons.io.IOUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -146,6 +148,10 @@ public class IdRepoServiceHelper {
             mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER, "getSchema", "\n" + e.getMessage());
             throw new IdRepoAppUncheckedException(IdRepoErrorConstants.SCHEMA_RETRIEVE_ERROR);
         }
+    }
+
+    public String getSchemaBasedOnUINData(String identity) throws JSONException {
+        return getSchema(new JSONObject(identity).getString(getIdentityMapping().getIdentity().getIDSchemaVersion().getValue()));
     }
 
 	/**

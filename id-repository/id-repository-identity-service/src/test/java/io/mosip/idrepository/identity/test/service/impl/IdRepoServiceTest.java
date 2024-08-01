@@ -3,9 +3,7 @@ package io.mosip.idrepository.identity.test.service.impl;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -26,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
 import io.mosip.kernel.core.http.RequestWrapper;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.exception.JDBCConnectionException;
+import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -127,6 +126,9 @@ public class IdRepoServiceTest {
 
 	private static final String ACTIVATED = "ACTIVATED";
 
+	private static final String SCHEMA_DEFF = "TaggedListType";
+
+
 	@Mock
 	CbeffImpl cbeffUtil;
 
@@ -166,6 +168,7 @@ public class IdRepoServiceTest {
 	/** The rest template. */
 	@Mock
 	private RestHelper restHelper;
+
 
 	@Mock
 	private DefaultShardResolver shardResolver;
@@ -240,7 +243,7 @@ public class IdRepoServiceTest {
 	 * @throws RestServiceException
 	 */
 	@Before
-	public void setup() throws FileNotFoundException, IOException, IdRepoDataValidationException, RestServiceException {
+	public void setup() throws FileNotFoundException, IOException, IdRepoDataValidationException, RestServiceException, JSONException {
 		RegistryIDType registryIDType = new RegistryIDType();
 		registryIDType.setOrganization("257");
 		registryIDType.setType("7");
@@ -256,6 +259,7 @@ public class IdRepoServiceTest {
 		ReflectionTestUtils.setField(proxyService, "id", id);
 		ReflectionTestUtils.setField(service, "mapper", mapper);
 		ReflectionTestUtils.setField(service, "activeStatus", ACTIVATED);
+		ReflectionTestUtils.setField(service, "handleSchemaDefinition", SCHEMA_DEFF);
 		ReflectionTestUtils.setField(proxyService, "service", service);
 		ReflectionTestUtils.setField(proxyService, "allowedBioAttributes",
 				Collections.singletonList("individualBiometrics"));
@@ -274,6 +278,7 @@ public class IdRepoServiceTest {
 		when(anonymousProfileHelper.setOldCbeff(Mockito.any())).thenReturn(anonymousProfileHelper);
 		when(anonymousProfileHelper.setNewUinData(Mockito.any())).thenReturn(anonymousProfileHelper);
 		when(anonymousProfileHelper.isNewCbeffPresent()).thenReturn(true);
+		Mockito.when(idRepoServiceHelper.getSchemaBasedOnUINData(anyString())).thenReturn("{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"description\":\"Identity schema for sign up\",\"additionalProperties\":false,\"title\":\"signup identity\",\"type\":\"object\",\"definitions\":{\"simpleType\":{\"uniqueItems\":true,\"additionalItems\":false,\"type\":\"array\",\"items\":{\"additionalProperties\":false,\"type\":\"object\",\"required\":[\"language\",\"value\"],\"properties\":{\"language\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}}}},\"documentType\":{\"additionalProperties\":false,\"type\":\"object\",\"properties\":{\"format\":{\"type\":\"string\"},\"type\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}}},\"biometricsType\":{\"additionalProperties\":false,\"type\":\"object\",\"properties\":{\"format\":{\"type\":\"string\"},\"version\":{\"type\":\"number\",\"minimum\":0},\"value\":{\"type\":\"string\"}}},\"hashType\":{\"additionalProperties\":false,\"type\":\"object\",\"properties\":{\"hash\":{\"type\":\"string\"},\"salt\":{\"type\":\"string\"}}}},\"properties\":{\"identity\":{\"additionalProperties\":false,\"type\":\"object\",\"required\":[\"IDSchemaVersion\",\"fullName\",\"phone\",\"password\",\"preferredLang\"],\"properties\":{\"UIN\":{\"bioAttributes\":[],\"fieldCategory\":\"none\",\"format\":\"none\",\"type\":\"string\",\"fieldType\":\"default\"},\"IDSchemaVersion\":{\"bioAttributes\":[],\"fieldCategory\":\"none\",\"format\":\"none\",\"type\":\"number\",\"fieldType\":\"default\",\"minimum\":0},\"selectedHandles\":{\"fieldCategory\":\"none\",\"format\":\"none\",\"type\":\"array\",\"items\":{\"type\":\"string\"},\"fieldType\":\"default\"},\"fullName\":{\"bioAttributes\":[],\"validators\":[{\"validator\":\"^(?=.{3,50}$).\",\"arguments\":[],\"type\":\"regex\"},{\"validator\":\"^[\\u1780-\\u17FF\\u19E0-\\u19FF\\u1A00-\\u1A9F\\u0020]{1,30}$\",\"arguments\":[],\"type\":\"regex\",\"langCode\":\"khm\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#/definitions/simpleType\"},\"phone\":{\"bioAttributes\":[],\"validators\":[{\"validator\":\"^[+]855([0-9]{8,9})$\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"type\":\"string\",\"fieldType\":\"default\",\"requiredOn\":\"\",\"handle\":true},\"password\":{\"bioAttributes\":[],\"validators\":[],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#/definitions/hashType\"},\"preferredLang\":{\"bioAttributes\":[],\"validators\":[{\"validator\":\"(^eng$|^khm$)\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"type\":\"string\"},\"registrationType\":{\"bioAttributes\":[],\"validators\":[{\"validator\":\"^L[1-2]{1}$\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"type\":\"string\"},\"phoneVerified\":{\"bioAttributes\":[],\"validators\":[],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"type\":\"boolean\"},\"updatedAt\":{\"bioAttributes\":[],\"validators\":[],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"type\":\"number\"}}}}}");
 	}
 
 	/**
@@ -1391,6 +1396,7 @@ public class IdRepoServiceTest {
 
 	@Test
 	public void testIdentityUpdateBioDocuments() throws Exception {
+		ReflectionTestUtils.setField(idRepoServiceHelper, "restBuilder", restBuilder);
 		Uin uinObj = new Uin();
 		uinObj.setUin("1234");
 		uinObj.setUinHash("1234_1234");
@@ -1410,7 +1416,8 @@ public class IdRepoServiceTest {
 		biometrics.setBiometricFileName("name");
 		uinObj.setBiometrics(Collections.singletonList(biometrics));
 		uinObj.setUinData(
-				("{\"status\": \"ACTIVATED\",\"individualBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\""
+				("{\"status\": \"ACTIVATED\"," +"\"IDSchemaVersion\":0.3,"+
+						"\"individualBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\""
 						+ IdRepoConstants.FILE_NAME_ATTRIBUTE + "\":\"fileReferenceID\"}}").getBytes());
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
 		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn(ACTIVATED);
