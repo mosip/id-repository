@@ -196,6 +196,9 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	@Value("${mosip.idrepo.update-identity.trim-whitespaces:true}")
 	private boolean trimWhitespaces;
 
+	@Value("${mosip.identity.handle.schema.definitions:TaggedListType}")
+	private String handleSchemaDefinition;
+
 	/**
 	 * Adds the identity to DB.
 	 *
@@ -441,11 +444,14 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 				anonymousProfileHelper.setOldUinData(dbData.jsonString().getBytes());
 				updateVerifiedAttributes(request, inputData, dbData);
 				updateSelectedHandles(inputData, dbData);
-				JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(),
-						dbData.jsonString(), JSONCompareMode.LENIENT);
-
-				if (comparisonResult.failed()) {
-					updateJsonObject(uinHash, inputData, dbData, comparisonResult, true);
+				JSONObject identityObj=new JSONObject(new String(uinObject.getUinData()));
+				String schema=idRepoServiceHelper.getSchema(identityObj.getString(idRepoServiceHelper.getIdentityMapping().getIdentity().getIDSchemaVersion().getValue()));
+				if(!schema.contains(handleSchemaDefinition)) {
+					JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(),
+							dbData.jsonString(), JSONCompareMode.LENIENT);
+					if (comparisonResult.failed()) {
+						updateJsonObject(uinHash, inputData, dbData, comparisonResult, true);
+					}
 				}
 				uinObject.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
 				uinObject.setUinDataHash(securityManager.hash(uinObject.getUinData()));
