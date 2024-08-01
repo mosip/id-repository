@@ -21,6 +21,7 @@ on:
       - develop
       - MOSIP*
       - ES-842
+      - mosip*
 
 jobs:
   build-maven-id-repository:
