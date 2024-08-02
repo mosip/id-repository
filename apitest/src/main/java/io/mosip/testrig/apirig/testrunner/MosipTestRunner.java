@@ -86,54 +86,16 @@ public class MosipTestRunner {
 
 			List<String> localLanguageList = new ArrayList<>(BaseTestCase.getLanguageList());
 			AdminTestUtil.getLocationData();
-
-			String partnerKeyURL = "";
-			String updatedPartnerKeyURL = "";
-			String ekycPartnerKeyURL = "";
-
+			
+			// Generate device certificates to be consumed by Mock-MDS
 			PartnerRegistration.deleteCertificates();
-			CertificateGenerationUtil.getThumbprints();
 			AdminTestUtil.createAndPublishPolicy();
 			AdminTestUtil.createEditAndPublishPolicy();
-			partnerKeyURL = PartnerRegistration.generateAndGetPartnerKeyUrl();
-			updatedPartnerKeyURL = PartnerRegistration.generateAndGetUpdatedPartnerKeyUrl();
-
-			AdminTestUtil.createAndPublishPolicyForKyc();
-			ekycPartnerKeyURL = PartnerRegistration.generateAndGetEkycPartnerKeyUrl();
+			PartnerRegistration.deviceGeneration();
 
 			BiometricDataProvider.generateBiometricTestData("Registration");
 
-			if (BaseTestCase.listOfModules.contains(GlobalConstants.MASTERDATA)) {
-				AdminTestUtil.getHierarchyZoneCode();
-				BaseTestCase.mapUserToZone();
-				BaseTestCase.mapZone();
-				AdminTestUtil.getLocationLevelData();
-				AdminTestUtil.getLocationData();
-				AdminTestUtil.getZoneName();
-				
-				
-
-				for (int i = 0; i < localLanguageList.size(); i++) {
-					BaseTestCase.languageList.clear();
-					BaseTestCase.languageList.add(localLanguageList.get(i));
-
-					DBManager.clearMasterDbData();
-					BaseTestCase.currentModule = GlobalConstants.MASTERDATA;
-					BaseTestCase.setReportName("masterdata-" + localLanguageList.get(i));
-					startTestRunner();
-
-				}
-
-			} else if (BaseTestCase.listOfModules.contains("auth")
-					|| BaseTestCase.listOfModules.contains(GlobalConstants.ESIGNET)) {
-				if (partnerKeyURL.isEmpty())
-				//	if (partnerKeyURL.isEmpty() || ekycPartnerKeyURL.isEmpty())
-					LOGGER.error("partnerKeyURL is null");
-				else
-					startTestRunner();
-			} else {
-				startTestRunner();
-			}
+			startTestRunner();
 		} catch (Exception e) {
 			LOGGER.error("Exception " + e.getMessage());
 		}
