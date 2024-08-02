@@ -195,7 +195,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	@Value("${mosip.idrepo.update-identity.trim-whitespaces:true}")
 	private boolean trimWhitespaces;
 
-	@Value("#{${mosip.idrepo.update-identity.fields-to-replace}}")
+	@Value("${mosip.idrepo.update-identity.fields-to-replace}")
 	private List<String> fieldsToReplaceOnUpdate;
 
 	/**
@@ -1031,7 +1031,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			List<String> duplicateHandleFieldIds = handles.keySet().stream().filter(handleName -> {
 				List<String> hashes = handles.get(handleName).stream().map(HandleDto::getHandleHash).collect(Collectors.toList());
 				List<String> uinHashFromDB = handleRepo.findUinHashByHandleHashes(hashes);
-				if (Objects.nonNull(uinHashFromDB)) {
+				if (!uinHashFromDB.isEmpty()) {
 					if (method.equals(UPDATE) && uinHashFromDB.contains(uinHash)) {
 						return false;
 					}
