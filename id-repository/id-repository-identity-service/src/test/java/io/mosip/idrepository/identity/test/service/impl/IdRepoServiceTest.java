@@ -15,12 +15,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import io.mosip.kernel.core.http.RequestWrapper;
@@ -261,6 +256,8 @@ public class IdRepoServiceTest {
 				Collections.singletonList("individualBiometrics"));
 		ReflectionTestUtils.setField(service, "bioAttributes",
 				Lists.newArrayList("individualBiometrics", "parentOrGuardianBiometrics"));
+		ReflectionTestUtils.setField(service, "fieldsToReplaceOnUpdate",
+				Lists.newArrayList("selectedHandles"));
 		IdRequestDTO<Object> req = new IdRequestDTO<>();
 		req.setRegistrationId("registrationId");
 		request.setRequest(req);
@@ -1094,15 +1091,22 @@ public class IdRepoServiceTest {
 		restReq.setUri("http://localhost/v1/vid/{uin}");
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
 		when(identityUpdateTracker.findById(any())).thenReturn(Optional.empty());
-		Map<String, HandleDto> inputHandlesMap = new HashMap<String, HandleDto>();
-		inputHandlesMap.put("email", new HandleDto("ritik8989@gmail.com@email", "341_AAFB5CBEB3878A4BA9"));
-		inputHandlesMap.put("dateOfBirth", new HandleDto("2000/01/01@dateOfBirth", "341_AAFB5CBEB38ert4r59"));
-		Map<String, HandleDto> existingHandlesMap = new HashMap<String, HandleDto>();
-		existingHandlesMap.put("phone", new HandleDto("8987989789@phone", "341_AAFB5CBEB3878A4we3"));
-		existingHandlesMap.put("email", new HandleDto("ritik8989@gmail.com@email", "341_AAFB5CBEB3878A4BA9"));
-		when(idRepoServiceHelper.getSelectedHandles(any(), nullable(Map.class), anyBoolean()))
-				.thenReturn(existingHandlesMap).thenReturn(inputHandlesMap);
-		when(handleRepo.findUinHashByHandleHash(Mockito.anyString())).thenReturn(null).thenReturn("375848393846348345");
+		Map<String, List<HandleDto>> inputHandlesMap = new HashMap<>();
+		List<HandleDto> inputEmail = new ArrayList<>();
+		inputEmail.add(new HandleDto("ritik8989@gmail.com@email", "341_AAFB5CBEB3878A4BA9"));
+		inputHandlesMap.put("email", inputEmail);
+		List<HandleDto> inputDob = new ArrayList<>();
+		inputDob.add(new HandleDto("2000/01/01@dateOfBirth", "341_AAFB5CBEB38ert4r59"));
+		inputHandlesMap.put("dateOfBirth", inputDob);
+		Map<String, List<HandleDto>> existingHandlesMap = new HashMap<>();
+		List<HandleDto> existsPhone = new ArrayList<>();
+		existsPhone.add(new HandleDto("8987989789@phone", "341_AAFB5CBEB3878A4we3"));
+		existingHandlesMap.put("phone", existsPhone);
+		List<HandleDto> existsEmail = new ArrayList<>();
+		existsEmail.add(new HandleDto("ritik8989@gmail.com@email", "341_AAFB5CBEB3878A4BA9"));
+		existingHandlesMap.put("email", existsEmail);
+		when(idRepoServiceHelper.getSelectedHandles(any(), nullable(Map.class))).thenReturn(existingHandlesMap).thenReturn(inputHandlesMap);
+		when(handleRepo.findUinHashByHandleHashes(Mockito.any())).thenReturn(null).thenReturn(Collections.singletonList("375848393846348345"));
 		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
@@ -1138,11 +1142,11 @@ public class IdRepoServiceTest {
 			when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
 			when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
 			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-			Map<String, HandleDto> inputHandlesMap = new HashMap<String, HandleDto>();
-			inputHandlesMap.put("email", new HandleDto("ritik8989@gmail.com@email", "341_AAFB5CBEB3878A4BA9"));
-			Map<String, HandleDto> existingHandlesMap = new HashMap<String, HandleDto>();
-			existingHandlesMap.put("phone", new HandleDto("8987989789@phone", "341_AAFB5CBEB3878A4we3"));
-			when(idRepoServiceHelper.getSelectedHandles(any(), nullable(Map.class), anyBoolean()))
+			Map<String, List<HandleDto>> inputHandlesMap = new HashMap<>();
+			inputHandlesMap.put("email", List.of(new HandleDto("ritik8989@gmail.com@email", "341_AAFB5CBEB3878A4BA9")));
+			Map<String, List<HandleDto>> existingHandlesMap = new HashMap<>();
+			existingHandlesMap.put("phone", List.of(new HandleDto("8987989789@phone", "341_AAFB5CBEB3878A4we3")));
+			when(idRepoServiceHelper.getSelectedHandles(any(), nullable(Map.class)))
 					.thenReturn(existingHandlesMap).thenReturn(inputHandlesMap);
 			when(handleRepo.findUinHashByHandleHash(Mockito.anyString())).thenReturn("125355668848368");
 			proxyService.updateIdentity(request.getRequest(), "234");

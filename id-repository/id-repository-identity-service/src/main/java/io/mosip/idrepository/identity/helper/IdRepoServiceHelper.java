@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -149,8 +150,7 @@ public class IdRepoServiceHelper {
 	 * @return handles map
 	 * @throws IdRepoAppException
 	 */
-	public Map<String, HandleDto> getSelectedHandles(Object identity, Map<String, HandleDto> existingSelectedHandlesMap,
-			boolean fetchExistingHandles) throws IdRepoAppException {
+	public Map<String, List<HandleDto>> getSelectedHandles(Object identity, Map<String, List<HandleDto>> existingSelectedHandlesMap) throws IdRepoAppException {
 		Map<String, Object> requestMap = convertToMap(identity);
 		if (requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH))) {
 			Map<String, Object> identityMap = (Map<String, Object>) requestMap.get(ROOT_PATH);
@@ -164,26 +164,12 @@ public class IdRepoServiceHelper {
 						identityMap.get(selectedHandlesFieldId));
 				List<String> selectedHandleFieldIds = (List<String>) identityMap.get(selectedHandlesFieldId);
 				return selectedHandleFieldIds.stream()
-						.filter(handleFieldId -> !fetchExistingHandles
-								? supportedHandlesInSchema.get(schemaVersion).contains(handleFieldId)
-								: true)
-						.collect(Collectors.toMap(handleName -> handleName, handleFieldId -> {
-							try {
-								String handle = ((String) identityMap.get(handleFieldId))
-										.concat(getHandlePostfix(handleFieldId)).toLowerCase(Locale.ROOT);
-								return new HandleDto(handle, getHandleHash(handle));
-							} catch (NullPointerException e) {
-								mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER,
-										"getSelectedHandles", "\n" + handleFieldId + " is null");
-								throw new IdRepoAppUncheckedException(MISSING_INPUT_PARAMETER.getErrorCode(),
-										String.format(MISSING_INPUT_PARAMETER.getErrorMessage(),
-												ROOT_PATH + IdObjectValidatorConstant.PATH_SEPERATOR + handleFieldId));
-							}
-						}));
+						.filter(handleFieldId -> supportedHandlesInSchema.get(schemaVersion).contains(handleFieldId))
+						.collect(Collectors.toMap(handleName -> handleName,
+                                handleFieldId -> buildHandleDto(identityMap.get(handleFieldId), handleFieldId)));
 			} else if (existingSelectedHandlesMap != null && !existingSelectedHandlesMap.isEmpty()) {
-				List<String> existingSelectedHandlesList = existingSelectedHandlesMap.keySet().stream()
-						.collect(Collectors.toList());
-				return existingSelectedHandlesList.stream()
+                Set<String> existingSelectedHandleKeys = existingSelectedHandlesMap.keySet();
+				return existingSelectedHandleKeys.stream()
 						.filter(handleFieldId -> {
 							if (identityMap.containsKey(handleFieldId) && Objects.nonNull(identityMap.get(handleFieldId))) {
 								if (supportedHandlesInSchema.get(schemaVersion).contains(handleFieldId)) {
@@ -195,15 +181,48 @@ public class IdRepoServiceHelper {
 							existingSelectedHandlesMap.remove(handleFieldId);
 							return false;
 						})
-						.collect(Collectors.toMap(handleName -> handleName, handleFieldId -> {
-							String handle = ((String) identityMap.get(handleFieldId))
-									.concat(getHandlePostfix(handleFieldId)).toLowerCase(Locale.ROOT);
-							return new HandleDto(handle, getHandleHash(handle));
-						}));
+						.collect(Collectors.toMap(handleName -> handleName,
+                                handleFieldId -> buildHandleDto(identityMap.get(handleFieldId), handleFieldId)));
 			}
 		}
 		return null;
 	}
+
+    private List<HandleDto> buildHandleDto(Object value, String fieldId) {
+        if(StringUtils.isEmpty(value))
+            return new ArrayList<>();
+
+        if(value instanceof String) {
+            String handle = ((String) value).concat(getHandlePostfix(fieldId)).toLowerCase(Locale.ROOT);
+            List<HandleDto> handleDtos = new ArrayList<>();
+            handleDtos.add(new HandleDto(handle, getHandleHash(handle)));
+            return handleDtos;
+        }
+
+        if(value instanceof List) {
+            List<HandleDto> handleDtos = new ArrayList<>();
+            for(Object val : getFilteredHandleValues((List<Object>) value)) {
+                handleDtos.addAll(buildHandleDto(val, fieldId));
+            }
+            return handleDtos;
+        }
+
+        if(value instanceof Map) {
+            Map<String, Object> map = (Map<String, Object>) value;
+            return buildHandleDto(map.get("value"), fieldId);
+        }
+        return new ArrayList<>();
+    }
+
+    private List<Object> getFilteredHandleValues(List<Object> list) {
+        List<Object> filteredList = list.stream().filter( obj -> obj instanceof Map &&
+                ((Map<String, Object>) obj).containsKey("tags") &&
+                ((Map<String, Object>) obj).get("tags") != null &&
+                ((List<String>) ((Map<String, Object>) obj).get("tags")).contains("handle")).collect(Collectors.toList());
+
+        mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER, "getFilteredHandleValues size :", filteredList.size());
+        return (filteredList.size() < list.size()) ? filteredList : list;
+    }
 
     public String getHandleHash(String handle) {
         //handle is converted to lowercase. It is language neutral conversion.
