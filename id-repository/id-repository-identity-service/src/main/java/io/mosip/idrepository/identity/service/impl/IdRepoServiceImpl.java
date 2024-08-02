@@ -82,7 +82,6 @@ import io.mosip.kernel.core.util.UUIDUtils;
 @Transactional(rollbackFor = { IdRepoAppException.class, IdRepoAppUncheckedException.class })
 public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin> {
 
-	private static final String SELECTED_HANDLES = "selectedHandles";
 
 	/** The Constant UPDATE_IDENTITY. */
 	private static final String UPDATE_IDENTITY = "updateIdentity";
@@ -196,6 +195,9 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	@Value("${mosip.idrepo.update-identity.trim-whitespaces:true}")
 	private boolean trimWhitespaces;
 
+	@Value("#{${mosip.idrepo.update-identity.fields-to-replace}}")
+	private List<String> fieldsToReplaceOnUpdate;
+
 	/**
 	 * Adds the identity to DB.
 	 *
@@ -219,7 +221,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		mosipLogger.info("Before starting the checkAndGetHandles: {}", System.currentTimeMillis()-epoch);
 		epoch = System.currentTimeMillis();
 
-		Map<String, HandleDto> selectedUniqueHandlesMap = checkAndGetHandles(request, null, null, CREATE);
+		Map<String, List<HandleDto>> selectedUniqueHandlesMap = checkAndGetHandles(request, null, null, CREATE);
 
 		mosipLogger.info("After completing with checkAndGetHandles: {}", System.currentTimeMillis()-epoch);
 		epoch = System.currentTimeMillis();
@@ -418,7 +420,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
 		try {
 			updateRequestBodyData(request);
-			Map<String, HandleDto> inputSelectedHandlesMap = null;
+			Map<String, List<HandleDto>> inputSelectedHandlesMap = null;
 			Uin uinObject = retrieveIdentity(uinHash, IdType.UIN, null, null);
 			anonymousProfileHelper.setOldCbeff(uinHash,
 					!anonymousProfileHelper.isOldCbeffPresent() && Objects.nonNull(uinObject.getBiometrics())
@@ -440,7 +442,8 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 				DocumentContext dbData = JsonPath.using(configuration).parse(new String(uinObject.getUinData()));
 				anonymousProfileHelper.setOldUinData(dbData.jsonString().getBytes());
 				updateVerifiedAttributes(request, inputData, dbData);
-				updateSelectedHandles(inputData, dbData);
+				replaceConfiguredFieldsOnUpdate(inputData, dbData);
+				//TODO We should remove below json comparison as update operation always replaces the existing with new value
 				JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(),
 						dbData.jsonString(), JSONCompareMode.LENIENT);
 
@@ -554,14 +557,14 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void updateSelectedHandles(DocumentContext inputData, DocumentContext dbData) {
-		List inputSelectedHandles = (List) inputData.read(DOT + SELECTED_HANDLES);
-		if (!inputSelectedHandles.isEmpty()) {
-			List selectedHandlesList = (List) inputSelectedHandles.get(0);
-			if (Objects.nonNull(selectedHandlesList)) {
-				HashSet<String> selectedHandlesSet = new HashSet<>(selectedHandlesList);
-//				inputData.put("$", SELECTED_HANDLES, selectedHandlesSet);
-				dbData.put("$", SELECTED_HANDLES, selectedHandlesSet);
+	private void replaceConfiguredFieldsOnUpdate(DocumentContext inputData, DocumentContext dbData) {
+		for(String fieldId : fieldsToReplaceOnUpdate) {
+			List readValue = (List) inputData.read(DOT + fieldId);
+			if (!readValue.isEmpty()) {
+				Object value = readValue.get(0);
+				if (Objects.nonNull(value)) {
+					dbData.put("$", fieldId, value);
+				}
 			}
 		}
 	}
@@ -1020,15 +1023,16 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	 * @return handles map
 	 * @throws IdRepoAppException
 	 */
-	private Map<String, HandleDto> checkAndGetHandles(IdRequestDTO request, String uinHash,
-			Map<String, HandleDto> existingSelectedHandlesMap, String method) throws IdRepoAppException {
-		Map<String, HandleDto> handles = idRepoServiceHelper.getSelectedHandles(request,
-				existingSelectedHandlesMap, false);
+	private Map<String, List<HandleDto>> checkAndGetHandles(IdRequestDTO request, String uinHash,
+			Map<String, List<HandleDto>> existingSelectedHandlesMap, String method) throws IdRepoAppException {
+		Map<String, List<HandleDto>> handles = idRepoServiceHelper.getSelectedHandles(request,
+				existingSelectedHandlesMap);
 		if (handles != null && !handles.isEmpty()) {
-			List<String> duplicateHandles = handles.keySet().stream().filter(handleName -> {
-				String uinHashFromDB = handleRepo.findUinHashByHandleHash(handles.get(handleName).getHandleHash());
+			List<String> duplicateHandleFieldIds = handles.keySet().stream().filter(handleName -> {
+				List<String> hashes = handles.get(handleName).stream().map(HandleDto::getHandleHash).collect(Collectors.toList());
+				List<String> uinHashFromDB = handleRepo.findUinHashByHandleHashes(hashes);
 				if (Objects.nonNull(uinHashFromDB)) {
-					if (method.equals(UPDATE) && uinHashFromDB.equals(uinHash)) {
+					if (method.equals(UPDATE) && uinHashFromDB.contains(uinHash)) {
 						return false;
 					}
 					return true;
@@ -1036,25 +1040,28 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 				return false;
 			}).collect(Collectors.toList());
 
-			if (duplicateHandles != null && !duplicateHandles.isEmpty()) {
+			if (duplicateHandleFieldIds != null && !duplicateHandleFieldIds.isEmpty()) {
 				throw new IdRepoAppException(HANDLE_RECORD_EXISTS.getErrorCode(),
-						String.format(HANDLE_RECORD_EXISTS.getErrorMessage(), duplicateHandles));
+						String.format(HANDLE_RECORD_EXISTS.getErrorMessage(), duplicateHandleFieldIds));
 			}
 		}
 		return handles;
 	}
 
-	private void addIdentityHandle(Uin uinEntity, Map<String, HandleDto> handles) {
-		if (handles != null && !handles.isEmpty()) {
-			for (Entry<String, HandleDto> handleDtoEntry : handles.entrySet()) {
-				int saltId = securityManager.getSaltKeyForHashOfId(handleDtoEntry.getValue().getHandle());
+	private void addIdentityHandle(Uin uinEntity, Map<String, List<HandleDto>> handles) {
+		if(handles == null)
+			return;
+
+		for (Entry<String, List<HandleDto>> entry : handles.entrySet()) {
+			for(HandleDto handleDto : entry.getValue()) {
+				int saltId = securityManager.getSaltKeyForHashOfId(handleDto.getHandle());
 				String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(saltId);
-				String handleToEncrypt = saltId + SPLITTER + handleDtoEntry.getValue().getHandle() + SPLITTER + encryptSalt;
+				String handleToEncrypt = saltId + SPLITTER + handleDto.getHandle() + SPLITTER + encryptSalt;
 
 				Handle handleEntity = new Handle();
-				handleEntity.setHandleHash(handleDtoEntry.getValue().getHandleHash());
+				handleEntity.setHandleHash(handleDto.getHandleHash());
 				handleEntity.setId(UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID,
-						handleDtoEntry.getValue().getHandle() + SPLITTER + DateUtils.getUTCCurrentDateTime()).toString());
+						handleDto.getHandle() + SPLITTER + DateUtils.getUTCCurrentDateTime()).toString());
 				handleEntity.setHandle(handleToEncrypt);
 				handleEntity.setUinHash(uinEntity.getUinHash());
 				handleEntity.setStatus(HandleStatusLifecycle.ACTIVATED.name());
@@ -1067,38 +1074,53 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		}
 	}
 
-	private Map<String, HandleDto> getNewAndDeleteExistingHandles(IdRequestDTO inputRequestDto, Uin uinObject,
+	private Map<String, List<HandleDto>> getNewAndDeleteExistingHandles(IdRequestDTO inputRequestDto, Uin uinObject,
 			String method) throws IdRepoAppException {
 //		fetch existing handles
 		ObjectNode identityObject = convertToObject(uinObject.getUinData(), ObjectNode.class);
 		RequestDTO existingIdentityRequestDto = new RequestDTO();
 		existingIdentityRequestDto.setIdentity(identityObject);
-		Map<String, HandleDto> existingSelectedHandlesMap = idRepoServiceHelper
-				.getSelectedHandles(existingIdentityRequestDto, null, true);
+		Map<String, List<HandleDto>> existingSelectedHandlesMap = idRepoServiceHelper
+				.getSelectedHandles(existingIdentityRequestDto, null);
 
 //		new handles
-		Map<String, HandleDto> inputSelectedHandlesMap = checkAndGetHandles(inputRequestDto, uinObject.getUinHash(),
+		Map<String, List<HandleDto>> inputSelectedHandlesMap = checkAndGetHandles(inputRequestDto, uinObject.getUinHash(),
 				existingSelectedHandlesMap, method);
 //		if 'inputSelectedHandlesMap' comes as empty map then we should revoke all existing handles
 //		by updating the handle status as 'DELETE'.
 
-		if (existingSelectedHandlesMap != null && !existingSelectedHandlesMap.isEmpty()) {
-			for (Entry<String, HandleDto> handleDtoEntry : existingSelectedHandlesMap.entrySet()) {
-//				if same handle hash present in "inputSelectedHandlesMap" then
-//				remove from "inputSelectedHandlesMap" otherwise update handle status as 'DELETE'.
-				if (inputSelectedHandlesMap != null && inputSelectedHandlesMap.containsKey(handleDtoEntry.getKey())
-						&& inputSelectedHandlesMap.get(handleDtoEntry.getKey()).getHandleHash()
-								.equals(handleDtoEntry.getValue().getHandleHash())) {
-					inputSelectedHandlesMap.remove(handleDtoEntry.getKey());
+		if (existingSelectedHandlesMap == null)
+			return inputSelectedHandlesMap;
+
+		List<String> handleHashesToBeDeleted = new ArrayList<>();
+		for (Entry<String, List<HandleDto>> existingEntry : existingSelectedHandlesMap.entrySet()) {
+			for(HandleDto existingHandleDto : existingEntry.getValue()) {
+				//if same handle hash present in "inputSelectedHandlesMap" then
+				//remove from "inputSelectedHandlesMap" otherwise update handle status as 'DELETE'.
+				if (inputSelectedHandlesMap != null && inputSelectedHandlesMap.containsKey(existingEntry.getKey())) {
+					Optional<HandleDto> result = inputSelectedHandlesMap.get(existingEntry.getKey())
+							.stream()
+							.filter( newDto -> newDto.getHandleHash().equals(existingHandleDto.getHandleHash()) )
+							.findFirst();
+
+					//if the existing handle hash is not present in the new map, then it entry should be "DELETED"
+					if(result.isEmpty()) { handleHashesToBeDeleted.add(existingHandleDto.getHandleHash()); }
+					else {
+						//handle already exists with the same hash
+						inputSelectedHandlesMap.get(existingEntry.getKey()).remove(result.get());
+					}
+
 				} else {
-//					Update the handle status as 'DELETE' in the "mosip_idrepo.handle" table
-//					and will delete the record after getting an acknowledgement from IDA.
-					handleRepo.updateStatusByHandleHash(handleDtoEntry.getValue().getHandleHash(),
-							HandleStatusLifecycle.DELETE.name());
-					mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
-							"getNewAndDeleteExistingHandles", "Record successfully updated in db");
+					handleHashesToBeDeleted.add(existingHandleDto.getHandleHash());
 				}
 			}
+		}
+
+		for(String handleHash : handleHashesToBeDeleted) {
+			//Update the handle status as 'DELETE' in the "mosip_idrepo.handle" table
+			//and will delete the record after getting an acknowledgement from IDA.
+			handleRepo.updateStatusByHandleHash(handleHash, HandleStatusLifecycle.DELETE.name());
+			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getNewAndDeleteExistingHandles", "Record successfully updated in db");
 		}
 		return inputSelectedHandlesMap;
 	}

@@ -22,6 +22,9 @@ public interface HandleRepo extends JpaRepository<Handle, String> {
 	@Query("SELECT uinHash FROM Handle WHERE handleHash=:handleHash")
 	String findUinHashByHandleHash(@Param("handleHash") String handleHash);
 
+	@Query("SELECT uinHash FROM Handle WHERE handleHash IN :hashes")
+	List<String> findUinHashByHandleHashes(@Param("hashes") List<String> hashes);
+
 	void deleteByHandleHash(String handleHash);
 
 	@Modifying
