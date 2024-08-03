@@ -195,8 +195,9 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	@Value("${mosip.idrepo.update-identity.trim-whitespaces:true}")
 	private boolean trimWhitespaces;
 
-	@Value("${mosip.idrepo.update-identity.fields-to-replace}")
+	@Value("#{${mosip.idrepo.update-identity.fields-to-replace}}")
 	private List<String> fieldsToReplaceOnUpdate;
+
 
 	/**
 	 * Adds the identity to DB.
