@@ -250,27 +250,6 @@ public class IdRepoConstants {
 	public static final String GET_DRAFT_UIN_VERSION = "mosip.identity.get.drafts.version";
 
 	public static final String EXCLUDED_ATTRIBUTE_LIST = "mosip.identity.get.excluded.attribute.list";
-	
-	/** Cache Names in IDRepo */
-	
-	public static final String CREDENTIAL_TRANSACTION_CACHE = "credential_transaction";
-	
-	public static final String PARTNER_EXTRACTOR_FORMATS_CACHE = "partner_extractor_formats";
-
-	public static final String DATASHARE_POLICIES_CACHE = "datashare_policies";
-	
-	public static final String WEBSUB_TOPICS_CACHE = "topics";
-	
-	public static final String ONLINE_VERIFICATION_PARTNERS_CACHE = "online_Verification_Partners";
-	
-	public static final String UIN_ENCRYPT_SALT_CACHE = "uin_encrypt_salt";
-
-	public static final String UIN_HASH_SALT_CACHE = "uin_hash_salt";
-
-	public static final String ID_ATTRIBUTES_CACHE = "id_attributes";
-
-
-	
 
 	/**
 	 * Instantiates a new id repo constants.
