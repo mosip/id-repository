@@ -286,11 +286,11 @@ public class IdentityIssuanceProfileBuilder {
 		} else if (jsonNode.isArray()) {
 			Iterator<JsonNode> iterator = jsonNode.iterator();
 			while (iterator.hasNext()) {
-				Map<String, String> valueMap = mapper.convertValue(iterator.next(),
-						new TypeReference<Map<String, String>>() {
+				Map<String, Object> valueMap = mapper.convertValue(iterator.next(),
+						new TypeReference<Map<String, Object>>() {
 						});
-				if (StringUtils.isNotBlank(filterLanguage) && valueMap.get("language").contentEquals(filterLanguage)) {
-					valueOpt = Optional.of(valueMap.get(VALUE));
+				if (StringUtils.isNotBlank(filterLanguage) &&  valueMap.containsKey("language") && ((String)valueMap.get("language")).contentEquals(filterLanguage)) {
+					valueOpt = Optional.of((String) valueMap.get(VALUE));
 				}
 			}
 			if (valueOpt.isEmpty())

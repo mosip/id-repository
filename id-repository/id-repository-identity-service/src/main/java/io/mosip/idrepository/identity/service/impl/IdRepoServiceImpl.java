@@ -1,5 +1,6 @@
 package io.mosip.idrepository.identity.service.impl;
 
+import static io.mosip.idrepository.core.constant.HandleStatusLifecycle.DELETE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.*;
 
@@ -1049,7 +1050,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		return handles;
 	}
 
-	private void addIdentityHandle(Uin uinEntity, Map<String, List<HandleDto>> handles) {
+	private void addIdentityHandle(Uin uinEntity, Map<String, List<HandleDto>> handles) throws IdRepoAppException {
 		if(handles == null)
 			return;
 
@@ -1059,15 +1060,21 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 				String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(saltId);
 				String handleToEncrypt = saltId + SPLITTER + handleDto.getHandle() + SPLITTER + encryptSalt;
 
+				Optional<Handle> result = handleRepo.findByHandleHash(handleDto.getHandleHash());
+				if(result.isPresent()) {
+					throw new IdRepoAppException(HANDLE_RECORD_EXISTS.getErrorCode(),
+							String.format(HANDLE_RECORD_EXISTS.getErrorMessage(), entry.getKey()));
+				}
+
 				Handle handleEntity = new Handle();
 				handleEntity.setHandleHash(handleDto.getHandleHash());
 				handleEntity.setId(UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID,
 						handleDto.getHandle() + SPLITTER + DateUtils.getUTCCurrentDateTime()).toString());
 				handleEntity.setHandle(handleToEncrypt);
 				handleEntity.setUinHash(uinEntity.getUinHash());
-				handleEntity.setStatus(HandleStatusLifecycle.ACTIVATED.name());
 				handleEntity.setCreatedBy(IdRepoSecurityManager.getUser());
 				handleEntity.setCreatedDateTime(DateUtils.getUTCCurrentDateTime());
+				handleEntity.setStatus(HandleStatusLifecycle.ACTIVATED.name());
 				handleRepo.save(handleEntity);
 				mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY_HANDLE,
 						"Record successfully saved in db");
@@ -1120,7 +1127,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		for(String handleHash : handleHashesToBeDeleted) {
 			//Update the handle status as 'DELETE' in the "mosip_idrepo.handle" table
 			//and will delete the record after getting an acknowledgement from IDA.
-			handleRepo.updateStatusByHandleHash(handleHash, HandleStatusLifecycle.DELETE.name());
+			handleRepo.updateStatusByHandleHash(handleHash, DELETE.name());
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getNewAndDeleteExistingHandles", "Record successfully updated in db");
 		}
 		return inputSelectedHandlesMap;

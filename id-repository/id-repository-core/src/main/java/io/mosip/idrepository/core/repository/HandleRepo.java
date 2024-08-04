@@ -1,6 +1,7 @@
 package io.mosip.idrepository.core.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -19,10 +20,12 @@ public interface HandleRepo extends JpaRepository<Handle, String> {
 
 	List<Handle> findByUinHash(String uinHash);
 
+	Optional<Handle> findByHandleHash(String handleHash);
+
 	@Query("SELECT uinHash FROM Handle WHERE handleHash=:handleHash")
 	String findUinHashByHandleHash(@Param("handleHash") String handleHash);
 
-	@Query("SELECT uinHash FROM Handle WHERE handleHash IN :hashes")
+	@Query("SELECT uinHash FROM Handle WHERE handleHash IN (:hashes)")
 	List<String> findUinHashByHandleHashes(@Param("hashes") List<String> hashes);
 
 	void deleteByHandleHash(String handleHash);
