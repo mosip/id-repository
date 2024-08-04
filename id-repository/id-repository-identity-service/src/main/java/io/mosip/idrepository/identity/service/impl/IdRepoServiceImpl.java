@@ -1031,12 +1031,14 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		if (handles != null && !handles.isEmpty()) {
 			List<String> duplicateHandleFieldIds = handles.keySet().stream().filter(handleName -> {
 				List<String> hashes = handles.get(handleName).stream().map(HandleDto::getHandleHash).collect(Collectors.toList());
-				List<String> uinHashFromDB = handleRepo.findUinHashByHandleHashes(hashes);
-				if (!uinHashFromDB.isEmpty()) {
-					if (method.equals(UPDATE) && uinHashFromDB.contains(uinHash)) {
-						return false;
+				if(!hashes.isEmpty()){
+					List<String> uinHashFromDB = handleRepo.findUinHashByHandleHashes(hashes);
+					if (!uinHashFromDB.isEmpty()) {
+						if (method.equals(UPDATE) && uinHashFromDB.contains(uinHash)) {
+							return false;
+						}
+						return true;
 					}
-					return true;
 				}
 				return false;
 			}).collect(Collectors.toList());
@@ -1098,7 +1100,8 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			for(HandleDto existingHandleDto : existingEntry.getValue()) {
 				//if same handle hash present in "inputSelectedHandlesMap" then
 				//remove from "inputSelectedHandlesMap" otherwise update handle status as 'DELETE'.
-				if (inputSelectedHandlesMap != null && inputSelectedHandlesMap.containsKey(existingEntry.getKey())) {
+				if (inputSelectedHandlesMap != null && inputSelectedHandlesMap.containsKey(existingEntry.getKey()) &&
+				!inputSelectedHandlesMap.get(existingEntry.getKey()).isEmpty()) {
 					Optional<HandleDto> result = inputSelectedHandlesMap.get(existingEntry.getKey())
 							.stream()
 							.filter( newDto -> newDto.getHandleHash().equals(existingHandleDto.getHandleHash()) )
@@ -1111,9 +1114,9 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 						inputSelectedHandlesMap.get(existingEntry.getKey()).remove(result.get());
 					}
 
-				} else {
+				} /*else {
 					handleHashesToBeDeleted.add(existingHandleDto.getHandleHash());
-				}
+				}*/
 			}
 		}
 
