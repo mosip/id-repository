@@ -79,7 +79,8 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	/** The id. */
 	@Resource
 	private Map<String, String> id;
-	private final static String DATE_TIME_PARSE_EXCEPTION = "DateTimeParseException";
+
+	private static final String DATE_TIME_PARSE_EXCEPTION = "DateTimeParseException";
 
 	@Override
 	protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
