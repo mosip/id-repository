@@ -79,7 +79,7 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	/** The id. */
 	@Resource
 	private Map<String, String> id;
-	private final String DateTimeParseExceptionConstant = "DateTimeParseException";
+	private final static String DATE_TIME_PARSE_EXCEPTION = "DateTimeParseException";
 
 	@Override
 	protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
@@ -87,7 +87,7 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_EXCEPTION_HANDLER,
 				"handleHttpMessageNotReadable - \n" + ExceptionUtils.getStackTrace(Objects.isNull(rootCause) ? ex : rootCause));
 		IdRepoAppException e;
-		if(ex.getMessage().contains(DateTimeParseExceptionConstant)){
+		if(ex.getMessage().contains(DATE_TIME_PARSE_EXCEPTION)){
 			e = new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(), String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), REQUEST_TIME));
 			return new ResponseEntity<>(buildExceptionResponse(e, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.OK);
 		} else {
