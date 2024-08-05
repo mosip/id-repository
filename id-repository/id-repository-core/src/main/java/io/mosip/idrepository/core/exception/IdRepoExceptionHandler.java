@@ -24,6 +24,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -78,6 +79,23 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	/** The id. */
 	@Resource
 	private Map<String, String> id;
+
+	private static final String DATE_TIME_PARSE_EXCEPTION = "DateTimeParseException";
+
+	@Override
+	protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException httpMessageNotReadableException, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+
+		Throwable rootCause = getRootCause(httpMessageNotReadableException);
+		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_EXCEPTION_HANDLER,
+				"handleHttpMessageNotReadable - \n" + ExceptionUtils.getStackTrace(Objects.isNull(rootCause) ? httpMessageNotReadableException : rootCause));
+		IdRepoAppException idRepoAppException;
+		if(httpMessageNotReadableException.getMessage().contains(DATE_TIME_PARSE_EXCEPTION)){
+			idRepoAppException = new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(), String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), REQUEST_TIME));
+			return new ResponseEntity<>(buildExceptionResponse(idRepoAppException, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(buildExceptionResponse(httpMessageNotReadableException, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.OK);
+		}
+	}
 
 	/**
 	 * Handles exceptions that are not handled by other methods in
