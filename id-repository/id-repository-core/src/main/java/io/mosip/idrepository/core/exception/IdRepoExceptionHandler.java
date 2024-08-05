@@ -83,16 +83,16 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	private static final String DATE_TIME_PARSE_EXCEPTION = "DateTimeParseException";
 
 	@Override
-	protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-		Throwable rootCause = getRootCause(ex);
+	protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException httpMessageNotReadableException, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+		Throwable rootCause = getRootCause(httpMessageNotReadableException);
 		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_EXCEPTION_HANDLER,
-				"handleHttpMessageNotReadable - \n" + ExceptionUtils.getStackTrace(Objects.isNull(rootCause) ? ex : rootCause));
-		IdRepoAppException e;
-		if(ex.getMessage().contains(DATE_TIME_PARSE_EXCEPTION)){
-			e = new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(), String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), REQUEST_TIME));
-			return new ResponseEntity<>(buildExceptionResponse(e, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.OK);
+				"handleHttpMessageNotReadable - \n" + ExceptionUtils.getStackTrace(Objects.isNull(rootCause) ? httpMessageNotReadableException : rootCause));
+		IdRepoAppException idRepoAppException;
+		if(httpMessageNotReadableException.getMessage().contains(DATE_TIME_PARSE_EXCEPTION)){
+			idRepoAppException = new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(), String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), REQUEST_TIME));
+			return new ResponseEntity<>(buildExceptionResponse(idRepoAppException, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.OK);
 		} else {
-			return new ResponseEntity<>(buildExceptionResponse(ex, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.OK);
+			return new ResponseEntity<>(buildExceptionResponse(httpMessageNotReadableException, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.OK);
 		}
 	}
 
