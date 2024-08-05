@@ -1032,12 +1032,13 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		if (handles != null && !handles.isEmpty()) {
 			List<String> duplicateHandleFieldIds = handles.keySet().stream().filter(handleName -> {
 				List<String> hashes = handles.get(handleName).stream().map(HandleDto::getHandleHash).collect(Collectors.toList());
+				if(hashes.isEmpty())
+					return false;
+
 				List<String> uinHashFromDB = handleRepo.findUinHashByHandleHashes(hashes);
 				if (!uinHashFromDB.isEmpty()) {
-					if (method.equals(UPDATE) && uinHashFromDB.contains(uinHash)) {
-						return false;
-					}
-					return true;
+					//check if belongs to the same user, if yes then don't throw error
+					return (method.equals(UPDATE) && uinHashFromDB.contains(uinHash)) ? false : true;
 				}
 				return false;
 			}).collect(Collectors.toList());
