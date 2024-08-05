@@ -59,7 +59,7 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	private static final String ID_REPO_EXCEPTION_HANDLER = "IdRepoExceptionHandler";
 	
 	/** The Constant TIMESTAMP. */
-	private static final String LOCAL_DATE_TIME_FIELD = "LocalDateTime Field";
+	private static final String REQUEST_TIME = "requesttime";
 
 	/** The Constant ID_REPO. */
 	private static final String ID_REPO = "IdRepo";
@@ -90,7 +90,7 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 				"handleHttpMessageNotReadable - \n" + ExceptionUtils.getStackTrace(Objects.isNull(rootCause) ? httpMessageNotReadableException : rootCause));
 		IdRepoAppException idRepoAppException;
 		if(httpMessageNotReadableException.getMessage().contains(DATE_TIME_PARSE_EXCEPTION)){
-			idRepoAppException = new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(), String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), LOCAL_DATE_TIME_FIELD));
+			idRepoAppException = new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(), String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), REQUEST_TIME));
 			return new ResponseEntity<>(buildExceptionResponse(idRepoAppException, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(buildExceptionResponse(httpMessageNotReadableException, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.OK);
@@ -201,7 +201,7 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 		if (ex instanceof HttpMessageNotReadableException && org.apache.commons.lang3.exception.ExceptionUtils
 				.getRootCause(ex).getClass().isAssignableFrom(DateTimeParseException.class)) {
 			ex = new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
-					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), LOCAL_DATE_TIME_FIELD));
+					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), REQUEST_TIME));
 			if (request instanceof ServletWebRequest
 					&& ((ServletWebRequest) request).getRequest().getRequestURI().endsWith(DEACTIVATE)) {
 				return new ResponseEntity<>(
