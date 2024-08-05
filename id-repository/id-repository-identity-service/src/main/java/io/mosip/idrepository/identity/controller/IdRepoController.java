@@ -323,32 +323,32 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
-	public ResponseEntity<IdResponseDTO> retrieveIdentityById(@Validated @RequestBody IdRequestByIdDTO requestById,
+	public ResponseEntity<IdResponseDTO> retrieveIdentityById(@Validated @RequestBody RequestWrapper<IdRequestByIdDTO> request,
 														   @ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
-			String type = validator.validateType(requestById.getType());
+			String type = validator.validateType(request.getRequest().getType());
 			Map<String, String> extractionFormats = new HashMap<>();
-			if(Objects.nonNull(requestById.getFingerExtractionFormat())) {
-				extractionFormats.put(FINGER_EXTRACTION_FORMAT, requestById.getFingerExtractionFormat());
+			if(Objects.nonNull(request.getRequest().getFingerExtractionFormat())) {
+				extractionFormats.put(FINGER_EXTRACTION_FORMAT, request.getRequest().getFingerExtractionFormat());
 			}
-			if(Objects.nonNull(requestById.getIrisExtractionFormat())) {
-				extractionFormats.put(IRIS_EXTRACTION_FORMAT, requestById.getIrisExtractionFormat());
+			if(Objects.nonNull(request.getRequest().getIrisExtractionFormat())) {
+				extractionFormats.put(IRIS_EXTRACTION_FORMAT, request.getRequest().getIrisExtractionFormat());
 			}
-			if(Objects.nonNull(requestById.getFaceExtractionFormat())) {
-				extractionFormats.put(FACE_EXTRACTION_FORMAT, requestById.getFaceExtractionFormat());
+			if(Objects.nonNull(request.getRequest().getFaceExtractionFormat())) {
+				extractionFormats.put(FACE_EXTRACTION_FORMAT, request.getRequest().getFaceExtractionFormat());
 			}
 			extractionFormats.remove(null);
 			validator.validateTypeAndExtractionFormats(type, extractionFormats);
-			return new ResponseEntity<>(idRepoService.retrieveIdentity(requestById.getId(),
-					Objects.isNull(requestById.getIdType()) ? getIdType(requestById.getId()) : validator.validateIdType(requestById.getIdType()), type, extractionFormats),
+			return new ResponseEntity<>(idRepoService.retrieveIdentity(request.getRequest().getId(),
+					Objects.isNull(request.getRequest().getIdType()) ? getIdType(request.getRequest().getId()) : validator.validateIdType(request.getRequest().getIdType()), type, extractionFormats),
 					HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE,
-					AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, requestById.getId(), IdType.UIN, e);
+					AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, request.getRequest().getId(), IdType.UIN, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
-			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, requestById.getId(),
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, request.getRequest().getId(),
 					IdType.UIN, "Retrieve Identity requested");
 		}
 	}

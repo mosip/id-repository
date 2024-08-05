@@ -14,9 +14,12 @@ import io.mosip.idrepository.core.dto.IdRequestByIdDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
+import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +29,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 @Component
@@ -59,6 +64,7 @@ public class IdrepositaryUtil {
 			String faceExtractionFormat = bioAttributeFormatterMap.get(CredentialConstants.FACE);
 			String irisExtractionFormat = bioAttributeFormatterMap.get(CredentialConstants.IRIS);
 			IdRequestByIdDTO requestByIdDTO = new IdRequestByIdDTO();
+			RequestWrapper<IdRequestByIdDTO> idDTORequestWrapper=new RequestWrapper<>();
 
 			requestByIdDTO.setId(credentialServiceRequestDto.getId());
 			requestByIdDTO.setType(identityType);
@@ -75,11 +81,15 @@ public class IdrepositaryUtil {
 			if (StringUtils.isNotEmpty(irisExtractionFormat)) {
 				requestByIdDTO.setIrisExtractionFormat(irisExtractionFormat);
 			}
-
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
+			LocalDateTime localdatetime = LocalDateTime
+					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+			idDTORequestWrapper.setRequest(requestByIdDTO);
+			idDTORequestWrapper.setRequesttime(localdatetime);
 			LOGGER.debug(String.format("getIdentity request: %s", requestByIdDTO.toString()));
 
 			String responseString = restUtil.postApi(ApiName.IDREPORETRIEVEIDBYID, null, "", "",
-					MediaType.APPLICATION_JSON, requestByIdDTO, String.class);
+					MediaType.APPLICATION_JSON, idDTORequestWrapper, String.class);
 
 			IdResponseDTO responseObject = mapper.readValue(responseString, IdResponseDTO.class);
 			if (responseObject == null) {
