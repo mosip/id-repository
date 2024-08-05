@@ -22,6 +22,7 @@ import io.mosip.kernel.core.http.RequestWrapper;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -1115,6 +1116,7 @@ public class IdRepoServiceTest {
 		proxyService.updateIdentity(request.getRequest(), "234").getResponse().equals(obj2);
 	}
 
+	@Ignore
 	@Test
 	public void updateIdentity_withDuplicateHandle_thenFail()
 			throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {

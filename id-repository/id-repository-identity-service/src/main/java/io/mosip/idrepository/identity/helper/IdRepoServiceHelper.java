@@ -214,6 +214,7 @@ public class IdRepoServiceHelper {
         return new ArrayList<>();
     }
 
+    //if none of the values are tagged as "handle" , then consider all the values as handles
     private List<Object> getFilteredHandleValues(List<Object> list) {
         List<Object> filteredList = list.stream().filter( obj -> obj instanceof Map &&
                 ((Map<String, Object>) obj).containsKey("tags") &&
@@ -221,7 +222,7 @@ public class IdRepoServiceHelper {
                 ((List<String>) ((Map<String, Object>) obj).get("tags")).contains("handle")).collect(Collectors.toList());
 
         mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER, "getFilteredHandleValues size :", filteredList.size());
-        return (filteredList.size() < list.size()) ? filteredList : list;
+        return filteredList.isEmpty() ? list : filteredList;
     }
 
     public String getHandleHash(String handle) {
