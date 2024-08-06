@@ -202,19 +202,4 @@ public class PolicyUtilTest {
 
 	}
 	
-	@Test 
-	public void testClearCache() {
-		Cache mockCache = Mockito.mock(Cache.class);
-		when(cacheManager.getCache(Mockito.any())).thenReturn(mockCache);
-		policyUtil.clearDataSharePoliciesCache();
-		policyUtil.clearPartnerExtractorFormatsCache();
-		verify(mockCache, times(2)).clear();
-	}
-	
-	@Test 
-	public void testClearCacheNullCache() {
-		policyUtil.clearDataSharePoliciesCache();
-		policyUtil.clearPartnerExtractorFormatsCache();
-		verify(cacheManager, times(2)).getCache(Mockito.any());
-	}
 }

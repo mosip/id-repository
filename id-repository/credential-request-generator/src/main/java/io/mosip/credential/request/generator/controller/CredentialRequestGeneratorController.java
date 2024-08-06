@@ -90,8 +90,8 @@ public class CredentialRequestGeneratorController {
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<Object> credentialIssue(
-
 			@RequestBody  RequestWrapper<CredentialIssueRequest>  credentialIssueRequestDto) throws IdRepoAppException {
+
 		requestValidator.validateRequestGeneratorRequest(credentialIssueRequestDto);
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = credentialRequestService
 				.createCredentialIssuance(credentialIssueRequestDto.getRequest());
@@ -199,7 +199,7 @@ public class CredentialRequestGeneratorController {
 			@RequestParam(value = "effectivedtimes") @ApiParam(value = "Effective date time") @Nullable String effectivedtimes,
 			@RequestParam(value = "pageNumber", defaultValue = "0") @ApiParam(value = "page number for the requested data", defaultValue = "0") int page,
 			@RequestParam(value = "pageSize", defaultValue = "1") @ApiParam(value = "page size for the request data", defaultValue = "1") int size,
-			@RequestParam(value = "orderBy", defaultValue = "upd_dtimes") @ApiParam(value = "sort the requested data based on param value", defaultValue = "updateDateTime") String orderBy,
+			@RequestParam(value = "orderBy", defaultValue = "updateDateTime") @ApiParam(value = "sort the requested data based on param value", defaultValue = "updateDateTime") String orderBy,
 			@RequestParam(value = "direction", defaultValue = "DESC") @ApiParam(value = "order the requested data based on param", defaultValue = "ASC") String direction) {
 		ResponseWrapper<PageDto<CredentialRequestIdsDto>> responseWrapper =
 				credentialRequestService.getRequestIds(statusCode, effectivedtimes, page, size, orderBy, direction);

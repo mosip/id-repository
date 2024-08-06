@@ -5,9 +5,7 @@ import io.mosip.credentialstore.constants.ApiName;
 import io.mosip.credentialstore.constants.LoggerFileConstant;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.IdRepoException;
-import io.mosip.idrepository.core.dto.VidInfoDTO;
-import io.mosip.idrepository.core.dto.VidRequestDTO;
-import io.mosip.idrepository.core.dto.VidResponseDTO;
+import io.mosip.idrepository.core.dto.*;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -25,9 +23,7 @@ import org.springframework.web.client.HttpServerErrorException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -82,7 +78,7 @@ public class VIDUtil {
                     ExceptionUtils.getStackTrace(e));
             if (e.getCause() instanceof HttpClientErrorException) {
                 HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
-                throw new ApiNotAccessibleException(
+                throw new io.mosip.credentialstore.exception.ApiNotAccessibleException(
                         httpClientException.getResponseBodyAsString());
             } else if (e.getCause() instanceof HttpServerErrorException) {
                 HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
@@ -117,7 +113,7 @@ public class VIDUtil {
                     ExceptionUtils.getStackTrace(e));
             if (e.getCause() instanceof HttpClientErrorException) {
                 HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
-                throw new ApiNotAccessibleException(
+                throw new io.mosip.credentialstore.exception.ApiNotAccessibleException(
                         httpClientException.getResponseBodyAsString());
             } else if (e.getCause() instanceof HttpServerErrorException) {
                 HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();

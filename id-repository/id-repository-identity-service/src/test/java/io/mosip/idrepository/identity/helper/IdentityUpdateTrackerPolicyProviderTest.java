@@ -40,19 +40,19 @@ public class IdentityUpdateTrackerPolicyProviderTest {
 
 	@Mock
 	private ObjectMapper mapper;
-
+	
 	@InjectMocks
 	private IdentityUpdateTrackerPolicyProvider provider;
-
+	
 	private JsonNode policy;
 	private String policyJson = "{\"attributeUpdateCountLimit\":{\"fullName\":2}}";
-
+	
 	@PostConstruct
 	public void init() throws JsonMappingException, JsonProcessingException {
 		EnvUtil.setIdentityMappingJsonUrl("https://localhost:8090");
 		policy = new ObjectMapper().readValue(policyJson, JsonNode.class);
 	}
-
+	
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testLoadUpdateCountPolicies() throws IOException {

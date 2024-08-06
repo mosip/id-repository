@@ -16,6 +16,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
+import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.RestServiceException;
@@ -32,10 +33,6 @@ import io.mosip.kernel.core.logger.spi.Logger;
  */
 @Component
 public class PartnerServiceManager {
-	
-	/** The Constant ONLINE_VERIFICATION_PARTNERS. */
-	private static final String ONLINE_VERIFICATION_PARTNERS = "Online_Verification_Partners";
-
 
 	/** The Constant GET_OLV_PARTNER_IDS. */
 	private static final String GET_OLV_PARTNER_IDS = "getOLVPartnerIds";
@@ -83,10 +80,10 @@ public class PartnerServiceManager {
 	 * @return the partner ids
 	 */
 	@SuppressWarnings("unchecked")
-	@Cacheable(cacheNames = ONLINE_VERIFICATION_PARTNERS)
+	@Cacheable(cacheNames = IdRepoConstants.ONLINE_VERIFICATION_PARTNERS_CACHE)
 	public List<String> getOLVPartnerIds() {
 		mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "clearMasterDataTitlesCache",
-				"Caching " + ONLINE_VERIFICATION_PARTNERS);
+				"Caching " + IdRepoConstants.ONLINE_VERIFICATION_PARTNERS_CACHE);
 		List<String> partners = Collections.emptyList();
 		try {
 			Map<String, Object> responseWrapperMap = restHelper
@@ -117,14 +114,4 @@ public class PartnerServiceManager {
 			return partners;
 		}
 	}
-	
-	/**
-	 * Clear OLV partners cache.
-	 */
-	@CacheEvict(value=ONLINE_VERIFICATION_PARTNERS)
-	public void clearOLVPartnersCache() {
-		mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "clearOLVPartnersCache",
-				ONLINE_VERIFICATION_PARTNERS + " cache cleared");
-	}
-
 }

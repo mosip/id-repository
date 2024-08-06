@@ -9,6 +9,8 @@ public enum ApiName {
 
 	/** The idrepogetidbyuin. */
 	IDREPOGETIDBYID,
+
+	IDREPORETRIEVEIDBYID,
 	/** The createdatashare. */
 	CREATEDATASHARE,
 	
@@ -35,4 +37,5 @@ public enum ApiName {
 	GENERATE_VID,
 
 	RETRIEVE_VID;
+
 }

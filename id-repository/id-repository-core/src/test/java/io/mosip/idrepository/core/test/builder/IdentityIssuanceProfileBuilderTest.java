@@ -15,6 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -34,6 +35,8 @@ public class IdentityIssuanceProfileBuilderTest {
 
 	IdentityMapping identityMapping;
 
+	JsonNode expectedNode;
+
 	@Before
 	public void init() throws IOException {
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -47,6 +50,7 @@ public class IdentityIssuanceProfileBuilderTest {
 				StandardCharsets.UTF_8);
 		identityData = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("identity-data.json"),
 				StandardCharsets.UTF_8);
+		expectedNode = mapper.readTree("[\"x\",\"y\"]");
 	}
 
 	@Test
@@ -72,7 +76,7 @@ public class IdentityIssuanceProfileBuilderTest {
 		assertNull(newProfile.getNewProfile().getPreferredLanguage());
 		assertEquals(List.of("PHONE", "EMAIL"), newProfile.getNewProfile().getChannel());
 		assertEquals(5, newProfile.getNewProfile().getExceptions().size());
-		assertEquals(List.of("x", "y"), newProfile.getNewProfile().getVerified());
+		assertEquals(expectedNode, newProfile.getNewProfile().getVerified());
 		assertEquals(13, newProfile.getNewProfile().getBiometricInfo().size());
 		assertEquals(List.of("DOC015", "DOC006", "DOC025", "COE"), newProfile.getNewProfile().getDocuments());
 	}
@@ -92,7 +96,7 @@ public class IdentityIssuanceProfileBuilderTest {
 		assertNull(updateProfile.getNewProfile().getPreferredLanguage());
 		assertEquals(List.of("PHONE", "EMAIL"), updateProfile.getNewProfile().getChannel());
 		assertEquals(5, updateProfile.getNewProfile().getExceptions().size());
-		assertEquals(List.of("x", "y"), updateProfile.getNewProfile().getVerified());
+		assertEquals(expectedNode, updateProfile.getNewProfile().getVerified());
 		assertEquals(13, updateProfile.getNewProfile().getBiometricInfo().size());
 		assertEquals(List.of("DOC015", "DOC006", "DOC025", "COE"), updateProfile.getNewProfile().getDocuments());
 		assertEquals("1972", updateProfile.getOldProfile().getYearOfBirth());
@@ -101,7 +105,7 @@ public class IdentityIssuanceProfileBuilderTest {
 		assertNull(updateProfile.getOldProfile().getPreferredLanguage());
 		assertEquals(List.of("PHONE", "EMAIL"), updateProfile.getOldProfile().getChannel());
 		assertEquals(5, updateProfile.getOldProfile().getExceptions().size());
-		assertEquals(List.of("x", "y"), updateProfile.getOldProfile().getVerified());
+		assertEquals(expectedNode, updateProfile.getOldProfile().getVerified());
 		assertEquals(13, updateProfile.getOldProfile().getBiometricInfo().size());
 		assertEquals(List.of("DOC015", "DOC006", "DOC025", "COE"), updateProfile.getOldProfile().getDocuments());
 	}
@@ -140,7 +144,7 @@ public class IdentityIssuanceProfileBuilderTest {
 		assertEquals("eng", newProfile.getNewProfile().getPreferredLanguage());
 		assertEquals(List.of("PHONE", "EMAIL"), newProfile.getNewProfile().getChannel());
 		assertEquals(5, newProfile.getNewProfile().getExceptions().size());
-		assertEquals(List.of("x", "y"), newProfile.getNewProfile().getVerified());
+		assertEquals(expectedNode, newProfile.getNewProfile().getVerified());
 		assertEquals(13, newProfile.getNewProfile().getBiometricInfo().size());
 		assertEquals(List.of("DOC015", "DOC006", "DOC025", "COE"), newProfile.getNewProfile().getDocuments());
 	}
@@ -160,7 +164,7 @@ public class IdentityIssuanceProfileBuilderTest {
 		assertNull(newProfile.getNewProfile().getPreferredLanguage());
 		assertEquals(List.of("PHONE", "EMAIL"), newProfile.getNewProfile().getChannel());
 		assertEquals(5, newProfile.getNewProfile().getExceptions().size());
-		assertEquals(List.of("x", "y"), newProfile.getNewProfile().getVerified());
+		assertEquals(expectedNode, newProfile.getNewProfile().getVerified());
 		assertEquals(13, newProfile.getNewProfile().getBiometricInfo().size());
 		assertEquals(List.of("DOC015", "DOC006", "DOC025", "COE"), newProfile.getNewProfile().getDocuments());
 	}
@@ -182,7 +186,7 @@ public class IdentityIssuanceProfileBuilderTest {
 		assertNull(newProfile.getNewProfile().getPreferredLanguage());
 		assertEquals(List.of("PHONE", "EMAIL"), newProfile.getNewProfile().getChannel());
 		assertEquals(5, newProfile.getNewProfile().getExceptions().size());
-		assertEquals(List.of("x", "y"), newProfile.getNewProfile().getVerified());
+		assertEquals(expectedNode, newProfile.getNewProfile().getVerified());
 		assertEquals(13, newProfile.getNewProfile().getBiometricInfo().size());
 		assertEquals(List.of("DOC015", "DOC006", "DOC025", "COE"), newProfile.getNewProfile().getDocuments());
 	}
@@ -205,7 +209,7 @@ public class IdentityIssuanceProfileBuilderTest {
 		assertNull(newProfile.getNewProfile().getPreferredLanguage());
 		assertEquals(List.of("PHONE", "EMAIL"), newProfile.getNewProfile().getChannel());
 		assertEquals(5, newProfile.getNewProfile().getExceptions().size());
-		assertEquals(List.of("x", "y"), newProfile.getNewProfile().getVerified());
+		assertEquals(expectedNode, newProfile.getNewProfile().getVerified());
 		assertEquals(13, newProfile.getNewProfile().getBiometricInfo().size());
 		assertEquals(List.of("DOC015", "DOC006", "DOC025", "COE"), newProfile.getNewProfile().getDocuments());
 	}
@@ -230,7 +234,7 @@ public class IdentityIssuanceProfileBuilderTest {
 		assertNull(newProfile.getNewProfile().getPreferredLanguage());
 		assertEquals(List.of("PHONE", "EMAIL"), newProfile.getNewProfile().getChannel());
 		assertEquals(5, newProfile.getNewProfile().getExceptions().size());
-		assertEquals(List.of("x", "y"), newProfile.getNewProfile().getVerified());
+		assertEquals(expectedNode, newProfile.getNewProfile().getVerified());
 		assertEquals(13, newProfile.getNewProfile().getBiometricInfo().size());
 		assertEquals(List.of("DOC015", "DOC006", "DOC025", "COE"), newProfile.getNewProfile().getDocuments());
 	}
@@ -253,7 +257,7 @@ public class IdentityIssuanceProfileBuilderTest {
 		assertNull(newProfile.getNewProfile().getPreferredLanguage());
 		assertTrue(newProfile.getNewProfile().getChannel().isEmpty());
 		assertEquals(5, newProfile.getNewProfile().getExceptions().size());
-		assertEquals(List.of("x", "y"), newProfile.getNewProfile().getVerified());
+		assertEquals(expectedNode, newProfile.getNewProfile().getVerified());
 		assertEquals(13, newProfile.getNewProfile().getBiometricInfo().size());
 		assertEquals(List.of("DOC015", "DOC006", "DOC025", "COE"), newProfile.getNewProfile().getDocuments());
 	}
@@ -273,7 +277,7 @@ public class IdentityIssuanceProfileBuilderTest {
 		assertNull(newProfile.getNewProfile().getPreferredLanguage());
 		assertEquals(List.of("PHONE", "EMAIL"), newProfile.getNewProfile().getChannel());
 		assertTrue(newProfile.getNewProfile().getExceptions().isEmpty());
-		assertEquals(List.of("x", "y"), newProfile.getNewProfile().getVerified());
+		assertEquals(expectedNode, newProfile.getNewProfile().getVerified());
 		assertTrue(newProfile.getNewProfile().getBiometricInfo().isEmpty());
 		assertEquals(List.of("DOC015", "DOC006", "DOC025", "COE"), newProfile.getNewProfile().getDocuments());
 	}
@@ -300,7 +304,7 @@ public class IdentityIssuanceProfileBuilderTest {
 		assertNull(newProfile.getNewProfile().getPreferredLanguage());
 		assertEquals(List.of("PHONE", "EMAIL"), newProfile.getNewProfile().getChannel());
 		assertEquals(0, newProfile.getNewProfile().getExceptions().size());
-		assertEquals(List.of("x", "y"), newProfile.getNewProfile().getVerified());
+		assertEquals(expectedNode, newProfile.getNewProfile().getVerified());
 		assertEquals(0, newProfile.getNewProfile().getBiometricInfo().size());
 		assertEquals(List.of("DOC015", "DOC006", "DOC025", "COE"), newProfile.getNewProfile().getDocuments());
 	}
@@ -321,7 +325,7 @@ public class IdentityIssuanceProfileBuilderTest {
 		assertNull(newProfile.getNewProfile().getPreferredLanguage());
 		assertEquals(List.of("PHONE", "EMAIL"), newProfile.getNewProfile().getChannel());
 		assertEquals(0, newProfile.getNewProfile().getExceptions().size());
-		assertEquals(List.of("x", "y"), newProfile.getNewProfile().getVerified());
+		assertEquals(expectedNode, newProfile.getNewProfile().getVerified());
 		assertEquals(0, newProfile.getNewProfile().getBiometricInfo().size());
 		assertEquals(List.of("DOC015", "DOC006", "DOC025", "COE"), newProfile.getNewProfile().getDocuments());
 	}

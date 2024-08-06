@@ -85,15 +85,18 @@ public class EncryptionUtil {
 			CryptoWithPinResponseDto responseObject= mapper.readValue(response,
 					CryptoWithPinResponseDto.class);
 
-			if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
-				ServiceError error = responseObject.getErrors().get(0);
-				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-						"encrypted failed for attribute  " + attributeName);
-				throw new DataEncryptionFailureException(error.getMessage());
+			if (responseObject != null) {
+				if (responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
+					ServiceError error = responseObject.getErrors().get(0);
+					LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+							"encrypted failed for attribute  " + attributeName);
+					throw new DataEncryptionFailureException(error.getMessage());
+				} else if (responseObject.getResponse() != null) {
+					encryptedData = responseObject.getResponse().getData();
+					LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+							"Pin Based Encryption done successfully");
+				}
 			}
-			encryptedData = responseObject.getResponse().getData();
-			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"Pin Based Encryption done successfully");
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ended encrypting data using pin");
 		} catch (IOException e) {
@@ -143,15 +146,18 @@ public class EncryptionUtil {
 			CryptoZkResponseDto responseObject= mapper.readValue(response,
 					CryptoZkResponseDto.class);
 
-			if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
-				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-						"ZK encryption failed");
-				ServiceError error = responseObject.getErrors().get(0);
-				throw new DataEncryptionFailureException(error.getMessage());
+			if (responseObject != null) {
+				if (responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
+					LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+							"ZK encryption failed");
+					ServiceError error = responseObject.getErrors().get(0);
+					throw new DataEncryptionFailureException(error.getMessage());
+				} else if (responseObject.getResponse() != null) {
+					encryptedData = responseObject.getResponse();
+					LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+							"ZK Encryption done successfully");
+				}
 			}
-			encryptedData = responseObject.getResponse();
-			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"ZK Encryption done successfully");
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ended encrypting data using ZK encryption");
 		} catch (IOException e) {
@@ -207,15 +213,18 @@ public class EncryptionUtil {
 
 			CryptomanagerResponseDto responseObject = mapper.readValue(response, CryptomanagerResponseDto.class);
 
-			if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
-				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-						"credential encryption failed");
-				ServiceError error = responseObject.getErrors().get(0);
-				throw new DataEncryptionFailureException(error.getMessage());
+			if (responseObject != null) {
+				if (responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
+					LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+							"credential encryption failed");
+					ServiceError error = responseObject.getErrors().get(0);
+					throw new DataEncryptionFailureException(error.getMessage());
+				} else if (responseObject.getResponse() != null) {
+					encryptedPacket = responseObject.getResponse().getData();
+					LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+							"Credential Data Encryption done successfully");
+				}
 			}
-			encryptedPacket = responseObject.getResponse().getData();
-			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"Credential Data Encryption done successfully");
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ended encrypting data using partner certificate");
 		} catch (IOException e) {

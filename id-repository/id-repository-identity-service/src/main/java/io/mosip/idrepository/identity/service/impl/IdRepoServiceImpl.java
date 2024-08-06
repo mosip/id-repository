@@ -1,60 +1,20 @@
 package io.mosip.idrepository.identity.service.impl;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.DocumentContext;
-import com.jayway.jsonpath.InvalidJsonException;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
-import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
-import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
-import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.DocumentsDTO;
-import io.mosip.idrepository.core.dto.IdRequestDTO;
-import io.mosip.idrepository.core.dto.RequestDTO;
-import io.mosip.idrepository.core.entity.CredentialRequestStatus;
+import static io.mosip.idrepository.core.constant.HandleStatusLifecycle.DELETE;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.*;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import javax.annotation.Resource;
+
 import io.mosip.idrepository.core.entity.Handle;
-import io.mosip.idrepository.core.exception.IdRepoAppException;
-import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
-import io.mosip.idrepository.core.logger.IdRepoLogger;
-import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
 import io.mosip.idrepository.core.repository.HandleRepo;
-import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
-import io.mosip.idrepository.core.repository.UinHashSaltRepo;
-import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.core.spi.IdRepoService;
-import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
-import io.mosip.idrepository.core.util.EnvUtil;
-import io.mosip.idrepository.identity.dto.HandleDto;
-import io.mosip.idrepository.identity.entity.IdentityUpdateTracker;
-import io.mosip.idrepository.identity.entity.Uin;
-import io.mosip.idrepository.identity.entity.UinBiometric;
-import io.mosip.idrepository.identity.entity.UinBiometricHistory;
-import io.mosip.idrepository.identity.entity.UinDocument;
-import io.mosip.idrepository.identity.entity.UinDocumentHistory;
-import io.mosip.idrepository.identity.entity.UinHistory;
-import io.mosip.idrepository.identity.helper.AnonymousProfileHelper;
-import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
-import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
-import io.mosip.idrepository.identity.provider.IdentityUpdateTrackerPolicyProvider;
-import io.mosip.idrepository.identity.repository.IdentityUpdateTrackerRepo;
-import io.mosip.idrepository.identity.repository.UinBiometricHistoryRepo;
-import io.mosip.idrepository.identity.repository.UinDocumentHistoryRepo;
-import io.mosip.idrepository.identity.repository.UinHistoryRepo;
-import io.mosip.idrepository.identity.repository.UinRepo;
-import io.mosip.kernel.biometrics.constant.BiometricType;
-import io.mosip.kernel.biometrics.entities.BIR;
-import io.mosip.kernel.biometrics.spi.CbeffUtil;
-import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.core.util.UUIDUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -71,34 +31,49 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.InvalidJsonException;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
+import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.CBEFF_FORMAT;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_FORMAT_ATTRIBUTE;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.FILE_NAME_ATTRIBUTE;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.HANDLE_RECORD_EXISTS;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UPDATE_COUNT_LIMIT_EXCEEDED;
-
+import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
+import io.mosip.idrepository.core.constant.HandleStatusLifecycle;
+import io.mosip.idrepository.core.constant.IdType;
+import io.mosip.idrepository.core.dto.*;
+import io.mosip.idrepository.core.entity.CredentialRequestStatus;
+import io.mosip.idrepository.core.exception.IdRepoAppException;
+import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
+import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
+import io.mosip.idrepository.core.repository.UinHashSaltRepo;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.spi.IdRepoService;
+import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
+import io.mosip.idrepository.core.util.EnvUtil;
+import io.mosip.idrepository.identity.dto.HandleDto;
+import io.mosip.idrepository.identity.entity.*;
+import io.mosip.idrepository.identity.helper.AnonymousProfileHelper;
+import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
+import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
+import io.mosip.idrepository.identity.provider.IdentityUpdateTrackerPolicyProvider;
+import io.mosip.idrepository.identity.repository.*;
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.spi.CbeffUtil;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.UUIDUtils;
 
 /**
  * The Class IdRepoServiceImpl - Service implementation for Identity service.
@@ -106,7 +81,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UPDATE_CO
 @Component
 @Primary
 @Transactional(rollbackFor = { IdRepoAppException.class, IdRepoAppUncheckedException.class })
-public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
+public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin> {
 
 	private static final String VERIFIED_ATTRIBUTES = "verifiedAttributes";
 
@@ -121,6 +96,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	/** The Constant LANGUAGE. */
 	private static final String LANGUAGE = "language";
+
+	private static final String VALUE = "value";
 
 	/** The Constant ADD_IDENTITY. */
 	private static final String ADD_IDENTITY = "addIdentity";
@@ -198,29 +175,32 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	
 	@Autowired
 	protected AnonymousProfileHelper anonymousProfileHelper;
-
-	@Autowired
-	private IdRepoServiceHelper idRepoServiceHelper;
-
-	@Autowired
-	private HandleRepo handleRepo;
 	
 	@Value("${mosip.idrepo.identity.uin-status.registered}")
 	private String activeStatus;
-
 	
 	@Autowired
 	private IdentityUpdateTrackerRepo identityUpdateTracker;
 
-
 	@Value("${mosip.idrepo.credential.request.enable-convention-based-id:false}")
 	private boolean enableConventionBasedId;
 
+	@Autowired
+	private HandleRepo handleRepo;
+
+	@Autowired
+	private IdRepoServiceHelper idRepoServiceHelper;
 
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
 
-	
+	@Value("${mosip.idrepo.update-identity.trim-whitespaces:true}")
+	private boolean trimWhitespaces;
+
+	@Value("#{${mosip.idrepo.update-identity.fields-to-replace}}")
+	private List<String> fieldsToReplaceOnUpdate;
+
+
 	/**
 	 * Adds the identity to DB.
 	 *
@@ -230,37 +210,44 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	@Override
-	public Uin addIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
+	public Uin addIdentity(IdRequestDTO<T> request, String uin) throws IdRepoAppException {
+		long epoch = System.currentTimeMillis();
 		String uinRefId = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils.getUTCCurrentDateTime())
 				.toString();
-		ObjectNode identityObject = mapper.convertValue(request.getRequest().getIdentity(), ObjectNode.class);
-		identityObject.putPOJO(VERIFIED_ATTRIBUTES, request.getRequest().getVerifiedAttributes());
+		ObjectNode identityObject = mapper.convertValue(request.getIdentity(), ObjectNode.class);
+		identityObject.putPOJO(VERIFIED_ATTRIBUTES, request.getVerifiedAttributes());
 		byte[] identityInfo = convertToBytes(identityObject);
 		String uinHash = getUinHash(uin);
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
 		String uinToEncrypt = getUinToEncrypt(uin);
 
-		Map<String, HandleDto> selectedUniqueHandlesMap = checkAndGetHandles(request);
+		mosipLogger.info("Before starting the checkAndGetHandles: {}", System.currentTimeMillis()-epoch);
+		epoch = System.currentTimeMillis();
+
+		Map<String, List<HandleDto>> selectedUniqueHandlesMap = checkAndGetHandles(request, null, null, CREATE);
+
+		mosipLogger.info("After completing with checkAndGetHandles: {}", System.currentTimeMillis()-epoch);
+		epoch = System.currentTimeMillis();
 
 		anonymousProfileHelper
-			.setRegId(request.getRequest().getRegistrationId())
+			.setRegId(request.getRegistrationId())
 			.setNewUinData(identityInfo);
 
 		List<UinDocument> docList = new ArrayList<>();
 		List<UinBiometric> bioList = new ArrayList<>();
 		Uin uinEntity;
-		if (Objects.nonNull(request.getRequest().getDocuments()) && !request.getRequest().getDocuments().isEmpty()) {
-			addDocuments(uinHashWithSalt, identityInfo, request.getRequest().getDocuments(), uinRefId, docList, bioList,
+		if (Objects.nonNull(request.getDocuments()) && !request.getDocuments().isEmpty()) {
+			addDocuments(uinHashWithSalt, identityInfo, request.getDocuments(), uinRefId, docList, bioList,
 					false);
 			uinEntity = new Uin(uinRefId, uinToEncrypt, uinHash, identityInfo, securityManager.hash(identityInfo),
-					request.getRequest().getRegistrationId(), activeStatus, IdRepoSecurityManager.getUser(),
+					request.getRegistrationId(), activeStatus, IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), null, null, false, null, bioList, docList);
 			uinEntity = uinRepo.save(uinEntity);
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 					"Record successfully saved in db with documents");
 		} else {
 			uinEntity = new Uin(uinRefId, uinToEncrypt, uinHash, identityInfo, securityManager.hash(identityInfo),
-					request.getRequest().getRegistrationId(), activeStatus, IdRepoSecurityManager.getUser(),
+					request.getRegistrationId(), activeStatus, IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), null, null, false, null, null, null);
 			uinEntity = uinRepo.save(uinEntity);
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
@@ -271,9 +258,21 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						uinEntity.getUinData(), uinEntity.getUinDataHash(), uinEntity.getRegId(), activeStatus,
 						IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), null, null, false, null));
 
+		mosipLogger.info("After adding UIN: {}", System.currentTimeMillis()-epoch);
+		epoch = System.currentTimeMillis();
+
 		addIdentityHandle(uinEntity, selectedUniqueHandlesMap);
+
+		mosipLogger.info("After addIdentityHandle: {}", System.currentTimeMillis()-epoch);
+		epoch = System.currentTimeMillis();
+
 		issueCredential(uinEntity.getUin(), uinHashWithSalt, activeStatus, null, uinEntity.getRegId());
+
+		mosipLogger.info("After issueCredential: {}", System.currentTimeMillis()-epoch);
+		epoch = System.currentTimeMillis();
+
 		anonymousProfileHelper.buildAndsaveProfile(false);
+		mosipLogger.info("After buildAndsaveProfile: {}", System.currentTimeMillis()-epoch);
 		return uinEntity;
 	}
 
@@ -399,9 +398,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * String, io.mosip.idrepository.core.constant.IdType, java.lang.String)
 	 */
 	@Override
-	public Uin retrieveIdentity(String id, IdType idType, String type, Map<String, String> extractionFormats)
+	public Uin retrieveIdentity(String uinHash, IdType idType, String type, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
-		Optional<Uin> uinObjOptional = uinRepo.findByUinHash(id);
+		Optional<Uin> uinObjOptional = uinRepo.findByUinHash(uinHash);
 		if (uinObjOptional.isPresent()) {
 			return uinObjOptional.get();
 		} else {
@@ -418,32 +417,36 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * Object, java.lang.String)
 	 */
 	@Override
-	public Uin updateIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
-		anonymousProfileHelper.setRegId(request.getRequest().getRegistrationId());
+	public Uin updateIdentity(IdRequestDTO<T> request, String uin) throws IdRepoAppException {
+		anonymousProfileHelper.setRegId(request.getRegistrationId());
 		String uinHash = getUinHash(uin);
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
 		try {
+			updateRequestBodyData(request);
+			Map<String, List<HandleDto>> inputSelectedHandlesMap = null;
 			Uin uinObject = retrieveIdentity(uinHash, IdType.UIN, null, null);
 			anonymousProfileHelper.setOldCbeff(uinHash,
 					!anonymousProfileHelper.isOldCbeffPresent() && Objects.nonNull(uinObject.getBiometrics())
 							&& !uinObject.getBiometrics().isEmpty()
 									? uinObject.getBiometrics().get(uinObject.getBiometrics().size() - 1).getBioFileId()
 									: null);
-			uinObject.setRegId(request.getRequest().getRegistrationId());
-			if (Objects.nonNull(request.getRequest().getStatus())
-					&& !StringUtils.equals(uinObject.getStatusCode(), request.getRequest().getStatus())) {
-				uinObject.setStatusCode(request.getRequest().getStatus());
+			uinObject.setRegId(request.getRegistrationId());
+			if (Objects.nonNull(request.getStatus())
+					&& !StringUtils.equals(uinObject.getStatusCode(), request.getStatus())) {
+				uinObject.setStatusCode(request.getStatus());
 				uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
 				uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
 			}
-			if (Objects.nonNull(request.getRequest()) && Objects.nonNull(request.getRequest().getIdentity())) {
-				RequestDTO requestDTO = request.getRequest();
+			if (Objects.nonNull(request) && Objects.nonNull(request.getIdentity())) {
+				inputSelectedHandlesMap = getNewAndDeleteExistingHandles(request, uinObject, UPDATE);
 				Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
 						.mappingProvider(new JacksonMappingProvider()).build();
-				DocumentContext inputData = JsonPath.using(configuration).parse(requestDTO.getIdentity());
+				DocumentContext inputData = JsonPath.using(configuration).parse(request.getIdentity());
 				DocumentContext dbData = JsonPath.using(configuration).parse(new String(uinObject.getUinData()));
 				anonymousProfileHelper.setOldUinData(dbData.jsonString().getBytes());
-				updateVerifiedAttributes(requestDTO, inputData, dbData);
+				updateVerifiedAttributes(request, inputData, dbData);
+				replaceConfiguredFieldsOnUpdate(inputData, dbData);
+				//TODO We should remove below json comparison as update operation always replaces the existing with new value
 				JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(),
 						dbData.jsonString(), JSONCompareMode.LENIENT);
 
@@ -455,13 +458,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
 				uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
 
-				if (Objects.nonNull(requestDTO.getDocuments()) && !requestDTO.getDocuments().isEmpty()) {
+				if (Objects.nonNull(request.getDocuments()) && !request.getDocuments().isEmpty()) {
 					anonymousProfileHelper
 							.setNewCbeff(uinObject.getUinHash(),
 									!anonymousProfileHelper.isNewCbeffPresent() ?
 									uinObject.getBiometrics().get(uinObject.getBiometrics().size() - 1).getBioFileId()
 											: null);
-					updateDocuments(uinHashWithSalt, uinObject, requestDTO, false);
+					updateDocuments(uinHashWithSalt, uinObject, request, false);
 					uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
 					uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
 				}
@@ -474,8 +477,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					uinObject.getRegId(), uinObject.getStatusCode(), IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), false, null));
+			
+			addIdentityHandle(uinObject, inputSelectedHandlesMap);
+			
 			issueCredential(uinObject.getUin(), uinHashWithSalt, uinObject.getStatusCode(),
-					DateUtils.getUTCCurrentDateTime(), uinObject.getRegId());
+					DateUtils.getUTCCurrentDateTime(),uinObject.getRegId());
 			anonymousProfileHelper.buildAndsaveProfile(false);
 			return uinObject;
 		} catch (JSONException | InvalidJsonException | IOException e) {
@@ -488,20 +494,82 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
+	/**
+	 * trim data inside identity
+	 * 
+	 * @param request
+	 * @throws IdRepoAppException
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private void updateRequestBodyData(IdRequestDTO request) throws IdRepoAppException {
+		if (trimWhitespaces && Objects.nonNull(request.getIdentity())) {
+			Map<String, Object> identityData = idRepoServiceHelper.convertToMap(request.getIdentity());
+			Map<String, Object> updatedIdentityData = identityData.entrySet().stream().map(attributeData -> {
+				if (attributeData.getValue() instanceof String) {
+					attributeData.setValue(((String) attributeData.getValue()).trim());
+				} else if (attributeData.getValue() instanceof List) {
+					List<Object> updatedListData = ((List<Object>) attributeData.getValue()).stream().map(obj -> {
+						if (obj instanceof Map) {
+							String trimValue = ((String) ((Map) obj).get(VALUE)).trim();
+							((Map) obj).put(VALUE, trimValue);
+						} else if (obj instanceof String) {
+							obj = ((String) obj).trim();
+						}
+						return obj;
+					}).collect(Collectors.toList());
+					attributeData.setValue(updatedListData);
+				} else if (attributeData.getValue() instanceof Map) {
+					if (((Map) attributeData.getValue()).containsKey(VALUE)) {
+						String trimValue = ((String) ((Map) attributeData.getValue()).get(VALUE)).trim();
+						((Map) attributeData.getValue()).put(VALUE, trimValue);
+					}
+				}
+				return attributeData;
+			}).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+			request.setIdentity(updatedIdentityData);
+		}
+	}
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected void updateVerifiedAttributes(RequestDTO requestDTO, DocumentContext inputData, DocumentContext dbData) {
-		List dbVerifiedAttributes = (List) dbData.read(".verifiedAttributes");
+	protected void updateVerifiedAttributes(IdRequestDTO<T> requestDTO, DocumentContext inputData, DocumentContext dbData) throws IdRepoAppException {
+		List dbVerifiedAttributes = (List) dbData.read(DOT + VERIFIED_ATTRIBUTES);
 		dbVerifiedAttributes.remove(null);
+		boolean isV2Version = requestDTO.getVerifiedAttributes() instanceof Map ? true : false;
 		if (dbVerifiedAttributes.isEmpty()) {
-			dbVerifiedAttributes.add(new ArrayList<>());
+			dbVerifiedAttributes.add(isV2Version ? new HashMap<>() : new ArrayList<>());
 		}
-		List verifiedAttributeList = (List) dbVerifiedAttributes.get(0);
-		if (Objects.nonNull(requestDTO.getVerifiedAttributes())) {
-			verifiedAttributeList.addAll(requestDTO.getVerifiedAttributes());
+		if (isV2Version) {
+			Map dbVerifiedAttributeMap = (Map) dbVerifiedAttributes.get(0);
+			Map<String, Object> identityMap = idRepoServiceHelper.convertToMap(requestDTO.getIdentity());
+			dbVerifiedAttributeMap.keySet().removeIf(identityMap::containsKey);
+			if (Objects.nonNull(requestDTO.getVerifiedAttributes())
+					&& !((Map) requestDTO.getVerifiedAttributes()).isEmpty()) {
+				dbVerifiedAttributeMap.putAll((Map) requestDTO.getVerifiedAttributes());
+			}
+			inputData.put("$", VERIFIED_ATTRIBUTES, dbVerifiedAttributeMap);
+			dbData.put("$", VERIFIED_ATTRIBUTES, dbVerifiedAttributeMap);
+		} else {
+			List verifiedAttributeList = (List) dbVerifiedAttributes.get(0);
+			if (Objects.nonNull(requestDTO.getVerifiedAttributes())) {
+				verifiedAttributeList.addAll((List<String>)requestDTO.getVerifiedAttributes());
+			}
+			HashSet<String> verifiedAttributesSet = new HashSet<>(verifiedAttributeList);
+			inputData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
+			dbData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
 		}
-		HashSet<String> verifiedAttributesSet = new HashSet<>(verifiedAttributeList);
-		inputData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
-		dbData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private void replaceConfiguredFieldsOnUpdate(DocumentContext inputData, DocumentContext dbData) {
+		for(String fieldId : fieldsToReplaceOnUpdate) {
+			List readValue = (List) inputData.read(DOT + fieldId);
+			if (!readValue.isEmpty()) {
+				Object value = readValue.get(0);
+				if (Objects.nonNull(value)) {
+					dbData.put("$", fieldId, value);
+				}
+			}
+		}
 	}
 
 	/**
@@ -595,6 +663,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 *
 	 * @param dbData           the db data
 	 * @param comparisonResult the comparison result
+	 * @param attribute
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -709,6 +778,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	/**
 	 * Update documents.
 	 *
+	 * @param uinHashwithSalt    the uin hash
 	 * @param uinObject  the uin object
 	 * @param requestDTO the request DTO
 	 * @throws IdRepoAppException the id repo app exception
@@ -804,7 +874,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				.collect(Collectors.toMap(bir -> bir.getBdbInfo().getType().stream().map(BiometricType::value)
 						.collect(Collectors.joining())
 						.concat(bir.getBdbInfo().getSubtype().stream().collect(Collectors.joining())), bir -> bir));
-		inputBIRDataMap.entrySet().forEach(entry -> existingBIRDataMap.replace(entry.getKey(), entry.getValue()));
+		inputBIRDataMap.entrySet().forEach(entry -> {
+			if (existingBIRDataMap.containsKey(entry.getKey())) {
+				existingBIRDataMap.replace(entry.getKey(), entry.getValue());
+			} else {
+				existingBIRDataMap.put(entry.getKey(), entry.getValue());
+			}
+		});
 		byte[] updatedCbeff = cbeffUtil.createXML(new ArrayList<>(existingBIRDataMap.values()));
 		anonymousProfileHelper.setNewCbeff(CryptoUtil.encodeToURLSafeBase64(updatedCbeff));
 		return updatedCbeff;
@@ -827,7 +903,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 */
 	@Override
 	public Map<String, Integer> getRemainingUpdateCountByIndividualId(String uinHash, IdType idType,
-																	  List<String> attributeList) throws IdRepoAppException {
+			List<String> attributeList) throws IdRepoAppException {
 		try {
 			Optional<IdentityUpdateTracker> updateTrackerOptional = identityUpdateTracker.findById(uinHash);
 			if (updateTrackerOptional.isPresent()) {
@@ -873,7 +949,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					.collect(Collectors.toMap(attribute -> attribute, updateCountMapFromPolicy::get));
 		}
 	}
-
 
 	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp, String requestId) {
 		List<CredentialRequestStatus> credStatusList = credRequestRepo.findByIndividualIdHash(uinHash);
@@ -941,41 +1016,122 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
-	private Map<String, HandleDto> checkAndGetHandles(IdRequestDTO request) throws IdRepoAppException {
-		Map<String, HandleDto> handles = idRepoServiceHelper.getSelectedHandles(request.getRequest());
+	/**
+	 * Get handles map and check duplicate handles, if duplicate exists then throw
+	 * HANDLE_RECORD_EXISTS error.
+	 * 
+	 * @param request IdRequestDTO
+	 * @param uinHash
+	 * @param method
+	 * @return handles map
+	 * @throws IdRepoAppException
+	 */
+	private Map<String, List<HandleDto>> checkAndGetHandles(IdRequestDTO request, String uinHash,
+			Map<String, List<HandleDto>> existingSelectedHandlesMap, String method) throws IdRepoAppException {
+		Map<String, List<HandleDto>> handles = idRepoServiceHelper.getSelectedHandles(request,
+				existingSelectedHandlesMap);
 		if (handles != null && !handles.isEmpty()) {
-			List<String> duplicateHandles = handles.keySet()
-					.stream()
-					.filter(handleName -> handleRepo.existsByHandleHash(handles.get(handleName).getHandleHash()))
-					.collect(Collectors.toList());
+			List<String> duplicateHandleFieldIds = handles.keySet().stream().filter(handleName -> {
+				List<String> hashes = handles.get(handleName).stream().map(HandleDto::getHandleHash).collect(Collectors.toList());
+				if(hashes.isEmpty())
+					return false;
 
-			if (duplicateHandles != null && !duplicateHandles.isEmpty()) {
+				List<String> uinHashFromDB = handleRepo.findUinHashByHandleHashes(hashes);
+				if (!uinHashFromDB.isEmpty()) {
+					//check if belongs to the same user, if yes then don't throw error
+					return (method.equals(UPDATE) && uinHashFromDB.contains(uinHash)) ? false : true;
+				}
+				return false;
+			}).collect(Collectors.toList());
+
+			if (duplicateHandleFieldIds != null && !duplicateHandleFieldIds.isEmpty()) {
 				throw new IdRepoAppException(HANDLE_RECORD_EXISTS.getErrorCode(),
-						String.format(HANDLE_RECORD_EXISTS.getErrorMessage(), duplicateHandles));
+						String.format(HANDLE_RECORD_EXISTS.getErrorMessage(), duplicateHandleFieldIds));
 			}
 		}
 		return handles;
 	}
 
-	private void addIdentityHandle(Uin uinEntity, Map<String, HandleDto> handles) {
-		if (handles != null && !handles.isEmpty()) {
-			for (Entry<String, HandleDto> handleDtoEntry : handles.entrySet()) {
-				int saltId = securityManager.getSaltKeyForHashOfId(handleDtoEntry.getValue().getHandle());
+	private void addIdentityHandle(Uin uinEntity, Map<String, List<HandleDto>> handles) throws IdRepoAppException {
+		if(handles == null)
+			return;
+
+		for (Entry<String, List<HandleDto>> entry : handles.entrySet()) {
+			for(HandleDto handleDto : entry.getValue()) {
+				int saltId = securityManager.getSaltKeyForHashOfId(handleDto.getHandle());
 				String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(saltId);
-				String handleToEncrypt = saltId + SPLITTER + handleDtoEntry.getValue().getHandle() + SPLITTER + encryptSalt;
+				String handleToEncrypt = saltId + SPLITTER + handleDto.getHandle() + SPLITTER + encryptSalt;
+
+				Optional<Handle> result = handleRepo.findByHandleHash(handleDto.getHandleHash());
+				if(result.isPresent()) {
+					throw new IdRepoAppException(HANDLE_RECORD_EXISTS.getErrorCode(),
+							String.format(HANDLE_RECORD_EXISTS.getErrorMessage(), entry.getKey()));
+				}
 
 				Handle handleEntity = new Handle();
-				handleEntity.setHandleHash(handleDtoEntry.getValue().getHandleHash());
+				handleEntity.setHandleHash(handleDto.getHandleHash());
 				handleEntity.setId(UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID,
-						handleDtoEntry.getValue().getHandle() + SPLITTER + DateUtils.getUTCCurrentDateTime()).toString());
+						handleDto.getHandle() + SPLITTER + DateUtils.getUTCCurrentDateTime()).toString());
 				handleEntity.setHandle(handleToEncrypt);
 				handleEntity.setUinHash(uinEntity.getUinHash());
 				handleEntity.setCreatedBy(IdRepoSecurityManager.getUser());
 				handleEntity.setCreatedDateTime(DateUtils.getUTCCurrentDateTime());
+				handleEntity.setStatus(HandleStatusLifecycle.ACTIVATED.name());
 				handleRepo.save(handleEntity);
 				mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY_HANDLE,
 						"Record successfully saved in db");
 			}
 		}
+	}
+
+	private Map<String, List<HandleDto>> getNewAndDeleteExistingHandles(IdRequestDTO inputRequestDto, Uin uinObject,
+			String method) throws IdRepoAppException {
+//		fetch existing handles
+		ObjectNode identityObject = convertToObject(uinObject.getUinData(), ObjectNode.class);
+		RequestDTO existingIdentityRequestDto = new RequestDTO();
+		existingIdentityRequestDto.setIdentity(identityObject);
+		Map<String, List<HandleDto>> existingSelectedHandlesMap = idRepoServiceHelper
+				.getSelectedHandles(existingIdentityRequestDto, null);
+
+//		new handles
+		Map<String, List<HandleDto>> inputSelectedHandlesMap = checkAndGetHandles(inputRequestDto, uinObject.getUinHash(),
+				existingSelectedHandlesMap, method);
+//		if 'inputSelectedHandlesMap' comes as empty map then we should revoke all existing handles
+//		by updating the handle status as 'DELETE'.
+
+		if (existingSelectedHandlesMap == null)
+			return inputSelectedHandlesMap;
+
+		List<String> handleHashesToBeDeleted = new ArrayList<>();
+		for (Entry<String, List<HandleDto>> existingEntry : existingSelectedHandlesMap.entrySet()) {
+			for(HandleDto existingHandleDto : existingEntry.getValue()) {
+				//if same handle hash present in "inputSelectedHandlesMap" then
+				//remove from "inputSelectedHandlesMap" otherwise update handle status as 'DELETE'.
+				if (inputSelectedHandlesMap != null && inputSelectedHandlesMap.containsKey(existingEntry.getKey())) {
+					Optional<HandleDto> result = inputSelectedHandlesMap.get(existingEntry.getKey())
+							.stream()
+							.filter( newDto -> newDto.getHandleHash().equals(existingHandleDto.getHandleHash()) )
+							.findFirst();
+
+					//if the existing handle hash is not present in the new map, then it entry should be "DELETED"
+					if(result.isEmpty()) { handleHashesToBeDeleted.add(existingHandleDto.getHandleHash()); }
+					else {
+						//handle already exists with the same hash
+						inputSelectedHandlesMap.get(existingEntry.getKey()).remove(result.get());
+					}
+
+				} else {
+					handleHashesToBeDeleted.add(existingHandleDto.getHandleHash());
+				}
+			}
+		}
+
+		for(String handleHash : handleHashesToBeDeleted) {
+			//Update the handle status as 'DELETE' in the "mosip_idrepo.handle" table
+			//and will delete the record after getting an acknowledgement from IDA.
+			handleRepo.updateStatusByHandleHash(handleHash, DELETE.name());
+			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getNewAndDeleteExistingHandles", "Record successfully updated in db");
+		}
+		return inputSelectedHandlesMap;
 	}
 }

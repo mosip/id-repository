@@ -61,7 +61,6 @@ public class CredentialInstializer implements ApplicationListener<ApplicationRea
 		LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIALINSTIALIZER, ONAPPLICATIONEVENT,
 				"Scheduling re-subscription every " + reSubscriptionDelaySecs + " seconds");
 
-
 		if (!isSubscriptionStarted) {
 			taskScheduler.scheduleAtFixedRate(this::retrySubscriptions, Instant.now().plusSeconds(reSubscriptionDelaySecs),
 					Duration.ofSeconds(reSubscriptionDelaySecs));
