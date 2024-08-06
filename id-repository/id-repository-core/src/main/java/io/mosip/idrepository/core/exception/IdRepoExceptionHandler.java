@@ -41,6 +41,7 @@ import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * The Class IdRepoExceptionHandler - Handler class for all exceptions thrown in
@@ -95,6 +96,16 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 		} else {
 			return new ResponseEntity<>(buildExceptionResponse(httpMessageNotReadableException, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.OK);
 		}
+	}
+
+	@Override
+	protected ResponseEntity<Object> handleNoResourceFoundException(NoResourceFoundException noResourceFoundException, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+		Throwable rootCause = getRootCause(noResourceFoundException);
+		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_EXCEPTION_HANDLER,
+				"handleNoResourceFoundException - \n" + ExceptionUtils.getStackTrace(Objects.isNull(rootCause) ? noResourceFoundException : rootCause));
+
+		IdRepoAppException idRepoAppException = new IdRepoAppException(INVALID_REQUEST.getErrorCode(), INVALID_REQUEST.getErrorMessage());
+			return new ResponseEntity<>(buildExceptionResponse(idRepoAppException, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.OK);
 	}
 
 	/**
