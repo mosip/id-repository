@@ -76,7 +76,6 @@ public class UinDraft implements Persistable<String>, UinInfo, Serializable {
 	private String uinHash;
 
 	/** The uin data. */
-	@Lob
 	@Basic(fetch = FetchType.LAZY)
 	@Getter(AccessLevel.NONE)
 	@Setter(AccessLevel.NONE)
