@@ -15,13 +15,9 @@ import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
-import org.hibernate.Interceptor;
-import org.mvel2.MVEL;
-import org.mvel2.integration.VariableResolverFactory;
-import org.mvel2.integration.impl.MapVariableResolverFactory;
+import io.mosip.idrepository.vid.interceptor.IdRepoVidEntityInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.context.annotation.Bean;
@@ -37,7 +33,6 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
@@ -74,7 +69,7 @@ public class VidRepoConfig {
 
 	/** The Interceptor. */
 	@Autowired
-	private Interceptor interceptor;
+	private IdRepoVidEntityInterceptor idRepoVidEntityInterceptor;
 	
 	/** The id. */
 	private Map<String, String> id;
@@ -129,7 +124,7 @@ public class VidRepoConfig {
 		Map<String, Object> jpaProperties = new HashMap<>();
 		jpaProperties.put("hibernate.implicit_naming_strategy", SpringImplicitNamingStrategy.class.getName());
 		jpaProperties.put("hibernate.physical_naming_strategy", org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl.class.getName());
-		jpaProperties.put("hibernate.session_factory", interceptor);
+		jpaProperties.put("hibernate.session_factory.interceptor", idRepoVidEntityInterceptor);
 		jpaProperties.replace("hibernate.dialect", "org.hibernate.dialect.PostgreSQL92Dialect");
 		return jpaProperties;
 	}
