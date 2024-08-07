@@ -1,6 +1,7 @@
 RetrieveVIDByUIN:
   IdRepository_RetrieveVIDByUIN_With_Valid_Smoke_Temp:
       endPoint: /idrepository/v1/vid/uin/{UIN}
+      description: Retrieve VID passing temporary UIN
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: get
@@ -14,6 +15,7 @@ RetrieveVIDByUIN:
 }'
   IdRepository_RetrieveVIDByUIN_With_blocked_vid_:
       endPoint: /idrepository/v1/vid/uin/{UIN}
+      description: Retrieve VID passing blocked UIN
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: get
@@ -31,6 +33,7 @@ RetrieveVIDByUIN:
 }'
   IdRepository_RetrieveVIDByUIN_With_Valid_Smoke_Perp:
       endPoint: /idrepository/v1/vid/uin/{UIN}
+      description: Retrieve UIN by passing perpetual UIN
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: get
@@ -46,6 +49,7 @@ RetrieveVIDByUIN:
 
   IdRepository_RetrieveVIDByUIN_With_All_Vid_Valid_Smoke:
       endPoint: /idrepository/v1/vid/uin/{UIN}
+      description: Retrieve UIN by passing valid UIN
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: get
@@ -60,6 +64,7 @@ RetrieveVIDByUIN:
 
   IdRepository_RetrieveVIDByUIN_With_Invalid Uin:
       endPoint: /idrepository/v1/vid/uin/{UIN}
+      description: Retrieving VID passing invlalid UIN
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUIN
@@ -77,6 +82,7 @@ RetrieveVIDByUIN:
 
   IdRepository_RetrieveVIDByUIN_With_Empty Uin:
       endPoint: /idrepository/v1/vid/uin/{UIN}
+      description: Retrieving VID passing empty UIN
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUIN
@@ -94,6 +100,7 @@ RetrieveVIDByUIN:
 
   IdRepository_RetrieveVIDByUIN_With_Space Uin:
       endPoint: /idrepository/v1/vid/uin/{UIN}
+      description: Retrieve VID passing space in UIN field
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUIN

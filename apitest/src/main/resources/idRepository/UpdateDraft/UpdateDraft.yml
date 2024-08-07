@@ -1,6 +1,7 @@
 UpdateDraft:
   IdRepository_UpdateDraft_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/update/{registrationId}
+      description: update draft packet
       role: idrepo
       restMethod: patch
       inputTemplate: idRepository/UpdateDraft/updateDraft_$LANGNUMBER$
