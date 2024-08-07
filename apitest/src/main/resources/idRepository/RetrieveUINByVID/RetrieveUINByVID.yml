@@ -1,7 +1,6 @@
 Retrieve_VID_pos:
   IdRepository_Retrieve_VID_pos_perpetual_Active_smoke:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN using perpetual VID
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: get
@@ -17,7 +16,6 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_pos_Temp_Active_smoke:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN using perpetual VID
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: get
@@ -34,7 +32,6 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_pos_Onetimeuse_Active_smoke:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN using onetimeuse VID
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: get
@@ -50,7 +47,6 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_pos_perpetual_DEACTIVATED:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN using Deactivated perpetual VID
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -68,7 +64,6 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_pos_Onetimeuse_DEACTIVATED:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN using Deactivated onetimeuse VID
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -86,7 +81,6 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_pos_perpetual_Expired:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN using Expired perpetual VID
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -103,7 +97,6 @@ Retrieve_VID_pos:
 }'
   IdRepository_Retrieve_VID_pos_perpetual_Revoked:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN using Revoked perpetual VID
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -120,7 +113,6 @@ Retrieve_VID_pos:
 }'
   IdRepository_Retrieve_VID_pos_Temperory_DEACTIVATED:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN using Deactivated temporary VID
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -137,7 +129,6 @@ Retrieve_VID_pos:
 }'
   IdRepository_Retrieve_VID_pos_Temperory_Revoked:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN using revoked temporary VID
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -155,7 +146,6 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_PVID_with_invalid_vid_data:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing invalid VID data
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -173,7 +163,6 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_PVID_with_Empty_vid:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing empty VID
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -191,7 +180,6 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_PVID_with_SpaceVal_vid_data:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing space in the VID field
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -209,7 +197,6 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_with_invalid_vid_data:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing invalid vid data
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -227,7 +214,6 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_Temp_Empty_vid:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing empty VID
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -245,7 +231,6 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_with_SpaceVal_vid_data:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing Space Value in vid data
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -263,7 +248,6 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_with_Invalid_vid:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing Invalid vid
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -281,7 +265,6 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_with_Empty_vid:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing empty VID
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -299,7 +282,6 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_with_SpaceVal_vid:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing space value in VID field
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
