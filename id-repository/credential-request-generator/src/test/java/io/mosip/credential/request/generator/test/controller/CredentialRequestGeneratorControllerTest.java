@@ -58,9 +58,6 @@ public class CredentialRequestGeneratorControllerTest {
 	@Mock
 	private RequestValidator requestValidator;
 
-	@Mock
-	private RequestValidator requestValidator;
-
 	@InjectMocks
 	private CredentialRequestGeneratorController credentialRequestGeneratorController;
 
@@ -77,15 +74,7 @@ public class CredentialRequestGeneratorControllerTest {
 	String reqCredentialEventJson;
 
 	ResponseWrapper<PageDto<CredentialRequestIdsDto>> responseWrapper;
-	
-	@Mock
-	private CredentialInstializer credentialInstializer;
 
-	@Mock
-	private SubscribeEvent subscribeEvent;
-
-	@Mock
-	JobLauncher jobLauncher;
 
 	@Before
 	public void setup() throws Exception {

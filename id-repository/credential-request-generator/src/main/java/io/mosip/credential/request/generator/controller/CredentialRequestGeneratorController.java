@@ -116,7 +116,7 @@ public class CredentialRequestGeneratorController {
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<Object> credentialIssueByRid(
-			@RequestBody  RequestWrapper<CredentialIssueRequestDto>  credentialIssueRequestDto, @PathVariable("rid") String rid) {
+			@RequestBody  RequestWrapper<CredentialIssueRequest>  credentialIssueRequestDto, @PathVariable("rid") String rid) {
 
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = credentialRequestService
 				.createCredentialIssuanceByRid(credentialIssueRequestDto.getRequest(),rid);
