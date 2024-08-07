@@ -2,8 +2,8 @@ package io.mosip.credential.request.generator.repositary;
 
 import java.time.LocalDateTime;
 
-import javax.persistence.LockModeType;
-import javax.persistence.QueryHint;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,7 +30,7 @@ import io.mosip.kernel.core.dataaccess.spi.repository.BaseRepository;
  * @param <E> the element type
  */
 @Repository
-public interface CredentialRepositary<T extends CredentialEntity, E> extends BaseRepository<T, E> {
+public interface CredentialRepositary extends BaseRepository<CredentialEntity, String> {
 
 	@Query("SELECT crdn FROM CredentialEntity crdn WHERE crdn.statusCode= :statusCode")
 	Page<CredentialEntity> findByStatusCode(@Param("statusCode") String statusCode, Pageable pageable);
@@ -43,7 +43,7 @@ public interface CredentialRepositary<T extends CredentialEntity, E> extends Bas
 	
 	@Transactional
 	@Lock(value = LockModeType.PESSIMISTIC_WRITE) 
-	@QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "1") })
+	@QueryHints({ @QueryHint(name = "jakarta.persistence.lock.timeout", value = "1") })
 	@Query("select c from CredentialEntity c where c.statusCode=:statusCode")
 	Page<CredentialEntity> findCredentialByStatusCode(@Param("statusCode")String statusCode, Pageable pageable);
 
@@ -57,7 +57,7 @@ public interface CredentialRepositary<T extends CredentialEntity, E> extends Bas
 	 */
 	@Transactional
 	@Lock(value = LockModeType.PESSIMISTIC_WRITE)
-	@QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "1") })
+	@QueryHints({ @QueryHint(name = "jakarta.persistence.lock.timeout", value = "1") })
 	@Query("SELECT crdn FROM CredentialEntity crdn WHERE crdn.statusCode in :statusCodes ")
 	Page<CredentialEntity> findCredentialByStatusCodes(@Param("statusCodes") String[] statusCodes,Pageable pageable);
 }

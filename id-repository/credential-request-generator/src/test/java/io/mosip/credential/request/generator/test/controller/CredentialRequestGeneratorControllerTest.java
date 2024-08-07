@@ -39,7 +39,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = TestConfig.class)
-@TestPropertySource(locations = "classpath:application.properties")
 @SpringBootTest(classes = TestBootApplication.class)
 @AutoConfigureMockMvc
 public class CredentialRequestGeneratorControllerTest {

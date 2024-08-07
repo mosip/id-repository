@@ -8,18 +8,19 @@ import org.springframework.context.annotation.Import;
 
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
-import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
 
 /**
  * The Class IdRepoVidApplication.
  *
  * @author Prem Kumar
  */
-@SpringBootApplication(exclude = HibernateDaoConfig.class)
+@SpringBootApplication
 @Import({ IdRepoSecurityManager.class, DummyPartnerCheckUtil.class })
 @ComponentScan(basePackages = { "io.mosip.idrepository.vid.*", "io.mosip.idrepository.core.*",
+		"io.mosip.kernel.websub.api.config", "io.mosip.kernel.idvalidator.vid.impl", "io.mosip.kernel.idvalidator.uin.impl",
 		"${mosip.auth.adapter.impl.basepackage}" }, excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
-				"io.mosip.idrepository.core.entity", "io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig" }))
+				"io.mosip.idrepository.core.entity",
+				"io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig" }))
 public class VidBootApplication {
 
 	/**

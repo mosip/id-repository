@@ -4,15 +4,15 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import javax.persistence.Basic;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import jakarta.persistence.Basic;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 import io.mosip.idrepository.core.entity.UinInfo;
 import org.hibernate.annotations.NotFound;
@@ -36,7 +36,7 @@ import lombok.ToString;
 @ToString(exclude = { "biometrics", "documents" })
 @Entity
 @NoArgsConstructor
-@Table(schema = "idrepo")
+@Table(schema = "idrepo", name = "uin_draft")
 public class UinDraft implements Persistable<String>, UinInfo, Serializable {
 
 	/**
@@ -65,26 +65,30 @@ public class UinDraft implements Persistable<String>, UinInfo, Serializable {
 	}
 
 	@Id
-	@Column(insertable = false, updatable = false, nullable = false)
+	@Column(name="reg_id", insertable = false, updatable = false, nullable = false)
 	private String regId;
 
 	/** The uin. */
+	@Column(name="uin")
 	private String uin;
 
+	@Column(name="uin_hash")
 	private String uinHash;
 
 	/** The uin data. */
 	@Lob
-	@Type(type = "org.hibernate.type.BinaryType")
 	@Basic(fetch = FetchType.LAZY)
 	@Getter(AccessLevel.NONE)
 	@Setter(AccessLevel.NONE)
+	@Column(name="uin_data")
 	private byte[] uinData;
 
 	/** The uin data hash. */
+	@Column(name="uin_data_hash")
 	private String uinDataHash;
 
 	/** The status code. */
+	@Column(name="status_code")
 	private String statusCode;
 	
 	/** The created by. */
@@ -104,6 +108,7 @@ public class UinDraft implements Persistable<String>, UinInfo, Serializable {
 	private LocalDateTime updatedDateTime;
 
 	/** The is deleted. */
+	@Column(name = "is_deleted")
 	private Boolean isDeleted;
 
 	/** The deleted date time. */
@@ -111,11 +116,9 @@ public class UinDraft implements Persistable<String>, UinInfo, Serializable {
 	private LocalDateTime deletedDateTime;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "uin", cascade = CascadeType.ALL)
-	@NotFound(action = NotFoundAction.IGNORE)
 	private List<UinBiometricDraft> biometrics;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "uin", cascade = CascadeType.ALL)
-	@NotFound(action = NotFoundAction.IGNORE)
 	private List<UinDocumentDraft> documents;
 
 	/**

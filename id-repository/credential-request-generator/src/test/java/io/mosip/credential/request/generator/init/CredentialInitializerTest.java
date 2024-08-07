@@ -36,7 +36,7 @@ public class CredentialInitializerTest {
     @Test
     public void onApplicationEventTest(){
         SpringApplication application = new SpringApplication();
-        ApplicationReadyEvent event = new ApplicationReadyEvent(application, new String[0], null);
+        ApplicationReadyEvent event = new ApplicationReadyEvent(application, new String[0], null, null);
         credentialInstializer.onApplicationEvent(event);
 
         ReflectionTestUtils.setField(credentialInstializer, "reSubscriptionDelaySecs", 2);

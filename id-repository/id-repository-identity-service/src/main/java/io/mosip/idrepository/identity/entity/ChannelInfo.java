@@ -2,11 +2,11 @@ package io.mosip.idrepository.identity.entity;
 
 import java.time.LocalDateTime;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,10 +22,13 @@ import lombok.NoArgsConstructor;
 public class ChannelInfo {
 	
 	@Id
+	@Column(name = "hashed_channel")
 	private String hashedChannel;
 	
+	@Column(name = "channel_type")
 	private String channelType;
 	
+	@Column(name = "no_of_records")
 	private Integer noOfRecords;
 	
 	@NotNull

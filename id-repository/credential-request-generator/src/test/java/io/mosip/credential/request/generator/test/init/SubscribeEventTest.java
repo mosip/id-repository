@@ -68,7 +68,7 @@ public class SubscribeEventTest {
 
 	@Test
 	public void testOnApplicationEvent() {
-		ApplicationReadyEvent event = new ApplicationReadyEvent(new SpringApplication(), null, null);
+		ApplicationReadyEvent event = new ApplicationReadyEvent(new SpringApplication(), null, null, null);
 		int delayMilliseconds = 60000;
 		ArgumentMatcher<Date> dateMatcher = argument -> {
 			long expectedTime = System.currentTimeMillis() + delayMilliseconds;

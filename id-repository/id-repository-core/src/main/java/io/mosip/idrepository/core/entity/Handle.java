@@ -1,14 +1,15 @@
 package io.mosip.idrepository.core.entity;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import java.time.LocalDateTime;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Entity
@@ -18,11 +19,13 @@ import java.time.LocalDateTime;
 public class Handle implements HandleInfo {
 
     @Id
+    @Column(name = "id")
     private String id; //UUID
 
     @Column(name = "uin_hash")
     private String uinHash;
 
+    @Column(name = "handle")
     private String handle;
 
     @Column(name = "handle_hash")
