@@ -1,6 +1,7 @@
 UpdateVidStatus:
   IdRepository_UpdateVidStatus_withInvalidversion_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID status passing invalid version
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -21,6 +22,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withInvalidRequestTime_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID status passing invalid requesttime
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -41,6 +43,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withInvalidVIDStatus_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID status passing invalid VID status
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -61,6 +64,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withInvalidId_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID status passing invalid ID
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -81,6 +85,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withMissingverion_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID status without version
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -101,6 +106,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withMissingRequestTime_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID status without requesttime
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -121,6 +127,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withMissingId_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID status without passing ID
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -141,6 +148,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withMissingVIDStatus_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID status without passing VID status
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -161,6 +169,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withVidStatus_USED_For_Vid Type_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update perpetual VID status
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -177,6 +186,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withInvalidversion_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update perpetual VID status passing invalid version
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -197,6 +207,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withInvalidVIDStatus_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update perpetual VID status passing invalid VID status
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -217,6 +228,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withInvalidRequestTime_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update perpetual VID status passing invalid requesttime
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -237,6 +249,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withInvalidId_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update perpetual VID status passing invalid ID
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -257,6 +270,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withMissingverion_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update perpetual VID status removing the version
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -277,6 +291,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withMissingRequestTime_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update perpetual VID status removing requesttime
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -297,6 +312,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withMissingVIDStatus_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update perpetual VID status removing VID status
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -317,6 +333,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withMissingId_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update perpetual VID status removing ID field
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -337,6 +354,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withEmptyversion_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID status passing empty version
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -357,6 +375,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withEmptyRequestTime_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID status passing empty request time
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -377,6 +396,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withEmptyVIDStatus_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID status passing empty VID status
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -397,6 +417,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withEmptyId_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID status passing empty ID
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -417,6 +438,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withSpaceValverion_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID passing space in status field
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -437,6 +459,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withSpaceValRequestTime_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID status passing space in request time
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -457,6 +480,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withSpaceValId_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID status passing space value in ID field
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -477,6 +501,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withSpaceValVIDStatus_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID status passing space value in VID status
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -497,6 +522,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withEmptyversion_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Perpetual VID status passing empty version
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -517,6 +543,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withEmptyVIDStatus_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Perpetual VID status passing empty VID status
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -537,6 +564,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withEmptyRequestTime_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Perpetual VID status passing empty request time
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -557,6 +585,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withEmptyId_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update perpetual VID status passing empty ID
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -577,6 +606,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withSpaceValverion_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update perpetual VID status passing empty space version
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -597,6 +627,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withSpaceValRequestTime_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update perpetual VID status passing empty space value in requesttime
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -617,6 +648,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withSpaceValVIDStatus_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update perpetual VID status passing empty space in vidstatus
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -637,6 +669,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withSpaceValId_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update perpetual VID status passing space v
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -658,6 +691,7 @@ UpdateVidStatus:
 
   IdRepository_UpdateVidStatus_EXPIRE_Invalid_IndividualId:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update VID status passing invalid Individual ID
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -679,6 +713,7 @@ UpdateVidStatus:
 
   IdRepository_UpdateVidStatus_EXPIRE_Empty_IndividualId:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update VID status passing expired in vidstatus
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -700,6 +735,7 @@ UpdateVidStatus:
 
   IdRepository_UpdateVidStatus_EXPIRE_SpaceVal_IndividualId:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update VID status passing space
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -721,6 +757,7 @@ UpdateVidStatus:
 
   IdRepository_UpdateVidStatus_withPastRequestTime_Neg:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update VID status passing past requesttime
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -742,6 +779,7 @@ UpdateVidStatus:
 
   IdRepository_UpdateVidStatus_withFutureRequestTime_Neg:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update VID status passing future requesttime
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -763,6 +801,7 @@ UpdateVidStatus:
 
   IdRepository_UpdateVidStatus_EXPIRE_For_Vid_Type_Perpetual_smoke:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update VID status passing vid status expired
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -779,6 +818,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_Deactivated_For_Vid_Type_Perpetual_smoke:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update perpetual VID status passing deactivated vid status
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -795,6 +835,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_Deactivated_For_Vid_Type_Temporary_smoke:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID status passing deactivated vid status
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -811,6 +852,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withVidStatus_REVOKE_for_USED_smokeVID_For_Vid_Type_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update perpetual VID status passing  vid status as revoked
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -827,6 +869,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_withVidStatus_REVOKE_for_USED_smokeVID_For_Vid_Type_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID status passing vid status as revoked
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -843,6 +886,7 @@ UpdateVidStatus:
 }'
   IdRepository_UpdateVidStatus_Activate_withValidParameters_For_Vid_Type_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
+      description: Update Temporary VID status passing valid parameters
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus

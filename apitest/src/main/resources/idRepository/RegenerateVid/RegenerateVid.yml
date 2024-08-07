@@ -1,6 +1,7 @@
 RegenerateVid:
   IdRepository_RegenerateVid_Smoke_Pos:
       endPoint: /idrepository/v1/vid/{VID}/regenerate
+      description: Regenerate VID
       role: resident
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -14,6 +15,7 @@ RegenerateVid:
 
   IdRepository_RegenerateVid_Uin_Neg:
       endPoint: /idrepository/v1/vid/{VID}/regenerate
+      description: Regenerate VID passing invalid UIN
       role: resident
       restMethod: post
       inputTemplate: idRepository/RegenerateVid/regenerateVid
@@ -31,6 +33,7 @@ RegenerateVid:
 
   IdRepository_RegenerateVid_Invalid_Vid:
       endPoint: /idrepository/v1/vid/{VID}/regenerate
+      description: Regenerate VID passing invalid VID
       role: resident
       restMethod: post
       inputTemplate: idRepository/RegenerateVid/regenerateVid
@@ -48,6 +51,7 @@ RegenerateVid:
 
   IdRepository_RegenerateVid_Empty_Vid:
       endPoint: /idrepository/v1/vid/{VID}/regenerate
+      description: Regenerate VID passing empty VID
       role: resident
       restMethod: post
       inputTemplate: idRepository/RegenerateVid/regenerateVid
@@ -65,6 +69,7 @@ RegenerateVid:
 
   IdRepository_RegenerateVid_SpaceVal_Vid:
       endPoint: /idrepository/v1/vid/{VID}/regenerate
+      description: Regenerate VID passing space in VID field
       role: resident
       restMethod: post
       inputTemplate: idRepository/RegenerateVid/regenerateVid
