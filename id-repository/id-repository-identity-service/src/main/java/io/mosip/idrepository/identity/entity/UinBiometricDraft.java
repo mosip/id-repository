@@ -91,6 +91,7 @@ public class UinBiometricDraft implements Serializable {
 	private LocalDateTime updatedDateTime;
 
 	/** The is deleted. */
+	@Column(name = "is_deleted")
 	private Boolean isDeleted;
 
 	/** The deleted date time. */
