@@ -31,8 +31,8 @@ replicaCount: 1
 
 image:
   registry: docker.io
-  repository: mosipid/id-repository-salt-generator
-  tag: 1.2.0.1
+  repository: mosipdev/id-repository-salt-generator
+  tag: release-1.2.2.x
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images

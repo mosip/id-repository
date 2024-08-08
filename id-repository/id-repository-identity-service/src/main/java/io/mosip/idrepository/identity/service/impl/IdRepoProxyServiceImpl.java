@@ -1,46 +1,25 @@
 package io.mosip.idrepository.identity.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.mosip.idrepository.core.builder.RestRequestBuilder;
-import io.mosip.idrepository.core.constant.EventType;
-import io.mosip.idrepository.core.constant.IDAEventType;
-import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
-import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.constant.RestServicesConstants;
-import io.mosip.idrepository.core.dto.DocumentsDTO;
-import io.mosip.idrepository.core.dto.HandleInfoDTO;
-import io.mosip.idrepository.core.dto.IdRequestDTO;
-import io.mosip.idrepository.core.dto.IdResponseDTO;
-import io.mosip.idrepository.core.dto.ResponseDTO;
-import io.mosip.idrepository.core.dto.RestRequestDTO;
-import io.mosip.idrepository.core.entity.Handle;
-import io.mosip.idrepository.core.exception.IdRepoAppException;
-import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
-import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
-import io.mosip.idrepository.core.exception.RestServiceException;
-import io.mosip.idrepository.core.helper.RestHelper;
-import io.mosip.idrepository.core.logger.IdRepoLogger;
-import io.mosip.idrepository.core.repository.HandleRepo;
-import io.mosip.idrepository.core.repository.UinHashSaltRepo;
-import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.core.spi.BiometricExtractionService;
-import io.mosip.idrepository.core.spi.IdRepoService;
-import io.mosip.idrepository.core.util.EnvUtil;
-import io.mosip.idrepository.identity.entity.Uin;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DOCUMENT_HASH_MISMATCH;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
+import io.mosip.idrepository.core.constant.*;
+import io.mosip.idrepository.core.dto.*;
 import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
-import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
-import io.mosip.idrepository.identity.repository.UinDraftRepo;
-import io.mosip.idrepository.identity.repository.UinHistoryRepo;
-import io.mosip.idrepository.identity.repository.UinRepo;
-import io.mosip.kernel.biometrics.constant.BiometricType;
-import io.mosip.kernel.biometrics.entities.BIR;
-import io.mosip.kernel.biometrics.spi.CbeffUtil;
-import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.core.exception.ServiceError;
-import io.mosip.kernel.core.http.ResponseWrapper;
-import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.idrepository.core.repository.HandleRepo;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.model.Event;
 import io.mosip.kernel.core.websub.model.EventModel;
@@ -57,44 +36,34 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 
-import javax.annotation.Resource;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ACTIVE_STATUS;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ADD_IDENTITY;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ALL;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.BIO;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.BIOMETRICS;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.CREATE;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.DEMO;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.DEMOGRAPHICS;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.GET_FILES;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ID_HASH;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ID_REPO;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ID_REPO_SERVICE_IMPL;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.MOSIP_ID_UPDATE;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.READ;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.RETRIEVE_IDENTITY;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.SUPPORTED_MODALITIES;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.UPDATE_IDENTITY;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.WEB_SUB_PUBLISH_URL;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DOCUMENT_HASH_MISMATCH;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
+import io.mosip.idrepository.core.builder.RestRequestBuilder;
+import io.mosip.idrepository.core.exception.IdRepoAppException;
+import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
+import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
+import io.mosip.idrepository.core.exception.RestServiceException;
+import io.mosip.idrepository.core.helper.RestHelper;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.repository.UinHashSaltRepo;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.spi.BiometricExtractionService;
+import io.mosip.idrepository.core.spi.IdRepoService;
+import io.mosip.idrepository.core.util.EnvUtil;
+import io.mosip.idrepository.identity.entity.Uin;
+import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
+import io.mosip.idrepository.identity.repository.UinDraftRepo;
+import io.mosip.idrepository.identity.repository.UinHistoryRepo;
+import io.mosip.idrepository.identity.repository.UinRepo;
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.spi.CbeffUtil;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.exception.ServiceError;
+import io.mosip.kernel.core.http.ResponseWrapper;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
 
 /**
  * The Class IdRepoServiceImpl - Service implementation for Identity service.
@@ -102,7 +71,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EX
  * @author Manoj SP
  */
 @Service
-public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdResponseDTO> {
+public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, IdResponseDTO> {
 
 	public static final Logger mosipLogger = IdRepoLogger.getLogger(IdRepoProxyServiceImpl.class);
 
@@ -171,12 +140,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	private static final String REGISTRATION_ID = "registration_id";
 
-	private static final String PARTNER_ACTIVE_STATUS = "Active";
-
-	private static final String ACTIVE = "ACTIVE";
-
-	private static final String ACTIVATED = "ACTIVATED";
-
 	@Value("${id-repo-ida-event-type-namespace:mosip}")
 	private String idaEventTypeNamespace;
 
@@ -190,20 +153,29 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * io.mosip.kernel.core.idrepo.spi.IdRepoService#addIdentity(java.lang.Object)
 	 */
 	@Override
-	public IdResponseDTO addIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
+	public IdResponseDTO<T> addIdentity(IdRequestDTO<T> request, String uin) throws IdRepoAppException {
+		long epoch = System.currentTimeMillis();
 		try {
 			String uinHash = retrieveUinHash(uin);
 			if (uinRepo.existsByUinHash(uinHash)
-					|| uinDraftRepo.existsByRegId(request.getRequest().getRegistrationId())
-					|| uinHistoryRepo.existsByRegId(request.getRequest().getRegistrationId())) {
+					|| uinDraftRepo.existsByRegId(request.getRegistrationId())
+					|| uinHistoryRepo.existsByRegId(request.getRegistrationId())) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 						RECORD_EXISTS.getErrorMessage());
 				throw new IdRepoAppException(RECORD_EXISTS);
 			}
 
+			mosipLogger.info("Before starting the idreposervice addIdentity: {}", System.currentTimeMillis()-epoch);
+			epoch = System.currentTimeMillis();
+
 			Uin uinEntity = service.addIdentity(request, uin);
 
-			notify(uin, false, request.getRequest().getRegistrationId());
+			mosipLogger.info("After starting the idreposervice addIdentity: {}", System.currentTimeMillis()-epoch);
+			epoch = System.currentTimeMillis();
+
+			notify(uin, false, request.getRegistrationId());
+			mosipLogger.info("After notify: {}", System.currentTimeMillis()-epoch);
+
 			return constructIdResponse(this.id.get(CREATE), uinEntity, null);
 
 		} catch (IdRepoAppException e) {
@@ -292,7 +264,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * @param uin the uin
 	 * @return the string
 	 */
-	private String retrieveUinHash(String uin) {
+	protected String retrieveUinHash(String uin) {
 		int saltId = securityManager.getSaltKeyForId(uin);
 		String hashSalt = uinHashSaltRepo.retrieveSaltById(saltId);
 		String hashwithSalt = securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
@@ -329,7 +301,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * @return the id response DTO
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	IdResponseDTO retrieveIdentityByRid(String rid, String type, Map<String, String> extractionFormats)
+	public IdResponseDTO retrieveIdentityByRid(String rid, String type, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
 		try {
 			String uinHash = uinRepo.getUinHashByRid(rid);
@@ -486,6 +458,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} catch (InterruptedException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
+			Thread.currentThread().interrupt();
 			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
@@ -500,14 +473,14 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * Object, java.lang.String)
 	 */
 	@Override
-	public IdResponseDTO updateIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
-		String regId = request.getRequest().getRegistrationId();
+	public IdResponseDTO<T> updateIdentity(IdRequestDTO<T> request, String uin) throws IdRepoAppException {
+		String regId = request.getRegistrationId();
 		try {
 			String uinHash = retrieveUinHash(uin);
 			if (uinRepo.existsByUinHash(uinHash)) {
 				if (uinRepo.existsByRegId(regId)
-						|| uinDraftRepo.existsByRegId(request.getRequest().getRegistrationId())
-						|| uinHistoryRepo.existsByRegId(request.getRequest().getRegistrationId())) {
+						|| uinDraftRepo.existsByRegId(request.getRegistrationId())
+						|| uinHistoryRepo.existsByRegId(request.getRegistrationId())) {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
 							RECORD_EXISTS.getErrorMessage());
 					throw new IdRepoAppException(RECORD_EXISTS);
@@ -517,7 +490,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				String activeStatus = env.getProperty(ACTIVE_STATUS);
 				if (activeStatus != null && activeStatus.equalsIgnoreCase(uinObject.getStatusCode())) {
 					mosipLogger.info("Uin is in active status");
-					notify(uin, true, request.getRequest().getRegistrationId());
+					notify(uin, true, request.getRegistrationId());
 				}
 				return constructIdResponse(MOSIP_ID_UPDATE, service.retrieveIdentity(uinHash, IdType.UIN, null, null),
 						null);
@@ -583,7 +556,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * @param vid Virtual ID
 	 * @return The response is a map of key value pairs.
 	 */
-	private String getUinByVid(String vid) throws IdRepoDataValidationException, IdRepoAppException {
+	protected String getUinByVid(String vid) throws IdRepoDataValidationException, IdRepoAppException {
 		try {
 			RestRequestDTO request = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_UIN_BY_VID, null,
 					ResponseWrapper.class);
@@ -662,7 +635,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	@SuppressWarnings("unchecked")
-	private IdResponseDTO constructIdResponse(String id, Uin uin, List<DocumentsDTO> documents)
+	private IdResponseDTO<T> constructIdResponse(String id, Uin uin, List<DocumentsDTO> documents)
 			throws IdRepoAppException {
 		IdResponseDTO idResponse = new IdResponseDTO();
 		idResponse.setId(id);
@@ -674,8 +647,8 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				response.setDocuments(documents);
 			}
 			ObjectNode identityObject = convertToObject(uin.getUinData(), ObjectNode.class);
-			response.setVerifiedAttributes(mapper.convertValue(identityObject.get("verifiedAttributes"), List.class));
-			identityObject.remove("verifiedAttributes");
+			response.setVerifiedAttributes(mapper.convertValue(identityObject.get(VERIFIED_ATTRIBUTES), Object.class));
+			identityObject.remove(VERIFIED_ATTRIBUTES);
 			response.setIdentity(identityObject);
 		}
 		idResponse.setResponse(response);
@@ -698,6 +671,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			throw new IdRepoAppException(ID_OBJECT_PROCESSING_FAILED, e);
 		}
 	}
+
 	private void notify(String uin,boolean isUpdate, String txnId) {
 		try {
 			sendGenericIdentityEvents(uin, isUpdate, txnId);
@@ -749,7 +723,6 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		eventData.put(REGISTRATION_ID, registrationId);
 		String topic = eventType.toString();
 		EventModel eventModel = createEventModel(topic, eventData, registrationId);
-		mosipLogger.info(String.valueOf(eventModel));
 		sendEventToWebsub(eventModel);
 	}
 
@@ -763,9 +736,9 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			throws IdRepoAppException {
 		try {
 			String handleHash = idRepoServiceHelper.getHandleHash(handle);
-			Handle entity = handleRepo.findByHandleHash(handleHash);
-			if (Objects.nonNull(entity)) {
-				return retrieveIdentityByUinHash(type, entity.getUinHash(), extractionFormats);
+			String uinHash = handleRepo.findUinHashByHandleHash(handleHash);
+			if (Objects.nonNull(uinHash)) {
+				return retrieveIdentityByUinHash(type, uinHash, extractionFormats);
 			} else {
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
@@ -783,5 +756,4 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			throw new IdRepoAppException(errorCode, errorMsg, e);
 		}
 	}
-
 }

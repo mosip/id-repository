@@ -1,10 +1,47 @@
 package io.mosip.idrepository.vid.service.impl;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mvel2.MVEL;
+import org.powermock.api.mockito.PowerMockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataAccessException;
+import org.springframework.mock.env.MockEnvironment;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestContext;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.TransactionException;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.reactive.function.client.WebClient;
+
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
@@ -35,39 +72,6 @@ import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.model.EventModel;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mvel2.MVEL;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.dao.DataAccessException;
-import org.springframework.mock.env.MockEnvironment;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestContext;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.TransactionException;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.reactive.function.client.WebClient;
-
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Manoj SP
@@ -284,7 +288,7 @@ public class VidServiceImplTest {
 		assertEquals(vidResponse.getResponse().getVidStatus(), vid.getStatusCode());
 	}
 
-
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testCreateVidAutoRestore() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
 		when(securityManager.hash(Mockito.any())).thenReturn("123");
@@ -321,6 +325,8 @@ public class VidServiceImplTest {
 		assertEquals(vidResponse.getResponse().getVid().toString(), vid.getVid());
 		assertEquals(vidResponse.getResponse().getVidStatus(), vid.getStatusCode());
 	}
+	
+
 	@Test
 	public void testCreateVidInstanceFail() throws RestServiceException, IdRepoDataValidationException, JsonParseException, JsonMappingException, IOException {
 		when(securityManager.hash(Mockito.any())).thenReturn("123");
@@ -1057,7 +1063,7 @@ public class VidServiceImplTest {
 			assertEquals(IdRepoErrorConstants.VID_POLICY_FAILED.getErrorMessage(), e.getErrorText());
 		}
 	}
-
+	
 	@Test
 	public void testDeactivateVID_valid() throws IdRepoAppException {
 		RestRequestDTO restRequestDTO = new RestRequestDTO();
@@ -1106,7 +1112,7 @@ public class VidServiceImplTest {
 			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorMessage(), e.getErrorText());
 		}
 	}
-
+	
 	@Test
 	public void testReactivateVID_valid() throws IdRepoAppException {
 		RestRequestDTO restRequestDTO = new RestRequestDTO();
@@ -1130,7 +1136,7 @@ public class VidServiceImplTest {
 		ResponseWrapper<VidResponseDTO> regenerateVid = service.reactivateVIDsForUIN("12345461");
 		assertEquals("ACTIVE", regenerateVid.getResponse().getVidStatus());
 	}
-
+	
 	@Test
 	public void testRetrieveVidsByUin() throws IdRepoAppException {
 		Vid vid = new Vid();

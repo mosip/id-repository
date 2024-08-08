@@ -46,7 +46,7 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 * @param id uin/vid/rid
 	 * @param idType 
 	 * @param type the type
-	 * @param extractionFormats
+	 * @param extractionFormat 
 	 * @return the response
 	 * @throws IdRepoAppException the id repo app exception
 	 */
@@ -87,5 +87,4 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 */
 	Map<String, Integer> getRemainingUpdateCountByIndividualId(String individualId, IdType idType,
 			List<String> attributeList) throws IdRepoAppException;
-
 }

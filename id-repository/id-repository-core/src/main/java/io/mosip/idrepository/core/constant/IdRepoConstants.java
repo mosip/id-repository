@@ -132,7 +132,15 @@ public class IdRepoConstants {
 	public static final String  VID_EVENT_CALLBACK_URL = "mosip.idrepo.websub.vid-credential-update.callback-url";
 	
 	public static final String CREDENTIAL_STATUS_UPDATE_TOPIC = "mosip.idrepo.websub.credential-status-update.topic";
-	
+
+	public static final String REMOVE_ID_STATUS_EVENT_TOPIC = "mosip.idrepo.websub.remove-id-status.topic";
+
+	public static final String REMOVE_ID_STATUS_EVENT_SECRET = "mosip.idrepo.websub.remove-id-status.secret";
+
+	public static final String REMOVE_ID_STATUS_EVENT_CALLBACK_RELATIVE_URL = "idrepo.websub.callback.remove-id-status.relative.url";
+
+	public static final String REMOVE_ID_STATUS_EVENT_CALLBACK_URL = "mosip.idrepo.websub.remove-id-status.callback-url";
+
 	public static final String FACE_EXTRACTION_FORMAT = "faceExtractionFormat";
 
 	public static final String IRIS_EXTRACTION_FORMAT = "irisExtractionFormat";
@@ -214,6 +222,9 @@ public class IdRepoConstants {
 	/** The Constant CREATE. */
 	public static final String CREATE = "create";
 
+	/** The Constant UPDATE. */
+	public static final String UPDATE = "update";
+
 	/** The Constant READ. */
 	public static final String READ = "read";
 
@@ -222,7 +233,6 @@ public class IdRepoConstants {
 
 	/** The Constant DEMOGRAPHICS. */
 	public static final String DEMOGRAPHICS = "Demographics";
-
 
 	public static final String DRAFT_RECORD_NOT_FOUND = "DRAFT RECORD NOT FOUND";
 
@@ -251,7 +261,27 @@ public class IdRepoConstants {
 	public static final String GET_DRAFT_UIN_VERSION = "mosip.identity.get.drafts.version";
 
 	public static final String EXCLUDED_ATTRIBUTE_LIST = "mosip.identity.get.excluded.attribute.list";
+	
+	/** Cache Names in IDRepo */
+	
+	public static final String CREDENTIAL_TRANSACTION_CACHE = "credential_transaction";
+	
+	public static final String PARTNER_EXTRACTOR_FORMATS_CACHE = "partner_extractor_formats";
 
+	public static final String DATASHARE_POLICIES_CACHE = "datashare_policies";
+	
+	public static final String WEBSUB_TOPICS_CACHE = "topics";
+	
+	public static final String ONLINE_VERIFICATION_PARTNERS_CACHE = "online_verification_partners";
+	
+	public static final String UIN_ENCRYPT_SALT_CACHE = "uin_encrypt_salt";
+
+	public static final String UIN_HASH_SALT_CACHE = "uin_hash_salt";
+
+	public static final String ID_ATTRIBUTES_CACHE = "id_attributes";
+
+
+	
 
 	/**
 	 * Instantiates a new id repo constants.

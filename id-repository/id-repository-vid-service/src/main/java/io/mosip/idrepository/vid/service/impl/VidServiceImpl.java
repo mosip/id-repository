@@ -315,7 +315,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			RestRequestDTO request = restBuilder.buildRequest(RestServicesConstants.IDREPO_IDENTITY_SERVICE, null,
 					IdResponseDTO.class);
 			request.setPathVariables(Collections.singletonMap("uin", uin));
-			IdResponseDTO identityResponse = restHelper.requestSync(request);
+			IdResponseDTO<Object> identityResponse = restHelper.requestSync(request);
 			String uinStatus = identityResponse.getResponse().getStatus();
 			if (!uinStatus.equals(EnvUtil.getUinActiveStatus())) {
 				throw new IdRepoAppException(INVALID_UIN.getErrorCode(),
@@ -397,12 +397,18 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			// Get the salted ID Hash before modifiying the vid entity, otherwise result in
 			// onFlushDirty call in the interceptor resulting in inconsistently encrypted
 			// UIN value in VID entity
-			List<VidInfoDTO> vidInfos = vidList.stream()
-					.map(vid -> createVidInfo(vid, getIdHashAndAttributesForIDAEvent(vid.getVid())))
-					.collect(Collectors.toList());
-			VidsInfosDTO response = new VidsInfosDTO();
-			response.setResponse(vidInfos);
-			return response;
+			if (!vidList.isEmpty()) {
+				List<VidInfoDTO> vidInfos = vidList.stream()
+						.map(vid -> createVidInfo(vid, getIdHashAndAttributesForIDAEvent(vid.getVid())))
+						.collect(Collectors.toList());
+				VidsInfosDTO response = new VidsInfosDTO();
+				response.setResponse(vidInfos);
+				return response;
+			} else {
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, "retrieveVidsByUin",
+						THROWING_NO_RECORD_FOUND_VID);
+				throw new IdRepoAppException(NO_RECORD_FOUND);
+			}
 		} catch (IdRepoAppUncheckedException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, RETRIEVE_UIN_BY_VID,
 					"\n" + e.getMessage());
@@ -430,7 +436,6 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 						THROWING_NO_RECORD_FOUND_VID);
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
-			checkStatus(vidObject.getStatusCode());
 			checkExpiry(vidObject.getExpiryDTimes());
 			String decryptedUin = decryptUin(vidObject.getUin(), vidObject.getUinHash());
 			VidPolicy policy = policyProvider.getPolicy(vidObject.getVidTypeCode());

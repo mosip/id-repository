@@ -46,7 +46,7 @@ public class WebSubUtil {
 		
 	}
 
-	@Cacheable(value = "topics", key = "{#topic}")
+	@Cacheable(value = IdRepoConstants.WEBSUB_TOPICS_CACHE, key = "{#topic}")
 	public void registerTopic(String topic, String requestId) {
 		try {
 			pb.registerTopic(topic, partnerhuburl);

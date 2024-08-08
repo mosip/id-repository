@@ -93,7 +93,6 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 			cryptoRequest.setApplicationId(EnvUtil.getAppId());
 			cryptoRequest.setData(request);
 			cryptoRequest.setReferenceId(EnvUtil.getCredCryptoRefId());
-			requestWrapper.setRequest(cryptoRequest);
 			cryptoRequest.setTimeStamp(DateUtils.getUTCCurrentDateTime());
 			requestWrapper.setRequest(cryptoRequest);
 			ResponseWrapper<Map<String, String>> restResponse = restUtil.postApi(api, null, null, null,

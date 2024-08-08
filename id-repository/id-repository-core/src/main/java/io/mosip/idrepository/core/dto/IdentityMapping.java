@@ -46,7 +46,6 @@ public class IdentityMapping {
 		private ResidenceStatus residenceStatus;
 		private FullAddress fullAddress;
 		private SelectedHandles selectedHandles;
-
 	}
 
 	@Data
@@ -251,5 +250,4 @@ public class IdentityMapping {
 	public static class SelectedHandles {
 		private String value;
 	}
-
 }

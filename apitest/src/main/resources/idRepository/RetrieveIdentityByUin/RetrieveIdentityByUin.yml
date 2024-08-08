@@ -1,0 +1,179 @@
+RetrieveIdentity:
+  IdRepository_RetrieveIdentity_With_Valid_UIN_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/idvid/{id}
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$"
+}'
+      output: '{
+
+}'
+
+  IdRepository_RetrieveIdentity_With_Deactivated_UIN_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/idvid/{id}
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "$ID:AddIdentity_For_DeactivateScen_smoke_Pos_UIN$"
+}'
+      output: '{
+
+}'
+
+  IdRepository_RetrieveIdentity_With_Valid_Vid_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/idvid/{id}
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "$ID:CreateVID_withValidParameters_Smoke_Perpetual_sid_VID$"
+}'
+      output: '{
+
+}'
+
+  IdRepository_RetrieveIdentity_With_Invalid_UIN:
+      endPoint: /idrepository/v1/identity/idvid/{id}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "UI5654@"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+  IdRepository_RetrieveIdentity_StatusCode_With_blank_UIN:
+      endPoint: /idrepository/v1/identity/idvid/{id}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
+      outputTemplate: idRepository/error
+      input: '{
+    "id": ""
+}'
+      output: "404"
+
+  IdRepository_RetrieveIdentity_With_Invalid_Vid:
+      endPoint: /idrepository/v1/identity/idvid/{id}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "dfsdhfsbd353"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+  IdRepository_RetrieveIdentity_StatusCode_With_blank_Vid:
+      endPoint: /idrepository/v1/identity/idvid/{id}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
+      outputTemplate: idRepository/error
+      input: '{
+    "id": ""
+}'
+      output: "404"
+
+  IdRepository_RetrieveIdentity_With_SpaceVal_UIN:
+      endPoint: /idrepository/v1/identity/idvid/{id}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
+      outputTemplate: idRepository/error
+      input: '{
+    "id": " "
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+
+  IdRepository_RetrieveIdentity_With_SpaceVal_Vid:
+      endPoint: /idrepository/v1/identity/idvid/{id}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
+      outputTemplate: idRepository/error
+      input: '{
+    "id": " "
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+
+  IdRepository_RetrieveIdentity_With_deactivated_VID:
+      endPoint: /idrepository/v1/identity/idvid/{id}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "$ID:CreateVID_withValidParameters_pdea_Smoke_Perpetual_sid_VID$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-VID-001"
+    }
+  ]
+}'
+  IdRepository_RetrieveIdentity_With_deactivated_VID_which_is_restored:
+      endPoint: /idrepository/v1/identity/idvid/{id}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "$ID:CreateVID_withValidParameters_pdea_Smoke_Perpetual_sid_VID$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-VID-001"
+    }
+  ]
+}'
+  IdRepository_RetrieveIdentity_With_deactivated_VID_Deactivate:
+      endPoint: /idrepository/v1/identity/idvid/{id}
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "$ID:CreateVID_withValidParameters_pdea_Smoke_Perpetual_sid_VID$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-VID-001"
+    }
+  ]
+}'

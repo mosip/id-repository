@@ -4,9 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.UndeclaredThrowableException;
-import java.time.LocalDateTime;
 import java.util.Map;
 
+import io.mosip.kernel.core.http.RequestWrapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +29,7 @@ import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.core.validator.BaseIdRepoValidator;
 import io.mosip.kernel.core.util.DateUtils;
+import java.time.LocalDateTime;
 
 /**
  * 
@@ -65,7 +66,8 @@ public class BaseIdRepoValidatorTest {
 		EnvUtil.setVersionPattern("^v\\\\d+(\\\\.\\\\d+)?$");
 		ReflectionTestUtils.setField(requestValidator, "id", id);
 		ReflectionTestUtils.setField(requestValidator, "maxRequestTimeDeviationSeconds", 60);
-		errors = new BeanPropertyBindingResult(new IdRequestDTO(), "idRequestDto");
+		RequestWrapper<IdRequestDTO<Object>> requestWrapper = new RequestWrapper<>();
+		errors = new BeanPropertyBindingResult(requestWrapper, "idRequestDto");
 	}
 
 	@Test

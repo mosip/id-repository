@@ -1,8 +1,11 @@
 package io.mosip.idrepository.core.manager;
 
+import static io.mosip.idrepository.core.constant.AuditEvents.REMOVE_ID_STATUS;
+import static io.mosip.idrepository.core.constant.AuditModules.ID_REPO_CORE_SERVICE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.CREDENTIAL_STATUS_UPDATE_TOPIC;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
+import static io.mosip.idrepository.core.constant.IdType.ID;
 
 import java.util.List;
 import java.util.Map;
@@ -22,8 +25,10 @@ import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
+import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
+import io.mosip.idrepository.core.repository.HandleRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
@@ -54,6 +59,9 @@ public class CredentialStatusManager {
 	private CredentialRequestStatusRepo statusRepo;
 
 	@Autowired
+	private HandleRepo handleRepo;
+
+	@Autowired
 	private CredentialServiceManager credManager;
 
 	@Autowired
@@ -73,9 +81,15 @@ public class CredentialStatusManager {
 	
 	@Value("${" + CREDENTIAL_STATUS_UPDATE_TOPIC + "}")
 	private String credentailStatusUpdateTopic;
+
+	@Value("${mosip.idrepo.credential.request.batch.page.size:50}")
+	private int pageSize;
 	
 	@Autowired
 	private DummyPartnerCheckUtil dummyPartner;
+	
+	@Autowired
+	private AuditHelper auditHelper;
 	
 	@Async("credentialStatusManagerJobExecutor")
 	public void triggerEventNotifications() {
@@ -118,7 +132,7 @@ public class CredentialStatusManager {
 		try {
 			String activeStatus = EnvUtil.getUinActiveStatus();
 			List<CredentialRequestStatus> newIssueRequestList = statusRepo
-					.findByStatus(CredentialRequestStatusLifecycle.NEW.toString());
+					.findByStatus(CredentialRequestStatusLifecycle.NEW.toString(), pageSize);
 			for (CredentialRequestStatus credentialRequestStatus : newIssueRequestList) {
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
 				String idvId = decryptId(credentialRequestStatus.getIndividualId());
@@ -139,6 +153,8 @@ public class CredentialStatusManager {
 				credentialRequestStatus.getIndividualIdHash(), dummyPartner.getDummyOLVPartnerId());
 		if (idWithDummyPartnerOptional.isPresent() && !idWithDummyPartnerOptional.get().getStatus()
 				.contentEquals(CredentialRequestStatusLifecycle.FAILED.toString())) {
+			mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "deleteDummyPartner",
+					idWithDummyPartnerOptional.get().getIndividualIdHash());
 			statusRepo.delete(idWithDummyPartnerOptional.get());
 		}
 	}
@@ -194,10 +210,25 @@ public class CredentialStatusManager {
 			List<CredentialRequestStatus> credStatusList = statusRepo
 					.findByIndividualIdHash((String) event.getEvent().getData().get(ID_HASH));
 			if (!credStatusList.isEmpty()) {
+				mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "idaEventConsumer",
+						credStatusList.get(0).getIndividualIdHash());
 				statusRepo.deleteAll(credStatusList);
 			}
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "idaEventConsumer", ExceptionUtils.getStackTrace(e));
+		}
+	}
+
+	public void handleRemoveIdStatusEvent(EventModel eventModel) {
+		try {
+			mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
+					"handleRemoveIdStatusEvent", "inside handleRemoveIdStatusEvent()");
+			String idHash = (String) eventModel.getEvent().getData().get(ID_HASH);
+			handleRepo.deleteByHandleHash(idHash);
+			auditHelper.audit(ID_REPO_CORE_SERVICE, REMOVE_ID_STATUS, idHash, ID, "Remove ID Status Event");
+		} catch (Exception e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
+					"handleRemoveIdStatusEvent", ExceptionUtils.getStackTrace(e));
 		}
 	}
 

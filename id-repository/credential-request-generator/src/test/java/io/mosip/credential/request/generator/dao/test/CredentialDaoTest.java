@@ -68,12 +68,11 @@ public class CredentialDaoTest {
 		
 	}
 	@Test
-	public void testUpdate(){
-		CredentialEntity credentialEntity=new CredentialEntity();
-		credentialEntity.setRequestId("1234");
-		credentialEntity.setStatusCode("NEW");
-		credentialDao.update(credentialEntity);
-		
+	public void testUpdate() {
+		String batchId = "batch123";
+		List<CredentialEntity> credentialEntities = new ArrayList<>();
+		credentialDao.update(batchId, credentialEntities);
+		Mockito.verify(crdentialRepo).saveAll(credentialEntities);
 	}
 	@Test
 	public void testSave(){

@@ -178,10 +178,9 @@ public class IdentityIssuanceProfileBuilder {
 		return List.of();
 	}
 
-	private List<String> getVerified(JsonNode identity) {
-		return Objects.isNull(identity.get(VERIFIED_ATTRIBUTES)) || identity.get(VERIFIED_ATTRIBUTES).isNull() ? List.of()
-				: mapper.convertValue(identity.get(VERIFIED_ATTRIBUTES), new TypeReference<List<String>>() {
-				});
+	private JsonNode getVerified(JsonNode identity) {
+		return Objects.isNull(identity.get(VERIFIED_ATTRIBUTES)) || identity.get(VERIFIED_ATTRIBUTES).isNull() ? mapper.createObjectNode()
+				: identity.get(VERIFIED_ATTRIBUTES);
 	}
 
 	private List<BiometricInfo> getBiometricInfo(List<BIR> biometrics) {
@@ -287,11 +286,11 @@ public class IdentityIssuanceProfileBuilder {
 		} else if (jsonNode.isArray()) {
 			Iterator<JsonNode> iterator = jsonNode.iterator();
 			while (iterator.hasNext()) {
-				Map<String, String> valueMap = mapper.convertValue(iterator.next(),
-						new TypeReference<Map<String, String>>() {
+				Map<String, Object> valueMap = mapper.convertValue(iterator.next(),
+						new TypeReference<Map<String, Object>>() {
 						});
-				if (StringUtils.isNotBlank(filterLanguage) && valueMap.get("language").contentEquals(filterLanguage)) {
-					valueOpt = Optional.of(valueMap.get(VALUE));
+				if (StringUtils.isNotBlank(filterLanguage) &&  valueMap.containsKey("language") && ((String)valueMap.get("language")).contentEquals(filterLanguage)) {
+					valueOpt = Optional.of((String) valueMap.get(VALUE));
 				}
 			}
 			if (valueOpt.isEmpty())

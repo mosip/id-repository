@@ -13,6 +13,7 @@ import javax.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
+import org.springframework.beans.factory.annotation.Value;
 
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
@@ -86,6 +87,7 @@ public abstract class BaseIdRepoValidator {
 						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), deviationMessage));
 			}
 		}
+
 	}
 
 	/**
@@ -112,7 +114,7 @@ public abstract class BaseIdRepoValidator {
 	/**
 	 * This method will validate the id field in the request.
 	 *
-	 * @param id the id
+	 * @param id        the id
 	 * @param operation the operation
 	 * @throws IdRepoAppException the id repo app exception
 	 */

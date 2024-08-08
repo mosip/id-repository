@@ -107,8 +107,7 @@ public class EnvUtil {
 	@Getter @Setter private static String identityMappingJsonUrl;
 	@Getter @Setter private static String identityUpdateCountPolicyFileUrl;
 
-
-    public String getProperty(String key) {
+	public String getProperty(String key) {
 		return env.getProperty(key);
 	}
 
