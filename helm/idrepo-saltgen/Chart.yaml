@@ -2,7 +2,7 @@ apiVersion: v2
 name: idrepo-saltgen
 description: A Helm chart to generate salt for ID Repo.
 type: application
-version: 12.1.0-develop
+version: 12.2.0-develop
 appVersion: ""
 dependencies:
   - name: common
