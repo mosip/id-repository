@@ -105,7 +105,7 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 				"handleNoResourceFoundException - \n" + ExceptionUtils.getStackTrace(Objects.isNull(rootCause) ? noResourceFoundException : rootCause));
 
 		IdRepoAppException idRepoAppException = new IdRepoAppException(INVALID_REQUEST.getErrorCode(), INVALID_REQUEST.getErrorMessage());
-			return new ResponseEntity<>(buildExceptionResponse(idRepoAppException, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>(buildExceptionResponse(idRepoAppException, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.NOT_FOUND);
 	}
 
 	/**
