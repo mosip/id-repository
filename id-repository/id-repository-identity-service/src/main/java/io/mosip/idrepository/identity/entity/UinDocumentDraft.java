@@ -108,7 +108,7 @@ public class UinDocumentDraft {
 	private LocalDateTime deletedDateTime;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "regId", insertable = false, updatable = false)
+	@JoinColumn(name = "reg_id", insertable = false, updatable = false)
 	@Setter(value = AccessLevel.NONE)
 	@JsonBackReference
 	private UinDraft uin;
