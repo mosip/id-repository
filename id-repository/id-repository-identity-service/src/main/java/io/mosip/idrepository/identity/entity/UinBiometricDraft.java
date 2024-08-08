@@ -98,7 +98,7 @@ public class UinBiometricDraft implements Serializable {
 	private LocalDateTime deletedDateTime;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "regId", insertable = false, updatable = false)
+	@JoinColumn(name = "reg_id", insertable = false, updatable = false)
 	@JsonBackReference
 	private UinDraft uin;
 }

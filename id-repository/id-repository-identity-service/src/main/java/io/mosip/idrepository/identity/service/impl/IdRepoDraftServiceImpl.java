@@ -44,7 +44,7 @@ import java.util.stream.IntStream;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mosip.idrepository.core.constant.IdRepoConstants;
+import com.jayway.jsonpath.internal.JsonContext;
 import io.mosip.idrepository.core.dto.DraftResponseDto;
 import io.mosip.idrepository.core.dto.DraftUinResponseDto;
 import org.hibernate.exception.JDBCConnectionException;
@@ -274,6 +274,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
 					.mappingProvider(new JacksonMappingProvider()).build();
 			DocumentContext inputData = JsonPath.using(configuration).parse(requestDTO.getIdentity());
+			((LinkedHashMap) ((JsonContext) inputData).json()).put("UIN", null);
 			DocumentContext dbData = JsonPath.using(configuration).parse(new String(draftToUpdate.getUinData()));
 			JsonPath uinJsonPath = JsonPath.compile(uinPath.replace(ROOT_PATH, "$"));
 			inputData.set(uinJsonPath, dbData.read(uinJsonPath));
