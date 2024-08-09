@@ -17,7 +17,7 @@ import io.mosip.idrepository.identity.config.IdRepoConfig;
  */
 @SpringBootApplication(exclude = MailSenderAutoConfiguration.class)
 @Import({ IdRepoConfig.class })
-@ComponentScan(basePackages={ "io.mosip.idrepository.*", "io.mosip.kernel.*" ,"${mosip.auth.adapter.impl.basepackage}"}, excludeFilters = {
+@ComponentScan(basePackages={ "io.mosip.idrepository.*", "io.mosip.kernel.*", "io.mosip.commons.*", "${mosip.auth.adapter.impl.basepackage}"}, excludeFilters = {
 		@ComponentScan.Filter(type = FilterType.ASPECTJ, 
 				pattern = {"io.mosip.kernel.zkcryptoservice.*",
 						"io.mosip.kernel.tokenidgenerator.*",
