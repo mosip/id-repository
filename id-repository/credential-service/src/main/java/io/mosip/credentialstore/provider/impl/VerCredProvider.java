@@ -12,32 +12,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import javax.annotation.PostConstruct;
-
-import com.apicatalog.jsonld.document.JsonDocument;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.mosip.credentialstore.constants.CredentialConstants;
-import io.mosip.credentialstore.dto.BestFingerDto;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.apicatalog.jsonld.document.JsonDocument;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import foundation.identity.jsonld.ConfigurableDocumentLoader;
 import foundation.identity.jsonld.JsonLDObject;
 import info.weboftrust.ldsignatures.LdProof;
 import info.weboftrust.ldsignatures.canonicalizer.URDNA2015Canonicalizer;
-import io.mosip.credentialstore.constants.CredentialServiceErrorCodes;
+import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.constants.JsonConstants;
 import io.mosip.credentialstore.constants.LoggerFileConstant;
 import io.mosip.credentialstore.dto.AllowedKycDto;
+import io.mosip.credentialstore.dto.BestFingerDto;
 import io.mosip.credentialstore.dto.DataProviderResponse;
 import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.CredentialFormatterException;
-import io.mosip.credentialstore.exception.DataEncryptionFailureException;
-import io.mosip.credentialstore.exception.VerCredException;
 import io.mosip.credentialstore.provider.CredentialProvider;
 import io.mosip.credentialstore.util.DigitalSignatureUtil;
 import io.mosip.credentialstore.util.EncryptionUtil;
@@ -50,6 +45,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
+import jakarta.annotation.PostConstruct;
 
 @Component
 public class VerCredProvider extends CredentialProvider {
@@ -68,9 +64,6 @@ public class VerCredProvider extends CredentialProvider {
 
 	/** The Constant DATETIME_PATTERN. */
 	public static final String DATETIME_PATTERN = "mosip.credential.service.datetime.pattern";
-
-	@Autowired
-	private ObjectMapper mapper;
 
 	@Value("${config.server.file.storage.uri:}")
 	private String configServerFileStorageURL;

@@ -2,14 +2,14 @@ package io.mosip.idrepository.identity.entity;
 
 import java.time.LocalDateTime;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Lob;
-import javax.persistence.Table;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
 
 import io.mosip.idrepository.core.entity.UinInfo;
 import org.hibernate.annotations.Type;
@@ -80,6 +80,7 @@ public class UinHistory implements UinInfo, Persistable<String> {
 
 	/** The uin ref id. */
 	@Id
+	@Column(name = "uin_ref_id")
 	private String uinRefId;
 
 	/** The effective date time. */
@@ -88,31 +89,37 @@ public class UinHistory implements UinInfo, Persistable<String> {
 	private LocalDateTime effectiveDateTime;
 
 	/** The uin. */
+	@Column(name = "uin")
 	private String uin;
 	
 	/** The uin hash. */
+	@Column(name = "uin_hash")
 	private String uinHash;
 
 	/** The uin data. */
-	@Lob
-	@Type(type = "org.hibernate.type.BinaryType")
 	@Basic(fetch = FetchType.LAZY)
 	@Getter(AccessLevel.NONE)
 	@Setter(AccessLevel.NONE)
+	@Column(name = "uin_data")
 	private byte[] uinData;
 
 	/** The uin data hash. */
+	@Column(name = "uin_data_hash")
 	private String uinDataHash;
 
 	/** The reg id. */
+	@Column(name = "reg_id")
 	private String regId;
 	
 	/** The bio ref id. */
+	@Column(name = "bio_ref_id")
 	private String bioRefId;
 
 	/** The status code. */
+	@Column(name = "status_code")
 	private String statusCode;
 
+	@Column(name = "lang_code")
 	private String langCode;
 	
 	/** The created by. */
@@ -132,6 +139,7 @@ public class UinHistory implements UinInfo, Persistable<String> {
 	private LocalDateTime updatedDateTime;
 
 	/** The is deleted. */
+	@Column(name = "is_deleted")
 	private Boolean isDeleted;
 
 	/** The deleted date time. */

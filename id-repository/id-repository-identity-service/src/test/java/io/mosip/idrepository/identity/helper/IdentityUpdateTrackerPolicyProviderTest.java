@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

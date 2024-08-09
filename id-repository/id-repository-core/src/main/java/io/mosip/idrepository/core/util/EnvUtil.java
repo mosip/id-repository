@@ -24,7 +24,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_POLICY_SCH
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_UNLIMITED_TRANSACTION_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_UPDATE_ID;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.ConfigurableEnvironment;

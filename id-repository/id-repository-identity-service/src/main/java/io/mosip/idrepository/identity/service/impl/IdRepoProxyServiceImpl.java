@@ -14,7 +14,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 import io.mosip.idrepository.core.constant.*;
 import io.mosip.idrepository.core.dto.*;
