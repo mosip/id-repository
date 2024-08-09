@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.mosip.idrepository</groupId>
 	<artifactId>id-repository-parent</artifactId>
-	<version>1.2.1-java21-SNAPSHOT</version>
+	<version>1.2.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>ID-Repository</name>
@@ -109,8 +109,8 @@
 		<!-- Test & Logging -->
 		<junit.version>4.12</junit.version>
 		<mockito.version>3.4.3</mockito.version>
-		<kernel.logger.logback.version>1.2.1-java21-SNAPSHOT</kernel.logger.logback.version>
-		<kernel.dataaccess-hibernate.version>1.2.1-java21-SNAPSHOT</kernel.dataaccess-hibernate.version>
+		<kernel.logger.logback.version>1.2.1-SNAPSHOT</kernel.logger.logback.version>
+		<kernel.dataaccess-hibernate.version>1.2.1-SNAPSHOT</kernel.dataaccess-hibernate.version>
 		<jacoco.maven.plugin.version>0.8.11</jacoco.maven.plugin.version>
 	</properties>
 	<dependencyManagement>
@@ -118,7 +118,7 @@
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-bom</artifactId>
-				<version>1.2.1-java21-SNAPSHOT</version>
+				<version>1.2.1-SNAPSHOT</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -141,7 +141,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-biometrics-api</artifactId>
-			<version>1.2.1-java21-SNAPSHOT</version>
+			<version>1.2.1-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
