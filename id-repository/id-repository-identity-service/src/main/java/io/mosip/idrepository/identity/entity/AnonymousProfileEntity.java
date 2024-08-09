@@ -2,11 +2,11 @@ package io.mosip.idrepository.identity.entity;
 
 import java.time.LocalDateTime;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,8 +22,10 @@ import lombok.NoArgsConstructor;
 public class AnonymousProfileEntity {
 	
 	@Id
+	@Column(name = "id")
 	private String id;
 	
+	@Column(name = "profile")
 	private String profile;
 	
 	@NotNull

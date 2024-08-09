@@ -2,11 +2,11 @@ package io.mosip.idrepository.identity.entity;
 
 import java.time.LocalDateTime;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,6 +28,7 @@ public class UinDocumentHistory {
 
 	/** The uin ref id. */
 	@Id
+	@Column(name = "uin_ref_id")
 	private String uinRefId;
 
 	/** The effective date time. */
@@ -36,24 +37,31 @@ public class UinDocumentHistory {
 	private LocalDateTime effectiveDateTime;
 
 	/** The doccat code. */
+	@Column(name = "doccat_code")
 	private String doccatCode;
 
 	/** The doctyp code. */
+	@Column(name = "doctyp_code")
 	private String doctypCode;
 
 	/** The doc id. */
+	@Column(name = "doc_id")
 	private String docId;
 
 	/** The doc name. */
+	@Column(name = "doc_name")
 	private String docName;
 
 	/** The docfmt code. */
+	@Column(name = "docfmt_code")
 	private String docfmtCode;
 
 	/** The doc hash. */
+	@Column(name = "doc_hash")
 	private String docHash;
 
 	/** The lang code. */
+	@Column(name = "lang_code")
 	private String langCode;
 
 	/** The created by. */
@@ -73,6 +81,7 @@ public class UinDocumentHistory {
 	private LocalDateTime updatedDateTime;
 
 	/** The is deleted. */
+	@Column(name = "is_deleted")
 	private Boolean isDeleted;
 
 	/** The deleted date time. */

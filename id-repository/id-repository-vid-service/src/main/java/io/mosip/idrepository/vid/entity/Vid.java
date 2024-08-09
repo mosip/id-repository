@@ -2,10 +2,10 @@ package io.mosip.idrepository.vid.entity;
 
 import java.time.LocalDateTime;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,15 +26,19 @@ public class Vid implements Comparable<Vid> {
 
 	/** The Id value */
 	@Id
+	@Column(name = "id")
 	private String id;
 
 	/** The vid value */
+	@Column(name = "vid")
 	private String vid;
 	
 	/** The uin Hash value */
+	@Column(name = "uin_hash")
 	private String uinHash;
 	
 	/** The uin value */
+	@Column(name = "uin")
 	private String uin;
 
 	/** The value to hold vid Type Code */
@@ -50,6 +54,7 @@ public class Vid implements Comparable<Vid> {
 	private LocalDateTime expiryDTimes;
 
 	/** The value to hold status Code */
+	@Column(name = "status_code")
 	private String statusCode;
 
 	/** The value to hold created By */
@@ -69,7 +74,7 @@ public class Vid implements Comparable<Vid> {
 	private LocalDateTime updatedDTimes;
 
 	/** The boolean of isDeleted */
-	@Column(nullable = true)
+	@Column(name="is_deleted", nullable = true)
 	private boolean isDeleted;
 
 	/** The value to hold deleted DTimes */
