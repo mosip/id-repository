@@ -6,19 +6,12 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.context.WebApplicationContext;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
@@ -33,7 +26,6 @@ import io.mosip.idrepository.core.manager.CredentialServiceManager;
 import io.mosip.idrepository.core.manager.CredentialStatusManager;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.credentialsfeeder.entity.AuthtypeLock;
 import io.mosip.idrepository.credentialsfeeder.entity.Uin;
 import io.mosip.idrepository.credentialsfeeder.repository.AuthLockRepository;
@@ -44,12 +36,7 @@ import io.mosip.kernel.core.util.DateUtils;
  * @author Manoj SP
  *
  */
-@ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
-@RunWith(SpringRunner.class)
-@WebMvcTest
-@Import(EnvUtil.class)
-@ActiveProfiles("test")
-@Ignore
+@RunWith(MockitoJUnitRunner.class)
 public class CredentialsFeedingWriterTest {
 
 	@InjectMocks
