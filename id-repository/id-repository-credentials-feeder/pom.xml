@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.2.1-SNAPSHOT</version>
+		<version>1.2.0.1</version>
 	</parent>
 
 	<description>Batch Job Application for feeding IDA instances with credentials.</description>
@@ -95,7 +95,7 @@
 		<commons.configuration2.version>2.2</commons.configuration2.version>
 		<apache.httpcomponents.version>4.5.6</apache.httpcomponents.version>
 		<guava.version>19.0</guava.version>
-		<lombok.version>1.18.8</lombok.version>
+		<lombok.version>1.18.32</lombok.version>
 		<jsch.version>0.1.54</jsch.version>
 		<sshd.version>1.4.0</sshd.version>
 		<itextcore.version>7.1.0</itextcore.version>
@@ -202,7 +202,6 @@
 		<commons.configuration2.version>2.2</commons.configuration2.version>
 		<apache.httpcomponents.version>4.5.6</apache.httpcomponents.version>
 		<guava.version>19.0</guava.version>
-		<lombok.version>1.18.8</lombok.version>
 		<jsch.version>0.1.54</jsch.version>
 		<sshd.version>1.4.0</sshd.version>
 		<itextcore.version>7.1.0</itextcore.version>

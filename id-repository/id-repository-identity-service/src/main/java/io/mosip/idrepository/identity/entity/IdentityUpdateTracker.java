@@ -1,9 +1,10 @@
 package io.mosip.idrepository.identity.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
 
 import org.hibernate.annotations.Type;
 
@@ -24,12 +25,12 @@ import lombok.Setter;
 public class IdentityUpdateTracker {
 
 	@Id
+	@Column(name = "id")
 	private String id;
 	
-	@Lob
-	@Type(type = "org.hibernate.type.BinaryType")
 	@Getter(AccessLevel.NONE)
 	@Setter(AccessLevel.NONE)
+	@Column(name = "identity_update_count")
 	private byte[] identityUpdateCount;
 
 	public byte[] getIdentityUpdateCount() {

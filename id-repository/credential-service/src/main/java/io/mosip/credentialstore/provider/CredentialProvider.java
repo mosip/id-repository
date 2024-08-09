@@ -7,7 +7,7 @@ import static io.mosip.credentialstore.constants.CredentialConstants.FULLADDRESS
 import static io.mosip.credentialstore.constants.CredentialConstants.FULLNAME;
 import static io.mosip.credentialstore.constants.CredentialConstants.IDENTITY_ATTRIBUTES;
 import static io.mosip.credentialstore.constants.CredentialConstants.NAME_FORMAT_FUNCTION;
-import io.mosip.biometrics.util.face.FaceDecoder;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -29,9 +29,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.PostConstruct;
-
-import io.mosip.biometrics.util.ConvertRequestDto;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.io.IOUtils;
@@ -43,12 +40,15 @@ import org.mvel2.integration.impl.MapVariableResolverFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.biometrics.util.ConvertRequestDto;
+import io.mosip.biometrics.util.face.FaceDecoder;
 import io.mosip.credentialstore.constants.CredentialConstants;
 import io.mosip.credentialstore.constants.JsonConstants;
 import io.mosip.credentialstore.constants.LoggerFileConstant;
@@ -85,6 +85,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
+import jakarta.annotation.PostConstruct;
 
 /**
  * The Interface CredentialProvider.
@@ -110,6 +111,7 @@ public class CredentialProvider {
 	@Autowired
 	private Environment env;
 
+	@Lazy
 	@Autowired
 	private ObjectMapper mapper;
 

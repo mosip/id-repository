@@ -5,6 +5,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
+
+import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
+import io.mosip.idrepository.identity.config.IdRepoConfig;
 
 /**
  * The Class IdRepoApplication.
@@ -12,7 +16,8 @@ import org.springframework.context.annotation.FilterType;
  * @author Manoj SP
  */
 @SpringBootApplication(exclude = MailSenderAutoConfiguration.class)
-@ComponentScan(basePackages={ "io.mosip.*" ,"${mosip.auth.adapter.impl.basepackage}"}, excludeFilters = {
+@Import({ IdRepoConfig.class })
+@ComponentScan(basePackages={ "io.mosip.idrepository.*" ,"${mosip.auth.adapter.impl.basepackage}"}, excludeFilters = {
 		@ComponentScan.Filter(type = FilterType.ASPECTJ, 
 				pattern = {"io.mosip.kernel.zkcryptoservice.*",
 						"io.mosip.kernel.tokenidgenerator.*",
@@ -27,7 +32,7 @@ import org.springframework.context.annotation.FilterType;
 						"io.mosip.kernel.clientcrypto.*",
 						"io.mosip.commons.khazana.impl.PosixAdapter",
 						"io.mosip.commons.khazana.util.*"
-}) })
+}),@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,classes = {IdRepoDataSourceConfig.class} ) })
 public class IdRepoBootApplication {
 
 	/**

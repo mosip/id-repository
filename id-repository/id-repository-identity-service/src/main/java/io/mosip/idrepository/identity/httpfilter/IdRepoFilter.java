@@ -1,6 +1,6 @@
 package io.mosip.idrepository.identity.httpfilter;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.stereotype.Component;
 
