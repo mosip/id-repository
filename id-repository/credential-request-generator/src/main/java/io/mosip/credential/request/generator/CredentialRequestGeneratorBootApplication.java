@@ -21,7 +21,7 @@ import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
  */
 @SpringBootApplication
 @Import(value = { java.lang.String.class, DummyPartnerCheckUtil.class, RestHelper.class, IdRepoSecurityManager.class,
-		CredentialRequestGeneratorConfig.class, SubscriberClientImpl.class })
+		CredentialRequestGeneratorConfig.class})
 @ComponentScan(basePackages = { "io.mosip.credential.*","io.mosip.idrepository.*", "io.mosip.kernel.*", "${mosip.auth.adapter.impl.basepackage}" }, excludeFilters = {
 		@ComponentScan.Filter(type = FilterType.ASPECTJ, pattern = { "io.mosip.kernel.dataaccess.hibernate.config.*" }),
 		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = { HibernateDaoConfig.class,
