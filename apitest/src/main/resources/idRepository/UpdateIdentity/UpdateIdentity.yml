@@ -8,9 +8,7 @@ UpdateIdentity:
       input: '{
       "registrationId":"$RID$",
       "UIN":"$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
-      "email": "user@mailinator.com",
       "status": "DEACTIVATED",
-      "phone": "8249742850",
       "dateOfBirth": "1992/04/15",
       "requesttime": "$TIMESTAMP$",
       "version": "v1"
@@ -27,9 +25,7 @@ UpdateIdentity:
       input: '{
       "registrationId":"$RID$",
       "UIN":"$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
-      "email": "user@mailinator.com",
       "status": "ACTIVATED",
-      "phone": "8249742850",
       "dateOfBirth": "1992/04/15",
       "requesttime": "$TIMESTAMP$",
       "version": "v1"
@@ -46,8 +42,6 @@ UpdateIdentity:
       input: '{
       "registrationId":"$ID:AddIdentity_withValidParameters_smoke_Pos_RID$",
       "UIN":"$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
-      "email": "user@mailinator.com",
-      "phone": "8249742850",
       "status": "ACTIVATED",
       "dateOfBirth": "1992/04/15",
       "requesttime": "$TIMESTAMP$",
@@ -71,8 +65,6 @@ UpdateIdentity:
       input: '{
       "registrationId":"$ID:AddIdentity_withValidParameters_smoke_Pos_RID$",
       "UIN":"$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
-      "email": "user@mailinator.com",
-      "phone": "8249742850",
       "status": "ACTIVATED",
       "dateOfBirth": "1992/04/15",
       "requesttime": "$TIMESTAMP$",
@@ -96,8 +88,6 @@ UpdateIdentity:
       input: '{
       "registrationId":"$ID:AddIdentity_withValidParameters_smoke_Pos_RID$",
       "UIN":"$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
-      "email": "user@mailinator.com",
-      "phone": "8249742850",
       "status": "ACTIVATED",
       "dateOfBirth": "1992/04/15",
       "requesttime": "$TIMESTAMP$",
@@ -121,8 +111,6 @@ UpdateIdentity:
       input: '{
       "registrationId":"$ID:AddIdentity_withValidParameters_smoke_Pos_RID$",
       "UIN":"$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
-      "email": "user@mailinator.com",
-      "phone": "8249742850",
       "status": "ACTIVATED",
       "dateOfBirth": "1992/04/15",
       "requesttime": "$T",
@@ -146,8 +134,6 @@ UpdateIdentity:
       input: '{
       "registrationId":"$ID:AddIdentity_withValidParameters_smoke_Pos_RID$",
       "UIN":"$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
-      "email": "user@mailinator.com",
-      "phone": "8249742850",
       "status": "ACTIVATED",
       "dateOfBirth": "1992/04/15",
       "requesttime": "",
@@ -171,8 +157,6 @@ UpdateIdentity:
       input: '{
       "registrationId":"$ID:AddIdentity_withValidParameters_smoke_Pos_RID$",
       "UIN":"$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
-      "email": "user@mailinator.com",
-      "phone": "8249742850",
       "status": "ACTIVATED",
       "dateOfBirth": "1992/04/15",
       "requesttime": " ",
@@ -196,8 +180,6 @@ UpdateIdentity:
       input: '{
       "registrationId":"$ID:AddIdentity_withValidParameters_smoke_Pos_RID$",
       "UIN":"$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
-      "email": "user@mailinator.com",
-      "phone": "8249742850",
       "status": "ACTIVATED",
       "dateOfBirth": "1992/04/15",
       "requesttime": "2022-05-23T06:56:01.667Z",
@@ -221,8 +203,6 @@ UpdateIdentity:
       input: '{
       "registrationId":"$ID:AddIdentity_withValidParameters_smoke_Pos_RID$",
       "UIN":"$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
-      "email": "user@mailinator.com",
-      "phone": "8249742850",
       "status": "ACTIVATED",
       "dateOfBirth": "1992/04/15",
       "requesttime": "2072-05-23T06:56:01.667Z",
@@ -246,8 +226,6 @@ UpdateIdentity:
       input: '{
       "registrationId":"$REMOVE$",
       "UIN":"$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
-      "email": "user@mailinator.com",
-      "phone": "8249742850",
       "status": "ACTIVATED",
       "dateOfBirth": "1992/04/15",
       "requesttime": "$TIMESTAMP$",
@@ -270,8 +248,6 @@ UpdateIdentity:
       input: '{
       "registrationId":"$ID:AddIdentity_withValidParameters_smoke_Pos_RID$",
       "UIN":"$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
-      "email": "user@mailinator.com",
-      "phone": "8249742850",
       "status": "ACTIVATED",
       "dateOfBirth": "1992/04/15",
       "requesttime": "$TIMESTAMP$",
@@ -294,8 +270,6 @@ UpdateIdentity:
       input: '{
       "registrationId":"$ID:AddIdentity_withValidParameters_smoke_Pos_RID$",
       "UIN":"$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
-      "email": "user@mailinator.com",
-      "phone": "8249742850",
       "status": "ACTIVATED",
       "dateOfBirth": "1992/04/15",
       "requesttime": "$REMOVE$",
@@ -318,8 +292,6 @@ UpdateIdentity:
       input: '{
       "registrationId":"$ID:AddIdentity_withValidParameters_smoke_Pos_RID$",
       "UIN":"$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
-      "email": "user@mailinator.com",
-      "phone": "8249742850",
       "status": "ACTIVATED",
       "dateOfBirth": "1992/15",
       "requesttime": "$TIMESTAMP$",
@@ -342,7 +314,6 @@ UpdateIdentity:
       input: '{
       "registrationId":"$ID:AddIdentity_withValidParameters_smoke_Pos_RID$",
       "UIN":"$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
-      "email": "user@mailinator.com",
       "phone": "824222@@@@@####850",
       "status": "ACTIVATED",
       "dateOfBirth": "1992/04/15",
@@ -391,9 +362,7 @@ UpdateIdentity:
       input: '{
       "registrationId":"$RID$",
       "UIN":"$ID:AddIdentity_For_DeactivateScen_smoke_Pos_UIN$",
-      "email": "user@mailinator.com",
       "status": "DEACTIVATED",
-      "phone": "8249742850",
       "dateOfBirth": "1992/04/15",
       "requesttime": "$TIMESTAMP$",
       "version": "v1"

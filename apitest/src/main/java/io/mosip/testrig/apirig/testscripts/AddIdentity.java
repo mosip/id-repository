@@ -3,7 +3,9 @@ package io.mosip.testrig.apirig.testscripts;
 import java.lang.reflect.Field;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +28,7 @@ import org.testng.internal.TestResult;
 
 import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
+import io.mosip.testrig.apirig.testrunner.BaseTestCase;
 import io.mosip.testrig.apirig.testrunner.HealthChecker;
 import io.mosip.testrig.apirig.testrunner.JsonPrecondtion;
 import io.mosip.testrig.apirig.utils.AdminTestException;
@@ -34,6 +37,7 @@ import io.mosip.testrig.apirig.utils.AuthenticationTestException;
 import io.mosip.testrig.apirig.utils.ConfigManager;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
 import io.mosip.testrig.apirig.utils.KernelAuthentication;
+import io.mosip.testrig.apirig.utils.KeycloakUserManager;
 import io.mosip.testrig.apirig.utils.OutputValidationUtil;
 import io.mosip.testrig.apirig.utils.ReportUtil;
 import io.mosip.testrig.apirig.utils.RestClient;
@@ -104,6 +108,26 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 		String timestampValue = dateFormatter.format(cal.getTime());
 		String genRid = "27847" + generateRandomNumberString(10) + timestampValue;
 
+		if (testCaseName.equals("Resident_AddIdentity_Valid_Params_AddUser_smoke_Pos")) {
+
+			KeycloakUserManager.removeVidUser();
+			Map<String, List<String>> attrmap = new HashMap<>();
+			List<String> list = new ArrayList<>();
+			list.add(uin);
+			attrmap.put("individual_id", list);
+			list = new ArrayList<>();
+			String token = AdminTestUtil.generateTokenID(uin, properties.getProperty("partner_Token_Id"));
+			list.add(token);
+			attrmap.put("ida_token", list);
+			list = new ArrayList<>();
+			String picture = properties.getProperty("picturevalue");
+			list.add(picture);
+			attrmap.put("picture", list);
+			KeycloakUserManager.createVidUsers(propsKernel.getProperty("new_Resident_User"),
+					propsKernel.getProperty("new_Resident_Password"), propsKernel.getProperty("new_Resident_Role"),
+					attrmap);
+		}
+
 		String jsonInput = testCaseDTO.getInput();
 
 		String inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
@@ -111,6 +135,7 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 		inputJson = inputJson.replace("$UIN$", uin);
 		inputJson = inputJson.replace("$RID$", genRid);
 		String phoneNumber = "";
+		String email = testCaseName +"@mosip.net";
 		if (inputJson.contains("$PHONENUMBERFORIDENTITY$")) {
 			if (!phoneSchemaRegex.isEmpty())
 				try {
@@ -119,6 +144,8 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 					logger.error(e.getMessage());
 				}
 			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber);
+			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", email);
+			
 		}
 
 		response = postWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
@@ -163,10 +190,13 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 
 	@AfterClass(alwaysRun = true)
 	public void waittime() {
+
 		try {
-			logger.info(
-					"waiting for " + properties.getProperty("Delaytime") + " mili secs after UIN Generation In IDREPO"); //
-			Thread.sleep(Long.parseLong(properties.getProperty("Delaytime")));
+			if (BaseTestCase.currentModule.equals("auth") || BaseTestCase.currentModule.equals("esignet")) {
+				logger.info("waiting for " + properties.getProperty("Delaytime")
+						+ " mili secs after UIN Generation In IDREPO"); //
+				Thread.sleep(Long.parseLong(properties.getProperty("Delaytime")));
+			}
 		} catch (Exception e) {
 			logger.error("Exception : " + e.getMessage());
 			Thread.currentThread().interrupt();
