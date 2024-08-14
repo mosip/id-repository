@@ -8,10 +8,11 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
-import org.hibernate.EmptyInterceptor;
+import org.hibernate.Interceptor;
 import org.hibernate.type.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import io.mosip.idrepository.core.exception.IdRepoAppException;
@@ -29,7 +30,7 @@ import io.mosip.kernel.core.util.CryptoUtil;
  * @author Manoj SP
  */
 @Component
-public class IdRepoVidEntityInterceptor extends EmptyInterceptor {
+public class IdRepoVidEntityInterceptor implements Interceptor {
 	
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
@@ -44,6 +45,7 @@ public class IdRepoVidEntityInterceptor extends EmptyInterceptor {
 	private static final long serialVersionUID = 4985336846122302850L;
 	
 	/** The IdRepo Security Manager */
+	@Lazy
 	@Autowired
 	private transient IdRepoSecurityManager securityManager;
 
@@ -73,7 +75,7 @@ public class IdRepoVidEntityInterceptor extends EmptyInterceptor {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_ENTITY_INTERCEPTOR, "onSave", "\n" + e.getMessage());
 			throw new IdRepoAppUncheckedException(ENCRYPTION_DECRYPTION_FAILED, e);
 		}
-		return super.onSave(entity, id, state, propertyNames, types);
+		return Interceptor.super.onSave(entity, id, state, propertyNames, types);
 	}
 
 	/*
@@ -104,6 +106,6 @@ public class IdRepoVidEntityInterceptor extends EmptyInterceptor {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_ENTITY_INTERCEPTOR, "onFlushDirty", "\n" + e.getMessage());
 			throw new IdRepoAppUncheckedException(ENCRYPTION_DECRYPTION_FAILED, e);
 		}
-		return super.onFlushDirty(entity, id, currentState, currentState, propertyNames, types);
+		return Interceptor.super.onFlushDirty(entity, id, currentState, currentState, propertyNames, types);
 	}
 }

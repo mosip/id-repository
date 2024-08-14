@@ -13,8 +13,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
-import javax.annotation.Resource;
-import javax.servlet.ServletException;
+import jakarta.annotation.Resource;
+import jakarta.servlet.ServletException;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.BeansException;
@@ -24,6 +24,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -40,6 +41,7 @@ import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * The Class IdRepoExceptionHandler - Handler class for all exceptions thrown in
@@ -78,6 +80,33 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	/** The id. */
 	@Resource
 	private Map<String, String> id;
+
+	private static final String DATE_TIME_PARSE_EXCEPTION = "DateTimeParseException";
+
+	@Override
+	protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException httpMessageNotReadableException, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+
+		Throwable rootCause = getRootCause(httpMessageNotReadableException);
+		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_EXCEPTION_HANDLER,
+				"handleHttpMessageNotReadable - \n" + ExceptionUtils.getStackTrace(Objects.isNull(rootCause) ? httpMessageNotReadableException : rootCause));
+		IdRepoAppException idRepoAppException;
+		if(httpMessageNotReadableException.getMessage().contains(DATE_TIME_PARSE_EXCEPTION)){
+			idRepoAppException = new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(), String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), REQUEST_TIME));
+			return new ResponseEntity<>(buildExceptionResponse(idRepoAppException, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(buildExceptionResponse(httpMessageNotReadableException, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.OK);
+		}
+	}
+
+	@Override
+	protected ResponseEntity<Object> handleNoResourceFoundException(NoResourceFoundException noResourceFoundException, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+		Throwable rootCause = getRootCause(noResourceFoundException);
+		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_EXCEPTION_HANDLER,
+				"handleNoResourceFoundException - \n" + ExceptionUtils.getStackTrace(Objects.isNull(rootCause) ? noResourceFoundException : rootCause));
+
+		IdRepoAppException idRepoAppException = new IdRepoAppException(INVALID_REQUEST.getErrorCode(), INVALID_REQUEST.getErrorMessage());
+			return new ResponseEntity<>(buildExceptionResponse(idRepoAppException, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.OK);
+	}
 
 	/**
 	 * Handles exceptions that are not handled by other methods in
@@ -175,7 +204,6 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	 * org.springframework.http.HttpStatus,
 	 * org.springframework.web.context.request.WebRequest)
 	 */
-	@Override
 	protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object errorMessage,
 			HttpHeaders headers, HttpStatus status, WebRequest request) {
 		Throwable rootCause = getRootCause(ex);

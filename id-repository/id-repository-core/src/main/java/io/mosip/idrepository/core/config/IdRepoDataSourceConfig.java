@@ -7,12 +7,9 @@ import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
-import io.mosip.idrepository.core.entity.Handle;
-import io.mosip.idrepository.core.repository.HandleRepo;
 import org.hibernate.Interceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
-import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -30,9 +27,11 @@ import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
+import io.mosip.idrepository.core.entity.Handle;
 import io.mosip.idrepository.core.entity.UinEncryptSalt;
 import io.mosip.idrepository.core.entity.UinHashSalt;
 import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
+import io.mosip.idrepository.core.repository.HandleRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.util.EnvUtil;
@@ -91,11 +90,11 @@ public class IdRepoDataSourceConfig {
 	 */
 	private Map<String, Object> additionalProperties() {
 		Map<String, Object> jpaProperties = new HashMap<>();
-		jpaProperties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQL92Dialect");
+		jpaProperties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
 		jpaProperties.put("hibernate.temp.use_jdbc_metadata_defaults", Boolean.FALSE);
 		jpaProperties.put("hibernate.implicit_naming_strategy", SpringImplicitNamingStrategy.class.getName());
-		jpaProperties.put("hibernate.physical_naming_strategy", SpringPhysicalNamingStrategy.class.getName());
-		jpaProperties.put("hibernate.ejb.interceptor", interceptor);
+		jpaProperties.put("hibernate.physical_naming_strategy", org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl.class.getName());
+		jpaProperties.put("hibernate.session_factory.interceptor", interceptor);
 		return jpaProperties;
 	}
 

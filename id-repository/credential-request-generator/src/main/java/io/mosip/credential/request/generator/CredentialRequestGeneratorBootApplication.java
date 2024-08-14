@@ -1,6 +1,6 @@
-package io.mosip.credential.request.generator.api;
+package io.mosip.credential.request.generator;
 
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import io.mosip.kernel.websub.api.client.SubscriberClientImpl;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
@@ -8,6 +8,8 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import io.mosip.credential.request.generator.api.config.CredentialRequestGeneratorConfig;
+import io.mosip.idrepository.core.config.IdRepoDataSourceConfig;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
@@ -16,14 +18,15 @@ import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
 /**
  * The Class CredentialRequestGeneratorApp.
  *
- * @author Sowmya
  */
-@SpringBootApplication(exclude = HibernateDaoConfig.class)
-@Import(value = { java.lang.String.class, DummyPartnerCheckUtil.class, RestHelper.class, IdRepoSecurityManager.class })
-@ComponentScan(basePackages = { "io.mosip.*",
-"${mosip.auth.adapter.impl.basepackage}" }, excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
-				"io.mosip.idrepository.core.config.IdRepoDataSourceConfig.*", "io.mosip.kernel.dataaccess.hibernate.config.*" }))
-@EnableBatchProcessing
+@SpringBootApplication
+@Import(value = { java.lang.String.class, DummyPartnerCheckUtil.class, RestHelper.class, IdRepoSecurityManager.class,
+		CredentialRequestGeneratorConfig.class})
+@ComponentScan(basePackages = { "io.mosip.credential.*","io.mosip.idrepository.*", "io.mosip.kernel.*", "${mosip.auth.adapter.impl.basepackage}" }, excludeFilters = {
+		@ComponentScan.Filter(type = FilterType.ASPECTJ, pattern = { "io.mosip.kernel.dataaccess.hibernate.config.*" }),
+		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = { HibernateDaoConfig.class,
+				IdRepoDataSourceConfig.class }) })
+
 @EnableScheduling
 public class CredentialRequestGeneratorBootApplication {
 
