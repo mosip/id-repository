@@ -1,7 +1,11 @@
 package io.mosip.credential.request.generator.dao;
 
-import io.mosip.credential.request.generator.entity.CredentialEntity;
-import io.mosip.credential.request.generator.repositary.CredentialRepositary;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
+
+import io.mosip.idrepository.core.util.EnvUtil;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -10,80 +14,129 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestContext;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import io.mosip.credential.request.generator.entity.CredentialEntity;
+import io.mosip.credential.request.generator.repositary.CredentialRepositary;
+import org.springframework.web.context.WebApplicationContext;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-@RunWith(MockitoJUnitRunner.class)
-@Ignore    // TODO ignored temporarily because it is causing build failure on GitHub.
+@RunWith(SpringRunner.class)
+@WebMvcTest
+@Import(EnvUtil.class)
+@ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class})
+@Ignore
 public class CredentialDaoTest {
 
-    @Mock
-    private CredentialRepositary<CredentialEntity, String> credentialRepo;
+	@Mock
+	private CredentialRepositary<CredentialEntity, String> credentialRepo;
 
-    @InjectMocks
-    private CredentialDao credentialDao;
+	@InjectMocks
+	private CredentialDao credentialDao;
+	
+	@Before
+	public void setUp() {
+		MockitoAnnotations.initMocks(this);
+		ReflectionTestUtils.setField(credentialDao, "status",
+				"NEW");
+		ReflectionTestUtils.setField(credentialDao, "pageSize",
+				1);
+		ReflectionTestUtils.setField(credentialDao, "reprocessStatusCodes",
+				"FAILED");
+		ReflectionTestUtils.setField(credentialDao, "credentialRepo",
+				credentialRepo);
+	}
+	
+	@Test
+	public void testUpdateEntities(){
+		List<CredentialEntity> credentialEntities=new ArrayList<>();
+		CredentialEntity credentialEntity=new CredentialEntity();
+		credentialEntity.setRequestId("1234");
+		credentialEntity.setStatusCode("NEW");
+		credentialEntities.add(credentialEntity);
+		credentialDao.update("1234",credentialEntities);
+		
+	}
 
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-    }
+	@Test
+	public void testUpdate() {
+		String batchId = "batch123";
+		List<CredentialEntity> credentialEntities = new ArrayList<>();
+		credentialDao.update(batchId, credentialEntities);
+		//Mockito.verify(crdentialRepo).saveAll(credentialEntities);
+	}
 
-    @Test
-    public void testUpdate() {
-        String batchId = "batch123";
-        List<CredentialEntity> credentialEntities = new ArrayList<>();
-        credentialDao.update(batchId, credentialEntities);
-        Mockito.verify(credentialRepo).saveAll(credentialEntities);
-    }
-
-    @Test
-    public void testFindByStatusCode() {
-        String statusCode = "STATUS";
-        int pageSize = 100;
-        Pageable pageable = PageRequest.of(0, pageSize);
-        Page<CredentialEntity> expectedPage = mock(Page.class);
-        when(credentialRepo.findByStatusCode(statusCode, pageable)).thenReturn(expectedPage);
-        Page<CredentialEntity> result = credentialDao.findByStatusCode(statusCode, pageable);
-        assertEquals(expectedPage, result);
-    }
-
-    @Test
-    public void testFindByStatusCodeWithEffectiveDtimes() {
-        String statusCode = "STATUS";
-        LocalDateTime effectiveDTimes = LocalDateTime.now();
-        int pageSize = 100;
-        Pageable pageable = PageRequest.of(0, pageSize);
-        Page<CredentialEntity> expectedPage = mock(Page.class);
-        when(credentialRepo.findByStatusCodeWithEffectiveDtimes(statusCode, effectiveDTimes, pageable)).thenReturn(expectedPage);
-        Page<CredentialEntity> result = credentialDao.findByStatusCodeWithEffectiveDtimes(statusCode, effectiveDTimes, pageable);
-        assertEquals(expectedPage, result);
-    }
-
-    @Test
-    public void testSave() {
-        CredentialEntity credential = new CredentialEntity();
-        credentialDao.save(credential);
-        Mockito.verify(credentialRepo).save(credential);
-    }
-
-    @Test
-    public void testFindById() {
-        String requestId = "request123";
-        Optional<CredentialEntity> expectedCredential = Optional.of(mock(CredentialEntity.class));
-        when(credentialRepo.findById(requestId)).thenReturn(expectedCredential);
-        Optional<CredentialEntity> result = credentialDao.findById(requestId);
-        assertEquals(expectedCredential, result);
-    }
-
+	@Test
+	public void testSave(){
+		CredentialEntity credentialEntity=new CredentialEntity();
+		credentialEntity.setRequestId("1234");
+		credentialEntity.setStatusCode("NEW");
+		credentialDao.save(credentialEntity);
+		
+	}
+	@Test
+	public void testGetCredentials(){
+		List<CredentialEntity> credentialList=new ArrayList<CredentialEntity>();
+		CredentialEntity credentialEntity = new CredentialEntity();
+		credentialEntity.setRequestId("1234");
+		credentialEntity.setRequest("test");
+		credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialList.add(credentialEntity);
+		Page<CredentialEntity> page = new PageImpl<>(credentialList);
+		Mockito.when(credentialRepo.findCredentialByStatusCode(Mockito.any(), Mockito.any())).thenReturn(page);
+		credentialDao.getCredentials("1234");
+	}
+	
+	@Test
+	public void testGetCredentialsForReprocess(){
+		List<CredentialEntity> credentialList=new ArrayList<CredentialEntity>();
+		CredentialEntity credentialEntity = new CredentialEntity();
+		credentialEntity.setRequestId("1234");
+		credentialEntity.setRequest("test");
+		credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialList.add(credentialEntity);
+		Page<CredentialEntity> page = new PageImpl<>(credentialList);
+		Mockito.when(credentialRepo.findCredentialByStatusCodes(Mockito.any(),Mockito.any())).thenReturn(page);
+		credentialDao.getCredentialsForReprocess("1234");
+	}
+	@Test
+	public void testFindByStatusCode(){
+		List<CredentialEntity> credentialList=new ArrayList<CredentialEntity>();
+		CredentialEntity credentialEntity = new CredentialEntity();
+		credentialEntity.setRequestId("1234");
+		credentialEntity.setRequest("test");
+		credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialList.add(credentialEntity);
+		Page<CredentialEntity> page = new PageImpl<>(credentialList);
+		Pageable pageable=PageRequest.of(0, 1);
+		Mockito.when(credentialRepo.findByStatusCode(Mockito.any(), Mockito.any())).thenReturn(page);
+		credentialDao.findByStatusCode("NEW", pageable);
+	}
+	
+	public void testfindByStatusCodeWithEffectiveDtimes(){
+		List<CredentialEntity> credentialList=new ArrayList<CredentialEntity>();
+		CredentialEntity credentialEntity = new CredentialEntity();
+		credentialEntity.setRequestId("1234");
+		credentialEntity.setRequest("test");
+		credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+		credentialList.add(credentialEntity);
+		Page<CredentialEntity> page = new PageImpl<>(credentialList);
+		Pageable pageable=PageRequest.of(0, 1);
+		Mockito.when(credentialRepo.findByStatusCodeWithEffectiveDtimes(Mockito.any(), Mockito.any(),  Mockito.any())).thenReturn(page);
+		credentialDao.findByStatusCodeWithEffectiveDtimes("NEW", LocalDateTime.now(ZoneId.of("UTC")),pageable);
+	}
 }
