@@ -1,7 +1,7 @@
 PublishDraft:
   IdRepository_PublishDraft_VID_all_valid_smoke:
       endPoint: /idrepository/v1/identity/draft/publish/{registrationId}
-      description: publish draft VID
+      description: Publish draft VID
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/PublishDraft/publishDraft

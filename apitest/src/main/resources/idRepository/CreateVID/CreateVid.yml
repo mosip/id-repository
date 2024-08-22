@@ -1,7 +1,7 @@
 CreateVID:
   IdRepository_CreateVID_withValidParameters_For_VidType_Smoke_Temporary_sid:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID passing valid parameters
+      description: Create a Temporary VID passing valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid

@@ -1,7 +1,7 @@
 AuthInternalLock:
   IdRepository_AuthInternalLock_Uin_Demo_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Lock UIN demo
+      description: Lock UIN for the auth type demo
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -24,7 +24,7 @@ AuthInternalLock:
 
   IdRepository_AuthInternalLock_Vid_Demo_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Lock VID demo
+      description: Lock VID for authtype demo
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -46,7 +46,7 @@ AuthInternalLock:
 
   IdRepository_AuthInternalLock_Uin_FACE_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Lock UIN face
+      description: Lock UIN for authtype Bio face
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -69,7 +69,7 @@ AuthInternalLock:
 
   IdRepository_AuthInternalLock_Vid_FACE_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Lock VID face
+      description: Lock VID for authtype  bio face
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -91,7 +91,7 @@ AuthInternalLock:
 
   IdRepository_AuthInternalLock_Uin_IRIS_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Lock UIN iris
+      description: Lock UIN for authtype Bio Iris
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -113,7 +113,7 @@ AuthInternalLock:
 
   IdRepository_AuthInternalLock_Vid_IRIS_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Lock VID iris
+      description: Lock VID for authtype Bio Iris
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -135,7 +135,7 @@ AuthInternalLock:
 
   IdRepository_AuthInternalLock_Uin_FINGER_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Lock UIN finger
+      description: Lock UIN for authtype Bio Finger
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -157,7 +157,7 @@ AuthInternalLock:
 
   IdRepository_AuthInternalLock_Vid_FINGER_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Lock VID finger
+      description: Lock UIN for authtype Bio Finger
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -179,7 +179,7 @@ AuthInternalLock:
 
   IdRepository_AuthInternalLock_Uin_email_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Lock UIN email
+      description: Lock UIN for authtype Email
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -201,7 +201,7 @@ AuthInternalLock:
 
   IdRepository_AuthInternalLock_Vid_email_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Lock VID email
+      description: Lock VID for authtype Email
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -223,7 +223,7 @@ AuthInternalLock:
 
   IdRepository_AuthInternalLock_Uin_phone_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Lock UIN phone
+      description: Lock UIN for authtype Phone
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -245,7 +245,7 @@ AuthInternalLock:
 
   IdRepository_AuthInternalLock_Vid_phone_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Lock VID phone
+      description: Lock VID for authtype phone
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post

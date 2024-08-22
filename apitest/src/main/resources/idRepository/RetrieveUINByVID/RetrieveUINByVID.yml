@@ -1,7 +1,7 @@
 Retrieve_VID_pos:
   IdRepository_Retrieve_VID_pos_perpetual_Active_smoke:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN using perpetual VID
+      description: Retrieve UIN passing perpetual VID
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: get
@@ -17,7 +17,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_pos_Temp_Active_smoke:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN using perpetual VID
+      description: Retrieve UIN passing perpetual VID
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: get
@@ -34,7 +34,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_pos_Onetimeuse_Active_smoke:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN using onetimeuse VID
+      description: Retrieve UIN passing onetimeuse VID
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: get
@@ -50,7 +50,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_pos_perpetual_DEACTIVATED:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN using Deactivated perpetual VID
+      description: Retrieve UIN passing Deactivated perpetual VID
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -68,7 +68,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_pos_Onetimeuse_DEACTIVATED:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN using Deactivated onetimeuse VID
+      description: Retrieve UIN passing Deactivated onetimeuse VID
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -86,7 +86,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_pos_perpetual_Expired:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN using Expired perpetual VID
+      description: Retrieve UIN passsing Expired perpetual VID
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -103,7 +103,7 @@ Retrieve_VID_pos:
 }'
   IdRepository_Retrieve_VID_pos_perpetual_Revoked:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN using Revoked perpetual VID
+      description: Retrieve UIN passing Revoked perpetual VID
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -120,7 +120,7 @@ Retrieve_VID_pos:
 }'
   IdRepository_Retrieve_VID_pos_Temperory_DEACTIVATED:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN using Deactivated temporary VID
+      description: Retrieve UIN passing Deactivated temporary VID
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
@@ -137,7 +137,7 @@ Retrieve_VID_pos:
 }'
   IdRepository_Retrieve_VID_pos_Temperory_Revoked:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN using revoked temporary VID
+      description: Retrieve UIN passing revoked temporary VID
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID

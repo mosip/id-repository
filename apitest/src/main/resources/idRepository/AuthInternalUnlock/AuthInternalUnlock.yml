@@ -45,7 +45,7 @@ AuthInternalUnlock:
 
   IdRepository_AuthInternalUnlock_Uin_FACE_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Unlock UIN for auth type Face
+      description: Unlock UIN for auth type bio Face
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -67,7 +67,7 @@ AuthInternalUnlock:
 
   IdRepository_AuthInternalUnlock_Vid_FACE_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Unlock VID for Auth type Face
+      description: Unlock VID for Auth type bio Face
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -89,7 +89,7 @@ AuthInternalUnlock:
 
   IdRepository_AuthInternalUnlock_Uin_IRIS_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Unlock UIN for authtype IRIS
+      description: Unlock UIN for authtype bio IRIS
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -111,7 +111,7 @@ AuthInternalUnlock:
 
   IdRepository_AuthInternalUnlock_Vid_IRIS_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Unlock VID for authtype IRIS
+      description: Unlock VID for authtype bio IRIS
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -133,7 +133,7 @@ AuthInternalUnlock:
 
   IdRepository_AuthInternalUnlock_Uin_FINGER_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Unlock UIN for authtype FINGER
+      description: Unlock UIN for authtype bio FINGER
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -155,7 +155,7 @@ AuthInternalUnlock:
 
   IdRepository_AuthInternalUnlock_Vid_FINGER_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Unlock VID for authtype FINGER
+      description: Unlock VID for authtype bio FINGER
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -291,7 +291,7 @@ AuthInternalUnlock:
 
   IdRepository_AuthInternalUnlock_Vid_Empty_Authtype:
       endPoint: /idrepository/v1/identity/authtypes/status
-      description: Unlcok VID passing Empty VID
+      description: Unlock VID passing Empty VID
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock

@@ -1,7 +1,7 @@
 RegenerateVid:
   IdRepository_RegenerateVid_Smoke_Pos:
       endPoint: /idrepository/v1/vid/{VID}/regenerate
-      description: Regenerate VID
+      description: Regenerate VID for a valid UIN
       role: resident
       checkErrorsOnlyInResponse: true
       restMethod: post

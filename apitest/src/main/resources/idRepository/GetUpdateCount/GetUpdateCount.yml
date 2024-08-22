@@ -1,7 +1,7 @@
 GetUpdateCount:
    IdRepository_GetUpdateCount_Uin_Valid_Smoke:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: get update count passing valid UIN
+      description: Get update count passing valid UIN
       role: resident
       checkErrorsOnlyInResponse: true
       restMethod: get
@@ -38,7 +38,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Uin_StatusCode_Empty_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: get update count by passing empty individual ID
+      description: Get update count by passing empty individual ID
       role: resident
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
@@ -52,7 +52,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Uin_SpaceVal_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: get update count passing space value in individual id
+      description: Get update count passing space value in individual id
       role: resident
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
@@ -72,7 +72,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Uin_StatusCode_Invalid_Token:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: get update count passing invalid token
+      description: Get update count passing invalid token
       role: invalid
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
@@ -86,7 +86,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Vid_Valid_Smoke:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: get update count by passing valid VID 
+      description: Get update count by passing valid VID 
       role: resident
       checkErrorsOnlyInResponse: true
       restMethod: get
@@ -103,7 +103,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Uin_Invalid_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: get update count by passing invalid UIN
+      description: Get update count by passing invalid UIN
       role: resident
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
@@ -123,7 +123,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Uin_StaatusCode_Empty_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: get update count by passing empty space in individual id
+      description: Get update count by passing empty space in individual id
       role: resident
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
@@ -137,7 +137,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Uin_SppaceVal_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: get update count by passing space in individual id
+      description: Get update count by passing space in individual id
       role: resident
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
@@ -157,7 +157,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Uinn_StatusCode_Invalid_Token:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: get update count by passing invalid token
+      description: Get update count by passing invalid token
       role: invalid
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
@@ -171,7 +171,7 @@ GetUpdateCount:
       
    IdRepository_GetUpdateCount_Uin_Invalid_idType:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: get update count by passing invalid idtype
+      description: Get update count by passing invalid idtype
       role: resident
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
@@ -191,7 +191,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Uin_Empty_idType:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: get update count by passing empty Id type
+      description: Get update count by passing empty Id type
       role: resident
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
@@ -211,7 +211,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Uin_Spaceval_idType:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: get update count by passing space in id type
+      description: Get update count by passing space in id type
       role: resident
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
@@ -231,7 +231,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Vid_Invalid_idType:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: get update count by passing invalid id type
+      description: Get update count by passing invalid id type
       role: resident
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
@@ -251,7 +251,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Vid_Empty_idType:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: get update count by passing invalid idtype
+      description: Get update count by passing invalid idtype
       role: resident
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
@@ -272,7 +272,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Vid_Spaceval_idType:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: get update count by passing space value in idtype
+      description: Get update count by passing space value in idtype
       role: resident
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
