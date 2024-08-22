@@ -2,10 +2,13 @@ package io.mosip.idrepository.core.dto;
 
 import lombok.Data;
 
-@Data
-public class CredentialIssueStatusResponse {
+import java.io.Serializable;
 
-	
+@Data
+public class CredentialIssueStatusResponse implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
 	private String requestId;
 	
 	private String id;
