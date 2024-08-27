@@ -13,6 +13,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 import org.testng.ITest;
 import org.testng.ITestContext;
 import org.testng.ITestResult;
@@ -131,6 +132,13 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 		String jsonInput = testCaseDTO.getInput();
 
 		String inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
+		
+		//For_Array-Handle Related Cases
+		JSONObject jsonString = new JSONObject(inputJson);
+		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {
+			inputJson = replaceArrayHandleValues(inputJson,testCaseName);
+		}
+		
 
 		inputJson = inputJson.replace("$UIN$", uin);
 		inputJson = inputJson.replace("$RID$", genRid);
