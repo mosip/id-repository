@@ -1,6 +1,7 @@
 CreateVID:
   IdRepository_CreateVID_withValidParameters_For_VidType_Smoke_Temporary_sid:
       endPoint: /idrepository/v1/vid
+      description: Create a Temporary VID passing valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -17,6 +18,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withValidParameters_For_VidType_Smoke_Perpetual_sid:
       endPoint: /idrepository/v1/vid
+      description: Create Perpetual VID passing valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -33,7 +35,8 @@ CreateVID:
 }'
 
   IdRepository_CreateVID_withValidParameters_For_VidType_Smoke_Onetimeuse_sid:
-      endPoint: /idrepository/v1/vid
+      endPoint: /idrepository/v1/vid   
+      description: Create Onetimeuse VID passing valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -51,6 +54,7 @@ CreateVID:
 
   IdRepository_CreateVID_withValidParameters_positive_Smoke_Temporary_sid:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID with UIN entering valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -67,6 +71,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withValidParameters_pexp_Smoke_Perpetual_sid:
       endPoint: /idrepository/v1/vid
+      description: Create perpetual VID passing valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -83,6 +88,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withValidParameters_pdea_Smoke_Perpetual_sid:
       endPoint: /idrepository/v1/vid
+      description: Create perpetual VID passing valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -99,6 +105,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withValidParameters_tdea_Smoke_Temporary_sid:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID passing valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -115,6 +122,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withValidParameters_pre_Smoke_Perpetual_sid:
       endPoint: /idrepository/v1/vid
+      description: Create perpetual VID passing valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -131,6 +139,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withValidParameters_tre_Smoke_Temporary_sid:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID passing valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -147,6 +156,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withInvalidVersion_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID adding Invalid version
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -167,6 +177,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withblankVersion_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID passing version blank
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -187,6 +198,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withInvalidRequestTime_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID entering Invalid Request Time
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -207,6 +219,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withmissingRequestTime_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID adding passing empty requesttime
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -227,6 +240,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withBLANKRequestTime_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID without entering Request time
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -247,6 +261,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withInvalidVidType_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID by entering invalid vid type
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -267,6 +282,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withblankVidType_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID passing empty vid type
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -287,6 +303,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withInvalidId_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID adding Invalid ID
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -307,6 +324,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withMissingId_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID without entering ID
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -327,6 +345,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withBlankId_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID without entering ID
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -347,6 +366,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withInvalidVersion_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
+      description: Create Perpetual VID entering invalid version
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -367,6 +387,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withInvalidRequest_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
+      description: Create Perpetual VID passing Invalid request time
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -387,6 +408,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withmissingRequest_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
+      description: Create Perpetual VID without entering Vid Type
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -407,6 +429,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withBLANKRequest_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
+      description: Create Perpetual VID without entering Request time
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -427,6 +450,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withInvalidVidType_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
+      description: Create Perpetual VID entering invalid vid type
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -447,6 +471,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withmissingVidType_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
+      description: Create Perpetual VID without entering Vid Type
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -467,6 +492,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withblankVidType_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
+      description: Create Perpetual VID without entering Vid Type
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -487,6 +513,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withInvalId_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
+      description: create perpetual VID passing invalid ID
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -507,6 +534,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withmissingId_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
+      description: Create Perpetual VID without entering Vid Type
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -527,6 +555,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withBlankId_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
+      description: Create perpetual VID without entering ID
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -547,6 +576,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withMissingVersion_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID without entering vesrion
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -567,6 +597,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withBlankVersion_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID without entering version
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -587,6 +618,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withinvalidVersion_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID Type passing Invalid version
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -607,6 +639,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withMissingRequestTime_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID without entering Request Time
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -627,6 +660,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withMissingVidType_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID without entering Vid Type
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -647,6 +681,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withMissingIdForTemporary:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID without entering ID
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -667,6 +702,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withMissingVersion_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
+      description: Create Perpetual VID without entering version
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -687,6 +723,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withMissingRequestTime_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
+      description: Create Perpetual VID without entering Request Time
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -707,6 +744,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withMissingVidType_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
+      description: Create Perpetual VID without entering VID Type
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -727,6 +765,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withMissingId_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
+      description: Create Perpetual VID without passing ID
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -748,6 +787,7 @@ CreateVID:
 
   IdRepository_CreateVID_withValidParameters_Smoke_Perpetual_sid:
       endPoint: /idrepository/v1/vid
+      description: Create Perpetual VID passing valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -765,6 +805,7 @@ CreateVID:
 
   IdRepository_CreateVID_withValidParameters_Smoke_Onetime_sid:
       endPoint: /idrepository/v1/vid
+      description: Create Perpetual VID passing valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -782,6 +823,7 @@ CreateVID:
 
   IdRepository_CreateVID_withValidParameters_Smoke_Temp1_sid:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID passing valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -799,6 +841,7 @@ CreateVID:
 
   IdRepository_CreateVID_withValidParameters_Smoke_Temp2_sid:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID passing valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -816,6 +859,7 @@ CreateVID:
 
   IdRepository_CreateVID_withValidParameters_Smoke_Temp3_sid:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID passing valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -833,6 +877,7 @@ CreateVID:
 
   IdRepository_CreateVID_withValidParameters_AuthStatus_Smoke_Perpetual_sid:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID passing valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -850,6 +895,7 @@ CreateVID:
 
   IdRepository_CreateVID_withValidParameters_AuthStatus_S2_Smoke_Perpetual_sid:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID passing valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid
@@ -867,6 +913,7 @@ CreateVID:
 
   IdRepository_CreateVID_UpdateCount_Smoke_Perpetual_sid:
       endPoint: /idrepository/v1/vid
+      description: Create Temporary VID passing valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateVID/createVid

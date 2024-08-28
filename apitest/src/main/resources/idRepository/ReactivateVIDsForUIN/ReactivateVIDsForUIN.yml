@@ -1,6 +1,7 @@
 ReactivateVIDs:
   IdRepository_ReactivateVIDs_Smoke_Pos:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID for valid UIN
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -17,6 +18,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Deactivated_Uin:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VIDs passing deactivated UIN
       role: resident
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -37,6 +39,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Onetime_Smoke_Pos:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate onetimeuse VID for a valid UIN
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -53,6 +56,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Invalid_ID_Neg:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID passing invalid ID 
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -72,6 +76,7 @@ ReactivateVIDs:
 }'
   IdRepository_ReactivateVIDs_Missing_ID_Neg:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID removing ID field
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -92,6 +97,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Empty_ID_Neg:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID passing empty ID
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -112,6 +118,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Spaceval_ID_Neg:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID passing space value in ID field
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -132,6 +139,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Missing_UIN_Neg:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID removing UIN field
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -152,6 +160,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Invalid_UIN_Neg:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID passing invalid UIN
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -172,6 +181,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Empty_UIN_Neg:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID passing empty UIN
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -192,6 +202,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_SpaceVal_UIN_Neg:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID passing space value in UIN field
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -212,6 +223,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Invalid_Timestamp_Neg:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID passing invalid Timestamp
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -231,6 +243,7 @@ ReactivateVIDs:
 }'
   IdRepository_ReactivateVIDs_Missing_Timestamp_Neg:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID removing Timestamp
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -251,6 +264,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_with_Past_Timestamp_Neg:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID passing past timestamp
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -271,6 +285,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Future_Timestamp_Neg:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID passing Future timestamp value
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -291,6 +306,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Empty_Timestamp_Neg:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID passing empty value in timestamp field
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -311,6 +327,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Spaceval_Timestamp_Neg:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID passing space value in timestamp
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -331,6 +348,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Invalid_version_Neg:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID passing invalid version
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -350,6 +368,7 @@ ReactivateVIDs:
 }'
   IdRepository_ReactivateVIDs_Missing_version_Neg:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID removing version field
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -370,6 +389,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Empty_version_Neg:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID passing empty version
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
@@ -390,6 +410,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Spaceval_version_Neg:
       endPoint: /idrepository/v1/vid/reactivate
+      description: Reactivate VID passing space value in version
       role: resident
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
