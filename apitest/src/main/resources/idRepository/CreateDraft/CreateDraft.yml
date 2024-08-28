@@ -1,6 +1,7 @@
 CreateDraft:
   IdRepository_CreateDraft_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/create/{registrationId}
+      description: Create a draft passing valid registrationID
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -14,6 +15,7 @@ CreateDraft:
 }'
   IdRepository_Verify_UIN_Only_One_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/create/{registrationId}
+      description: Verify UIN passing valid registration ID
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateDraft/createDraft
@@ -30,6 +32,7 @@ CreateDraft:
 }'
   IdRepository_CreateDraft_delete_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/create/{registrationId}
+      description: Delete a draft passing valid registartionId
       role: idrepo
       restMethod: post
       checkErrorsOnlyInResponse: true
@@ -42,6 +45,7 @@ CreateDraft:
 }'
   IdRepository_CreateDraft_invalid_rid:
       endPoint: /idrepository/v1/identity/draft/create/{registrationId}
+      description: Create a draft passing invalid RID
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateDraft/createDraft
@@ -58,6 +62,7 @@ CreateDraft:
 }'
   IdRepository_CreateDraft_blank_rid:
       endPoint: /idrepository/v1/identity/draft/create/{registrationId}
+      description: Create a draft passing blank RID
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateDraft/createDraft
