@@ -1,0 +1,225 @@
+UpdateIdentity:
+  IdRepository_UpdateIdentity_handle_all_valid_smoke:
+      endPoint: /idrepository/v1/identity/
+      description: Update Identity passing the status deactivated
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
+      outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
+      input: '	  {
+	    "registrationId": "$RID$",
+        "id": "mosip.id.update",
+		"status": "ACTIVATED",
+	    "addressCopy": "Y",
+	     "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
+	    "dateOfBirth": "1992/04/15",
+	    "postalCode": "14022",
+	    "email": "mosipuser123@mailinator.com",
+	    "phone": "8249742850",
+	    "mobileno": "8249742850",
+	    "referenceIdentityNumber": "6789545678878",
+	    "version": "v1",
+	     "introducerRID": "212124324784879",
+	     "introducerUIN": "212124324784879",
+	     "category": "individualBiometrics",
+	     "requesttime": "$TIMESTAMP$"
+	  }'
+      output: '{
+    "status": "ACTIVATED"
+}'
+  IdRepository_UpdateIdentity_handle_withupdatevalues:
+      endPoint: /idrepository/v1/identity/
+      description: Update Identity passing the status deactivated
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
+      outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
+      input: '	  {
+	    "registrationId": "$RID$",
+        "id": "mosip.id.update",
+		"status": "ACTIVATED",
+	    "addressCopy": "Y",
+	     "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
+	    "dateOfBirth": "1992/04/15",
+	    "postalCode": "14022",
+	    "email": "mosipuser123@mailinator.com",
+	    "phone": "8249742850",
+	    "mobileno": "8249742850",
+	    "referenceIdentityNumber": "6789545678878",
+	    "version": "v1",
+	     "introducerRID": "212124324784879",
+	     "introducerUIN": "212124324784879",
+	     "category": "individualBiometrics",
+	     "requesttime": "$TIMESTAMP$"
+	  }'
+      output: '{
+    "status": "ACTIVATED"
+}'
+  IdRepository_UpdateIdentity_handle_withupdatetags:
+      endPoint: /idrepository/v1/identity/
+      description: Update Identity passing the status deactivated
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
+      outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
+      input: '	  {
+	    "registrationId": "$RID$",
+        "id": "mosip.id.update",
+		"status": "ACTIVATED",
+	    "addressCopy": "Y",
+	     "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
+	    "dateOfBirth": "1992/04/15",
+	    "postalCode": "14022",
+	    "email": "mosipuser123@mailinator.com",
+	    "phone": "8249742850",
+	    "mobileno": "8249742850",
+	    "referenceIdentityNumber": "6789545678878",
+	    "version": "v1",
+	     "introducerRID": "212124324784879",
+	     "introducerUIN": "212124324784879",
+	     "category": "individualBiometrics",
+	     "requesttime": "$TIMESTAMP$"
+	  }'
+      output: '{
+    "status": "ACTIVATED"
+}'
+  IdRepository_UpdateIdentity_handle_withupdatetagsandhandles:
+      endPoint: /idrepository/v1/identity/
+      description: Update Identity passing the status deactivated
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
+      outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
+      input: '	  {
+	    "registrationId": "$RID$",
+        "id": "mosip.id.update",
+		"status": "ACTIVATED",
+	    "addressCopy": "Y",
+	     "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
+	    "dateOfBirth": "1992/04/15",
+	    "postalCode": "14022",
+	    "email": "mosipuser123@mailinator.com",
+	    "phone": "8249742850",
+	    "mobileno": "8249742850",
+	    "referenceIdentityNumber": "6789545678878",
+	    "version": "v1",
+	     "introducerRID": "212124324784879",
+	     "introducerUIN": "212124324784879",
+	     "category": "individualBiometrics",
+	     "requesttime": "$TIMESTAMP$"
+	  }'
+      output: '{
+    "status": "ACTIVATED"
+}'
+  IdRepository_UpdateIdentity_handle_withmultipledemohandles:
+      endPoint: /idrepository/v1/identity/
+      description: Update Identity passing the status deactivated
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
+      outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
+      input: '	  {
+	    "registrationId": "$RID$",
+        "id": "mosip.id.update",
+		"status": "ACTIVATED",
+	    "addressCopy": "Y",
+	     "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
+	    "dateOfBirth": "1992/04/15",
+	    "postalCode": "14022",
+	    "email": "mosipuser123@mailinator.com",
+	    "phone": "8249742850",
+	    "mobileno": "8249742850",
+	    "referenceIdentityNumber": "6789545678878",
+	    "version": "v1",
+	     "introducerRID": "212124324784879",
+	     "introducerUIN": "212124324784879",
+	     "category": "individualBiometrics",
+	     "requesttime": "$TIMESTAMP$"
+	  }'
+      output: '{
+    "status": "ACTIVATED"
+}'
+  IdRepository_UpdateIdentity_handle_withdeletehandlefromrecord:
+      endPoint: /idrepository/v1/identity/
+      description: Update Identity passing the status deactivated
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
+      outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
+      input: '	  {
+	    "registrationId": "$RID$",
+        "id": "mosip.id.update",
+		"status": "ACTIVATED",
+	    "addressCopy": "Y",
+	     "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
+	    "dateOfBirth": "1992/04/15",
+	    "postalCode": "14022",
+	    "email": "mosipuser123@mailinator.com",
+	    "phone": "8249742850",
+	    "mobileno": "8249742850",
+	    "referenceIdentityNumber": "6789545678878",
+	    "version": "v1",
+	     "introducerRID": "212124324784879",
+	     "introducerUIN": "212124324784879",
+	     "category": "individualBiometrics",
+	     "requesttime": "$TIMESTAMP$"
+	  }'
+      output: '{
+    "status": "ACTIVATED"
+}'
+  IdRepository_UpdateIdentity_handle_withupdatedselectedhandle:
+      endPoint: /idrepository/v1/identity/
+      description: Update Identity passing the status deactivated
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
+      outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
+      input: '	  {
+	    "registrationId": "$RID$",
+        "id": "mosip.id.update",
+		"status": "ACTIVATED",
+	    "addressCopy": "Y",
+	     "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
+	    "dateOfBirth": "1992/04/15",
+	    "postalCode": "14022",
+	    "email": "mosipuser123@mailinator.com",
+	    "phone": "8249742850",
+	    "mobileno": "8249742850",
+	    "referenceIdentityNumber": "6789545678878",
+	    "version": "v1",
+	     "introducerRID": "212124324784879",
+	     "introducerUIN": "212124324784879",
+	     "category": "individualBiometrics",
+	     "requesttime": "$TIMESTAMP$"
+	  }'
+      output: '{
+    "status": "ACTIVATED"
+}'
+  IdRepository_UpdateIdentity_handle_withupdatedselectedhandleanddemo:
+      endPoint: /idrepository/v1/identity/
+      description: Update Identity passing the status deactivated
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
+      outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
+      input: '	  {
+	    "registrationId": "$RID$",
+        "id": "mosip.id.update",
+		"status": "ACTIVATED",
+	    "addressCopy": "Y",
+	     "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
+	    "dateOfBirth": "1992/04/15",
+	    "postalCode": "14022",
+	    "email": "mosipuser123@mailinator.com",
+	    "phone": "8249742850",
+	    "mobileno": "8249742850",
+	    "referenceIdentityNumber": "6789545678878",
+	    "version": "v1",
+	     "introducerRID": "212124324784879",
+	     "introducerUIN": "212124324784879",
+	     "category": "individualBiometrics",
+	     "requesttime": "$TIMESTAMP$"
+	  }'
+      output: '{
+    "status": "ACTIVATED"
+}'

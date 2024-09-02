@@ -133,7 +133,13 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 
 		String inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
 		
+		
 		//For_Array-Handle Related Cases
+		if (inputJson.contains("$FUNCTIONALID$")) {
+			inputJson = replaceKeywordWithValue(inputJson, "$FUNCTIONALID$", generateRandomNumberString(2)
+					+ Calendar.getInstance().getTimeInMillis());
+		}
+		
 		JSONObject jsonString = new JSONObject(inputJson);
 		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {
 			inputJson = replaceArrayHandleValues(inputJson,testCaseName);
