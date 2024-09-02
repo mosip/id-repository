@@ -6,12 +6,12 @@ UpdateIdentity:
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
-      input: '	  {
+      input: '{
 	    "registrationId": "$RID$",
         "id": "mosip.id.update",
 		"status": "ACTIVATED",
 	    "addressCopy": "Y",
-	     "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
+	    "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
 	    "dateOfBirth": "1992/04/15",
 	    "postalCode": "14022",
 	    "email": "mosipuser123@mailinator.com",
@@ -19,10 +19,10 @@ UpdateIdentity:
 	    "mobileno": "8249742850",
 	    "referenceIdentityNumber": "6789545678878",
 	    "version": "v1",
-	     "introducerRID": "212124324784879",
-	     "introducerUIN": "212124324784879",
-	     "category": "individualBiometrics",
-	     "requesttime": "$TIMESTAMP$"
+	    "introducerRID": "212124324784879",
+	    "introducerUIN": "212124324784879",
+	    "category": "individualBiometrics",
+	    "requesttime": "$TIMESTAMP$"
 	  }'
       output: '{
     "status": "ACTIVATED"
@@ -34,12 +34,12 @@ UpdateIdentity:
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
-      input: '	  {
+      input: '{
 	    "registrationId": "$RID$",
         "id": "mosip.id.update",
 		"status": "ACTIVATED",
 	    "addressCopy": "Y",
-	     "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
+	    "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
 	    "dateOfBirth": "1992/04/15",
 	    "postalCode": "14022",
 	    "email": "mosipuser123@mailinator.com",
@@ -47,10 +47,10 @@ UpdateIdentity:
 	    "mobileno": "8249742850",
 	    "referenceIdentityNumber": "6789545678878",
 	    "version": "v1",
-	     "introducerRID": "212124324784879",
-	     "introducerUIN": "212124324784879",
-	     "category": "individualBiometrics",
-	     "requesttime": "$TIMESTAMP$"
+	    "introducerRID": "212124324784879",
+	    "introducerUIN": "212124324784879",
+	    "category": "individualBiometrics",
+	    "requesttime": "$TIMESTAMP$"
 	  }'
       output: '{
     "status": "ACTIVATED"
@@ -62,12 +62,12 @@ UpdateIdentity:
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
-      input: '	  {
+      input: '{
 	    "registrationId": "$RID$",
         "id": "mosip.id.update",
 		"status": "ACTIVATED",
 	    "addressCopy": "Y",
-	     "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
+	    "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
 	    "dateOfBirth": "1992/04/15",
 	    "postalCode": "14022",
 	    "email": "mosipuser123@mailinator.com",
@@ -75,10 +75,10 @@ UpdateIdentity:
 	    "mobileno": "8249742850",
 	    "referenceIdentityNumber": "6789545678878",
 	    "version": "v1",
-	     "introducerRID": "212124324784879",
-	     "introducerUIN": "212124324784879",
-	     "category": "individualBiometrics",
-	     "requesttime": "$TIMESTAMP$"
+	    "introducerRID": "212124324784879",
+	    "introducerUIN": "212124324784879",
+	    "category": "individualBiometrics",
+	    "requesttime": "$TIMESTAMP$"
 	  }'
       output: '{
     "status": "ACTIVATED"
@@ -90,12 +90,12 @@ UpdateIdentity:
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
-      input: '	  {
+      input: '{
 	    "registrationId": "$RID$",
         "id": "mosip.id.update",
 		"status": "ACTIVATED",
 	    "addressCopy": "Y",
-	     "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
+	    "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
 	    "dateOfBirth": "1992/04/15",
 	    "postalCode": "14022",
 	    "email": "mosipuser123@mailinator.com",
@@ -103,10 +103,10 @@ UpdateIdentity:
 	    "mobileno": "8249742850",
 	    "referenceIdentityNumber": "6789545678878",
 	    "version": "v1",
-	     "introducerRID": "212124324784879",
-	     "introducerUIN": "212124324784879",
-	     "category": "individualBiometrics",
-	     "requesttime": "$TIMESTAMP$"
+	    "introducerRID": "212124324784879",
+	    "introducerUIN": "212124324784879",
+	    "category": "individualBiometrics",
+	    "requesttime": "$TIMESTAMP$"
 	  }'
       output: '{
     "status": "ACTIVATED"
@@ -118,12 +118,12 @@ UpdateIdentity:
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
-      input: '	  {
+      input: '{
 	    "registrationId": "$RID$",
         "id": "mosip.id.update",
 		"status": "ACTIVATED",
 	    "addressCopy": "Y",
-	     "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
+	    "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
 	    "dateOfBirth": "1992/04/15",
 	    "postalCode": "14022",
 	    "email": "mosipuser123@mailinator.com",
@@ -131,10 +131,10 @@ UpdateIdentity:
 	    "mobileno": "8249742850",
 	    "referenceIdentityNumber": "6789545678878",
 	    "version": "v1",
-	     "introducerRID": "212124324784879",
-	     "introducerUIN": "212124324784879",
-	     "category": "individualBiometrics",
-	     "requesttime": "$TIMESTAMP$"
+	    "introducerRID": "212124324784879",
+	    "introducerUIN": "212124324784879",
+	    "category": "individualBiometrics",
+	    "requesttime": "$TIMESTAMP$"
 	  }'
       output: '{
     "status": "ACTIVATED"
@@ -146,12 +146,12 @@ UpdateIdentity:
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
-      input: '	  {
+      input: '{
 	    "registrationId": "$RID$",
         "id": "mosip.id.update",
 		"status": "ACTIVATED",
 	    "addressCopy": "Y",
-	     "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
+	    "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
 	    "dateOfBirth": "1992/04/15",
 	    "postalCode": "14022",
 	    "email": "mosipuser123@mailinator.com",
@@ -159,10 +159,10 @@ UpdateIdentity:
 	    "mobileno": "8249742850",
 	    "referenceIdentityNumber": "6789545678878",
 	    "version": "v1",
-	     "introducerRID": "212124324784879",
-	     "introducerUIN": "212124324784879",
-	     "category": "individualBiometrics",
-	     "requesttime": "$TIMESTAMP$"
+	    "introducerRID": "212124324784879",
+	    "introducerUIN": "212124324784879",
+	    "category": "individualBiometrics",
+	    "requesttime": "$TIMESTAMP$"
 	  }'
       output: '{
     "status": "ACTIVATED"
@@ -174,7 +174,7 @@ UpdateIdentity:
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
-      input: '	  {
+      input: '{
 	    "registrationId": "$RID$",
         "id": "mosip.id.update",
 		"status": "ACTIVATED",
@@ -187,10 +187,10 @@ UpdateIdentity:
 	    "mobileno": "8249742850",
 	    "referenceIdentityNumber": "6789545678878",
 	    "version": "v1",
-	     "introducerRID": "212124324784879",
-	     "introducerUIN": "212124324784879",
-	     "category": "individualBiometrics",
-	     "requesttime": "$TIMESTAMP$"
+	    "introducerRID": "212124324784879",
+	    "introducerUIN": "212124324784879",
+	    "category": "individualBiometrics",
+	    "requesttime": "$TIMESTAMP$"
 	  }'
       output: '{
     "status": "ACTIVATED"
@@ -202,12 +202,12 @@ UpdateIdentity:
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
-      input: '	  {
+      input: '{
 	    "registrationId": "$RID$",
         "id": "mosip.id.update",
 		"status": "ACTIVATED",
 	    "addressCopy": "Y",
-	     "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
+	    "UIN": "$ID:AddIdentity_array_handle_smoke_Pos_UIN$",
 	    "dateOfBirth": "1992/04/15",
 	    "postalCode": "14022",
 	    "email": "mosipuser123@mailinator.com",
@@ -215,10 +215,10 @@ UpdateIdentity:
 	    "mobileno": "8249742850",
 	    "referenceIdentityNumber": "6789545678878",
 	    "version": "v1",
-	     "introducerRID": "212124324784879",
-	     "introducerUIN": "212124324784879",
-	     "category": "individualBiometrics",
-	     "requesttime": "$TIMESTAMP$"
+	    "introducerRID": "212124324784879",
+	    "introducerUIN": "212124324784879",
+	    "category": "individualBiometrics",
+	    "requesttime": "$TIMESTAMP$"
 	  }'
       output: '{
     "status": "ACTIVATED"
