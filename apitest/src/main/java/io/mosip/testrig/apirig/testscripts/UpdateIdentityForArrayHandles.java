@@ -117,7 +117,26 @@ public class UpdateIdentityForArrayHandles extends AdminTestUtil implements ITes
 
 		JSONArray dobArray = new JSONArray(getValueFromAuthActuator("json-property", "dob"));
 		String dob = dobArray.getString(0);
+		String phoneNumber = "";
+		String email = testCaseName +"@mosip.net";
+		
+		
+		if (inputJson.contains("$PHONENUMBERFORIDENTITY$")) {
+			if (!phoneSchemaRegex.isEmpty())
+				try {
+					phoneNumber = genStringAsperRegex(phoneSchemaRegex);
+				} catch (Exception e) {
+					logger.error(e.getMessage());
+				}
+			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber);
+			
+			
+		}
+		if (inputJson.contains("$EMAILVALUE$")) {
+			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", email);
 
+		}
+		
 		
 
 		inputJson = inputJson.replace("$RID$", genRid);
