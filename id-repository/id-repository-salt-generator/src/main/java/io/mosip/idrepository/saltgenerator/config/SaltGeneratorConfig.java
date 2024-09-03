@@ -2,13 +2,22 @@ package io.mosip.idrepository.saltgenerator.config;
 
 import javax.sql.DataSource;
 
-import org.springframework.batch.core.configuration.annotation.BatchConfigurer;
-import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_ALIAS;
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_DRIVERCLASSNAME;
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_PASSWORD;
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_URL;
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_USERNAME;
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DB_SCHEMA_NAME;
 /**
  * The Class SaltGeneratorIdMapDataSourceConfig - Provides configuration for Salt
  * generator application.
@@ -17,24 +26,25 @@ import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
  */
 @Configuration
 public class SaltGeneratorConfig {
-	
+	@Autowired
+	private Environment env;
 	/**
 	 * Batch config
 	 *
 	 * @return the batch configurer
 	 */
-	@Bean
+	/*@Bean
 	public BatchConfigurer batchConfig() {
 		return new DefaultBatchConfigurer(null) {
 			
-			/**
+			*//**
 			 * By default, Spring batch will try to create/update records 
 			 * in the provided datasource related to Job completion, schedule etc.
 			 * This override will stop spring batch to create/update any tables in provided
 			 * Datasource and instead use Map based implementation internally.
 			 *
-			 */
-			@Override
+			 *//*
+			@Bean
 			public void setDataSource(DataSource dataSource) {
 				// By default, Spring batch will try to create/update records in the provided
 				// datasource related to Job completion, schedule etc.
@@ -42,6 +52,19 @@ public class SaltGeneratorConfig {
 				// Datasource and instead use Map based implementation internally.
 			}
 		};
+	}*/
+
+	@Bean
+	@Primary
+	public DataSource dataSource() {
+		String alias = env.getProperty(DATASOURCE_ALIAS.getValue());
+		DriverManagerDataSource dataSource = new DriverManagerDataSource();
+		dataSource.setUrl(env.getProperty(String.format(DATASOURCE_URL.getValue(), alias)));
+		dataSource.setUsername(env.getProperty(String.format(DATASOURCE_USERNAME.getValue(), alias)));
+		dataSource.setPassword(env.getProperty(String.format(DATASOURCE_PASSWORD.getValue(), alias)));
+		dataSource.setSchema(env.getProperty(DB_SCHEMA_NAME.getValue()));
+		dataSource.setDriverClassName(env.getProperty(String.format(DATASOURCE_DRIVERCLASSNAME.getValue(), alias)));
+		return dataSource;
 	}
 
 	@Bean

@@ -25,6 +25,7 @@ import io.mosip.idrepository.saltgenerator.repository.idmap.VidHashSaltRepositor
 import io.mosip.idrepository.saltgenerator.repository.idrepo.IdentityEncryptSaltRepository;
 import io.mosip.idrepository.saltgenerator.repository.idrepo.IdentityHashSaltRepository;
 import io.mosip.idrepository.saltgenerator.step.SaltWriter;
+import org.springframework.batch.item.Chunk;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SaltWriterTest {
@@ -61,7 +62,7 @@ public class SaltWriterTest {
 		idRepoSaltEntitiesComposite.setVidHashSaltEntity(vidEntity);
 		idRepoSaltEntitiesComposite.setIdentityEncryptSaltEntity(idEncryptEntity);
 		idRepoSaltEntitiesComposite.setVidEncryptSaltEntity(vidEncryptEntity);
-		writer.write(Collections.singletonList(idRepoSaltEntitiesComposite));
+		writer.write(Chunk.of(idRepoSaltEntitiesComposite));
 		ArgumentCaptor<List<IdentityEncryptSaltEntity>> argCapture = ArgumentCaptor.forClass(List.class);
 		verify(identityEncryptSaltRepo).saveAll(argCapture.capture());
 		assertEquals(new IdentityEncryptSaltEntity(), argCapture.getValue().get(0));
@@ -75,7 +76,7 @@ public class SaltWriterTest {
 		entity.setId(1l);
 		idRepoSaltEntitiesComposite.setIdentityHashSaltEntity(entity);
 		when(identityHashSaltRepo.countByIdIn(Mockito.any())).thenReturn(1l);
-		writer.write(List.of(idRepoSaltEntitiesComposite));
+		writer.write(Chunk.of(idRepoSaltEntitiesComposite));
 	}
 
 }
