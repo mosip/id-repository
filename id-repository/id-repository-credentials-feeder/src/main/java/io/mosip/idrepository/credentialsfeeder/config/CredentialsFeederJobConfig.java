@@ -13,8 +13,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.integration.async.AsyncItemProcessor;
 import org.springframework.batch.integration.async.AsyncItemWriter;
@@ -35,6 +33,13 @@ import io.mosip.idrepository.credentialsfeeder.repository.UinRepo;
 import io.mosip.idrepository.credentialsfeeder.step.CredentialsFeedingWriter;
 import io.mosip.kernel.core.util.DateUtils;
 
+import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
+
+import org.springframework.core.env.Environment;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.beans.factory.annotation.Autowired;
 /**
  * The Class CredentialsFeederJobConfig - provides configuration for Credentials
  * Feeder Job.
@@ -44,6 +49,9 @@ import io.mosip.kernel.core.util.DateUtils;
 @Configuration
 @DependsOn({ "credentialsFeederConfig" })
 public class CredentialsFeederJobConfig {
+
+	@Autowired
+	private Environment env;
 
 	@Value("${" + IDREPO_CREDENTIAL_FEEDER_CHUNK_SIZE + ":" + DEFAULT_CHUNCK_SIZE + "}")
 	private int chunkSize;
@@ -58,10 +66,9 @@ public class CredentialsFeederJobConfig {
 	 * @return the job
 	 */
 	@Bean
-	public Job job(Step step, JobBuilderFactory jobBuilderFactory, JobExecutionListener listener) {
-		return jobBuilderFactory
-				.get("job")
-				.incrementer(new RunIdIncrementer())
+	public Job job(Step step, JobRepository jobRepository, JobExecutionListener listener) {
+		return new JobBuilder("job", jobRepository)
+                .incrementer(new RunIdIncrementer())
 				.listener(listener)
 				.flow(step)
 				.end()
@@ -74,10 +81,10 @@ public class CredentialsFeederJobConfig {
 	 * @return the step
 	 */
 	@Bean
-	public Step step(StepBuilderFactory stepBuilderFactory, CredentialsFeedingWriter writer, UinRepo uinRepo) {
-		return stepBuilderFactory
-				.get("step")
-				.<Uin, Future<Uin>>chunk(chunkSize)
+	public Step step(JobRepository jobRepository, CredentialsFeedingWriter writer, UinRepo uinRepo, PlatformTransactionManager transactionManager) {
+		return new StepBuilder("step", jobRepository)
+                .<Uin, Future<Uin>>chunk(DEFAULT_CHUNCK_SIZE,
+						transactionManager)
 				.reader(credentialEventReader(uinRepo))
 				.processor(asyncItemProcessor())
 				.writer(asyncItemWriter(writer))
