@@ -1,5 +1,5 @@
 AddIdentity:
-   IdRepository_AddIdentity_array_handle_smoke_Pos:
+   IdRepository_AddIdentity_array_handle_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -32,7 +32,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_array_handle_duplicate_value_smoke_Pos:
+   IdRepository_AddIdentity_array_handle_wth_duplicate_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -65,7 +65,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_array_handle_onlywithtags:
+   IdRepository_AddIdentity_array_handle_value_onlywithtags:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -102,7 +102,7 @@ AddIdentity:
     }
   ]
 }'
-   IdRepository_AddIdentity_array_handle_withouttags:
+   IdRepository_AddIdentity_array_handle_value_withouttags:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -135,7 +135,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_array_handle_withoutselectedhandles:
+   IdRepository_AddIdentity_array_handle_value_withoutselectedhandles:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -168,7 +168,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_array_handle_withtagwithoutselectedhandles:
+   IdRepository_AddIdentity_array_handle_value_withtagwithoutselectedhandles:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -201,7 +201,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_array_handle_withinvalidtag:
+   IdRepository_AddIdentity_array_handle_value_withinvalidtag:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -238,7 +238,7 @@ AddIdentity:
     }
   ]
 }'
-   IdRepository_AddIdentity_array_handle_withmultiplevalues:
+   IdRepository_AddIdentity_array_handle_value_withmultiplevalues:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -275,7 +275,7 @@ AddIdentity:
     }
   ]
 }'
-   IdRepository_AddIdentity_array_handle_withmultiplevaluesandwithouttags:
+   IdRepository_AddIdentity_array_handle_value_withmultiplevaluesandwithouttags:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -312,7 +312,7 @@ AddIdentity:
     }
   ]
 }'
-   IdRepository_AddIdentity_single_handle_value_array_handle_withouttags:
+   IdRepository_AddIdentity_single_handle_valuee_array_handle_withouttags:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -345,7 +345,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_single_handle_value_array_handle_withemptyselecthandles:
+   IdRepository_AddIdentity_single_handle_value_array_handle_value_withemptyselecthandles:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -378,7 +378,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_single_handle_value_array_handle_withmultiplehandleswithoutvalue:
+   IdRepository_AddIdentity_single_handle_value_array_handle_value_withmultiplehandleswithoutvalue:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -415,7 +415,7 @@ AddIdentity:
     }
   ]
 }'
-   IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_withfunctionalIds:
+   IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withfunctionalIds:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -448,7 +448,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_withfunctionalidsusedfirsttwovalue:
+   IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withfunctionalidsusedfirsttwovalue:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -481,7 +481,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_withfunctionalidsandphonewithouttags:
+   IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withfunctionalidsandphonewithouttags:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -514,7 +514,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_withfunctionalidsusedfirstTwovalueoutoffive:
+   IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withfunctionalidsusedfirstTwovalueoutoffive:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -547,7 +547,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_withonehandle:
+   IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withonehandle:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -580,7 +580,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_removeexceptfirsthandle:
+   IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_removeexceptfirsthandle:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -613,7 +613,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_valid:
+   IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_valid:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -646,7 +646,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_array_handle_smoke_withinvaliddemofield_inupdate:
+   IdRepository_AddIdentity_array_handle_value_smoke_withinvaliddemofield_inupdate:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
@@ -679,7 +679,40 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_array_handle_smoke_withoutselectedhandlesandattri:
+   IdRepository_AddIdentity_array_handle_value_smoke_withoutselectedhandlesandattri:
+      endPoint: /idrepository/v1/identity/
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  
+  "phone": "8249742851",
+  "mobileno": "8249742851",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_array_handle_value_smoke_withonedemofield:
       endPoint: /idrepository/v1/identity/
       role: idrepo
       restMethod: post
