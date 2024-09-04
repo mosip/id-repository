@@ -5,27 +5,63 @@ package io.mosip.idrepository.credentialsfeeder.constant;
  *
  * @author Manoj SP
  */
-public class Constants {
-	
-	private Constants() {
-	}
+public enum Constants {
 	
 	/** The package to scan. */
-	public static final String PACKAGE_TO_SCAN = "io.mosip.idrepository.credentialsfeeder.*";
-	
+	PACKAGE_TO_SCAN("io.mosip.idrepository.saltgenerator.*"),
+
+	/** The db schema name. */
+	DB_SCHEMA_NAME("mosip.kernel.salt-generator.schemaName"),
+
+	/** The db table name. */
+	DB_TABLE_NAME("mosip.kernel.salt-generator.tableName"),
+
+	/** The chunk size. */
+	CHUNK_SIZE("mosip.kernel.salt-generator.chunk-size"),
+
+	/** The start seq. */
+	START_SEQ("mosip.kernel.salt-generator.start-sequence"),
+
+	/** The end seq. */
+	END_SEQ("mosip.kernel.salt-generator.end-sequence"),
+
+	DATASOURCE_ALIAS("mosip.kernel.salt-generator.db.key-alias"),
+
 	/** The datasource url. */
-	public static final String DATASOURCE_URL = "%s.url";
-	
+	DATASOURCE_URL("%s.url"),
+
 	/** The datasource username. */
-	public static final String DATASOURCE_USERNAME = "%s.username";
-	
+	DATASOURCE_USERNAME("%s.username"),
+
 	/** The datasource password. */
-	public static final String DATASOURCE_PASSWORD = "%s.password";
-	
+	DATASOURCE_PASSWORD("%s.password"),
+
 	/** The datasource driverclassname. */
-	public static final String DATASOURCE_DRIVERCLASSNAME = "%s.driverClassName";
-	
-	public static final String DATASOURCE_SCHEMA = "%s.schema";
+	DATASOURCE_DRIVERCLASSNAME("%s.driverClassName"),
+
+	DATASOURCE_SCHEMA("%s.schema");
+
+	/** The value. */
+	private String value;
+
+	/**
+	 * Instantiates a new salt generator constant.
+	 *
+	 * @param value the value
+	 */
+	Constants(String value) {
+		this.value = value;
+	}
+
+	/**
+	 * Gets the value.
+	 *
+	 * @return the value
+	 */
+	public String getValue() {
+		return value;
+	}
+
 	
 	public static final int DEFAULT_CHUNCK_SIZE = 10;
 	

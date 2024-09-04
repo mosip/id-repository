@@ -11,12 +11,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import io.mosip.idrepository.core.dto.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
@@ -38,6 +40,8 @@ import io.mosip.idrepository.credentialsfeeder.entity.AuthtypeLock;
 import io.mosip.idrepository.credentialsfeeder.entity.Uin;
 import io.mosip.idrepository.credentialsfeeder.repository.AuthLockRepository;
 
+import javax.transaction.Transactional;
+import org.springframework.batch.item.Chunk;
 /**
  * The Class CredentialsFeedingWriter - Class to feed credentials using
  * credential requests. Implements {@code ItemWriter}.
@@ -49,13 +53,13 @@ import io.mosip.idrepository.credentialsfeeder.repository.AuthLockRepository;
 public class CredentialsFeedingWriter implements ItemWriter<Uin> {
 
 	@Value("${" + PROP_ONLINE_VERIFICATION_PARTNER_IDS + "}")
-	private String[] onlineVerificationPartnerIds;
+    public String[] onlineVerificationPartnerIds;
 
 	@Value("${" + MOSIP_IDREPO_IDENTITY_UIN_STATUS_REGISTERED + "}")
-	private String uinActiveStatus;
+    public String uinActiveStatus;
 
 	@Value("${" + MOSIP_IDREPO_VID_ACTIVE_STATUS + "}")
-	private String vidActiveStatus;
+    public String vidActiveStatus;
 
 	/** The uin hash salt repo. */
 	@Autowired
@@ -87,9 +91,10 @@ public class CredentialsFeedingWriter implements ItemWriter<Uin> {
 	 * 
 	 * @param requestIdEntities The list of Uin objects that are to be processed.
 	 */
-	@Override
-	public void write(List<? extends Uin> requestIdEntities) throws Exception {
-		requestIdEntities.stream().map(this::decryptUin).forEach(this::issueCredential);
+	@Bean
+	@Transactional
+	public void write(Chunk<? extends Uin> requestIdEntities) throws Exception {
+		StreamSupport.stream(requestIdEntities.spliterator(), true).map(this::decryptUin).forEach(this::issueCredential);
 	}
 
 	/**
