@@ -1,6 +1,7 @@
 AddIdentity:
    IdRepository_AddIdentity_array_handle_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with positive value
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -34,6 +35,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_wth_duplicate_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with those value which already have been created
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -67,10 +69,11 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_onlywithtags:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with only tags
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
-      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      outputTemplate: idRepository/error
       input: '{
   "value": "$BIOVALUE$",
   "id": "mosip.id.create",
@@ -98,12 +101,13 @@ AddIdentity:
       output: '{
   "errors": [
     {
-      "errorCode": "IDR-IDC-002"
+      "errorCode": "IDR-IDC-001"
     }
   ]
 }'
    IdRepository_AddIdentity_array_handle_value_withouttags:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with positive values and withouts tags
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -137,6 +141,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_withoutselectedhandles:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle without selected handles
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -170,6 +175,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_withtagwithoutselectedhandles:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with tags and without slected handles
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -203,6 +209,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_withinvalidtag:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with positive value and invalid tag
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -232,14 +239,11 @@ AddIdentity:
    "requesttime": "$TIMESTAMP$"
 }'
       output: '{
-  "errors": [
-    {
-      "errorCode": "IDR-IDC-002"
-    }
-  ]
+  "status":"ACTIVATED"
 }'
    IdRepository_AddIdentity_array_handle_value_withmultiplevalues:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with multiple positive value
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -277,6 +281,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_withmultiplevaluesandwithouttags:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with multiple positive value and without tag
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -314,6 +319,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_single_handle_valuee_array_handle_withouttags:
       endPoint: /idrepository/v1/identity/
+      description: Add identity single handle with positive value without tag
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -347,6 +353,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_single_handle_value_array_handle_value_withemptyselecthandles:
       endPoint: /idrepository/v1/identity/
+      description: Add identity single handle with empty select handles
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -380,10 +387,11 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_single_handle_value_array_handle_value_withmultiplehandleswithoutvalue:
       endPoint: /idrepository/v1/identity/
+      description: Add identity single handle with multiple handles without value
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
-      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      outputTemplate: idRepository/error
       input: '{
   "value": "$BIOVALUE$",
   "id": "mosip.id.create",
@@ -411,12 +419,13 @@ AddIdentity:
       output: '{
   "errors": [
     {
-      "errorCode": "IDR-IDC-002"
+      "errorCode": "IDR-IDC-001"
     }
   ]
 }'
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withfunctionalIds:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with functionalids as selected handles
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -450,6 +459,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withfunctionalidsusedfirsttwovalue:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with functionalids using first two value
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -483,6 +493,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withfunctionalidsandphonewithouttags:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with functionalids and phone as selected handles without tag
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -516,6 +527,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withfunctionalidsusedfirstTwovalueoutoffive:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with functionalids as selected handles using first two value out of five
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -549,6 +561,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withonehandle:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with one handles positive value
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -582,6 +595,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_removeexceptfirsthandle:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle while remove excepted first selectedHandles
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -615,6 +629,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_valid:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with positive value
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -648,6 +663,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_smoke_withinvaliddemofield_inupdate:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with positive value and invalid demo field
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -681,6 +697,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_smoke_withoutselectedhandlesandattri:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle without selected handles and attribute
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -714,6 +731,347 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_smoke_withonedemofield:
       endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with positive value and without demo field
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  
+  "phone": "8249742851",
+  "mobileno": "8249742851",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_array_handle_value_smoke_withcasesensitivehandles:
+      endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with case sensitive selected handles
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  
+  "phone": "8249742851",
+  "mobileno": "8249742851",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_array_handle_update_value_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with positive values
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  
+  "phone": "8249742851",
+  "mobileno": "8249742851",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_array_handle_update_valueandtag_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with positive values and tag
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  
+  "phone": "8249742851",
+  "mobileno": "8249742851",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_array_handle_update_post_value_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with positive values
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  
+  "phone": "8249742851",
+  "mobileno": "8249742851",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_array_handle_update_post_valuetags_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with positive values
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  
+  "phone": "8249742851",
+  "mobileno": "8249742851",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_array_handle_update_valuetags_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with positive values
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  
+  "phone": "8249742851",
+  "mobileno": "8249742851",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_array_handle_post_update_value_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with positive values
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  
+  "phone": "8249742851",
+  "mobileno": "8249742851",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_array_handle_post_updateselectedhandles_value_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with positive values
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  
+  "phone": "8249742851",
+  "mobileno": "8249742851",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_array_updatehandles_value_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with positive values
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  
+  "phone": "8249742851",
+  "mobileno": "8249742851",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+ 
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_array_updateselectedhandles_value_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      description: Add identity array handle with positive values
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
