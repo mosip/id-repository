@@ -5,6 +5,7 @@ import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant
 import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_SCHEMA;
 import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_URL;
 import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_USERNAME;
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DB_SCHEMA_NAME;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -54,8 +55,8 @@ public class SaltGeneratorIdRepoDataSourceConfig {
 		dataSource.setUrl(env.getProperty(String.format(DATASOURCE_URL.getValue(), alias)));
 		dataSource.setUsername(env.getProperty(String.format(DATASOURCE_USERNAME.getValue(), alias)));
 		dataSource.setPassword(env.getProperty(String.format(DATASOURCE_PASSWORD.getValue(), alias)));
+		dataSource.setSchema(env.getProperty(DB_SCHEMA_NAME.getValue()));
 		dataSource.setDriverClassName(env.getProperty(String.format(DATASOURCE_DRIVERCLASSNAME.getValue(), alias)));
-		dataSource.setSchema(env.getProperty(String.format(DATASOURCE_SCHEMA.getValue(), alias)));
 		return dataSource;
 	}
 	
@@ -77,7 +78,7 @@ public class SaltGeneratorIdRepoDataSourceConfig {
 		 */
 		private Map<String, Object> additionalProperties() {
 			Map<String, Object> jpaProperties = new HashMap<>();
-			jpaProperties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQL92Dialect");
+			jpaProperties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
 			return jpaProperties;
 		}
 	   
