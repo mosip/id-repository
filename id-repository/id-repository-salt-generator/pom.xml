@@ -74,9 +74,6 @@
 		<jcl.to.slf4j.version>1.7.25</jcl.to.slf4j.version>
 
 		<!-- json -->
-		<jackson.version>2.9.5</jackson.version>
-		<jackson.datatype.version>2.9.8</jackson.datatype.version>
-		<jackson.databind>2.9.6</jackson.databind>
 		<json.utility.version>20180130</json.utility.version>
 		<json.schema.validator.version>2.2.10</json.schema.validator.version>
 		<json.version>20180813</json.version>
@@ -174,24 +171,33 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-databind</artifactId>
-				<version>2.12.0</version>
+				<groupId>com.fasterxml.jackson.dataformat</groupId>
+				<artifactId>jackson-dataformat-xml</artifactId>
+				<version>2.17.1</version>
 			</dependency>
-			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-annotations</artifactId>
-				<version>2.12.0</version>
-			</dependency>
+
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-core</artifactId>
-				<version>2.12.0</version>
+				<version>2.17.1</version>
 			</dependency>
+
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>2.17.1</version>
+			</dependency>
+
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-annotations</artifactId>
+				<version>2.17.1</version>
+			</dependency>
+
 			<dependency>
 				<groupId>com.fasterxml.jackson.datatype</groupId>
 				<artifactId>jackson-datatype-jsr310</artifactId>
-				<version>2.12.0</version>
+				<version>2.17.1</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

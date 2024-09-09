@@ -5,7 +5,8 @@ import javax.sql.DataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -28,6 +29,10 @@ import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant
 public class SaltGeneratorConfig {
 	@Autowired
 	private Environment env;
+
+	/** The naming resolver. */
+	@Autowired
+	private PhysicalNamingStrategyResolver namingResolver;
 	/**
 	 * Batch config
 	 *
@@ -47,9 +52,10 @@ public class SaltGeneratorConfig {
 		return dataSource;
 	}
 
+
 	@Bean
-	public AfterburnerModule afterburnerModule() {
-		return new AfterburnerModule();
+	public PlatformTransactionManager transactionManager() {
+		return new DataSourceTransactionManager(dataSource());
 	}
 	
 }
