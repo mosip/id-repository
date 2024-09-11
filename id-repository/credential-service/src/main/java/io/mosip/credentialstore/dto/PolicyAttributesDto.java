@@ -1,11 +1,12 @@
 package io.mosip.credentialstore.dto;
 
+import java.io.Serializable;
 import java.util.List;
 
 import lombok.Data;
 
 @Data
-public class PolicyAttributesDto {
+public class PolicyAttributesDto implements Serializable {
 	/**
 	 * list of auth policy dto's.
 	 */
