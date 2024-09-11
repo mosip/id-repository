@@ -7,6 +7,9 @@ import lombok.Data;
 
 @Data
 public class PolicyAttributesDto implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
 	/**
 	 * list of auth policy dto's.
 	 */

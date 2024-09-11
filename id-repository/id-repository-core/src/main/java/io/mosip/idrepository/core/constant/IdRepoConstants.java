@@ -270,7 +270,7 @@ public class IdRepoConstants {
 
 	public static final String DATASHARE_POLICIES_CACHE = "datashare_policies";
 	
-	public static final String WEBSUB_TOPICS_CACHE = "topics";
+//	public static final String WEBSUB_TOPICS_CACHE = "topics";
 	
 	public static final String ONLINE_VERIFICATION_PARTNERS_CACHE = "online_verification_partners";
 	
