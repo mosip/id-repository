@@ -71,7 +71,7 @@ NOTE: To run identity service, Biometric SDK implementation jar or [Mock SDK](ht
    ```
 ### Delete
   ```
-    $ cd ./apitest/deploy/idrepo-apitetsrig
+    $ cd ./apitest/deploy/idrepo-apitestrig
     $ ./delete.sh
    ```
 
