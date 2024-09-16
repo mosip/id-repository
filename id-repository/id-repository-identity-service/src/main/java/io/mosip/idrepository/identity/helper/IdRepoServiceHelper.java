@@ -168,7 +168,7 @@ public class IdRepoServiceHelper {
 						.collect(Collectors.toMap(handleName -> handleName,
                                 handleFieldId -> buildHandleDto(identityMap.get(handleFieldId), handleFieldId)));
 			} else if (existingSelectedHandlesMap != null && !existingSelectedHandlesMap.isEmpty()) {
-                Set<String> existingSelectedHandleKeys = existingSelectedHandlesMap.keySet();
+                Set<String> existingSelectedHandleKeys = new HashSet<>(existingSelectedHandlesMap.keySet());
 				return existingSelectedHandleKeys.stream()
 						.filter(handleFieldId -> {
 							if (identityMap.containsKey(handleFieldId) && Objects.nonNull(identityMap.get(handleFieldId))) {
