@@ -68,8 +68,8 @@ AddIdentity:
   "status":"ACTIVATED"
 }'
    IdRepository_AddIdentity_Positive_smoke_Pos:
-      endPoint: /idrepository/v1/identity
-      description: Creating UIN in Add Identity passing valid parameters
+      endPoint: /idrepository/v1/identity/
+      description: Creating UIN in Add Identity with valid parameters
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -80,11 +80,11 @@ AddIdentity:
   "registrationId": "$RID$",
   "addressCopy": "Y",
   "biometricReferenceId": "23452353",
- 
-   "UIN": "$UIN$",
-    
-  "dateOfBirth": "1992/04/15",
   
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
   "postalCode": "14022",
   "email": "mosipuser123@mailinator.com",
   "phone": "8249742850",
@@ -94,7 +94,7 @@ AddIdentity:
   
    "introducerRID": "212124324784879",
    "introducerUIN": "212124324784879",
-   
+  
    "category": "individualBiometrics",
    "requesttime": "$TIMESTAMP$"
 }'
@@ -206,7 +206,7 @@ AddIdentity:
   "status":"ACTIVATED"
 }'
    IdRepository_AddIdentity_Positive_PRE_smoke:
-      endPoint: /idrepository/v1/identity
+      endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing valid parameters
       role: idrepo
       restMethod: post
@@ -218,10 +218,9 @@ AddIdentity:
   "registrationId": "$RID$",
   "addressCopy": "Y",
   "biometricReferenceId": "23452353",
-  
-
+ 
    "UIN": "$UIN$",
-   
+    
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
@@ -230,10 +229,10 @@ AddIdentity:
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
-  
+ 
    "introducerRID": "212124324784879",
    "introducerUIN": "212124324784879",
- 
+  
    "category": "individualBiometrics",
    "requesttime": "$TIMESTAMP$"
 }'
@@ -640,9 +639,9 @@ AddIdentity:
   "registrationId": "$RID$",
   "addressCopy": "Y",
   "biometricReferenceId": "23452353",
-  
-   "UIN": "$UIN$",
  
+   "UIN": "$UIN$",
+   
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
@@ -651,10 +650,10 @@ AddIdentity:
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "version": "$REMOVE$",
-  
+ 
    "introducerRID": "212124324784879",
    "introducerUIN": "212124324784879",
-  
+   
    "category": "individualBiometrics",
    "requesttime": "$TIMESTAMP$"
 }'
@@ -1047,7 +1046,6 @@ AddIdentity:
     }
   ]
 }'
-
    IdRepository_AddIdentity_with_Missing_Timestamp_Neg:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity removing timestamp field
@@ -1086,7 +1084,6 @@ AddIdentity:
     }
   ]
 }'
-
    IdRepository_AddIdentity_with_Invalid_Spaceval_Timestamp_Neg:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing space value in request time
