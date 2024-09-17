@@ -9,7 +9,6 @@
 \ir ddl/idrepo-uin_hash_salt.sql
 \ir ddl/idrepo-uin_encrypt_salt.sql
 \ir ddl/idrepo-uin_auth_lock.sql
-\ir ddl/idrepo-fk.sql
 \ir ddl/idrepo-credential_request_status.sql
 \ir ddl/idrepo-uin_biometric_draft.sql
 \ir ddl/idrepo-uin_draft.sql
@@ -18,3 +17,4 @@
 \ir ddl/idrepo-channel_info.sql
 \ir ddl/idrepo-identity_update_count_tracker.sql
 \ir ddl/idrepo-handle.sql
+\ir ddl/idrepo-fk.sql
