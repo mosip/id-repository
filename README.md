@@ -63,18 +63,6 @@ NOTE: To run identity service, Biometric SDK implementation jar or [Mock SDK](ht
     $ ./restart.sh
    ```
 
-## To deploy Idrepo apitestrig within k8s cluster:
-### Install
-  ```
-    $ cd ./apitest/deploy/idrepo-apitestrig
-    $ ./install.sh
-   ```
-### Delete
-  ```
-    $ cd ./apitest/deploy/idrepo-apitestrig
-    $ ./delete.sh
-   ```
-
 ## Configuration
 Refer to the [configuration guide](docs/configuration.md).
 
