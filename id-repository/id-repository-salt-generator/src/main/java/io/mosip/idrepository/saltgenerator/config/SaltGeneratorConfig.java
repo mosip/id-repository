@@ -90,6 +90,7 @@ public class SaltGeneratorConfig {
 		return dataSource;
 	}
 
+
 	@Bean
 	@Primary
 	public JpaTransactionManager jpaTransactionManager(EntityManagerFactory emf) {
