@@ -13,6 +13,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 import org.testng.ITest;
 import org.testng.ITestContext;
 import org.testng.ITestResult;
@@ -133,6 +134,27 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 		String jsonInput = testCaseDTO.getInput();
 
 		String inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
+		
+		
+		//For_Array-Handle Related Cases
+		if (inputJson.contains("$FUNCTIONALID$")) {
+			inputJson = replaceKeywordWithValue(inputJson, "$FUNCTIONALID$", generateRandomNumberString(2)
+					+ Calendar.getInstance().getTimeInMillis());
+		}
+		
+		JSONObject jsonString = new JSONObject(inputJson);
+		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {
+			inputJson = replaceArrayHandleValues(inputJson,testCaseName);
+		}
+		if (testCaseName.contains("_withInvalidEmail") || testCaseName.contains("_invalid_Email")) {
+			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "@#$DDFFGG");
+		}
+		if (testCaseName.contains("Empty_Email")) {
+			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "");
+		}
+		if (testCaseName.contains("SpaceVal_Email")) {
+			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "  ");
+		}
 
 		inputJson = inputJson.replace("$UIN$", uin);
 		inputJson = inputJson.replace("$RID$", genRid);
@@ -197,7 +219,7 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 			if (BaseTestCase.currentModule.equals("auth") || BaseTestCase.currentModule.equals("esignet")) {
 				logger.info("waiting for " + properties.getProperty("Delaytime")
 						+ " mili secs after UIN Generation In IDREPO"); //
-				Thread.sleep(Long.parseLong(properties.getProperty("Delaytime")));
+				//Thread.sleep(Long.parseLong(properties.getProperty("Delaytime")));
 			}
 		} catch (Exception e) {
 			logger.error("Exception : " + e.getMessage());

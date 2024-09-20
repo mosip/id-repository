@@ -14,6 +14,21 @@ RetrieveIdentity:
 
 }'
 
+  IdRepository_RetrieveIdentity_With_Valid_UIN_Smoke_Pos_with_handle_value:
+      endPoint: /idrepository/v1/identity/idvid/{id}
+      description: Retrieve Identity passing valid UIN
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "$ID:AddIdentity_array_handle_value_smoke_Pos_UIN$"
+}'
+      output: '{
+
+}'
+
   IdRepository_RetrieveIdentity_With_Deactivated_UIN_Smoke_Pos:
       endPoint: /idrepository/v1/identity/idvid/{id}
       description: Retrieve Identity passing deactivated UIN

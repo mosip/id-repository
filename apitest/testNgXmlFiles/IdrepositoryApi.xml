@@ -24,13 +24,31 @@
 		<class name="io.mosip.testrig.apirig.testscripts.SimplePostForAutoGenId" />
 	</classes>
 	</test>
-	<!-- <test name="GetUpdateCount">
+	
+	
+<!--	<test name="AddIdentityArrayHandle">
+		<parameter name="ymlFile"
+			value="idRepository/AddIdentity/AddIdentityArrayHandle.yml" />
+		<classes>
+			<class name="io.mosip.testrig.apirig.testscripts.AddIdentity" />
+		</classes>
+	</test>
+	
+		<test name="UpdateIdentityArrayHandle">
+		<parameter name="ymlFile"
+			value="idRepository/UpdateIdentityArrayHandle/UpdateIdentityArrayHandle.yml" />
+		<classes>
+			<class name="io.mosip.testrig.apirig.testscripts.UpdateIdentityForArrayHandles" />
+		</classes>
+	</test>-->
+	
+	 <test name="GetUpdateCount">
 		<parameter name="ymlFile"
 			value="idRepository/GetUpdateCount/GetUpdateCount.yml" />
 		<classes>
 			<class name="io.mosip.testrig.apirig.testscripts.GetWithParam" />
 		</classes>
-	</test> -->
+	</test> 
 	<test name="RetrieveIdentityByRid">
 		<parameter name="ymlFile"	value="idRepository/RetrieveIdentityByRid/RetrieveIdentityByRid.yml" />
 	<classes>
