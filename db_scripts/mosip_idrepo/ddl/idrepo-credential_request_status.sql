@@ -32,3 +32,8 @@ CREATE TABLE idrepo.credential_request_status (
 
 );
 -- ddl-end --
+
+--index section starts----
+CREATE INDEX IF NOT EXISTS cred_req_NEW_status_cr_dtimes ON idrepo.credential_request_status USING btree(cr_dtimes) WHERE status = 'NEW';
+CREATE INDEX IF NOT EXISTS cred_tran_status ON idrepo.credential_request_status USING  btree(status);
+--index section ends------
