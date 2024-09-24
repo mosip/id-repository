@@ -129,11 +129,17 @@ GetUpdateCount:
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
       outputTemplate: idRepository/error
       input: '{
-      "individualId": "",
+      "individualId": " ",
       "idType": "VID",
        "attribute_list": "fullName"
 }'
-      output: "404"
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
 
    IdRepository_GetUpdateCount_Uin_SppaceVal_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}

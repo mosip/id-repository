@@ -23,7 +23,7 @@ ReactivateVIDs:
       checkErrorsOnlyInResponse: true
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
-      outputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUINResult
+      outputTemplate: idRepository/error
       input: '{
     "UIN": "$ID:AddIdentity_ValidParam_smoke_Pos_UIN$",
     "requesttime": "$TIMESTAMP$",
@@ -33,6 +33,7 @@ ReactivateVIDs:
       output: '{
   "errors": [
     {
+      "errorCode": "IDR-IDC-007"
     }
   ]
 }'

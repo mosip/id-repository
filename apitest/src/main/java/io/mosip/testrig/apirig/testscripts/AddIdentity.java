@@ -148,7 +148,7 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "@#$DDFFGG");
 		}
 		if (testCaseName.contains("Empty_Email")) {
-			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "");
+			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", " ");
 		}
 		if (testCaseName.contains("SpaceVal_Email")) {
 			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "  ");
@@ -217,7 +217,7 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 			if (BaseTestCase.currentModule.equals("auth") || BaseTestCase.currentModule.equals("esignet")) {
 				logger.info("waiting for " + properties.getProperty("Delaytime")
 						+ " mili secs after UIN Generation In IDREPO"); //
-				//Thread.sleep(Long.parseLong(properties.getProperty("Delaytime")));
+				Thread.sleep(Long.parseLong(properties.getProperty("Delaytime")));
 			}
 		} catch (Exception e) {
 			logger.error("Exception : " + e.getMessage());
