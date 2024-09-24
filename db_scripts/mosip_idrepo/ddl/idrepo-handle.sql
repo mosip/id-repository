@@ -26,7 +26,7 @@ CREATE TABLE idrepo.handle(
 
 --index section starts----
 CREATE INDEX IF NOT EXISTS idx_handle_handle_hash ON idrepo.handle USING btree(handle_hash);
-CREATE INDEX IF NOT EXISTS cred_status_uin_hash ON idrepo.handle USING btree(uin_hash);
+CREATE INDEX IF NOT EXISTS idx_handle_uin_hash ON idrepo.handle USING btree(uin_hash);
 --index section ends------
 
 COMMENT ON TABLE idrepo.handle IS 'Handle and handle hash mapped to UIN.';
