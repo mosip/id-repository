@@ -3,7 +3,7 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?branch=release-1.2.0&project=mosip_id-repository&metric=alert_status)](https://sonarcloud.io/dashboard?branch=release-1.2.0&id=mosip_id-repository)
 
 # ID Repository
-
+## Note: This branch is created to host updated testrig code for CRE checks.
 ## Overview
 This repository contains source code and design documents for MOSIP [ID Repository](https://docs.mosip.io/1.2.0/modules/id-repository) which is the server-side module to manage ID lifecycle.  The modules exposes API endpoints.  
 
