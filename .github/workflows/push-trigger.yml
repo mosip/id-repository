@@ -102,7 +102,7 @@ jobs:
   build-maven-apitest-idrepo:
     uses: mosip/kattu/.github/workflows/maven-build.yml@master-java21
     with:
-      SERVICE_LOCATION: ./apitest
+      SERVICE_LOCATION: ./api-test
       BUILD_ARTIFACT: apitest-idrepo
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
@@ -116,7 +116,7 @@ jobs:
     needs: build-maven-apitest-idrepo
     uses: mosip/kattu/.github/workflows/maven-publish-to-nexus.yml@master-java21
     with:
-      SERVICE_LOCATION: ./apitest
+      SERVICE_LOCATION: ./api-test
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
       OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
@@ -131,7 +131,7 @@ jobs:
     env:
       NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: apitest-idrepo
-      SERVICE_LOCATION: apitest
+      SERVICE_LOCATION: api-test
       BUILD_ARTIFACT: apitest-idrepo-local
     steps:
       - uses: actions/checkout@v3
@@ -179,7 +179,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - SERVICE_LOCATION: 'apitest'
+          - SERVICE_LOCATION: 'api-test'
             SERVICE_NAME: 'apitest-idrepo'
             BUILD_ARTIFACT: 'apitest-idrepo-local'
             ONLY_DOCKER: true
@@ -202,7 +202,7 @@ jobs:
     if: "${{  github.event_name != 'pull_request' }}"
     uses: mosip/kattu/.github/workflows/maven-sonar-analysis.yml@master-java21
     with:
-      SERVICE_LOCATION: ./apitest
+      SERVICE_LOCATION: ./api-test
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       ORG_KEY: ${{ secrets.ORG_KEY }}
