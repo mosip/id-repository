@@ -324,7 +324,7 @@ UpdateIdentity:
       description: Update Identity passing invalid phonenumber
       role: idrepo
       restMethod: patch
-      inputTemplate: idRepository/UpdateIdentity/updateIdentity
+      inputTemplate: idRepository/UpdateIdentity/updateIdentityInvalid
       outputTemplate: idRepository/error
       input: '{
       "registrationId":"$ID:AddIdentity_withValidParameters_smoke_Pos_RID$",
@@ -348,7 +348,7 @@ UpdateIdentity:
       description: Update Identity passing invalid email
       role: idrepo
       restMethod: patch
-      inputTemplate: idRepository/UpdateIdentity/updateIdentity
+      inputTemplate: idRepository/UpdateIdentity/updateIdentityInvalid
       outputTemplate: idRepository/error
       input: '{
       "registrationId":"$ID:AddIdentity_withValidParameters_smoke_Pos_RID$",

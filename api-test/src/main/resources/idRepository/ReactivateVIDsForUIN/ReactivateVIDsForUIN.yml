@@ -31,10 +31,7 @@ ReactivateVIDs:
     "version": "v1"
 }'  
       output: '{
-  "errors": [
-    {
-    }
-  ]
+    "vidStatus": "ACTIVE"
 }'
 
   IdRepository_ReactivateVIDs_Onetime_Smoke_Pos:

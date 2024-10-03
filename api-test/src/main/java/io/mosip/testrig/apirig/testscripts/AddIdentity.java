@@ -35,7 +35,7 @@ import io.mosip.testrig.apirig.testrunner.JsonPrecondtion;
 import io.mosip.testrig.apirig.utils.AdminTestException;
 import io.mosip.testrig.apirig.utils.AdminTestUtil;
 import io.mosip.testrig.apirig.utils.AuthenticationTestException;
-import io.mosip.testrig.apirig.utils.ConfigManager;
+import io.mosip.testrig.apirig.utils.IdRepoConfigManager;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
 import io.mosip.testrig.apirig.utils.IdRepoUtil;
 import io.mosip.testrig.apirig.utils.KernelAuthentication;
@@ -61,7 +61,7 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 
 	@BeforeClass
 	public static void setLogLevel() {
-		if (ConfigManager.IsDebugEnabled())
+		if (IdRepoConfigManager.IsDebugEnabled())
 			logger.setLevel(Level.ALL);
 		else
 			logger.setLevel(Level.ERROR);
@@ -126,8 +126,8 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 			String picture = properties.getProperty("picturevalue");
 			list.add(picture);
 			attrmap.put("picture", list);
-			KeycloakUserManager.createVidUsers(propsKernel.getProperty("new_Resident_User"),
-					propsKernel.getProperty("new_Resident_Password"), propsKernel.getProperty("new_Resident_Role"),
+			KeycloakUserManager.createVidUsers(IdRepoConfigManager.getproperty("new_Resident_User"),
+					IdRepoConfigManager.getproperty("new_Resident_Password"), IdRepoConfigManager.getproperty("new_Resident_Role"),
 					attrmap);
 		}
 
@@ -150,7 +150,7 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "@#$DDFFGG");
 		}
 		if (testCaseName.contains("Empty_Email")) {
-			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "");
+			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", " ");
 		}
 		if (testCaseName.contains("SpaceVal_Email")) {
 			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "  ");
@@ -219,7 +219,7 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 			if (BaseTestCase.currentModule.equals("auth") || BaseTestCase.currentModule.equals("esignet")) {
 				logger.info("waiting for " + properties.getProperty("Delaytime")
 						+ " mili secs after UIN Generation In IDREPO"); //
-				//Thread.sleep(Long.parseLong(properties.getProperty("Delaytime")));
+				Thread.sleep(Long.parseLong(properties.getProperty("Delaytime")));
 			}
 		} catch (Exception e) {
 			logger.error("Exception : " + e.getMessage());

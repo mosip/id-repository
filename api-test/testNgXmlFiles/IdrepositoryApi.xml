@@ -26,7 +26,7 @@
 	</test>
 	
 	
-<!--	<test name="AddIdentityArrayHandle">
+	<test name="AddIdentityArrayHandle">
 		<parameter name="ymlFile"
 			value="idRepository/AddIdentity/AddIdentityArrayHandle.yml" />
 		<classes>
@@ -40,29 +40,9 @@
 		<classes>
 			<class name="io.mosip.testrig.apirig.testscripts.UpdateIdentityForArrayHandles" />
 		</classes>
-	</test>-->
-	
-	 <test name="GetUpdateCount">
-		<parameter name="ymlFile"
-			value="idRepository/GetUpdateCount/GetUpdateCount.yml" />
-		<classes>
-			<class name="io.mosip.testrig.apirig.testscripts.GetWithParam" />
-		</classes>
-	</test> 
-	<test name="RetrieveIdentityByRid">
-		<parameter name="ymlFile"	value="idRepository/RetrieveIdentityByRid/RetrieveIdentityByRid.yml" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.testscripts.GetWithParam" />
-	</classes>
 	</test>
 	
 	
-	<test name="RetrieveVIDByUIN">
-		<parameter name="ymlFile"	value="idRepository/RetrieveVIDByUIN/RetrieveVIDByUIN.yml" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.testscripts.GetWithParam" />
-	</classes>
-	</test>
 	
 	<test name="UpdateIdentity">
 		<parameter name="ymlFile"
@@ -83,6 +63,28 @@
 		<parameter name="ymlFile"	value="idRepository/DeactivateVid/DeactivateVid.yml" />
 	<classes>
 		<class name="io.mosip.testrig.apirig.testscripts.SimplePostForAutoGenId" />
+	</classes>
+	</test>
+	
+	 <test name="GetUpdateCount">
+		<parameter name="ymlFile"
+			value="idRepository/GetUpdateCount/GetUpdateCount.yml" />
+		<classes>
+			<class name="io.mosip.testrig.apirig.testscripts.GetWithParam" />
+		</classes>
+	</test> 
+	<test name="RetrieveIdentityByRid">
+		<parameter name="ymlFile"	value="idRepository/RetrieveIdentityByRid/RetrieveIdentityByRid.yml" />
+	<classes>
+		<class name="io.mosip.testrig.apirig.testscripts.GetWithParam" />
+	</classes>
+	</test>
+	
+	
+	<test name="RetrieveVIDByUIN">
+		<parameter name="ymlFile"	value="idRepository/RetrieveVIDByUIN/RetrieveVIDByUIN.yml" />
+	<classes>
+		<class name="io.mosip.testrig.apirig.testscripts.GetWithParam" />
 	</classes>
 	</test>
 	
