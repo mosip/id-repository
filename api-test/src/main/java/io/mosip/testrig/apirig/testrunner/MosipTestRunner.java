@@ -70,6 +70,7 @@ public class MosipTestRunner {
 			} else {
 				ExtractResource.copyCommonResources();
 			}
+			AdminTestUtil.init();
 			IdRepoConfigManager.init();
 			suiteSetup(getRunType());
 			SkipTestCaseHandler.loadTestcaseToBeSkippedList("testCaseSkippedList.txt");
