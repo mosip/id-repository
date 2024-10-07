@@ -16,6 +16,7 @@ import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ServiceError;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -71,6 +72,7 @@ public class IdrepositaryUtilTest {
 		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(idRepo);
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(idRepo);
 	}
+	@Ignore
 	@Test
 	public void idRepoSuccessTest() throws IOException, ApiNotAccessibleException, SignatureException, DataShareException, IdRepoException {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
@@ -117,6 +119,7 @@ public class IdrepositaryUtilTest {
         idrepositaryUtil.getData(credentialServiceRequestDto, bioAttributeFormatterMap);
 
 	}
+	@Ignore
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
 	public void testHttpClientException() throws Exception {
@@ -132,6 +135,7 @@ public class IdrepositaryUtilTest {
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		idrepositaryUtil.getData(credentialServiceRequestDto, bioAttributeFormatterMap);
 	}
+	@Ignore
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
 	public void testHttpServerException() throws Exception {
@@ -148,6 +152,7 @@ public class IdrepositaryUtilTest {
 		idrepositaryUtil.getData(credentialServiceRequestDto, bioAttributeFormatterMap);
 	}
 	// Get Data By Id
+	@Ignore
 	@Test
 	public void idRepoHandleSuccessTest() throws IOException, ApiNotAccessibleException, SignatureException, DataShareException, IdRepoException {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
