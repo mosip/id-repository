@@ -44,8 +44,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.model.EventModel;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
 
 /**
  * The Class CredentialServiceManager.
@@ -192,6 +191,8 @@ public class CredentialServiceManager {
 
 			String uinHash = getUinHash(uin);
 			List<Handle> handles = getHandles(uinHash);
+
+
 
 			if (partnerIds.isEmpty() || (partnerIds.size() == 1 && dummyCheck.isDummyOLVPartner(partnerIds.get(0)))) {
 				partnerIds = partnerServiceManager.getOLVPartnerIds();
@@ -631,7 +632,7 @@ public class CredentialServiceManager {
 	}
 
 	private List<HandleInfoDTO> getHandlesInfo(String uinHash, List<Handle> handles, List<String> partnerIds,
-			IntFunction<String> saltRetreivalFunction, Consumer<EventModel> idaEventModelConsumer) {
+			IntFunction<String> saltRetreivalFunction, Consumer<EventModel> idaEventModelConsumer) throws IdRepoAppException {
 		List<HandleInfoDTO> handleInfoDTOS = new ArrayList<>();
 		if (handles != null && !handles.isEmpty()) {
 			List<EventModel> eventList = new ArrayList<>();
@@ -646,7 +647,7 @@ public class CredentialServiceManager {
 					}
 				} else if (HandleStatusLifecycle.DELETE.name().equals(entity.getStatus())) {
 					eventList.addAll(createIdaEventModel(IDAEventType.REMOVE_ID, null, null, partnerIds, null,
-							entity.getHandleHash()).collect(Collectors.toList()));
+							buildHandleInfoDTO(entity, saltRetreivalFunction).getAdditionalData().get(ID_HASH)).collect(Collectors.toList()));
 				}
 			}
 			if (!eventList.isEmpty()) {
@@ -667,7 +668,8 @@ public class CredentialServiceManager {
 				CryptoUtil.decodeURLSafeBase64(
 						io.mosip.kernel.core.util.StringUtils.substringAfter(entity.getHandle(), SPLITTER)),
 				CryptoUtil.decodePlainBase64(encryptSalt), uinRefId)));
-
+		securityManager
+				.getIdHashAndAttributesWithSaltModuloByPlainIdHash(handleInfoDTO.getHandle(), saltRetreivalFunction);
 		handleInfoDTO.setAdditionalData(securityManager
 				.getIdHashAndAttributesWithSaltModuloByPlainIdHash(handleInfoDTO.getHandle(), saltRetreivalFunction));
 		handleInfoDTO.getAdditionalData().put("idType", IdType.HANDLE.getIdType());

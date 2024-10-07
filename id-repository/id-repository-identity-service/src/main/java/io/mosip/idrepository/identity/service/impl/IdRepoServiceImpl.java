@@ -439,9 +439,10 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			}
 			if (Objects.nonNull(request) && Objects.nonNull(request.getIdentity())) {
 				inputSelectedHandlesMap = getNewAndDeleteExistingHandles(request, uinObject, UPDATE);
+				Map<String,Object> identityMap=idRepoServiceHelper.updateSelectedHandleFields(request.getIdentity(),inputSelectedHandlesMap);
 				Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
 						.mappingProvider(new JacksonMappingProvider()).build();
-				DocumentContext inputData = JsonPath.using(configuration).parse(request.getIdentity());
+				DocumentContext inputData = JsonPath.using(configuration).parse(identityMap);
 				DocumentContext dbData = JsonPath.using(configuration).parse(new String(uinObject.getUinData()));
 				anonymousProfileHelper.setOldUinData(dbData.jsonString().getBytes());
 				updateVerifiedAttributes(request, inputData, dbData);
@@ -469,7 +470,6 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 					uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
 				}
 			}
-
 			uinObject = uinRepo.save(uinObject);
 			anonymousProfileHelper.setNewUinData(uinObject.getUinData());
 			uinHistoryRepo.save(new UinHistory(uinObject.getUinRefId(), DateUtils.getUTCCurrentDateTime(),
@@ -493,6 +493,8 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		}
 	}
+
+
 
 	/**
 	 * trim data inside identity
