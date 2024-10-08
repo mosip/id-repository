@@ -64,6 +64,7 @@ public class MosipTestRunner {
 			for (String envName : envMap.keySet()) {
 				LOGGER.info(String.format("ENV %s = %s%n", envName, envMap.get(envName)));
 			}
+			BaseTestCase.setRunContext(getRunType(), jarUrl);
 			ExtractResource.removeOldMosipTestTestResource();
 			if (getRunType().equalsIgnoreCase("JAR")) {
 				ExtractResource.extractCommonResourceFromJar();
