@@ -154,7 +154,7 @@ public class IdRepoServiceHelper {
 		Map<String, Object> requestMap = convertToMap(identity);
 		if (requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH))) {
 			Map<String, Object> identityMap = (Map<String, Object>) requestMap.get(ROOT_PATH);
-			String schemaVersion = String
+            String schemaVersion = String
 					.valueOf(identityMap.get(identityMapping.getIdentity().getIDSchemaVersion().getValue()));
 			String selectedHandlesFieldId = identityMapping.getIdentity().getSelectedHandles().getValue();
 //			if 'selectedHandles' is not coming in the request body itself then will execute else if block.
@@ -188,6 +188,15 @@ public class IdRepoServiceHelper {
 		return null;
 	}
 
+    public Map<String,Object> updateSelectedHandleFields(Object identityObject, Map<String, List<HandleDto>> inputSelectedHandlesMap) throws IdRepoAppException {
+            String selectedHandlesFieldId = identityMapping.getIdentity().getSelectedHandles().getValue();
+            Map<String,Object> identityMap=convertToMap(identityObject);
+            if(identityMap.containsKey(selectedHandlesFieldId)){
+                List<String> selectedhandles = new ArrayList<String>(inputSelectedHandlesMap.keySet());
+                identityMap.put(selectedHandlesFieldId,selectedhandles);
+            }
+            return identityMap;
+    }
     private List<HandleDto> buildHandleDto(Object value, String fieldId) {
         if(StringUtils.isEmpty(value))
             return new ArrayList<>();
