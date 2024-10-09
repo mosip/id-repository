@@ -1035,7 +1035,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_array_updatehandles_value_smoke_Pos:
+   IdRepository_AddIdentity_handle_array_updatehandles_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with positive values
       role: idrepo
@@ -1069,7 +1069,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_array_updateselectedhandles_value_smoke_Pos:
+   IdRepository_AddIdentity_array_handle_updateselectedhandles_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with positive values
       role: idrepo
@@ -1103,7 +1103,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_array_updateselectedhandles_value_Pos_replaceselectedhandles:
+   IdRepository_AddIdentity_array_handle_updateselectedhandles_value_Pos_replaceselectedhandles:
       endPoint: /idrepository/v1/identity/
       description: Add identity with only email as selected handle
       role: idrepo
@@ -1137,7 +1137,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_array_updateselectedhandles_value_Pos_onlywithemail:
+   IdRepository_AddIdentity_handle_array_updateselectedhandles_value_Pos_onlywithemail:
       endPoint: /idrepository/v1/identity/
       description: Add identity with only email as selected handle and update with phone and email in update identity
       role: idrepo
@@ -1171,7 +1171,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_array_updateselectedhandles_value_Pos_withoutselectedhandlesinidentity:
+   IdRepository_AddIdentity_array_handle_updateselectedhandles_value_Pos_withoutselectedhandlesinidentity:
       endPoint: /idrepository/v1/identity/
       description: Add identity without selected handle
       role: idrepo
