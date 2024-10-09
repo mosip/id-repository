@@ -637,20 +637,25 @@ public class CredentialServiceManager {
 		if (handles != null && !handles.isEmpty()) {
 			List<EventModel> eventList = new ArrayList<>();
 			for (Handle entity : handles) {
-				if (HandleStatusLifecycle.ACTIVATED.name().equals(entity.getStatus())) {
-					try {
-						HandleInfoDTO handleInfoDTO = buildHandleInfoDTO(entity, saltRetreivalFunction);
-						handleInfoDTOS.add(handleInfoDTO);
-					} catch (IdRepoAppException e) {
-						mosipLogger.error(IdRepoSecurityManager.getUser(), SEND_REQUEST_TO_CRED_SERVICE,
-								"getHandlesInfo", "\n *****Failed to decrypt handle due to " + e.getMessage());
-					}
-				} else if (HandleStatusLifecycle.DELETE.name().equals(entity.getStatus())) {
-					eventList.addAll(createIdaEventModel(IDAEventType.REMOVE_ID, null, null, partnerIds, null,
+				switch (HandleStatusLifecycle.getHandleStatus(entity.getStatus())) {
+					case ACTIVATED:
+						try {
+							HandleInfoDTO handleInfoDTO = buildHandleInfoDTO(entity, saltRetreivalFunction);
+							handleInfoDTOS.add(handleInfoDTO);
+							mosipLogger.debug("getHandlesInfo while sending as activated : {}", handleInfoDTO.getAdditionalData().values());
+						} catch (IdRepoAppException e) {
+							mosipLogger.info(IdRepoSecurityManager.getUser(), SEND_REQUEST_TO_CRED_SERVICE,
+									"getHandlesInfo", "\n *****Failed to decrypt handle due to " + e.getMessage());
+						}
+						break;
+					case DELETE:
+								 eventList.addAll(createIdaEventModel(IDAEventType.REMOVE_ID, null, null, partnerIds, null,
 							buildHandleInfoDTO(entity, saltRetreivalFunction).getAdditionalData().get(ID_HASH)).collect(Collectors.toList()));
+								 break;
 				}
 			}
 			if (!eventList.isEmpty()) {
+				mosipLogger.info("getHandlesInfo while sending as removed : {}",eventList.size());
 				sendEventsToIDA(eventList, IDAEventType.REMOVE_ID, idaEventModelConsumer);
 				handleRepo.updateStatusByUinHashAndStatus(uinHash, HandleStatusLifecycle.DELETE.name(),
 						HandleStatusLifecycle.DELETE_REQUESTED.name());
