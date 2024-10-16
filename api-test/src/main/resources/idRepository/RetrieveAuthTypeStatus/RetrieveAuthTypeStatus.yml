@@ -8,7 +8,7 @@ RetrieveAuthTypeStatus:
       inputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatus
       outputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatusResult
       input: '{
-    "ID": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$"
+    "ID": "$ID:AddIdentity_AuthStatus_Validd_smoke_Pos_UIN$"
 }'
       output: '{
 "authTypes": [{

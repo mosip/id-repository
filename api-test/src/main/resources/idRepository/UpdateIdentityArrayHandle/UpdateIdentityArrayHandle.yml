@@ -851,7 +851,7 @@ UpdateIdentity:
       role: idrepo
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
-      outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
+      outputTemplate: idRepository/error
       input: '{
 	    "registrationId": "$RID$",
         "id": "mosip.id.update",
@@ -870,9 +870,13 @@ UpdateIdentity:
 	    "category": "individualBiometrics",
 	    "requesttime": "$TIMESTAMP$"
 	  }'
-      output: '{
-    "status": "ACTIVATED"
-}'
+      output: '	  {
+        "errors": [
+          {
+           "errorCode": "IDR-IDC-014"
+          }
+        ]
+      }'
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_handle_value_removeselectedhandlesandupdateemail:
       endPoint: /idrepository/v1/identity/
       description: Update Identity remove selected handle then pass email value

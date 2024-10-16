@@ -11,7 +11,7 @@ AuthInternalLock:
   "id": "string",
   "version": "string",
   "requestTime": "$TIMESTAMP$",
-    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualId": "$ID:AddIdentity_AuthStatus_Validd_smoke_Pos_UIN$",
     "individualIdType": "UIN",
     "authType": "demo",
     "authSubType": "",
@@ -53,7 +53,7 @@ AuthInternalLock:
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
       input: '{
-    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualId": "$ID:AddIdentity_AuthStatus_Validd_smoke_Pos_UIN$",
     "individualIdType": "UIN",
     "authType": "bio",
     "authSubType": "FACE",
@@ -98,7 +98,7 @@ AuthInternalLock:
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
       input: '{
-    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualId": "$ID:AddIdentity_AuthStatus_Validd_smoke_Pos_UIN$",
     "individualIdType": "UIN",
     "authType": "bio",
     "authSubType": "IRIS",
@@ -142,7 +142,7 @@ AuthInternalLock:
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
       input: '{
-    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualId": "$ID:AddIdentity_AuthStatus_Validd_smoke_Pos_UIN$",
     "individualIdType": "UIN",
     "authType": "bio",
     "authSubType": "FINGER",
@@ -186,7 +186,7 @@ AuthInternalLock:
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
       input: '{
-    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualId": "$ID:AddIdentity_AuthStatus_Validd_smoke_Pos_UIN$",
     "individualIdType": "UIN",
     "authType": "otp",
     "authSubType": "email",
@@ -230,7 +230,7 @@ AuthInternalLock:
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
       input: '{
-    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualId": "$ID:AddIdentity_AuthStatus_Validd_smoke_Pos_UIN$",
     "individualIdType": "UIN",
     "authType": "otp",
     "authSubType": "phone",
@@ -273,7 +273,7 @@ AuthInternalLock:
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/error
       input: '{
-    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualId": "$ID:AddIdentity_AuthStatus_Validd_smoke_Pos_UIN$",
     "individualIdType": "UIN",
     "authType": "",
     "authSubType": "FACE",
@@ -325,7 +325,7 @@ AuthInternalLock:
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/error
       input: '{
-    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualId": "$ID:AddIdentity_AuthStatus_Validd_smoke_Pos_UIN$",
     "individualIdType": "UIN",
     "authType": "bio",
     "authSubType": "",
@@ -377,7 +377,7 @@ AuthInternalLock:
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/error
       input: '{
-    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualId": "$ID:AddIdentity_AuthStatus_Validd_smoke_Pos_UIN$",
     "individualIdType": "UIN",
     "authType": "bio",
     "authSubType": "FACE",
@@ -429,7 +429,7 @@ AuthInternalLock:
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/error
       input: '{
-    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualId": "$ID:AddIdentity_AuthStatus_Validd_smoke_Pos_UIN$",
     "individualIdType": "UIN",
     "authType": "bio",
     "authSubType": "FACE",
@@ -481,7 +481,7 @@ AuthInternalLock:
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/error
       input: '{
-    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualId": "$ID:AddIdentity_AuthStatus_Validd_smoke_Pos_UIN$",
     "individualIdType": "UIN",
     "authType": "bio",
     "authSubType": "FACE",
@@ -533,7 +533,7 @@ AuthInternalLock:
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/error
       input: '{
-    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualId": "$ID:AddIdentity_AuthStatus_Validd_smoke_Pos_UIN$",
     "individualIdType": "UIN",
     "authType": "bio",
     "authSubType": "FACE",
@@ -637,7 +637,7 @@ AuthInternalLock:
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/error
       input: '{
-    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualId": "$ID:AddIdentity_AuthStatus_Validd_smoke_Pos_UIN$",
     "individualIdType": "",
     "authType": "bio",
     "authSubType": "FACE",
