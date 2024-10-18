@@ -50,6 +50,7 @@ RetrieveVIDByUIN:
   IdRepository_RetrieveVIDByUIN_With_All_Vid_Valid_Smoke:
       endPoint: /idrepository/v1/vid/uin/{UIN}
       description: Retrieve UIN by passing valid UIN
+      uniqueIdentifier: TC_RetrieveVIDbyUIN_valid_01
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: get
@@ -65,6 +66,7 @@ RetrieveVIDByUIN:
   IdRepository_RetrieveVIDByUIN_With_Invalid Uin:
       endPoint: /idrepository/v1/vid/uin/{UIN}
       description: Retrieving VID passing invlalid UIN
+      uniqueIdentifier: TC_RetrieveVIDbyUIN_invalidUIN_03
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUIN
@@ -83,6 +85,7 @@ RetrieveVIDByUIN:
   IdRepository_RetrieveVIDByUIN_With_Empty Uin:
       endPoint: /idrepository/v1/vid/uin/{UIN}
       description: Retrieving VID passing empty UIN
+      uniqueIdentifer: TC_RetrieveVIDbyUIN_emptyUIN_02
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUIN
