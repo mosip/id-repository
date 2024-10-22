@@ -13,6 +13,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
+import org.springframework.transaction.annotation.Transactional;
+
 
 /**
  * @author Manoj SP
