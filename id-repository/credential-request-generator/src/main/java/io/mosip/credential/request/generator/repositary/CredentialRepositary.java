@@ -14,6 +14,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.kernel.core.dataaccess.spi.repository.BaseRepository;
 
