@@ -40,6 +40,12 @@ public interface CredentialRequestStatusRepo extends JpaRepository<CredentialReq
 		return this.findByIndividualIdHashAndPartnerIdAndIsDeleted(individualIdHash, partnerId, false);
 	}
 	
+	@Transactional
+	@Query(value = "SELECT * FROM credential_request_status crs"
+			+ " WHERE crs.status=:status ORDER BY crs.cr_dtimes asc FOR UPDATE SKIP LOCKED LIMIT :pageSize", nativeQuery = true)
+	List<CredentialRequestStatus> findByStatus(@Param("status") String status,
+											   @Param("pageSize") int pageSize);
+
 	List<CredentialRequestStatus> findByStatus(String status);
 	
 	List<CredentialRequestStatus> findByIdExpiryTimestampBefore(LocalDateTime idExpiryTimestamp);

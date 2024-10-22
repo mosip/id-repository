@@ -109,6 +109,11 @@
 			<groupId>io.mosip.kernel</groupId>
 			<version>1.2.1-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+		    <groupId>io.mosip.biosdk</groupId>
+		    <artifactId>biosdk-client</artifactId>
+		    <version>1.2.1-SNAPSHOT</version>
+		</dependency>
 
 	</dependencies>
 	<build>
