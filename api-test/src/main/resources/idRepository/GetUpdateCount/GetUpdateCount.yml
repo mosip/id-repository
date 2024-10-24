@@ -20,6 +20,7 @@ GetUpdateCount:
    IdRepository_GetUpdateCount_Uin_Invalid_IndivualId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
       description: Get update count by passing invalid individual ID
+      uniqueIdentifier: TC_getupdatecount_UIN_IndividualId_12
       role: resident
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
@@ -40,6 +41,7 @@ GetUpdateCount:
    IdRepository_GetUpdateCount_Uin_StatusCode_Empty_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
       description: Get update count by passing empty individual ID
+      uniqueIdentifier: TC_getupdatecount_UIN_IndividualId_13
       role: resident
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
@@ -75,6 +77,7 @@ GetUpdateCount:
    IdRepository_GetUpdateCount_Uin_StatusCode_Invalid_Token:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
       description: Get update count passing invalid token
+      uniqueIdentifier: TC_getupdatecount_UIN_Invalidtoken_11
       role: invalid
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
@@ -128,6 +131,7 @@ GetUpdateCount:
    IdRepository_GetUpdateCount_Uin_StaatusCode_Empty_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
       description: Get update count by passing empty space in individual id
+      uniqueIdentifier: TC_getupdatecount_UIN_emptyIndividualId_13
       role: resident
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
@@ -148,6 +152,7 @@ GetUpdateCount:
    IdRepository_GetUpdateCount_Uin_SppaceVal_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
       description: Get update count by passing space in individual id
+      uniqueIdentifier: TC_getupdatecount_UIN_IndividualId_14
       role: resident
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
@@ -168,6 +173,7 @@ GetUpdateCount:
    IdRepository_GetUpdateCount_Uinn_StatusCode_Invalid_Token:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
       description: Get update count by passing invalid token
+      uniqueIdentifier: TC_getupdatecount_UIN_Invalidtoken_15
       role: invalid
       restMethod: get
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
