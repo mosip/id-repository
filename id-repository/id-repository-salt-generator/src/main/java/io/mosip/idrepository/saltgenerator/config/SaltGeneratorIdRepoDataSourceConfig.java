@@ -5,7 +5,6 @@ import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant
 import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_SCHEMA;
 import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_URL;
 import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_USERNAME;
-import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DB_SCHEMA_NAME;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,6 +46,8 @@ public class SaltGeneratorIdRepoDataSourceConfig {
 	@Autowired
 	private Environment env;
 
+
+
 	@Bean
 	@Primary
 	public DataSource identityDataSource() {
@@ -55,11 +56,22 @@ public class SaltGeneratorIdRepoDataSourceConfig {
 		dataSource.setUrl(env.getProperty(String.format(DATASOURCE_URL.getValue(), alias)));
 		dataSource.setUsername(env.getProperty(String.format(DATASOURCE_USERNAME.getValue(), alias)));
 		dataSource.setPassword(env.getProperty(String.format(DATASOURCE_PASSWORD.getValue(), alias)));
-		dataSource.setSchema(env.getProperty(DB_SCHEMA_NAME.getValue()));
 		dataSource.setDriverClassName(env.getProperty(String.format(DATASOURCE_DRIVERCLASSNAME.getValue(), alias)));
+		dataSource.setSchema(env.getProperty(String.format(DATASOURCE_SCHEMA.getValue(), alias)));
 		return dataSource;
 	}
-	
+	/*@Bean
+	@Primary
+	public DataSource identityDataSource() {
+		String alias = MOSIP_IDREPO_IDENTITY_DB;
+		DriverManagerDataSource dataSource = new DriverManagerDataSource();
+		dataSource.setUrl("jdbc:postgresql://postgres.dev.mosip.net:5432/mosip_idrepo");
+		dataSource.setUsername("postgres");
+		dataSource.setPassword("OfUQvf4kUK");
+		dataSource.setSchema("mosip_idrepo");
+		dataSource.setDriverClassName("org.postgresql.Driver");
+		return dataSource;
+	}*/
 	 /*Primary Entity manager*/
 	   @Primary
 	   @Bean(name = "identityEntityManagerFactory")

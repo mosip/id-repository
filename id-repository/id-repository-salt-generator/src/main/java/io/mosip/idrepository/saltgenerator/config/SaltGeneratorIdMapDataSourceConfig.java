@@ -2,9 +2,9 @@ package io.mosip.idrepository.saltgenerator.config;
 
 import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_DRIVERCLASSNAME;
 import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_PASSWORD;
+import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_SCHEMA;
 import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_URL;
 import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DATASOURCE_USERNAME;
-import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant.DB_SCHEMA_NAME;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -51,12 +52,24 @@ public class SaltGeneratorIdMapDataSourceConfig {
 		dataSource.setUrl(env.getProperty(String.format(DATASOURCE_URL.getValue(), alias)));
 		dataSource.setUsername(env.getProperty(String.format(DATASOURCE_USERNAME.getValue(), alias)));
 		dataSource.setPassword(env.getProperty(String.format(DATASOURCE_PASSWORD.getValue(), alias)));
-		dataSource.setSchema(env.getProperty(DB_SCHEMA_NAME.getValue()));
 		dataSource.setDriverClassName(env.getProperty(String.format(DATASOURCE_DRIVERCLASSNAME.getValue(), alias)));
+		dataSource.setSchema(env.getProperty(String.format(DATASOURCE_SCHEMA.getValue(), alias)));
 		return dataSource;
 	}
-	
-	 /*Primary Entity manager*/
+	/*@Bean
+	public DataSource vidDataSource() {
+		String alias = MOSIP_IDREPO_VID_DB;
+		DriverManagerDataSource dataSource = new DriverManagerDataSource();
+		dataSource.setUrl("jdbc:postgresql://postgres.dev.mosip.net:5432/mosip_idmap");
+		dataSource.setUsername("postgres");
+		dataSource.setPassword("OfUQvf4kUK");
+		dataSource.setSchema("mosip_idmap");
+		dataSource.setDriverClassName("org.postgresql.Driver");
+		return dataSource;
+	}*/
+
+
+	/*Primary Entity manager*/
 	   @Bean(name = "vidEntityManagerFactory")
 	   public LocalContainerEntityManagerFactoryBean vidEntityManagerFactory(EntityManagerFactoryBuilder builder) {
 	       return builder
