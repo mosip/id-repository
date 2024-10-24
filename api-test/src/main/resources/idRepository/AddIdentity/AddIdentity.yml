@@ -1156,6 +1156,7 @@ AddIdentity:
    IdRepository_AddIdentity_For_Onetimeusevid_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing onetimeuse VID
+      uniqueIdentifier: TC_AddIdentity_onetimeuse_41
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
