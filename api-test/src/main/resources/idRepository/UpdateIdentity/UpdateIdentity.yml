@@ -65,6 +65,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Empty_version:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing empty version
+      uniqueIdentifier: TC_UpdateIdentity_emptyversion_23
       role: idrepo
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
@@ -139,6 +140,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Empty_requestTime:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing empty requesttime
+      uniqueIdentifier: TC_UpdateIdentity_emptyrequesttime_20
       role: idrepo
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
@@ -188,6 +190,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Past_requestTime:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing past request time
+      uniqueIdentifier: TC_UpdateIdentitity_pastrequesttime_21
       role: idrepo
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
@@ -385,6 +388,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_DEACTIVATED_Full_all_valid_smoke:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing status as deactivated
+      uniqueIdentifier: TC_UpdateIdentity_deactivatedstatus_22
       role: idrepo
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
