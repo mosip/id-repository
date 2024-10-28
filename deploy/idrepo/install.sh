@@ -8,6 +8,7 @@ fi
 
 NS=idrepo
 CHART_VERSION=0.0.1-develop
+COPY_UTIL=../copy_cm_func.sh
 
 echo Create $NS namespace
 kubectl create ns $NS
@@ -18,8 +19,9 @@ function installing_idrepo() {
   helm repo update
 
   echo Copy configmaps
-  sed -i 's/\r$//' copy_cm.sh
-  ./copy_cm.sh
+  $COPY_UTIL configmap global default $NS
+  $COPY_UTIL configmap artifactory-share artifactory $NS
+  $COPY_UTIL configmap config-server-share config-server $NS
 
   echo Running salt generator job
   helm -n $NS install idrepo-saltgen  mosip/idrepo-saltgen --version $CHART_VERSION --wait --wait-for-jobs
