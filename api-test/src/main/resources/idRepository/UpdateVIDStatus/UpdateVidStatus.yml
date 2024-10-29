@@ -2,7 +2,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withInvalidversion_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID status passing invalid version
-      uniqueIdentifier: TC_Updatevidstatus_invalidversion_vidtype_temp_19
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_01
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -24,7 +24,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withInvalidRequestTime_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID status passing invalid requesttime
-      uniqueIdentifier: TC_Updatevidstatus_invalidrequesttime_vidtype_temp_15
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_02
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -46,7 +46,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withInvalidVIDStatus_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID status passing invalid VID status
-      uniqueIdentifier: TC_Updatevidstatus_invalidvidstatus_vidtype_temp_17
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_03
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -68,7 +68,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withInvalidId_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID status passing invalid ID
-      uniqueIdentifier: TC_Updatevidstatus_invalidid_vidtype_temp_13
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_04
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -90,7 +90,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withMissingverion_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID status without version
-      uniqueIdentifier: TC_Updatevidstatus_missingversion_vidtype_temp_27
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_05
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -112,7 +112,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withMissingRequestTime_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID status without requesttime
-      uniqueIdentifier: TC_Updatevidstatus_missingrequesttime_vidtype_temp_23
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_06
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -134,7 +134,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withMissingId_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID status without passing ID
-      uniqueIdentifier: TC_Updatevidstatus_missingId_vidtype_temp_21
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_07
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -156,7 +156,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withMissingVIDStatus_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID status without passing VID status
-      uniqueIdentifier: TC_Updatevidstatus_missingvisstatus_vidtype_temp_25
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_08
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -178,7 +178,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withVidStatus_USED_For_Vid Type_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update perpetual VID status
-      uniqueIdentifier: TC_Updatevidstatus_Revoke_vidtype_perp_38
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_09
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -196,7 +196,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withInvalidversion_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update perpetual VID status passing invalid version
-      uniqueIdentifier: TC_Updatevidstatus_invalidversion_vidtype_perp_18
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_10
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -218,7 +218,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withInvalidVIDStatus_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update perpetual VID status passing invalid VID status
-      uniqueIdentifier: TC_Updatevidstatus_invalidstatus_vidtype_perp_16
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_11
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -240,7 +240,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withInvalidRequestTime_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update perpetual VID status passing invalid requesttime
-      uniqueIdentifier : TC_Updatevidstatus_invalidrequesttime_vidtype_perp_14
+      uniqueIdentifier : TC_IDRepo_UpdateVIDStatus_12
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -262,7 +262,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withInvalidId_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update perpetual VID status passing invalid ID
-      uniqueIdentifier: TC_Updatevidstatus_invalidid_vidtype_per_12
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_13
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -284,7 +284,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withMissingverion_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update perpetual VID status removing the version
-      uniqueIdentifier: TC_Updatevidstatus_missingversion_vidtype_perp_26
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_14
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -306,7 +306,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withMissingRequestTime_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update perpetual VID status removing requesttime
-      uniqueIdentifier: TC_Updatevidstatus_missingrequesttime_vidtype_perp_22
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_15
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -328,7 +328,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withMissingVIDStatus_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update perpetual VID status removing VID status
-      uniqueIdentifier: TC_Updatevidstatus_missingvisstatus_vidtype_perp_24
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_16
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -350,7 +350,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withMissingId_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update perpetual VID status removing ID field
-      uniqueIdentifier: TC_Updatevidstatus_missingId_vidtype_perp_20
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_17
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -372,7 +372,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withEmptyversion_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID status passing empty version
-      uniqueIdentifier: TC_Updatevidstatus_emptyversion_vidtypetemp_09
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_18
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -394,7 +394,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withEmptyRequestTime_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID status passing empty request time
-      uniqueIdentifier: TC_Updatevidstatus_emptyrequesttime_vidtypetemp_06
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_19
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -416,7 +416,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withEmptyVIDStatus_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID status passing empty VID status
-      uniqueidentifier: TC_Updatevidstatus_emptyvidstatus_vidtypetemp_07
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_20
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -438,7 +438,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withEmptyId_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID status passing empty ID
-      uniqueIdentifier: TC_Updatevidstatus_emptyid_vidtypetemp_04
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_21
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -460,7 +460,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withSpaceValverion_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID passing space in status field
-      uniqueIdentifier: TC_Updatevidstatus_spacevalversion_vidtype_temp_35
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_22
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -482,7 +482,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withSpaceValRequestTime_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID status passing space in request time
-      uniqueIdentifier: TC_Updatevidstatus_spacevalrequesttime_vidtype_temp_31
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_23
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -504,7 +504,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withSpaceValId_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID status passing space value in ID field
-      uniqueIdentifier: TC_Updatevidstatus_spacevalid_vidtype_temp_29
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_24
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -526,7 +526,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withSpaceValVIDStatus_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID status passing space value in VID status
-      uniqueIdentifier: TC_Updatevidstatus_spacevalvidstatus_vidtype_temp_33
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_25
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -548,7 +548,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withEmptyversion_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Perpetual VID status passing empty version
-      uniqueIdentifier: TC_Updatevidstatus_emptyversion_vidtypeper_10
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_26
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -570,7 +570,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withEmptyVIDStatus_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Perpetual VID status passing empty VID status
-      uniqueIdentifier: TC_Updatevidstatus_emptyvidstatus_vidtypeperp_08
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_27
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -592,7 +592,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withEmptyRequestTime_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Perpetual VID status passing empty request time
-      uniqueIdentifier: TC_Updatevidstatus_emptyrequesttime_vidtypeperp_05
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_28
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -614,7 +614,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withEmptyId_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update perpetual VID status passing empty ID
-      uniqueIdentifier: TC_Updatevidstatus_emptyid_vidtypeperp_05
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_29
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -636,7 +636,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withSpaceValverion_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update perpetual VID status passing empty space version
-      uniqueIdentifier: TC_Updatevidstatus_spacevalversion_vidtype_perp_34
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_30
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -658,7 +658,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withSpaceValRequestTime_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update perpetual VID status passing empty space value in requesttime
-      uniqueIdentifier: TC_Updatevidstatus_spacevalrequesttime_vidtype_perp_30
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_31
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -680,7 +680,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withSpaceValVIDStatus_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update perpetual VID status passing empty space in vidstatus
-      uniqueIdentifier: TC_Updatevidstatus_spacevalvidstatus_vidtype_perp_32
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_32
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -702,7 +702,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withSpaceValId_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update perpetual VID status passing space
-      uniqueIdentifier: TC_Updatevidstatus_spacevalid_vidtype_perp_28
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_33
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -725,7 +725,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_EXPIRE_Invalid_IndividualId:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update VID status passing invalid Individual ID
-      uniqueIdentifier: TC_Updatevidstatus_expired_invalidindividualid_02
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_34
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -748,7 +748,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_EXPIRE_Empty_IndividualId:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update VID status passing expired in vidstatus
-      uniqueIdentifier: TC_Updatevidstatus_expired_emptyindividualid_01
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_35
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -771,7 +771,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_EXPIRE_SpaceVal_IndividualId:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update VID status passing space
-      uniqueIdentifier: TC_Updatevidstatus_expired_spacevalindividualid_03
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_36
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -794,7 +794,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withPastRequestTime_Neg:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update VID status passing past requesttime
-      uniqueIdentifier: TC_Updatevidstatus_pastRequestTime_39
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_37
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -817,7 +817,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withFutureRequestTime_Neg:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update VID status passing future requesttime
-      uniqueIdentifier: TC_Updatevidstatus_futurerequesttime_11
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_38
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -840,7 +840,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_EXPIRE_For_Vid_Type_Perpetual_smoke:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update VID status passing vid status expired
-      uniqueIdentifier: TC_Updatevidstatus_expired_svidtypeperp_39
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_39
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -858,7 +858,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_Deactivated_For_Vid_Type_Perpetual_smoke:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update perpetual VID status passing deactivated vid status
-      uniqueIdentifier: TC_Updatevidstatus_deactivated_vidtypeperp_40
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_40
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -876,7 +876,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_Deactivated_For_Vid_Type_Temporary_smoke:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID status passing deactivated vid status
-      uniqueIdentifier: TC_Updatevidstatus_deactivated_vidtypetemp_40
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_41
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -894,7 +894,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withVidStatus_REVOKE_for_USED_smokeVID_For_Vid_Type_Perpetual:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update perpetual VID status passing  vid status as revoked
-      uniqueIdentifier: TC_Updatevidstatus_Revoke_vidtype_perp_36
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_42
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -912,7 +912,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_withVidStatus_REVOKE_for_USED_smokeVID_For_Vid_Type_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID status passing vid status as revoked
-      uniqueIdentifier: TC_Updatevidstatus_Revoke_vidtype_temp_37
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_43
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
@@ -930,7 +930,7 @@ UpdateVidStatus:
   IdRepository_UpdateVidStatus_Activate_withValidParameters_For_Vid_Type_Temporary:
       endPoint: /idrepository/v1/vid/{VID}
       description: Update Temporary VID status passing valid parameters
-      uniqueIdentifier: TC_Updatevidstatus_activatevidtypetemp_41
+      uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_44
       role: idrepo
       restMethod: PATCH
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus

@@ -2,7 +2,7 @@ RetrieveAuthTypeStatus:
   IdRepository_RetrieveAuthTypeStatus_Uin_Active_smoke:
       endPoint: /idrepository/v1/identity/authtypes/status/{ID}
       description: Retrieve Auth type status passing valid ID
-      uniqueIdentifier: TC_Retrieve_UIN_01
+      uniqueIdentifier: TC_IDRepo_RetrieveAuthTypeStatus_01
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: get
@@ -20,7 +20,7 @@ RetrieveAuthTypeStatus:
   IdRepository_RetrieveAuthTypeStatus_Vid_Active_smoke:
       endPoint: /idrepository/v1/identity/authtypes/status/{ID}
       description: Retrieve Auth status passing valid VID
-      uniqueIdentifier: TC_Retrieve_Authstatus_VID_02
+      uniqueIdentifier: TC_IDRepo_RetrieveAuthTypeStatus_02
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: get
@@ -38,7 +38,7 @@ RetrieveAuthTypeStatus:
   IdRepository_RetrieveAuthTypeStatus_Uin_Invalid_Id_Neg:
       endPoint: /idrepository/v1/identity/authtypes/status/{ID}
       description: Retrieve Auth type status passing Invalid UIN
-      uniqueIdentifier: TC_Retrieve_Authstatus_InvalidVID_03
+      uniqueIdentifier: TC_IDRepo_RetrieveAuthTypeStatus_03
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatus
@@ -57,7 +57,7 @@ RetrieveAuthTypeStatus:
   IdRepository_RetrieveAuthTypeStatus_Uin_Empty_Id_Neg:
       endPoint: /idrepository/v1/identity/authtypes/status/{ID}
       description: Retrieve Auth type status passing empty UIN
-      uniqueIdentifier: TC_Retrieve_Authstatus_emptyUIN_04
+      uniqueIdentifier: TC_IDRepo_RetrieveAuthTypeStatus_04
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatus
@@ -76,7 +76,7 @@ RetrieveAuthTypeStatus:
   IdRepository_RetrieveAuthTypeStatus_Uin_SpaceVal_Id_Neg:
       endPoint: /idrepository/v1/identity/authtypes/status/{ID}
       description: Retrieve Auth type status passing space in UIN field
-      uniqueIdentifier: TC_Retrieve_Authstatus_space_05
+      uniqueIdentifier: TC_IDRepo_RetrieveAuthTypeStatus_05
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatus
@@ -95,7 +95,7 @@ RetrieveAuthTypeStatus:
   IdRepository_RetrieveAuthTypeStatus_Vid_Invalid_Id_Neg:
       endPoint: /idrepository/v1/identity/authtypes/status/{ID}
       description: Retrieve Auth type status passing invalid VID
-      uniqueIdentifier: TC_Retrieve_Authstatus_invalidID_06
+      uniqueIdentifier: TC_IDRepo_RetrieveAuthTypeStatus_06
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatus
@@ -114,7 +114,7 @@ RetrieveAuthTypeStatus:
   IdRepository_RetrieveAuthTypeStatus_Vid_Empty_Id_Neg:
       endPoint: /idrepository/v1/identity/authtypes/status/{ID}
       description: Retrieve Auth type status passing empty VID
-      uniqueIdentifier: TC_Retrieve_Authstatus_emptyID_07
+      uniqueIdentifier: TC_IDRepo_RetrieveAuthTypeStatus_07
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatus
@@ -133,7 +133,7 @@ RetrieveAuthTypeStatus:
   IdRepository_RetrieveAuthTypeStatus_Vid_SpaceVal_Id_Neg:
       endPoint: /idrepository/v1/identity/authtypes/status/{ID}
       description: Retrieve Auth type status passing space in VID field
-      uniqueIdentifier: TC_Retrieve_Authstatus_space_08
+      uniqueIdentifier: TC_IDRepo_RetrieveAuthTypeStatus_08
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatus

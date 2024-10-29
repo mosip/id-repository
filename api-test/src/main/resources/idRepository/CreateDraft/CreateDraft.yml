@@ -2,7 +2,7 @@ CreateDraft:
   IdRepository_CreateDraft_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/create/{registrationId}
       description: Create a draft passing valid registrationID
-      uniqueIdentifier: TC_createdraft_validRID_01
+      uniqueIdentifier: TC_IDRepo_CreateDraft_01
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -17,7 +17,7 @@ CreateDraft:
   IdRepository_Verify_UIN_Only_One_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/create/{registrationId}
       description: Verify UIN passing valid registration ID
-      uniqueIdentifier: TC_UIN_validRID_02
+      uniqueIdentifier: TC_IDRepo_CreateDraft_02
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateDraft/createDraft
@@ -35,7 +35,7 @@ CreateDraft:
   IdRepository_CreateDraft_delete_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/create/{registrationId}
       description: Delete a draft passing valid registartionId
-      uniqueIdentifier: TC_deletedraft_validRID_03
+      uniqueIdentifier: TC_IDRepo_CreateDraft_03
       role: idrepo
       restMethod: post
       checkErrorsOnlyInResponse: true
@@ -49,7 +49,7 @@ CreateDraft:
   IdRepository_CreateDraft_invalid_rid:
       endPoint: /idrepository/v1/identity/draft/create/{registrationId}
       description: Create a draft passing invalid RID
-      uniqueIdentifier: TC_deletedraft_invalidRID_04
+      uniqueIdentifier: TC_IDRepo_CreateDraft_01
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateDraft/createDraft
@@ -67,7 +67,7 @@ CreateDraft:
   IdRepository_CreateDraft_blank_rid:
       endPoint: /idrepository/v1/identity/draft/create/{registrationId}
       description: Create a draft passing blank RID
-      uniqueIdentifier: TC_createdraft_blankRID_05
+      uniqueIdentifier: TC_IDRepo_CreateDraft_06
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateDraft/createDraft
