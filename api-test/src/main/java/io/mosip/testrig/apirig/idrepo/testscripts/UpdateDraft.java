@@ -1,4 +1,4 @@
-package io.mosip.testrig.apirig.testscripts;
+package io.mosip.testrig.apirig.idrepo.testscripts;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -11,6 +11,7 @@ import org.testng.ITestContext;
 import org.testng.ITestResult;
 import org.testng.Reporter;
 import org.testng.SkipException;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -20,20 +21,20 @@ import org.testng.internal.TestResult;
 
 import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
+import io.mosip.testrig.apirig.idrepo.utils.IdRepoConfigManager;
+import io.mosip.testrig.apirig.idrepo.utils.IdRepoUtil;
 import io.mosip.testrig.apirig.testrunner.BaseTestCase;
 import io.mosip.testrig.apirig.testrunner.HealthChecker;
 import io.mosip.testrig.apirig.utils.AdminTestException;
 import io.mosip.testrig.apirig.utils.AdminTestUtil;
 import io.mosip.testrig.apirig.utils.AuthenticationTestException;
-import io.mosip.testrig.apirig.utils.IdRepoConfigManager;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
-import io.mosip.testrig.apirig.utils.IdRepoUtil;
 import io.mosip.testrig.apirig.utils.OutputValidationUtil;
 import io.mosip.testrig.apirig.utils.ReportUtil;
 import io.restassured.response.Response;
 
-public class PatchWithPathParamsAndBody extends AdminTestUtil implements ITest {
-	private static final Logger logger = Logger.getLogger(PatchWithPathParamsAndBody.class);
+public class UpdateDraft extends AdminTestUtil implements ITest {
+	private static final Logger logger = Logger.getLogger(UpdateDraft.class);
 	protected String testCaseName = "";
 	String pathParams = null;
 	public Response response = null;
@@ -68,7 +69,6 @@ public class PatchWithPathParamsAndBody extends AdminTestUtil implements ITest {
 	}
 
 	/**
-	 * Test method for OTP Generation execution
 	 * 
 	 * @param objTestParameters
 	 * @param testScenario
@@ -77,9 +77,10 @@ public class PatchWithPathParamsAndBody extends AdminTestUtil implements ITest {
 	 * @throws AdminTestException
 	 */
 	@Test(dataProvider = "testcaselist")
-	public void test(TestCaseDTO testCaseDTO) throws AdminTestException {
+	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException {
 		testCaseName = testCaseDTO.getTestCaseName();
 		testCaseName = IdRepoUtil.isTestCaseValidForExecution(testCaseDTO);
+		testCaseDTO.setInputTemplate(AdminTestUtil.generateHbsForUpdateDraft());
 		if (HealthChecker.signalTerminateExecution) {
 			throw new SkipException(
 					GlobalConstants.TARGET_ENV_HEALTH_CHECK_FAILED + HealthChecker.healthCheckFailureMapS);
@@ -91,9 +92,8 @@ public class PatchWithPathParamsAndBody extends AdminTestUtil implements ITest {
 				throw new SkipException(GlobalConstants.VID_FEATURE_NOT_SUPPORTED);
 			}
 		}
-
-		testCaseDTO = AdminTestUtil.filterHbs(testCaseDTO);
-		String inputJson = filterInputHbs(testCaseDTO);
+		String jsonInput = testCaseDTO.getInput();
+		String inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
 
 		response = patchWithPathParamsBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 				testCaseDTO.getRole(), testCaseDTO.getTestCaseName(), pathParams);
@@ -106,19 +106,6 @@ public class PatchWithPathParamsAndBody extends AdminTestUtil implements ITest {
 		if (!OutputValidationUtil.publishOutputResult(ouputValid))
 			throw new AdminTestException("Failed at output validation");
 
-	}
-
-	private String filterInputHbs(TestCaseDTO testCaseDTO) {
-		String inputJson = getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate());
-
-		if (inputJson.contains(GlobalConstants.$1STLANG$))
-			inputJson = inputJson.replace(GlobalConstants.$1STLANG$, BaseTestCase.languageList.get(0));
-		if (inputJson.contains(GlobalConstants.$2STLANG$))
-			inputJson = inputJson.replace(GlobalConstants.$2STLANG$, BaseTestCase.languageList.get(1));
-		if (inputJson.contains(GlobalConstants.$3STLANG$))
-			inputJson = inputJson.replace(GlobalConstants.$3STLANG$, BaseTestCase.languageList.get(2));
-
-		return inputJson;
 	}
 
 	/**
@@ -139,5 +126,19 @@ public class PatchWithPathParamsAndBody extends AdminTestUtil implements ITest {
 		} catch (Exception e) {
 			Reporter.log("Exception : " + e.getMessage());
 		}
+	}
+
+	@AfterClass(alwaysRun = true)
+	public void waittime() {
+
+		try {
+			logger.info(
+					"waiting for" + properties.getProperty("Delaytime") + " mili secs after UIN Generation In IDREPO");
+			Thread.sleep(Long.parseLong(properties.getProperty("Delaytime")));
+		} catch (Exception e) {
+			logger.error("Exception : " + e.getMessage());
+			Thread.currentThread().interrupt();
+		}
+
 	}
 }
