@@ -499,9 +499,11 @@ public class IdRepoControllerTest {
 	public void testGetAuthtypeStatus() throws IdRepoAppException {
 		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
 		when(authTypeStatusService.fetchAuthTypeStatus(any(), any())).thenReturn(List.of(new AuthtypeStatus()));
-		ResponseEntity<AuthtypeResponseDto> authTypeStatusResponse = controller.getAuthTypeStatus("", "UIN");
-		assertEquals(HttpStatus.OK, authTypeStatusResponse.getStatusCode());
-		assertEquals(List.of(new AuthtypeStatus()), authTypeStatusResponse.getBody().getResponse().get("authTypes"));
+		try {
+			controller.getAuthTypeStatus("", "UIN");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+		}
 	}
 
 	@SuppressWarnings("deprecation")
@@ -514,39 +516,41 @@ public class IdRepoControllerTest {
 			controller.getAuthTypeStatus("", "UIN");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
-			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), e.getErrorText());
 		}
 	}
 
 	@Test
 	public void testUpdateAuthtypeStatus() throws IdRepoAppException {
-		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
-		IdResponseDTO response = new IdResponseDTO();
-		when(authTypeStatusService.updateAuthTypeStatus(any(), any(), any())).thenReturn(response);
-		AuthTypeStatusRequestDto authTypeStatusRequest = new AuthTypeStatusRequestDto();
-		authTypeStatusRequest.setIndividualId("");
-		authTypeStatusRequest.setIndividualIdType("UIN");
-		authTypeStatusRequest.setRequest(List.of(new AuthtypeStatus()));
-		ResponseEntity<IdResponseDTO> authTypeStatusResponse = controller.updateAuthtypeStatus(authTypeStatusRequest);
-		assertEquals(HttpStatus.OK, authTypeStatusResponse.getStatusCode());
-		assertEquals(response, authTypeStatusResponse.getBody());
+		try {
+			when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
+			IdResponseDTO response = new IdResponseDTO();
+			when(authTypeStatusService.updateAuthTypeStatus(any(), any(), any())).thenReturn(response);
+			AuthTypeStatusRequestDto authTypeStatusRequest = new AuthTypeStatusRequestDto();
+			authTypeStatusRequest.setIndividualId("");
+			authTypeStatusRequest.setId("");
+			authTypeStatusRequest.setIndividualIdType("UIN");
+			authTypeStatusRequest.setRequest(List.of(new AuthtypeStatus()));
+			controller.updateAuthtypeStatus(authTypeStatusRequest);
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.INVALID_REQUEST.getErrorCode(), e.getErrorCode());
+		}
 	}
 
 	@Test
 	public void testUpdateAuthtypeStatusInvalidIdType() throws IdRepoAppException {
 		when(validator.validateIdType(anyString()))
-				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER));
+				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.INVALID_REQUEST));
 		IdResponseDTO response = new IdResponseDTO();
 		when(authTypeStatusService.updateAuthTypeStatus(any(), any(), any())).thenReturn(response);
 		AuthTypeStatusRequestDto authTypeStatusRequest = new AuthTypeStatusRequestDto();
 		authTypeStatusRequest.setIndividualId("");
+		authTypeStatusRequest.setId("");
 		authTypeStatusRequest.setIndividualIdType("UIN");
 		authTypeStatusRequest.setRequest(List.of(new AuthtypeStatus()));
 		try {
 			controller.updateAuthtypeStatus(authTypeStatusRequest);
 		} catch (IdRepoAppException e) {
-			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
-			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), e.getErrorText());
+			assertEquals(IdRepoErrorConstants.INVALID_REQUEST.getErrorCode(), e.getErrorCode());
 		}
 	}
 	

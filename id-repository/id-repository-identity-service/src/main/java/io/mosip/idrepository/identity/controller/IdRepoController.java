@@ -69,6 +69,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import springfox.documentation.annotations.ApiIgnore;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * The Class IdRepoController - Controller class for Identity service. These
@@ -344,6 +345,9 @@ public class IdRepoController {
 		boolean isIdTypeValid = false;
 		IdType idType = null;
 		try {
+			if(StringUtils.isEmpty(individualId.trim())){
+				throw new IdRepoAppException("IDR-IDC-002", "Invalid Input Parameter");
+			}
 			idType = validator.validateIdType(individualIdType);
 			isIdTypeValid = true;
 			validator.validateIdvId(individualId, idType);
@@ -405,20 +409,23 @@ public class IdRepoController {
 			@RequestBody AuthTypeStatusRequestDto authTypeStatusRequest) throws IdRepoAppException {
 		String individualId = authTypeStatusRequest.getIndividualId();
 		try {
-			authTypeStatusRequest.setIndividualIdType(Objects.nonNull(authTypeStatusRequest.getIndividualIdType())
-					? authTypeStatusRequest.getIndividualIdType()
-					: getIdType(individualId).getIdType());
-			IdType idType = validator.validateIdType(authTypeStatusRequest.getIndividualIdType());
-			validator.validateIdvId(individualId, idType);
-			validator.validateAuthTypes(authTypeStatusRequest.getRequest());
-			IdResponseDTO updateAuthtypeStatus = authTypeStatusService.updateAuthTypeStatus(
-					individualId, idType, authTypeStatusRequest.getRequest());
-			String individualIdType = authTypeStatusRequest.getIndividualIdType();
-			auditHelper.audit(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
-					individualId,
-					individualIdType == null ? IdType.UIN : IdType.valueOf(individualIdType),
-					"auth type status update status : " + true);
-			return new ResponseEntity<>(updateAuthtypeStatus, HttpStatus.OK);
+			if(StringUtils.isEmpty(authTypeStatusRequest.getId().trim()) || StringUtils.isEmpty(authTypeStatusRequest.getVersion().trim())  || StringUtils.isEmpty(authTypeStatusRequest.getRequestTime().trim())){
+				throw new IdRepoAppException("IDR-IDC-003", "Invalid Request");
+			}
+				authTypeStatusRequest.setIndividualIdType(Objects.nonNull(authTypeStatusRequest.getIndividualIdType())
+						? authTypeStatusRequest.getIndividualIdType()
+						: getIdType(individualId).getIdType());
+				IdType idType = validator.validateIdType(authTypeStatusRequest.getIndividualIdType());
+				validator.validateIdvId(individualId, idType);
+				validator.validateAuthTypes(authTypeStatusRequest.getRequest());
+				IdResponseDTO updateAuthtypeStatus = authTypeStatusService.updateAuthTypeStatus(
+						individualId, idType, authTypeStatusRequest.getRequest());
+				String individualIdType = authTypeStatusRequest.getIndividualIdType();
+				auditHelper.audit(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
+						individualId,
+						individualIdType == null ? IdType.UIN : IdType.valueOf(individualIdType),
+						"auth type status update status : " + true);
+				return new ResponseEntity<>(updateAuthtypeStatus, HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "updateAuthtypeStatus",
 					e.getMessage());
