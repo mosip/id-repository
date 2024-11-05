@@ -1,4 +1,4 @@
-package io.mosip.testrig.apirig.testrunner;
+package io.mosip.testrig.apirig.idrepo.testrunner;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,11 +24,15 @@ import com.nimbusds.jose.jwk.RSAKey;
 
 import io.mosip.testrig.apirig.dataprovider.BiometricDataProvider;
 import io.mosip.testrig.apirig.dbaccess.DBManager;
+import io.mosip.testrig.apirig.idrepo.utils.IdRepoConfigManager;
+import io.mosip.testrig.apirig.testrunner.BaseTestCase;
+import io.mosip.testrig.apirig.testrunner.ExtractResource;
+import io.mosip.testrig.apirig.testrunner.HealthChecker;
+import io.mosip.testrig.apirig.testrunner.OTPListener;
 import io.mosip.testrig.apirig.utils.AdminTestUtil;
 import io.mosip.testrig.apirig.utils.AuthTestsUtil;
 import io.mosip.testrig.apirig.utils.CertsUtil;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
-import io.mosip.testrig.apirig.utils.IdRepoConfigManager;
 import io.mosip.testrig.apirig.utils.JWKKeyUtil;
 import io.mosip.testrig.apirig.utils.KeyCloakUserAndAPIKeyGeneration;
 import io.mosip.testrig.apirig.utils.KeycloakUserManager;
