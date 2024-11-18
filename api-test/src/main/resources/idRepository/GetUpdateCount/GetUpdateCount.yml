@@ -48,7 +48,13 @@ GetUpdateCount:
       "idType": "UIN",
        "attribute_list": "fullName"
 }'
-      output: "404"
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
 
    IdRepository_GetUpdateCount_Uin_SpaceVal_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
@@ -129,11 +135,17 @@ GetUpdateCount:
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
       outputTemplate: idRepository/error
       input: '{
-      "individualId": "",
+      "individualId": " ",
       "idType": "VID",
        "attribute_list": "fullName"
 }'
-      output: "404"
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
 
    IdRepository_GetUpdateCount_Uin_SppaceVal_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
@@ -150,7 +162,7 @@ GetUpdateCount:
       output: '{
   "errors": [
     {
-      "errorCode": "IDR-IDC-003"
+      "errorCode": "IDR-IDC-002"
     }
   ]
 }'

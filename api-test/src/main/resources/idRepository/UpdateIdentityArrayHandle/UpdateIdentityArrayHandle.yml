@@ -2,7 +2,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_value_all_valid_smoke:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with positive value
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -30,7 +30,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_value_withupdatevalues:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with update value
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -58,7 +58,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_value_withupdatetags:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with update tag
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -86,7 +86,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_withupdatetagsandhandles:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with update tag and selected handles
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -114,7 +114,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_withmultipledemohandles:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with multiple demo handles
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -142,7 +142,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_withdeletehandlefromrecord:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with delete handle from the record
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -170,7 +170,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_withupdatedselectedhandle:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with update selected handle
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -198,7 +198,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_withupdatedselectedhandleanddemo:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with update selected handle and demo field
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -226,7 +226,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_withupdatedselectedhandleandfirstattribute:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with selected handle and first attribute
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -254,7 +254,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_withremovedtaggedattribute:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with value remove tag attribute
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -283,7 +283,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_withemptyhandles:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with empty selected handles
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -311,7 +311,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_withouthandlesattr:
       endPoint: /idrepository/v1/identity/
       description: Update Identity without selected handle attribute
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -339,7 +339,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_witharandomnonhandleattr:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with random handle attribute
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -367,7 +367,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParameters_smoke_Post_array_handle_value_withonehandle:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with one selected handle
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -395,7 +395,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParameters_smoke_Post_array_handle_value_upddatefirstsecondhandle:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with update first and second handle value
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -423,7 +423,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParameters_smoke_Post_array_handle_value_upddatehandlewithinvaliddemo:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with update handle with invalid demo field
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -452,7 +452,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParameters_smoke_Post_array_handle_value_withoutselectedhandlesandattri:
       endPoint: /idrepository/v1/identity/
       description: Update Identity without selected handles and attribute
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -480,7 +480,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_withonedemofield:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with selected handles and one demo field
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -508,7 +508,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_withalldemofieldsremoved:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with selected handles and all demo field removed
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -536,7 +536,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_withemptyselectedhandle:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with empty selected handles
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -564,7 +564,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_withinvaliddhandle:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with invalid selected handles
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -592,7 +592,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_updateselectedhandleswithinvalid:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with invalid selected handles
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -620,7 +620,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_updateselectedhandleswithscehmaattrwhichisnothandle:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with scehma attribute which is not in selected handles
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -629,7 +629,7 @@ UpdateIdentity:
         "id": "mosip.id.update",
 		"status": "ACTIVATED",
 	    "addressCopy": "Y",
-	    "UIN": "$ID:AddIdentity_array_updatehandles_value_smoke_Pos_UIN$",
+	    "UIN": "$ID:AddIdentity_handle_array_updatehandles_value_smoke_Pos_UIN$",
 	    "dateOfBirth": "1992/04/15",
 	    "postalCode": "14022",
 	    "email": "mosipuser123@mailinator.com",
@@ -648,7 +648,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_removeselectedhandle_updatephone:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with remove selected handles and update phone
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -676,7 +676,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_withupdatedhandlewhichisnotinschema:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with update selected handles which is not in schema
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -685,7 +685,7 @@ UpdateIdentity:
         "id": "mosip.id.update",
 		"status": "ACTIVATED",
 	    "addressCopy": "Y",
-	    "UIN": "$ID:AddIdentity_array_updateselectedhandles_value_smoke_Pos_UIN$",
+	    "UIN": "$ID:AddIdentity_array_handle_updateselectedhandles_value_smoke_Pos_UIN$",
 	    "dateOfBirth": "1992/04/15",
 	    "postalCode": "14022",
 	    "email": "mosipuser123@mailinator.com",
@@ -704,7 +704,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_replaceselectedhandles:
       endPoint: /idrepository/v1/identity/
       description: Update Identity selectedhandles to phone while creating it was email
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -713,7 +713,7 @@ UpdateIdentity:
         "id": "mosip.id.update",
 		"status": "ACTIVATED",
 	    "addressCopy": "Y",
-	    "UIN": "$ID:AddIdentity_array_updateselectedhandles_value_Pos_replaceselectedhandles_UIN$",
+	    "UIN": "$ID:AddIdentity_array_handle_updateselectedhandles_value_Pos_replaceselectedhandles_UIN$",
 	    "dateOfBirth": "1992/04/15",
 	    "postalCode": "14022",
 	    "email": "mosipuser123@mailinator.com",
@@ -732,7 +732,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_updatewithphoneemail:
       endPoint: /idrepository/v1/identity/
       description: Update Identity selectedhandles to phone & email while creating it was only email
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -741,7 +741,7 @@ UpdateIdentity:
         "id": "mosip.id.update",
 		"status": "ACTIVATED",
 	    "addressCopy": "Y",
-	    "UIN": "$ID:AddIdentity_array_updateselectedhandles_value_Pos_onlywithemail_UIN$",
+	    "UIN": "$ID:AddIdentity_handle_array_updateselectedhandles_value_Pos_onlywithemail_UIN$",
 	    "dateOfBirth": "1992/04/15",
 	    "postalCode": "14022",
 	    "email": "mosipuser123@mailinator.com",
@@ -760,7 +760,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_update_smoke:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with selectedhandles when add identity is not having selected handles
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -769,7 +769,7 @@ UpdateIdentity:
         "id": "mosip.id.update",
 		"status": "ACTIVATED",
 	    "addressCopy": "Y",
-	    "UIN": "$ID:AddIdentity_array_updateselectedhandles_value_Pos_withoutselectedhandlesinidentity_UIN$",
+	    "UIN": "$ID:AddIdentity_array_handle_updateselectedhandles_value_Pos_withoutselectedhandlesinidentity_UIN$",
 	    "dateOfBirth": "1992/04/15",
 	    "postalCode": "14022",
 	    "email": "mosipuser123@mailinator.com",
@@ -788,7 +788,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_value_all_valid_smoke_withusedphone:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with used phone value
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/error
@@ -820,7 +820,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_phone_handle_value_withemptyselectedhandle:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing empty selecthandles with selected handle phone value uin
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
@@ -848,10 +848,10 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_handle_value_withphonevalue:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing phone value without selected handle uin
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
-      outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
+      outputTemplate: idRepository/error
       input: '{
 	    "registrationId": "$RID$",
         "id": "mosip.id.update",
@@ -870,13 +870,17 @@ UpdateIdentity:
 	    "category": "individualBiometrics",
 	    "requesttime": "$TIMESTAMP$"
 	  }'
-      output: '{
-    "status": "ACTIVATED"
-}'
+      output: '	  {
+        "errors": [
+          {
+           "errorCode": "IDR-IDC-014"
+          }
+        ]
+      }'
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_handle_value_removeselectedhandlesandupdateemail:
       endPoint: /idrepository/v1/identity/
       description: Update Identity remove selected handle then pass email value
-      role: idrepo
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
       outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
