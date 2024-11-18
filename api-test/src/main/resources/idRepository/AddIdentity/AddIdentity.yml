@@ -1228,7 +1228,7 @@ AddIdentity:
   "status":"ACTIVATED"
 }'
 
-   IdRepository_AddIdentity_AuthStatus_Valid_smoke_Pos:
+   IdRepository_AddIdentity_AuthStatus_Validd_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity for valid Auth status
       role: idrepo

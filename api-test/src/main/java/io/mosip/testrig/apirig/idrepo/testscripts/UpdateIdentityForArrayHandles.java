@@ -1,4 +1,4 @@
-package io.mosip.testrig.apirig.testscripts;
+package io.mosip.testrig.apirig.idrepo.testscripts;
 
 import java.lang.reflect.Field;
 import java.text.DateFormat;
@@ -26,26 +26,26 @@ import org.testng.internal.TestResult;
 
 import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
+import io.mosip.testrig.apirig.idrepo.utils.IdRepoConfigManager;
 import io.mosip.testrig.apirig.testrunner.BaseTestCase;
 import io.mosip.testrig.apirig.testrunner.HealthChecker;
 import io.mosip.testrig.apirig.utils.AdminTestException;
 import io.mosip.testrig.apirig.utils.AdminTestUtil;
 import io.mosip.testrig.apirig.utils.AuthenticationTestException;
-import io.mosip.testrig.apirig.utils.ConfigManager;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
-import io.mosip.testrig.apirig.utils.IdRepoUtil;
 import io.mosip.testrig.apirig.utils.OutputValidationUtil;
+import io.mosip.testrig.apirig.utils.PartnerRegistration;
 import io.mosip.testrig.apirig.utils.ReportUtil;
 import io.restassured.response.Response;
 
-public class UpdateIdentity extends AdminTestUtil implements ITest {
-	private static final Logger logger = Logger.getLogger(UpdateIdentity.class);
+public class UpdateIdentityForArrayHandles extends AdminTestUtil implements ITest {
+	private static final Logger logger = Logger.getLogger(UpdateIdentityForArrayHandles.class);
 	protected String testCaseName = "";
 	private static String identity;
 
 	@BeforeClass
 	public static void setLogLevel() {
-		if (ConfigManager.IsDebugEnabled())
+		if (IdRepoConfigManager.IsDebugEnabled())
 			logger.setLevel(Level.ALL);
 		else
 			logger.setLevel(Level.ERROR);
@@ -91,13 +91,9 @@ public class UpdateIdentity extends AdminTestUtil implements ITest {
 	@Test(dataProvider = "testcaselist")
 	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException {
 		testCaseName = testCaseDTO.getTestCaseName();
-		testCaseName = IdRepoUtil.isTestCaseValidForExecution(testCaseDTO);
-		updateIdentity(testCaseDTO);
 
-	}
 
-	public void updateIdentity(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException {
-
+		testCaseDTO.setInputTemplate(AdminTestUtil.updateIdentityHbs(testCaseDTO.isRegenerateHbs()));
 		testCaseName = testCaseDTO.getTestCaseName();
 		if (HealthChecker.signalTerminateExecution) {
 			throw new SkipException(
@@ -111,59 +107,42 @@ public class UpdateIdentity extends AdminTestUtil implements ITest {
 			}
 		}
 
-		JSONObject req = new JSONObject(testCaseDTO.getInput());
-
-		JSONObject otpReqJson = null;
-		String otpRequest = null;
-		String sendOtpReqTemplate = null;
-		String sendOtpEndPoint = null;
-		if (req.has(GlobalConstants.SENDOTP)) {
-			otpRequest = req.get(GlobalConstants.SENDOTP).toString();
-			req.remove(GlobalConstants.SENDOTP);
-			otpReqJson = new JSONObject(otpRequest);
-			sendOtpReqTemplate = otpReqJson.getString("sendOtpReqTemplate");
-			otpReqJson.remove("sendOtpReqTemplate");
-			sendOtpEndPoint = otpReqJson.getString("sendOtpEndPoint");
-			otpReqJson.remove("sendOtpEndPoint");
-			testCaseDTO.setInput(req.toString());
-
-		}
-		JSONObject res = new JSONObject(testCaseDTO.getOutput());
-		String sendOtpResp = null, sendOtpResTemplate = null;
-		if (res.has(GlobalConstants.SENDOTPRESP)) {
-			sendOtpResp = res.get(GlobalConstants.SENDOTPRESP).toString();
-			res.remove(GlobalConstants.SENDOTPRESP);
-			testCaseDTO.setOutput(res.toString());
-		}
-
 		DateFormat dateFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
 		Calendar cal = Calendar.getInstance();
 		String timestampValue = dateFormatter.format(cal.getTime());
 		String genRid = "27847" + generateRandomNumberString(10) + timestampValue;
 		generatedRid = genRid;
 
-		String inputJson = getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate());
-
-		JSONObject reqJsonObject = new JSONObject(inputJson);
-
-		
-
-		String phone = getValueFromAuthActuator("json-property", "phone_number");
-		String result = phone.replaceAll("\\[\"|\"\\]", "");
-
-		String email = getValueFromAuthActuator("json-property", "emailId");
-		String emailResult = email.replaceAll("\\[\"|\"\\]", "");
+		String inputJson = getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate(), false);
 
 		JSONArray dobArray = new JSONArray(getValueFromAuthActuator("json-property", "dob"));
 		String dob = dobArray.getString(0);
+		String phoneNumber = "";
+		String email = testCaseName +"@mosip.net";
+		
+		
+		if (inputJson.contains("$PHONENUMBERFORIDENTITY$")) {
+			if (!phoneSchemaRegex.isEmpty())
+				try {
+					phoneNumber = genStringAsperRegex(phoneSchemaRegex);
+				} catch (Exception e) {
+					logger.error(e.getMessage());
+				}
+			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber);
+			
+			
+		}
+		if (inputJson.contains("$EMAILVALUE$")) {
+			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", email);
 
-		inputJson = inputJson.replace("\"phone\":", "\"" + result + "\":");
-		inputJson = inputJson.replace("\"email\":", "\"" + emailResult + "\":");
+		}
+		
+		
 
 		inputJson = inputJson.replace("$RID$", genRid);
 
-		if ((testCaseName.startsWith("IdRepository_") || testCaseName.startsWith("Auth_"))
-				&& inputJson.contains("dateOfBirth") && (!isElementPresent(new JSONArray(schemaRequiredField), dob))) {
+		if ((testCaseName.startsWith("IdRepository_")) && inputJson.contains("dateOfBirth")
+				&& (!isElementPresent(new JSONArray(schemaRequiredField), dob))) {
 			JSONObject reqJson = new JSONObject(inputJson);
 			reqJson.getJSONObject("request").getJSONObject("identity").remove("dateOfBirth");
 			inputJson = reqJson.toString();
@@ -171,22 +150,15 @@ public class UpdateIdentity extends AdminTestUtil implements ITest {
 				throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
 
-		if ((testCaseName.startsWith("IdRepository_") || testCaseName.startsWith("Auth_"))
-				&& inputJson.contains("email")
-				&& (!isElementPresent(new JSONArray(schemaRequiredField), emailResult))) {
-			JSONObject reqJson = new JSONObject(inputJson);
-			reqJson.getJSONObject("request").getJSONObject("identity").remove(emailResult);
-			if (reqJson.getJSONObject("request").getJSONObject("identity").has(result)) {
-				reqJson.getJSONObject("request").getJSONObject("identity").remove(result);
-			}
-			if (testCaseName.contains("email") || testCaseName.contains("phonenumber"))
-				throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
-
-			inputJson = reqJson.toString();
+		if (inputJson.contains("$FUNCTIONALID$")) {
+			inputJson = replaceKeywordWithValue(inputJson, "$FUNCTIONALID$", generateRandomNumberString(2)
+					+ Calendar.getInstance().getTimeInMillis());
 		}
 
-		if (inputJson.contains("$PRIMARYLANG$"))
-			inputJson = inputJson.replace("$PRIMARYLANG$", BaseTestCase.languageList.get(0));
+		JSONObject jsonString = new JSONObject(inputJson);
+		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {
+			inputJson = replaceArrayHandleValuesForUpdateIdentity(inputJson,testCaseName);
+		}
 
 		Response response = patchWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 				testCaseDTO.getRole(), testCaseDTO.getTestCaseName());
@@ -197,22 +169,6 @@ public class UpdateIdentity extends AdminTestUtil implements ITest {
 		Reporter.log(ReportUtil.getOutputValidationReport(ouputValid));
 		Assert.assertEquals(OutputValidationUtil.publishOutputResult(ouputValid), true);
 
-		if (otpReqJson != null) {
-			Response otpResponse = null;
-			otpResponse = postRequestWithAuthHeaderAndSignature(ApplnURI + sendOtpEndPoint,
-					getJsonFromTemplate(otpReqJson.toString(), sendOtpReqTemplate), testCaseDTO.getTestCaseName());
-
-			JSONObject sendOtpRespJson = new JSONObject(sendOtpResp);
-			sendOtpResTemplate = sendOtpRespJson.getString("sendOtpResTemplate");
-			sendOtpRespJson.remove("sendOtpResTemplate");
-			Map<String, List<OutputValidationDto>> ouputValidOtp = OutputValidationUtil.doJsonOutputValidation(
-					otpResponse.asString(), getJsonFromTemplate(sendOtpRespJson.toString(), sendOtpResTemplate),
-					testCaseDTO, otpResponse.getStatusCode());
-			Reporter.log(ReportUtil.getOutputValidationReport(ouputValidOtp));
-
-			if (!OutputValidationUtil.publishOutputResult(ouputValidOtp))
-				throw new AdminTestException("Failed at Send OTP output validation");
-		}
 	}
 
 	/**

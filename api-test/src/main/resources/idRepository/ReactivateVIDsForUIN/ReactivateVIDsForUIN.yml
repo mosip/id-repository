@@ -25,16 +25,13 @@ ReactivateVIDs:
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
       outputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUINResult
       input: '{
-    "UIN": "$ID:AddIdentity_ValidParam_smoke_Pos_UIN$",
+    "UIN": "$ID:AddIdentity_For_DeactivateScen_smoke_Pos_UIN$",
     "requesttime": "$TIMESTAMP$",
     "id": "mosip.vid.reactivate",
     "version": "v1"
 }'  
       output: '{
-  "errors": [
-    {
-    }
-  ]
+    "vidStatus": "ACTIVE"
 }'
 
   IdRepository_ReactivateVIDs_Onetime_Smoke_Pos:
