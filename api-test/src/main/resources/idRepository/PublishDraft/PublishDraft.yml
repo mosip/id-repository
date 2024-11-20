@@ -2,6 +2,7 @@ PublishDraft:
   IdRepository_PublishDraft_VID_all_valid_smoke:
       endPoint: /idrepository/v1/identity/draft/publish/{registrationId}
       description: Publish draft VID
+      uniqueIdentifier: TC_IDRepo_PublishDraft_01
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/PublishDraft/publishDraft
@@ -15,6 +16,7 @@ PublishDraft:
   IdRepository_RePublishDraft_VID_Invalid_Neg:
       endPoint: /idrepository/v1/identity/draft/publish/{registrationId}
       description: Re publish draft VID
+      uniqueIdentifier: TC_IDRepo_PublishDraft_02
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/PublishDraft/publishDraft

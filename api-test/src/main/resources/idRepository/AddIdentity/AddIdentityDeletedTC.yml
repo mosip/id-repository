@@ -2,6 +2,7 @@ AddIdentity:
    IdRepository_AddIdentity_with_Empty_phone:
       endPoint: /idrepository/v1/identity/
       description : Creating UIN in Add Identity passing empty value in phone field
+      uniqueIdentifier : TC_IDRepo_AddIdentityArrayHandle_01
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -37,6 +38,7 @@ AddIdentity:
    IdRepository_AddIdentity_with_SpaceVal_phone:
       endPoint: /idrepository/v1/identity/
       description : Creating UIN in Add Identity passing space value in phone field
+      uniqueIdentifier : TC_IDRepo_AddIdentityArrayHandle_02
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -71,6 +73,7 @@ AddIdentity:
    IdRepository_AddIdentity_with_empty_Phone_number:
       endPoint: /idrepository/v1/identity/
       description : Creating UIN in Add Identity removing phone field
+      uniqueIdentifier : TC_IDRepo_AddIdentityArrayHandle_03
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -105,6 +108,7 @@ AddIdentity:
    IdRepository_AddIdentity_with_invalid_phone:
       endPoint: /idrepository/v1/identity/
       description : Creating UIN in Add Identity passing invalid value in phone field
+      uniqueIdentifier : TC_IDRepo_AddIdentityArrayHandle_04
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -139,6 +143,7 @@ AddIdentity:
    IdRepository_AddIdentity_with_less_then_10_digit_phone:
       endPoint: /idrepository/v1/identity/
       description : Creating UIN in Add Identity passing less than 10 digits in phone field
+      uniqueIdentifier : TC_IDRepo_AddIdentityArrayHandle_05
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -173,6 +178,7 @@ AddIdentity:
    IdRepository_AddIdentity_with_more_then_10_digit_phone:
       endPoint: /idrepository/v1/identity/
       description : Creating UIN in Add Identity passing more than 10 digits in phone field
+      uniqueIdentifier : TC_IDRepo_AddIdentityArrayHandle_06
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -207,6 +213,7 @@ AddIdentity:
    IdRepository_AddIdentity_with_morethen_10_digit_numbers:
       endPoint: /idrepository/v1/identity/
       description : Creating UIN in Add Identity passing more than 10 digits in phone field
+      uniqueIdentifier : TC_IDRepo_AddIdentityArrayHandle_07
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -241,6 +248,7 @@ AddIdentity:
    IdRepository_AddIdentity_withcharacter_as_Phone_number:
       endPoint: /idrepository/v1/identity/
       description : Creating UIN in Add Identity passing characters in phone field
+      uniqueIdentifier : TC_IDRepo_AddIdentityArrayHandle_08
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
