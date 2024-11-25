@@ -29,6 +29,7 @@ import org.testng.internal.TestResult;
 
 import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
+import io.mosip.testrig.apirig.idrepo.utils.IdRepoArrayHandle;
 import io.mosip.testrig.apirig.idrepo.utils.IdRepoConfigManager;
 import io.mosip.testrig.apirig.idrepo.utils.IdRepoUtil;
 import io.mosip.testrig.apirig.testrunner.BaseTestCase;
@@ -144,7 +145,7 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 		
 		JSONObject jsonString = new JSONObject(inputJson);
 		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {
-			inputJson = replaceArrayHandleValues(inputJson,testCaseName);
+			inputJson = IdRepoArrayHandle.replaceArrayHandleValues(inputJson,testCaseName);
 		}
 		if (testCaseName.contains("_withInvalidEmail") || testCaseName.contains("_invalid_Email")) {
 			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "@#$DDFFGG");
