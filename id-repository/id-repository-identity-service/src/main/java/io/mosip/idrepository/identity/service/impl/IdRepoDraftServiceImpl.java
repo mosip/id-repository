@@ -102,7 +102,7 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.InvalidJsonException;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
-
+import java.lang.instrument.Instrumentation;
 /**
  * @author Manoj SP
  *
@@ -113,7 +113,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 
 	private static final Logger idrepoDraftLogger = IdRepoLogger.getLogger(IdRepoDraftServiceImpl.class);
 	private static final String COMMA = ",";
-
+	private static volatile Instrumentation globalInstrumentation;
 	private static final String DEFAULT_ATTRIBUTE_LIST = "UIN,verifiedAttributes,IDSchemaVersion";
 
 	@Value("${" + MOSIP_KERNEL_IDREPO_JSON_PATH + "}")
@@ -272,6 +272,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			Configuration configuration = Configuration.builder().options(Option.DEFAULT_PATH_LEAF_TO_NULL).build();
 			DocumentContext inputData = JsonPath.using(configuration).parse(requestDTO.getIdentity());
 			DocumentContext dbData = JsonPath.using(configuration).parse(new String(draftToUpdate.getUinData()));
+			LinkedHashMap<String, Integer> map = dbData.json();
+			int dataLength = map.size();
 			JsonPath uinJsonPath = JsonPath.compile(uinPath.replace(ROOT_PATH, "$"));
 			inputData.set(uinJsonPath, dbData.read(uinJsonPath));
 			super.updateVerifiedAttributes(requestDTO, inputData, dbData);
@@ -281,7 +283,11 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			if (comparisonResult.failed()) {
 				super.updateJsonObject(draftToUpdate.getUinHash(), inputData, dbData, comparisonResult, false);
 			}
-			draftToUpdate.setUinData(convertToBytes(dbData.json()));
+			if(dataLength == 1) {
+				draftToUpdate.setUinData(convertToBytes(dbData.json()));
+			}else {
+				draftToUpdate.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
+			}
 			draftToUpdate.setUinDataHash(securityManager.hash(draftToUpdate.getUinData()));
 			draftToUpdate.setUpdatedBy(IdRepoSecurityManager.getUser());
 			draftToUpdate.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
