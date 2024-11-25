@@ -102,7 +102,6 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.InvalidJsonException;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
-import java.lang.instrument.Instrumentation;
 /**
  * @author Manoj SP
  *
@@ -113,7 +112,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 
 	private static final Logger idrepoDraftLogger = IdRepoLogger.getLogger(IdRepoDraftServiceImpl.class);
 	private static final String COMMA = ",";
-	private static volatile Instrumentation globalInstrumentation;
 	private static final String DEFAULT_ATTRIBUTE_LIST = "UIN,verifiedAttributes,IDSchemaVersion";
 
 	@Value("${" + MOSIP_KERNEL_IDREPO_JSON_PATH + "}")
