@@ -8,7 +8,7 @@ RetrieveVIDByUIN:
       inputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUIN
       outputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUINResult
       input: '{
-      "UIN":"$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$"
+      "UIN":"$ID:AddIdentity_ValidParam_smoke_Pos_UIN$"
       }'
       output: '{
       "vidType": "$IGNORE$"
@@ -27,7 +27,7 @@ RetrieveVIDByUIN:
       output: '{
    "errors": [
     {
-      "errorCode": "IDR-VID-003"
+      "errorCode": "IDR-IDC-007"
     }
   ]
 }'
@@ -93,7 +93,7 @@ RetrieveVIDByUIN:
       output: '{
    "errors": [
     {
-      "errorCode": "IDR-IDC-002"
+      "errorCode": "IDR-IDC-003"
     }
   ]
 }'
