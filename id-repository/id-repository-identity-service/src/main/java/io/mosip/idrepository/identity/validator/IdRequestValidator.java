@@ -8,7 +8,6 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.VERIFIED_ATTRI
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -22,6 +21,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.idrepository.core.dto.IdRequestByIdDTO;
 
@@ -253,7 +253,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 							String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), ROOT_PATH));
 				} else {
 					validateDocuments(requestMap, errors);
-					validateVerifiedAttributes(requestMap);
+					validateVerifiedAttributes(requestMap,errors);
 					requestMap.keySet().parallelStream().filter(key -> !key.contentEquals(ROOT_PATH)).forEach(requestMap::remove);
 					if (!errors.hasErrors()) {
 						String schemaVersion;
@@ -313,7 +313,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 * @throws InvalidIdSchemaException
 	 */
 	@SuppressWarnings("unchecked")
-	private void validateVerifiedAttributes(Map<String, Object> requestMap)
+	private void validateVerifiedAttributes(Map<String, Object> requestMap,Errors errors)
 			throws IdObjectValidationFailedException, IdObjectIOException, InvalidIdSchemaException {
 		if (requestMap.containsKey(VERIFIED_ATTRIBUTES) && Objects.nonNull(requestMap.get(VERIFIED_ATTRIBUTES))
 				&& requestMap.get(VERIFIED_ATTRIBUTES) instanceof Map
@@ -323,6 +323,27 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 			String idSchema = restTemplate.getForObject(verifiedAttributesSchemaUrl, String.class);
 			Map<String, Object> verifiedAttributesMap = (Map<String, Object>) requestMap.get(VERIFIED_ATTRIBUTES);
 			idObjectSchemaValidator.validateIdObject(idSchema, verifiedAttributesMap, verifiedAttributesFields);
+			Set<String> compositeKeySet = new HashSet<>();
+
+			for (Map.Entry<String, Object> entry : verifiedAttributesMap.entrySet()) {
+				String key = entry.getKey();
+				Object value = entry.getValue();
+				if (value instanceof List) {
+					List<Map<String, Object>> attributeList = (List<Map<String, Object>>) value;
+
+					for (Map<String, Object> attribute : attributeList) {
+						String trustFramework = (String) attribute.get("trustFramework");
+						String processName = (String) attribute.get("processName");
+
+						String compositeKey = trustFramework + "|" + processName;
+
+						if (!compositeKeySet.add(compositeKey)) {
+							errors.rejectValue(REQUEST, DUPLICATE_FRAMEWORK_PROCESS.getErrorCode(),
+									String.format(DUPLICATE_FRAMEWORK_PROCESS.getErrorMessage(), ROOT_PATH));
+						}
+					}
+				}
+			}
 		}
 	}
 
