@@ -57,6 +57,8 @@ public enum IdRepoErrorConstants {
 	/** The record exists. */
 	HANDLE_RECORD_EXISTS("IDR-IDC-014", "%s : Handle record already exists in DB"),
 
+	DUPLICATE_FRAMEWORK_PROCESS("IDR-IDC-015", "TrustFramework and process should not be duplicate - %s"),
+
 	// Identity Service
 	
 	/** The identity mismatch. */
