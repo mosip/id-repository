@@ -535,11 +535,15 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected void updateVerifiedAttributes(IdRequestDTO<T> requestDTO, DocumentContext inputData, DocumentContext dbData) throws IdRepoAppException {
 		List dbVerifiedAttributes = (List) dbData.read(DOT + VERIFIED_ATTRIBUTES);
+		boolean isV2Version=false;
 		dbVerifiedAttributes.remove(null);
-		boolean isV2Version = requestDTO.getVerifiedAttributes() instanceof Map ? true : false;
+		if (requestDTO.getVerifiedAttributes() != null) {
+			isV2Version = requestDTO.getVerifiedAttributes() instanceof Map;
+		}
 		if (dbVerifiedAttributes.isEmpty()) {
 			dbVerifiedAttributes.add(isV2Version ? new HashMap<>() : new ArrayList<>());
 		}
+		isV2Version = dbVerifiedAttributes.get(0) instanceof Map;
 		if (isV2Version) {
 			Map dbVerifiedAttributeMap = (Map) dbVerifiedAttributes.get(0);
 			Map<String, Object> identityMap = idRepoServiceHelper.convertToMap(requestDTO.getIdentity());
