@@ -72,7 +72,6 @@ public class IdrepositaryUtilTest {
 		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(idRepo);
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(idRepo);
 	}
-	@Ignore
 	@Test
 	public void idRepoSuccessTest() throws IOException, ApiNotAccessibleException, SignatureException, DataShareException, IdRepoException {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
@@ -119,7 +118,7 @@ public class IdrepositaryUtilTest {
         idrepositaryUtil.getData(credentialServiceRequestDto, bioAttributeFormatterMap);
 
 	}
-	@Ignore
+
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
 	public void testHttpClientException() throws Exception {
@@ -135,7 +134,7 @@ public class IdrepositaryUtilTest {
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		idrepositaryUtil.getData(credentialServiceRequestDto, bioAttributeFormatterMap);
 	}
-	@Ignore
+	
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
 	public void testHttpServerException() throws Exception {
@@ -152,7 +151,6 @@ public class IdrepositaryUtilTest {
 		idrepositaryUtil.getData(credentialServiceRequestDto, bioAttributeFormatterMap);
 	}
 	// Get Data By Id
-	@Ignore
 	@Test
 	public void idRepoHandleSuccessTest() throws IOException, ApiNotAccessibleException, SignatureException, DataShareException, IdRepoException {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
