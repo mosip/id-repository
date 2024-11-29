@@ -5,15 +5,9 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.CREATE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UPDATE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VERIFIED_ATTRIBUTES;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.*;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
