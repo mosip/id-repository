@@ -644,7 +644,7 @@ public class CredentialServiceManager {
 							handleInfoDTOS.add(handleInfoDTO);
 							mosipLogger.debug("getHandlesInfo while sending as activated : {}", handleInfoDTO.getAdditionalData().values());
 						} catch (IdRepoAppException e) {
-							mosipLogger.info(IdRepoSecurityManager.getUser(), SEND_REQUEST_TO_CRED_SERVICE,
+							mosipLogger.error(IdRepoSecurityManager.getUser(), SEND_REQUEST_TO_CRED_SERVICE,
 									"getHandlesInfo", "\n *****Failed to decrypt handle due to " + e.getMessage());
 						}
 						break;
@@ -673,8 +673,6 @@ public class CredentialServiceManager {
 				CryptoUtil.decodeURLSafeBase64(
 						io.mosip.kernel.core.util.StringUtils.substringAfter(entity.getHandle(), SPLITTER)),
 				CryptoUtil.decodePlainBase64(encryptSalt), uinRefId)));
-		securityManager
-				.getIdHashAndAttributesWithSaltModuloByPlainIdHash(handleInfoDTO.getHandle(), saltRetreivalFunction);
 		handleInfoDTO.setAdditionalData(securityManager
 				.getIdHashAndAttributesWithSaltModuloByPlainIdHash(handleInfoDTO.getHandle(), saltRetreivalFunction));
 		handleInfoDTO.getAdditionalData().put("idType", IdType.HANDLE.getIdType());

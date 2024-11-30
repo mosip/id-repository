@@ -16,7 +16,6 @@ import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ServiceError;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -118,7 +117,6 @@ public class IdrepositaryUtilTest {
         idrepositaryUtil.getData(credentialServiceRequestDto, bioAttributeFormatterMap);
 
 	}
-
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
 	public void testHttpClientException() throws Exception {
@@ -134,7 +132,6 @@ public class IdrepositaryUtilTest {
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		idrepositaryUtil.getData(credentialServiceRequestDto, bioAttributeFormatterMap);
 	}
-	
 	@SuppressWarnings("unchecked")
 	@Test(expected = ApiNotAccessibleException.class)
 	public void testHttpServerException() throws Exception {
