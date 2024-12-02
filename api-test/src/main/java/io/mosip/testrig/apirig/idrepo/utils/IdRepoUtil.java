@@ -34,7 +34,7 @@ public class IdRepoUtil extends AdminTestUtil {
 		JSONArray phoneArray = new JSONArray(getValueFromAuthActuator("json-property", "phone_number"));
 
 		if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("DOB")
-				&& (!isElementPresent(new JSONArray(schemaRequiredField), dob))) {
+				&& (!isElementPresent(globalRequiredFields, dob))) {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
 
@@ -57,7 +57,7 @@ public class IdRepoUtil extends AdminTestUtil {
 		}
 
 		else if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("Email")
-				&& (!isElementPresent(new JSONArray(schemaRequiredField), email))) {
+				&& (!isElementPresent(globalRequiredFields, email))) {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
 

@@ -143,7 +143,7 @@ public class UpdateIdentityForArrayHandles extends AdminTestUtil implements ITes
 		inputJson = inputJson.replace("$RID$", genRid);
 
 		if ((testCaseName.startsWith("IdRepository_")) && inputJson.contains("dateOfBirth")
-				&& (!isElementPresent(new JSONArray(schemaRequiredField), dob))) {
+				&& (!isElementPresent(globalRequiredFields, dob))) {
 			JSONObject reqJson = new JSONObject(inputJson);
 			reqJson.getJSONObject("request").getJSONObject("identity").remove("dateOfBirth");
 			inputJson = reqJson.toString();
