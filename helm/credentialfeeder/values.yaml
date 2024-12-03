@@ -31,7 +31,7 @@ replicaCount: 1
 
 image:
   registry: docker.io
-  repository: mosipdev/id-repository-credentials-feeder
+  repository: mosipqa/id-repository-credentials-feeder
   tag: develop
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
