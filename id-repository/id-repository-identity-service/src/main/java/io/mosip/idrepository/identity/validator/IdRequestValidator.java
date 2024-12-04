@@ -1,10 +1,6 @@
 package io.mosip.idrepository.identity.validator;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.AUTH_TYPE_SEPERATOR;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.CREATE;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.UPDATE;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.VERIFIED_ATTRIBUTES;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.*;
 
 import java.util.*;
@@ -16,12 +12,14 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.idrepository.core.dto.IdRequestByIdDTO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
@@ -314,7 +312,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 				&& !((Map<String, Object>) requestMap.get(VERIFIED_ATTRIBUTES)).isEmpty()
 				&& requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH))
 				&& !((Map<String, Object>) requestMap.get(ROOT_PATH)).isEmpty()) {
-			String idSchema = restTemplate.getForObject(verifiedAttributesSchemaUrl, String.class);
+			String idSchema =getVerifiedAttributeIdSchema(verifiedAttributesSchemaUrl);
 			Map<String, Object> verifiedAttributesMap = (Map<String, Object>) requestMap.get(VERIFIED_ATTRIBUTES);
 			idObjectSchemaValidator.validateIdObject(idSchema, verifiedAttributesMap, verifiedAttributesFields);
 			Set<String> compositeKeySet = new HashSet<>();
@@ -539,5 +537,10 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 			}
 		}
 		return null;
+	}
+
+	@Cacheable(cacheNames = VERIFIED_ATTRIBUTE_SCHEMA, key="{ #idSchemaUrl}")
+	private String getVerifiedAttributeIdSchema(String idSchemaUrl){
+		return restTemplate.getForObject(verifiedAttributesSchemaUrl, String.class);
 	}
 }

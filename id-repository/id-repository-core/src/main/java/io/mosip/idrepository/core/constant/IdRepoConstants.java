@@ -278,6 +278,8 @@ public class IdRepoConstants {
 
 	public static final String UIN_HASH_SALT_CACHE = "uin_hash_salt";
 
+	public static final String VERIFIED_ATTRIBUTE_SCHEMA = "verified_attribute_id_schema";
+
 	public static final String ID_ATTRIBUTES_CACHE = "id_attributes";
 
 

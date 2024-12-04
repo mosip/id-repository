@@ -473,7 +473,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	 * Object, java.lang.String)
 	 */
 	@Override
-	public IdResponseDTO<T> updateIdentity(IdRequestDTO<T> request, String uin) throws IdRepoAppException {
+	public IdResponseDTO<T> updateIdentity(IdRequestDTO<T> request, String uin,boolean isV2Flag) throws IdRepoAppException {
 		String regId = request.getRegistrationId();
 		try {
 			String uinHash = retrieveUinHash(uin);
@@ -485,7 +485,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 							RECORD_EXISTS.getErrorMessage());
 					throw new IdRepoAppException(RECORD_EXISTS);
 				}
-				Uin uinObject=service.updateIdentity(request, uin);
+				Uin uinObject=service.updateIdentity(request, uin,isV2Flag);
 				mosipLogger.info("Uin updated");
 				String activeStatus = env.getProperty(ACTIVE_STATUS);
 				if (activeStatus != null && activeStatus.equalsIgnoreCase(uinObject.getStatusCode())) {

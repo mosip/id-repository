@@ -360,7 +360,7 @@ public class IdRepoController {
 				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
 			}
-			return new ResponseEntity<>(idRepoService.updateIdentity(request.getRequest(), uin), HttpStatus.OK);
+			return new ResponseEntity<>(idRepoService.updateIdentity(request.getRequest(), uin,false), HttpStatus.OK);
 		} catch (IdRepoDataValidationException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_IDENTITY_REQUEST_RESPONSE,
 					regId, IdType.ID, e);
@@ -408,7 +408,7 @@ public class IdRepoController {
 				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
 			}
-			return new ResponseEntity<>(idRepoService.updateIdentity(request.getRequest(), uin), HttpStatus.OK);
+			return new ResponseEntity<>(idRepoService.updateIdentity(request.getRequest(), uin,true), HttpStatus.OK);
 		} catch (IdRepoDataValidationException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_IDENTITY_REQUEST_RESPONSE,
 					regId, IdType.ID, e);

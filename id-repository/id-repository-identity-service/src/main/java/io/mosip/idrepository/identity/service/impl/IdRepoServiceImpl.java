@@ -417,7 +417,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	 * Object, java.lang.String)
 	 */
 	@Override
-	public Uin updateIdentity(IdRequestDTO<T> request, String uin) throws IdRepoAppException {
+	public Uin updateIdentity(IdRequestDTO<T> request, String uin,boolean isV2Flag) throws IdRepoAppException {
 		anonymousProfileHelper.setRegId(request.getRegistrationId());
 		String uinHash = getUinHash(uin);
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
@@ -445,7 +445,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 				DocumentContext inputData = JsonPath.using(configuration).parse(identityMap);
 				DocumentContext dbData = JsonPath.using(configuration).parse(new String(uinObject.getUinData()));
 				anonymousProfileHelper.setOldUinData(dbData.jsonString().getBytes());
-				updateVerifiedAttributes(request, inputData, dbData);
+				updateVerifiedAttributes(request, inputData, dbData,isV2Flag,identityMap);
 				replaceConfiguredFieldsOnUpdate(inputData, dbData);
 				//TODO We should remove below json comparison as update operation always replaces the existing with new value
 				JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(),
@@ -532,26 +532,32 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		}
 	}
 
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected void updateVerifiedAttributes(IdRequestDTO<T> requestDTO, DocumentContext inputData, DocumentContext dbData) throws IdRepoAppException {
+	protected void updateVerifiedAttributes(
+			IdRequestDTO<T> requestDTO,
+			DocumentContext inputData,
+			DocumentContext dbData,
+			boolean isV2Version,
+			Map<String, Object> identityMap
+	) throws IdRepoAppException {
 		List dbVerifiedAttributes = (List) dbData.read(DOT + VERIFIED_ATTRIBUTES);
-		boolean isV2Version=false;
-		dbVerifiedAttributes.remove(null);
-		if (requestDTO.getVerifiedAttributes() != null) {
-			isV2Version = requestDTO.getVerifiedAttributes() instanceof Map;
-		}
 		if (dbVerifiedAttributes.isEmpty()) {
-			dbVerifiedAttributes.add(isV2Version ? new HashMap<>() : new ArrayList<>());
+			dbVerifiedAttributes.add(isV2Version ? new HashMap<>() :  new ArrayList<>());
 		}
-		isV2Version = dbVerifiedAttributes.get(0) instanceof Map;
 		if (isV2Version) {
-			Map dbVerifiedAttributeMap = (Map) dbVerifiedAttributes.get(0);
-			Map<String, Object> identityMap = idRepoServiceHelper.convertToMap(requestDTO.getIdentity());
-			dbVerifiedAttributeMap.keySet().removeIf(identityMap::containsKey);
-			if (Objects.nonNull(requestDTO.getVerifiedAttributes())
-					&& !((Map) requestDTO.getVerifiedAttributes()).isEmpty()) {
-				dbVerifiedAttributeMap.putAll((Map) requestDTO.getVerifiedAttributes());
+			Map<String, Object> dbVerifiedAttributeMap = (Map<String, Object>) dbVerifiedAttributes.get(0);
+			if (identityMap.isEmpty()) {
+				identityMap = idRepoServiceHelper.convertToMap(requestDTO.getIdentity());
 			}
+
+			if (requestDTO.getVerifiedAttributes() != null && !((Map) requestDTO.getVerifiedAttributes()).isEmpty()) {
+				Map<String, Object> updatedVerifiedAttributes = (Map<String, Object>) requestDTO.getVerifiedAttributes();
+				for (String key : updatedVerifiedAttributes.keySet()) {
+					dbVerifiedAttributeMap.put(key, updatedVerifiedAttributes.get(key));
+				}
+			}
+
 			inputData.put("$", VERIFIED_ATTRIBUTES, dbVerifiedAttributeMap);
 			dbData.put("$", VERIFIED_ATTRIBUTES, dbVerifiedAttributeMap);
 		} else {
@@ -564,7 +570,6 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			dbData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
 		}
 	}
-
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void replaceConfiguredFieldsOnUpdate(DocumentContext inputData, DocumentContext dbData) {
 		for(String fieldId : fieldsToReplaceOnUpdate) {
@@ -1140,4 +1145,6 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		}
 		return inputSelectedHandlesMap;
 	}
+
+
 }

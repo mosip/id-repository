@@ -188,15 +188,17 @@ public class IdRepoServiceHelper {
 		return null;
 	}
 
-    public Map<String,Object> updateSelectedHandleFields(Object identityObject, Map<String, List<HandleDto>> inputSelectedHandlesMap) throws IdRepoAppException {
-            String selectedHandlesFieldId = identityMapping.getIdentity().getSelectedHandles().getValue();
-            Map<String,Object> identityMap=convertToMap(identityObject);
-            if(identityMap.containsKey(selectedHandlesFieldId)){
-                List<String> selectedhandles = new ArrayList<String>(inputSelectedHandlesMap.keySet());
-                identityMap.put(selectedHandlesFieldId,selectedhandles);
-            }
-            return identityMap;
+    public Map<String,Object> updateSelectedHandleFields(Object identityObject,Map<String,List<HandleDto>> inputSelectedHandleMap) throws IdRepoAppException {
+        String selectedHandlesFieldId = identityMapping.getIdentity().getSelectedHandles().getValue();
+        Map<String,Object> identityMap=convertToMap(identityObject);
+        if(inputSelectedHandleMap!=null) {
+            List<String> selectedhandles = new ArrayList<String>(inputSelectedHandleMap.keySet());
+            identityMap.put(selectedHandlesFieldId,selectedhandles);
+        }
+        return identityMap;
     }
+
+
     private List<HandleDto> buildHandleDto(Object value, String fieldId) {
         if(StringUtils.isEmpty(value))
             return new ArrayList<>();
