@@ -281,11 +281,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			if (comparisonResult.failed()) {
 				super.updateJsonObject(draftToUpdate.getUinHash(), inputData, dbData, comparisonResult, false);
 			}
-			if(dataLength == 1) {
-				draftToUpdate.setUinData(convertToBytes(dbData.json()));
-			}else {
-				draftToUpdate.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
-			}
+			draftToUpdate.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
 			draftToUpdate.setUinDataHash(securityManager.hash(draftToUpdate.getUinData()));
 			draftToUpdate.setUpdatedBy(IdRepoSecurityManager.getUser());
 			draftToUpdate.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
