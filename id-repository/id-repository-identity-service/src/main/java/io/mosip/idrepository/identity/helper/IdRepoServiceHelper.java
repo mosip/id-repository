@@ -2,6 +2,7 @@ package io.mosip.idrepository.identity.helper;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
@@ -188,14 +189,13 @@ public class IdRepoServiceHelper {
 		return null;
 	}
 
-    public Map<String,Object> updateSelectedHandleFields(Object identityObject,Map<String,List<HandleDto>> inputSelectedHandleMap) throws IdRepoAppException {
+    public Map<String, Object> updateSelectedHandleFields(Map<String,Object> identityObjectMap, Map<String,List<HandleDto>> inputSelectedHandleMap) throws IdRepoAppException {
         String selectedHandlesFieldId = identityMapping.getIdentity().getSelectedHandles().getValue();
-        Map<String,Object> identityMap=convertToMap(identityObject);
-        if(inputSelectedHandleMap!=null) {
+        if(identityObjectMap.containsKey(selectedHandlesFieldId)) {
             List<String> selectedhandles = new ArrayList<String>(inputSelectedHandleMap.keySet());
-            identityMap.put(selectedHandlesFieldId,selectedhandles);
+            identityObjectMap.put(selectedHandlesFieldId, selectedhandles);
         }
-        return identityMap;
+        return identityObjectMap;
     }
 
 

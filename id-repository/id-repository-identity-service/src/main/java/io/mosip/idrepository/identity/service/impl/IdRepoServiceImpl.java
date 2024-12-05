@@ -214,8 +214,10 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		long epoch = System.currentTimeMillis();
 		String uinRefId = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils.getUTCCurrentDateTime())
 				.toString();
-		ObjectNode identityObject = mapper.convertValue(request.getIdentity(), ObjectNode.class);
-		identityObject.putPOJO(VERIFIED_ATTRIBUTES, request.getVerifiedAttributes());
+		Map<String,Object> identityObject = mapper.convertValue(request.getIdentity(), Map.class);
+		identityObject.put(VERIFIED_ATTRIBUTES, request.getVerifiedAttributes());
+		Map<String, List<HandleDto>> selectedUniqueHandlesMap = checkAndGetHandles(request, null, null, CREATE);
+		idRepoServiceHelper.updateSelectedHandleFields(identityObject,selectedUniqueHandlesMap);
 		byte[] identityInfo = convertToBytes(identityObject);
 		String uinHash = getUinHash(uin);
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
@@ -223,9 +225,6 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 
 		mosipLogger.info("Before starting the checkAndGetHandles: {}", System.currentTimeMillis()-epoch);
 		epoch = System.currentTimeMillis();
-
-		Map<String, List<HandleDto>> selectedUniqueHandlesMap = checkAndGetHandles(request, null, null, CREATE);
-
 		mosipLogger.info("After completing with checkAndGetHandles: {}", System.currentTimeMillis()-epoch);
 		epoch = System.currentTimeMillis();
 
@@ -439,13 +438,14 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			}
 			if (Objects.nonNull(request) && Objects.nonNull(request.getIdentity())) {
 				inputSelectedHandlesMap = getNewAndDeleteExistingHandles(request, uinObject, UPDATE);
-				Map<String,Object> identityMap=idRepoServiceHelper.updateSelectedHandleFields(request.getIdentity(),inputSelectedHandlesMap);
+				Map<String,Object> identityObjectMap = mapper.convertValue(request.getIdentity(),Map.class);
+				idRepoServiceHelper.updateSelectedHandleFields(identityObjectMap,inputSelectedHandlesMap);
 				Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
 						.mappingProvider(new JacksonMappingProvider()).build();
-				DocumentContext inputData = JsonPath.using(configuration).parse(identityMap);
+				DocumentContext inputData = JsonPath.using(configuration).parse(identityObjectMap);
 				DocumentContext dbData = JsonPath.using(configuration).parse(new String(uinObject.getUinData()));
 				anonymousProfileHelper.setOldUinData(dbData.jsonString().getBytes());
-				updateVerifiedAttributes(request, inputData, dbData,isV2Flag,identityMap);
+				updateVerifiedAttributes(request, inputData, dbData,isV2Flag,identityObjectMap);
 				replaceConfiguredFieldsOnUpdate(inputData, dbData);
 				//TODO We should remove below json comparison as update operation always replaces the existing with new value
 				JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(),
@@ -463,6 +463,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 					anonymousProfileHelper
 							.setNewCbeff(uinObject.getUinHash(),
 									!anonymousProfileHelper.isNewCbeffPresent() ?
+
 									uinObject.getBiometrics().get(uinObject.getBiometrics().size() - 1).getBioFileId()
 											: null);
 					updateDocuments(uinHashWithSalt, uinObject, request, false);
