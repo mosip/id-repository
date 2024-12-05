@@ -8,7 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import io.mosip.credential.request.generator.helper.CredentialIssueRequestHelper;
+import io.mosip.idrepository.core.dto.*;
+import io.mosip.idrepository.core.exception.IdRepoExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.MediaType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -18,6 +23,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.credential.request.generator.constants.ApiName;
 import io.mosip.credential.request.generator.constants.CredentialRequestErrorCodes;
 import io.mosip.credential.request.generator.constants.CredentialStatusCode;
 import io.mosip.credential.request.generator.constants.LoggerFileConstant;
@@ -27,16 +33,13 @@ import io.mosip.credential.request.generator.dto.Event;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorException;
 import io.mosip.credential.request.generator.service.CredentialRequestService;
+import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.credential.request.generator.util.Utilities;
+import io.mosip.idrepository.core.builder.AuditRequestBuilder;
 import io.mosip.idrepository.core.constant.AuditEvents;
 import io.mosip.idrepository.core.constant.AuditModules;
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.CredentialIssueRequest;
-import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
-import io.mosip.idrepository.core.dto.CredentialIssueResponse;
-import io.mosip.idrepository.core.dto.CredentialIssueStatusResponse;
-import io.mosip.idrepository.core.dto.CredentialRequestIdsDto;
-import io.mosip.idrepository.core.dto.PageDto;
+import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
@@ -44,6 +47,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
+import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
@@ -60,7 +64,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 
 	@Autowired
 	private CredentialDao credentialDao;
-	
+
 	/** The Constant USER. */
 	private static final String PRINT_USER = "service-account-mosip-print-client";
 
@@ -83,6 +87,18 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 
 	@Autowired
 	private AuditHelper auditHelper;
+
+	@Autowired
+	private IdRepoSecurityManager securityManager;
+
+	@Autowired
+	private RestUtil restUtil;
+
+	@Autowired
+	private AuditRequestBuilder auditBuilder;
+
+	@Autowired
+	private CredentialIssueRequestHelper credentialIssueRequestHelper;
 
 	private static final String CANCEL_CREDENTIAL = "cancelCredentialRequest";
 
@@ -155,11 +171,12 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 	}
 
 	@Override
-	public ResponseWrapper<CredentialIssueResponse> createCredentialIssuanceByRid(CredentialIssueRequest credentialIssueRequestDto, String rid) {
+	public ResponseWrapper<CredentialIssueResponse> createCredentialIssuanceByRid(CredentialIssueRequestDto credentialIssueRequestDto, String rid) {
 		LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL,
 				"started creating credential");
 		List<ServiceError> errorList = new ArrayList<>();
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseWrapper = new ResponseWrapper<CredentialIssueResponse>();
+
 		CredentialIssueResponse credentialIssueResponse = null;
 		try{
 			CredentialEntity credential=new CredentialEntity();
@@ -225,10 +242,10 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 					credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 					credentialEntity.setUpdatedBy(IdRepoSecurityManager.getUser());
 					credentialEntity.setStatusComment("Cancel the request");
-					credentialDao.save(credentialEntity);
-					CredentialIssueRequestDto credentialIssueRequestDto = mapper
-							.readValue(credentialEntity.getRequest(),
-									CredentialIssueRequestDto.class);
+					CredentialIssueRequestDto credentialIssueRequestDto = credentialIssueRequestHelper.getCredentialIssueRequestDto(credentialEntity);
+					String credentialRequest = credentialIssueRequestHelper.getCredentialServiceRequest(credentialIssueRequestDto, credentialEntity.getRequestId());
+					credentialEntity.setRequest(credentialRequest);
+					credentialDao.update(credentialEntity);
 					credentialIssueResponse = new CredentialIssueResponse();
 					credentialIssueResponse.setId(credentialIssueRequestDto.getId());
 					credentialIssueResponse.setRequestId(requestId);
@@ -298,10 +315,9 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		CredentialIssueStatusResponse credentialIssueStatusResponse = new CredentialIssueStatusResponse();
 		try {
 			Optional<CredentialEntity> entity = credentialDao.findById(requestId);
-			if (entity.isPresent()) {
+			if (entity != null && !entity.isEmpty()) {
 				CredentialEntity credentialEntity = entity.get();
-				CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credentialEntity.getRequest(),
-						CredentialIssueRequestDto.class);
+				CredentialIssueRequestDto credentialIssueRequestDto = credentialIssueRequestHelper.getCredentialIssueRequestDto(credentialEntity);
 
 				credentialIssueStatusResponse.setId(credentialIssueRequestDto.getId());
 				credentialIssueStatusResponse.setRequestId(requestId);
@@ -373,7 +389,10 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 				credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 				credentialEntity.setUpdatedBy(PRINT_USER);
 				credentialEntity.setStatusComment("updated the status from partner");
-				credentialDao.save(credentialEntity);
+				CredentialIssueRequestDto credentialIssueRequestDto = credentialIssueRequestHelper.getCredentialIssueRequestDto(credentialEntity);
+				String credentialRequest = credentialIssueRequestHelper.getCredentialServiceRequest(credentialIssueRequestDto, credentialEntity.getRequestId());
+				credentialEntity.setRequest(credentialRequest);
+				credentialDao.update(credentialEntity);
 				LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CANCEL_CREDENTIAL,
 						"updated the status of  " + requestId);
 			} else {
@@ -382,14 +401,20 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			}
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ended updating  credential status");
-			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,"update the request");
+			audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,"update the request");
 		}catch (DataAccessLayerException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, UPDATE_STATUS_CREDENTIAL,
 					ExceptionUtils.getStackTrace(e));
-			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,e);
+			auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,e);
 
 			throw new CredentialRequestGeneratorException();
-
+		} catch (JsonProcessingException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, UPDATE_STATUS_CREDENTIAL,
+					e.getMessage());
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, UPDATE_STATUS_CREDENTIAL,
+					ExceptionUtils.getStackTrace(e));
+			auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR,
+					AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID, e);
 		}
 
 	}
@@ -419,8 +444,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 				List<CredentialEntity> credentialRequestList = pageData.getContent();
 				for (CredentialEntity credential : credentialRequestList) {
 					CredentialRequestIdsDto credentialRequestIdsDto=new CredentialRequestIdsDto();
-					CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credential.getRequest(),
-							CredentialIssueRequestDto.class);
+					CredentialIssueRequestDto credentialIssueRequestDto = credentialIssueRequestHelper.getCredentialIssueRequestDto(credential);
 					credentialRequestIdsDto.setRequestId(credential.getRequestId());
 					credentialRequestIdsDto.setCredentialType(credentialIssueRequestDto.getCredentialType());
 					credentialRequestIdsDto.setPartner(credentialIssueRequestDto.getIssuer());
@@ -500,15 +524,16 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		CredentialIssueResponse credentialIssueResponse = null;
 		try {
 			Optional<CredentialEntity> entity = credentialDao.findById(requestId);
-			if (entity.isPresent()) {
+			if (entity != null && !entity.isEmpty()) {
 				CredentialEntity credentialEntity = entity.get();
 
 				credentialEntity.setStatusCode(CredentialStatusCode.RETRY.name());
 				credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 				credentialEntity.setUpdatedBy(IdRepoSecurityManager.getUser());
 				credentialEntity.setStatusComment("retrigger the request");
-				CredentialIssueRequestDto credentialIssueRequestDto = mapper
-						.readValue(credentialEntity.getRequest(), CredentialIssueRequestDto.class);
+				CredentialIssueRequestDto credentialIssueRequestDto = credentialIssueRequestHelper.getCredentialIssueRequestDto(credentialEntity);
+				String credentialRequest = credentialIssueRequestHelper.getCredentialServiceRequest(credentialIssueRequestDto, credentialEntity.getRequestId());
+				credentialEntity.setRequest(credentialRequest);
 				credentialDao.save(credentialEntity);
 				credentialIssueResponse = new CredentialIssueResponse();
 				credentialIssueResponse.setId(credentialIssueRequestDto.getId());
@@ -560,6 +585,31 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 					requestId, IdType.ID, "retrigger the request");
 		}
 		return credentialIssueResponseWrapper;
+	}
+
+	public void audit(AuditModules module, AuditEvents event, String id, IdType idType, String desc) {
+		RequestWrapper<AuditRequestDTO> auditRequest = auditBuilder.buildRequest(module, event,
+				securityManager.hash(id.getBytes()), idType, desc);
+		HttpEntity<RequestWrapper<AuditRequestDTO>> httpEntity = new HttpEntity<>(auditRequest);
+		try {
+			restUtil.postApi(ApiName.KERNELAUDITMANAGER, null, id, desc, MediaType.APPLICATION_JSON, httpEntity,
+					AuditResponseDTO.class);
+		} catch (IdRepoDataValidationException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), "AuditRequestBuilder", "audit",
+					"Exception : " + ExceptionUtils.getStackTrace(e));
+		} catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), "AuditRequestBuilder", "audit",
+					"Exception : " + ExceptionUtils.getStackTrace(e));
+		}
+	}
+
+	public void auditError(AuditModules module, AuditEvents event, String id, IdType idType, Throwable e) {
+		try {
+			this.audit(module, event, id, idType, mapper.writeValueAsString(IdRepoExceptionHandler.getAllErrors(e)));
+		} catch (JsonProcessingException ex) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), "AuditRequestBuilder", "auditError",
+					"Exception : " + ExceptionUtils.getStackTrace(ex));
+		}
 	}
 
 }
