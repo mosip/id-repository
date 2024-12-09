@@ -129,6 +129,8 @@ public class IdRepoDraftController {
 			@ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
 			request.getRequest().setRegistrationId(registrationId);
+			System.out.println("request.getRequest:::",request.getRequest.toString());
+			logger.info("request.getRequest:::",request.getRequest.toString());
 			validator.validateRequest(request.getRequest(), errors, "update");
 			DataValidationUtil.validate(errors);
 			return new ResponseEntity<>(draftService.updateDraft(registrationId, request), HttpStatus.OK);
