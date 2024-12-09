@@ -277,13 +277,13 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			super.updateVerifiedAttributes(requestDTO, inputData, dbData);
 			JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(),
 					JSONCompareMode.LENIENT);
-			mosipLogger.info("dbData:::",dbData.jsonString());
+			idrepoDraftLogger.info("dbData:::",dbData.jsonString());
 			if (comparisonResult.failed()) {
 				super.updateJsonObject(draftToUpdate.getUinHash(), inputData, dbData, comparisonResult, false);
 			}
-			mosipLogger.info("before draftToUpdate dbData:::",dbData.jsonString());
+			idrepoDraftLogger.info("before draftToUpdate dbData:::",dbData.jsonString());
 			draftToUpdate.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
-			mosipLogger.info("draftToUpdate dbData:::",dbData.jsonString());
+			idrepoDraftLogger.info("draftToUpdate dbData:::",dbData.jsonString());
 			draftToUpdate.setUinDataHash(securityManager.hash(draftToUpdate.getUinData()));
 			draftToUpdate.setUpdatedBy(IdRepoSecurityManager.getUser());
 			draftToUpdate.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
