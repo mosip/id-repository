@@ -198,6 +198,9 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			if (policyDetailResponseDto.getPolicies() != null && policyDetailResponseDto.getPolicies().getDataSharePolicies().getTypeOfShare()
 					.equalsIgnoreCase(DATASHARE)) {
 
+				LOGGER.info("ended creating credential: {}, {}", policyDetailResponseDto.getPolicyId(), credentialServiceRequestDto.getIssuer()
+					);
+
 				dataShare = dataShareUtil.getDataShare(jsonData.getBytes(), policyDetailResponseDto.getPolicyId(),
 						credentialServiceRequestDto.getIssuer(),
 						credentialServiceRequestDto.getRequestId());
