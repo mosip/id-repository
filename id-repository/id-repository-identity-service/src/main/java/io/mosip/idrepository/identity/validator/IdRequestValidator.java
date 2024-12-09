@@ -105,6 +105,13 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	@Value("#{'${mosip.kernel.idobjectvalidator.mandatory-attributes.id-repository.verified-attributes:}'.split(',')}")
 	private List<String> verifiedAttributesFields;
 
+	@Value("${mosip.kernel.idobjectvalidator.id-repository.verified-attribute.trustFrameworkName:trustFramework}")
+	private String trustFrameworkName;
+
+	@Value("${mosip.kernel.idobjectvalidator.id-repository.verified-attribute.processName:processName}")
+	private String processName;
+
+
 	/** The status. */
 	@Resource
 	private List<String> uinStatus;
@@ -324,14 +331,14 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					List<Map<String, Object>> attributeList = (List<Map<String, Object>>) value;
 
 					for (Map<String, Object> attribute : attributeList) {
-						String trustFramework = (String) attribute.get("trustFramework");
-						String processName = (String) attribute.get("processName");
+						String trustFramework = (String) attribute.get(trustFrameworkName);
+						String process = (String) attribute.get(processName);
 
-						String compositeKey = trustFramework + "|" + processName;
+						String compositeKey = trustFramework + "|" + process;
 
 						if (!compositeKeySet.add(compositeKey)) {
-							errors.rejectValue(REQUEST, DUPLICATE_FRAMEWORK_PROCESS.getErrorCode(),
-									String.format(DUPLICATE_FRAMEWORK_PROCESS.getErrorMessage(), ROOT_PATH));
+							errors.rejectValue(REQUEST, DUPLICATE_VERIFIED_ATTRIBUTES.getErrorCode(),
+									String.format(DUPLICATE_VERIFIED_ATTRIBUTES.getErrorMessage(), ROOT_PATH));
 						}
 					}
 				}

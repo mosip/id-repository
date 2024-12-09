@@ -553,6 +553,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			}
 
 			if (requestDTO.getVerifiedAttributes() != null && !((Map) requestDTO.getVerifiedAttributes()).isEmpty()) {
+				dbVerifiedAttributeMap=dbVerifiedAttributeMap==null?new HashMap<>():dbVerifiedAttributeMap;
 				Map<String, Object> updatedVerifiedAttributes = (Map<String, Object>) requestDTO.getVerifiedAttributes();
 				for (String key : updatedVerifiedAttributes.keySet()) {
 					dbVerifiedAttributeMap.put(key, updatedVerifiedAttributes.get(key));
