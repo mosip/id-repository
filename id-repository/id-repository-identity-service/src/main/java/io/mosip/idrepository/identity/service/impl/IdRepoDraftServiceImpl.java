@@ -269,7 +269,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	private void updateDemographicData(IdRequestDTO request, UinDraft draftToUpdate) throws JSONException, IdRepoAppException, IOException {
 		if (Objects.nonNull(request.getRequest()) && Objects.nonNull(request.getRequest().getIdentity())) {
 			RequestDTO requestDTO = request.getRequest();
-			Configuration configuration = Configuration.builder().options(Option.DEFAULT_PATH_LEAF_TO_NULL).build();
+			Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
+					.mappingProvider(new JacksonMappingProvider()).build();
 			DocumentContext inputData = JsonPath.using(configuration).parse(requestDTO.getIdentity());
 			DocumentContext dbData = JsonPath.using(configuration).parse(new String(draftToUpdate.getUinData()));
 			JsonPath uinJsonPath = JsonPath.compile(uinPath.replace(ROOT_PATH, "$"));
@@ -277,13 +278,11 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			super.updateVerifiedAttributes(requestDTO, inputData, dbData);
 			JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(),
 					JSONCompareMode.LENIENT);
-			idrepoDraftLogger.info("dbData:::",dbData.jsonString());
+
 			if (comparisonResult.failed()) {
 				super.updateJsonObject(draftToUpdate.getUinHash(), inputData, dbData, comparisonResult, false);
 			}
-			idrepoDraftLogger.info("before draftToUpdate dbData:::",dbData.jsonString());
 			draftToUpdate.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
-			idrepoDraftLogger.info("draftToUpdate dbData:::",dbData.jsonString());
 			draftToUpdate.setUinDataHash(securityManager.hash(draftToUpdate.getUinData()));
 			draftToUpdate.setUpdatedBy(IdRepoSecurityManager.getUser());
 			draftToUpdate.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
