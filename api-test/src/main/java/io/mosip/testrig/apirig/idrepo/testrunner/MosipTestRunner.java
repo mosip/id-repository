@@ -134,13 +134,13 @@ public class MosipTestRunner {
 		BaseTestCase.certsForModule = "idrepo";
 		DBManager.executeDBQueries(IdRepoConfigManager.getKMDbUrl(), IdRepoConfigManager.getKMDbUser(),
 				IdRepoConfigManager.getKMDbPass(), IdRepoConfigManager.getKMDbSchema(),
-				getGlobalResourcePath() + "/" + "config/keyManagerDataDeleteQueriesForEsignet.txt");
+				getGlobalResourcePath() + "/" + "config/keyManagerCertDataDeleteQueries.txt");
 		DBManager.executeDBQueries(IdRepoConfigManager.getIdaDbUrl(), IdRepoConfigManager.getIdaDbUser(),
 				IdRepoConfigManager.getPMSDbPass(), IdRepoConfigManager.getIdaDbSchema(),
-				getGlobalResourcePath() + "/" + "config/idaDeleteQueriesForEsignet.txt");
+				getGlobalResourcePath() + "/" + "config/idaCertDataDeleteQueries.txt");
 		DBManager.executeDBQueries(IdRepoConfigManager.getMASTERDbUrl(), IdRepoConfigManager.getMasterDbUser(),
 				IdRepoConfigManager.getMasterDbPass(), IdRepoConfigManager.getMasterDbSchema(),
-				getGlobalResourcePath() + "/" + "config/masterDataDeleteQueriesForEsignet.txt");
+				getGlobalResourcePath() + "/" + "config/masterDataCertDataDeleteQueries.txt");
 
 		DBManager.executeDBQueries(IdRepoConfigManager.getIdRepoDbUrl(), IdRepoConfigManager.getIdRepoDbUser(),
 				IdRepoConfigManager.getPMSDbPass(), "idrepo",
