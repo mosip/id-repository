@@ -59,7 +59,7 @@ public class PolicyUtil {
 	
 	Map<String, PartnerExtractorResponse> extractorMap = new HashMap();
 	
-	//@Cacheable(cacheNames = DATASHARE_POLICIES, key="{ #credentialType, #subscriberId }")
+	@Cacheable(cacheNames = DATASHARE_POLICIES)
 	public PartnerCredentialTypePolicyDto getPolicyDetail(String credentialType, String subscriberId, String requestId)
 			throws PolicyException, ApiNotAccessibleException {
 

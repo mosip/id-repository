@@ -129,14 +129,11 @@ public class IdRepoDraftController {
 			@ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
 			request.getRequest().setRegistrationId(registrationId);
-			System.out.println("request.getRequest:::"+request.getRequest().toString()+"  "+registrationId);
-			mosipLogger.info("request.getRequest:::",request.getRequest().toString(), registrationId);
+			mosipLogger.info("request.getRequest:::",request.getRequest().toString());
 			validator.validateRequest(request.getRequest(), errors, "update");
-			System.out.println("after request.getRequest:::"+request.getRequest().toString()+"  "+registrationId);
-			mosipLogger.info("after request.getRequest:::",request.getRequest().toString(), registrationId);
+			mosipLogger.info("after request.getRequest:::",request.getRequest().toString());
 			DataValidationUtil.validate(errors);
-			mosipLogger.info("after DataValidationUtil request.getRequest:::",request.getRequest().toString(), registrationId);
-			System.out.println("after DataValidationUtil request.getRequest:::"+request.getRequest().toString()+"  "+registrationId);
+			mosipLogger.info("after DataValidationUtil request.getRequest:::",request.getRequest().toString());
 			return new ResponseEntity<>(draftService.updateDraft(registrationId, request), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_DRAFT_REQUEST_RESPONSE,
