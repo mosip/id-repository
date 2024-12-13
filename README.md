@@ -5,7 +5,7 @@
 # ID Repository
 
 ## Overview
-This repository contains source code and design documents for MOSIP [ID Repository](https://docs.mosip.io/1.2.0/modules/id-repository) which is the server-side module to manage ID lifecycle.  The modules exposes API endpoints.  
+This repository contains source code and design documents for MOSIP [ID Repository](https://docs.mosip.io/1.2.0/modules/id-repository) which is the server-side module to manage ID lifecycle. The modules exposes API endpoints.  
 
 ## Database
 See [DB guide](db_scripts/README.md)
