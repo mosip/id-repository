@@ -1,20 +1,9 @@
 package io.mosip.idrepository.identity.validator;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.AUTH_TYPE_SEPERATOR;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.CREATE;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.UPDATE;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.VERIFIED_ATTRIBUTES;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -22,12 +11,15 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.idrepository.core.dto.IdRequestByIdDTO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
@@ -112,6 +104,9 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	/** The verified attributes fields. */
 	@Value("#{'${mosip.kernel.idobjectvalidator.mandatory-attributes.id-repository.verified-attributes:}'.split(',')}")
 	private List<String> verifiedAttributesFields;
+
+	@Value("#{'${mosip.kernel.idobjectvalidator.id-repository.unique.verified-attribute.list:trustFramework,processName}'.split(',')}")
+	private List<String> uniqueVerifiedAttributes;
 
 	/** The status. */
 	@Resource
@@ -253,7 +248,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 							String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), ROOT_PATH));
 				} else {
 					validateDocuments(requestMap, errors);
-					validateVerifiedAttributes(requestMap);
+					validateVerifiedAttributes(requestMap,errors);
 					requestMap.keySet().parallelStream().filter(key -> !key.contentEquals(ROOT_PATH)).forEach(requestMap::remove);
 					if (!errors.hasErrors()) {
 						String schemaVersion;
@@ -313,16 +308,47 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 * @throws InvalidIdSchemaException
 	 */
 	@SuppressWarnings("unchecked")
-	private void validateVerifiedAttributes(Map<String, Object> requestMap)
+	private void validateVerifiedAttributes(Map<String, Object> requestMap,Errors errors)
 			throws IdObjectValidationFailedException, IdObjectIOException, InvalidIdSchemaException {
 		if (requestMap.containsKey(VERIFIED_ATTRIBUTES) && Objects.nonNull(requestMap.get(VERIFIED_ATTRIBUTES))
 				&& requestMap.get(VERIFIED_ATTRIBUTES) instanceof Map
 				&& !((Map<String, Object>) requestMap.get(VERIFIED_ATTRIBUTES)).isEmpty()
 				&& requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH))
 				&& !((Map<String, Object>) requestMap.get(ROOT_PATH)).isEmpty()) {
-			String idSchema = restTemplate.getForObject(verifiedAttributesSchemaUrl, String.class);
+			String idSchema =getVerifiedAttributeIdSchema(verifiedAttributesSchemaUrl);
 			Map<String, Object> verifiedAttributesMap = (Map<String, Object>) requestMap.get(VERIFIED_ATTRIBUTES);
 			idObjectSchemaValidator.validateIdObject(idSchema, verifiedAttributesMap, verifiedAttributesFields);
+			Set<String> compositeKeySet = new HashSet<>();
+
+			for (Map.Entry<String, Object> entry : verifiedAttributesMap.entrySet()) {
+				String key = entry.getKey();
+				Object value = entry.getValue();
+
+				if (value instanceof List) {
+					List<Map<String, Object>> attributeList = (List<Map<String, Object>>) value;
+
+					for (Map<String, Object> attribute : attributeList) {
+						StringBuilder compositeKeyBuilder = new StringBuilder();
+
+						for (String attributeKey : uniqueVerifiedAttributes) {
+							String attributeValue = (String) attribute.get(attributeKey);
+							if (attributeValue == null) {
+								errors.rejectValue(REQUEST, MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorCode(),
+										String.format(MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorMessage(), key + "." + attributeKey));
+								continue;
+							}
+							compositeKeyBuilder.append(attributeValue).append("|"); // Separate attributes with '|'
+						}
+
+						// Remove the trailing '|' and validate for duplicates
+						String compositeKey = compositeKeyBuilder.substring(0, compositeKeyBuilder.length() - 1);
+						if (!compositeKeySet.add(compositeKey)) {
+							errors.rejectValue(REQUEST, DUPLICATE_VERIFIED_ATTRIBUTES.getErrorCode(),
+									String.format(DUPLICATE_VERIFIED_ATTRIBUTES.getErrorMessage(), compositeKey));
+						}
+					}
+					}
+				}
 		}
 	}
 
@@ -524,5 +550,10 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 			}
 		}
 		return null;
+	}
+
+	@Cacheable(cacheNames = VERIFIED_ATTRIBUTE_SCHEMA, key="{ #idSchemaUrl}")
+	private String getVerifiedAttributeIdSchema(String idSchemaUrl){
+		return restTemplate.getForObject(verifiedAttributesSchemaUrl, String.class);
 	}
 }

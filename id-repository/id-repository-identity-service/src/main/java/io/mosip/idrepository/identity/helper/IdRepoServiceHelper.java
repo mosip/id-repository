@@ -2,6 +2,7 @@ package io.mosip.idrepository.identity.helper;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
@@ -154,7 +155,7 @@ public class IdRepoServiceHelper {
 		Map<String, Object> requestMap = convertToMap(identity);
 		if (requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH))) {
 			Map<String, Object> identityMap = (Map<String, Object>) requestMap.get(ROOT_PATH);
-			String schemaVersion = String
+            String schemaVersion = String
 					.valueOf(identityMap.get(identityMapping.getIdentity().getIDSchemaVersion().getValue()));
 			String selectedHandlesFieldId = identityMapping.getIdentity().getSelectedHandles().getValue();
 //			if 'selectedHandles' is not coming in the request body itself then will execute else if block.
@@ -187,6 +188,16 @@ public class IdRepoServiceHelper {
 		}
 		return null;
 	}
+
+    public Map<String, Object> updateSelectedHandleFields(Map<String,Object> identityObjectMap, Map<String,List<HandleDto>> inputSelectedHandleMap) throws IdRepoAppException {
+        String selectedHandlesFieldId = identityMapping.getIdentity().getSelectedHandles().getValue();
+        if(identityObjectMap.containsKey(selectedHandlesFieldId)) {
+            List<String> selectedhandles = new ArrayList<String>(inputSelectedHandleMap.keySet());
+            identityObjectMap.put(selectedHandlesFieldId, selectedhandles);
+        }
+        return identityObjectMap;
+    }
+
 
     private List<HandleDto> buildHandleDto(Object value, String fieldId) {
         if(StringUtils.isEmpty(value))

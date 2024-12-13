@@ -56,6 +56,9 @@ public enum IdRepoErrorConstants {
 
 	/** The record exists. */
 	HANDLE_RECORD_EXISTS("IDR-IDC-014", "%s : Handle record already exists in DB"),
+	DUPLICATE_VERIFIED_ATTRIBUTES("IDR-IDC-015", "Duplicate verified attributes - %s"),
+
+	MISSING_VERIFIED_ATTRIBUTE_FIELDS("IDR-IDC-016", "Missing verifiedAttribute fields - %s"),
 
 	// Identity Service
 	

@@ -44,8 +44,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.model.EventModel;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
 
 /**
  * The Class CredentialServiceManager.
@@ -192,6 +191,8 @@ public class CredentialServiceManager {
 
 			String uinHash = getUinHash(uin);
 			List<Handle> handles = getHandles(uinHash);
+
+
 
 			if (partnerIds.isEmpty() || (partnerIds.size() == 1 && dummyCheck.isDummyOLVPartner(partnerIds.get(0)))) {
 				partnerIds = partnerServiceManager.getOLVPartnerIds();
@@ -631,25 +632,30 @@ public class CredentialServiceManager {
 	}
 
 	private List<HandleInfoDTO> getHandlesInfo(String uinHash, List<Handle> handles, List<String> partnerIds,
-			IntFunction<String> saltRetreivalFunction, Consumer<EventModel> idaEventModelConsumer) {
+			IntFunction<String> saltRetreivalFunction, Consumer<EventModel> idaEventModelConsumer) throws IdRepoAppException {
 		List<HandleInfoDTO> handleInfoDTOS = new ArrayList<>();
 		if (handles != null && !handles.isEmpty()) {
 			List<EventModel> eventList = new ArrayList<>();
 			for (Handle entity : handles) {
-				if (HandleStatusLifecycle.ACTIVATED.name().equals(entity.getStatus())) {
-					try {
-						HandleInfoDTO handleInfoDTO = buildHandleInfoDTO(entity, saltRetreivalFunction);
-						handleInfoDTOS.add(handleInfoDTO);
-					} catch (IdRepoAppException e) {
-						mosipLogger.error(IdRepoSecurityManager.getUser(), SEND_REQUEST_TO_CRED_SERVICE,
-								"getHandlesInfo", "\n *****Failed to decrypt handle due to " + e.getMessage());
-					}
-				} else if (HandleStatusLifecycle.DELETE.name().equals(entity.getStatus())) {
-					eventList.addAll(createIdaEventModel(IDAEventType.REMOVE_ID, null, null, partnerIds, null,
-							entity.getHandleHash()).collect(Collectors.toList()));
+				switch (HandleStatusLifecycle.getHandleStatus(entity.getStatus())) {
+					case ACTIVATED:
+						try {
+							HandleInfoDTO handleInfoDTO = buildHandleInfoDTO(entity, saltRetreivalFunction);
+							handleInfoDTOS.add(handleInfoDTO);
+							mosipLogger.debug("getHandlesInfo while sending as activated : {}", handleInfoDTO.getAdditionalData().values());
+						} catch (IdRepoAppException e) {
+							mosipLogger.error(IdRepoSecurityManager.getUser(), SEND_REQUEST_TO_CRED_SERVICE,
+									"getHandlesInfo", "\n *****Failed to decrypt handle due to " + e.getMessage());
+						}
+						break;
+					case DELETE:
+								 eventList.addAll(createIdaEventModel(IDAEventType.REMOVE_ID, null, null, partnerIds, null,
+							buildHandleInfoDTO(entity, saltRetreivalFunction).getAdditionalData().get(ID_HASH)).collect(Collectors.toList()));
+								 break;
 				}
 			}
 			if (!eventList.isEmpty()) {
+				mosipLogger.info("getHandlesInfo while sending as removed : {}",eventList.size());
 				sendEventsToIDA(eventList, IDAEventType.REMOVE_ID, idaEventModelConsumer);
 				handleRepo.updateStatusByUinHashAndStatus(uinHash, HandleStatusLifecycle.DELETE.name(),
 						HandleStatusLifecycle.DELETE_REQUESTED.name());
@@ -667,7 +673,6 @@ public class CredentialServiceManager {
 				CryptoUtil.decodeURLSafeBase64(
 						io.mosip.kernel.core.util.StringUtils.substringAfter(entity.getHandle(), SPLITTER)),
 				CryptoUtil.decodePlainBase64(encryptSalt), uinRefId)));
-
 		handleInfoDTO.setAdditionalData(securityManager
 				.getIdHashAndAttributesWithSaltModuloByPlainIdHash(handleInfoDTO.getHandle(), saltRetreivalFunction));
 		handleInfoDTO.getAdditionalData().put("idType", IdType.HANDLE.getIdType());

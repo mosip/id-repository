@@ -3,8 +3,7 @@ package io.mosip.idrepository.identity.test.controller;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -384,7 +383,7 @@ public class IdRepoControllerTest {
 	public void updateIdentity() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
 		IdResponseDTO response = new IdResponseDTO();
 		when(validator.validateUin(anyString())).thenReturn(true);
-		when(idRepoService.updateIdentity(any(), any())).thenReturn(response);
+		when(idRepoService.updateIdentity(any(), any(),anyBoolean())).thenReturn(response);
 		RequestWrapper<IdRequestDTO<List<String>>> request = new RequestWrapper<>();
 		request.setId("mosip.id.update");
 		IdRequestDTO requestDTO = new IdRequestDTO();
@@ -403,7 +402,7 @@ public class IdRepoControllerTest {
 	@Test
 	public void updateIdentityInvalidId() throws Throwable {
 		try {
-			when(idRepoService.updateIdentity(any(), any()))
+			when(idRepoService.updateIdentity(any(), any(),anyBoolean()))
 					.thenThrow(new IdRepoAppException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
 							String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), UIN)));
 			RequestWrapper<IdRequestDTO<List<String>>> request = new RequestWrapper<>();
@@ -430,7 +429,7 @@ public class IdRepoControllerTest {
 		try {
 			IdResponseDTO response = new IdResponseDTO();
 			when(validator.validateUin(anyString())).thenReturn(true);
-			when(idRepoService.updateIdentity(any(), any())).thenReturn(response);
+			when(idRepoService.updateIdentity(any(), any(),anyBoolean())).thenReturn(response);
 			RequestWrapper<IdRequestDTO<List<String>>> request = new RequestWrapper<>();
 			request.setId("mosip.id.update");
 			IdRequestDTO requestDTO = new IdRequestDTO();
@@ -462,7 +461,7 @@ public class IdRepoControllerTest {
 				Object.class);
 		requestDTO.setIdentity(identity);
 		request.setRequest(requestDTO);
-		when(idRepoService.updateIdentity(any(), any()))
+		when(idRepoService.updateIdentity(any(), any(),anyBoolean()))
 				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
 		ResponseEntity<IdResponseDTO<List<String>>> responseEntity = controller.updateIdentity(request,
 				new BeanPropertyBindingResult(request, "IdRequestDTO"));
