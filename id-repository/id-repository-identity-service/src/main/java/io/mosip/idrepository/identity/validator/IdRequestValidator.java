@@ -105,12 +105,8 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	@Value("#{'${mosip.kernel.idobjectvalidator.mandatory-attributes.id-repository.verified-attributes:}'.split(',')}")
 	private List<String> verifiedAttributesFields;
 
-	@Value("${mosip.kernel.idobjectvalidator.id-repository.verified-attribute.trustFrameworkName:trustFramework}")
-	private String trustFrameworkName;
-
-	@Value("${mosip.kernel.idobjectvalidator.id-repository.verified-attribute.processName:processName}")
-	private String processName;
-
+	@Value("#{'${mosip.kernel.idobjectvalidator.id-repository.unique.verified-attribute.list:trustFramework,processName}'.split(',')}")
+	private List<String> uniqueVerifiedAttributes;
 
 	/** The status. */
 	@Resource
@@ -327,22 +323,32 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 			for (Map.Entry<String, Object> entry : verifiedAttributesMap.entrySet()) {
 				String key = entry.getKey();
 				Object value = entry.getValue();
+
 				if (value instanceof List) {
 					List<Map<String, Object>> attributeList = (List<Map<String, Object>>) value;
 
 					for (Map<String, Object> attribute : attributeList) {
-						String trustFramework = (String) attribute.get(trustFrameworkName);
-						String process = (String) attribute.get(processName);
+						StringBuilder compositeKeyBuilder = new StringBuilder();
 
-						String compositeKey = trustFramework + "|" + process;
+						for (String attributeKey : uniqueVerifiedAttributes) {
+							String attributeValue = (String) attribute.get(attributeKey);
+							if (attributeValue == null) {
+								errors.rejectValue(REQUEST, MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorCode(),
+										String.format(MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorMessage(), key + "." + attributeKey));
+								continue;
+							}
+							compositeKeyBuilder.append(attributeValue).append("|"); // Separate attributes with '|'
+						}
 
+						// Remove the trailing '|' and validate for duplicates
+						String compositeKey = compositeKeyBuilder.substring(0, compositeKeyBuilder.length() - 1);
 						if (!compositeKeySet.add(compositeKey)) {
 							errors.rejectValue(REQUEST, DUPLICATE_VERIFIED_ATTRIBUTES.getErrorCode(),
-									String.format(DUPLICATE_VERIFIED_ATTRIBUTES.getErrorMessage(), ROOT_PATH));
+									String.format(DUPLICATE_VERIFIED_ATTRIBUTES.getErrorMessage(), compositeKey));
 						}
 					}
+					}
 				}
-			}
 		}
 	}
 

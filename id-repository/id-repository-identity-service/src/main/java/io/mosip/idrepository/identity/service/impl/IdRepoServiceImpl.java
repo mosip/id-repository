@@ -533,6 +533,20 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		}
 	}
 
+	/**
+	 * From version 1.2.3.0 of Idrepo "verifiedAttributes" datatype is changed from List<String> to HashMap<String,List<Object>>
+	 * When v1 addIdentity/updateIdentity endpoint invoked data in the backend is stored as List<String>
+	 * When v2 addIdentity/updateIdentity is invoked, previously saved List<String> is overridden with the new value as HashMap<String,Object>
+	 * If v1 endpoint invoked after saving data with v2 endpoint complete verifiedAttributes will be overridden with the newly provided List value
+	 * On updating a field without verification detail then the entry for this field in the "verifiedAttributes" should be removed
+	 * This method will replace saved value with the input value appending to existing value should be handled in the patch method
+	 * @param requestDTO
+	 * @param inputData
+	 * @param dbData
+	 * @param isV2Version
+	 * @param identityMap
+	 * @throws IdRepoAppException
+	 */
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected void updateVerifiedAttributes(
@@ -551,7 +565,6 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			if (identityMap.isEmpty()) {
 				identityMap = idRepoServiceHelper.convertToMap(requestDTO.getIdentity());
 			}
-
 			if (requestDTO.getVerifiedAttributes() != null && !((Map) requestDTO.getVerifiedAttributes()).isEmpty()) {
 				dbVerifiedAttributeMap=dbVerifiedAttributeMap==null?new HashMap<>():dbVerifiedAttributeMap;
 				Map<String, Object> updatedVerifiedAttributes = (Map<String, Object>) requestDTO.getVerifiedAttributes();
@@ -559,7 +572,6 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 					dbVerifiedAttributeMap.put(key, updatedVerifiedAttributes.get(key));
 				}
 			}
-
 			inputData.put("$", VERIFIED_ATTRIBUTES, dbVerifiedAttributeMap);
 			dbData.put("$", VERIFIED_ATTRIBUTES, dbVerifiedAttributeMap);
 		} else {
