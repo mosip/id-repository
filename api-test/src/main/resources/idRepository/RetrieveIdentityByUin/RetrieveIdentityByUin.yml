@@ -86,7 +86,13 @@ RetrieveIdentity:
       input: '{
     "id": ""
 }'
-      output: "404"
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
 
   IdRepository_RetrieveIdentity_With_Invalid_Vid:
       endPoint: /idrepository/v1/identity/idvid/{id}
@@ -115,7 +121,13 @@ RetrieveIdentity:
       input: '{
     "id": ""
 }'
-      output: "404"
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
 
   IdRepository_RetrieveIdentity_With_SpaceVal_UIN:
       endPoint: /idrepository/v1/identity/idvid/{id}
