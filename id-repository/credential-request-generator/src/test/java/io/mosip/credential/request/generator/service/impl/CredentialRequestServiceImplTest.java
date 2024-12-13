@@ -46,6 +46,9 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.http.ResponseWrapper;
 
+import io.mosip.idrepository.core.builder.AuditRequestBuilder;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+
 @RunWith(SpringRunner.class)
 @WebMvcTest @Import(EnvUtil.class)
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class})
@@ -73,7 +76,12 @@ public class CredentialRequestServiceImplTest {
 	@Mock
 	private AuditHelper auditHelper;
 
+	@Mock
+	private IdRepoSecurityManager securityManager;
 
+	@Mock
+	private AuditRequestBuilder auditBuilder;
+	
 	@Before
 	public void setUp() {
 		Mockito.when(utilities.generateId()).thenReturn("123456");
