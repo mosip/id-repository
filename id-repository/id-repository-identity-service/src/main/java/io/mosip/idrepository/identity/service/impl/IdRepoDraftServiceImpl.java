@@ -459,7 +459,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		try {
 			Optional<UinDraft> draftOptional = uinDraftRepo.findByRegId(regId);
 			if (draftOptional.isPresent()) {
-				uinDraftRepo.delete(draftOptional.get());
+				uinDraftRepo.deleteByRegId(regId);
 				return constructIdResponse(null, "DISCARDED", null, null);
 			} else {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT,
