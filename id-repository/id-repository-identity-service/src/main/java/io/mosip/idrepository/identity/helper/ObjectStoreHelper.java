@@ -125,6 +125,8 @@ public class ObjectStoreHelper {
 			objectStore.putObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName, encryptData);
 		} catch (AmazonS3Exception | FSAdapterException e) {
 			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR, e);
+		} catch (Throwable e) {
+			mosipLogger.error("Exception in connection>>>", e);
 		}
 	}
 
