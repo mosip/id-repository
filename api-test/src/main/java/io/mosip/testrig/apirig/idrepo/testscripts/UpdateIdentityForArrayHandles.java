@@ -26,6 +26,7 @@ import org.testng.internal.TestResult;
 
 import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
+import io.mosip.testrig.apirig.idrepo.utils.IdRepoArrayHandle;
 import io.mosip.testrig.apirig.idrepo.utils.IdRepoConfigManager;
 import io.mosip.testrig.apirig.testrunner.BaseTestCase;
 import io.mosip.testrig.apirig.testrunner.HealthChecker;
@@ -157,7 +158,7 @@ public class UpdateIdentityForArrayHandles extends AdminTestUtil implements ITes
 
 		JSONObject jsonString = new JSONObject(inputJson);
 		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {
-			inputJson = replaceArrayHandleValuesForUpdateIdentity(inputJson,testCaseName);
+			inputJson = IdRepoArrayHandle.replaceArrayHandleValuesForUpdateIdentity(inputJson,testCaseName);
 		}
 
 		Response response = patchWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,

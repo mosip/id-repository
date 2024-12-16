@@ -79,6 +79,9 @@ public class CredentialStatusManager {
 
 	@Autowired
 	private DummyPartnerCheckUtil dummyPartner;
+
+	@Value("${mosip.idrepo.credential.request.batch.page.size:50}")
+	private int pageSize;
 	
 	//@Async("credentialStatusManagerJobExecutor")
 	public void triggerEventNotifications() {
@@ -121,7 +124,7 @@ public class CredentialStatusManager {
 		try {
 			String activeStatus = EnvUtil.getUinActiveStatus();
 			List<CredentialRequestStatus> newIssueRequestList = statusRepo
-					.findByStatus(CredentialRequestStatusLifecycle.NEW.toString());
+					.findByStatus(CredentialRequestStatusLifecycle.NEW.toString(), pageSize);
 			for (CredentialRequestStatus credentialRequestStatus : newIssueRequestList) {
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
 				String idvId = decryptId(credentialRequestStatus.getIndividualId());

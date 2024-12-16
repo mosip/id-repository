@@ -49,6 +49,16 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import io.mosip.credential.request.generator.constants.ApiName;
+import io.mosip.credential.request.generator.util.RestUtil;
+import io.mosip.idrepository.core.builder.AuditRequestBuilder;
+import io.mosip.idrepository.core.dto.AuditRequestDTO;
+import io.mosip.idrepository.core.dto.AuditResponseDTO;
+import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
+import io.mosip.kernel.core.http.RequestWrapper;
 /**
  *
  * @author Sowmya
@@ -73,6 +83,14 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 	@Autowired
 	private Utilities utilities;
 
+	@Autowired
+	private IdRepoSecurityManager securityManager;
+
+	@Autowired
+	private RestUtil restUtil;
+
+	@Autowired
+	private AuditRequestBuilder auditBuilder;
 
 	private static final String CREATE_CREDENTIAL = "createCredentialIssuance";
 
@@ -382,7 +400,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			}
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ended updating  credential status");
-			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,"update the request");
+			audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,"update the request");
 		}catch (DataAccessLayerException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, UPDATE_STATUS_CREDENTIAL,
 					ExceptionUtils.getStackTrace(e));
@@ -562,4 +580,19 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 		return credentialIssueResponseWrapper;
 	}
 
+	public void audit(AuditModules module, AuditEvents event, String id, IdType idType, String desc) {
+		RequestWrapper<AuditRequestDTO> auditRequest = auditBuilder.buildRequest(module, event,
+				securityManager.hash(id.getBytes()), idType, desc);
+		HttpEntity<RequestWrapper<AuditRequestDTO>> httpEntity = new HttpEntity<>(auditRequest);
+		try {
+			restUtil.postApi(ApiName.KERNELAUDITMANAGER, null, id, desc, MediaType.APPLICATION_JSON, httpEntity,
+					AuditResponseDTO.class);
+		} catch (IdRepoDataValidationException e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, "audit",
+					"Exception : " + ExceptionUtils.getStackTrace(e));
+		} catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, "audit",
+					"Exception : " + ExceptionUtils.getStackTrace(e));
+		}
+	}
 }

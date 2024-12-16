@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,8 +14,6 @@ import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.kernel.core.dataaccess.spi.repository.BaseRepository;
@@ -49,6 +48,7 @@ public interface CredentialRepositary extends BaseRepository<CredentialEntity, S
 	@Query("select c from CredentialEntity c where c.statusCode=:statusCode")
 	Page<CredentialEntity> findCredentialByStatusCode(@Param("statusCode")String statusCode, Pageable pageable);
 
+
 	@Transactional
 	@Query(value = "SELECT * FROM credential_transaction ct"
 			+ " WHERE ct.status_code=:statusCode ORDER BY cr_dtimes FOR UPDATE SKIP LOCKED LIMIT :pageSize", nativeQuery = true)
@@ -65,8 +65,8 @@ public interface CredentialRepositary extends BaseRepository<CredentialEntity, S
 	@Transactional
 	@Lock(value = LockModeType.PESSIMISTIC_WRITE)
 	@QueryHints({ @QueryHint(name = "jakarta.persistence.lock.timeout", value = "1") })
-	@Query("SELECT crdn FROM CredentialEntity crdn WHERE crdn.statusCode in :statusCodes")
-	Page<CredentialEntity> findCredentialByStatusCodes(@Param("statusCodes") String[] statusCodes, Pageable pageable);
+	@Query("SELECT crdn FROM CredentialEntity crdn WHERE crdn.statusCode in :statusCodes ")
+	Page<CredentialEntity> findCredentialByStatusCodes(@Param("statusCodes") String[] statusCodes,Pageable pageable);
 
 	@Transactional
 	@Query(value = "SELECT * FROM credential_transaction ct"
