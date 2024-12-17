@@ -1,6 +1,5 @@
 package io.mosip.idrepository.identity.repository;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -57,8 +56,14 @@ public interface UinDraftRepo extends JpaRepository<UinDraft, String> {
 	 * @return the uin draft
 	 */
 	Optional<UinDraft> findByRegId(String regId);
-	
-	
+
+	/**
+	 * Delete by RegId.
+	 *
+	 * @param regId the registration id
+	 */
+	void deleteByRegId(String regId);
+
 	/**
 	 * Exists by uinHash.
 	 *
