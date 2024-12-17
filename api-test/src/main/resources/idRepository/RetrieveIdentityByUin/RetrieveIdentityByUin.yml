@@ -76,7 +76,7 @@ RetrieveIdentity:
     }
   ]
 }'
-  IdRepository_RetrieveIdentity_StatusCode_With_blank_UIN:
+  IdRepository_RetrieveIdentity_With_blank_UIN:
       endPoint: /idrepository/v1/identity/idvid/{id}
       description: Retrieve Identity passing blank UIN
       role: idrepo
@@ -111,7 +111,7 @@ RetrieveIdentity:
     }
   ]
 }'
-  IdRepository_RetrieveIdentity_StatusCode_With_blank_Vid:
+  IdRepository_RetrieveIdentity_With_blank_Vid:
       endPoint: /idrepository/v1/identity/idvid/{id}
       description: Retrieve Identity passing blank VID
       role: idrepo

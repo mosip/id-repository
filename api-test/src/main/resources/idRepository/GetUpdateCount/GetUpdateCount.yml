@@ -36,7 +36,7 @@ GetUpdateCount:
   ]
 }'
 
-   IdRepository_GetUpdateCount_Uin_StatusCode_Empty_IndivId:
+   IdRepository_GetUpdateCount_Uin_Empty_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
       description: Get update count by passing empty individual ID
       role: resident
@@ -167,7 +167,7 @@ GetUpdateCount:
   ]
 }'
 
-   IdRepository_GetUpdateCount_Uinn_Invalid_Token:
+   IdRepository_GetUpdateCount_Uinn_StatusCode_Invalid_Token:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
       description: Get update count by passing invalid token
       role: invalid
