@@ -179,13 +179,7 @@ GetUpdateCount:
       "idType": "VID",
        "attribute_list": "fullName"
 }'
-      output: '{
-  "errors": [
-    {
-      "errorCode": "IDR-IDC-003"
-    }
-  ]
-}'
+      output: "500"
       
    IdRepository_GetUpdateCount_Uin_Invalid_idType:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
