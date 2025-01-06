@@ -5,7 +5,7 @@ import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant
 
 import java.time.LocalDateTime;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
