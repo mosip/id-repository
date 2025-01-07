@@ -161,7 +161,7 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 		inputJson = inputJson.replace("$RID$", genRid);
 		String phoneNumber = "";
 		String email = testCaseName +"@mosip.net";
-		if (inputJson.contains("$PHONENUMBERFORIDENTITY$")) {
+		if (inputJson.contains("$PHONENUMBERFORIDENTITY$")||inputJson.contains("$EMAILVALUE$")) {
 			if (!phoneSchemaRegex.isEmpty())
 				try {
 					phoneNumber = genStringAsperRegex(phoneSchemaRegex);
