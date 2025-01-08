@@ -17,12 +17,12 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>21</maven.compiler.source>
 		<maven.compiler.target>21</maven.compiler.target>
-		<kernel.core.version>1.3.0-SNAPSHOT</kernel.core.version>
-		<kernel.idvalidator.uin.version>1.3.0-SNAPSHOT</kernel.idvalidator.uin.version>
-		<kernel.cbeffutil.api.version>1.3.0-SNAPSHOT</kernel.cbeffutil.api.version>
-		<kernel.idobjectvalidator.version>1.3.0-SNAPSHOT</kernel.idobjectvalidator.version>
-		<kernel-idvalidator-vid.version>1.3.0-SNAPSHOT</kernel-idvalidator-vid.version>
-		<kernel.khazana.version>1.3.0-SNAPSHOT</kernel.khazana.version>
+		<kernel.core.version>1.3.0-beta.1</kernel.core.version>
+		<kernel.idvalidator.uin.version>1.3.0-beta.1</kernel.idvalidator.uin.version>
+		<kernel.cbeffutil.api.version>1.3.0-beta.1</kernel.cbeffutil.api.version>
+		<kernel.idobjectvalidator.version>1.3.0-beta.1</kernel.idobjectvalidator.version>
+		<kernel-idvalidator-vid.version>1.3.0-beta.1</kernel-idvalidator-vid.version>
+		<kernel.khazana.version>1.3.0-beta.1</kernel.khazana.version>
 
 	</properties>
 
@@ -107,7 +107,7 @@
 		<dependency>
 			<artifactId>kernel-biosdk-provider</artifactId>
 			<groupId>io.mosip.kernel</groupId>
-			<version>1.3.0-SNAPSHOT</version>
+			<version>1.3.0-beta.1</version>
 		</dependency>
 
 	</dependencies>
