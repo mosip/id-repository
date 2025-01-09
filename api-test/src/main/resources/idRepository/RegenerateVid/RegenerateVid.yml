@@ -61,12 +61,12 @@ RegenerateVid:
       inputTemplate: idRepository/RegenerateVid/regenerateVid
       outputTemplate: idRepository/error
       input: '{
-      "VID":""
+      "VID":" "
       }'
       output: '{
   "errors": [
     {
-      "errorCode": "IDR-IDC-003"
+      "errorCode": "IDR-IDC-002"
     }
   ]
 }'

@@ -81,7 +81,7 @@ RetrieveIdentity:
     }
   ]
 }'
-  IdRepository_RetrieveIdentity_StatusCode_With_blank_UIN:
+  IdRepository_RetrieveIdentity_With_blank_UIN:
       endPoint: /idrepository/v1/identity/idvid/{id}
       description: Retrieve Identity passing blank UIN
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_06
@@ -92,7 +92,13 @@ RetrieveIdentity:
       input: '{
     "id": ""
 }'
-      output: "404"
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
 
   IdRepository_RetrieveIdentity_With_Invalid_Vid:
       endPoint: /idrepository/v1/identity/idvid/{id}
@@ -112,7 +118,7 @@ RetrieveIdentity:
     }
   ]
 }'
-  IdRepository_RetrieveIdentity_StatusCode_With_blank_Vid:
+  IdRepository_RetrieveIdentity_With_blank_Vid:
       endPoint: /idrepository/v1/identity/idvid/{id}
       description: Retrieve Identity passing blank VID
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_08
@@ -123,7 +129,13 @@ RetrieveIdentity:
       input: '{
     "id": ""
 }'
-      output: "404"
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
 
   IdRepository_RetrieveIdentity_With_SpaceVal_UIN:
       endPoint: /idrepository/v1/identity/idvid/{id}

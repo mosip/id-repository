@@ -38,7 +38,7 @@ GetUpdateCount:
   ]
 }'
 
-   IdRepository_GetUpdateCount_Uin_StatusCode_Empty_IndivId:
+   IdRepository_GetUpdateCount_Uin_Empty_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
       description: Get update count by passing empty individual ID
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_03
@@ -51,7 +51,13 @@ GetUpdateCount:
       "idType": "UIN",
        "attribute_list": "fullName"
 }'
-      output: "404"
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
 
    IdRepository_GetUpdateCount_Uin_SpaceVal_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
@@ -144,7 +150,7 @@ GetUpdateCount:
       output: '{
   "errors": [
     {
-      "errorCode": "IDR-IDC-003"
+      "errorCode": "IDR-IDC-002"
     }
   ]
 }'
@@ -165,7 +171,7 @@ GetUpdateCount:
       output: '{
   "errors": [
     {
-      "errorCode": "IDR-IDC-003"
+      "errorCode": "IDR-IDC-002"
     }
   ]
 }'
