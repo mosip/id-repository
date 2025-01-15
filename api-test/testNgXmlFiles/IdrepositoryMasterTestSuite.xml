@@ -6,6 +6,6 @@
 		<listener class-name="io.mosip.testrig.apirig.report.EmailableReport" />
 	</listeners>
 	<suite-files>
-		<suite-file path="IdrepositoryApi.xml" />
+		<suite-file path="IdrepositorySuite.xml" />
 	</suite-files>
 </suite>
