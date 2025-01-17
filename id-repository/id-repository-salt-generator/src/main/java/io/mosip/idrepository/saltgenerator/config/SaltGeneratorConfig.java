@@ -5,9 +5,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hibernate.cfg.AvailableSettings;
+import org.springframework.boot.autoconfigure.batch.BatchDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -79,15 +83,14 @@ public class SaltGeneratorConfig {
 
 	@Bean
 	@Primary
+	@BatchDataSource
 	public DataSource dataSource() {
-		String alias = env.getProperty(DATASOURCE_ALIAS.getValue());
-		DriverManagerDataSource dataSource = new DriverManagerDataSource();
-		dataSource.setUrl(env.getProperty(String.format(DATASOURCE_URL.getValue(), alias)));
-		dataSource.setUsername(env.getProperty(String.format(DATASOURCE_USERNAME.getValue(), alias)));
-		dataSource.setPassword(env.getProperty(String.format(DATASOURCE_PASSWORD.getValue(), alias)));
-		dataSource.setSchema(env.getProperty(DB_SCHEMA_NAME.getValue()));
-		dataSource.setDriverClassName("org.postgresql.Driver");
-		return dataSource;
+		EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
+		EmbeddedDatabase embeddedDatabase = builder
+				.setType(EmbeddedDatabaseType.H2)
+				.generateUniqueName(true)
+				.build();
+		return embeddedDatabase;
 	}
 
 
