@@ -19,7 +19,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -50,14 +52,12 @@ public class SaltGeneratorIdMapDataSourceConfig {
 
 	@Bean
 	public DataSource vidDataSource() {
-		String alias = MOSIP_IDREPO_VID_DB;
-		DriverManagerDataSource dataSource = new DriverManagerDataSource();
-		dataSource.setUrl(env.getProperty(String.format(DATASOURCE_URL.getValue(), alias)));
-		dataSource.setUsername(env.getProperty(String.format(DATASOURCE_USERNAME.getValue(), alias)));
-		dataSource.setPassword(env.getProperty(String.format(DATASOURCE_PASSWORD.getValue(), alias)));
-		dataSource.setDriverClassName(env.getProperty(String.format(DATASOURCE_DRIVERCLASSNAME.getValue(), alias)));
-		dataSource.setSchema(env.getProperty(String.format(DATASOURCE_SCHEMA.getValue(), alias)));
-		return dataSource;
+		EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
+		EmbeddedDatabase embeddedDatabase = builder
+				.setType(EmbeddedDatabaseType.H2)
+				.generateUniqueName(true)
+				.build();
+		return embeddedDatabase;
 	}
 	
 	 /*Primary Entity manager*/
