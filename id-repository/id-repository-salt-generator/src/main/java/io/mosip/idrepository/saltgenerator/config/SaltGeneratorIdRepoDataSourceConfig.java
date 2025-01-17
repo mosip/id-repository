@@ -59,9 +59,7 @@ public class SaltGeneratorIdRepoDataSourceConfig {
 		dataSource.setDriverClassName(env.getProperty(String.format(DATASOURCE_DRIVERCLASSNAME.getValue(), alias)));
 		return dataSource;
 	}
-	
-	 /*Primary Entity manager*/
-	   @Primary
+
 	   @Bean(name = "identityEntityManagerFactory")
 	   public LocalContainerEntityManagerFactoryBean identityEntityManagerFactory(EntityManagerFactoryBuilder builder) {
 	       return builder
@@ -81,8 +79,7 @@ public class SaltGeneratorIdRepoDataSourceConfig {
 			jpaProperties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
 			return jpaProperties;
 		}
-	   
-	   @Primary
+
 	   @Bean(name = "identityTransactionManager")
 	   public PlatformTransactionManager identityTransactionManager(
 	           final @Qualifier("identityEntityManagerFactory") LocalContainerEntityManagerFactoryBean memberEntityManagerFactory) {
