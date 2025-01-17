@@ -57,16 +57,17 @@ public class SaltGeneratorIdMapDataSourceConfig {
 	}
 	
 	 /*Primary Entity manager*/
-	   @Bean(name = "vidEntityManagerFactory")
-	   public LocalContainerEntityManagerFactoryBean vidEntityManagerFactory(EntityManagerFactoryBuilder builder) {
-	       return builder
-	               .dataSource(vidDataSource())
-	               .packages(VidHashSaltEntity.class)
-	               .properties(additionalProperties())
-	               .build();
-	   }
-	   
-	   /**
+	 @Bean(name = "vidEntityManagerFactory")
+	 public LocalContainerEntityManagerFactoryBean vidEntityManagerFactory(
+			 EntityManagerFactoryBuilder builder) {  // Injecting Builder explicitly
+		 return builder
+				 .dataSource(vidDataSource())
+				 .packages(VidHashSaltEntity.class)
+				 .properties(additionalProperties())
+				 .build();
+	 }
+
+	/**
 		 * Additional properties.
 		 *
 		 * @return the map
