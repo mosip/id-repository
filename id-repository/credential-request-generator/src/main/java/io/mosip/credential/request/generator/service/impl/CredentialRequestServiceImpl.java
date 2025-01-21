@@ -110,7 +110,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credential.setRequestId(requestId);
 			credential.setRequest(mapper.writeValueAsString(credentialIssueRequestDto));
 			credential.setStatusCode(CredentialStatusCode.NEW.name());
-			credential.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+			credential.setCreateDateTime(DateUtils.getUTCCurrentDateTime());
 			credential.setCreatedBy(IdRepoSecurityManager.getUser());
 			credential.setStatusComment("Request created");
 			credentialDao.save(credential);
@@ -137,12 +137,8 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, CREATE_CREDENTIAL, ExceptionUtils.getStackTrace(e));
 		} finally {
 			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
-			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
-
 			credentialIssueResponseWrapper
-					.setResponsetime(localdatetime);
+					.setResponsetime(DateUtils.getUTCCurrentDateTime());
 			credentialIssueResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialIssueResponseWrapper.setErrors(errorList);
