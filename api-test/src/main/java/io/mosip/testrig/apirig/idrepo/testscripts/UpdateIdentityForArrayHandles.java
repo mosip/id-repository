@@ -28,6 +28,7 @@ import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
 import io.mosip.testrig.apirig.idrepo.utils.IdRepoArrayHandle;
 import io.mosip.testrig.apirig.idrepo.utils.IdRepoConfigManager;
+import io.mosip.testrig.apirig.idrepo.utils.IdRepoUtil;
 import io.mosip.testrig.apirig.testrunner.BaseTestCase;
 import io.mosip.testrig.apirig.testrunner.HealthChecker;
 import io.mosip.testrig.apirig.utils.AdminTestException;
@@ -92,6 +93,7 @@ public class UpdateIdentityForArrayHandles extends AdminTestUtil implements ITes
 	@Test(dataProvider = "testcaselist")
 	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException {
 		testCaseName = testCaseDTO.getTestCaseName();
+		testCaseName = IdRepoUtil.isTestCaseValidForExecution(testCaseDTO);
 
 
 		testCaseDTO.setInputTemplate(AdminTestUtil.updateIdentityHbs(testCaseDTO.isRegenerateHbs()));
@@ -143,7 +145,7 @@ public class UpdateIdentityForArrayHandles extends AdminTestUtil implements ITes
 		inputJson = inputJson.replace("$RID$", genRid);
 
 		if ((testCaseName.startsWith("IdRepository_")) && inputJson.contains("dateOfBirth")
-				&& (!isElementPresent(new JSONArray(schemaRequiredField), dob))) {
+				&& (!isElementPresent(globalRequiredFields, dob))) {
 			JSONObject reqJson = new JSONObject(inputJson);
 			reqJson.getJSONObject("request").getJSONObject("identity").remove("dateOfBirth");
 			inputJson = reqJson.toString();

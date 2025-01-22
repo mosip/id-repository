@@ -105,8 +105,6 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 								new KernelAuthentication().getTokenByRole(testCaseDTO.getRole())).asString(),
 						"response.uin");
 
-		testCaseName = isTestCaseValidForExecution(testCaseDTO);
-
 		DateFormat dateFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
 		Calendar cal = Calendar.getInstance();
 		String timestampValue = dateFormatter.format(cal.getTime());
@@ -161,7 +159,7 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 		inputJson = inputJson.replace("$RID$", genRid);
 		String phoneNumber = "";
 		String email = testCaseName +"@mosip.net";
-		if (inputJson.contains("$PHONENUMBERFORIDENTITY$")) {
+		if (inputJson.contains("$PHONENUMBERFORIDENTITY$")||inputJson.contains("$EMAILVALUE$")) {
 			if (!phoneSchemaRegex.isEmpty())
 				try {
 					phoneNumber = genStringAsperRegex(phoneSchemaRegex);
