@@ -23,10 +23,10 @@ public class SaltGenerator {
 
     @Transactional
     public void start() throws Exception {
-        System.out.println("Starting ReEncryption Utility...");
+        System.out.println("Starting Salt generator");
 
         List<IdRepoSaltEntitiesComposite> entitiesList = new ArrayList<>();
-        DatabaseContextHolder.set(DatabaseType.PRIMARY);
+        DatabaseContextHolder.set(DatabaseType.IDENTITY);
         // Read records using SaltReader
         IdRepoSaltEntitiesComposite entity;
         while ((entity = saltReader.read()) != null) {

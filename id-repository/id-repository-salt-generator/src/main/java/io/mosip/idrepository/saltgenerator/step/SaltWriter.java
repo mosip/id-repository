@@ -52,24 +52,13 @@ public class SaltWriter implements ItemWriter<IdRepoSaltEntitiesComposite> {
 	@Transactional
 	public void write(Chunk<? extends IdRepoSaltEntitiesComposite> entitiesCompositeList) throws Exception {
 		try {
-			// Set database context for identityHashSaltRepo
-			DatabaseContextHolder.set(DatabaseType.IDENTITY);
 			long identityHashSaltCount = identityHashSaltRepo.countByIdIn(StreamSupport.stream(entitiesCompositeList.spliterator(), true)
 					.map(entities -> entities.getIdentityHashSaltEntity().getId()).collect(Collectors.toList()));
 
-			DatabaseContextHolder.set(DatabaseType.VID);
-			long vidHashSaltCount = vidHashSaltRepo.countByIdIn(StreamSupport.stream(entitiesCompositeList.spliterator(), true)
-					.map(entities -> entities.getVidHashSaltEntity().getId()).collect(Collectors.toList()));
-
-			DatabaseContextHolder.set(DatabaseType.IDENTITY);
 			long identityEncryptSaltCount = identityEncryptSaltRepo.countByIdIn(StreamSupport.stream(entitiesCompositeList.spliterator(), true)
 					.map(entities -> entities.getIdentityEncryptSaltEntity().getId()).collect(Collectors.toList()));
 
-			DatabaseContextHolder.set(DatabaseType.VID);
-			long vidEncryptSaltCount = vidEncryptSaltRepo.countByIdIn(StreamSupport.stream(entitiesCompositeList.spliterator(), true)
-					.map(entities -> entities.getVidEncryptSaltEntity().getId()).collect(Collectors.toList()));
-
-			if (identityHashSaltCount == 0L && vidHashSaltCount == 0L && identityEncryptSaltCount == 0L && vidEncryptSaltCount == 0L) {
+			if (identityHashSaltCount == 0L && identityEncryptSaltCount == 0L ) {
 
 				DatabaseContextHolder.set(DatabaseType.IDENTITY);
 				List<IdentityHashSaltEntity> idRepoHashSaltEntitiesList = StreamSupport.stream(entitiesCompositeList.spliterator(), true)
@@ -77,17 +66,30 @@ public class SaltWriter implements ItemWriter<IdRepoSaltEntitiesComposite> {
 				identityHashSaltRepo.saveAll(idRepoHashSaltEntitiesList);
 				mosipLogger.debug("SALT_GENERATOR", "SaltWriter", "IdRepo Hash Salt Entities written", String.valueOf(idRepoHashSaltEntitiesList.size()));
 
+				List<IdentityEncryptSaltEntity> idRepoEncryptSaltEntitiesList = StreamSupport.stream(entitiesCompositeList.spliterator(), true)
+						.map(IdRepoSaltEntitiesComposite::getIdentityEncryptSaltEntity).collect(Collectors.toList());
+				identityEncryptSaltRepo.saveAll(idRepoEncryptSaltEntitiesList);
+				mosipLogger.debug("SALT_GENERATOR", "SaltWriter", "IdRepo Encrypt Salt Entities written", String.valueOf(idRepoEncryptSaltEntitiesList.size()));
+
+			} else {
+				mosipLogger.error("SALT_GENERATOR", "SaltWriter", "write", "Records already exist in IdRepo/Vid Salt Table");
+			}
+			DatabaseContextHolder.clear();
+
+			DatabaseContextHolder.set(DatabaseType.VID);
+			long vidHashSaltCount = vidHashSaltRepo.countByIdIn(StreamSupport.stream(entitiesCompositeList.spliterator(), true)
+					.map(entities -> entities.getVidHashSaltEntity().getId()).collect(Collectors.toList()));
+
+			long vidEncryptSaltCount = vidEncryptSaltRepo.countByIdIn(StreamSupport.stream(entitiesCompositeList.spliterator(), true)
+					.map(entities -> entities.getVidEncryptSaltEntity().getId()).collect(Collectors.toList()));
+
+			if (vidHashSaltCount == 0L && vidEncryptSaltCount == 0L) {
+
 				DatabaseContextHolder.set(DatabaseType.VID);
 				List<VidHashSaltEntity> vidHashSaltEntitiesList = StreamSupport.stream(entitiesCompositeList.spliterator(), true)
 						.map(IdRepoSaltEntitiesComposite::getVidHashSaltEntity).collect(Collectors.toList());
 				vidHashSaltRepo.saveAll(vidHashSaltEntitiesList);
 				mosipLogger.debug("SALT_GENERATOR", "SaltWriter", "IdMap Hash Salt Entities written", String.valueOf(vidHashSaltEntitiesList.size()));
-
-				DatabaseContextHolder.set(DatabaseType.IDENTITY);
-				List<IdentityEncryptSaltEntity> idRepoEncryptSaltEntitiesList = StreamSupport.stream(entitiesCompositeList.spliterator(), true)
-						.map(IdRepoSaltEntitiesComposite::getIdentityEncryptSaltEntity).collect(Collectors.toList());
-				identityEncryptSaltRepo.saveAll(idRepoEncryptSaltEntitiesList);
-				mosipLogger.debug("SALT_GENERATOR", "SaltWriter", "IdRepo Encrypt Salt Entities written", String.valueOf(idRepoEncryptSaltEntitiesList.size()));
 
 				DatabaseContextHolder.set(DatabaseType.VID);
 				List<VidEncryptSaltEntity> vidEncryptSaltEntitiesList = StreamSupport.stream(entitiesCompositeList.spliterator(), true)
