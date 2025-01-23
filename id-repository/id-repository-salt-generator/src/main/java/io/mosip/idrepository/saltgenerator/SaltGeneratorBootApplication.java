@@ -7,6 +7,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
 
 /**
  * The Class SaltGeneratorBootApplication - Salt generator Job is a
@@ -15,6 +16,7 @@ import org.springframework.context.ApplicationContext;
  * @author Manoj SP
  */
 //@EnableAutoConfiguration(exclude={ScheduledTasksEndpointAutoConfiguration.class})
+@ComponentScan(basePackages={"io.mosip.idrepository.saltgenerator.*"})
 @SpringBootApplication(exclude = {BatchAutoConfiguration.class})
 public class SaltGeneratorBootApplication implements CommandLineRunner {
 

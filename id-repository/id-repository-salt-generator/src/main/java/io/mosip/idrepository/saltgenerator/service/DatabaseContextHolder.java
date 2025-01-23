@@ -1,23 +1,27 @@
 package io.mosip.idrepository.saltgenerator.service;
 
 import io.mosip.idrepository.saltgenerator.constant.DatabaseType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/*
-@author Kamesh Shekhar Prasad
- */
 public class DatabaseContextHolder {
-    private static final ThreadLocal<DatabaseType> CONTEXT = new ThreadLocal<>();
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseContextHolder.class);
+    private static final ThreadLocal<DatabaseType> current = new ThreadLocal<>();
 
-    public static void set(DatabaseType databaseType) {
-        CONTEXT.set(databaseType);
+    public static void setCurrentDatabase(DatabaseType database) {
+        LOGGER.info("🔄 Switching Database to: {}", database);
+        current.set(database);
     }
 
-    public static DatabaseType get() {
-        return CONTEXT.get();
+    public static DatabaseType getCurrentDatabase() {
+        DatabaseType db = current.get();
+        LOGGER.info("📌 Current Database: {}", db);
+        return db;
     }
 
     public static void clear() {
-        CONTEXT.remove();
+        LOGGER.info("❌ Clearing Database Context");
+        current.remove();
     }
 }
 

@@ -26,7 +26,7 @@ public class SaltGenerator {
         System.out.println("Starting Salt generator");
 
         List<IdRepoSaltEntitiesComposite> entitiesList = new ArrayList<>();
-        DatabaseContextHolder.set(DatabaseType.IDENTITY);
+        DatabaseContextHolder.setCurrentDatabase(DatabaseType.PRIMARY);
         // Read records using SaltReader
         IdRepoSaltEntitiesComposite entity;
         while ((entity = saltReader.read()) != null) {

@@ -21,7 +21,7 @@ import lombok.Data;
  * Instantiates a new salt entity.
  */
 @Data
-@Table(name = "uin_encrypt_salt")
+@Table(name = "uin_encrypt_salt", schema = "idmap")
 public class VidEncryptSaltEntity implements ISaltEntity{
 
 	/** The id. */

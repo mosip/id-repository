@@ -1,19 +1,18 @@
 package io.mosip.idrepository.saltgenerator.service;
 
 import io.mosip.idrepository.saltgenerator.constant.DatabaseType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 
-/*
-@author Kamesh Shekhar Prasad
- */
 public class RoutingDataSource extends AbstractRoutingDataSource {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RoutingDataSource.class);
 
     @Override
     protected Object determineCurrentLookupKey() {
-        DatabaseType databaseType = DatabaseContextHolder.get();
-        System.out.println("Switching to Database: " + databaseType);
-        return databaseType;
+        DatabaseType dbType = DatabaseContextHolder.getCurrentDatabase();
+        LOGGER.info("📌 Using DataSource: {}", dbType);
+        return dbType;
     }
 }
-
 
