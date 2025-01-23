@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+@author kamesh Shekhar Prasad
+ */
 @Component
 public class SaltGenerator {
 

@@ -1,5 +1,8 @@
 package io.mosip.idrepository.saltgenerator.service;
 
+/*
+@author kamesh Shekhar Prasad
+ */
 public class DatabaseThreadContext {
 
     private static final ThreadLocal<Database> current = new ThreadLocal<>();
