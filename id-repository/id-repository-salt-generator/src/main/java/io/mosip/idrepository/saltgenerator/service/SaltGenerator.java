@@ -1,19 +1,21 @@
 package io.mosip.idrepository.saltgenerator.service;
 
-import io.mosip.idrepository.saltgenerator.constant.DatabaseType;
 import io.mosip.idrepository.saltgenerator.entity.IdRepoSaltEntitiesComposite;
+import io.mosip.idrepository.saltgenerator.logger.SaltGeneratorLogger;
 import io.mosip.idrepository.saltgenerator.step.SaltReader;
 import io.mosip.idrepository.saltgenerator.step.SaltWriter;
+import io.mosip.kernel.core.logger.spi.Logger;
 import org.springframework.batch.item.Chunk;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class SaltGenerator {
+
+    Logger mosipLogger = SaltGeneratorLogger.getLogger(SaltGenerator.class);
 
     @Autowired
     private SaltReader saltReader;
@@ -22,7 +24,7 @@ public class SaltGenerator {
     private SaltWriter saltWriter;
 
     public void start() throws Exception {
-        System.out.println("Starting Salt generator");
+        mosipLogger.info("Starting Salt generator");
         DatabaseThreadContext.setCurrentDatabase(Database.PRIMARY);
         List<IdRepoSaltEntitiesComposite> entitiesList = new ArrayList<>();
         // Read records using SaltReader
@@ -34,11 +36,11 @@ public class SaltGenerator {
         if (!entitiesList.isEmpty()) {
             // Write records using SaltWriter
             saltWriter.write(new Chunk<>(entitiesList));
-            System.out.println("Salt data successfully processed.");
+            mosipLogger.info("Salt data successfully processed.");
         } else {
-            System.out.println("No salt data found for processing.");
+            mosipLogger.info("No salt data found for processing.");
         }
 
-        System.out.println("ReEncryption Utility Completed.");
+        mosipLogger.info("Salt generation job Completed.");
     }
 }

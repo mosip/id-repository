@@ -4,9 +4,6 @@ import java.util.stream.Collectors;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
-import javax.transaction.Transactional;
-
-import io.mosip.idrepository.saltgenerator.constant.DatabaseType;
 import io.mosip.idrepository.saltgenerator.service.Database;
 import io.mosip.idrepository.saltgenerator.service.DatabaseThreadContext;
 import org.springframework.batch.item.ItemWriter;

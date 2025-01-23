@@ -1,6 +1,8 @@
 package io.mosip.idrepository.saltgenerator;
 
+import io.mosip.idrepository.saltgenerator.logger.SaltGeneratorLogger;
 import io.mosip.idrepository.saltgenerator.service.SaltGenerator;
+import io.mosip.kernel.core.logger.spi.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -15,10 +17,11 @@ import org.springframework.context.annotation.ComponentScan;
  *
  * @author Manoj SP
  */
-//@EnableAutoConfiguration(exclude={ScheduledTasksEndpointAutoConfiguration.class})
 @ComponentScan(basePackages={"io.mosip.idrepository.saltgenerator.*"})
 @SpringBootApplication(exclude = {BatchAutoConfiguration.class})
 public class SaltGeneratorBootApplication implements CommandLineRunner {
+
+	Logger mosipLogger = SaltGeneratorLogger.getLogger(SaltGeneratorBootApplication.class);
 
 	@Autowired
 	private SaltGenerator saltGenerator;
@@ -36,10 +39,9 @@ public class SaltGeneratorBootApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-
-		//logger.info(" started......");
+		mosipLogger.info(" started......");
 		saltGenerator.start();
-		//logger.info("  Completed......");
+		mosipLogger.info("  Completed......");
 
 	}
 
