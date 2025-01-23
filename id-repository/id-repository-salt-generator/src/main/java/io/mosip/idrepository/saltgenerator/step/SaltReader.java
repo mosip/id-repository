@@ -83,7 +83,7 @@ public class SaltReader implements ItemReader<IdRepoSaltEntitiesComposite> {
 			identityEncryptSalt.setCreatedBy("System");
 			identityEncryptSalt.setCreateDtimes(currentDateTime);
 			
-			String vidEncSalt = CryptoUtil.encodeToPlainBase64(HMACUtils2.generateSalt());
+			String vidEncSalt =idEncSalt;
 			
 			VidEncryptSaltEntity vidEncryptSalt = new VidEncryptSaltEntity();
 			vidEncryptSalt.setId(startSeq);
