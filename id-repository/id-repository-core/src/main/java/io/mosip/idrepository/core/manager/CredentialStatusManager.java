@@ -74,9 +74,6 @@ public class CredentialStatusManager {
 	@Value("${" + CREDENTIAL_STATUS_UPDATE_TOPIC + "}")
 	private String credentailStatusUpdateTopic;
 	
-	@Value("${credential.batch.page.size:40}")
-	private int pageSize;
-
 	@Autowired
 	private DummyPartnerCheckUtil dummyPartner;
 
