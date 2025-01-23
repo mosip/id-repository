@@ -36,6 +36,7 @@
 		<kernel.websubclient.version>1.2.1-SNAPSHOT</kernel.websubclient.version>
 		<spring.batch.integration.version>4.0.1.RELEASE</spring.batch.integration.version>
 		<springdoc.version>1.5.10</springdoc.version>
+		<kernel.auth.adapter.version>1.3.0-beta.1</kernel.auth.adapter.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -122,6 +123,11 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-dataaccess-hibernate</artifactId>
 			<version>${kernel.dataaccess.hibernate.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-auth-adapter</artifactId>
+			<version>${kernel.auth.adapter.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>

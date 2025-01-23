@@ -33,6 +33,7 @@
 		<io.micrometer.prometheus.version>1.4.2</io.micrometer.prometheus.version>
 		<springdoc.version>1.5.10</springdoc.version>
 		<mockito.version>3.11.2</mockito.version>
+		<kernel.auth.adapter.version>1.3.0-beta.1</kernel.auth.adapter.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -129,6 +130,11 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-websubclient-api</artifactId>
 			<version>${kernel.websubclient.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-auth-adapter</artifactId>
+			<version>${kernel.auth.adapter.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.micrometer</groupId>
