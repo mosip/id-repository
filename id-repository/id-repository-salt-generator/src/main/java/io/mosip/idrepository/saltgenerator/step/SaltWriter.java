@@ -7,7 +7,8 @@ import java.util.stream.StreamSupport;
 import javax.transaction.Transactional;
 
 import io.mosip.idrepository.saltgenerator.constant.DatabaseType;
-import io.mosip.idrepository.saltgenerator.service.DatabaseContextHolder;
+import io.mosip.idrepository.saltgenerator.service.Database;
+import io.mosip.idrepository.saltgenerator.service.DatabaseThreadContext;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -49,9 +50,7 @@ public class SaltWriter implements ItemWriter<IdRepoSaltEntitiesComposite> {
 	private VidEncryptSaltRepository vidEncryptSaltRepo;
 
 	@Override
-	@Transactional
 	public void write(Chunk<? extends IdRepoSaltEntitiesComposite> entitiesCompositeList) throws Exception {
-        DatabaseContextHolder.setCurrentDatabase(DatabaseType.PRIMARY);
         long identityHashSaltCount = identityHashSaltRepo.countByIdIn(StreamSupport.stream(entitiesCompositeList.spliterator(), true)
                 .map(entities -> entities.getIdentityHashSaltEntity().getId()).collect(Collectors.toList()));
 
@@ -74,7 +73,7 @@ public class SaltWriter implements ItemWriter<IdRepoSaltEntitiesComposite> {
             mosipLogger.error("SALT_GENERATOR", "SaltWriter", "write", "Records already exist in IdRepo/Vid Salt Table");
         }
 
-        DatabaseContextHolder.setCurrentDatabase(DatabaseType.SECONDARY);
+        DatabaseThreadContext.setCurrentDatabase(Database.SECONDARY);
         long vidHashSaltCount = vidHashSaltRepo.countByIdIn(StreamSupport.stream(entitiesCompositeList.spliterator(), true)
                 .map(entities -> entities.getVidHashSaltEntity().getId()).collect(Collectors.toList()));
 

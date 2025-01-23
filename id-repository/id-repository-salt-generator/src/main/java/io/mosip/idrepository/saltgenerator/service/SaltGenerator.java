@@ -21,12 +21,10 @@ public class SaltGenerator {
     @Autowired
     private SaltWriter saltWriter;
 
-    @Transactional
     public void start() throws Exception {
         System.out.println("Starting Salt generator");
-
+        DatabaseThreadContext.setCurrentDatabase(Database.PRIMARY);
         List<IdRepoSaltEntitiesComposite> entitiesList = new ArrayList<>();
-        DatabaseContextHolder.setCurrentDatabase(DatabaseType.PRIMARY);
         // Read records using SaltReader
         IdRepoSaltEntitiesComposite entity;
         while ((entity = saltReader.read()) != null) {
