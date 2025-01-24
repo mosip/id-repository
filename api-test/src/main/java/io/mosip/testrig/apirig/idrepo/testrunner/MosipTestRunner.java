@@ -129,7 +129,6 @@ public class MosipTestRunner {
 		if (!runType.equalsIgnoreCase("JAR")) {
 			AuthTestsUtil.removeOldMosipTempTestResource();
 		}
-		BaseTestCase.setReportName("idrepo");
 		BaseTestCase.currentModule = "idrepo";
 		BaseTestCase.certsForModule = "idrepo";
 		DBManager.executeDBQueries(IdRepoConfigManager.getKMDbUrl(), IdRepoConfigManager.getKMDbUser(),
@@ -168,8 +167,6 @@ public class MosipTestRunner {
 	 */
 	public static void startTestRunner() {
 		File homeDir = null;
-		TestNG runner = new TestNG();
-		List<String> suitefiles = new ArrayList<>();
 		String os = System.getProperty("os.name");
 		LOGGER.info(os);
 		if (getRunType().contains("IDE") || os.toLowerCase().contains("windows")) {
@@ -180,15 +177,23 @@ public class MosipTestRunner {
 			homeDir = new File(dir.getParent() + "/mosip/testNgXmlFiles");
 			LOGGER.info("ELSE :" + homeDir);
 		}
-		for (File file : homeDir.listFiles()) {
-			if (file.getName().toLowerCase().contains("idrepo")) {
-				suitefiles.add(file.getAbsolutePath());
+		File[] files = homeDir.listFiles();
+		if (files != null) {
+			for (File file : files) {
+				TestNG runner = new TestNG();
+				List<String> suitefiles = new ArrayList<>();
+				if (file.getName().toLowerCase().contains("mastertestsuite")) {
+					BaseTestCase.setReportName(GlobalConstants.IDREPO);
+					suitefiles.add(file.getAbsolutePath());
+					runner.setTestSuites(suitefiles);
+					System.getProperties().setProperty("testng.outpur.dir", "testng-report");
+					runner.setOutputDirectory("testng-report");
+					runner.run();
+				}
 			}
+		} else {
+			LOGGER.error("No files found in directory: " + homeDir);
 		}
-		runner.setTestSuites(suitefiles);
-		System.getProperties().setProperty("testng.outpur.dir", "testng-report");
-		runner.setOutputDirectory("testng-report");
-		runner.run();
 	}
 
 	public static String getGlobalResourcePath() {
