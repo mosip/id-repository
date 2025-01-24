@@ -1,6 +1,6 @@
 package io.mosip.idrepository.saltgenerator.service;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,17 +16,52 @@ import java.util.Map;
 @Configuration
 public class DatabaseRouter {
 
+    @Value("${mosip.idrepo.identity.db.url}")
+    private String identityJdbcUrl;
+
+    @Value("${mosip.idrepo.identity.db.username}")
+    private String identityUserName;
+
+    @Value("${mosip.idrepo.identity.db.password}")
+    private String identityPassword;
+
+    @Value("${mosip.idrepo.identity.db.driverClassName}")
+    private String identityDriverClassName;
+
+    @Value("${mosip.idrepo.vid.db.url}")
+    private String vidJdbcUrl;
+
+    @Value("${mosip.idrepo.vid.db.username}")
+    private String vidUserName;
+
+    @Value("${mosip.idrepo.vid.db.password}")
+    private String vidPassword;
+
+    @Value("${mosip.idrepo.vid.db.driverClassName}")
+    private String vidDriverClassName;
+
     @Bean
-    @ConfigurationProperties(prefix="datasource.primary")
     public DataSource primaryDataSource() {
-        return DataSourceBuilder.create().build();
+
+        return DataSourceBuilder.create()
+                .url(identityJdbcUrl)
+                .username(identityUserName)
+                .password(identityPassword)
+                .driverClassName(identityDriverClassName)
+                .build();
     }
 
     @Bean
-    @ConfigurationProperties(prefix="datasource.secondary")
     public DataSource secondaryDataSource() {
-        return DataSourceBuilder.create().build();
+
+        return DataSourceBuilder.create()
+                .url(vidJdbcUrl)
+                .username(vidUserName)
+                .password(vidPassword)
+                .driverClassName(vidDriverClassName)
+                .build();
     }
+
 
     @Bean
     @Primary
