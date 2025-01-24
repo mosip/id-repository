@@ -71,10 +71,10 @@ public class SaltGeneratorTest {
         long vidEncryptCount = vidEncryptSaltRepo.count();
 
         // Verify expected record counts dynamically instead of assuming 10
-        assertTrue(identityHashCount > 0, "Expected records in identityHashSaltRepo");
-        assertTrue(vidHashCount > 0, "Expected records in vidHashSaltRepo");
-        assertTrue(identityEncryptCount > 0, "Expected records in identityEncryptSaltRepo");
-        assertTrue(vidEncryptCount > 0, "Expected records in vidEncryptSaltRepo");
+        assertTrue(identityHashCount == 5000, "Expected records in identityHashSaltRepo");
+        assertTrue(vidHashCount == 5000, "Expected records in vidHashSaltRepo");
+        assertTrue(identityEncryptCount == 5000, "Expected records in identityEncryptSaltRepo");
+        assertTrue(vidEncryptCount == 5000, "Expected records in vidEncryptSaltRepo");
 
         // Retrieve and validate a record
         Optional<IdentityHashSaltEntity> savedEntity = identityHashSaltRepo.findById(1L);
