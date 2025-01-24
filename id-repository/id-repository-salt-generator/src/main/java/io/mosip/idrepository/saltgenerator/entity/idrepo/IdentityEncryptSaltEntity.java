@@ -38,7 +38,7 @@ public class IdentityEncryptSaltEntity implements ISaltEntity{
 	private String createdBy;
 
 	/** The create dtimes. */
-	@Column(name = "cr_dtimes", updatable = true, nullable = false, unique = true)
+	@Column(name = "cr_dtimes", updatable = true, nullable = false, unique = false)
 	private LocalDateTime createDtimes;
 
 	/** The updated by. */
