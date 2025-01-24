@@ -446,7 +446,7 @@ AuthInternalUnlock:
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/error
       input: '{
-    "individualId": "$ID:AddIdentity_AuthStatus_Valid_smoke_Pos_UIN$",
+    "individualId": "$ID:AddIdentity_AuthStatus_Validd_smoke_Pos_UIN$",
     "individualIdType": "UIN",
     "authType": "bio",
     "authSubType": "FACE",
