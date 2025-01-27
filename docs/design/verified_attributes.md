@@ -19,14 +19,17 @@ metadata schema.
 
 1. Verification metadata must adhere to configured verification metadata schema - https://github.com/mosip/esignet/blob/release-1.5.1-temp/esignet-service/src/main/resources/verified_claims_request_schema.json  (based on Identity Assurance 1.0 Spec)
 2. As we allow multiple verification metadata to be captured per user attribute, we should maintain unique verification metadata. Fields used for uniqueness check is configurable. By default, trust_framework & verification_process are considered for uniqueness check.
-3. Verified attributes is stored as one of the field in the identity object json.
-4. Credential issued to IDA should have verified_attributes only if it's allowed in the datashare policy.
+3. `verifiedAttributes` is stored as one of the field in the identity object json.
+4. Credential issued to IDA should have `verifiedAttributes` only if it's allowed in the datashare policy.
 5. `verifiedAttributes` is an optional field.
 6. On create of identity object, validate verification metadata with schema defined in identity assurance spec. Only unique entries should be saved.
 7. On update, replace value based on the field ID and the trust_framework & verification_process.
 
-	7a. Update of a verified user attribute, should have verification metadata in the current request. If the verification metadata is not available then the previously saved verification metadata for that specific user attribute must be removed.
+	a. Update request to update user attribute and also contains verification metadata for the same user attribute. OR Update request only contains verification metadata for one or more user attributes.
+		
+		* If the saved identity object already contains same verification metadata, then replace the element with new metadata.
+		* If the saved identity object doesnot contain same verification metadata, then append new metadata as a new element.		
+	
+	b. Update request to update user attribute but does not contain any verification metadata for the same user attribute.
 
-	7b. Update of a verified user attribute, should have verification metadata in the current request. If the verification metadata is available then the previously saved verification metadata should be completely replaced with the current input verification metadata.
-
-	7c. Update request only contains the verification metadata then append the input verification metadata if there is no matching element in the list based on the configured uniqueness check fields. If there is an element available in the list with the same unique fields remove the old and add the new verification metadata element.
+		* If the saved identity object already contains same verification metadata, then remove all the verification metadata mapped to input user attribute.
