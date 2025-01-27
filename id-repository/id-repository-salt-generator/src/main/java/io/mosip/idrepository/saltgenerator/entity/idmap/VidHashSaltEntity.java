@@ -2,10 +2,10 @@ package io.mosip.idrepository.saltgenerator.entity.idmap;
 
 import java.time.LocalDateTime;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import io.mosip.idrepository.saltgenerator.entity.ISaltEntity;
 import lombok.Data;
@@ -21,7 +21,7 @@ import lombok.Data;
  * Instantiates a new salt entity.
  */
 @Data
-@Table(name = "uin_hash_salt")
+@Table(name = "uin_hash_salt", schema = "idmap")
 public class VidHashSaltEntity implements ISaltEntity{
 
 	/** The id. */
@@ -38,7 +38,7 @@ public class VidHashSaltEntity implements ISaltEntity{
 	private String createdBy;
 
 	/** The create dtimes. */
-	@Column(name = "cr_dtimes", updatable = true, nullable = false, unique = true)
+	@Column(name = "cr_dtimes", updatable = true, nullable = false, unique = false)
 	private LocalDateTime createDtimes;
 
 	/** The updated by. */
