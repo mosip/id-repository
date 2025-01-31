@@ -100,7 +100,6 @@ import io.restassured.response.Response;
 				}
 			}
 	
-			testCaseName = isTestCaseValidForExecution(testCaseDTO);
 			String[] templateFields = testCaseDTO.getTemplateFields();
 			String inputJson = "";
 	

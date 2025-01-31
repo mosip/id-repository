@@ -23,7 +23,6 @@
 		<kernel.idobjectvalidator.version>1.3.0-SNAPSHOT</kernel.idobjectvalidator.version>
 		<kernel-idvalidator-vid.version>1.3.0-SNAPSHOT</kernel-idvalidator-vid.version>
 		<kernel.khazana.version>1.3.0-SNAPSHOT</kernel.khazana.version>
-
 	</properties>
 
 	<dependencies>
