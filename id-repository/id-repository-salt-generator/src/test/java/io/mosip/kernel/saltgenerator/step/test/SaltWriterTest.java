@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
@@ -71,10 +70,17 @@ public class SaltWriterTest {
 	@Test
 	public void testWriterRecordExists() throws Exception {
 		identityHashSaltRepo.countByIdIn(Mockito.any());
+		identityEncryptSaltRepo.countByIdIn(Mockito.any());
 		IdRepoSaltEntitiesComposite idRepoSaltEntitiesComposite = new IdRepoSaltEntitiesComposite();
 		IdentityHashSaltEntity entity = new IdentityHashSaltEntity();
 		entity.setId(1l);
+		IdentityEncryptSaltEntity identityEncryptSaltEntity = new IdentityEncryptSaltEntity();
+		idRepoSaltEntitiesComposite.setIdentityEncryptSaltEntity(identityEncryptSaltEntity);
 		idRepoSaltEntitiesComposite.setIdentityHashSaltEntity(entity);
+		VidHashSaltEntity vidHashSaltEntity = new VidHashSaltEntity();
+		idRepoSaltEntitiesComposite.setVidHashSaltEntity(vidHashSaltEntity);
+		VidEncryptSaltEntity vidEncryptSaltEntity = new VidEncryptSaltEntity();
+		idRepoSaltEntitiesComposite.setVidEncryptSaltEntity(vidEncryptSaltEntity);
 		when(identityHashSaltRepo.countByIdIn(Mockito.any())).thenReturn(1l);
 		writer.write(Chunk.of(idRepoSaltEntitiesComposite));
 	}
