@@ -427,6 +427,48 @@
 			<build>
 				<plugins>
 					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+						<configuration>
+							<executable>true</executable>
+							<layout>ZIP</layout>
+						</configuration>
+						<executions>
+							<execution>
+								<id>pre-integration-test</id>
+								<goals>
+									<goal>start</goal>
+								</goals>
+								<configuration>
+									<folders>
+										<folder>src/test/resources</folder>
+									</folders>
+									<profiles>
+										<profile>openapi-profile</profile>
+									</profiles>
+									<arguments>
+										<argument>--server.port=8090</argument>
+										<argument>
+											--server.servlet.path=/app/generic</argument>
+									</arguments>
+
+								</configuration>
+							</execution>
+							<execution>
+								<id>post-integration-test</id>
+								<goals>
+									<goal>stop</goal>
+								</goals>
+							</execution>
+							<execution>
+								<goals>
+									<goal>build-info</goal>
+									<goal>repackage</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
 						<groupId>org.springdoc</groupId>
 						<artifactId>springdoc-openapi-maven-plugin</artifactId>
 						<version>0.2</version>
