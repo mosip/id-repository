@@ -26,6 +26,7 @@
 		<mockito.version>2.28.2</mockito.version>
 		<gson.version>2.8.4</gson.version>
 		<kernel.cbeffutil.version>1.3.0-beta.1</kernel.cbeffutil.version>
+		<kernel.biometrics.util.version>1.3.0-beta.1</kernel.biometrics.util.version>
 		<kernel.websubclient.version>1.3.0-SNAPSHOT</kernel.websubclient.version>
 		<io.micrometer.prometheus.version>1.4.2</io.micrometer.prometheus.version>
 		<springdoc.version>1.5.10</springdoc.version>
@@ -163,7 +164,7 @@
 		<dependency>
 			<groupId>io.mosip.biometric.util</groupId>
 			<artifactId>biometrics-util</artifactId>
-			<version>${kernel.core.version}</version>
+			<version>${kernel.biometrics.util.version}</version>
 		</dependency>
 	
 		
