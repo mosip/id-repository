@@ -19,10 +19,10 @@
 		<maven.compiler.target>21</maven.compiler.target>
 		<kernel.core.version>1.3.0-SNAPSHOT</kernel.core.version>
 		<kernel.idvalidator.uin.version>1.3.0-SNAPSHOT</kernel.idvalidator.uin.version>
-		<kernel.cbeffutil.api.version>1.3.0-SNAPSHOT</kernel.cbeffutil.api.version>
+		<kernel.cbeffutil.api.version>1.3.0-beta.1</kernel.cbeffutil.api.version>
 		<kernel.idobjectvalidator.version>1.3.0-SNAPSHOT</kernel.idobjectvalidator.version>
 		<kernel-idvalidator-vid.version>1.3.0-SNAPSHOT</kernel-idvalidator-vid.version>
-		<kernel.khazana.version>1.3.0-SNAPSHOT</kernel.khazana.version>
+		<kernel.khazana.version>1.3.0-beta.1</kernel.khazana.version>
 	</properties>
 
 	<dependencies>
@@ -106,29 +106,12 @@
 		<dependency>
 			<artifactId>kernel-biosdk-provider</artifactId>
 			<groupId>io.mosip.kernel</groupId>
-			<version>1.3.0-SNAPSHOT</version>
+			<version>1.3.0-beta.1</version>
 		</dependency>
 
 	</dependencies>
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>${spring.boot.version}</version>
-				<configuration>
-					<executable>true</executable>
-					<layout>ZIP</layout>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>build-info</goal>
-							<goal>repackage</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
