@@ -268,7 +268,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 
 	private void updateDemographicData(IdRequestDTO request, UinDraft draftToUpdate) throws JSONException, IdRepoAppException, IOException {
 		if (Objects.nonNull(request.getRequest()) && Objects.nonNull(request.getRequest().getIdentity())) {
-			idrepoDraftLogger.info("updateDemographicData method>>>",request.toString(), draftToUpdate.toString());
 			RequestDTO requestDTO = request.getRequest();
 			Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider()).mappingProvider(new JacksonMappingProvider()).build();
 			DocumentContext inputData = JsonPath.using(configuration).parse(requestDTO.getIdentity());
