@@ -116,9 +116,6 @@ public class CredentialItemTasklet implements Tasklet {
 
 					if (responseObject != null &&
 							responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
-						LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
-								responseObject.toString());
-
 						ErrorDTO error = responseObject.getErrors().get(0);
 						credential.setStatusCode(CredentialStatusCode.FAILED.name());
 						credential.setStatusComment(error.getMessage());

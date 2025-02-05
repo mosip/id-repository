@@ -65,9 +65,6 @@ public class DataShareUtil {
 			throws ApiNotAccessibleException, IOException, DataShareException {
 		long fileLengthInBytes=0;
 		try {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-		
-					"creating data share entry");
 			LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 			map.add("name", CREDENTIALFILE);
 			map.add("filename", CREDENTIALFILE);
@@ -104,8 +101,6 @@ public class DataShareUtil {
 		DataShareResponseDto responseObject = mapper.readValue(responseString, DataShareResponseDto.class);
 
 		if (responseObject == null) {
-				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-						"File size" + " " + fileLengthInBytes);
 				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 						CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorMessage());
 
@@ -114,22 +109,15 @@ public class DataShareUtil {
 		if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
 
 			ErrorDTO error = responseObject.getErrors().get(0);
-				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-						"File size" + " " + fileLengthInBytes);
 				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					error.getMessage());
 			throw new DataShareException();
 
 		} else {
-
-				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-						"data share created");
 			return responseObject.getDataShare();
 
 			}
 		} catch (Exception e) {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"File size" + " " + fileLengthInBytes);
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					ExceptionUtils.getStackTrace(e));
 			if (e.getCause() instanceof HttpClientErrorException) {

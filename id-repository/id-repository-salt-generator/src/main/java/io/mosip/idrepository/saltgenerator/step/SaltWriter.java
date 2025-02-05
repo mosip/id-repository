@@ -59,12 +59,11 @@ public class SaltWriter implements ItemWriter<IdRepoSaltEntitiesComposite> {
             List<IdentityHashSaltEntity> idRepoHashSaltEntitiesList = StreamSupport.stream(entitiesCompositeList.spliterator(), true)
                     .map(IdRepoSaltEntitiesComposite::getIdentityHashSaltEntity).collect(Collectors.toList());
             identityHashSaltRepo.saveAll(idRepoHashSaltEntitiesList);
-            mosipLogger.debug("SALT_GENERATOR", "SaltWriter", "IdRepo Hash Salt Entities written", String.valueOf(idRepoHashSaltEntitiesList.size()));
-
+           
             List<IdentityEncryptSaltEntity> idRepoEncryptSaltEntitiesList = StreamSupport.stream(entitiesCompositeList.spliterator(), true)
                     .map(IdRepoSaltEntitiesComposite::getIdentityEncryptSaltEntity).collect(Collectors.toList());
             identityEncryptSaltRepo.saveAll(idRepoEncryptSaltEntitiesList);
-            mosipLogger.debug("SALT_GENERATOR", "SaltWriter", "IdRepo Encrypt Salt Entities written", String.valueOf(idRepoEncryptSaltEntitiesList.size()));
+           
 
         } else {
             mosipLogger.error("SALT_GENERATOR", "SaltWriter", "write", "Records already exist in IdRepo/Vid Salt Table");
@@ -82,13 +81,11 @@ public class SaltWriter implements ItemWriter<IdRepoSaltEntitiesComposite> {
             List<VidHashSaltEntity> vidHashSaltEntitiesList = StreamSupport.stream(entitiesCompositeList.spliterator(), true)
                     .map(IdRepoSaltEntitiesComposite::getVidHashSaltEntity).collect(Collectors.toList());
             vidHashSaltRepo.saveAll(vidHashSaltEntitiesList);
-            mosipLogger.debug("SALT_GENERATOR", "SaltWriter", "IdMap Hash Salt Entities written", String.valueOf(vidHashSaltEntitiesList.size()));
-
+            
             List<VidEncryptSaltEntity> vidEncryptSaltEntitiesList = StreamSupport.stream(entitiesCompositeList.spliterator(), true)
                     .map(IdRepoSaltEntitiesComposite::getVidEncryptSaltEntity).collect(Collectors.toList());
             vidEncryptSaltRepo.saveAll(vidEncryptSaltEntitiesList);
-            mosipLogger.debug("SALT_GENERATOR", "SaltWriter", "IdMap Encrypt Salt Entities written", String.valueOf(vidEncryptSaltEntitiesList.size()));
-
+            
         } else {
             mosipLogger.error("SALT_GENERATOR", "SaltWriter", "write", "Records already exist in IdRepo/Vid Salt Table");
         }

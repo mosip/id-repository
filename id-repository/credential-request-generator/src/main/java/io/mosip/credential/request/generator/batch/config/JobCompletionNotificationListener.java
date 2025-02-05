@@ -31,9 +31,7 @@ public class JobCompletionNotificationListener implements JobExecutionListener {
 	 * @see org.springframework.batch.core.listener.JobExecutionListenerSupport#afterJob(org.springframework.batch.core.JobExecution)
 	 */
 	public void afterJob(JobExecution jobExecution) {
-		  if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
-			LOGGER.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.ID.toString(),
-					LoggerFileConstant.ID.toString(), "Job completed successfully");
+		if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
 		}
 	}
 

@@ -386,8 +386,6 @@ public class CredentialServiceManager {
 		}
 
 		if(handleList != null && !handleList.isEmpty()) {
-			mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendUinEventsToCredService",
-					"Number of handles identified >> " + handleList.size());
 			List<CredentialIssueRequestDto> handleRequests = handleList.stream().flatMap(handleInfoDTO -> {
 				return partnerIds.stream().map(partnerId -> {
 					String token = tokenIDGenerator.generateTokenID(uin, partnerId);

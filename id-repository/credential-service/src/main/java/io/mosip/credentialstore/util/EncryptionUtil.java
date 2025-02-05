@@ -62,9 +62,6 @@ public class EncryptionUtil {
 
 	public String encryptDataWithPin(String attributeName, String data, String pin, String requestId)
 			throws DataEncryptionFailureException, ApiNotAccessibleException {
-		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-				"started encrypting data using pin");
-
 		String encryptedData = null;
 		try {
 		
@@ -97,8 +94,6 @@ public class EncryptionUtil {
 							"Pin Based Encryption done successfully");
 				}
 			}
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"ended encrypting data using pin");
 		} catch (IOException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"encrypted failed for attribute  " + attributeName + ExceptionUtils.getStackTrace(e));
@@ -123,9 +118,6 @@ public class EncryptionUtil {
 
 	public EncryptZkResponseDto encryptDataWithZK(String id, List<ZkDataAttribute> zkDataAttributes, String requestId)
 			throws DataEncryptionFailureException, ApiNotAccessibleException {
-		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-				"started encrypting data using ZK encryption");
-
 		EncryptZkResponseDto encryptedData = null;
 		try {
 		
@@ -158,8 +150,6 @@ public class EncryptionUtil {
 							"ZK Encryption done successfully");
 				}
 			}
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"ended encrypting data using ZK encryption");
 		} catch (IOException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ZK encryption error with error message" + ExceptionUtils.getStackTrace(e));
@@ -186,8 +176,6 @@ public class EncryptionUtil {
 			ApiNotAccessibleException.class }, maxAttemptsExpression = "${mosip.credential.service.retry.maxAttempts}", backoff = @Backoff(delayExpression = "${mosip.credential.service.retry.maxDelay}"))
 	public String encryptData(String dataToBeEncrypted, String partnerId, String requestId)
 			throws DataEncryptionFailureException, ApiNotAccessibleException {
-		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-				"started encrypting data using partner certificate");
 	
 
 		String encryptedPacket = null;
@@ -225,8 +213,6 @@ public class EncryptionUtil {
 							"Credential Data Encryption done successfully");
 				}
 			}
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"ended encrypting data using partner certificate");
 		} catch (IOException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Credential Data Encryption error with error message" + ExceptionUtils.getStackTrace(e));

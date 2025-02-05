@@ -90,9 +90,7 @@ public class SaltReader implements ItemReader<IdRepoSaltEntitiesComposite> {
 			vidEncryptSalt.setSalt(vidEncSalt);
 			vidEncryptSalt.setCreatedBy("System");
 			vidEncryptSalt.setCreateDtimes(currentDateTime);
-			
-			mosipLogger.debug("SALT_GENERATOR", "SaltReader", "Entity with id created - ",
-					String.valueOf(startSeq));
+
 			startSeq = startSeq + 1;
 			return new IdRepoSaltEntitiesComposite(identityHashSalt, vidHashSalt, identityEncryptSalt, vidEncryptSalt );
 		} else {

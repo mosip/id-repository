@@ -113,8 +113,6 @@ public class RestHelper {
 	public <T> T requestSync(@Valid RestRequestDTO request) throws RestServiceException {
 		Object response;
 		try {
-			mosipLogger.debug(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_SYNC,
-					request.getUri());
 			if (request.getTimeout() != null) {
 				response = request(request).timeout(Duration.ofSeconds(request.getTimeout())).block();
 			} else {
@@ -123,11 +121,8 @@ public class RestHelper {
 			if(!String.class.equals(request.getResponseType())) {
 				checkErrorResponse(response, request.getResponseType());
 				if(RestUtil.containsError(response.toString(), mapper)) {
-					mosipLogger.debug("Error in response %s", response.toString());
 				}
-			}	
-			mosipLogger.debug(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_SYNC,
-					"Received valid response");
+			}
 			return (T) response;
 		} catch (WebClientResponseException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_SYNC,
@@ -156,8 +151,7 @@ public class RestHelper {
 	 */
 	@Async
 	public CompletableFuture<Object> requestAsync(@Valid RestRequestDTO request) {
-		mosipLogger.debug(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_ASYNC,
-				PREFIX_REQUEST + request.getUri());
+		
 		try {
 			Object obj =  requestSync(request);
 			return CompletableFuture.completedFuture(obj);

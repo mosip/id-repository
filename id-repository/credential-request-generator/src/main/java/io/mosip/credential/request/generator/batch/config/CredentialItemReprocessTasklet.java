@@ -126,8 +126,6 @@ public class CredentialItemReprocessTasklet implements Tasklet {
 							CredentialServiceResponseDto.class);
 
 					if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
-						LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
-								credential.getRequestId(), responseObject.toString());
 						ErrorDTO error = responseObject.getErrors().get(0);
 						credential.setStatusCode(CredentialStatusCode.FAILED.name());
 						credential.setStatusComment(error.getMessage());

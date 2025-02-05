@@ -58,9 +58,6 @@ public class CredentialTransactionInterceptor implements Interceptor {
 				decryptedData = new String(CryptoUtil
 						.decodeURLSafeBase64(encryptDecryptData(ApiName.DECRYPTION, requestValue)));
 			} catch (Exception e) {
-				LOGGER.debug(
-						"Decryption failed. Falling back to treat the data as un-encrypted one for backward compatibility with 1.1.5.5\n "
-								+ ExceptionUtils.getStackTrace(e));
 				decryptedData = requestValue;
 			}
 			state[indexOfData] = decryptedData;

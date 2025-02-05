@@ -97,8 +97,6 @@ public class IdAuthProvider extends CredentialProvider {
 			CredentialServiceRequestDto credentialServiceRequestDto, Map<AllowedKycDto, Object> sharableAttributeMap)
 			throws CredentialFormatterException {
 		String requestId = credentialServiceRequestDto.getRequestId();
-		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-				"formatting the data start");
 		DataProviderResponse dataProviderResponse=new DataProviderResponse();
 		try {
 			List<String> protectedAttributes = new ArrayList<>();
@@ -173,8 +171,6 @@ public class IdAuthProvider extends CredentialProvider {
 			dataProviderResponse.setIssuanceDate(localdatetime);
 			dataProviderResponse.setJSON(json);
 			dataProviderResponse.setCredentialId(credentialId);
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"end formatting credential data");
 			return dataProviderResponse;
 		} catch (IOException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,

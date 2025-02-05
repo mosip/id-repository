@@ -153,8 +153,7 @@ public class IdRepoServiceHelper {
             String schemaVersion = String.valueOf(identityMap.get(identityMapping.getIdentity().getIDSchemaVersion().getValue()));
             String selectedHandlesFieldId = identityMapping.getIdentity().getSelectedHandles().getValue();
             if(identityMap.containsKey(selectedHandlesFieldId) && Objects.nonNull(identityMap.get(selectedHandlesFieldId))) {
-                mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER, "getSelectedHandles",
-                        requestMap.get(selectedHandlesFieldId));
+                
                 List<String> selectedHandleFieldIds = (List<String>) identityMap.get(selectedHandlesFieldId);
                 return selectedHandleFieldIds.stream()
                         .filter( handleFieldId -> supportedHandlesInSchema.get(schemaVersion).contains(handleFieldId))

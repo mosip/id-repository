@@ -156,10 +156,6 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	 */
 	public CredentialServiceResponseDto createCredentialIssuance(
 			CredentialServiceRequestDto credentialServiceRequestDto) {
-		LOGGER.debug(IdRepoSecurityManager.getUser(),
-				LoggerFileConstant.REQUEST_ID.toString(),
-				credentialServiceRequestDto.getRequestId(),
-				"started creating credential");
 		List<ErrorDTO> errorList = new ArrayList<>();
 		CredentialServiceResponseDto credentialIssueResponseDto = new CredentialServiceResponseDto();
 		CredentialServiceResponse credentialServiceResponse = null;
@@ -198,7 +194,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			if (policyDetailResponseDto.getPolicies() != null && policyDetailResponseDto.getPolicies().getDataSharePolicies().getTypeOfShare()
 					.equalsIgnoreCase(DATASHARE)) {
 
-				LOGGER.info("ended creating credential: {}, {}", policyDetailResponseDto.getPolicyId(), credentialServiceRequestDto.getIssuer());
+				//LOGGER.info("ended creating credential: {}, {}", policyDetailResponseDto.getPolicyId(), credentialServiceRequestDto.getIssuer());
 
 				dataShare = dataShareUtil.getDataShare(jsonData.getBytes(), policyDetailResponseDto.getPolicyId(),
 						credentialServiceRequestDto.getIssuer(),
@@ -223,9 +219,6 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 
 			credentialServiceResponse.setIssuanceDate(dataProviderResponse.getIssuanceDate());
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
-					credentialServiceRequestDto.getRequestId(),
-					"ended creating credential");
 
 		} catch (ApiNotAccessibleException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
@@ -354,9 +347,6 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			if (containsSharableAttributes) {
 				// Auth partner may not have a data-share policy. Return a dummy policy. So it
 				// will use the sharable attributes in the request
-				LOGGER.debug(
-						"Auth partner may not have a data-share policy. Returning a dummy policy. "
-						+ "Will use sharable attributes in the request");
 				return createDummyPolicyResponse();
 			} else {
 				throw e;
@@ -401,8 +391,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		event.setTimestamp(DateUtils.toISOString(localdatetime));
 
 		String eventId = utilities.generateId();
-		LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
-				credentialServiceRequestDto.getRequestId(), "event id" + eventId);
+		/*LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+				credentialServiceRequestDto.getRequestId(), "event id" + eventId);*/
 		event.setId(eventId);
 		event.setTransactionId(credentialServiceRequestDto.getRequestId());
 		Type type = new Type();
@@ -410,8 +400,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		type.setNamespace(EnvUtil.getCredServiceTypeNamespace());
 		event.setType(type);
 		eventModel.setEvent(event);
-		LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
-				credentialServiceRequestDto.getRequestId(),	"Building Event JSON Completed.");
+		/*LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+				credentialServiceRequestDto.getRequestId(),	"Building Event JSON Completed.");*/
 		return eventModel;
 	}
 

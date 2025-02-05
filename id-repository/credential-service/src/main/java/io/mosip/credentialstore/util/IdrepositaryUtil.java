@@ -48,9 +48,6 @@ public class IdrepositaryUtil {
 			throws ApiNotAccessibleException, IdRepoException, JsonParseException, JsonMappingException, IOException {
 		String requestId=credentialServiceRequestDto.getRequestId();
 		try {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
-					requestId, "Id repository get data entry");
-			LOGGER.debug(String.format("Formatters: %s", bioAttributeFormatterMap.toString()));
 			Map<String, Object> map = credentialServiceRequestDto.getAdditionalData();
 			String idType = null;
 			idType = (String) map.get("idType");
@@ -76,8 +73,6 @@ public class IdrepositaryUtil {
 				requestByIdDTO.setIrisExtractionFormat(irisExtractionFormat);
 			}
 
-			LOGGER.debug(String.format("getIdentity request: %s", requestByIdDTO.toString()));
-
 			String responseString = restUtil.postApi(ApiName.IDREPORETRIEVEIDBYID, null, "", "",
 					MediaType.APPLICATION_JSON, requestByIdDTO, String.class);
 
@@ -93,8 +88,6 @@ public class IdrepositaryUtil {
 						error.getMessage());
 				throw new IdRepoException(error.getMessage());
 			} else {
-				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-						"Id repository get data exit");
 				return responseObject;
 			}
 		} catch (Exception e) {

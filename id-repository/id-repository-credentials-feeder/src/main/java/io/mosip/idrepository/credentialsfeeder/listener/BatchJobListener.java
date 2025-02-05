@@ -34,8 +34,6 @@ public class BatchJobListener extends JobExecutionListenerSupport {
 	 */
 	@Override
 	public void beforeJob(JobExecution jobExecution) {
-		mosipLogger.debug(CREDENTIALS_FEEDER, "BatchJobListener", "BATCH JOB STARTED WITH STATUS : ",
-				jobExecution.getStatus().name());
 	}
 
 	/* (non-Javadoc)
@@ -43,8 +41,6 @@ public class BatchJobListener extends JobExecutionListenerSupport {
 	 */
 	@Override
 	public void afterJob(JobExecution jobExecution) {
-		mosipLogger.debug(CREDENTIALS_FEEDER, "BatchJobListener", "BATCH JOB COMPLETED WITH STATUS : ",
-				jobExecution.getStatus().name());
 		if (!jobExecution.getStatus().equals(BatchStatus.COMPLETED)) {
 			throw new IdRepoAppUncheckedException(IdRepoErrorConstants.JOB_FAILED);
 		}

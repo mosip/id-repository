@@ -166,8 +166,6 @@ public class CredentialProvider {
 		String requestId = credentialServiceRequestDto.getRequestId();
 		DataProviderResponse dataProviderResponse = null;
 		try {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"Formatting credential data");
 			String pin = credentialServiceRequestDto.getEncryptionKey();
 			List<String> protectedAttributes = new ArrayList<>();
 			Map<String, Object> formattedMap = new HashMap<>();
@@ -217,8 +215,6 @@ public class CredentialProvider {
 			dataProviderResponse.setCredentialId(credentialId);
 			dataProviderResponse.setIssuanceDate(localdatetime);
 			dataProviderResponse.setJSON(json);
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"end formatting credential data");
 			return dataProviderResponse;
 		} catch (JsonProcessingException | ApiNotAccessibleException | DataEncryptionFailureException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
@@ -235,8 +231,6 @@ public class CredentialProvider {
 		String requestId = credentialServiceRequestDto.getRequestId();
 
 		try {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"Preparing demo and bio sharable attributes");
 			Map<AllowedKycDto, Object> attributesMap = new HashMap<>();
 			JSONObject identity = new JSONObject((Map) idResponseDto.getResponse().getIdentity());
 
@@ -280,8 +274,6 @@ public class CredentialProvider {
 				}
 			}
 			if (userRequestedAttributes != null && !userRequestedAttributes.isEmpty()) {
-				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-						"preparing sharable attributes from user requested if attributes available in policy");
 				sharableAttributeList.forEach(dto -> {
 
 					if (userRequestedAttributes.contains(dto.getAttributeName())) {
@@ -297,8 +289,6 @@ public class CredentialProvider {
 				});
 
 			} else {
-				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-						"preparing  sharable attributes from policy");
 				sharableAttributeList.forEach(dto -> {
 					if (dto.getGroup() == null) {
 
@@ -398,8 +388,6 @@ public class CredentialProvider {
 				}
 
 			}
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"end preparing demo and bio sharable attributes");
 			return attributesMap;
 		} catch (Exception e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
@@ -674,7 +662,6 @@ public class CredentialProvider {
 		}
 		Map<String, Map<String, String>> languageMap = new HashMap<>();
 		JSONArray array = new JSONArray();
-		LOGGER.debug("name attributes:  ");
 		for (String identityAttr : identityAttributesList) {
 			Object identityObj = identity.get(identityAttr);
 			if (identityObj != null && identityObj instanceof List) {
@@ -848,7 +835,6 @@ public class CredentialProvider {
 	 * @return
 	 */
 	private String maskData(String maskData, String attributeName) {
-		LOGGER.debug("Enter into maskData format");
 		Map<String, String> context = new HashMap<>();
 		context.put("maskData", maskData);
 		VariableResolverFactory myVarFactory = new MapVariableResolverFactory(context);

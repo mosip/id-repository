@@ -64,9 +64,6 @@ public class PolicyUtil {
 			throws PolicyException, ApiNotAccessibleException {
 
 		try {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
-					requestId,
-					"started fetching the policy data");
 			String policyMapKey = credentialType + " " + subscriberId;
             PartnerCredentialTypePolicyDto policyResponseDto = null;
 			
@@ -92,8 +89,6 @@ public class PolicyUtil {
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					requestId,
 					"Fetched policy details successfully");
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"ended fetching the policy data");
 			return policyResponseDto;
 
 		} catch (IOException e) {
@@ -121,8 +116,6 @@ public class PolicyUtil {
 	@Cacheable(cacheNames = PARTNER_EXTRACTOR_FORMATS, key="{ #subscriberId, #policyId }")
 	public PartnerExtractorResponse getPartnerExtractorFormat(String policyId, String subscriberId, String requestId)
 			throws ApiNotAccessibleException, PartnerException {
-		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-				"started fetching the partner extraction policy data");
 		PartnerExtractorResponse partnerExtractorResponse = null;
 		try {
 			String extractorKey = policyId + " " + subscriberId;
@@ -157,9 +150,6 @@ public class PolicyUtil {
 				partnerExtractorResponse = extractorMap.get(extractorKey);
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Fetched partner extraction policy details successfully");
-
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"ended fetching the policy data");
 			return partnerExtractorResponse;
 		} catch (Exception e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,

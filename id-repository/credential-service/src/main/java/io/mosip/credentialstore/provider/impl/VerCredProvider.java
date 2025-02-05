@@ -134,8 +134,6 @@ public class VerCredProvider extends CredentialProvider {
 		String requestId = credentialServiceRequestDto.getRequestId();
 		DataProviderResponse dataProviderResponse = null;
 		try {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"Formatting credential data");
 			String pin = credentialServiceRequestDto.getEncryptionKey();
 			
 			Map<String, Object> formattedMap = new HashMap<>();
@@ -246,8 +244,6 @@ public class VerCredProvider extends CredentialProvider {
 			dataProviderResponse.setCredentialId(credentialId);
 
 			dataProviderResponse.setIssuanceDate(localdatetime);
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"end formatting credential data");
 			return dataProviderResponse;
 		} /* catch (DataEncryptionFailureException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,

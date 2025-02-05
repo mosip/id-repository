@@ -88,10 +88,6 @@ public abstract class BaseIdRepoFilter implements Filter  {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
 		Instant requestTime = Instant.now();
-		mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_FILTER, "Request Received at: " + requestTime);
-		mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_FILTER, "Request URL: " + ((HttpServletRequest) request).getRequestURL());
-
-		mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_FILTER, "Request received");
 		if (shouldNotFilter((HttpServletRequest) request)) {
 			chain.doFilter(request, response);
 		} else {
@@ -103,13 +99,8 @@ public abstract class BaseIdRepoFilter implements Filter  {
 			}
 		}
 		Instant responseTime = Instant.now();
-		mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_FILTER, "Response sent at: " + responseTime);
+		
 		long duration = Duration.between(requestTime, responseTime).toMillis();
-		mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_FILTER,
-				"Time taken to respond in ms: " + duration
-						+ ". Time difference between request and response in Seconds: " + ((double) duration / 1000)
-						+ " for url : " + ((HttpServletRequest) request).getRequestURL() + " method: "
-						+ ((HttpServletRequest) request).getMethod());
 	}
 
 	/**

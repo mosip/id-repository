@@ -65,9 +65,6 @@ public class DigitalSignatureUtil {
 			ApiNotAccessibleException.class }, maxAttemptsExpression = "${mosip.credential.service.retry.maxAttempts}", backoff = @Backoff(delayExpression = "${mosip.credential.service.retry.maxDelay}"))
 	public String sign(String data, String requestId) throws ApiNotAccessibleException, SignatureException {
 		try {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"Digital signature entry");
-
 			JWTSignatureRequestDto dto = new JWTSignatureRequestDto();
 			dto.setDataToSign(data);
 			dto.setIncludeCertHash(EnvUtil.getCredServiceIncludeCertificateHash());
@@ -94,14 +91,8 @@ public class DigitalSignatureUtil {
 				throw new SignatureException(CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
 			}
 			String signedData = responseObject.getResponse().getJwtSignedData();
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"Signed data successfully");
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"Digital signature exit");
 			return signedData;
 		} catch (IOException e) {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					ExceptionUtils.getStackTrace(e));
 			throw new SignatureException(e);
 		} catch (Exception e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
@@ -124,9 +115,6 @@ public class DigitalSignatureUtil {
 		ApiNotAccessibleException.class }, maxAttemptsExpression = "${mosip.credential.service.retry.maxAttempts}", backoff = @Backoff(delayExpression = "${mosip.credential.service.retry.maxDelay}"))
 	public String signVerCred(String data, String requestId) throws ApiNotAccessibleException, SignatureException {
 		try {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"Digital signature entry");
-
 			VerCredSignatureRequestDto verCredDto = new VerCredSignatureRequestDto();
 			verCredDto.setDataToSign(data);
 			verCredDto.setB64JWSHeaderParam(false);
@@ -154,14 +142,8 @@ public class DigitalSignatureUtil {
 				throw new SignatureException(CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
 			}
 			String signedData = responseObject.getResponse().getJwtSignedData();
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"JWS Signed data successfully");
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"JWS Digital signature exit");
 			return signedData;
 		} catch (IOException e) {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					ExceptionUtils.getStackTrace(e));
 			throw new SignatureException(e);
 		} catch (Exception e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
