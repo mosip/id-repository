@@ -72,7 +72,6 @@ public class IdrepositaryUtil {
 			if (StringUtils.isNotEmpty(irisExtractionFormat)) {
 				requestByIdDTO.setIrisExtractionFormat(irisExtractionFormat);
 			}
-
 			String responseString = restUtil.postApi(ApiName.IDREPORETRIEVEIDBYID, null, "", "",
 					MediaType.APPLICATION_JSON, requestByIdDTO, String.class);
 
