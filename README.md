@@ -11,7 +11,12 @@ This repository contains source code and design documents for MOSIP [ID Reposito
 See [DB guide](db_scripts/README.md)
 
 ## Build & run (for developers)
-The project requires JDK 1.11. 
+The project requires JDK 21.0.3 and mvn version - 3.9.6
+
+### Remove the version-specific suffix (PostgreSQL95Dialect) from the Hibernate dialect configuration
+   ```
+   hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+
 1. To build jars:
     ```
     $ cd id-repository
@@ -26,6 +31,15 @@ The project requires JDK 1.11.
     $ cd <service folder>
     $ docker build -f Dockerfile
     ```
+### Add auth-adapter in a class-path to run a services
+   ```
+   <dependency>
+       <groupId>io.mosip.kernel</groupId>
+       <artifactId>kernel-auth-adapter</artifactId>
+       <version>${kernel.auth.adapter.version}</version>
+   </dependency>
+   ```
+
 1. As a developer, to run a service jar individually:
     ```
     `java -Dspring.profiles.active=<profile> -Dspring.cloud.config.uri=<config-url> -Dspring.cloud.config.label=<config-label> -jar <jar-name>.jar`
@@ -36,8 +50,6 @@ The project requires JDK 1.11.
         _config-url_: `http://localhost:51000` (Url of the config server*)  
 	
 	\* Refer to [kernel-config-server](https://github.com/mosip/commons/tree/master/kernel/kernel-config-server) for details
-
-2. kernel-auth-adapter.jar needs to added to the build path to run the service.
 	
 NOTE: To run identity service, Biometric SDK implementation jar or [Mock SDK](https://github.com/mosip/mosip-mock-services/tree/master/mock-sdk) needs to be added to the build path.
 
