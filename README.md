@@ -16,7 +16,7 @@ The project requires JDK 21.0.3 and mvn version - 3.9.6
 ### Remove the version-specific suffix (PostgreSQL95Dialect) from the Hibernate dialect configuration
    ```
    hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
-
+   ```
 1. To build jars:
     ```
     $ cd id-repository
