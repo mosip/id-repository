@@ -1,8 +1,7 @@
 package io.mosip.idrepository.identity.test.service.impl;
 
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.nullable;
@@ -2216,10 +2215,10 @@ public class IdRepoServiceTest {
 		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
 		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
-		Uin updatedIdentity = service.updateIdentity(request.getRequest(), "234",false);
-		List<String> verifiedAttributes = (List<String>) mapper.readValue(updatedIdentity.getUinData(), Map.class)
+		Uin updatedIdentity = service.updateIdentity(req, "234",false);
+		Map<String, Object> verifiedAttributes = (Map<String, Object>) mapper.readValue(updatedIdentity.getUinData(), Map.class)
 				.get("verifiedAttributes");
-		assertEquals(List.of("a", "b"), verifiedAttributes);
+		assertTrue(verifiedAttributes.keySet().containsAll(List.of("a", "b")));
 	}
 
 

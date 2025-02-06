@@ -105,8 +105,8 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	@Value("#{'${mosip.kernel.idobjectvalidator.mandatory-attributes.id-repository.verified-attributes:}'.split(',')}")
 	private List<String> verifiedAttributesFields;
 
-	@Value("#{'${mosip.kernel.idobjectvalidator.id-repository.unique.verified-attribute.list:trustFramework,processName}'.split(',')}")
-	private List<String> uniqueVerifiedAttributes;
+	@Value("#{${mosip.idrepo.verification-metadata.unique-fields}}")
+	private List<String> verificationMetadataUniqueFields;
 
 	/** The status. */
 	@Resource
@@ -330,21 +330,19 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					for (Map<String, Object> attribute : attributeList) {
 						StringBuilder compositeKeyBuilder = new StringBuilder();
 
-						for (String attributeKey : uniqueVerifiedAttributes) {
+						for (String attributeKey : verificationMetadataUniqueFields) {
 							String attributeValue = (String) attribute.get(attributeKey);
 							if (attributeValue == null) {
 								errors.rejectValue(REQUEST, MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorCode(),
 										String.format(MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorMessage(), key + "." + attributeKey));
 								continue;
 							}
-							compositeKeyBuilder.append(attributeValue).append("|"); // Separate attributes with '|'
+							compositeKeyBuilder.append(attributeValue.toLowerCase()).append("|"); // Separate attributes with '|'
 						}
 
-						// Remove the trailing '|' and validate for duplicates
-						String compositeKey = compositeKeyBuilder.substring(0, compositeKeyBuilder.length() - 1);
-						if (!compositeKeySet.add(compositeKey)) {
+						if (!compositeKeySet.add(compositeKeyBuilder.toString())) {
 							errors.rejectValue(REQUEST, DUPLICATE_VERIFIED_ATTRIBUTES.getErrorCode(),
-									String.format(DUPLICATE_VERIFIED_ATTRIBUTES.getErrorMessage(), compositeKey));
+									String.format(DUPLICATE_VERIFIED_ATTRIBUTES.getErrorMessage(), compositeKeyBuilder));
 						}
 					}
 					}
