@@ -647,7 +647,9 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 				response.setDocuments(documents);
 			}
 			ObjectNode identityObject = convertToObject(uin.getUinData(), ObjectNode.class);
-			response.setVerifiedAttributes(mapper.convertValue(identityObject.get(VERIFIED_ATTRIBUTES), Object.class));
+			Object verifiedAttributes = mapper.convertValue(identityObject.get(VERIFIED_ATTRIBUTES), Object.class);
+			response.setVerifiedAttributes(verifiedAttributes != null ? (verifiedAttributes instanceof Map ?
+					((Map<?, ?>) verifiedAttributes).keySet(): verifiedAttributes): null);
 			identityObject.remove(VERIFIED_ATTRIBUTES);
 			response.setIdentity(identityObject);
 		}
