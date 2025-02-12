@@ -34,11 +34,11 @@ The project requires JDK 1.11.
         _profile_: `env` (extension used on configuration property files*)    
         _config_label_: `master` (git branch of config repo*)  
         _config-url_: `http://localhost:51000` (Url of the config server*)  
-	
-	\* Refer to [kernel-config-server](https://github.com/mosip/commons/tree/master/kernel/kernel-config-server) for details
+    
+    \* Refer to [kernel-config-server](https://github.com/mosip/commons/tree/master/kernel/kernel-config-server) for details
 
 2. kernel-auth-adapter.jar needs to added to the build path to run the service.
-	
+    
 NOTE: To run identity service, Biometric SDK implementation jar or [Mock SDK](https://github.com/mosip/mosip-mock-services/tree/master/mock-sdk) needs to be added to the build path.
 
 ## Deployment in K8 cluster with other MOSIP services:
