@@ -56,7 +56,7 @@ public class IdRepoUtil extends AdminTestUtil {
 //			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 //		}
 
-		else if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("Email")
+		if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("Email")
 				&& (!isElementPresent(globalRequiredFields, email))) {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
