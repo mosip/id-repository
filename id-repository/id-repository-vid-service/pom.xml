@@ -18,6 +18,7 @@
 		<maven.compiler.target>21</maven.compiler.target>
 		<spring.boot.version>2.0.2.RELEASE</spring.boot.version>
 		<kernel.core.version>1.2.1-SNAPSHOT</kernel.core.version>
+		<kernel.auth.adapter.version>1.2.1-SNAPSHOT</kernel.auth.adapter.version>
 		<kernel.idvalidator.uin.version>1.2.1-SNAPSHOT</kernel.idvalidator.uin.version>
 		<kernel.idgenerator.vid.version>1.2.1-SNAPSHOT</kernel.idgenerator.vid.version>
 		<kernel.idvalidator.vid.version>1.2.1-SNAPSHOT</kernel.idvalidator.vid.version>
@@ -51,10 +52,6 @@
 			<version>${kernel.idvalidator.vid.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.fasterxml.jackson.module</groupId>
-			<artifactId>jackson-module-afterburner</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-uin</artifactId>
 			<version>${kernel.idvalidator.uin.version}</version>
@@ -65,14 +62,23 @@
 			<version>${kernel.dataaccess.hibernate.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-auth-adapter</artifactId>
+			<version>${kernel.auth.adapter.version}</version>
+		</dependency>		
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-core</artifactId>
+			<version>${kernel.core.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>com.github.java-json-tools</groupId>
 			<artifactId>json-schema-validator</artifactId>
 			<version>${json.schema.validator.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-core</artifactId>
-			<version>${kernel.core.version}</version>
+			<groupId>com.fasterxml.jackson.module</groupId>
+			<artifactId>jackson-module-afterburner</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

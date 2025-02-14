@@ -23,7 +23,7 @@
 		<kernel.idobjectvalidator.version>1.2.1-SNAPSHOT</kernel.idobjectvalidator.version>
 		<kernel-idvalidator-vid.version>1.2.1-SNAPSHOT</kernel-idvalidator-vid.version>
 		<kernel.khazana.version>1.2.1-SNAPSHOT</kernel.khazana.version>
-
+		<kernel.auth.adapter.version>1.2.1-SNAPSHOT</kernel.auth.adapter.version>
 	</properties>
 
 	<dependencies>
@@ -68,6 +68,11 @@
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-auth-adapter</artifactId>
+			<version>${kernel.auth.adapter.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-vid</artifactId>
 			<version>${kernel-idvalidator-vid.version}</version>
 		</dependency>
@@ -109,7 +114,6 @@
 			<groupId>io.mosip.kernel</groupId>
 			<version>1.2.1-SNAPSHOT</version>
 		</dependency>
-
 	</dependencies>
 	<build>
 		<plugins>

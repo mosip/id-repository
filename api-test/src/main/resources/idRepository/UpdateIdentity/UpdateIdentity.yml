@@ -2,6 +2,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_DEACTIVATED_all_valid_smoke:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing the status deactivated
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_01
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
@@ -20,6 +21,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_ACTIVATED_all_valid_smoke:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing valid values
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_02
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
@@ -38,6 +40,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Invalid_version:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing invalid version
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_03
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
@@ -62,6 +65,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Empty_version:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing empty version
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_04
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
@@ -86,6 +90,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Space_version:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing space in version field
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_05
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
@@ -110,6 +115,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Invalid_requestTime:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing invalid request time
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_06
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
@@ -134,6 +140,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Empty_requestTime:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing empty requesttime
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_07
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
@@ -158,6 +165,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_SpaceVal_requestTime:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing space value in request time
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_08
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
@@ -182,6 +190,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Past_requestTime:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing past request time
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_09
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
@@ -206,6 +215,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Future_requestTime:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing future request time
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_10
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
@@ -230,6 +240,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Missing_registrationId:
       endPoint: /idrepository/v1/identity/
       description: Update Identity without adding RID field
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_11
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
@@ -253,6 +264,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Missing_version:
       endPoint: /idrepository/v1/identity/
       description: Update Identity removing version field
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_12
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
@@ -276,6 +288,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Missing_requestTime:
       endPoint: /idrepository/v1/identity/
       description: Update Identity without passing request time
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_13
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
@@ -299,6 +312,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_invalid_dob:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing invalid DOB
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_14
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
@@ -322,6 +336,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_invalid_phonenumber:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing invalid phonenumber
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_15
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentityInvalid
@@ -346,6 +361,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_invalid_email:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing invalid email
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_16
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentityInvalid
@@ -372,6 +388,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_DEACTIVATED_Full_all_valid_smoke:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing status as deactivated
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_17
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
