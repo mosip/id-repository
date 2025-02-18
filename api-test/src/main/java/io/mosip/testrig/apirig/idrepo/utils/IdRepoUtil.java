@@ -1,5 +1,6 @@
 package io.mosip.testrig.apirig.idrepo.utils;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.testng.SkipException;
@@ -14,6 +15,13 @@ import io.mosip.testrig.apirig.utils.SkipTestCaseHandler;
 public class IdRepoUtil extends AdminTestUtil {
 
 	private static final Logger logger = Logger.getLogger(IdRepoUtil.class);
+	
+	public static void setLogLevel() {
+		if (IdRepoConfigManager.IsDebugEnabled())
+			logger.setLevel(Level.ALL);
+		else
+			logger.setLevel(Level.ERROR);
+	}
 	
 	public static String isTestCaseValidForExecution(TestCaseDTO testCaseDTO) {
 		String testCaseName = testCaseDTO.getTestCaseName();
