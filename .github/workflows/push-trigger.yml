@@ -20,7 +20,6 @@ on:
       - 1.*
       - develop*
       - MOSIP*
-      - local*
 
 jobs:
   build-maven-id-repository:
@@ -61,6 +60,7 @@ jobs:
           - SERVICE_LOCATION: 'id-repository/credential-service'
             SERVICE_NAME: 'credential-service'
             BUILD_ARTIFACT: 'id-repository'
+            SQUASH_LAYERS: '11'
           - SERVICE_LOCATION: 'id-repository/id-repository-identity-service'
             SERVICE_NAME: 'id-repository-identity-service'
             BUILD_ARTIFACT: 'id-repository'
