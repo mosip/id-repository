@@ -7,11 +7,15 @@
 ## Overview
 This repository contains source code and design documents for MOSIP [ID Repository](https://docs.mosip.io/1.2.0/modules/id-repository) which is the server-side module to manage ID lifecycle.  The modules exposes API endpoints.  
 
+## Codebase Relocation
+credential feeder have been moved to mosip-utilities repo (https://github.com/mosip/mosip-utilities)
+
 ## Database
 See [DB guide](db_scripts/README.md)
 
 ## Build & run (for developers)
-The project requires JDK 1.11. 
+The project requires JDK 21.0.3 and mvn version - 3.9.6
+
 1. To build jars:
     ```
     $ cd id-repository
@@ -34,11 +38,11 @@ The project requires JDK 1.11.
         _profile_: `env` (extension used on configuration property files*)    
         _config_label_: `master` (git branch of config repo*)  
         _config-url_: `http://localhost:51000` (Url of the config server*)  
-	
-	\* Refer to [kernel-config-server](https://github.com/mosip/commons/tree/master/kernel/kernel-config-server) for details
+    
+    \* Refer to [kernel-config-server](https://mvnrepository.com/artifact/io.mosip.kernel/kernel-config-server) for details
 
-2. kernel-auth-adapter.jar needs to added to the build path to run the service.
-	
+    kernel-auth-adapter.jar needs to added to the build path to run the service.
+    
 NOTE: To run identity service, Biometric SDK implementation jar or [Mock SDK](https://github.com/mosip/mosip-mock-services/tree/master/mock-sdk) needs to be added to the build path.
 
 ## Deployment in K8 cluster with other MOSIP services:
