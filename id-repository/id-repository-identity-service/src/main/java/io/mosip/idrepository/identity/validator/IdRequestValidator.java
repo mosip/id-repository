@@ -11,10 +11,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import io.mosip.idrepository.core.constant.IdRepoConstants;
+import io.mosip.idrepository.core.dto.*;
 import io.mosip.kernel.core.http.RequestWrapper;
-import io.mosip.idrepository.core.dto.IdRequestByIdDTO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,9 +24,6 @@ import org.springframework.validation.Validator;
 import org.springframework.web.client.RestTemplate;
 
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.AuthTypeStatusRequestDto;
-import io.mosip.idrepository.core.dto.AuthtypeStatus;
-import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
@@ -104,9 +99,6 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	/** The verified attributes fields. */
 	@Value("#{'${mosip.kernel.idobjectvalidator.mandatory-attributes.id-repository.verified-attributes:}'.split(',')}")
 	private List<String> verifiedAttributesFields;
-
-	@Value("#{${mosip.idrepo.verification-metadata.unique-fields}}")
-	private List<String> verificationMetadataUniqueFields;
 
 	/** The status. */
 	@Resource
@@ -315,38 +307,29 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 				&& !((Map<String, Object>) requestMap.get(VERIFIED_ATTRIBUTES)).isEmpty()
 				&& requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH))
 				&& !((Map<String, Object>) requestMap.get(ROOT_PATH)).isEmpty()) {
-			String idSchema =getVerifiedAttributeIdSchema(verifiedAttributesSchemaUrl);
-			Map<String, Object> verifiedAttributesMap = (Map<String, Object>) requestMap.get(VERIFIED_ATTRIBUTES);
-			idObjectSchemaValidator.validateIdObject(idSchema, verifiedAttributesMap, verifiedAttributesFields);
+
+			List<Object> verifiedAttributes = (List<Object>) requestMap.get(VERIFIED_ATTRIBUTES);
+
 			Set<String> compositeKeySet = new HashSet<>();
+			String idSchema = getVerifiedAttributeIdSchema(verifiedAttributesSchemaUrl);
+			for (Object obj : verifiedAttributes) {
+				if (obj instanceof String)
+					continue;
 
-			for (Map.Entry<String, Object> entry : verifiedAttributesMap.entrySet()) {
-				String key = entry.getKey();
-				Object value = entry.getValue();
+				VerificationMetadata verificationMetadata = (VerificationMetadata) obj;
 
-				if (value instanceof List) {
-					List<Map<String, Object>> attributeList = (List<Map<String, Object>>) value;
+				//Verify the metadata w.r.t schema
+				idObjectSchemaValidator.validateIdObject(idSchema, verificationMetadata, verifiedAttributesFields);
 
-					for (Map<String, Object> attribute : attributeList) {
-						StringBuilder compositeKeyBuilder = new StringBuilder();
-
-						for (String attributeKey : verificationMetadataUniqueFields) {
-							String attributeValue = (String) attribute.get(attributeKey);
-							if (attributeValue == null) {
-								errors.rejectValue(REQUEST, MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorCode(),
-										String.format(MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorMessage(), key + "." + attributeKey));
-								continue;
-							}
-							compositeKeyBuilder.append(attributeValue.toLowerCase()).append("|"); // Separate attributes with '|'
-						}
-
-						if (!compositeKeySet.add(compositeKeyBuilder.toString())) {
-							errors.rejectValue(REQUEST, DUPLICATE_VERIFIED_ATTRIBUTES.getErrorCode(),
-									String.format(DUPLICATE_VERIFIED_ATTRIBUTES.getErrorMessage(), compositeKeyBuilder));
-						}
-					}
-					}
+				//Check if there is any duplicates in the list
+				StringBuilder compositeKeyBuilder = new StringBuilder();
+				compositeKeyBuilder.append(verificationMetadata.getTrustFramework())
+						.append(verificationMetadata.getTrustFramework());
+				if (!compositeKeySet.add(compositeKeyBuilder.toString())) {
+					errors.rejectValue(REQUEST, DUPLICATE_VERIFIED_ATTRIBUTES.getErrorCode(),
+							String.format(DUPLICATE_VERIFIED_ATTRIBUTES.getErrorMessage(), compositeKeyBuilder));
 				}
+			}
 		}
 	}
 

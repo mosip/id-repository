@@ -647,9 +647,21 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 				response.setDocuments(documents);
 			}
 			ObjectNode identityObject = convertToObject(uin.getUinData(), ObjectNode.class);
+
 			Object verifiedAttributes = mapper.convertValue(identityObject.get(VERIFIED_ATTRIBUTES), Object.class);
-			response.setVerifiedAttributes(verifiedAttributes != null ? (verifiedAttributes instanceof Map ?
-					((Map<?, ?>) verifiedAttributes).keySet(): verifiedAttributes): null);
+			if(!Objects.isNull(verifiedAttributes)) {
+				boolean isV1Version = ((List) verifiedAttributes).stream().allMatch(item -> item instanceof String);
+				if(!isV1Version) {
+					Set<String> attributes = new HashSet<>();
+					for(LinkedHashMap<String, Object> verificationMetadata : (List<LinkedHashMap<String, Object>>)verifiedAttributes) {
+						attributes.addAll((List<String>)verificationMetadata.get("claims"));
+					}
+					response.setVerifiedAttributes(attributes);
+				}
+				else {
+					response.setVerifiedAttributes(verifiedAttributes);
+				}
+			}
 			identityObject.remove(VERIFIED_ATTRIBUTES);
 			response.setIdentity(identityObject);
 		}

@@ -198,10 +198,6 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	@Value("#{${mosip.idrepo.update-identity.fields-to-replace}}")
 	private List<String> fieldsToReplaceOnUpdate;
 
-	@Value("#{${mosip.idrepo.verification-metadata.unique-fields}}")
-	private List<String> verificationMetadataUniqueFields;
-
-
 	/**
 	 * Adds the identity to DB.
 	 *
@@ -216,9 +212,12 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		String uinRefId = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils.getUTCCurrentDateTime())
 				.toString();
 		Map<String,Object> identityObject = mapper.convertValue(request.getIdentity(), Map.class);
+		//Setting the verified attributes as received
 		identityObject.put(VERIFIED_ATTRIBUTES, request.getVerifiedAttributes());
+		//Validate handles, check for duplicates and update final selected handles
 		Map<String, List<HandleDto>> selectedUniqueHandlesMap = checkAndGetHandles(request, null, null, CREATE);
 		idRepoServiceHelper.updateSelectedHandleFields(identityObject,selectedUniqueHandlesMap);
+
 		byte[] identityInfo = convertToBytes(identityObject);
 		String uinHash = getUinHash(uin);
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
@@ -417,7 +416,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	 * Object, java.lang.String)
 	 */
 	@Override
-	public Uin updateIdentity(IdRequestDTO<T> request, String uin,boolean isV2Flag) throws IdRepoAppException {
+	public Uin updateIdentity(IdRequestDTO<T> request, String uin, boolean isV2Flag) throws IdRepoAppException {
 		anonymousProfileHelper.setRegId(request.getRegistrationId());
 		String uinHash = getUinHash(uin);
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
@@ -535,12 +534,10 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	}
 
 	/**
-	 * From version 1.2.3.0 of Idrepo "verifiedAttributes" datatype is changed from List<String> to HashMap<String,List<Object>>
-	 * When v1 addIdentity/updateIdentity endpoint invoked data in the backend is stored as List<String>
-	 * When v2 addIdentity/updateIdentity is invoked, previously saved List<String> is overridden with the new value as HashMap<String,Object>
-	 * If v1 endpoint invoked after saving data with v2 endpoint complete verifiedAttributes will be overridden with the newly provided List value
-	 * On updating a field without verification detail then the entry for this field in the "verifiedAttributes" should be removed
-	 * This method will replace saved value with the input value appending to existing value should be handled in the patch method
+	 * From version 1.2.3.0 of Idrepo "verifiedAttributes" datatype is changed from List<String> to List<{@link VerificationMetadata}
+	 * In the backend DB verifiedAttributes will be stored as List<{@link VerificationMetadata}
+	 * Currently this method appends the provided verification metadata. if one of the previously verified attribute/claim is updated
+	 * in the input request, old verification metadata is removed for that particular claim.
 	 * @param requestDTO
 	 * @param inputData
 	 * @param dbData
@@ -554,38 +551,54 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			boolean isV2Version) {
 
 		//Fetch the existing verifiedAttributes from DB record
-		Object savedVerifiedAttributes = getSavedVerifiedAttributes(dbData);
-		Map<String, Object> dbVerifiedAttributes = (savedVerifiedAttributes instanceof List) ?
-				convertToVerifiedAttributesMap((List<String>) savedVerifiedAttributes) :
-				(Map<String, Object>) savedVerifiedAttributes;
+		List savedVerifiedAttributes = (List) getSavedVerifiedAttributes(dbData);
+		boolean isV1Saved = savedVerifiedAttributes != null && savedVerifiedAttributes.stream().allMatch(item -> item instanceof String);
+		List<VerificationMetadata> dbVerifiedAttributes = isV1Saved ? convertToV2VerifiedAttributes(savedVerifiedAttributes) :
+				savedVerifiedAttributes != null ? mapper.convertValue(savedVerifiedAttributes,
+						mapper.getTypeFactory().constructCollectionType(List.class, VerificationMetadata.class)) : null;
 
-		Map<String, Object> inputVerifiedAttributes = isV2Version ? (Map<String, Object>) requestDTO.getVerifiedAttributes() :
-				convertToVerifiedAttributesMap((List<String>) requestDTO.getVerifiedAttributes());
+		List<VerificationMetadata> inputVerifiedAttributes = isV2Version ? (List<VerificationMetadata>) requestDTO.getVerifiedAttributes() :
+				convertToV2VerifiedAttributes((List<String>) requestDTO.getVerifiedAttributes());
 
-		//DB Verified attributes NOT empty
-		if(dbVerifiedAttributes != null) {
-			for(String attributeName : dbVerifiedAttributes.keySet()) {
-				//verified attribute already exists in DB
-				if(inputVerifiedAttributes != null && inputVerifiedAttributes.containsKey(attributeName)) {
-					//check for unique metadata, if yes then we should save the data
-					inputVerifiedAttributes.put(attributeName, getVerificationMetadata(
-							(List<Map<String, Object>>) inputVerifiedAttributes.get(attributeName),
-							(dbVerifiedAttributes.get(attributeName) != null) ?
-									(List<Map<String, Object>>) dbVerifiedAttributes.get(attributeName) : null));
-				}
-				else { //verified attribute does NOT exist in input, but check if the saved verified attribute is
-					// requested to be updated with different value in the current request?
-					//So adding verification metadata only for the fields where there is no update requested in the current request.
+		//No verification metadata exists in DB, update with the input
+		if(dbVerifiedAttributes == null || dbVerifiedAttributes.isEmpty()) {
+			dbData.put("$", VERIFIED_ATTRIBUTES, inputVerifiedAttributes);
+			return;
+		}
+
+		if(inputVerifiedAttributes == null)
+			inputVerifiedAttributes = new ArrayList<>();
+
+		for(VerificationMetadata verificationMetadata : dbVerifiedAttributes) {
+
+			boolean verificationMetadataUpdated = inputVerifiedAttributes.stream().anyMatch( vm ->
+					verificationMetadata.getTrustFramework().equalsIgnoreCase(vm.getTrustFramework()) &&
+							verificationMetadata.getVerificationProcess().equalsIgnoreCase(vm.getVerificationProcess()));
+
+			//verification metadata is not updated in the input, so retain the saved metadata only in below cases
+			//1. There is no update on the previously verified claim in the current request, if there is an update of claim, remove
+			// the claim name in the saved verification metadata.
+			if(!verificationMetadataUpdated) {
+				List<String> claimsNotUpdated = verificationMetadata.getClaims().stream().filter( claim -> {
 					try {
-						if (inputData.read("$." + attributeName) == null) {
-							if(inputVerifiedAttributes == null) { inputVerifiedAttributes = new HashMap<>(); }
-							inputVerifiedAttributes.put(attributeName, dbVerifiedAttributes.get(attributeName));
-						}
-					} catch (PathNotFoundException ex) {} //ignore
+						return (inputData.read("$." + claim) == null);
+					} catch (PathNotFoundException ignored) {} //ignore
+                    return true;
+                }).collect(Collectors.toList());
+
+				if(!claimsNotUpdated.isEmpty()) {
+					//Retain the claims only if they are updated in the current request
+					verificationMetadata.setClaims(claimsNotUpdated);
+					inputVerifiedAttributes.add(verificationMetadata);
 				}
+				//if claimsNotUpdated is empty, then all the previously verified claims are updated in the current request
+				//then we should not consider the previous verification metadata
 			}
 		}
+
 		dbData.put("$", VERIFIED_ATTRIBUTES, inputVerifiedAttributes);
+		//Add the same to inputData so that json-comparison will not re-evaluate the change.
+		inputData.put("$", VERIFIED_ATTRIBUTES, inputVerifiedAttributes);
 	}
 
 	private Object getSavedVerifiedAttributes(DocumentContext dbData) {
@@ -597,42 +610,20 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		return null;
 	}
 
-	private List<Map<String, Object>> getVerificationMetadata(List<Map<String, Object>> inputMetadata,
-															  List<Map<String, Object>> savedMetadata) {
-		if(inputMetadata == null || inputMetadata.isEmpty())
-			return savedMetadata;
 
-		if(savedMetadata == null || savedMetadata.isEmpty())
-			return inputMetadata;
-
-		//InputMetadata must have unique objects, it is already validated in IdRequestValidator
-		List<Map<String, Object>> finalList = new ArrayList<>();
-		for(Map<String, Object> metadata : savedMetadata) {
-			boolean found = inputMetadata.stream().anyMatch( m -> getMetadataKey(m).equals(getMetadataKey(metadata)));
-			if(!found) { finalList.add(metadata); }
-		}
-		finalList.addAll(inputMetadata);
-		return finalList;
-	}
-
-	private String getMetadataKey(Map<String, Object> metadata) {
-		StringBuilder builder = new StringBuilder();
-		for(String key : verificationMetadataUniqueFields) {
-			builder.append(metadata.get(key));
-		}
-		return builder.toString().toLowerCase();
-	}
-
-
-	private Map<String, Object> convertToVerifiedAttributesMap(List<String> verifiedAttributes) {
+	private List<VerificationMetadata> convertToV2VerifiedAttributes(List<String> verifiedAttributes) {
 		if(verifiedAttributes == null || verifiedAttributes.isEmpty())
 			return null;
 
-		Map<String, Object> verifiedAttributesMap = new HashMap<>();
-		for(String attribute : verifiedAttributes) {
-			verifiedAttributesMap.put(attribute, List.of());
-		}
-		return verifiedAttributesMap;
+		VerificationMetadata verificationMetadata = new VerificationMetadata();
+		verificationMetadata.setClaims(verifiedAttributes);
+		verificationMetadata.setTrustFramework("NA");
+		verificationMetadata.setVerificationProcess("NA");
+		Map<String, Object> metadata = new HashMap<>();
+		metadata.put("trust_framework", "NA");
+		metadata.put("verification_process", "NA");
+		verificationMetadata.setMetadata(metadata);
+		return List.of(verificationMetadata);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

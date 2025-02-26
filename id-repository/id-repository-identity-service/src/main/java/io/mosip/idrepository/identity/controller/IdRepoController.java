@@ -212,10 +212,10 @@ public class IdRepoController {
 	 * This service will create a new ID record in ID repository and store
 	 * corresponding demographic and bio-metric documents.
 	 *
-	 * @param request				the request
-	 * @param errors				the errors
-	 * @return ResponseEntity		the response entity
-	 * @throws IdRepoAppException	the id repo app exception
+	 * @param request the request
+	 * @param errors  the errors
+	 * @return ResponseEntity        the response entity
+	 * @throws IdRepoAppException the id repo app exception
 	 */
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostidrepov2())")
 	@PostMapping(path = "/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -226,8 +226,8 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
-	public ResponseEntity<IdResponseDTO<Map<String, Object>>> addIdentityV2(@Validated @RequestBody RequestWrapper<IdRequestDTO<Map<String, Object>>> request,
-													 @ApiIgnore Errors errors) throws IdRepoAppException {
+	public ResponseEntity<IdResponseDTO<List<VerificationMetadata>>> addIdentityV2(@Validated @RequestBody RequestWrapper<IdRequestDTO<List<VerificationMetadata>>> request,
+																						  @ApiIgnore Errors errors) throws IdRepoAppException {
 		String regId = Optional.ofNullable(request.getRequest()).map(req -> String.valueOf(req.getRegistrationId()))
 				.orElse("null");
 		try {
@@ -239,7 +239,7 @@ public class IdRepoController {
 				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
 			}
-			IdResponseDTO<Map<String, Object>> responseDto = idRepoService.addIdentity(request.getRequest(), uin);
+			IdResponseDTO<List<VerificationMetadata>> responseDto = idRepoService.addIdentity(request.getRequest(), uin);
 			return new ResponseEntity<>(responseDto, HttpStatus.OK);
 		} catch (IdRepoDataValidationException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE,
@@ -395,7 +395,7 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			})
-	public ResponseEntity<IdResponseDTO<Map<String, Object>>> updateIdentityV2(@Validated @RequestBody RequestWrapper<IdRequestDTO<Map<String, Object>>> request,
+	public ResponseEntity<IdResponseDTO<List<VerificationMetadata>>> updateIdentityV2(@Validated @RequestBody RequestWrapper<IdRequestDTO<List<VerificationMetadata>>> request,
 			@ApiIgnore Errors errors) throws IdRepoAppException {
 		String regId = Optional.ofNullable(request.getRequest()).map(req -> String.valueOf(req.getRegistrationId()))
 				.orElse("null");
