@@ -89,6 +89,10 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 					"EXTRATCING BIOMETRICS FOR FORMAT: " + extractionType +" : "+ extractionFormat);
 			Map<String, String> formatFlag = Map.of(getFormatFlag(extractionType), extractionFormat);
 			List<BIR> extractedBiometrics = extractBiometricTemplate(formatFlag, birsForModality);
+			// add loggers for extractedBiometrics
+			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
+					"EXTRACTED BIOMETRICS FOR FORMAT: " + extractionType +" : "+ extractionFormat+" : "+extractedBiometrics.size() +
+					extractedBiometrics.isEmpty());
 			if (!extractedBiometrics.isEmpty()) {
 				objectStoreHelper.putBiometricObject(uinHash, extractionFileName, cbeffUtil.createXML(extractedBiometrics));
 			}
