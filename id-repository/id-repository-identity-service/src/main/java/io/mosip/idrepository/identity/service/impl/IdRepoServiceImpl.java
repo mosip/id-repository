@@ -283,6 +283,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			JsonNode docType = identityObject.get(doc.getCategory());
 			try {
 				if (bioAttributes.contains(doc.getCategory())) {
+					//print doc get category
+					mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, "Document Category: " + doc.getCategory());
 					addBiometricDocuments(uinHash, uinRefId, bioList, doc, docType, isDraft, index);
 					anonymousProfileHelper.setNewCbeff(doc.getValue());
 				} else {
@@ -316,6 +318,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		data = CryptoUtil.decodeURLSafeBase64(doc.getValue());
 		try {
 			cbeffUtil.validateXML(data);
+			//print data
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "addBiometricDocuments", "Data: " + new String(data));
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "addBiometricDocuments", e.getMessage());
 			throw new IdRepoAppUncheckedException(INVALID_INPUT_PARAMETER.getErrorCode(),
