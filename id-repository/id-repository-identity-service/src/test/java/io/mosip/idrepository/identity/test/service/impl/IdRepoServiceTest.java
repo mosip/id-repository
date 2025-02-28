@@ -1,8 +1,7 @@
 package io.mosip.idrepository.identity.test.service.impl;
 
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.nullable;
@@ -18,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+import io.mosip.idrepository.core.dto.*;
 import io.mosip.kernel.core.http.RequestWrapper;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.exception.JDBCConnectionException;
@@ -58,12 +58,6 @@ import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.AuthTypeStatusEventDTO;
-import io.mosip.idrepository.core.dto.IdRequestDTO;
-import io.mosip.idrepository.core.dto.IdResponseDTO;
-import io.mosip.idrepository.core.dto.RequestDTO;
-import io.mosip.idrepository.core.dto.ResponseDTO;
-import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
@@ -2216,10 +2210,12 @@ public class IdRepoServiceTest {
 		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
 		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
-		Uin updatedIdentity = service.updateIdentity(request.getRequest(), "234",false);
-		List<String> verifiedAttributes = (List<String>) mapper.readValue(updatedIdentity.getUinData(), Map.class)
+		Uin updatedIdentity = service.updateIdentity(req, "234",false);
+		List<Map<String, Object>> verifiedAttributes = (List<Map<String, Object>>) mapper.readValue(updatedIdentity.getUinData(), Map.class)
 				.get("verifiedAttributes");
-		assertEquals(List.of("a", "b"), verifiedAttributes);
+
+		List<String> claims = (List<String>) verifiedAttributes.get(0).get("claims");
+		assertTrue(claims.containsAll(List.of("a", "b")));
 	}
 
 
@@ -2235,7 +2231,14 @@ public class IdRepoServiceTest {
 		req.setStatus("REGISTERED");
 		req.setRegistrationId("27841457360002620190730095024");
 		req.setIdentity(obj);
-		req.setVerifiedAttributes(Map.of("a", "b"));
+
+		VerificationMetadata verificationMetadata = new VerificationMetadata();
+		verificationMetadata.setTrustFramework("TF");
+		verificationMetadata.setVerificationProcess("VP");
+		verificationMetadata.setMetadata(Map.of("trust_framework", "TF", "verification_process", "VP"));
+		verificationMetadata.setClaims(List.of("a", "b"));
+		req.setVerifiedAttributes(List.of(verificationMetadata));
+
 		request.setRequest(req);
 		Uin uinObj = new Uin();
 		uinObj.setUin("1234");
@@ -2261,9 +2264,12 @@ public class IdRepoServiceTest {
 		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
 		Uin updatedIdentity = service.updateIdentity(request.getRequest(), "234",true);
-		Map<String, Object> verifiedAttributes = (Map) mapper.readValue(updatedIdentity.getUinData(), Map.class)
+
+		List<Map<String, Object>> verifiedAttributes = (List<Map<String, Object>>) mapper.readValue(updatedIdentity.getUinData(), Map.class)
 				.get("verifiedAttributes");
-		assertEquals(Map.of("a", "b"), verifiedAttributes);
+
+		List<String> claims = (List<String>) verifiedAttributes.get(0).get("claims");
+		assertTrue(claims.containsAll(List.of("a", "b")));
 	}
 
 	@Test
