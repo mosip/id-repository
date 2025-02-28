@@ -316,6 +316,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				.toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
 
 		data = CryptoUtil.decodeURLSafeBase64(doc.getValue());
+		//print doc.getvalue
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "addBiometricDocuments", "Document Value: " + doc.getValue());
 		try {
 			cbeffUtil.validateXML(data);
 			//print data
