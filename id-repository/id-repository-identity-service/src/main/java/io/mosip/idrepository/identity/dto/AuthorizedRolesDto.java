@@ -19,9 +19,13 @@ public class AuthorizedRolesDto {
 	
 	private List<String> postidrepo;
 	
-    private List<String> getidvidid;	
-	
-	private List<String> patchidrepo; 
+    private List<String> getidvidid;
+
+	private List<String> postidrepov2;
+
+	private List<String> postidvidid;
+
+	private List<String> patchidrepo;
 	 
 	private List<String> getauthtypesstatusindividualidtypeindividualid;
 	
@@ -46,5 +50,7 @@ public class AuthorizedRolesDto {
 	private List<String> remainingUpdateCountByIndividualId;
 
 	private List<String> getdraftUIN;
+
+	private List<String> gethandleuin;
 
 }
