@@ -6,7 +6,6 @@ import org.json.JSONArray;
 import org.testng.SkipException;
 
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
-import io.mosip.testrig.apirig.testrunner.BaseTestCase;
 import io.mosip.testrig.apirig.utils.AdminTestUtil;
 import io.mosip.testrig.apirig.utils.ConfigManager;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
@@ -51,20 +50,8 @@ public class IdRepoUtil extends AdminTestUtil {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
 
-		if (testCaseName.startsWith("IdRepository_")
-				&& (testCaseName.contains("_withInvalidEmail") || testCaseName.contains("_with_invalid_Email")
-						|| testCaseName.contains("_with_Missing_Email") || testCaseName.contains("_with_Empty_Email")
-						|| testCaseName.contains("_with_SpaceVal_Email"))
-				&& (globalRequiredFields != null && !globalRequiredFields.toList().contains(emailArray))) {
-			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
-		}
 
-		if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("_with_Missing_phone")
-				&& (globalRequiredFields != null && !globalRequiredFields.toList().contains(phoneArray))) {
-			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
-		}
-
-		else if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("Email")
+		if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("Email")
 				&& (!isElementPresent(globalRequiredFields, email))) {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
