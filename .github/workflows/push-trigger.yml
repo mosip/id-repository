@@ -20,7 +20,7 @@ on:
       - 1.*
       - develop*
       - MOSIP*
-      - mosip
+      - mosip*
 
 jobs:
   build-maven-id-repository:
