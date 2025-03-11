@@ -40,7 +40,7 @@ import io.mosip.testrig.apirig.utils.PartnerRegistration;
 import io.mosip.testrig.apirig.utils.ReportUtil;
 import io.restassured.response.Response;
 
-public class UpdateIdentityForArrayHandles extends AdminTestUtil implements ITest {
+public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 	private static final Logger logger = Logger.getLogger(UpdateIdentityForArrayHandles.class);
 	protected String testCaseName = "";
 	private static String identity;

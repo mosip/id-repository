@@ -81,13 +81,11 @@ public class MosipTestRunner {
 			GlobalMethods.setModuleNameAndReCompilePattern(IdRepoConfigManager.getproperty("moduleNamePattern"));
 			setLogLevels();
 
-			// For now we are not doing health check for qa-115.
-			if (BaseTestCase.isTargetEnvLTS()) {
-				HealthChecker healthcheck = new HealthChecker();
-				healthcheck.setCurrentRunningModule(BaseTestCase.currentModule);
-				Thread trigger = new Thread(healthcheck);
-				trigger.start();
-			}
+			HealthChecker healthcheck = new HealthChecker();
+			healthcheck.setCurrentRunningModule(BaseTestCase.currentModule);
+			Thread trigger = new Thread(healthcheck);
+			trigger.start();
+			
 			KeycloakUserManager.removeUser();
 			KeycloakUserManager.createUsers();
 			KeycloakUserManager.closeKeycloakInstance();
@@ -111,8 +109,7 @@ public class MosipTestRunner {
 
 		OTPListener.bTerminate = true;
 
-		if (BaseTestCase.isTargetEnvLTS())
-			HealthChecker.bTerminate = true;
+		HealthChecker.bTerminate = true;
 
 		System.exit(0);
 
@@ -161,6 +158,9 @@ public class MosipTestRunner {
 		KernelAuthentication.setLogLevel();
 		BaseTestCase.setLogLevel();
 		IdRepoUtil.setLogLevel();
+		KeycloakUserManager.setLogLevel();
+		DBManager.setLogLevel();
+		BiometricDataProvider.setLogLevel();
 	}
 
 	/**
