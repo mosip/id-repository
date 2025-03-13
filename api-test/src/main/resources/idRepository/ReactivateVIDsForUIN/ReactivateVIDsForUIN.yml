@@ -19,7 +19,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Deactivated_Uin:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VIDs passing deactivated UIN
+      description: Reactivate VID on passing deactivated UIN
       uniqueIdentifier: TC_IDRepo_ReactivateVID_02
       role: resident
       checkErrorsOnlyInResponse: true
