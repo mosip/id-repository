@@ -81,7 +81,7 @@ ADD target/${current_module_env}-*.jar ${current_module_env}.jar
 
 ADD configure_start.sh configure_start.sh
 
-#ADD http://13.71.87.138:8040/artifactory/libs-snapshot-local/io/mosip/kernel/kernel-ref-idobjectvalidator/1.0.9-SNAPSHOT/kernel-ref-idobjectvalidator-1.0.9-SNAPSHOT.jar kernel-ref-idobjectvalidator-1.0.9-SNAPSHOT.jar
+#ADD http://13.71.87.138:8040/artifactory/libs-release-local/io/mosip/kernel/kernel-ref-idobjectvalidator/1.0.9-SNAPSHOT/kernel-ref-idobjectvalidator-1.0.9-SNAPSHOT.jar kernel-ref-idobjectvalidator-1.0.9-SNAPSHOT.jar
 
 # install packages and create user
 RUN apt-get -y update \
