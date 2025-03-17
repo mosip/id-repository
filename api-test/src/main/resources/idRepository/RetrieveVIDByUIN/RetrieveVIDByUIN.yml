@@ -12,6 +12,7 @@ RetrieveVIDByUIN:
       "UIN":"$ID:AddIdentity_ValidParam_smoke_Pos_UIN$"
       }'
       output: '{
+  "vidType": "PERPETUAL"
 }'
   IdRepository_RetrieveVIDByUIN_With_blocked_vid_:
       endPoint: /idrepository/v1/vid/uin/{UIN}
@@ -44,7 +45,8 @@ RetrieveVIDByUIN:
       input: '{
       "UIN":"$ID:AddIdentity_ValidParam_smoke_Pos_UIN$"
       }'
-      output: '{      
+      output: '{
+  "vidType": "PERPETUAL"
 }'
 
   IdRepository_RetrieveVIDByUIN_With_All_Vid_Valid_Smoke:
@@ -60,6 +62,7 @@ RetrieveVIDByUIN:
       "UIN":"$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$"
       }'
       output: '{
+  "vidType": "ONETIMEUSE"
 }'
 
   IdRepository_RetrieveVIDByUIN_With_Invalid Uin:
