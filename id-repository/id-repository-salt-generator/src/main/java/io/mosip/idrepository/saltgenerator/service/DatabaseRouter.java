@@ -66,10 +66,9 @@ public class DatabaseRouter {
     @Bean
     @Primary
     public DataSource dataSource() {
-        Map<Object, Object> targetDatasources = new HashMap<Object, Object>(){{
-            put(Database.SECONDARY, secondaryDataSource());
-            put(Database.PRIMARY, primaryDataSource());
-        }};
+        Map<Object, Object> targetDatasources = new HashMap<Object, Object>();
+        targetDatasources.put(Database.SECONDARY, secondaryDataSource());
+        targetDatasources.put(Database.PRIMARY, primaryDataSource());
         RoutingDataSource routingDataSource = new RoutingDataSource();
         routingDataSource.setDefaultTargetDataSource(primaryDataSource());
         routingDataSource.setTargetDataSources(targetDatasources);
