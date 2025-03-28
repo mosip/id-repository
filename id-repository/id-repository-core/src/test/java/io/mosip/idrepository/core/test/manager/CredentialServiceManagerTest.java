@@ -1,20 +1,28 @@
 package io.mosip.idrepository.core.test.manager;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
+import java.util.function.Predicate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.dto.*;
+import io.mosip.idrepository.core.entity.CredentialRequestStatus;
+import io.mosip.idrepository.core.entity.Handle;
+import io.mosip.idrepository.core.exception.IdRepoAppException;
+import io.mosip.idrepository.core.repository.HandleRepo;
+import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
+import io.mosip.idrepository.core.repository.UinHashSaltRepo;
+import io.mosip.kernel.core.util.CryptoUtil;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,6 +32,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -88,6 +97,17 @@ public class CredentialServiceManagerTest {
 	@Mock
 	private RestHelper restHelper;
 
+	@Mock
+	HandleRepo handleRepo;
+
+	@Mock
+	UinHashSaltRepo uinHashSaltRepo;
+
+	@Mock
+	UinEncryptSaltRepo uinEncryptSaltRepo;
+
+	private String vidActiveStatus;
+
 	@Before
 	public void init() {
 		MockitoAnnotations.initMocks(this);
@@ -121,6 +141,129 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
+	public void notifyUinCredentialException() throws IdRepoDataValidationException, RestServiceException {
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("{uin}");
+		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
+		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+		vidsInfosDTO.setResponse(List.of());
+		when(restHelper.requestSync(any())).thenReturn(vidsInfosDTO);
+		EventModel eventModel = new EventModel();
+		when(websubHelper.createEventModel(any(), any(), any(), any(), any(), any()))
+				.thenReturn(new AsyncResult<>(eventModel));
+		LocalDateTime expiryTimestamp = LocalDateTime.now();
+		IntFunction<String> saltRetreivalFunction = a -> "Test";
+		List<String> partnerIds = new ArrayList<String>();
+		partnerIds.add("12");
+		credentialServiceManager.notifyUinCredential("123", expiryTimestamp, null, false, "12",
+				saltRetreivalFunction, null, null, partnerIds, "123465");
+		verify(restBuilder, never()).buildRequest(any(), any(), any());
+	}
+
+	@Test
+	public void notifyUinCredentialWithNullPartnerIds() throws IdRepoDataValidationException, RestServiceException {
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("{uin}");
+		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
+		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+		vidsInfosDTO.setResponse(List.of());
+		when(restHelper.requestSync(any())).thenReturn(vidsInfosDTO);
+		EventModel eventModel = new EventModel();
+		when(websubHelper.createEventModel(any(), any(), any(), any(), any(), any()))
+				.thenReturn(new AsyncResult<>(eventModel));
+		LocalDateTime expiryTimestamp = LocalDateTime.now();
+		IntFunction<String> saltRetreivalFunction = a -> "Test";
+		credentialServiceManager.notifyUinCredential("123", expiryTimestamp, null, false, "12",
+				saltRetreivalFunction, null, null, new ArrayList<>(), "123465");
+		verify(partnerServiceManager, times(1)).getOLVPartnerIds();
+	}
+
+	@Test
+	public void notifyUinCredentialSendUinEventsToCredService() throws IdRepoAppException {
+
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("{uin}");
+		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
+
+		VidsInfosDTO vidsInfosDTO = getVidsInfosDTO();
+		when(restHelper.requestSync(any())).thenReturn(vidsInfosDTO);
+
+		EventModel eventModel = new EventModel();
+		when(websubHelper.createEventModel(any(), any(), any(), any(), any(), any()))
+				.thenReturn(new AsyncResult<>(eventModel));
+		LocalDateTime expiryTimestamp = LocalDateTime.now();
+		IntFunction<String> saltRetreivalFunction = a -> "Test";
+		List<String> partnerIds = new ArrayList<String>();
+		partnerIds.add("12");
+		when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("hash");
+		when(securityManager.getSaltKeyForId(anyString())).thenReturn(123);
+		when(securityManager.hashwithSalt(any(), any())).thenReturn("uinHash");
+
+		List<Handle> list = new ArrayList<>();
+		Handle handle = new Handle();
+		handle.setId("1");
+		handle.setHandle("6666");
+		list.add(handle);
+		when(handleRepo.findByUinHash(anyString())).thenReturn(list);
+
+		when(securityManager.decryptWithSalt(any(), any(), any())).thenReturn(new byte[5]);
+
+		when(restHelper.requestSync(any())).thenReturn(vidsInfosDTO);
+		credentialServiceManager.notifyUinCredential("123", expiryTimestamp, null, true, "12",
+				saltRetreivalFunction, null, null, partnerIds, "123465");
+		verify(handleRepo, times(1)).findByUinHash(anyString());
+	}
+
+	VidsInfosDTO getVidsInfosDTO() {
+		VidInfoDTO vidInfoDTO = new VidInfoDTO();
+		vidInfoDTO.setVid("456");
+		vidInfoDTO.setTransactionLimit(10000);
+		Map<String, String> hashAttributes = new HashMap<>();
+		hashAttributes.put("key", "value");
+		vidInfoDTO.setHashAttributes(hashAttributes);
+		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+		vidsInfosDTO.setResponse(List.of(vidInfoDTO));
+		return vidsInfosDTO;
+	}
+
+	@Test
+	public void notifyUinCredentialIdRepoAppException() throws IdRepoAppException {
+
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("{uin}");
+		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
+
+		VidsInfosDTO vidsInfosDTO = getVidsInfosDTO();
+		when(restHelper.requestSync(any())).thenReturn(vidsInfosDTO);
+
+		EventModel eventModel = new EventModel();
+		when(websubHelper.createEventModel(any(), any(), any(), any(), any(), any()))
+				.thenReturn(new AsyncResult<>(eventModel));
+		LocalDateTime expiryTimestamp = LocalDateTime.now();
+		IntFunction<String> saltRetreivalFunction = a -> "Test";
+		List<String> partnerIds = new ArrayList<String>();
+		partnerIds.add("12");
+		when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("hash");
+		when(securityManager.getSaltKeyForId(anyString())).thenReturn(123);
+		when(securityManager.hashwithSalt(any(), any())).thenReturn("uinHash");
+
+		List<Handle> list = new ArrayList<>();
+		Handle handle = new Handle();
+		handle.setId("1");
+		handle.setHandle("6666");
+		list.add(handle);
+		when(handleRepo.findByUinHash(anyString())).thenReturn(list);
+
+		when(securityManager.decryptWithSalt(any(), any(), any()))
+				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED));
+
+		when(restHelper.requestSync(any())).thenReturn(vidsInfosDTO);
+		credentialServiceManager.notifyUinCredential("123", expiryTimestamp, null, true, "12",
+				saltRetreivalFunction, null, null, partnerIds, "123465");
+		verify(securityManager, times(1)).decryptWithSalt(any(), any(), any());
+	}
+
+	@Test
 	public void notifyVIDCredentialTest() throws IdRepoDataValidationException, RestServiceException {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");
@@ -144,6 +287,114 @@ public class CredentialServiceManagerTest {
 		Consumer<EventModel> idaEventModelConsumer = null;
 		credentialServiceManager.notifyVIDCredential(uin, status, vidInfoDtos, isUpdate,
 				saltRetreivalFunction, credentialRequestResponseConsumer, idaEventModelConsumer);
+
+	}
+
+	@Test
+	public void notifyVIDCredential() throws IdRepoDataValidationException, RestServiceException {
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("{uin}");
+		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
+		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+		vidsInfosDTO.setResponse(List.of());
+		when(restHelper.requestSync(any())).thenReturn(vidsInfosDTO);
+		EventModel eventModel = new EventModel();
+		when(websubHelper.createEventModel(any(), any(), any(), any(), any(), any()))
+				.thenReturn(new AsyncResult<>(eventModel));
+		String txnId = "12";
+		List<String> partnerIds = new ArrayList<>();
+		partnerIds.add(txnId);
+		when(partnerServiceManager.getOLVPartnerIds()).thenReturn(partnerIds);
+		List<VidInfoDTO> vidInfoDtos = new ArrayList<>();
+		VidInfoDTO vidInfoDTO = new VidInfoDTO();
+		vidInfoDTO.setExpiryTimestamp(LocalDateTime.now());
+		vidInfoDtos.add(vidInfoDTO);
+		IntFunction<String> saltRetreivalFunction = a -> "Test";
+		credentialServiceManager.notifyVIDCredential("123", "ACTIVATED", vidInfoDtos, false,
+				saltRetreivalFunction, null, null);
+		verify(partnerServiceManager, times(1)).getOLVPartnerIds();
+
+	}
+
+	@Test
+	public void notifyVIDCredentialActivated() throws IdRepoDataValidationException, RestServiceException {
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("{uin}");
+		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
+		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+		vidsInfosDTO.setResponse(List.of());
+		when(restHelper.requestSync(any())).thenReturn(vidsInfosDTO);
+		EventModel eventModel = new EventModel();
+		when(websubHelper.createEventModel(any(), any(), any(), any(), any(), any()))
+				.thenReturn(new AsyncResult<>(eventModel));
+		String txnId = "12";
+		List<String> partnerIds = new ArrayList<>();
+		partnerIds.add(txnId);
+		when(partnerServiceManager.getOLVPartnerIds()).thenReturn(partnerIds);
+		List<VidInfoDTO> vidInfoDtos = new ArrayList<>();
+		IntFunction<String> saltRetreivalFunction = a -> "Test";
+		ReflectionTestUtils.setField(credentialServiceManager, "vidActiveStatus", "ACTIVATED");
+		credentialServiceManager.notifyVIDCredential("123", "ACTIVATED", vidInfoDtos, true,
+				saltRetreivalFunction, null, null);
+		verify(partnerServiceManager, times(1)).getOLVPartnerIds();
+
+	}
+
+	@Test
+	public void notifyVIDCredentialRevoked() throws IdRepoDataValidationException, RestServiceException {
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("{uin}");
+		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
+		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+		vidsInfosDTO.setResponse(List.of());
+		when(restHelper.requestSync(any())).thenReturn(vidsInfosDTO);
+		EventModel eventModel = new EventModel();
+		when(websubHelper.createEventModel(any(), any(), any(), any(), any(), any()))
+				.thenReturn(new AsyncResult<>(eventModel));
+		String txnId = "12";
+		List<String> partnerIds = new ArrayList<>();
+		partnerIds.add(txnId);
+		when(partnerServiceManager.getOLVPartnerIds()).thenReturn(partnerIds);
+		List<VidInfoDTO> vidInfoDtos = new ArrayList<>();
+		IntFunction<String> saltRetreivalFunction = a -> "Test";
+		ReflectionTestUtils.setField(credentialServiceManager, "vidActiveStatus", "");
+		credentialServiceManager.notifyVIDCredential("123", "REVOKED", vidInfoDtos, true,
+				saltRetreivalFunction, null, null);
+		verify(partnerServiceManager, times(1)).getOLVPartnerIds();
+
+	}
+
+	@Test
+	public void notifyVIDCredentialDeactivate() throws IdRepoDataValidationException, RestServiceException {
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("{uin}");
+		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
+
+		VidInfoDTO vidInfoDTO = new VidInfoDTO();
+		vidInfoDTO.setVid("456");
+		vidInfoDTO.setTransactionLimit(10000);
+		Map<String, String> hashAttributes = new HashMap<>();
+		hashAttributes.put("key", "value");
+		vidInfoDTO.setHashAttributes(hashAttributes);
+		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+		vidsInfosDTO.setResponse(List.of(vidInfoDTO));
+
+		List<VidInfoDTO> vidInfoDtos = new ArrayList<>();
+		vidInfoDtos.add(vidInfoDTO);
+
+		when(restHelper.requestSync(any())).thenReturn(vidsInfosDTO);
+		EventModel eventModel = new EventModel();
+		when(websubHelper.createEventModel(any(), any(), any(), any(), any(), any()))
+				.thenReturn(new AsyncResult<>(eventModel));
+		String txnId = "12";
+		List<String> partnerIds = new ArrayList<>();
+		partnerIds.add(txnId);
+		when(partnerServiceManager.getOLVPartnerIds()).thenReturn(partnerIds);
+		IntFunction<String> saltRetreivalFunction = a -> "Test";
+		ReflectionTestUtils.setField(credentialServiceManager, "vidActiveStatus", "");
+		credentialServiceManager.notifyVIDCredential("123", "Deactivate", vidInfoDtos, true,
+				saltRetreivalFunction, null, null);
+		verify(partnerServiceManager, times(1)).getOLVPartnerIds();
 
 	}
 
@@ -219,6 +470,36 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
+	public void sendVidEventsToCredServiceRestServiceException() throws IdRepoDataValidationException, RestServiceException {
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("{uin}");
+		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
+		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+		vidsInfosDTO.setResponse(List.of());
+		when(restHelper.requestSync(any())).thenReturn(vidsInfosDTO);
+		EventModel eventModel = new EventModel();
+		when(websubHelper.createEventModel(any(), any(), any(), any(), any(), any()))
+				.thenReturn(new AsyncResult<>(eventModel));
+		String uin = "123";
+		String status = "ACTIVATED";
+		boolean isUpdate = true;
+		String txnId = "12";
+		IntFunction<String> saltRetreivalFunction = a -> "Test";
+		BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer = null;
+		List<VidInfoDTO> vidInfoDtos = new ArrayList<>();
+		VidInfoDTO vidInfoDTO = new VidInfoDTO();
+		vidInfoDTO.setExpiryTimestamp(LocalDateTime.now());
+		vidInfoDtos.add(vidInfoDTO);
+		List<String> partnerIds = new ArrayList<String>();
+		partnerIds.add(txnId);
+
+		when(restHelper.requestSync(any())).thenThrow(new RestServiceException(IdRepoErrorConstants.AUTHENTICATION_FAILED));
+
+		credentialServiceManager.sendVidEventsToCredService(uin, status, vidInfoDtos,isUpdate, partnerIds,
+				saltRetreivalFunction, credentialRequestResponseConsumer);
+	}
+
+	@Test
 	public void sendVidEventsToCredServiceTest_WithoutUin() throws IdRepoDataValidationException, RestServiceException {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");
@@ -233,6 +514,48 @@ public class CredentialServiceManagerTest {
 		List<CredentialIssueRequestDto> eventRequestList= new ArrayList<>();
 		BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer = null;;
 		credentialServiceManager.sendRequestToCredService(eventRequestList,isUpdate,credentialRequestResponseConsumer);
+	}
+
+	@Test
+	public void sendEventsToCredService(){
+		CredentialRequestStatus credentialRequestStatus = new CredentialRequestStatus();
+		credentialRequestStatus.setIdExpiryTimestamp(LocalDateTime.now());
+		credentialRequestStatus.setPartnerId("partner1");
+		List<CredentialRequestStatus> requestEntities = Arrays.asList(credentialRequestStatus);
+		List<String> partnerIds = Arrays.asList("partner1", "partner2");
+
+		when(securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(any(), any()))
+				.thenReturn(new HashMap<>());
+
+		Predicate<CredentialIssueRequestDto> additionalFilterCondition = dto -> true;
+
+		IntFunction<String> saltRetreivalFunction = value -> "dummySalt";
+
+		BiConsumer<CredentialIssueRequestWrapperDto,
+				Map<String, Object>> credentialRequestResponseConsumer = new BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>>() {
+			@Override
+			public void accept(CredentialIssueRequestWrapperDto credentialIssueRequestWrapperDto, Map<String, Object> stringObjectMap) {
+
+			}
+		};
+
+		credentialServiceManager.sendEventsToCredService(requestEntities, partnerIds, credentialRequestResponseConsumer,
+				additionalFilterCondition, saltRetreivalFunction, "requestId123");
+		verify(securityManager, never()).getIdHashAndAttributesWithSaltModuloByPlainIdHash(any(), any());
+	}
+
+	@Test
+	public void updateEventProcessingStatus(){
+		credentialServiceManager.updateEventProcessingStatus("request", "active", "event");
+		verify(tokenIDGenerator, never()).generateTokenID(anyString(), anyString());
+	}
+
+	@Test
+	public void triggerEventNotifications(){
+		IntFunction<String> saltRetreivalFunction = value -> "salt";
+		credentialServiceManager.triggerEventNotifications("342221", LocalDateTime.now(), "Activated", true,
+				"76643", saltRetreivalFunction, "request");
+		verify(tokenIDGenerator, never()).generateTokenID(anyString(), anyString());
 	}
 
 	@Test
