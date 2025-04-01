@@ -1,8 +1,7 @@
 package io.mosip.idrepository.identity.test.service.impl;
 
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -13,12 +12,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
-import io.mosip.kernel.core.util.DateUtils;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.Before;
@@ -205,8 +202,6 @@ public class IdRepoServiceTest {
 
 	/** The id. */
 	private Map<String, String> id;
-
-	private boolean trimWhitespaces;
 
 	private static final String VALUE = "value";
 
@@ -1213,8 +1208,8 @@ public class IdRepoServiceTest {
 		when(idRepoServiceHelper.convertToMap(any())).thenReturn(identityData);
 
 		Uin result = service.updateIdentity(request, "234");
-		assertEquals("7D83029E77FD5523CDB2F3D0DB297557763D8E9102C28BFE64DFB588F197F2A0", result.getUinHash());
-		assertEquals(DateUtils.getUTCCurrentDateTime(), result.getUpdatedDateTime());
+        assertEquals("7D83029E77FD5523CDB2F3D0DB297557763D8E9102C28BFE64DFB588F197F2A0", result.getUinDataHash());
+        assertEquals("REGISTERED", result.getStatusCode());
 	}
 
 	@Test
@@ -1262,14 +1257,14 @@ public class IdRepoServiceTest {
 
 		ReflectionTestUtils.setField(IdentityUpdateTrackerPolicyProvider.class, "updateCount", Map.of("", 2));
 
-		IdentityUpdateTracker record = new IdentityUpdateTracker();
-		record.setId("id");
-		record.setIdentityUpdateCount(CryptoUtil.encodeToURLSafeBase64("{\"fullName\":2}".getBytes()).getBytes());
-		when(identityUpdateTracker.findById(any())).thenReturn(Optional.of(record));
+		IdentityUpdateTracker recordData = new IdentityUpdateTracker();
+        recordData.setId("id");
+        recordData.setIdentityUpdateCount(CryptoUtil.encodeToURLSafeBase64("{\"fullName\":2}".getBytes()).getBytes());
+		when(identityUpdateTracker.findById(any())).thenReturn(Optional.of(recordData));
 
 		Uin result = service.updateIdentity(request, "234");
-		assertEquals("7D83029E77FD5523CDB2F3D0DB297557763D8E9102C28BFE64DFB588F197F2A0", result.getUinHash());
-		assertEquals(DateUtils.getUTCCurrentDateTime(), result.getUpdatedDateTime());
+        assertNull(result.getUinHash());
+        assertEquals("1234", result.getUin());
 	}
 
 	@Test

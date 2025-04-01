@@ -1,6 +1,5 @@
 package io.mosip.idrepository.core.test.manager;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -12,7 +11,6 @@ import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.dto.*;
@@ -22,7 +20,6 @@ import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.repository.HandleRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
-import io.mosip.kernel.core.util.CryptoUtil;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,7 +29,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -106,8 +102,6 @@ public class CredentialServiceManagerTest {
 	@Mock
 	UinEncryptSaltRepo uinEncryptSaltRepo;
 
-	private String vidActiveStatus;
-
 	@Before
 	public void init() {
 		MockitoAnnotations.initMocks(this);
@@ -141,7 +135,7 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
-	public void notifyUinCredentialException() throws IdRepoDataValidationException, RestServiceException {
+	public void notifyUinCredential() throws IdRepoDataValidationException, RestServiceException {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");
 		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
@@ -161,7 +155,7 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
-	public void notifyUinCredentialWithNullPartnerIds() throws IdRepoDataValidationException, RestServiceException {
+	public void notifyUinCredentialWithEmptyOrNullPartnerIds() throws IdRepoDataValidationException, RestServiceException {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");
 		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
@@ -227,7 +221,7 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
-	public void notifyUinCredentialIdRepoAppException() throws IdRepoAppException {
+	public void notifyUinCredentialWithSaltRetrieval() throws IdRepoAppException {
 
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");
@@ -317,7 +311,7 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
-	public void notifyVIDCredentialActivated() throws IdRepoDataValidationException, RestServiceException {
+	public void notifyVIDCredentialWithStatusActivated() throws IdRepoDataValidationException, RestServiceException {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");
 		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
@@ -341,7 +335,7 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
-	public void notifyVIDCredentialRevoked() throws IdRepoDataValidationException, RestServiceException {
+	public void notifyVIDCredentialWithStatusRevoked() throws IdRepoDataValidationException, RestServiceException {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");
 		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
@@ -365,7 +359,7 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
-	public void notifyVIDCredentialDeactivate() throws IdRepoDataValidationException, RestServiceException {
+	public void notifyVIDCredentialWithStatusDeactivate() throws IdRepoDataValidationException, RestServiceException {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");
 		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
@@ -497,6 +491,7 @@ public class CredentialServiceManagerTest {
 
 		credentialServiceManager.sendVidEventsToCredService(uin, status, vidInfoDtos,isUpdate, partnerIds,
 				saltRetreivalFunction, credentialRequestResponseConsumer);
+		verify(tokenIDGenerator, times(1)).generateTokenID(anyString(), anyString());
 	}
 
 	@Test
@@ -535,7 +530,7 @@ public class CredentialServiceManagerTest {
 				Map<String, Object>> credentialRequestResponseConsumer = new BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>>() {
 			@Override
 			public void accept(CredentialIssueRequestWrapperDto credentialIssueRequestWrapperDto, Map<String, Object> stringObjectMap) {
-
+			// Method is empty because the focus of this test is to verify the interaction of the sendEventsToCredService method.
 			}
 		};
 
