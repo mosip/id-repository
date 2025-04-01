@@ -2,7 +2,6 @@ package io.mosip.credentialstore.test.provider.impl;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 
 import java.nio.charset.StandardCharsets;
@@ -19,14 +18,11 @@ import io.mosip.credentialstore.dto.*;
 import io.mosip.credentialstore.exception.*;
 import io.mosip.credentialstore.util.VIDUtil;
 import io.mosip.idrepository.core.dto.*;
-import io.mosip.kernel.biometrics.commons.CbeffValidator;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.constant.QualityType;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
-import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
-import io.mosip.kernel.core.util.CryptoUtil;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -39,7 +35,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mvel2.MVEL;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -103,21 +98,17 @@ public class CredentialProviderTest {
 	
 	private ObjectMapper mapper = new ObjectMapper();
 
-
 	private boolean shouldRunBeforeMethod = true;
-
-	private static final String convertRequestVer = "ISO19794_5_2011";
 
 	@Rule
 	public TestWatcher testWatcher = new TestWatcher() {
 
 		@Override
 		protected void starting(Description description) {
-			// Set the flag based on the test name or other logic
 			if (description.getMethodName().equals("testPrepareSharableAttributesWithoutPolicy")) {
-				shouldRunBeforeMethod = false; // Skip setup for testMethod2
+				shouldRunBeforeMethod = false;
 			} else {
-				shouldRunBeforeMethod = true; // Run setup for other tests
+				shouldRunBeforeMethod = true;
 			}
 		}
 	};
@@ -127,7 +118,7 @@ public class CredentialProviderTest {
 
 		ReflectionTestUtils.setField(credentialDefaultProvider, "mapper", mapper);
 		ReflectionTestUtils.setField(credentialDefaultProvider, "env", env);
-		ReflectionTestUtils.setField(credentialDefaultProvider, "convertRequestVer", convertRequestVer);
+		ReflectionTestUtils.setField(credentialDefaultProvider, "convertRequestVer", "ISO19794_5_2011");
 		Mockito.when(env.getProperty(Mockito.anyString(), Mockito.anyString())).thenReturn("abc");
 		PowerMockito.mockStatic(MVEL.class);
 
@@ -386,47 +377,6 @@ public class CredentialProviderTest {
 		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
 	}
 
-//	@Test
-//	public void prepareSharableAttributesSharableAttributeFromPolicy() throws CredentialFormatterException {
-//		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
-//		Map<String, String> map = new HashMap<>();
-//		map.put("language", "eng");
-//		map.put("value", "raghav");
-//		JSONObject j1 = new JSONObject(map);
-//
-//		Map<String, String> map2 = new HashMap<>();
-//		map2.put("language", "ara");
-//		map2.put("value", "Alok");
-//		JSONObject j2 = new JSONObject(map2);
-//		JSONArray array = new JSONArray();
-//		array.add(j1);
-//		array.add(j2);
-//		identityMap.put("fullName", array);
-//
-//		identityMap.put("dateOfBirth", "1980/11/14");
-//
-//		Object identity = identityMap;
-//		response.setIdentity(identity);
-//
-//		DocumentsDTO doc1 = new DocumentsDTO();
-//		doc1.setCategory("individualBiometrics");
-//
-//		doc1.setValue("text biomterics");
-//		List<DocumentsDTO> docList = new ArrayList<>();
-//		docList.add(doc1);
-//
-//		response.setDocuments(docList);
-//		idResponse.setResponse(response);
-//		CredentialServiceRequestDto credentialServiceRequestDto = getCredentialServiceRequestDto();
-//
-//		policyResponse.setPolicies(new PolicyAttributesDto());
-//
-//		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = credentialDefaultProvider
-//				.prepareSharableAttributes(idResponse,
-//						policyResponse, credentialServiceRequestDto);
-//		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
-//	}
-
 	@Test
 	public void prepareSharableAttributes() throws CredentialFormatterException {
 		Mockito.when(env.getProperty(Mockito.anyString(), Mockito.anyString())).thenReturn("fullName");
@@ -467,128 +417,8 @@ public class CredentialProviderTest {
 		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
 	}
 
-//	@Test
-//	public void testPrepareSharableAttributesWithoutPolicyWith405Exception() throws CredentialFormatterException {
-//		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
-//		Map<String, String> map = new HashMap<>();
-//		map.put("language", "eng");
-//		map.put("value", "raghav");
-//		JSONObject j1 = new JSONObject(map);
-//
-//		Map<String, String> map2 = new HashMap<>();
-//		map2.put("language", "ara");
-//		map2.put("value", "Alok");
-//		JSONObject j2 = new JSONObject(map2);
-//		JSONArray array = new JSONArray();
-//		array.add(j1);
-//		array.add(j2);
-//		identityMap.put("fullName", array);
-//
-//		identityMap.put("dateOfBirth", "1980/11/14");
-//
-//		Object identity = identityMap;
-//		response.setIdentity(new HashMap<>());
-//
-//		DocumentsDTO doc1 = new DocumentsDTO();
-//		doc1.setCategory("individualBiometrics");
-//
-//		doc1.setValue("text biomterics");
-//		List<DocumentsDTO> docList = new ArrayList<>();
-//		docList.add(doc1);
-//
-//		response.setDocuments(docList);
-//		idResponse.setResponse(response);
-//		CredentialServiceRequestDto credentialServiceRequestDto = getCredentialServiceRequestDto();
-//
-//
-//		CredentialServiceRequestDto credReq = new CredentialServiceRequestDto();
-//		List<String> attributes = new ArrayList<String>();
-//
-//		attributes.add("abc");
-//
-//		List<String> maskingAttributesList = new ArrayList<String>();
-//		maskingAttributesList.add("phone");
-//		maskingAttributesList.add("email");
-//		maskingAttributesList.add("uin");
-//		maskingAttributesList.add("vid");
-//
-//		Map<String,Object> attributeFormat= new HashMap<String,Object>();
-//
-//		attributeFormat.put("dateOfBirth", "DD/MMM/YYYY");
-//		attributeFormat.put("fullAddress","");
-//		attributeFormat.put("name","");
-//		attributeFormat.put("fullName","");
-//
-//		Map<String,Object>additionalData=new HashMap<String,Object>();
-//
-//		additionalData.put("formatingAttributes",attributeFormat);
-//		additionalData.put("maskingAttributes",maskingAttributesList);
-//
-//		credReq.setId("2361485607");
-//		credReq.setCredentialType("euin");
-//		credReq.setIssuer("mpartner-default-print");
-//		credReq.setEncryptionKey("JQ5sLK6Sq11SzUZq");
-//		credReq.setEncrypt(Boolean.FALSE);
-//		credReq.setSharableAttributes(attributes);
-//		credReq.setAdditionalData(additionalData);
-//
-//
-//		policyResponse = new PartnerCredentialTypePolicyDto();
-//		List<AllowedKycDto> shareableAttributes = new ArrayList<>();
-//		AllowedKycDto kyc1 = new AllowedKycDto();
-//		kyc1.setAttributeName("fullName");
-//		kyc1.setEncrypted(true);
-//
-//		List<Source> sourceList = new ArrayList<>();
-//
-//		Source source1 = new Source();
-//		source1.setAttribute(CredentialConstants.VID);
-//
-//		sourceList.add(source1);
-//		kyc1.setSource(sourceList);
-//		shareableAttributes.add(kyc1);
-//		AllowedKycDto kyc2 = new AllowedKycDto();
-//		kyc2.setAttributeName("dateOfBirth");
-//		kyc2.setEncrypted(true);
-//
-//		List<Source> sourceList2 = new ArrayList<>();
-//		Source source2 = new Source();
-//		source2.setAttribute("Test1");
-//		sourceList2.add(source2);
-//		kyc2.setSource(sourceList2);
-//		shareableAttributes.add(kyc2);
-//		AllowedKycDto kyc3 = new AllowedKycDto();
-//		kyc3.setAttributeName("biometrics");
-//		kyc3.setGroup("CBEFF");
-//		kyc3.setEncrypted(true);
-//		List<Source> sourceList3 = new ArrayList<>();
-//		Source source3 = new Source();
-//		source3.setAttribute("Test2");
-//		sourceList3.add(source3);
-//		kyc3.setSource(sourceList3);
-//		shareableAttributes.add(kyc3);
-//		AllowedKycDto kyc4 = new AllowedKycDto();
-//		List<Source> sourceList4 = new ArrayList<>();
-//		Source source4 = new Source();
-//		source4.setAttribute("test4");
-//		sourceList4.add(source4);
-//		kyc4.setSource(sourceList4);
-//		kyc4.setAttributeName("email");
-//		kyc4.setEncrypted(true);
-//		kyc4.setGroup(CredentialConstants.CBEFF);
-//		shareableAttributes.add(kyc4);
-//		PolicyAttributesDto dto = new PolicyAttributesDto();
-//		dto.setShareableAttributes(shareableAttributes);
-//		policyResponse.setPolicies(dto);
-//
-//		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = credentialDefaultProvider
-//				.prepareSharableAttributes(idResponse,
-//						policyResponse, credentialServiceRequestDto);
-//		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
-//	}
-
 	@Test
-	public void testPrepareSharableAttributesWithoutPolicy() throws CredentialFormatterException, ApiNotAccessibleException, IdRepoException {
+	public void prepareSharableAttributesWithPolicy() throws CredentialFormatterException, ApiNotAccessibleException, IdRepoException {
 		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
 		Map<String, String> map = new HashMap<>();
 		map.put("language", "eng");
@@ -607,7 +437,6 @@ public class CredentialProviderTest {
 		identityMap.put("UIN", 3000);
 
 		Object identity = identityMap;
-		//response.setIdentity(new HashMap<>());
 		response.setIdentity(identity);
 
 		DocumentsDTO doc1 = new DocumentsDTO();
@@ -620,7 +449,6 @@ public class CredentialProviderTest {
 		response.setDocuments(docList);
 		idResponse.setResponse(response);
 		CredentialServiceRequestDto credentialServiceRequestDto = getCredentialServiceRequestDto();
-
 
 		CredentialServiceRequestDto credReq = new CredentialServiceRequestDto();
 		List<String> attributes = new ArrayList<String>();
@@ -652,7 +480,6 @@ public class CredentialProviderTest {
 		credReq.setEncrypt(Boolean.FALSE);
 		credReq.setSharableAttributes(attributes);
 		credReq.setAdditionalData(additionalData);
-
 
 		policyResponse = new PartnerCredentialTypePolicyDto();
 		List<AllowedKycDto> shareableAttributes = new ArrayList<>();
@@ -725,7 +552,7 @@ public class CredentialProviderTest {
 	}
 
 	@Test
-	public void prepareSharableAttributesWithoutPolicy() throws Exception {
+	public void prepareSharableAttributesWithPolicyAndBiometrics() throws Exception {
 		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
 		Map<String, String> map = new HashMap<>();
 		map.put("language", "eng");
@@ -744,7 +571,6 @@ public class CredentialProviderTest {
 		identityMap.put("UIN", 3000);
 
 		Object identity = identityMap;
-		//response.setIdentity(new HashMap<>());
 		response.setIdentity(identity);
 
 		DocumentsDTO doc1 = new DocumentsDTO();
@@ -757,7 +583,6 @@ public class CredentialProviderTest {
 		response.setDocuments(docList);
 		idResponse.setResponse(response);
 		CredentialServiceRequestDto credentialServiceRequestDto = getCredentialServiceRequestDto();
-
 
 		CredentialServiceRequestDto credReq = new CredentialServiceRequestDto();
 		List<String> attributes = new ArrayList<String>();
@@ -789,7 +614,6 @@ public class CredentialProviderTest {
 		credReq.setEncrypt(Boolean.FALSE);
 		credReq.setSharableAttributes(attributes);
 		credReq.setAdditionalData(additionalData);
-
 
 		policyResponse = new PartnerCredentialTypePolicyDto();
 		List<AllowedKycDto> shareableAttributes = new ArrayList<>();
@@ -910,7 +734,7 @@ public class CredentialProviderTest {
 	}
 
 	@Test
-	public void prepareSharableAttributesBestTwoFingers() throws Exception {
+	public void prepareSharableAttributesWithBestTwoFingersBiometrics() throws Exception {
 		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
 		Map<String, String> map = new HashMap<>();
 		map.put("language", "eng");
@@ -929,7 +753,6 @@ public class CredentialProviderTest {
 		identityMap.put("UIN", 3000);
 
 		Object identity = identityMap;
-		//response.setIdentity(new HashMap<>());
 		response.setIdentity(identity);
 
 		DocumentsDTO doc1 = new DocumentsDTO();
@@ -942,7 +765,6 @@ public class CredentialProviderTest {
 		response.setDocuments(docList);
 		idResponse.setResponse(response);
 		CredentialServiceRequestDto credentialServiceRequestDto = getCredentialServiceRequestDto();
-
 
 		CredentialServiceRequestDto credReq = new CredentialServiceRequestDto();
 		List<String> attributes = new ArrayList<String>();
@@ -974,7 +796,6 @@ public class CredentialProviderTest {
 		credReq.setEncrypt(Boolean.FALSE);
 		credReq.setSharableAttributes(attributes);
 		credReq.setAdditionalData(additionalData);
-
 
 		policyResponse = new PartnerCredentialTypePolicyDto();
 		List<AllowedKycDto> shareableAttributes = new ArrayList<>();
@@ -1096,7 +917,7 @@ public class CredentialProviderTest {
 	}
 
 	@Test
-	public void prepareSharableAttributesSubTypeScoreMap() throws Exception {
+	public void prepareSharableAttributesWithSubTypeScoreMap() throws Exception {
 		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
 		Map<String, String> map = new HashMap<>();
 		map.put("language", "eng");
@@ -1115,7 +936,6 @@ public class CredentialProviderTest {
 		identityMap.put("UIN", 3000);
 
 		Object identity = identityMap;
-		//response.setIdentity(new HashMap<>());
 		response.setIdentity(identity);
 
 		DocumentsDTO doc1 = new DocumentsDTO();
@@ -1128,7 +948,6 @@ public class CredentialProviderTest {
 		response.setDocuments(docList);
 		idResponse.setResponse(response);
 		CredentialServiceRequestDto credentialServiceRequestDto = getCredentialServiceRequestDto();
-
 
 		CredentialServiceRequestDto credReq = new CredentialServiceRequestDto();
 		List<String> attributes = new ArrayList<String>();
@@ -1160,7 +979,6 @@ public class CredentialProviderTest {
 		credReq.setEncrypt(Boolean.FALSE);
 		credReq.setSharableAttributes(attributes);
 		credReq.setAdditionalData(additionalData);
-
 
 		policyResponse = new PartnerCredentialTypePolicyDto();
 		List<AllowedKycDto> shareableAttributes = new ArrayList<>();
@@ -1288,340 +1106,7 @@ public class CredentialProviderTest {
 	}
 
 	@Test
-	public void prepareSharableAttributesShouldHandleNullValues() throws Exception {
-		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
-		Map<String, String> map = new HashMap<>();
-		map.put("language", "eng");
-		map.put("value", "raghav");
-		JSONObject j1 = new JSONObject(map);
-
-		Map<String, String> map2 = new HashMap<>();
-		map2.put("language", "ara");
-		map2.put("value", "Alok");
-		JSONObject j2 = new JSONObject(map2);
-		JSONArray array = new JSONArray();
-		array.add(j1);
-		array.add(j2);
-		identityMap.put("fullName", array);
-
-		identityMap.put("UIN", 3000);
-
-		Object identity = identityMap;
-		//response.setIdentity(new HashMap<>());
-		response.setIdentity(identity);
-
-		DocumentsDTO doc1 = new DocumentsDTO();
-		doc1.setCategory("APEX");
-
-		doc1.setValue("textbiomterics");
-		List<DocumentsDTO> docList = new ArrayList<>();
-		docList.add(doc1);
-
-		response.setDocuments(docList);
-		idResponse.setResponse(response);
-		CredentialServiceRequestDto credentialServiceRequestDto = getCredentialServiceRequestDto();
-
-
-		CredentialServiceRequestDto credReq = new CredentialServiceRequestDto();
-		List<String> attributes = new ArrayList<String>();
-
-		attributes.add("abc");
-
-		List<String> maskingAttributesList = new ArrayList<String>();
-		maskingAttributesList.add("phone");
-		maskingAttributesList.add("email");
-		maskingAttributesList.add("uin");
-		maskingAttributesList.add("vid");
-
-		Map<String,Object> attributeFormat= new HashMap<String,Object>();
-
-		attributeFormat.put("dateOfBirth", "DD/MMM/YYYY");
-		attributeFormat.put("fullAddress","");
-		attributeFormat.put("name","");
-		attributeFormat.put("fullName","");
-
-		Map<String,Object>additionalData=new HashMap<String,Object>();
-
-		additionalData.put("formatingAttributes",attributeFormat);
-		additionalData.put("maskingAttributes",maskingAttributesList);
-
-		credReq.setId("2361485607");
-		credReq.setCredentialType("euin");
-		credReq.setIssuer("mpartner-default-print");
-		credReq.setEncryptionKey("JQ5sLK6Sq11SzUZq");
-		credReq.setEncrypt(Boolean.FALSE);
-		credReq.setSharableAttributes(attributes);
-		credReq.setAdditionalData(additionalData);
-
-
-		policyResponse = new PartnerCredentialTypePolicyDto();
-		List<AllowedKycDto> shareableAttributes = new ArrayList<>();
-		AllowedKycDto kyc1 = new AllowedKycDto();
-		kyc1.setAttributeName("fullName");
-		kyc1.setEncrypted(true);
-		kyc1.setFormat(CredentialConstants.RETRIEVE);
-
-		List<Source> sourceList = new ArrayList<>();
-
-		Source source1 = new Source();
-		source1.setAttribute(CredentialConstants.VID);
-		List<Filter> filterList = new ArrayList<>();
-		Filter filter = new Filter();
-		filter.setLanguage("en");
-		filter.setType("Domain");
-		filterList.add(filter);
-		source1.setFilter(filterList);
-
-		sourceList.add(source1);
-		kyc1.setSource(sourceList);
-		shareableAttributes.add(kyc1);
-		AllowedKycDto kyc2 = new AllowedKycDto();
-		kyc2.setAttributeName("dateOfBirth");
-		kyc2.setEncrypted(true);
-
-		List<Source> sourceList2 = new ArrayList<>();
-		Source source2 = new Source();
-		source2.setAttribute("Test1");
-		sourceList2.add(source2);
-		kyc2.setSource(sourceList2);
-		shareableAttributes.add(kyc2);
-		AllowedKycDto kyc3 = new AllowedKycDto();
-		kyc3.setAttributeName("biometrics");
-		kyc3.setGroup("CBEFF");
-		kyc3.setEncrypted(true);
-		List<Source> sourceList3 = new ArrayList<>();
-		Source source3 = new Source();
-		source3.setAttribute("Test2");
-		sourceList3.add(source3);
-		kyc3.setSource(sourceList3);
-		shareableAttributes.add(kyc3);
-		AllowedKycDto kyc4 = new AllowedKycDto();
-		List<Source> sourceList4 = new ArrayList<>();
-		Source source4 = new Source();
-		source4.setAttribute("APEX");
-		List<Filter> filterList1 = new ArrayList<>();
-		Filter filter1 = new Filter();
-		filter1.setLanguage("en");
-		filter1.setType("Face");
-		filterList1.add(filter1);
-		source4.setFilter(filterList1);
-		sourceList4.add(source4);
-		kyc4.setSource(sourceList4);
-		kyc4.setAttributeName("email");
-		kyc4.setEncrypted(true);
-		kyc4.setGroup(CredentialConstants.CBEFF);
-		kyc4.setFormat(CredentialConstants.BESTTWOFINGERS);
-		shareableAttributes.add(kyc4);
-		PolicyAttributesDto dto = new PolicyAttributesDto();
-		dto.setShareableAttributes(shareableAttributes);
-		policyResponse.setPolicies(dto);
-
-		VidResponseDTO vidResponseDTO = mock(VidResponseDTO.class);
-		Mockito.when(vidUtil.generateVID(Mockito.any(), Mockito.any()))
-				.thenReturn(vidResponseDTO);
-
-		VidInfoDTO vidInfoDTO = new VidInfoDTO();
-		vidInfoDTO.setExpiryTimestamp(LocalDateTime.now());
-		Mockito.when(vidUtil.getVIDData(Mockito.any(), Mockito.any(), Mockito.any()))
-				.thenReturn(null);
-
-		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = credentialDefaultProvider
-				.prepareSharableAttributes(idResponse,
-						policyResponse, credentialServiceRequestDto);
-		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
-	}
-
-	@Test
-	public void prepareSharableAttributeFilterBiometricBir() throws Exception {
-		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
-		Map<String, String> map = new HashMap<>();
-		map.put("language", "eng");
-		map.put("value", "raghav");
-		JSONObject j1 = new JSONObject(map);
-
-		Map<String, String> map2 = new HashMap<>();
-		map2.put("language", "ara");
-		map2.put("value", "Alok");
-		JSONObject j2 = new JSONObject(map2);
-		JSONArray array = new JSONArray();
-		array.add(j1);
-		array.add(j2);
-		identityMap.put("fullName", array);
-
-		identityMap.put("UIN", 3000);
-
-		Object identity = identityMap;
-		//response.setIdentity(new HashMap<>());
-		response.setIdentity(identity);
-
-		DocumentsDTO doc1 = new DocumentsDTO();
-		doc1.setCategory("APEX");
-
-		doc1.setValue("textbiomterics");
-		List<DocumentsDTO> docList = new ArrayList<>();
-		docList.add(doc1);
-
-		response.setDocuments(docList);
-		idResponse.setResponse(response);
-		CredentialServiceRequestDto credentialServiceRequestDto = getCredentialServiceRequestDto();
-
-
-		CredentialServiceRequestDto credReq = new CredentialServiceRequestDto();
-		List<String> attributes = new ArrayList<String>();
-
-		attributes.add("abc");
-
-		List<String> maskingAttributesList = new ArrayList<String>();
-		maskingAttributesList.add("phone");
-		maskingAttributesList.add("email");
-		maskingAttributesList.add("uin");
-		maskingAttributesList.add("vid");
-
-		Map<String,Object> attributeFormat= new HashMap<String,Object>();
-
-		attributeFormat.put("dateOfBirth", "DD/MMM/YYYY");
-		attributeFormat.put("fullAddress","");
-		attributeFormat.put("name","");
-		attributeFormat.put("fullName","");
-
-		Map<String,Object>additionalData=new HashMap<String,Object>();
-
-		additionalData.put("formatingAttributes",attributeFormat);
-		additionalData.put("maskingAttributes",maskingAttributesList);
-
-		credReq.setId("2361485607");
-		credReq.setCredentialType("euin");
-		credReq.setIssuer("mpartner-default-print");
-		credReq.setEncryptionKey("JQ5sLK6Sq11SzUZq");
-		credReq.setEncrypt(Boolean.FALSE);
-		credReq.setSharableAttributes(attributes);
-		credReq.setAdditionalData(additionalData);
-
-
-		policyResponse = new PartnerCredentialTypePolicyDto();
-		List<AllowedKycDto> shareableAttributes = new ArrayList<>();
-		AllowedKycDto kyc1 = new AllowedKycDto();
-		kyc1.setAttributeName("fullName");
-		kyc1.setEncrypted(true);
-		kyc1.setFormat(CredentialConstants.RETRIEVE);
-
-		List<Source> sourceList = new ArrayList<>();
-
-		Source source1 = new Source();
-		source1.setAttribute(CredentialConstants.VID);
-		List<Filter> filterList = new ArrayList<>();
-		Filter filter = new Filter();
-		filter.setLanguage("en");
-		filter.setType("Domain");
-		filterList.add(filter);
-		source1.setFilter(filterList);
-
-		sourceList.add(source1);
-		kyc1.setSource(sourceList);
-		shareableAttributes.add(kyc1);
-		AllowedKycDto kyc2 = new AllowedKycDto();
-		kyc2.setAttributeName("dateOfBirth");
-		kyc2.setEncrypted(true);
-
-		List<Source> sourceList2 = new ArrayList<>();
-		Source source2 = new Source();
-		source2.setAttribute("Test1");
-		sourceList2.add(source2);
-		kyc2.setSource(sourceList2);
-		shareableAttributes.add(kyc2);
-		AllowedKycDto kyc3 = new AllowedKycDto();
-		kyc3.setAttributeName("biometrics");
-		kyc3.setGroup("CBEFF");
-		kyc3.setEncrypted(true);
-		List<Source> sourceList3 = new ArrayList<>();
-		Source source3 = new Source();
-		source3.setAttribute("Test2");
-		sourceList3.add(source3);
-		kyc3.setSource(sourceList3);
-		shareableAttributes.add(kyc3);
-		AllowedKycDto kyc4 = new AllowedKycDto();
-		List<Source> sourceList4 = new ArrayList<>();
-		Source source4 = new Source();
-		source4.setAttribute("APEX");
-		List<Filter> filterList1 = new ArrayList<>();
-		Filter filter1 = new Filter();
-		filter1.setLanguage("en");
-		filter1.setType("Face");
-		filter1.setSubType(List.of("ref refData"));
-		filterList1.add(filter1);
-		source4.setFilter(filterList1);
-		sourceList4.add(source4);
-		kyc4.setSource(sourceList4);
-		kyc4.setAttributeName("email");
-		kyc4.setEncrypted(true);
-		kyc4.setGroup(CredentialConstants.CBEFF);
-		kyc4.setFormat(CredentialConstants.JPEG);
-		shareableAttributes.add(kyc4);
-		PolicyAttributesDto dto = new PolicyAttributesDto();
-		dto.setShareableAttributes(shareableAttributes);
-		policyResponse.setPolicies(dto);
-
-		VidResponseDTO vidResponseDTO = mock(VidResponseDTO.class);
-		Mockito.when(vidUtil.generateVID(Mockito.any(), Mockito.any()))
-				.thenReturn(vidResponseDTO);
-
-		VidInfoDTO vidInfoDTO = new VidInfoDTO();
-		vidInfoDTO.setExpiryTimestamp(LocalDateTime.now());
-		Mockito.when(vidUtil.getVIDData(Mockito.any(), Mockito.any(), Mockito.any()))
-				.thenReturn(vidInfoDTO);
-
-		List<BIR> birList = new ArrayList<>();
-		BIR bir = new BIR();
-		BDBInfo bdbInfoFace = new BDBInfo();
-		List<BiometricType> singleFaceList = new ArrayList<>();
-		singleFaceList.add(BiometricType.FACE);
-		bdbInfoFace.setType(singleFaceList);
-		bdbInfoFace.setSubtype(List.of("ref", "refData"));
-		QualityType qualityType = new QualityType();
-		qualityType.setScore(4L);
-		bdbInfoFace.setQuality(qualityType);
-		bir.setBdbInfo(bdbInfoFace);
-		byte[] bioBytes = "textbiomterics".getBytes();
-		bir.setBdb(bioBytes);
-		birList.add(bir);
-		BIR birFinger = new BIR();
-		BDBInfo bdbInfoRightThumb = new BDBInfo();
-		QualityType bdbInfoFingerQuality = new QualityType();
-		bdbInfoFingerQuality.setScore(60L);
-		List<BiometricType> singleFingerList = new ArrayList<>();
-		singleFingerList.add(BiometricType.FINGER);
-		bdbInfoRightThumb.setType(singleFingerList);
-		List<String> subTypeList = new ArrayList<>();
-		subTypeList.add("Right");
-		subTypeList.add("Thumb");
-		bdbInfoRightThumb.setSubtype(subTypeList);
-		bdbInfoRightThumb.setQuality(bdbInfoFingerQuality);
-		birFinger.setBdbInfo(bdbInfoRightThumb);
-		birList.add(birFinger);
-
-		BIR birLeftThumb = new BIR();
-		BDBInfo bdbInfoLeftThumb = new BDBInfo();
-		QualityType bdbInfoLeftThumbQuality = new QualityType();
-		bdbInfoLeftThumbQuality.setScore(58L);
-
-		bdbInfoLeftThumb.setType(singleFingerList);
-		List<String> subTypeListLeftThumb = new ArrayList<>();
-		subTypeListLeftThumb.add("Left");
-		subTypeListLeftThumb.add("Thumb");
-		bdbInfoLeftThumb.setSubtype(subTypeListLeftThumb);
-		bdbInfoLeftThumb.setQuality(bdbInfoLeftThumbQuality);
-		birLeftThumb.setBdbInfo(bdbInfoLeftThumb);
-		birList.add(birLeftThumb);
-		Mockito.when(cbeffutil.getBIRDataFromXML(Mockito.any())).thenReturn(birList);
-
-		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = credentialDefaultProvider
-				.prepareSharableAttributes(idResponse,
-						policyResponse, credentialServiceRequestDto);
-		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 1);
-	}
-
-	@Test
-	public void testPrepareSharableAttributesWithFilterBiometric() throws Exception {
+	public void prepareSharableAttributesWithFilterBiometric() throws Exception {
 		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
 		Map<String, String> map = new HashMap<>();
 		map.put("language", "eng");
@@ -1757,7 +1242,7 @@ public class CredentialProviderTest {
 	}
 
 	@Test
-	public void testPrepareSharableAttributesGetIdentityAttribute() throws Exception {
+	public void prepareSharableAttributesHandleIdentityAttribute() throws Exception {
 		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
 		Map<String, String> map = new HashMap<>();
 		map.put("language", "eng");
@@ -1893,7 +1378,8 @@ public class CredentialProviderTest {
 	}
 
 	@Test
-	public void testPrepareSharableAttributesMask() throws Exception {
+	public void prepareSharableAttributesWithMask() throws Exception {
+
 		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
 		Map<String, String> map = new HashMap<>();
 		map.put("language", "eng");
@@ -1923,37 +1409,15 @@ public class CredentialProviderTest {
 
 		response.setDocuments(docList);
 		idResponse.setResponse(response);
-		//CredentialServiceRequestDto credentialServiceRequestDto = getCredentialServiceRequestDto();
-
-
-
 		CredentialServiceRequestDto credReq = new CredentialServiceRequestDto();
 		List<String> attributes = new ArrayList<String>();
-
-//		attributes.add("fullName");
-//		attributes.add("middleName");
-//		attributes.add("lastName");
-//		attributes.add("phone");
-//		attributes.add("email");
-//		attributes.add("UIN");
-//		attributes.add("fullAddress");
-//		attributes.add("dob");
 		attributes.add("sample");
 
 		List<String> maskingAttributesList = new ArrayList<String>();
-//		maskingAttributesList.add("phone");
-//		maskingAttributesList.add("email");
-//		maskingAttributesList.add("uin");
-//		maskingAttributesList.add("vid");
 		maskingAttributesList.add("abc");
 
 		Map<String,Object> attributeFormat= new HashMap<String,Object>();
-
-		//attributeFormat.put("dateOfBirth", "DD/MMM/YYYY");
 		attributeFormat.put("fullAddress","");
-//		attributeFormat.put("name","");
-//		attributeFormat.put("fullName","");
-
 		Map<String,Object>additionalData=new HashMap<String,Object>();
 
 		additionalData.put("formatingAttributes",attributeFormat);
