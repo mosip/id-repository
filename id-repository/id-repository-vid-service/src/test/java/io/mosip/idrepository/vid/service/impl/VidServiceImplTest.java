@@ -1193,7 +1193,7 @@ public class VidServiceImplTest {
 		});
 
 		assertEquals("Failed to extract template from bio extractor service", exception.getErrorText());
-		assertEquals("IDR-IDS-009", exception.getErrorCode());  // Make sure the correct error code is set
+		assertEquals("IDR-IDS-009", exception.getErrorCode());
 	}
 
 	@Test
