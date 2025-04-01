@@ -13,13 +13,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
+import io.mosip.kernel.core.util.DateUtils;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.Before;
@@ -206,6 +205,10 @@ public class IdRepoServiceTest {
 
 	/** The id. */
 	private Map<String, String> id;
+
+	private boolean trimWhitespaces;
+
+	private static final String VALUE = "value";
 
 	/** The uin. */
 	Uin uin = new Uin();
@@ -1069,6 +1072,204 @@ public class IdRepoServiceTest {
 		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
 		proxyService.updateIdentity(request, "234").getResponse().equals(obj2);
+	}
+
+	@Test
+	public void updateIdentityTrimWhitespacesTrue() throws IdRepoAppException, IOException {
+		ReflectionTestUtils.setField(service, "trimWhitespaces", true);
+		Object obj = mapper.readValue(
+				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
+						.getBytes(),
+				Object.class);
+		RequestDTO req = new RequestDTO();
+		req.setStatus("REGISTERED");
+		req.setRegistrationId("27841457360002620190730095024");
+		req.setIdentity(obj);
+		request.setRequest(req);
+		Uin uinObj = new Uin();
+		uinObj.setUin("1234");
+		uinObj.setUinRefId("1234");
+		uinObj.setStatusCode("REGISTERED");
+		Object obj2 = mapper.readValue(
+				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}}"
+						.getBytes(),
+				Object.class);
+		uinObj.setUinData(mapper.writeValueAsBytes(obj2));
+		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn("ACTIVE");
+		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
+		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
+		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
+		when(uinRepo.save(Mockito.any())).thenReturn(uinObj);
+		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+		when(anonymousProfileHelper.isNewCbeffPresent()).thenReturn(false);
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("http://localhost/v1/vid/{uin}");
+		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
+		when(identityUpdateTracker.findById(any())).thenReturn(Optional.empty());
+		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
+		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
+		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
+
+		Map<String, Object> identityData = new HashMap<>();
+		identityData.put("AB", "123");
+		when(idRepoServiceHelper.convertToMap(any())).thenReturn(identityData);
+		Uin result = service.updateIdentity(request, "234");
+		assertEquals("1234", result.getUin());
+		assertEquals("1234", result.getUinRefId());
+
+	}
+
+	@Test
+	public void updateIdentity() throws IdRepoAppException, IOException {
+		ReflectionTestUtils.setField(service, "trimWhitespaces", true);
+		Object obj = mapper.readValue(
+				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
+						.getBytes(),
+				Object.class);
+		RequestDTO req = new RequestDTO();
+		req.setStatus("REGISTERED");
+		req.setRegistrationId("27841457360002620190730095024");
+		req.setIdentity(obj);
+		request.setRequest(req);
+		Uin uinObj = new Uin();
+		uinObj.setUin("1234");
+		uinObj.setUinRefId("1234");
+		uinObj.setStatusCode("REGISTERED");
+		Object obj2 = mapper.readValue(
+				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}}"
+						.getBytes(),
+				Object.class);
+		uinObj.setUinData(mapper.writeValueAsBytes(obj2));
+		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn("ACTIVE");
+		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
+		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
+		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
+		when(uinRepo.save(Mockito.any())).thenReturn(uinObj);
+		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+		when(anonymousProfileHelper.isNewCbeffPresent()).thenReturn(false);
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("http://localhost/v1/vid/{uin}");
+		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
+		when(identityUpdateTracker.findById(any())).thenReturn(Optional.empty());
+		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
+		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
+		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
+
+		Map<String, Object> identityData = new HashMap<>();
+		List<Map<String, Object>> list = new ArrayList<>();
+		Map<String, Object> map = new HashMap<>();
+		map.put(VALUE, "value");
+		list.add(map);
+		identityData.put("AB", list);
+		when(idRepoServiceHelper.convertToMap(any())).thenReturn(identityData);
+		Uin result = service.updateIdentity(request, "234");
+		assertEquals("27841457360002620190730095024", result.getRegId());
+		assertEquals("REGISTERED", result.getStatusCode());
+	}
+
+	@Test
+	public void updateIdentityWithUpdateRequestBodyData() throws IdRepoAppException, IOException {
+		ReflectionTestUtils.setField(service, "trimWhitespaces", true);
+		Object obj = mapper.readValue(
+				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
+						.getBytes(),
+				Object.class);
+		RequestDTO req = new RequestDTO();
+		req.setStatus("REGISTERED");
+		req.setRegistrationId("27841457360002620190730095024");
+		req.setIdentity(obj);
+		request.setRequest(req);
+		Uin uinObj = new Uin();
+		uinObj.setUin("1234");
+		uinObj.setUinRefId("1234");
+		uinObj.setStatusCode("REGISTERED");
+		Object obj2 = mapper.readValue(
+				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}}"
+						.getBytes(),
+				Object.class);
+		uinObj.setUinData(mapper.writeValueAsBytes(obj2));
+		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn("ACTIVE");
+		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
+		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
+		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
+		when(uinRepo.save(Mockito.any())).thenReturn(uinObj);
+		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+		when(anonymousProfileHelper.isNewCbeffPresent()).thenReturn(false);
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("http://localhost/v1/vid/{uin}");
+		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
+		when(identityUpdateTracker.findById(any())).thenReturn(Optional.empty());
+		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
+		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
+		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
+
+		Map<String, Object> identityData = new HashMap<>();
+		Map<String, Object> map = new HashMap<>();
+		map.put(VALUE, "value");
+		identityData.put("AB", map);
+		when(idRepoServiceHelper.convertToMap(any())).thenReturn(identityData);
+
+		Uin result = service.updateIdentity(request, "234");
+		assertEquals("7D83029E77FD5523CDB2F3D0DB297557763D8E9102C28BFE64DFB588F197F2A0", result.getUinHash());
+		assertEquals(DateUtils.getUTCCurrentDateTime(), result.getUpdatedDateTime());
+	}
+
+	@Test
+	public void updateIdentityWithUpdateCount() throws IdRepoAppException, IOException {
+		ReflectionTestUtils.setField(service, "trimWhitespaces", true);
+		Object obj = mapper.readValue(
+				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
+						.getBytes(),
+				Object.class);
+		RequestDTO req = new RequestDTO();
+		req.setStatus("REGISTERED");
+		req.setRegistrationId("27841457360002620190730095024");
+		req.setIdentity(obj);
+		request.setRequest(req);
+		Uin uinObj = new Uin();
+		uinObj.setUin("1234");
+		uinObj.setUinRefId("1234");
+		uinObj.setStatusCode("REGISTERED");
+		Object obj2 = mapper.readValue(
+				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}}"
+						.getBytes(),
+				Object.class);
+		uinObj.setUinData(mapper.writeValueAsBytes(obj2));
+		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn("ACTIVE");
+		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
+		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
+		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
+		when(uinRepo.save(Mockito.any())).thenReturn(uinObj);
+		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+		when(anonymousProfileHelper.isNewCbeffPresent()).thenReturn(false);
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("http://localhost/v1/vid/{uin}");
+		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
+		when(identityUpdateTracker.findById(any())).thenReturn(Optional.empty());
+		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
+		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
+		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
+
+		Map<String, Object> identityData = new HashMap<>();
+		Map<String, Object> map = new HashMap<>();
+		map.put(VALUE, "value");
+		identityData.put("AB", map);
+		when(idRepoServiceHelper.convertToMap(any())).thenReturn(identityData);
+
+		ReflectionTestUtils.setField(IdentityUpdateTrackerPolicyProvider.class, "updateCount", Map.of("", 2));
+
+		IdentityUpdateTracker record = new IdentityUpdateTracker();
+		record.setId("id");
+		record.setIdentityUpdateCount(CryptoUtil.encodeToURLSafeBase64("{\"fullName\":2}".getBytes()).getBytes());
+		when(identityUpdateTracker.findById(any())).thenReturn(Optional.of(record));
+
+		Uin result = service.updateIdentity(request, "234");
+		assertEquals("7D83029E77FD5523CDB2F3D0DB297557763D8E9102C28BFE64DFB588F197F2A0", result.getUinHash());
+		assertEquals(DateUtils.getUTCCurrentDateTime(), result.getUpdatedDateTime());
 	}
 
 	@Test
