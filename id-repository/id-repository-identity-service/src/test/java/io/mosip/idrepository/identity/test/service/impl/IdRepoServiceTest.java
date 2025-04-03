@@ -1512,7 +1512,7 @@ public class IdRepoServiceTest {
 		verify(credRequestRepo).save(argCapture.capture());
 		CredentialRequestStatus credStatus = argCapture.getValue();
 		assertEquals(CredentialRequestStatusLifecycle.NEW.toString(), credStatus.getStatus());
-		assertEquals("", credStatus.getUpdatedBy());
+		assertEquals("System", credStatus.getUpdatedBy());
 		assertNotNull(credStatus.getUpdDTimes());
 	}
 
@@ -1567,7 +1567,7 @@ public class IdRepoServiceTest {
 		verify(credRequestRepo).save(argCapture.capture());
 		CredentialRequestStatus credStatus = argCapture.getValue();
 		assertEquals(CredentialRequestStatusLifecycle.DELETED.toString(), credStatus.getStatus());
-		assertEquals("", credStatus.getUpdatedBy());
+		assertEquals("System", credStatus.getUpdatedBy());
 		assertNotNull(credStatus.getUpdDTimes());
 	}
 
