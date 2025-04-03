@@ -145,15 +145,17 @@ public class IdRepoSecurityManager {
 	 *
 	 * @return the user
 	 */
+
 	public static String getUser() {
 		if (Objects.nonNull(SecurityContextHolder.getContext())
 				&& Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())
-				&& Objects.nonNull(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-				&& SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof UserDetails) {	
-			return ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-					.getUsername();
+			//	&& Objects.nonNull(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				//&& SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof UserDetails
+		) {
+			System.out.println(">>>>>>>idrepo_user>>>>>>>>>>>>>>>"+SecurityContextHolder.getContext().getAuthentication().getName());
+			return SecurityContextHolder.getContext().getAuthentication().getName();
 		} else {
-			return "";
+			return "System";
 		}
 	}
 
