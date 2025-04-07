@@ -387,7 +387,9 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 			if (allowedBioAttributes.contains(bio.getBiometricFileType())) {
 				try {
 					String uinHash = uinObject.getUinHash().split("_")[1];
+					mosipLogger.info("getting biometric data from minio");
 					byte[] data = objectStoreHelper.getBiometricObject(uinHash, bio.getBioFileId());
+					mosipLogger.info("received biometric data from minio");
 					if (Objects.nonNull(data)) {
 						if (Objects.nonNull(extractionFormats) && !extractionFormats.isEmpty()) {
 							byte[] extractedData = getBiometricsForRequestedFormats(uinHash, bio.getBioFileId(),
