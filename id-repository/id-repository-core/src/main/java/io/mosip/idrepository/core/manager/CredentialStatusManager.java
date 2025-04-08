@@ -122,6 +122,7 @@ public class CredentialStatusManager {
 			for (CredentialRequestStatus credentialRequestStatus : newIssueRequestList) {
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
 				String idvId = decryptId(credentialRequestStatus.getIndividualId());
+				mosipLogger.info(">>>>>>>idvId UIN>>>>>> :{} ,{} , {}",idvId,credentialRequestStatus,credentialRequestStatus.getUpdatedBy());
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), activeStatus,
 						Objects.nonNull(credentialRequestStatus.getUpdatedBy()), null,
 						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer,
