@@ -11,6 +11,8 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_STOR
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.kernel.core.logger.spi.Logger;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,6 +60,8 @@ public class ObjectStoreHelper {
 	
 	private ObjectStoreAdapter objectStore;
 
+	public static final Logger mosipLogger = IdRepoLogger.getLogger(ObjectStoreHelper.class);
+
 	@Autowired
 	public void setObjectStore(ApplicationContext context) {
 		this.objectStore = context.getBean(objectStoreAdapterName, ObjectStoreAdapter.class);
@@ -72,6 +76,7 @@ public class ObjectStoreHelper {
 	}
 
 	public boolean biometricObjectExists(String uinHash, String fileRefId) {
+		mosipLogger.info("checking if biometric data exist");
 		return exists(uinHash, true, fileRefId);
 	}
 
@@ -94,6 +99,7 @@ public class ObjectStoreHelper {
 		if (!this.biometricObjectExists(uinHash, fileRefId)) {
 			throw new IdRepoAppException(FILE_NOT_FOUND);
 		}
+		mosipLogger.info("Data exist and fetching the same");
 		return getObject(uinHash, true, fileRefId, bioDataRefId);
 	}
 	

@@ -387,12 +387,16 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 			if (allowedBioAttributes.contains(bio.getBiometricFileType())) {
 				try {
 					String uinHash = uinObject.getUinHash().split("_")[1];
+					mosipLogger.info("getting biometric data from minio");
 					byte[] data = objectStoreHelper.getBiometricObject(uinHash, bio.getBioFileId());
+					mosipLogger.info("received biometric data from minio");
 					if (Objects.nonNull(data)) {
 						if (Objects.nonNull(extractionFormats) && !extractionFormats.isEmpty()) {
+							mosipLogger.info("extracting biometric data");
 							byte[] extractedData = getBiometricsForRequestedFormats(uinHash, bio.getBioFileId(),
 									extractionFormats, data);
 							if (Objects.nonNull(extractedData)) {
+								mosipLogger.info("extracted data is not null");
 								documents.add(new DocumentsDTO(bio.getBiometricFileType(),
 										CryptoUtil.encodeToURLSafeBase64(extractedData)));
 							}
@@ -435,8 +439,10 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 
 				if (!extractionFormatForModality.isEmpty()) {
 					Entry<String, String> format = extractionFormatForModality.get();
+					mosipLogger.info("Using biometricExtractionService for extraction");
 					CompletableFuture<List<BIR>> extractTemplateFuture = biometricExtractionService.extractTemplate(
 							uinHash, fileName, format.getKey(), format.getValue(), birTypesForModality);
+					mosipLogger.info("extraction completed for modality " + modality);
 					extractionFutures.add(extractTemplateFuture);
 
 				} else {
