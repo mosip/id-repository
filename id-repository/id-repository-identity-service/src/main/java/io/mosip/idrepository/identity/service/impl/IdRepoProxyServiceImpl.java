@@ -425,6 +425,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 													  Map<String, String> extractionFormats, byte[] originalData) throws IdRepoAppException {
 		try {
 			List<BIR> originalBirs = cbeffUtil.getBIRDataFromXML(originalData);
+			mosipLogger.info("Size of originalBirs: " + originalBirs.size());
 			List<BIR> finalBirs = new ArrayList<>();
 
 			List<CompletableFuture<List<BIR>>> extractionFutures = new ArrayList<>();
@@ -433,6 +434,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 				List<BIR> birTypesForModality = originalBirs.stream()
 						.filter(bir -> {
 							List<BiometricType> types = bir.getBdbInfo().getType();
+							if(types.isEmpty()) mosipLogger.info("types is empty");
 							return !types.isEmpty() && types.get(0).value().equalsIgnoreCase(modality.value());
 						})
 						.filter(bir -> {
