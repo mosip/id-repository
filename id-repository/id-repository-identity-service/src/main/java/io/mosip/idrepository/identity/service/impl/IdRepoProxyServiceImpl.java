@@ -425,19 +425,28 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 													  Map<String, String> extractionFormats, byte[] originalData) throws IdRepoAppException {
 		try {
 			List<BIR> originalBirs = cbeffUtil.getBIRDataFromXML(originalData);
+			mosipLogger.info("Size of originalBirs: " + originalBirs.size());
 			List<BIR> finalBirs = new ArrayList<>();
 
 			List<CompletableFuture<List<BIR>>> extractionFutures = new ArrayList<>();
 
 			for (BiometricType modality : SUPPORTED_MODALITIES) {
 				List<BIR> birTypesForModality = originalBirs.stream()
-						.filter(bir -> bir.getBdbInfo().getType().get(0).value().equalsIgnoreCase(modality.value()))
+						.filter(bir -> {
+							List<BiometricType> types = bir.getBdbInfo().getType();
+							if(types.isEmpty()) mosipLogger.info("types is empty");
+							return !types.isEmpty() && types.get(0).value().equalsIgnoreCase(modality.value());
+						})
+						.filter(bir -> {
+							Map<String, String> others = bir.getOthers();
+							return others == null || "false".equalsIgnoreCase(others.get("EXCEPTION"));
+						})
 						.collect(Collectors.toList());
 
 				Optional<Entry<String, String>> extractionFormatForModality = extractionFormats.entrySet().stream()
 						.filter(ent -> ent.getKey().toLowerCase().contains(modality.value().toLowerCase())).findAny();
 
-				if (!extractionFormatForModality.isEmpty()) {
+				if (!extractionFormatForModality.isEmpty() && !birTypesForModality.isEmpty()) {
 					Entry<String, String> format = extractionFormatForModality.get();
 					mosipLogger.info("Using biometricExtractionService for extraction");
 					CompletableFuture<List<BIR>> extractTemplateFuture = biometricExtractionService.extractTemplate(
