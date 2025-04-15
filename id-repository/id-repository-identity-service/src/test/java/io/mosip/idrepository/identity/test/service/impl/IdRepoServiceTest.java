@@ -108,6 +108,7 @@ import io.mosip.kernel.core.util.CryptoUtil;
  *
  * @author Manoj SP
  */
+
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
 @WebMvcTest
@@ -246,6 +247,8 @@ public class IdRepoServiceTest {
 		ReflectionTestUtils.setField(proxyService, "id", id);
 		ReflectionTestUtils.setField(service, "mapper", mapper);
 		ReflectionTestUtils.setField(service, "activeStatus", ACTIVATED);
+		ReflectionTestUtils.setField(service, "fieldsToReplaceOnUpdate",
+				Lists.newArrayList("selectedHandles"));
 		ReflectionTestUtils.setField(proxyService, "service", service);
 		ReflectionTestUtils.setField(proxyService, "allowedBioAttributes",
 				Collections.singletonList("individualBiometrics"));
