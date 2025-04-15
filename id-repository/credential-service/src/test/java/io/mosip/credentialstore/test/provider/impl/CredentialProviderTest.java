@@ -225,7 +225,7 @@ public class CredentialProviderTest {
 	}
 
 	@Test
-	public void testGetFormattedCredentialData() throws CredentialFormatterException {
+	public void getFormattedCredentialData_valid_kyc_attributes() throws CredentialFormatterException {
 		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
 		Map<String, Object> additionalData = new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
