@@ -120,7 +120,7 @@ public class CredentialStatusManager {
 			List<CredentialRequestStatus> newIssueRequestList = statusRepo
 					.findByStatus(CredentialRequestStatusLifecycle.NEW.toString());
 			for (CredentialRequestStatus credentialRequestStatus : newIssueRequestList) {
-				mosipLogger.info("credentialRequestStatus for handleNewOrUpdatedRequests",credentialRequestStatus.toString());
+				mosipLogger.info("credentialRequestStatus for handleNewOrUpdatedRequests: {}",credentialRequestStatus.toString());
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
 				String idvId = decryptId(credentialRequestStatus.getIndividualId());
 				mosipLogger.info(">>>>>>>idvId UIN>>>>>> :{} ,{} , {}",idvId,credentialRequestStatus,credentialRequestStatus.getUpdatedBy());
@@ -150,8 +150,11 @@ public class CredentialStatusManager {
 		try {
 			CredentialIssueResponse credResponse = mapper.convertValue(response.get("response"), CredentialIssueResponse.class);
 			Map<String, Object> additionalData = request.getRequest().getAdditionalData();
+			mosipLogger.info("credentialRequestResponseConsumer>>>> :{} ,{}",credResponse,additionalData);
+
 			Optional<CredentialRequestStatus> credStatusOptional = statusRepo
 					.findByIndividualIdHashAndPartnerId((String) additionalData.get(ID_HASH), request.getRequest().getIssuer());
+			mosipLogger.info("credStatusOptional>>>> :{} ,{}",credStatusOptional.isPresent(),credStatusOptional.toString());
 			if (credStatusOptional.isPresent()) {
 				CredentialRequestStatus credStatus = credStatusOptional.get();
 				if (Objects.nonNull(credResponse))
