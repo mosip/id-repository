@@ -225,7 +225,7 @@ public class CredentialProviderTest {
 	}
 
 	@Test
-	public void getFormattedCredentialData_valid_kyc_attributes() throws CredentialFormatterException {
+	public void getFormattedCredentialData_WithValidKyc_ReturnDataProviderResponse() throws CredentialFormatterException {
 		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
 		Map<String, Object> additionalData = new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
@@ -378,7 +378,7 @@ public class CredentialProviderTest {
 	}
 
 	@Test
-	public void prepareSharableAttributes() throws CredentialFormatterException {
+	public void prepareSharableAttributes_WhenIdentityAndDocumentsAreProvided() throws CredentialFormatterException {
 		Mockito.when(env.getProperty(Mockito.anyString(), Mockito.anyString())).thenReturn("fullName");
 		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
 		Map<String, String> map = new HashMap<>();
@@ -418,7 +418,7 @@ public class CredentialProviderTest {
 	}
 
 	@Test
-	public void prepareSharableAttributesWithPolicy() throws CredentialFormatterException, ApiNotAccessibleException, IdRepoException {
+	public void prepareSharableAttributesWithPolicy_ShouldReturnValidAttributes() throws CredentialFormatterException, ApiNotAccessibleException, IdRepoException {
 		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
 		Map<String, String> map = new HashMap<>();
 		map.put("language", "eng");
@@ -552,7 +552,7 @@ public class CredentialProviderTest {
 	}
 
 	@Test
-	public void prepareSharableAttributesWithPolicyAndBiometrics() throws Exception {
+	public void prepareSharableAttributes_WithPolicyAttributes_ReturnValidMap() throws Exception {
 		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
 		Map<String, String> map = new HashMap<>();
 		map.put("language", "eng");
@@ -734,7 +734,7 @@ public class CredentialProviderTest {
 	}
 
 	@Test
-	public void prepareSharableAttributesWithBestTwoFingersBiometrics() throws Exception {
+	public void prepareSharableAttributes_WithPolicyAndBiometrics_ReturnSharableAttributesMap() throws Exception {
 		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
 		Map<String, String> map = new HashMap<>();
 		map.put("language", "eng");
@@ -917,7 +917,7 @@ public class CredentialProviderTest {
 	}
 
 	@Test
-	public void prepareSharableAttributesWithSubTypeScoreMap() throws Exception {
+	public void prepareSharableAttributes_WithSubTypeAndScore_ReturnSharableAttributesMap() throws Exception {
 		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
 		Map<String, String> map = new HashMap<>();
 		map.put("language", "eng");
@@ -1106,7 +1106,7 @@ public class CredentialProviderTest {
 	}
 
 	@Test
-	public void prepareSharableAttributesWithFilterBiometric() throws Exception {
+	public void prepareSharableAttributes_WithBiometricFilter_ReturnSharableAttributesMap() throws Exception {
 		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
 		Map<String, String> map = new HashMap<>();
 		map.put("language", "eng");
@@ -1242,7 +1242,7 @@ public class CredentialProviderTest {
 	}
 
 	@Test
-	public void prepareSharableAttributesHandleIdentityAttribute() throws Exception {
+	public void prepareSharableAttributes_HandleIdentityAttribute_ReturnSharableAttributesMap() throws Exception {
 		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
 		Map<String, String> map = new HashMap<>();
 		map.put("language", "eng");
@@ -1378,7 +1378,7 @@ public class CredentialProviderTest {
 	}
 
 	@Test
-	public void prepareSharableAttributesWithMask() throws Exception {
+	public void prepareSharableAttributes_ReturnValidMap_WithMaskApplied() throws Exception {
 
 		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
 		Map<String, String> map = new HashMap<>();

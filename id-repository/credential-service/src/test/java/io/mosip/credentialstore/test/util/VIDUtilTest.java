@@ -99,7 +99,7 @@ public class VIDUtilTest {
     }
 
     @Test
-    public void generateVID_Exception() throws Exception {
+    public void generateVID_IdRepoException() throws Exception {
         Mockito.when(objectMapper.readValue(objectMapper.writeValueAsString(vidResponseDTOResponseWrapper.getResponse()), VidResponseDTO.class)).thenThrow(new RuntimeException("Unknown Error"));
         assertThrows(IdRepoException.class, () -> {
             vidUtil.generateVID("4554888654", "PERPETUAL");
@@ -114,14 +114,14 @@ public class VIDUtilTest {
     }
 
     @Test
-    public void getVIDData() throws Exception {
+    public void getVIDData_VidNull_ReturnsVidInfo() throws Exception {
         VidInfoDTO result = vidUtil.getVIDData("4554888654", "PERPETUAL",null);
         assertEquals("4452541213124", result.getVid());
         assertEquals("PERPETUAL", result.getVidType());
     }
 
     @Test
-    public void getVIDDataShouldReturnNull() throws Exception {
+    public void getVIDData_WithEmptyApiResponse_ReturnsNull() throws Exception {
 
         vidInfoResponseWrapper.setResponse(new ArrayList<>());
         Mockito.when(restUtil.getApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(vidInfoResponseWrapper);

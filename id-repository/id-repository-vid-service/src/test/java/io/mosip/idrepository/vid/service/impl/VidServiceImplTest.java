@@ -1218,7 +1218,7 @@ public class VidServiceImplTest {
 	}
 
 	@Test
-	public void reactivateVIDsForUIN() throws IdRepoAppException {
+	public void reactivateVIDsForUIN_withValidUin_returnsCorrectVidResponse() throws IdRepoAppException {
 		List<Vid> vidList = new ArrayList<>();
 		Vid vid = new Vid();
 		vid.setVid("782");
@@ -1251,7 +1251,7 @@ public class VidServiceImplTest {
 	}
 
 	@Test
-	public void retrieveVidsByUin() throws IdRepoAppException {
+	public void retrieveVidsByUin_withValidUin_returnsCorrectVidType() throws IdRepoAppException {
 
 		Vid vid = new Vid();
 		vid.setVid("123");
@@ -1275,7 +1275,7 @@ public class VidServiceImplTest {
 	}
 
 	@Test
-	public void updateVidWithExpiryCheck() throws IdRepoAppException, JsonProcessingException {
+	public void updateVid_shouldUpdateVid_WhenExpiryCheckPasses() throws IdRepoAppException, JsonProcessingException {
 
 		VidRequestDTO request = new VidRequestDTO();
 		request.setUin("2953190571");

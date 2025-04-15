@@ -133,7 +133,7 @@ public class CredentialStatusManagerTest {
 	}
 
 	@Test
-	public void handleNewOrUpdatedRequests() throws IdRepoAppException {
+	public void handleNewOrUpdatedRequests_NotifyCredentialManagerForNewRequests() throws IdRepoAppException {
 		List<CredentialRequestStatus> deletedIssueRequestList = new ArrayList<CredentialRequestStatus>();
 		CredentialRequestStatus req = new CredentialRequestStatus();
 		req.setIndividualId("12");
