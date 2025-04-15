@@ -216,6 +216,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	@Value("${mosip.idrepo.credential.request.enable-convention-based-id:false}")
 	private boolean enableConventionBasedId;
 
+	@Value("#{${mosip.idrepo.update-identity.fields-to-replace}}")
+	private List<String> fieldsToReplaceOnUpdate;
+
 
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
@@ -444,6 +447,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				DocumentContext dbData = JsonPath.using(configuration).parse(new String(uinObject.getUinData()));
 				anonymousProfileHelper.setOldUinData(dbData.jsonString().getBytes());
 				updateVerifiedAttributes(requestDTO, inputData, dbData);
+				replaceConfiguredFieldsOnUpdate(inputData, dbData);
 				JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(),
 						dbData.jsonString(), JSONCompareMode.LENIENT);
 
@@ -522,7 +526,6 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		if (comparisonResult.isMissingOnField()) {
 			updateMissingFields(dbData, comparisonResult, attribute);
 		}
-
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
 		if (comparisonResult.isFailureOnField()) {
 			updateFailingFields(inputData, dbData, comparisonResult, attribute);
@@ -542,6 +545,19 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 		identityUpdateTracker.save(new IdentityUpdateTracker(updateCountTracker.getKey(), CryptoUtil
 				.encodeToURLSafeBase64(mapper.writeValueAsString(updateCountTrackerMap).getBytes()).getBytes()));
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private void replaceConfiguredFieldsOnUpdate(DocumentContext inputData, DocumentContext dbData) {
+		for(String fieldId : fieldsToReplaceOnUpdate) {
+			List readValue = (List) inputData.read(DOT + fieldId);
+			if (!readValue.isEmpty()) {
+				Object value = readValue.get(0);
+				if (Objects.nonNull(value)) {
+					dbData.put("$", fieldId, value);
+				}
+			}
+		}
 	}
 
 	private void updateCount(Map<String, Integer> updateCountTrackerMap, Set<String> attributeSet) throws IdRepoAppException {
@@ -876,9 +892,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 
 	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp, String requestId) {
+		mosipLogger.info(">>>>>>>>>credStatusList>>>>>: {}, {}",uinHash,requestId);
 		List<CredentialRequestStatus> credStatusList = credRequestRepo.findByIndividualIdHash(uinHash);
 		if (!credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
-			mosipLogger.info(">>>>>>>>>credStatusList>>>>>{}",credStatusList.toString());
+			mosipLogger.info(">>>>>>>>>credStatusList>>>>>: {}",credStatusList.toString());
 			credStatusList.forEach(credStatus -> {
 				credStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
