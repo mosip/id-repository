@@ -120,6 +120,7 @@ public class CredentialStatusManager {
 			List<CredentialRequestStatus> newIssueRequestList = statusRepo
 					.findByStatus(CredentialRequestStatusLifecycle.NEW.toString());
 			for (CredentialRequestStatus credentialRequestStatus : newIssueRequestList) {
+				mosipLogger.info("credentialRequestStatus for handleNewOrUpdatedRequests",credentialRequestStatus.toString());
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
 				String idvId = decryptId(credentialRequestStatus.getIndividualId());
 				mosipLogger.info(">>>>>>>idvId UIN>>>>>> :{} ,{} , {}",idvId,credentialRequestStatus,credentialRequestStatus.getUpdatedBy());
@@ -169,6 +170,7 @@ public class CredentialStatusManager {
 				// Encryption is done using identity service encryption salts for all id types
 				credStatus.setIndividualId(encryptId(request.getRequest().getId()));
 				credStatus.setIndividualIdHash((String) additionalData.get(ID_HASH));
+				mosipLogger.info("credStatus.setIndividualIdHash((String) : {}",credStatus.getIndividualIdHash());
 				credStatus.setPartnerId(request.getRequest().getIssuer());
 				if (Objects.nonNull(credResponse))
 					credStatus.setRequestId(credResponse.getRequestId());

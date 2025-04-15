@@ -241,10 +241,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		byte[] identityInfo = convertToBytes(identityObject);
 		String uinHash = getUinHash(uin);
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
+		mosipLogger.info("Add identity uin hash: {} , {}",uinHashWithSalt,request.getRequest().getRegistrationId());
 		String uinToEncrypt = getUinToEncrypt(uin);
 
 		Map<String, HandleDto> selectedUniqueHandlesMap = checkAndGetHandles(request);
-
 		anonymousProfileHelper
 			.setRegId(request.getRequest().getRegistrationId())
 			.setNewUinData(identityInfo);
@@ -922,6 +922,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			if(enableConventionBasedId && (requestId != null)) {
 				credStatus.setRequestId(requestId);
 			}
+			mosipLogger.info("credRequestRepo.save(credStatus): {}",credStatus);
 			credRequestRepo.save(credStatus);
 		}
 	}
