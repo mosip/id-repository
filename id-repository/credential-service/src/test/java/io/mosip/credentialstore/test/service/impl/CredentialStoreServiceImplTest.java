@@ -291,7 +291,7 @@ public class CredentialStoreServiceImplTest {
 	}
 
 	@Test
-	public void createCredentialIssueSuccess() throws ApiNotAccessibleException, PolicyException {
+	public void createCredentialIssuance_WithSharableAttributes_PolicyException() throws ApiNotAccessibleException, PolicyException {
 
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
 		credentialServiceRequestDto.setCredentialType("mosip");
@@ -367,7 +367,7 @@ public class CredentialStoreServiceImplTest {
 	}
 
 	@Test
-	public void createCredentialIssuance_Exception() throws  CredentialFormatterException {
+	public void createCredentialIssuance_HandleRuntimeException() throws  CredentialFormatterException {
 		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
 		credentialServiceRequestDto.setCredentialType("mosip");
 		credentialServiceRequestDto.setId("4238135072");

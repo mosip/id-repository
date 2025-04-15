@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.ApplicationContext;
@@ -135,10 +136,10 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
-	public void notifyUinCredential() throws IdRepoDataValidationException, RestServiceException {
-		RestRequestDTO restReq = new RestRequestDTO();
-		restReq.setUri("{uin}");
-		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
+	public void notifyUinCredential_shouldLogError_whenExceptionOccurs() throws IdRepoDataValidationException, RestServiceException {
+
+		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenThrow(new RuntimeException("Runtime Exception"));
 		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
 		vidsInfosDTO.setResponse(List.of());
 		when(restHelper.requestSync(any())).thenReturn(vidsInfosDTO);
@@ -155,7 +156,7 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
-	public void notifyUinCredentialWithEmptyOrNullPartnerIds() throws IdRepoDataValidationException, RestServiceException {
+	public void notifyUinCredential_WhenPartnerIdIsNull() throws IdRepoDataValidationException, RestServiceException {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");
 		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
@@ -173,7 +174,7 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
-	public void notifyUinCredentialSendUinEventsToCredService() throws IdRepoAppException {
+	public void notifyUinCredential_WhenUINBasedRequestIsEnabled() throws IdRepoAppException {
 
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");
@@ -221,7 +222,7 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
-	public void notifyUinCredentialWithSaltRetrieval() throws IdRepoAppException {
+	public void shouldHandleDecryptionFailure_WhenNotifyingUinCredential() throws IdRepoAppException {
 
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");
@@ -285,7 +286,7 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
-	public void notifyVIDCredential() throws IdRepoDataValidationException, RestServiceException {
+	public void notifyVIDCredential_WhenPartnerIdsAreRetrieved() throws IdRepoDataValidationException, RestServiceException {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");
 		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
@@ -311,7 +312,7 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
-	public void notifyVIDCredentialWithStatusActivated() throws IdRepoDataValidationException, RestServiceException {
+	public void notifyVIDCredential_WhenStatusIsActivated() throws IdRepoDataValidationException, RestServiceException {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");
 		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
@@ -335,7 +336,7 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
-	public void notifyVIDCredentialWithStatusRevoked() throws IdRepoDataValidationException, RestServiceException {
+	public void notifyVIDCredential_WhenStatusIsRevoked() throws IdRepoDataValidationException, RestServiceException {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");
 		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
@@ -359,7 +360,7 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
-	public void notifyVIDCredentialWithStatusDeactivate() throws IdRepoDataValidationException, RestServiceException {
+	public void notifyVIDCredential_WhenStatusIsDeactivate() throws IdRepoDataValidationException, RestServiceException {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");
 		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
@@ -464,7 +465,7 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
-	public void sendVidEventsToCredServiceRestServiceException() throws IdRepoDataValidationException, RestServiceException {
+	public void sendVidEventsToCredService_RestServiceException() throws IdRepoDataValidationException, RestServiceException {
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");
 		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
@@ -512,7 +513,7 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
-	public void sendEventsToCredService(){
+	public void sendEventsToCredService_WithoutSecurityManagerInteraction(){
 		CredentialRequestStatus credentialRequestStatus = new CredentialRequestStatus();
 		credentialRequestStatus.setIdExpiryTimestamp(LocalDateTime.now());
 		credentialRequestStatus.setPartnerId("partner1");

@@ -1070,12 +1070,11 @@ public class IdRepoServiceTest {
 	}
 
 	@Test
-	public void updateIdentityTrimWhitespacesTrue() throws IdRepoAppException, IOException {
+	public void updateIdentity_trimWhitespacesTrue_shouldUpdateUinSuccessfully() throws IdRepoAppException, IOException {
 		ReflectionTestUtils.setField(service, "trimWhitespaces", true);
 		Object obj = mapper.readValue(
 				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
-						.getBytes(),
-				Object.class);
+						.getBytes(), Object.class);
 		RequestDTO req = new RequestDTO();
 		req.setStatus("REGISTERED");
 		req.setRegistrationId("27841457360002620190730095024");
@@ -1087,8 +1086,7 @@ public class IdRepoServiceTest {
 		uinObj.setStatusCode("REGISTERED");
 		Object obj2 = mapper.readValue(
 				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}}"
-						.getBytes(),
-				Object.class);
+						.getBytes(), Object.class);
 		uinObj.setUinData(mapper.writeValueAsBytes(obj2));
 		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn("ACTIVE");
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
@@ -1116,12 +1114,11 @@ public class IdRepoServiceTest {
 	}
 
 	@Test
-	public void updateIdentity() throws IdRepoAppException, IOException {
+	public void updateIdentity_ShouldReturnUpdatedUin_WithCorrectStatusAndRegId() throws IdRepoAppException, IOException {
 		ReflectionTestUtils.setField(service, "trimWhitespaces", true);
 		Object obj = mapper.readValue(
 				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
-						.getBytes(),
-				Object.class);
+						.getBytes(), Object.class);
 		RequestDTO req = new RequestDTO();
 		req.setStatus("REGISTERED");
 		req.setRegistrationId("27841457360002620190730095024");
@@ -1133,8 +1130,7 @@ public class IdRepoServiceTest {
 		uinObj.setStatusCode("REGISTERED");
 		Object obj2 = mapper.readValue(
 				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}}"
-						.getBytes(),
-				Object.class);
+						.getBytes(), Object.class);
 		uinObj.setUinData(mapper.writeValueAsBytes(obj2));
 		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn("ACTIVE");
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
@@ -1165,7 +1161,7 @@ public class IdRepoServiceTest {
 	}
 
 	@Test
-	public void updateIdentityWithUpdateRequestBodyData() throws IdRepoAppException, IOException {
+	public void updateIdentity_withUpdatedRequestBody_shouldGenerateCorrectUinDataHashAndStatus() throws IdRepoAppException, IOException {
 		ReflectionTestUtils.setField(service, "trimWhitespaces", true);
 		Object obj = mapper.readValue(
 				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
@@ -1182,8 +1178,7 @@ public class IdRepoServiceTest {
 		uinObj.setStatusCode("REGISTERED");
 		Object obj2 = mapper.readValue(
 				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}}"
-						.getBytes(),
-				Object.class);
+						.getBytes(), Object.class);
 		uinObj.setUinData(mapper.writeValueAsBytes(obj2));
 		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn("ACTIVE");
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
@@ -1213,7 +1208,7 @@ public class IdRepoServiceTest {
 	}
 
 	@Test
-	public void updateIdentityWithUpdateCount() throws IdRepoAppException, IOException {
+	public void updateIdentity_withIdentityUpdateCount_returnsCorrectUinAndNullUinHash() throws IdRepoAppException, IOException {
 		ReflectionTestUtils.setField(service, "trimWhitespaces", true);
 		Object obj = mapper.readValue(
 				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
@@ -1230,8 +1225,7 @@ public class IdRepoServiceTest {
 		uinObj.setStatusCode("REGISTERED");
 		Object obj2 = mapper.readValue(
 				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}}"
-						.getBytes(),
-				Object.class);
+						.getBytes(), Object.class);
 		uinObj.setUinData(mapper.writeValueAsBytes(obj2));
 		when(environment.getProperty("mosip.idrepo.identity.uin-status.registered")).thenReturn("ACTIVE");
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);

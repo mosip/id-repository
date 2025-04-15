@@ -589,14 +589,14 @@ public class IdRequestValidatorTest {
 	}
 
 	@Test
-	public void validateAuthTypes_nullList() {
+	public void validateAuthTypes_WithNullAuthTypeStatusList() {
 		assertThrows(IdRepoAppException.class, () -> {
 			validator.validateAuthTypes(null);
 		});
 	}
 
 	@Test
-	public void validateAuthTypes_emptyList() {
+	public void validateAuthTypes_WithEmptyAuthTypeStatusList() {
 		assertThrows(IdRepoAppException.class, () -> {
 			validator.validateAuthTypes(new ArrayList<>());
 		});
@@ -615,7 +615,7 @@ public class IdRequestValidatorTest {
 	}
 
 	@Test
-	public void validateAuthTypes() {
+	public void validateAuthTypes_shouldThrowException_whenAuthSubTypeIsNull() {
 		List<AuthtypeStatus> authTypeStatusList = new ArrayList<>();
 		AuthtypeStatus authtypeStatus = new AuthtypeStatus();
 		authtypeStatus.setAuthType("Demo");
@@ -627,7 +627,7 @@ public class IdRequestValidatorTest {
 	}
 
 	@Test
-	public void validateAuthTypes_validAuthTypes() {
+	public void validateAuthTypes_withNonNullAuthSubType_throwsIdRepoAppException() {
 		List<AuthtypeStatus> authTypeStatusList = new ArrayList<>();
 		AuthtypeStatus authtypeStatus = new AuthtypeStatus();
 		authtypeStatus.setAuthSubType("AB");
