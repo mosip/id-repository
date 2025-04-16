@@ -439,13 +439,14 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 						})
 						.filter(bir -> {
 							Map<String, String> others = bir.getOthers();
+							mosipLogger.info("others: {}", others == null || "false".equalsIgnoreCase(others.get("EXCEPTION")));
 							return others == null || "false".equalsIgnoreCase(others.get("EXCEPTION"));
 						})
 						.collect(Collectors.toList());
 
 				Optional<Entry<String, String>> extractionFormatForModality = extractionFormats.entrySet().stream()
 						.filter(ent -> ent.getKey().toLowerCase().contains(modality.value().toLowerCase())).findAny();
-
+				mosipLogger.info("Extraction Format {}, birTypesForModality-size: {}, extractionFormatFormatForModality: {}", extractionFormats, birTypesForModality.size(), extractionFormatForModality);
 				if (!extractionFormatForModality.isEmpty() && !birTypesForModality.isEmpty()) {
 					Entry<String, String> format = extractionFormatForModality.get();
 					mosipLogger.info("Using biometricExtractionService for extraction");
