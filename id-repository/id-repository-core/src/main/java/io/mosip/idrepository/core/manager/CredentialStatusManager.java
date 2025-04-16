@@ -250,7 +250,7 @@ public class CredentialStatusManager {
 					.findByIndividualIdHash((String) event.getEvent().getData().get(ID_HASH));
 			mosipLogger.info("List<CredentialRequestStatus> credStatusList  : {}",credStatusList.toString());
 			if (!credStatusList.isEmpty()) {
-				statusRepo.deleteAll(credStatusList);
+				//statusRepo.deleteAll(credStatusList);
 			}
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "idaEventConsumer", ExceptionUtils.getStackTrace(e));
