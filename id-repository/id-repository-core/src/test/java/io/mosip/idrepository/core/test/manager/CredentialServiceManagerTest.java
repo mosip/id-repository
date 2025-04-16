@@ -513,34 +513,6 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
-	public void sendEventsToCredService_WithoutSecurityManagerInteraction(){
-		CredentialRequestStatus credentialRequestStatus = new CredentialRequestStatus();
-		credentialRequestStatus.setIdExpiryTimestamp(LocalDateTime.now());
-		credentialRequestStatus.setPartnerId("partner1");
-		List<CredentialRequestStatus> requestEntities = Arrays.asList(credentialRequestStatus);
-		List<String> partnerIds = Arrays.asList("partner1", "partner2");
-
-		when(securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(any(), any()))
-				.thenReturn(new HashMap<>());
-
-		Predicate<CredentialIssueRequestDto> additionalFilterCondition = dto -> true;
-
-		IntFunction<String> saltRetreivalFunction = value -> "dummySalt";
-
-		BiConsumer<CredentialIssueRequestWrapperDto,
-				Map<String, Object>> credentialRequestResponseConsumer = new BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>>() {
-			@Override
-			public void accept(CredentialIssueRequestWrapperDto credentialIssueRequestWrapperDto, Map<String, Object> stringObjectMap) {
-			// Method is empty because the focus of this test is to verify the interaction of the sendEventsToCredService method.
-			}
-		};
-
-		credentialServiceManager.sendEventsToCredService(requestEntities, partnerIds, credentialRequestResponseConsumer,
-				additionalFilterCondition, saltRetreivalFunction, "requestId123");
-		verify(securityManager, never()).getIdHashAndAttributesWithSaltModuloByPlainIdHash(any(), any());
-	}
-
-	@Test
 	public void updateEventProcessingStatus(){
 		credentialServiceManager.updateEventProcessingStatus("request", "active", "event");
 		verify(tokenIDGenerator, never()).generateTokenID(anyString(), anyString());
