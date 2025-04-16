@@ -151,7 +151,6 @@ public class CredentialStatusManager {
 			CredentialIssueResponse credResponse = mapper.convertValue(response.get("response"), CredentialIssueResponse.class);
 			Map<String, Object> additionalData = request.getRequest().getAdditionalData();
 			mosipLogger.info("credentialRequestResponseConsumer>>>> :{} ,{}",credResponse,additionalData);
-
 			Optional<CredentialRequestStatus> credStatusOptional = statusRepo
 					.findByIndividualIdHashAndPartnerId((String) additionalData.get(ID_HASH), request.getRequest().getIssuer());
 			mosipLogger.info("credStatusOptional>>>> :{} ,{}",credStatusOptional.isPresent(),credStatusOptional.toString());
@@ -199,6 +198,7 @@ public class CredentialStatusManager {
 		try {
 			List<CredentialRequestStatus> credStatusList = statusRepo
 					.findByIndividualIdHash((String) event.getEvent().getData().get(ID_HASH));
+			mosipLogger.info("List<CredentialRequestStatus> credStatusList  : {}",credStatusList.toString());
 			if (!credStatusList.isEmpty()) {
 				statusRepo.deleteAll(credStatusList);
 			}
