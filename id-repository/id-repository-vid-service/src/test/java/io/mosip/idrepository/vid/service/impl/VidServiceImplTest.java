@@ -1283,7 +1283,7 @@ public class VidServiceImplTest {
 
 		Vid vid = new Vid();
 		vid.setVid("12345");
-		vid.setExpiryDTimes(LocalDateTime.now());
+		vid.setExpiryDTimes(LocalDateTime.now().plusDays(1));
 		vid.setVidTypeCode("vid123");
 		vid.setUin("2015642902372691");
 		vid.setUinHash("461_null");
@@ -1325,13 +1325,10 @@ public class VidServiceImplTest {
 
 		when(vidRepo.save(Mockito.any(Vid.class))).thenReturn(vid1);
 
-		when(vidRepo.findByVid("18b67aa3-a25a-5cec-94c2-90644bf5b05b")).thenReturn(vid1);
-		try {
-			service.updateVid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", request);
-		} catch (IdRepoAppException e) {
-			assertEquals(IdRepoErrorConstants.INVALID_VID.getErrorCode(), e.getErrorCode());
-			assertEquals(IdRepoErrorConstants.INVALID_VID.getErrorMessage(), e.getErrorText());
-		}
+		when(vidRepo.findByVid(anyString())).thenReturn(vid1);
+		ResponseWrapper<VidResponseDTO> result = service.updateVid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", request);
+		assertEquals("v1", result.getVersion());
+		assertEquals("mosip.vid.update", result.getId());
 
 	}
 	
