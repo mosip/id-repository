@@ -446,7 +446,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 
 				Optional<Entry<String, String>> extractionFormatForModality = extractionFormats.entrySet().stream()
 						.filter(ent -> ent.getKey().toLowerCase().contains(modality.value().toLowerCase())).findAny();
-				mosipLogger.info("Extraction Format {}, birTypesForModality-size: {}, extractionFormatFormatForModality: {}", extractionFormats, birTypesForModality.size(), extractionFormatForModality);
+				mosipLogger.info("Extraction Format {}, birTypesForModality-size: {}, extractionFormatFormatForModality: {}", extractionFormats, birTypesForModality.size(), extractionFormatForModality.isPresent());
 				if (!extractionFormatForModality.isEmpty() && !birTypesForModality.isEmpty()) {
 					Entry<String, String> format = extractionFormatForModality.get();
 					mosipLogger.info("Using biometricExtractionService for extraction");
