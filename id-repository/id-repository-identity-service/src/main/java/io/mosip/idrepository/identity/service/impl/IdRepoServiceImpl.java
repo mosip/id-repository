@@ -105,7 +105,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UPDATE_CO
  */
 @Component
 @Primary
-@Transactional(rollbackFor = { IdRepoAppException.class, IdRepoAppUncheckedException.class })
+@Transactional
 public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	private static final String VERIFIED_ATTRIBUTES = "verifiedAttributes";
