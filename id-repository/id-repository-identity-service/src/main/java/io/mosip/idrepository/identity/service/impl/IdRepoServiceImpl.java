@@ -924,6 +924,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			}
 			mosipLogger.info("credRequestRepo.save(credStatus): {}",credStatus);
 			credRequestRepo.saveAndFlush(credStatus);
+			mosipLogger.info("credRequestRepo.saveAndFlush: {}",credRequestRepo.findByIndividualIdHash(credStatus.getIndividualIdHash()).toString());
 		}
 	}
 

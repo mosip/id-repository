@@ -14,12 +14,15 @@ import org.springframework.stereotype.Repository;
 
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 
+import javax.transaction.Transactional;
+
 /**
  * @author Manoj SP
  *
  */
 @Repository
 @ConditionalOnBean(name = { "idRepoDataSource" })
+@Transactional
 public interface CredentialRequestStatusRepo extends JpaRepository<CredentialRequestStatus, String> {
 
 	List<CredentialRequestStatus> findByIndividualIdAndIsDeleted(String individualId, boolean isDeleted);
