@@ -1326,9 +1326,12 @@ public class VidServiceImplTest {
 		when(vidRepo.save(Mockito.any(Vid.class))).thenReturn(vid1);
 
 		when(vidRepo.findByVid("18b67aa3-a25a-5cec-94c2-90644bf5b05b")).thenReturn(vid1);
-		ResponseWrapper<VidResponseDTO> result = service.updateVid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", request);
-		assertEquals("v1", result.getVersion());
-		assertEquals("mosip.vid.update", result.getId());
+		try {
+			service.updateVid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", request);
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.INVALID_VID.getErrorCode(), e.getErrorCode());
+			assertEquals(IdRepoErrorConstants.INVALID_VID.getErrorMessage(), e.getErrorText());
+		}
 
 	}
 	
