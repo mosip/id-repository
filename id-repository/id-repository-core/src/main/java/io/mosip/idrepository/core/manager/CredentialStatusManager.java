@@ -126,12 +126,62 @@ public class CredentialStatusManager {
 				mosipLogger.info(">>>>>>>idvId UIN>>>>>> :{} ,{} , {}",idvId,credentialRequestStatus,credentialRequestStatus.getUpdatedBy());
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), activeStatus,
 						Objects.nonNull(credentialRequestStatus.getUpdatedBy()), null,
-						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer,
+						uinHashSaltRepo::retrieveSaltById,
+						(request, response) -> credentialRequestResponseConsumer(request, response, credentialRequestStatus),
 						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()),credentialRequestStatus.getRequestId());
 				deleteDummyPartner(credentialRequestStatus);
 			}
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleNewOrUpdatedRequests", ExceptionUtils.getStackTrace(e));
+		}
+	}
+
+	@WithRetry
+	public void credentialRequestResponseConsumer(CredentialIssueRequestWrapperDto request, Map<String, Object> response,CredentialRequestStatus credentialRequestStatus) {
+		try {
+			CredentialIssueResponse credResponse = mapper.convertValue(response.get("response"), CredentialIssueResponse.class);
+			Map<String, Object> additionalData = request.getRequest().getAdditionalData();
+			mosipLogger.info("credentialRequestResponseConsumer>>>> :{} ,{}",credResponse,additionalData);
+			Optional<CredentialRequestStatus> credStatusOptional = statusRepo
+					.findByIndividualIdHashAndPartnerId(credentialRequestStatus.getIndividualIdHash(), credentialRequestStatus.getPartnerId());
+			mosipLogger.info("credStatusOptional>>>> :{} ,{}",credStatusOptional.isPresent(),credStatusOptional.toString());
+			if (credStatusOptional.isPresent()) {
+				CredentialRequestStatus credStatus = credStatusOptional.get();
+				if (Objects.nonNull(credResponse))
+					credStatus.setRequestId(credResponse.getRequestId());
+				credStatus.setTokenId((String) additionalData.get("TOKEN"));
+				credStatus.setStatus(Objects.isNull(credResponse) ? CredentialRequestStatusLifecycle.FAILED.toString()
+						: CredentialRequestStatusLifecycle.REQUESTED.toString());
+				credStatus.setIdTransactionLimit(Objects.nonNull(additionalData.get(TRANSACTION_LIMIT))
+						? (Integer) additionalData.get(TRANSACTION_LIMIT)
+						: null);
+				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
+				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
+				statusRepo.saveAndFlush(credStatus);
+			} else {
+				CredentialRequestStatus credStatus = new CredentialRequestStatus();
+				// Encryption is done using identity service encryption salts for all id types
+				credStatus.setIndividualId(encryptId(request.getRequest().getId()));
+				credStatus.setIndividualIdHash((String) additionalData.get(ID_HASH));
+				mosipLogger.info("credStatus.setIndividualIdHash((String) : {}",credStatus.getIndividualIdHash());
+				credStatus.setPartnerId(request.getRequest().getIssuer());
+				if (Objects.nonNull(credResponse))
+					credStatus.setRequestId(credResponse.getRequestId());
+				credStatus.setTokenId((String) additionalData.get("TOKEN"));
+				credStatus.setStatus(Objects.isNull(credResponse) ? CredentialRequestStatusLifecycle.FAILED.toString()
+						: CredentialRequestStatusLifecycle.REQUESTED.toString());
+				credStatus.setIdTransactionLimit(Objects.nonNull(additionalData.get(TRANSACTION_LIMIT))
+						? (Integer) additionalData.get(TRANSACTION_LIMIT)
+						: null);
+				credStatus.setIdExpiryTimestamp(Objects.nonNull(additionalData.get("expiry_timestamp"))
+						? DateUtils.parseToLocalDateTime((String) additionalData.get("expiry_timestamp"))
+						: null);
+				credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
+				credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
+				statusRepo.saveAndFlush(credStatus);
+			}
+		} catch (Exception e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "credentialRequestResponseConsumer", ExceptionUtils.getStackTrace(e));
 		}
 	}
 
@@ -166,7 +216,7 @@ public class CredentialStatusManager {
 						: null);
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
-				statusRepo.save(credStatus);
+				statusRepo.saveAndFlush(credStatus);
 			} else {
 				CredentialRequestStatus credStatus = new CredentialRequestStatus();
 				// Encryption is done using identity service encryption salts for all id types
@@ -187,7 +237,7 @@ public class CredentialStatusManager {
 						: null);
 				credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
-				statusRepo.save(credStatus);
+				statusRepo.saveAndFlush(credStatus);
 			}
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "credentialRequestResponseConsumer", ExceptionUtils.getStackTrace(e));
