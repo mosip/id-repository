@@ -153,6 +153,7 @@
 	
 	<test name="ExtractBiometrics">
 		<parameter name="ymlFile"	value="idRepository/ExtractBiometrics/ExtractBiometrics.yml" />
+		<parameter name="pathParams" value="registrationId" />
 	<classes>
 		<class name="io.mosip.testrig.apirig.idrepo.testscripts.PutWithPathParam" />
 	</classes>
