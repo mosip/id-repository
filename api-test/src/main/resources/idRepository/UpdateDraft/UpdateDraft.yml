@@ -2,6 +2,7 @@ UpdateDraft:
   IdRepository_UpdateDraft_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/update/{registrationId}
       description: Update draft packet for valid registrationId
+      uniqueIdentifier: TC_IDRepo_UpdateDraft_01
       role: idrepo
       restMethod: patch
       inputTemplate: idRepository/UpdateDraft/updateDraft_$LANGNUMBER$
