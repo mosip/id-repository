@@ -116,6 +116,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	/** The Constant ROOT. */
 	private static final String ROOT = "$";
 
+	public static final String ID_HASH = "id_hash";
+
 	/** The Constant OPEN_SQUARE_BRACE. */
 	private static final String OPEN_SQUARE_BRACE = "[";
 
@@ -216,6 +218,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	@Value("${mosip.idrepo.credential.request.enable-convention-based-id:false}")
 	private boolean enableConventionBasedId;
 
+	@Value("#{${mosip.idrepo.update-identity.fields-to-replace}}")
+	private List<String> fieldsToReplaceOnUpdate;
 
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
@@ -282,11 +286,15 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(modResult);
 		return modResult + SPLITTER + uin + SPLITTER + encryptSalt;
 	}
-
 	protected String getUinHash(String uin) {
-		int modResult = securityManager.getSaltKeyForId(uin);
-		String hashSalt = uinHashSaltRepo.retrieveSaltById(modResult);
-		return modResult + SPLITTER + securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes());
+		int saltId = securityManager.getSaltKeyForId(uin);
+		Map<String, String> hashWithAttributes = securityManager.getIdHashAndAttributes(
+				uin,
+				id -> uinHashSaltRepo.retrieveSaltById(id),
+				idStr -> securityManager.getSaltKeyForId(idStr)
+		);
+		String hash = hashWithAttributes.get(ID_HASH);
+		return saltId + SPLITTER + hash;
 	}
 
 	/**
@@ -444,6 +452,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				DocumentContext dbData = JsonPath.using(configuration).parse(new String(uinObject.getUinData()));
 				anonymousProfileHelper.setOldUinData(dbData.jsonString().getBytes());
 				updateVerifiedAttributes(requestDTO, inputData, dbData);
+				replaceConfiguredFieldsOnUpdate(inputData, dbData);
 				JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(),
 						dbData.jsonString(), JSONCompareMode.LENIENT);
 
@@ -502,6 +511,19 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		HashSet<String> verifiedAttributesSet = new HashSet<>(verifiedAttributeList);
 		inputData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
 		dbData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private void replaceConfiguredFieldsOnUpdate(DocumentContext inputData, DocumentContext dbData) {
+		for(String fieldId : fieldsToReplaceOnUpdate) {
+			List readValue = (List) inputData.read(DOT + fieldId);
+			if (!readValue.isEmpty()) {
+				Object value = readValue.get(0);
+				if (Objects.nonNull(value)) {
+					dbData.put("$", fieldId, value);
+				}
+			}
+		}
 	}
 
 	/**

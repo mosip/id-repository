@@ -249,6 +249,8 @@ public class IdRepoServiceTest {
 		ReflectionTestUtils.setField(proxyService, "service", service);
 		ReflectionTestUtils.setField(proxyService, "allowedBioAttributes",
 				Collections.singletonList("individualBiometrics"));
+		ReflectionTestUtils.setField(service, "fieldsToReplaceOnUpdate",
+				Lists.newArrayList("selectedHandles"));
 		ReflectionTestUtils.setField(service, "bioAttributes",
 				Lists.newArrayList("individualBiometrics", "parentOrGuardianBiometrics"));
 		RequestDTO req = new RequestDTO();
@@ -1512,7 +1514,7 @@ public class IdRepoServiceTest {
 		verify(credRequestRepo).save(argCapture.capture());
 		CredentialRequestStatus credStatus = argCapture.getValue();
 		assertEquals(CredentialRequestStatusLifecycle.NEW.toString(), credStatus.getStatus());
-		assertEquals("", credStatus.getUpdatedBy());
+		assertEquals("System", credStatus.getUpdatedBy());
 		assertNotNull(credStatus.getUpdDTimes());
 	}
 
@@ -1567,7 +1569,7 @@ public class IdRepoServiceTest {
 		verify(credRequestRepo).save(argCapture.capture());
 		CredentialRequestStatus credStatus = argCapture.getValue();
 		assertEquals(CredentialRequestStatusLifecycle.DELETED.toString(), credStatus.getStatus());
-		assertEquals("", credStatus.getUpdatedBy());
+		assertEquals("System", credStatus.getUpdatedBy());
 		assertNotNull(credStatus.getUpdDTimes());
 	}
 
