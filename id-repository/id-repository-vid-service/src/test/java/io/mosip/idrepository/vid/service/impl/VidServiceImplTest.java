@@ -1293,6 +1293,7 @@ public class VidServiceImplTest {
 				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "ACTIVATED", "IdRepo",
 				currentTime, "IdRepo", currentTime, false, currentTime);
 
+
 		Mockito.when(vidRepo.findByVid(Mockito.anyString())).thenReturn(vid);
 		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("3920450236".getBytes());
 		VidPolicy policy = new VidPolicy();
