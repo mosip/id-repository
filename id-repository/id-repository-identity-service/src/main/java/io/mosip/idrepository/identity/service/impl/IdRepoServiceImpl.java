@@ -926,6 +926,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			if(enableConventionBasedId && (requestId != null)) {
 				credStatus.setRequestId(requestId);
 			}
+			mosipLogger.info(" credStatus   response: {}",credStatus);
 			credRequestRepo.save(credStatus);
 		}
 	}

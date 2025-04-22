@@ -97,6 +97,8 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	/** The Constant VID. */
 	private static final String VID = "vid";
 
+	public static final String ID_HASH = "id_hash";
+
 	/** The Constant REACTIVATE. */
 	private static final String REACTIVATE = "reactivate";
 
@@ -231,10 +233,8 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	private Vid generateVid(String uin, String vidType, String vidStatus) throws IdRepoAppException {
 		int saltId = securityManager.getSaltKeyForId(uin);
 		String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(saltId);
-		String hashSalt = uinHashSaltRepo.retrieveSaltById(saltId);
 		String uinToEncrypt = saltId + SPLITTER + uin + SPLITTER + encryptSalt;
-		String uinHash = String.valueOf(saltId) + SPLITTER
-				+ securityManager.hashwithSalt(uin.getBytes(), CryptoUtil.decodePlainBase64(hashSalt));
+		String uinHash = getUinHash(uin);
 		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime();
 		List<Vid> vidDetails = vidRepo.findByUinHashAndStatusCodeAndVidTypeCodeAndExpiryDTimesAfter(uinHash, vidStatus,
 				vidType, currentTime);
@@ -277,6 +277,16 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			throw new IdRepoAppException(VID_POLICY_FAILED);
 		}
 	}
+	protected String getUinHash(String uin) {
+		//int saltId = securityManager.getSaltKeyForId(uin);
+		Map<String, String> hashWithAttributes = securityManager.getIdHashAndAttributes(
+				uin,
+				id -> uinHashSaltRepo.retrieveSaltById(id),
+				idStr -> securityManager.getSaltKeyForId(idStr)
+		);
+		return hashWithAttributes.get(ID_HASH);
+	}
+
 
 	/**
 	 * Generate vid.
