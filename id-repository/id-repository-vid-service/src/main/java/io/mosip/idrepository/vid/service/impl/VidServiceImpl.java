@@ -662,8 +662,8 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	 *             the id repo app exception
 	 */
 	private void checkExpiry(LocalDateTime expiryDTimes) throws IdRepoAppException {
-		System.out.println(expiryDTimes);
-		System.out.println(DateUtils.getUTCCurrentDateTime());
+		System.out.println("expiryDTimes: " + expiryDTimes);
+		System.out.println("currentTime: " + DateUtils.getUTCCurrentDateTime());
 		if (!DateUtils.after(expiryDTimes, DateUtils.getUTCCurrentDateTime())) {
 			System.out.println("inside if block");
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, "checkExpiry",

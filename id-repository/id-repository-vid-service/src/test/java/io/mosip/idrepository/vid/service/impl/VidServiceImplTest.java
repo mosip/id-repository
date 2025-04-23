@@ -1277,6 +1277,9 @@ public class VidServiceImplTest {
 	@Test
 	public void updateVid_shouldUpdateVid_WhenExpiryCheckPasses() throws IdRepoAppException, JsonProcessingException {
 
+		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
+				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
+				.toLocalDateTime().plusDays(1);
 		VidRequestDTO request = new VidRequestDTO();
 		request.setUin("2953190571");
 		request.setVidStatus("Activated");
@@ -1288,11 +1291,9 @@ public class VidServiceImplTest {
 		vid.setUin("2015642902372691");
 		vid.setUinHash("461_null");
 
-		LocalDateTime currentTime = LocalDateTime.now();
 		Vid vid1 = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_null",
 				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "ACTIVATED", "IdRepo",
 				currentTime, "IdRepo", currentTime, false, currentTime);
-
 
 		Mockito.when(vidRepo.findByVid(Mockito.anyString())).thenReturn(vid);
 		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("3920450236".getBytes());
