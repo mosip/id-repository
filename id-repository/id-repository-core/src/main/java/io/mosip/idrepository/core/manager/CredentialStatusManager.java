@@ -137,7 +137,7 @@ public class CredentialStatusManager {
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
 				String idvId = decryptId(credentialRequestStatus.getIndividualId());
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), activeStatus,
-						Objects.nonNull(credentialRequestStatus.getUpdatedBy()), null,
+						Objects.nonNull(credentialRequestStatus.getUpdDTimes()), null,
 						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer,
 						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()),credentialRequestStatus.getRequestId());
 				deleteDummyPartner(credentialRequestStatus);
