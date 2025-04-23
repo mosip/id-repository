@@ -181,6 +181,8 @@ public class CredentialServiceManager {
 			Consumer<EventModel> idaEventModelConsumer, List<String> partnerIds, String requestId) {
 		try {
 			List<VidInfoDTO> vidInfoDtos = null;
+			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "notifyUinCredential ",
+					"isUpdate >> " + isUpdate + " vidSupportDisabled >> " + vidSupportDisabled);
 			if (isUpdate && !vidSupportDisabled) {
 				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_VIDS_BY_UIN, null,
 						VidsInfosDTO.class);
