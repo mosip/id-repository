@@ -540,6 +540,9 @@ public class CredentialServiceManager {
 		credentialIssueRequestDto.setRecepiant(credentialRecepiant);
 		credentialIssueRequestDto.setUser(IdRepoSecurityManager.getUser());
 		credentialIssueRequestDto.setAdditionalData(data);
+
+		mosipLogger.info("createCredReqDto id: {}, idHashAttributes : {}",id, idHashAttributes);
+
 		return credentialIssueRequestDto;
 	}
 	
