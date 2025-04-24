@@ -1048,6 +1048,8 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			}
 			credRequestRepo.save(credStatus);
 		}
+		mosipLogger.info("DEBUG--- Entry created with enableConventionBasedId : {} requestId : {} uinHash : {}", enableConventionBasedId,
+				requestId, uinHash);
 	}
 
 	/**

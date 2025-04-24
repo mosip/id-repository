@@ -181,8 +181,8 @@ public class CredentialServiceManager {
 			Consumer<EventModel> idaEventModelConsumer, List<String> partnerIds, String requestId) {
 		try {
 			List<VidInfoDTO> vidInfoDtos = null;
-			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "notifyUinCredential ",
-					"isUpdate >> " + isUpdate + " vidSupportDisabled >> " + vidSupportDisabled);
+			mosipLogger.info("DEBUG--- notifyUinCredential uin>> {} isUpdate >> {} vidSupportDisabled >> {}", uin, isUpdate, vidSupportDisabled);
+
 			if (isUpdate && !vidSupportDisabled) {
 				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_VIDS_BY_UIN, null,
 						VidsInfosDTO.class);
@@ -370,6 +370,9 @@ public class CredentialServiceManager {
 	public void sendUinEventsToCredService(String uin, LocalDateTime expiryTimestamp, boolean isUpdate,
 			List<VidInfoDTO> vidInfoDtos, List<HandleInfoDTO> handleInfoDtos, List<String> partnerIds, IntFunction<String> saltRetreivalFunction,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,String requestId) {
+
+		mosipLogger.info("DEBUG---  sendUinEventsToCredService vidInfoDtos {}", vidInfoDtos);
+
 		List<CredentialIssueRequestDto> eventRequestsList = new ArrayList<>();
 
 		if(!disableUINBasedCredentialRequest) {
@@ -474,9 +477,10 @@ public class CredentialServiceManager {
 	 */
 	private void sendRequestToCredService(String partnerId, CredentialIssueRequestWrapperDto requestWrapper,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
+		Map<String, Object> response = Map.of();
 		try {
+			mosipLogger.info("DEBUG---  sendRequestToCredService requestWrapper {}", requestWrapper);
 
-			Map<String, Object> response = Map.of();
 			RestServicesConstants restServicesConstants = requestWrapper.getRequest().getRequestId() != null
 					&& !requestWrapper.getRequest().getRequestId().isEmpty()
 					? RestServicesConstants.CREDENTIAL_REQUEST_SERVICE_V2
@@ -491,9 +495,6 @@ public class CredentialServiceManager {
 					SEND_REQUEST_TO_CRED_SERVICE,
 					"Errors in response of Credential Request: " + response.getOrDefault("errors", "[]"));
 
-			if (credentialRequestResponseConsumer != null) {
-				credentialRequestResponseConsumer.accept(requestWrapper, response);
-			}
 
 		} catch (RestServiceException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_REQUEST_TO_CRED_SERVICE,
@@ -501,6 +502,10 @@ public class CredentialServiceManager {
 		} catch (IdRepoDataValidationException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_REQUEST_TO_CRED_SERVICE,
 					ExceptionUtils.getStackTrace(e));
+		} finally {
+			if (credentialRequestResponseConsumer != null) {
+				credentialRequestResponseConsumer.accept(requestWrapper, response);
+			}
 		}
 	}
 
