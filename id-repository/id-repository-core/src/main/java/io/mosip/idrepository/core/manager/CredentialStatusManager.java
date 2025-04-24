@@ -166,6 +166,10 @@ public class CredentialStatusManager {
 			Map<String, Object> additionalData = request.getRequest().getAdditionalData();
 			Optional<CredentialRequestStatus> credStatusOptional = statusRepo
 					.findByIndividualIdHashAndPartnerId((String) additionalData.get(ID_HASH), request.getRequest().getIssuer());
+
+			mosipLogger.info("credentialRequestResponseConsumer issuer: {}, credStatusOptional : {} additionalData : {}",
+					request.getRequest().getIssuer(), credStatusOptional.isPresent(), additionalData);
+
 			if (credStatusOptional.isPresent()) {
 				CredentialRequestStatus credStatus = credStatusOptional.get();
 				if (Objects.nonNull(credResponse))
