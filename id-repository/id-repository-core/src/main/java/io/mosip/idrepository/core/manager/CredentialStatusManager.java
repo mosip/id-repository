@@ -140,7 +140,7 @@ public class CredentialStatusManager {
 						Objects.nonNull(credentialRequestStatus.getUpdDTimes()), null,
 						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer,
 						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()),credentialRequestStatus.getRequestId());
-				//deleteDummyPartner(credentialRequestStatus);
+				deleteDummyPartner(credentialRequestStatus);
 			}
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleNewOrUpdatedRequests", ExceptionUtils.getStackTrace(e));
@@ -153,8 +153,7 @@ public class CredentialStatusManager {
 				credentialRequestStatus.getIndividualIdHash(), dummyPartner.getDummyOLVPartnerId());
 		if (idWithDummyPartnerOptional.isPresent() && !idWithDummyPartnerOptional.get().getStatus()
 				.contentEquals(CredentialRequestStatusLifecycle.FAILED.toString())) {
-			mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "deleteDummyPartner",
-					idWithDummyPartnerOptional.get().getIndividualIdHash());
+			mosipLogger.info("DEBUG---  deleteDummyPartner IndividualIdHash {}", idWithDummyPartnerOptional.get().getIndividualIdHash());
 			statusRepo.delete(idWithDummyPartnerOptional.get());
 		}
 	}
@@ -162,12 +161,13 @@ public class CredentialStatusManager {
 	@WithRetry
 	public void credentialRequestResponseConsumer(CredentialIssueRequestWrapperDto request, Map<String, Object> response) {
 		try {
-			CredentialIssueResponse credResponse = mapper.convertValue(response.get("response"), CredentialIssueResponse.class);
+
+			CredentialIssueResponse credResponse = mapper.convertValue(response.getOrDefault("response", Map.of()), CredentialIssueResponse.class);
 			Map<String, Object> additionalData = request.getRequest().getAdditionalData();
 			Optional<CredentialRequestStatus> credStatusOptional = statusRepo
 					.findByIndividualIdHashAndPartnerId((String) additionalData.get(ID_HASH), request.getRequest().getIssuer());
 
-			mosipLogger.info("credentialRequestResponseConsumer issuer: {}, credStatusOptional : {} additionalData : {}",
+			mosipLogger.info("DEBUG--- credentialRequestResponseConsumer issuer: {}, credStatusOptional : {} additionalData : {}",
 					request.getRequest().getIssuer(), credStatusOptional.isPresent(), additionalData);
 
 			if (credStatusOptional.isPresent()) {
