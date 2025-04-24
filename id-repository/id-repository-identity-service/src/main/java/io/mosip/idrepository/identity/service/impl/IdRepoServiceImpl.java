@@ -1017,7 +1017,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		}
 	}
 
-	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp, String requestId) {
+	private void issueCredential(String encryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp, String requestId) {
 		List<CredentialRequestStatus> credStatusList = credRequestRepo.findByIndividualIdHash(uinHash);
 		if (!credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {
@@ -1035,7 +1035,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			});
 		} else if (credStatusList.isEmpty()) {
 			CredentialRequestStatus credStatus = new CredentialRequestStatus();
-			credStatus.setIndividualId(enryptedUin);
+			credStatus.setIndividualId(encryptedUin);
 			credStatus.setIndividualIdHash(uinHash);
 			credStatus.setPartnerId(dummyPartner.getDummyOLVPartnerId());
 			credStatus.setStatus(uinStatus.contentEquals(activeStatus) ? CredentialRequestStatusLifecycle.NEW.toString()
