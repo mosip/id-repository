@@ -194,8 +194,6 @@ public class CredentialServiceManager {
 			String uinHash = getUinHash(uin);
 			List<Handle> handles = getHandles(uinHash);
 
-
-
 			if (partnerIds.isEmpty() || (partnerIds.size() == 1 && dummyCheck.isDummyOLVPartner(partnerIds.get(0)))) {
 				partnerIds = partnerServiceManager.getOLVPartnerIds();
 			}
@@ -379,7 +377,7 @@ public class CredentialServiceManager {
 			eventRequestsList.addAll(partnerIds.stream().map(partnerId -> {
 				String token = tokenIDGenerator.generateTokenID(uin, partnerId);
 				return createCredReqDto(uin, partnerId, expiryTimestamp, null, token,
-						securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(uin, saltRetreivalFunction), requestId);
+						securityManager.getIdHashAndAttributes(uin, saltRetreivalFunction), requestId);
 			}).collect(Collectors.toList()));
 		}
 
@@ -551,7 +549,7 @@ public class CredentialServiceManager {
 		return credentialIssueRequestDto;
 	}
 	
-	public void sendEventsToCredService(List<? extends CredentialRequestStatus> requestEntities,
+	/*public void sendEventsToCredService(List<? extends CredentialRequestStatus> requestEntities,
 			List<String> partnerIds,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,
 			Predicate<? super CredentialIssueRequestDto> additionalFilterCondition,
@@ -577,7 +575,7 @@ public class CredentialServiceManager {
 			
 		}
 		
-	}
+	}*/
 
 	private boolean isExpired(CredentialRequestStatus entity) {
 		return entity.getIdExpiryTimestamp() != null && !DateUtils.getUTCCurrentDateTime().isAfter(entity.getIdExpiryTimestamp());
