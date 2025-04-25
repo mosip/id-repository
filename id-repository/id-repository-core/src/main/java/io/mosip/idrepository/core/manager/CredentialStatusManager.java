@@ -6,12 +6,14 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.CREDENTIAL_STA
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
 import static io.mosip.idrepository.core.constant.IdType.ID;
+import static io.mosip.idrepository.core.security.IdRepoSecurityManager.ID_TYPE;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import io.mosip.idrepository.core.constant.IdType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -163,8 +165,16 @@ public class CredentialStatusManager {
 
 			CredentialIssueResponse credResponse = mapper.convertValue(response.getOrDefault("response", Map.of()), CredentialIssueResponse.class);
 			Map<String, Object> additionalData = request.getRequest().getAdditionalData();
+
+			String idHash = (String) additionalData.get(ID_HASH);
+			if(IdType.UIN.getIdType().equals((String) additionalData.get(ID_TYPE))) {
+				//On create/update of UIN, UIN hash is generated using getSaltByKeyId
+				//but credential event is sent to IDA by generating hash using getSaltKeyForHashOfId
+				idHash = securityManager.getIdHash(request.getRequest().getId(), uinHashSaltRepo::retrieveSaltById);
+			}
+
 			Optional<CredentialRequestStatus> credStatusOptional = statusRepo
-					.findByIndividualIdHashAndPartnerId((String) additionalData.get(ID_HASH), request.getRequest().getIssuer());
+					.findByIndividualIdHashAndPartnerId(idHash, request.getRequest().getIssuer());
 
 			mosipLogger.info("DEBUG--- credentialRequestResponseConsumer issuer: {}, credStatusOptional : {} additionalData : {}",
 					request.getRequest().getIssuer(), credStatusOptional.isPresent(), additionalData);
@@ -174,7 +184,7 @@ public class CredentialStatusManager {
 				credStatus = new CredentialRequestStatus();
 				// Encryption is done using identity service encryption salts for all id types
 				credStatus.setIndividualId(encryptId(request.getRequest().getId()));
-				credStatus.setIndividualIdHash((String) additionalData.get(ID_HASH));
+				credStatus.setIndividualIdHash(idHash);
 				credStatus.setPartnerId(request.getRequest().getIssuer());
 				credStatus.setIdExpiryTimestamp(Objects.nonNull(additionalData.get("expiry_timestamp"))
 						? DateUtils.parseToLocalDateTime((String) additionalData.get("expiry_timestamp"))

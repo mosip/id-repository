@@ -75,6 +75,8 @@ public class IdRepoSecurityManager {
 
 	public static final String ID_HASH = "id_hash";
 
+	public static final String ID_TYPE = "id_type";
+
 	/** The mosip logger. */
 	private Logger mosipLogger = IdRepoLogger.getLogger(IdRepoSecurityManager.class);
 
