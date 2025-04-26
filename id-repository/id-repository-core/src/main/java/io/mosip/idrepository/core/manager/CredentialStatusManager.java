@@ -8,10 +8,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
 import static io.mosip.idrepository.core.constant.IdType.ID;
 import static io.mosip.idrepository.core.security.IdRepoSecurityManager.ID_TYPE;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import io.mosip.idrepository.core.constant.IdType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,12 +131,13 @@ public class CredentialStatusManager {
 		try {
 			String activeStatus = EnvUtil.getUinActiveStatus();
 			List<CredentialRequestStatus> newIssueRequestList = statusRepo
-					.findByStatus(CredentialRequestStatusLifecycle.NEW.toString(), pageSize);
+					.findByStatus(Arrays.asList(CredentialRequestStatusLifecycle.NEW.toString(),
+							CredentialRequestStatusLifecycle.UPDATE.toString()), pageSize);
 			for (CredentialRequestStatus credentialRequestStatus : newIssueRequestList) {
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
 				String idvId = decryptId(credentialRequestStatus.getIndividualId());
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), activeStatus,
-						Objects.nonNull(credentialRequestStatus.getUpdDTimes()), null,
+						Objects.equals(credentialRequestStatus.getStatus(), CredentialRequestStatusLifecycle.UPDATE.toString()), null,
 						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer,
 						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()),credentialRequestStatus.getRequestId());
 				deleteDummyPartner(credentialRequestStatus);
@@ -168,11 +166,6 @@ public class CredentialStatusManager {
 			Map<String, Object> additionalData = request.getRequest().getAdditionalData();
 
 			String idHash = (String) additionalData.get(ID_HASH);
-			if(IdType.UIN.getIdType().equals((String) additionalData.get(ID_TYPE))) {
-				//On create/update of UIN, UIN hash is generated using getSaltByKeyId
-				//but credential event is sent to IDA by generating hash using getSaltKeyForHashOfId
-				idHash = securityManager.getIdHash(request.getRequest().getId(), uinHashSaltRepo::retrieveSaltById);
-			}
 
 			Optional<CredentialRequestStatus> credStatusOptional = statusRepo
 					.findByIndividualIdHashAndPartnerId(idHash, request.getRequest().getIssuer());
