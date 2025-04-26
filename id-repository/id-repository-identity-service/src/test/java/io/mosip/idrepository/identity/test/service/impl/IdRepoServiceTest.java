@@ -204,6 +204,12 @@ public class IdRepoServiceTest {
 	@Mock
 	private IdentityUpdateTrackerRepo identityUpdateTracker;
 
+	@Mock
+	private IdRepoServiceHelper idRepoServiceHelper;
+
+	@Mock
+	private HandleRepo handleRepo;
+
 	/** The id. */
 	private Map<String, String> id;
 
