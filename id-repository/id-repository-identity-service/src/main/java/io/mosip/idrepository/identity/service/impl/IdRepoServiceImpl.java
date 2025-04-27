@@ -265,7 +265,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		mosipLogger.info("After addIdentityHandle: {}", System.currentTimeMillis()-epoch);
 		epoch = System.currentTimeMillis();
 
-		issueCredential(uinEntity.getUin(), uinHashWithSalt, activeStatus, null, uinEntity.getRegId());
+		issueCredential(uin, uinEntity.getUin(), activeStatus, null, uinEntity.getRegId(), false);
 
 		mosipLogger.info("After issueCredential: {}", System.currentTimeMillis()-epoch);
 		epoch = System.currentTimeMillis();
@@ -481,8 +481,9 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 
 			addIdentityHandle(uinObject, inputSelectedHandlesMap);
 
-			issueCredential(uinObject.getUin(), uinHashWithSalt, uinObject.getStatusCode(),
-					DateUtils.getUTCCurrentDateTime(),uinObject.getRegId());
+			issueCredential(uin, uinObject.getUin(), uinObject.getStatusCode(),
+					DateUtils.getUTCCurrentDateTime(), uinObject.getRegId(), true);
+
 			anonymousProfileHelper.buildAndsaveProfile(false);
 			return uinObject;
 		} catch (JSONException | InvalidJsonException | IOException e) {
@@ -1017,11 +1018,16 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		}
 	}
 
-	private void issueCredential(String encryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp, String requestId) {
+	private void issueCredential(String uin, String encryptedUin, String uinStatus, LocalDateTime expiryTimestamp, String requestId, boolean isUpdate) {
+
+		String uinHash = securityManager.getIdHashWithSaltModuloByPlainIdHash(uin, uinHashSaltRepo::retrieveSaltById);
+
 		List<CredentialRequestStatus> credStatusList = credRequestRepo.findByIndividualIdHash(uinHash);
+		String operationStatus = isUpdate ? CredentialRequestStatusLifecycle.UPDATE.toString() : CredentialRequestStatusLifecycle.NEW.toString();
+
 		if (!credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {
-				credStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
+				credStatus.setStatus(operationStatus);
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
 				credRequestRepo.save(credStatus);
@@ -1038,8 +1044,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			credStatus.setIndividualId(encryptedUin);
 			credStatus.setIndividualIdHash(uinHash);
 			credStatus.setPartnerId(dummyPartner.getDummyOLVPartnerId());
-			credStatus.setStatus(uinStatus.contentEquals(activeStatus) ? CredentialRequestStatusLifecycle.NEW.toString()
-					: CredentialRequestStatusLifecycle.DELETED.toString());
+			credStatus.setStatus(uinStatus.contentEquals(activeStatus) ? operationStatus : CredentialRequestStatusLifecycle.DELETED.toString());
 			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
 			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
 			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
@@ -1048,8 +1053,8 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			}
 			credRequestRepo.save(credStatus);
 		}
-		mosipLogger.info("DEBUG--- Entry created with enableConventionBasedId : {} requestId : {} uinHash : {}", enableConventionBasedId,
-				requestId, uinHash);
+		mosipLogger.info("DEBUG--- Entry created with operationStatus : {} enableConventionBasedId : {} requestId : {} uinHash : {}",
+				operationStatus, enableConventionBasedId, requestId, uinHash);
 	}
 
 	/**
