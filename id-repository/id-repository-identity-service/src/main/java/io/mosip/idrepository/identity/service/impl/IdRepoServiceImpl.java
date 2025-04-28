@@ -176,7 +176,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	
 	@Value("${mosip.idrepo.identity.uin-status.registered}")
 	private String activeStatus;
-	
+
+	@Value("#{${mosip.idrepo.update-identity.fields-to-replace}}")
+	private List<String> fieldsToReplaceOnUpdate;
+
 	@Autowired
 	private IdentityUpdateTrackerRepo identityUpdateTracker;
 
@@ -421,6 +424,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				DocumentContext dbData = JsonPath.using(configuration).parse(new String(uinObject.getUinData()));
 				anonymousProfileHelper.setOldUinData(dbData.jsonString().getBytes());
 				updateVerifiedAttributes(requestDTO, inputData, dbData);
+				replaceConfiguredFieldsOnUpdate(inputData, dbData);
 				JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(),
 						dbData.jsonString(), JSONCompareMode.LENIENT);
 
@@ -509,6 +513,18 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		dbData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private void replaceConfiguredFieldsOnUpdate(DocumentContext inputData, DocumentContext dbData) {
+		for(String fieldId : fieldsToReplaceOnUpdate) {
+			List readValue = (List) inputData.read(DOT + fieldId);
+			if (!readValue.isEmpty()) {
+				Object value = readValue.get(0);
+				if (Objects.nonNull(value)) {
+					dbData.put("$", fieldId, value);
+				}
+			}
+		}
+	}
 	/**
 	 * Update identity.
 	 *
