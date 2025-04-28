@@ -289,6 +289,23 @@ public class CredentialStoreServiceImplTest {
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 		assertEquals(credentialServiceResponseDto.getResponse().getStatus(), "ISSUED");
 	}
+
+	@Test
+	public void createCredentialIssuance_WithSharableAttributes_PolicyException() throws ApiNotAccessibleException, PolicyException {
+
+		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
+		credentialServiceRequestDto.setCredentialType("mosip");
+		credentialServiceRequestDto.setId("4238135072");
+		credentialServiceRequestDto.setIssuer("791212");
+		credentialServiceRequestDto.setSharableAttributes(List.of("ABC"));
+		credentialServiceRequestDto.setAdditionalData(null);
+		Mockito.when(policyUtil.getPolicyDetail(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenThrow(PolicyException.class);
+		CredentialServiceResponseDto credentialServiceResponseDto = credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
+		assertEquals("ISSUED", credentialServiceResponseDto.getResponse().getStatus());
+		assertEquals("testdata", credentialServiceResponseDto.getResponse().getSignature());
+	}
+
 	@Test
 	public void testCreateCredentialIssuePolicyFailure() throws PolicyException, ApiNotAccessibleException {
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
@@ -347,6 +364,21 @@ public class CredentialStoreServiceImplTest {
 		Mockito.any())).thenThrow(e);
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.CREDENTIAL_FORMATTER_EXCEPTION.getErrorMessage());
+	}
+
+	@Test
+	public void createCredentialIssuance_HandleRuntimeException() throws  CredentialFormatterException {
+		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
+		credentialServiceRequestDto.setCredentialType("mosip");
+		credentialServiceRequestDto.setId("4238135072");
+		credentialServiceRequestDto.setIssuer("791212");
+		Map<String,Object> additionalData = new HashMap<>();
+		credentialServiceRequestDto.setAdditionalData(additionalData);
+		Mockito.when(credentialDefaultProvider.getFormattedCredentialData(Mockito.any(),
+				Mockito.any())).thenThrow(new RuntimeException("Unknown Exception"));
+		CredentialServiceResponseDto credentialServiceResponseDto = credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
+		assertEquals(CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage(), credentialServiceResponseDto.getErrors().get(0).getMessage());
+		assertEquals(CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorCode(), credentialServiceResponseDto.getErrors().get(0).getErrorCode());
 	}
 	
 	@Test
