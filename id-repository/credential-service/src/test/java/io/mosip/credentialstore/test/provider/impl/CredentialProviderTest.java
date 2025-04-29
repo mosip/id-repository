@@ -23,6 +23,7 @@ import io.mosip.kernel.biometrics.constant.QualityType;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
+import io.mosip.kernel.core.util.DateUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -541,7 +542,7 @@ public class CredentialProviderTest {
 				.thenReturn(vidResponseDTO);
 
 		VidInfoDTO vidInfoDTO = new VidInfoDTO();
-		vidInfoDTO.setExpiryTimestamp(LocalDateTime.now());
+		vidInfoDTO.setExpiryTimestamp(DateUtils.getUTCCurrentDateTime());
 		Mockito.when(vidUtil.getVIDData(Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenReturn(vidInfoDTO);
 
@@ -682,7 +683,7 @@ public class CredentialProviderTest {
 				.thenReturn(vidResponseDTO);
 
 		VidInfoDTO vidInfoDTO = new VidInfoDTO();
-		vidInfoDTO.setExpiryTimestamp(LocalDateTime.now());
+		vidInfoDTO.setExpiryTimestamp(DateUtils.getUTCCurrentDateTime());
 		Mockito.when(vidUtil.getVIDData(Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenReturn(vidInfoDTO);
 
@@ -865,7 +866,7 @@ public class CredentialProviderTest {
 				.thenReturn(vidResponseDTO);
 
 		VidInfoDTO vidInfoDTO = new VidInfoDTO();
-		vidInfoDTO.setExpiryTimestamp(LocalDateTime.now());
+		vidInfoDTO.setExpiryTimestamp(DateUtils.getUTCCurrentDateTime());
 		Mockito.when(vidUtil.getVIDData(Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenReturn(vidInfoDTO);
 
@@ -1053,7 +1054,7 @@ public class CredentialProviderTest {
 				.thenReturn(vidResponseDTO);
 
 		VidInfoDTO vidInfoDTO = new VidInfoDTO();
-		vidInfoDTO.setExpiryTimestamp(LocalDateTime.now());
+		vidInfoDTO.setExpiryTimestamp(DateUtils.getUTCCurrentDateTime());
 		Mockito.when(vidUtil.getVIDData(Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenReturn(vidInfoDTO);
 
