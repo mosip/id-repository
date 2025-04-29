@@ -37,6 +37,8 @@ public class CredentialRequestStatus {
 
 	private String status;
 
+	private String triggerAction;
+
 	private Integer idTransactionLimit;
 
 	private LocalDateTime idExpiryTimestamp;
