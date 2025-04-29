@@ -897,17 +897,19 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		String uinHash = securityManager.getIdHashWithSaltModuloByPlainIdHash(uin, uinHashSaltRepo::retrieveSaltById);
 
 		List<CredentialRequestStatus> credStatusList = credRequestRepo.findByIndividualIdHash(uinHash);
-		String operationStatus = isUpdate ? CredentialRequestStatusLifecycle.UPDATE.toString() : CredentialRequestStatusLifecycle.NEW.toString();
+		String triggerAction = isUpdate ? CredentialTriggerAction.UPDATE.toString() : CredentialTriggerAction.CREATE.toString();
 
 		if (!credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {
-				credStatus.setStatus(operationStatus);
+				credStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
+				credStatus.setTriggerAction(triggerAction);
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
 				credRequestRepo.save(credStatus);
 			});
 		} else if (!credStatusList.isEmpty() && !uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {
+				credStatus.setTriggerAction(triggerAction);
 				credStatus.setStatus(CredentialRequestStatusLifecycle.DELETED.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
@@ -918,7 +920,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			credStatus.setIndividualId(encryptedUin);
 			credStatus.setIndividualIdHash(uinHash);
 			credStatus.setPartnerId(dummyPartner.getDummyOLVPartnerId());
-			credStatus.setStatus(uinStatus.contentEquals(activeStatus) ? operationStatus : CredentialRequestStatusLifecycle.DELETED.toString());
+			credStatus.setStatus(uinStatus.contentEquals(activeStatus) ? CredentialRequestStatusLifecycle.NEW.toString() :
+					CredentialRequestStatusLifecycle.DELETED.toString());
+			credStatus.setTriggerAction(triggerAction);
 			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
 			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
 			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());

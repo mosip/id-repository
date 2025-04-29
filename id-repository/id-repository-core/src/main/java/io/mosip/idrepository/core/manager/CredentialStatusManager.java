@@ -6,11 +6,10 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.CREDENTIAL_STA
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
 import static io.mosip.idrepository.core.constant.IdType.ID;
-import static io.mosip.idrepository.core.security.IdRepoSecurityManager.ID_TYPE;
 
 import java.util.*;
 
-import io.mosip.idrepository.core.constant.IdType;
+import io.mosip.idrepository.core.constant.CredentialTriggerAction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -131,13 +130,12 @@ public class CredentialStatusManager {
 		try {
 			String activeStatus = EnvUtil.getUinActiveStatus();
 			List<CredentialRequestStatus> newIssueRequestList = statusRepo
-					.findByStatus(Arrays.asList(CredentialRequestStatusLifecycle.NEW.toString(),
-							CredentialRequestStatusLifecycle.UPDATE.toString()), pageSize);
+					.findByStatus(CredentialRequestStatusLifecycle.NEW.toString(), pageSize);
 			for (CredentialRequestStatus credentialRequestStatus : newIssueRequestList) {
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
 				String idvId = decryptId(credentialRequestStatus.getIndividualId());
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), activeStatus,
-						Objects.equals(credentialRequestStatus.getStatus(), CredentialRequestStatusLifecycle.UPDATE.toString()), null,
+						Objects.equals(CredentialTriggerAction.UPDATE.toString(), credentialRequestStatus.getTriggerAction()), null,
 						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer,
 						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()),credentialRequestStatus.getRequestId());
 				deleteDummyPartner(credentialRequestStatus);
