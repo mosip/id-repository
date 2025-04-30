@@ -1658,7 +1658,7 @@ public class IdRepoServiceTest {
 		ArgumentCaptor<CredentialRequestStatus> argCapture = ArgumentCaptor.forClass(CredentialRequestStatus.class);
 		verify(credRequestRepo).save(argCapture.capture());
 		CredentialRequestStatus credStatus = argCapture.getValue();
-		assertEquals(CredentialRequestStatusLifecycle.UPDATE.toString(), credStatus.getStatus());
+		assertEquals(CredentialRequestStatusLifecycle.NEW.toString(), credStatus.getStatus());
 		assertEquals("", credStatus.getUpdatedBy());
 		assertNotNull(credStatus.getUpdDTimes());
 	}

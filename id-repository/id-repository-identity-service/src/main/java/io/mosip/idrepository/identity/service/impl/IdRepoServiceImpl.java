@@ -14,6 +14,7 @@ import java.util.stream.IntStream;
 import javax.annotation.Resource;
 
 import com.jayway.jsonpath.*;
+import io.mosip.idrepository.core.constant.CredentialTriggerAction;
 import io.mosip.idrepository.core.entity.Handle;
 import io.mosip.idrepository.core.repository.HandleRepo;
 import org.apache.commons.lang3.RegExUtils;
@@ -1023,17 +1024,19 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		String uinHash = securityManager.getIdHashWithSaltModuloByPlainIdHash(uin, uinHashSaltRepo::retrieveSaltById);
 
 		List<CredentialRequestStatus> credStatusList = credRequestRepo.findByIndividualIdHash(uinHash);
-		String operationStatus = isUpdate ? CredentialRequestStatusLifecycle.UPDATE.toString() : CredentialRequestStatusLifecycle.NEW.toString();
+		String triggerAction = isUpdate ? CredentialTriggerAction.UPDATE.toString() : CredentialTriggerAction.CREATE.toString();
 
 		if (!credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {
-				credStatus.setStatus(operationStatus);
+				credStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
+				credStatus.setTriggerAction(triggerAction);
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
 				credRequestRepo.save(credStatus);
 			});
 		} else if (!credStatusList.isEmpty() && !uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {
+				credStatus.setTriggerAction(triggerAction);
 				credStatus.setStatus(CredentialRequestStatusLifecycle.DELETED.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
@@ -1044,7 +1047,9 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			credStatus.setIndividualId(encryptedUin);
 			credStatus.setIndividualIdHash(uinHash);
 			credStatus.setPartnerId(dummyPartner.getDummyOLVPartnerId());
-			credStatus.setStatus(uinStatus.contentEquals(activeStatus) ? operationStatus : CredentialRequestStatusLifecycle.DELETED.toString());
+			credStatus.setStatus(uinStatus.contentEquals(activeStatus) ? CredentialRequestStatusLifecycle.NEW.toString() :
+					CredentialRequestStatusLifecycle.DELETED.toString());
+			credStatus.setTriggerAction(triggerAction);
 			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
 			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
 			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
@@ -1054,7 +1059,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			credRequestRepo.save(credStatus);
 		}
 		mosipLogger.info("DEBUG--- Entry created with operationStatus : {} enableConventionBasedId : {} requestId : {} uinHash : {}",
-				operationStatus, enableConventionBasedId, requestId, uinHash);
+				triggerAction, enableConventionBasedId, requestId, uinHash);
 	}
 
 	/**
