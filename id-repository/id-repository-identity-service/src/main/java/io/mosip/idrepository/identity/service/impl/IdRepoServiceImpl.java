@@ -12,6 +12,7 @@ import java.util.stream.IntStream;
 
 import jakarta.annotation.Resource;
 
+import io.mosip.idrepository.core.constant.CredentialTriggerAction;
 import io.mosip.idrepository.core.entity.Handle;
 import io.mosip.idrepository.core.repository.HandleRepo;
 import org.apache.commons.lang3.RegExUtils;
@@ -247,7 +248,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 		addIdentityHandle(uinEntity, selectedUniqueHandlesMap);
 
-		issueCredential(uinEntity.getUin(), uinHashWithSalt, activeStatus, null, uinEntity.getRegId());
+
+		issueCredential(uin, uinEntity.getUin(), activeStatus, null, uinEntity.getRegId(), false);
+
 		anonymousProfileHelper.buildAndsaveProfile(false);
 		return uinEntity;
 	}
@@ -445,8 +448,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					uinObject.getRegId(), uinObject.getStatusCode(), IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), false, null));
-			issueCredential(uinObject.getUin(), uinHashWithSalt, uinObject.getStatusCode(),
-					DateUtils.getUTCCurrentDateTime(),uinObject.getRegId());
+
+			issueCredential(uin, uinObject.getUin(), uinObject.getStatusCode(),
+					DateUtils.getUTCCurrentDateTime(), uinObject.getRegId(), true);
+
 			anonymousProfileHelper.buildAndsaveProfile(false);
 			return uinObject;
 		} catch (JSONException | InvalidJsonException | IOException e) {
@@ -881,17 +886,25 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
-	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp, String requestId) {
+
+	private void issueCredential(String uin, String encryptedUin, String uinStatus, LocalDateTime expiryTimestamp, String requestId, boolean isUpdate) {
+
+		String uinHash = securityManager.getIdHashWithSaltModuloByPlainIdHash(uin, uinHashSaltRepo::retrieveSaltById);
+
 		List<CredentialRequestStatus> credStatusList = credRequestRepo.findByIndividualIdHash(uinHash);
+		String triggerAction = isUpdate ? CredentialTriggerAction.UPDATE.toString() : CredentialTriggerAction.CREATE.toString();
+
 		if (!credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {
 				credStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
+				credStatus.setTriggerAction(triggerAction);
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
 				credRequestRepo.save(credStatus);
 			});
 		} else if (!credStatusList.isEmpty() && !uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {
+				credStatus.setTriggerAction(triggerAction);
 				credStatus.setStatus(CredentialRequestStatusLifecycle.DELETED.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
@@ -899,11 +912,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			});
 		} else if (credStatusList.isEmpty()) {
 			CredentialRequestStatus credStatus = new CredentialRequestStatus();
-			credStatus.setIndividualId(enryptedUin);
+			credStatus.setIndividualId(encryptedUin);
 			credStatus.setIndividualIdHash(uinHash);
 			credStatus.setPartnerId(dummyPartner.getDummyOLVPartnerId());
-			credStatus.setStatus(uinStatus.contentEquals(activeStatus) ? CredentialRequestStatusLifecycle.NEW.toString()
-					: CredentialRequestStatusLifecycle.DELETED.toString());
+			credStatus.setStatus(uinStatus.contentEquals(activeStatus) ? CredentialRequestStatusLifecycle.NEW.toString() :
+					CredentialRequestStatusLifecycle.DELETED.toString());
+			credStatus.setTriggerAction(triggerAction);
 			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
 			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
 			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());

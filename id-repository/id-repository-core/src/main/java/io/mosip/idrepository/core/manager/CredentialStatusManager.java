@@ -1,14 +1,14 @@
 package io.mosip.idrepository.core.manager;
 
+import static io.mosip.idrepository.core.constant.AuditModules.ID_REPO_CORE_SERVICE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.CREDENTIAL_STATUS_UPDATE_TOPIC;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
+import static io.mosip.idrepository.core.constant.IdType.ID;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
+import io.mosip.idrepository.core.constant.CredentialTriggerAction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -22,8 +22,10 @@ import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
+import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
+import io.mosip.idrepository.core.repository.HandleRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
@@ -54,6 +56,9 @@ public class CredentialStatusManager {
 	private CredentialRequestStatusRepo statusRepo;
 
 	@Autowired
+	private HandleRepo handleRepo;
+
+	@Autowired
 	private CredentialServiceManager credManager;
 
 	@Autowired
@@ -79,8 +84,11 @@ public class CredentialStatusManager {
 
 	@Value("${mosip.idrepo.credential.request.batch.page.size:50}")
 	private int pageSize;
+
+	@Autowired
+	private AuditHelper auditHelper;
 	
-	//@Async("credentialStatusManagerJobExecutor")
+	@Async("credentialStatusManagerJobExecutor")
 	public void triggerEventNotifications() {
 		handleDeletedRequests();
 		handleExpiredRequests();
@@ -126,7 +134,7 @@ public class CredentialStatusManager {
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
 				String idvId = decryptId(credentialRequestStatus.getIndividualId());
 				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), activeStatus,
-						Objects.nonNull(credentialRequestStatus.getUpdatedBy()), null,
+						Objects.equals(CredentialTriggerAction.UPDATE.toString(), credentialRequestStatus.getTriggerAction()), null,
 						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer,
 						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()),credentialRequestStatus.getRequestId());
 				deleteDummyPartner(credentialRequestStatus);
@@ -149,46 +157,47 @@ public class CredentialStatusManager {
 	@WithRetry
 	public void credentialRequestResponseConsumer(CredentialIssueRequestWrapperDto request, Map<String, Object> response) {
 		try {
-			CredentialIssueResponse credResponse = mapper.convertValue(response.get("response"), CredentialIssueResponse.class);
+
+			CredentialIssueResponse credResponse = mapper.convertValue(response.getOrDefault("response", Map.of()), CredentialIssueResponse.class);
 			Map<String, Object> additionalData = request.getRequest().getAdditionalData();
+
+			String idHash = (String) additionalData.get(ID_HASH);
+
 			Optional<CredentialRequestStatus> credStatusOptional = statusRepo
-					.findByIndividualIdHashAndPartnerId((String) additionalData.get(ID_HASH), request.getRequest().getIssuer());
-			if (credStatusOptional.isPresent()) {
-				CredentialRequestStatus credStatus = credStatusOptional.get();
-				if (Objects.nonNull(credResponse))
-					credStatus.setRequestId(credResponse.getRequestId());
-				credStatus.setTokenId((String) additionalData.get("TOKEN"));
-				credStatus.setStatus(Objects.isNull(credResponse) ? CredentialRequestStatusLifecycle.FAILED.toString()
-						: CredentialRequestStatusLifecycle.REQUESTED.toString());
-				credStatus.setIdTransactionLimit(Objects.nonNull(additionalData.get(TRANSACTION_LIMIT))
-						? (Integer) additionalData.get(TRANSACTION_LIMIT)
-						: null);
-				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
-				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
-				statusRepo.saveAndFlush(credStatus);
-			} else {
-				CredentialRequestStatus credStatus = new CredentialRequestStatus();
+					.findByIndividualIdHashAndPartnerId(idHash, request.getRequest().getIssuer());
+
+			mosipLogger.info("DEBUG--- credentialRequestResponseConsumer issuer: {}, credStatusOptional : {} additionalData : {}",
+					request.getRequest().getIssuer(), credStatusOptional.isPresent(), additionalData);
+
+			CredentialRequestStatus credStatus = credStatusOptional.orElse(null);
+			if (credStatus == null) {
+				credStatus = new CredentialRequestStatus();
 				// Encryption is done using identity service encryption salts for all id types
 				credStatus.setIndividualId(encryptId(request.getRequest().getId()));
-				credStatus.setIndividualIdHash((String) additionalData.get(ID_HASH));
+				credStatus.setIndividualIdHash(idHash);
 				credStatus.setPartnerId(request.getRequest().getIssuer());
-				if (Objects.nonNull(credResponse))
-					credStatus.setRequestId(credResponse.getRequestId());
-				credStatus.setTokenId((String) additionalData.get("TOKEN"));
-				credStatus.setStatus(Objects.isNull(credResponse) ? CredentialRequestStatusLifecycle.FAILED.toString()
-						: CredentialRequestStatusLifecycle.REQUESTED.toString());
-				credStatus.setIdTransactionLimit(Objects.nonNull(additionalData.get(TRANSACTION_LIMIT))
-						? (Integer) additionalData.get(TRANSACTION_LIMIT)
-						: null);
 				credStatus.setIdExpiryTimestamp(Objects.nonNull(additionalData.get("expiry_timestamp"))
 						? DateUtils.parseToLocalDateTime((String) additionalData.get("expiry_timestamp"))
 						: null);
 				credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
-				statusRepo.saveAndFlush(credStatus);
 			}
+
+			if (Objects.nonNull(credResponse))
+				credStatus.setRequestId(credResponse.getRequestId());
+
+			credStatus.setTokenId((String) additionalData.get("TOKEN"));
+			credStatus.setStatus(Objects.isNull(credResponse) ? CredentialRequestStatusLifecycle.FAILED.toString()
+					: CredentialRequestStatusLifecycle.REQUESTED.toString());
+			credStatus.setIdTransactionLimit(Objects.nonNull(additionalData.get(TRANSACTION_LIMIT))
+					? (Integer) additionalData.get(TRANSACTION_LIMIT)
+					: null);
+			credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
+			credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
+			statusRepo.saveAndFlush(credStatus);
+
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "credentialRequestResponseConsumer", ExceptionUtils.getStackTrace(e));
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "credentialRequestResponseConsumer", e);
 		}
 	}
 
@@ -197,6 +206,8 @@ public class CredentialStatusManager {
 			List<CredentialRequestStatus> credStatusList = statusRepo
 					.findByIndividualIdHash((String) event.getEvent().getData().get(ID_HASH));
 			if (!credStatusList.isEmpty()) {
+				mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "idaEventConsumer",
+						credStatusList.get(0).getIndividualIdHash());
 				statusRepo.deleteAll(credStatusList);
 			}
 		} catch (Exception e) {

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 
 import org.springframework.transaction.annotation.Transactional;
+
 /**
  * @author Manoj SP
  *
@@ -40,7 +41,7 @@ public interface CredentialRequestStatusRepo extends JpaRepository<CredentialReq
 	default Optional<CredentialRequestStatus> findByIndividualIdHashAndPartnerId(String individualIdHash, String partnerId) {
 		return this.findByIndividualIdHashAndPartnerIdAndIsDeleted(individualIdHash, partnerId, false);
 	}
-	
+
 	List<CredentialRequestStatus> findByStatus(String status);
 	
 	List<CredentialRequestStatus> findByIdExpiryTimestampBefore(LocalDateTime idExpiryTimestamp);
@@ -55,5 +56,6 @@ public interface CredentialRequestStatusRepo extends JpaRepository<CredentialReq
 	@Transactional
 	@Query(value = "SELECT * FROM credential_request_status crs"
 			+ " WHERE crs.status=:status ORDER BY crs.cr_dtimes asc FOR UPDATE SKIP LOCKED LIMIT :pageSize", nativeQuery = true)
-	List<CredentialRequestStatus> findByStatus(@Param("status") String status, @Param("pageSize") int pageSize);
+	List<CredentialRequestStatus> findByStatus(@Param("status") String status,
+											   @Param("pageSize") int pageSize);
 }
