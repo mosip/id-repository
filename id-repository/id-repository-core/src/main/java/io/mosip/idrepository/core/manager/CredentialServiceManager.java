@@ -49,9 +49,8 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.model.EventModel;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
-import static io.mosip.idrepository.core.security.IdRepoSecurityManager.*;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
+import static io.mosip.idrepository.core.security.IdRepoSecurityManager.ID_TYPE;
 
 /**
  * The Class CredentialServiceManager.
@@ -90,10 +89,6 @@ public class CredentialServiceManager {
 
 	/** The Constant REVOKED. */
 	private static final String REVOKED = "REVOKED";
-
-	/** The mapper. */
-	@Autowired
-	private ObjectMapper mapper;
 
 	/** The rest helper. */
 	private RestHelper restHelper;
@@ -222,7 +217,7 @@ public class CredentialServiceManager {
 
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
-					e.getMessage());
+					e);
 		}
 	}
 
@@ -292,10 +287,10 @@ public class CredentialServiceManager {
 	private void sendEventsToIDA(List<EventModel> eventList, EventType eventType, Consumer<EventModel> idaEventModelConsumer) {
 		eventList.forEach(eventDto -> {
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
-					"notifying IDA for event" + eventType.toString());
+					"notifying IDA for event " + eventType.toString());
 			websubHelper.sendEventToIDA(eventDto, idaEventModelConsumer);
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
-					"notified IDA for event" + eventType.toString());
+					"notified IDA for event " + eventType.toString());
 		});
 	}
 
@@ -456,7 +451,7 @@ public class CredentialServiceManager {
 					"notifying Credential Service for event " + eventTypeDisplayName);
 			sendRequestToCredService(reqDto.getIssuer(), requestWrapper, credentialRequestResponseConsumer);
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
-					"notified Credential Service for event" + eventTypeDisplayName);
+					"notified Credential Service for event " + eventTypeDisplayName);
 		});
 	}
 
@@ -468,9 +463,9 @@ public class CredentialServiceManager {
 	 */
 	private void sendRequestToCredService(String partnerId, CredentialIssueRequestWrapperDto requestWrapper,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
+		Map<String, Object> response = Map.of();
 		try {
 
-			Map<String, Object> response = Map.of();
 			RestServicesConstants restServicesConstants = requestWrapper.getRequest().getRequestId() != null
 					&& !requestWrapper.getRequest().getRequestId().isEmpty()
 					? RestServicesConstants.CREDENTIAL_REQUEST_SERVICE_V2
@@ -481,20 +476,19 @@ public class CredentialServiceManager {
 					: Map.of();
 			response = restHelper
 					.requestSync(restBuilder.buildRequest(restServicesConstants, pathParam, requestWrapper, Map.class));
-			mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(),
-					SEND_REQUEST_TO_CRED_SERVICE,
-					"Response of Credential Request: " + mapper.writeValueAsString(response));
+			mosipLogger.debug("Errors in response of Credential Request: {}" + response);
 
-			if (credentialRequestResponseConsumer != null) {
-				credentialRequestResponseConsumer.accept(requestWrapper, response);
-			}
 
 		} catch (RestServiceException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_REQUEST_TO_CRED_SERVICE,
 					e.getResponseBodyAsString().orElseGet(() -> ExceptionUtils.getStackTrace(e)));
-		} catch (IdRepoDataValidationException | JsonProcessingException e) {
+		} catch (IdRepoDataValidationException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_REQUEST_TO_CRED_SERVICE,
 					ExceptionUtils.getStackTrace(e));
+		} finally {
+			if (credentialRequestResponseConsumer != null) {
+				credentialRequestResponseConsumer.accept(requestWrapper, response);
+			}
 		}
 	}
 
@@ -536,8 +530,8 @@ public class CredentialServiceManager {
 		credentialIssueRequestDto.setAdditionalData(data);
 		return credentialIssueRequestDto;
 	}
-	
-	public void sendEventsToCredService(List<? extends CredentialRequestStatus> requestEntities,
+
+	/*public void sendEventsToCredService(List<? extends CredentialRequestStatus> requestEntities,
 			List<String> partnerIds,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,
 			Predicate<? super CredentialIssueRequestDto> additionalFilterCondition,
@@ -562,8 +556,8 @@ public class CredentialServiceManager {
 			sendRequestToCredService(requests, false, credentialRequestResponseConsumer);
 			
 		}
-		
-	}
+
+	}*/
 
 	private boolean isExpired(CredentialRequestStatus entity) {
 		return entity.getIdExpiryTimestamp() != null && !DateUtils.getUTCCurrentDateTime().isAfter(entity.getIdExpiryTimestamp());
