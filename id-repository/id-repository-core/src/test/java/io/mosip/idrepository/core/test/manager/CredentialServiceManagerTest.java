@@ -9,12 +9,11 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
-import java.util.function.Predicate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.dto.*;
-import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.entity.Handle;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.repository.HandleRepo;
@@ -200,6 +199,42 @@ public class CredentialServiceManagerTest {
 		handle.setHandle("6666");
 		list.add(handle);
 		when(handleRepo.findByUinHash(anyString())).thenReturn(list);
+
+		when(securityManager.decryptWithSalt(any(), any(), any())).thenReturn(new byte[5]);
+
+		when(restHelper.requestSync(any())).thenReturn(vidsInfosDTO);
+		credentialServiceManager.notifyUinCredential("123", expiryTimestamp, null, true, "12",
+				saltRetreivalFunction, null, null, partnerIds, "123465");
+		verify(handleRepo, times(1)).findByUinHash(anyString());
+	}
+
+	@Test
+	public void notifyUinCredential_WhenHandleRepoNull() throws IdRepoAppException {
+
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("{uin}");
+		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
+
+		VidsInfosDTO vidsInfosDTO = getVidsInfosDTO();
+		when(restHelper.requestSync(any())).thenReturn(vidsInfosDTO);
+
+		EventModel eventModel = new EventModel();
+		when(websubHelper.createEventModel(any(), any(), any(), any(), any(), any()))
+				.thenReturn(new AsyncResult<>(eventModel));
+		LocalDateTime expiryTimestamp = LocalDateTime.now();
+		IntFunction<String> saltRetreivalFunction = a -> "Test";
+		List<String> partnerIds = new ArrayList<String>();
+		partnerIds.add("12");
+		when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("hash");
+		when(securityManager.getSaltKeyForId(anyString())).thenReturn(123);
+		when(securityManager.hashwithSalt(any(), any())).thenReturn("uinHash");
+
+		List<Handle> list = new ArrayList<>();
+		Handle handle = new Handle();
+		handle.setId("1");
+		handle.setHandle("6666");
+		list.add(handle);
+		when(handleRepo.findByUinHash(anyString())).thenReturn(null);
 
 		when(securityManager.decryptWithSalt(any(), any(), any())).thenReturn(new byte[5]);
 
@@ -510,6 +545,56 @@ public class CredentialServiceManagerTest {
 		List<CredentialIssueRequestDto> eventRequestList= new ArrayList<>();
 		BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer = null;;
 		credentialServiceManager.sendRequestToCredService(eventRequestList,isUpdate,credentialRequestResponseConsumer);
+	}
+
+	@Test
+	public void sendVidEventsToCredService_ShouldThrow_Exception() throws JsonProcessingException, RestServiceException, IdRepoDataValidationException {
+
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("{uin}");
+		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
+		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+		vidsInfosDTO.setResponse(List.of());
+		EventModel eventModel = new EventModel();
+		when(websubHelper.createEventModel(any(), any(), any(), any(), any(), any())).thenReturn(new AsyncResult<>(eventModel));
+		boolean isUpdate = true;
+		List<CredentialIssueRequestDto> eventRequestList= new ArrayList<>();
+		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
+		credentialIssueRequestDto.setCredentialType("issue");
+		eventRequestList.add(credentialIssueRequestDto);
+
+		Map<String, Object> stringObjectMap = Map.of("key", "value");
+
+		Mockito.when(restHelper.requestSync(Mockito.any())).thenReturn(stringObjectMap);
+		Mockito.when(mapper.writeValueAsString(stringObjectMap)).thenThrow(new JsonProcessingException("Mocked exception") {});
+		BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer =
+				(wrapper, response) -> {};
+
+		credentialServiceManager.sendRequestToCredService(eventRequestList,isUpdate,credentialRequestResponseConsumer);
+		verify(restHelper, times(1)).requestSync(Mockito.any());
+	}
+
+	@Test
+	public void sendVidEventsToCredService_ReturnCredentialRequestResponse() throws IdRepoDataValidationException, RestServiceException {
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("{uin}");
+		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
+		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+		vidsInfosDTO.setResponse(List.of());
+		EventModel eventModel = new EventModel();
+		when(websubHelper.createEventModel(any(), any(), any(), any(), any(), any())).thenReturn(new AsyncResult<>(eventModel));
+		boolean isUpdate = true;
+		List<CredentialIssueRequestDto> eventRequestList= new ArrayList<>();
+		CredentialIssueRequestDto credentialIssueRequestDto = new CredentialIssueRequestDto();
+		credentialIssueRequestDto.setCredentialType("issue");
+		eventRequestList.add(credentialIssueRequestDto);
+
+		Map<String, Object> stringObjectMap = Map.of("key", "value");
+		Mockito.when(restHelper.requestSync(Mockito.any())).thenReturn(stringObjectMap);
+		BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer =
+				(wrapper, response) -> {};
+		credentialServiceManager.sendRequestToCredService(eventRequestList,isUpdate,credentialRequestResponseConsumer);
+		verify(restHelper, times(1)).requestSync(Mockito.any());
 	}
 
 	@Test
