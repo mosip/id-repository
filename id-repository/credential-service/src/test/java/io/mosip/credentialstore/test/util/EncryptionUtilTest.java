@@ -1,8 +1,12 @@
 package io.mosip.credentialstore.test.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static reactor.core.publisher.Mono.when;
 
 import java.io.IOException;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +16,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.reactivestreams.Publisher;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
@@ -89,8 +94,8 @@ public class EncryptionUtilTest {
 		encryptZkResponseDto.setZkDataAttributes(zkDataAttributeList);
 		cryptoZkResponseDto.setResponse(encryptZkResponseDto);
 		EnvUtil.setDateTimePattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
-				Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(cryptoResponse);
+		Mockito.when(restUtil.postApi(any(ApiName.class), any(), any(), any(),
+				any(), any(), any())).thenReturn(cryptoResponse);
 
 		cryptomanagerResponseDto = new CryptomanagerResponseDto();
 		EncryptResponseDto responseData = new EncryptResponseDto();
@@ -101,12 +106,12 @@ public class EncryptionUtilTest {
 		List<ServiceError> errors = new ArrayList<>();
 		errors.add(error);
 
-		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
-				Mockito.any(),
-				Mockito.any(), Mockito.any())).thenReturn(cryptoResponse);
-		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+		Mockito.when(restUtil.postApi(any(ApiName.class), any(), any(), any(),
+				any(),
+				any(), any())).thenReturn(cryptoResponse);
+		Mockito.when(restUtil.getApi(any(), any(), any(), any(), any()))
 				.thenReturn(cryptoResponse);
-		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(cryptoResponse);
+		Mockito.when(restUtil.getApi(any(), any(), any())).thenReturn(cryptoResponse);
 
 		Mockito.when(objectMapper.readValue(cryptoResponse, CryptomanagerResponseDto.class))
 				.thenReturn(cryptomanagerResponseDto);
@@ -147,8 +152,8 @@ public class EncryptionUtilTest {
 		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(HttpStatus.BAD_REQUEST,
 				"error");
 	
-		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
-				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpClientErrorException);
+		Mockito.when(restUtil.postApi(any(ApiName.class), any(), any(), any(),
+				any(), any(), any())).thenThrow(httpClientErrorException);
 		encryptionUtil.encryptDataWithPin("attributename", test, "test123", "requestId");
 	}
 
@@ -157,8 +162,8 @@ public class EncryptionUtilTest {
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(HttpStatus.BAD_REQUEST,
 				"error");
 	
-		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
-				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpServerErrorException);
+		Mockito.when(restUtil.postApi(any(ApiName.class), any(), any(), any(),
+				any(), any(), any())).thenThrow(httpServerErrorException);
 		encryptionUtil.encryptDataWithPin("attributename", test, "test123", "requestId");
 	}
 	
@@ -196,8 +201,8 @@ public class EncryptionUtilTest {
 		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(HttpStatus.BAD_REQUEST,
 				"error");
 		Exception e=new Exception(httpClientErrorException);
-		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
-				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
+		Mockito.when(restUtil.postApi(any(ApiName.class), any(), any(), any(),
+				any(), any(), any())).thenThrow(e);
 		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList, "requestId");
 	}
 
@@ -206,8 +211,8 @@ public class EncryptionUtilTest {
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(HttpStatus.BAD_REQUEST,
 				"error");
 		Exception e=new Exception(httpServerErrorException);
-		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
-				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
+		Mockito.when(restUtil.postApi(any(ApiName.class), any(), any(), any(),
+				any(), any(), any())).thenThrow(e);
 		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList, "requestId");
 	}
 
@@ -230,6 +235,19 @@ public class EncryptionUtilTest {
 		String encryptedData = encryptionUtil.encryptData(test, "", "requestId");
 
 		assertEquals(test, encryptedData);
+
+	}
+
+	@Test(expected = DataEncryptionFailureException.class)
+	public void encryptData_DateTimeParseException() throws IOException,
+			DataEncryptionFailureException, ApiNotAccessibleException {
+		Mockito.when(objectMapper.readValue(cryptoResponse, CryptomanagerResponseDto.class))
+				.thenThrow(new DateTimeParseException("str", "", 3));
+		encryptionUtil.encryptData(test, "", "requestId");
+
+		assertThrows(DataEncryptionFailureException.class, () -> {
+			encryptionUtil.encryptData(test, "", "requestId");
+		});
 
 	}
 

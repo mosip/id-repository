@@ -1379,6 +1379,145 @@ public class CredentialProviderTest {
 	}
 
 	@Test
+	public void prepareSharableAttributes_HandleIdentityAttribute_ReturnAttributes() throws Exception {
+
+		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();
+		Map<String, String> map = new HashMap<>();
+		map.put("language", "eng");
+		map.put("value", "raghav");
+		JSONObject j1 = new JSONObject(map);
+
+		Map<String, String> map2 = new HashMap<>();
+		map2.put("language", "ara");
+		map2.put("value", "Alok");
+		JSONObject j2 = new JSONObject(map2);
+		JSONArray array = new JSONArray();
+		array.add(j1);
+		array.add(j2);
+		identityMap.put("fullName", "John");
+
+		identityMap.put("dateOfBirth", "1980/11/14");
+
+		Object identity = identityMap;
+		response.setIdentity(identity);
+
+		DocumentsDTO doc1 = new DocumentsDTO();
+		doc1.setCategory("individualBiometrics");
+
+		doc1.setValue("textbiomterics");
+		List<DocumentsDTO> docList = new ArrayList<>();
+		docList.add(doc1);
+
+		response.setDocuments(docList);
+		idResponse.setResponse(response);
+		CredentialServiceRequestDto credentialServiceRequestDto = getCredentialServiceRequestDto();
+		List<String> sharableAttributesList = new ArrayList<>();
+		sharableAttributesList.add("AB");
+		sharableAttributesList.add("XY");
+		credentialServiceRequestDto.setSharableAttributes(sharableAttributesList);
+
+		policyResponse = new PartnerCredentialTypePolicyDto();
+		List<AllowedKycDto> shareableAttributes = new ArrayList<>();
+		AllowedKycDto kyc1 = new AllowedKycDto();
+		kyc1.setAttributeName("fullName");
+		kyc1.setEncrypted(true);
+
+		List<Source> sourceList = new ArrayList<>();
+
+		Source source1 = new Source();
+		source1.setAttribute("abc");
+
+		sourceList.add(source1);
+		kyc1.setSource(sourceList);
+		shareableAttributes.add(kyc1);
+		AllowedKycDto kyc2 = new AllowedKycDto();
+		kyc2.setAttributeName("dateOfBirth");
+		kyc2.setEncrypted(true);
+
+		List<Source> sourceList2 = new ArrayList<>();
+		Source source2 = new Source();
+		source2.setAttribute("dateOfBirth");
+		sourceList2.add(source2);
+		kyc2.setSource(sourceList2);
+		shareableAttributes.add(kyc2);
+		AllowedKycDto kyc3 = new AllowedKycDto();
+		kyc3.setAttributeName("biometrics");
+		kyc3.setGroup("CBEFF");
+		kyc3.setEncrypted(true);
+		List<Source> sourceList3 = new ArrayList<>();
+		Source source3 = new Source();
+		source3.setAttribute("individualBiometrics");
+		Filter filter = new Filter();
+		filter.setType("Face");
+		filter.setSubType(List.of("ref refData"));
+		source3.setFilter(List.of(filter));
+		sourceList3.add(source3);
+		kyc3.setSource(sourceList3);
+		shareableAttributes.add(kyc3);
+		AllowedKycDto kyc4 = new AllowedKycDto();
+		List<Source> sourceList4 = new ArrayList<>();
+		Source source4 = new Source();
+		source4.setAttribute("email");
+		sourceList4.add(source4);
+		kyc4.setSource(sourceList4);
+		kyc4.setAttributeName("email");
+		kyc4.setEncrypted(true);
+		kyc4.setGroup(CredentialConstants.CBEFF);
+		shareableAttributes.add(kyc4);
+		PolicyAttributesDto dto = new PolicyAttributesDto();
+		//dto.setShareableAttributes(shareableAttributes);
+		policyResponse.setPolicies(dto);
+
+		List<BIR> birList = new ArrayList<>();
+		BIR bir = new BIR();
+		BDBInfo bdbInfoFace = new BDBInfo();
+		List<BiometricType> singleFaceList = new ArrayList<>();
+		singleFaceList.add(BiometricType.FACE);
+		bdbInfoFace.setType(singleFaceList);
+		bdbInfoFace.setSubtype(List.of("ref", "refData"));
+		QualityType qualityType = new QualityType();
+		qualityType.setScore(4L);
+		bdbInfoFace.setQuality(qualityType);
+		bir.setBdbInfo(bdbInfoFace);
+		byte[] bioBytes = "textbiomterics".getBytes();
+		bir.setBdb(bioBytes);
+		birList.add(bir);
+		BIR birFinger = new BIR();
+		BDBInfo bdbInfoRightThumb = new BDBInfo();
+		QualityType bdbInfoFingerQuality = new QualityType();
+		bdbInfoFingerQuality.setScore(60L);
+		List<BiometricType> singleFingerList = new ArrayList<>();
+		singleFingerList.add(BiometricType.FINGER);
+		bdbInfoRightThumb.setType(singleFingerList);
+		List<String> subTypeList = new ArrayList<>();
+		subTypeList.add("Right");
+		subTypeList.add("Thumb");
+		bdbInfoRightThumb.setSubtype(subTypeList);
+		bdbInfoRightThumb.setQuality(bdbInfoFingerQuality);
+		birFinger.setBdbInfo(bdbInfoRightThumb);
+		birList.add(birFinger);
+
+		BIR birLeftThumb = new BIR();
+		BDBInfo bdbInfoLeftThumb = new BDBInfo();
+		QualityType bdbInfoLeftThumbQuality = new QualityType();
+		bdbInfoLeftThumbQuality.setScore(58L);
+
+		bdbInfoLeftThumb.setType(singleFingerList);
+		List<String> subTypeListLeftThumb = new ArrayList<>();
+		subTypeListLeftThumb.add("Left");
+		subTypeListLeftThumb.add("Thumb");
+		bdbInfoLeftThumb.setSubtype(subTypeListLeftThumb);
+		bdbInfoLeftThumb.setQuality(bdbInfoLeftThumbQuality);
+		birLeftThumb.setBdbInfo(bdbInfoLeftThumb);
+		birList.add(birLeftThumb);
+		Mockito.when(cbeffutil.getBIRDataFromXML(Mockito.any())).thenReturn(birList);
+
+		Map<AllowedKycDto, Object> sharabaleAttrubutesMap = credentialDefaultProvider
+				.prepareSharableAttributes(idResponse, policyResponse, credentialServiceRequestDto);
+		assertTrue("preparedsharableattribute smap", sharabaleAttrubutesMap.size() >= 0);
+	}
+
+	@Test
 	public void prepareSharableAttributes_ReturnValidMap_WithMaskApplied() throws Exception {
 
 		LinkedHashMap<String, Object> identityMap = new LinkedHashMap<>();

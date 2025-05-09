@@ -1,6 +1,8 @@
 package io.mosip.credentialstore.test.service.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,6 +11,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.credentialstore.constants.CredentialFormatter;
+import io.mosip.idrepository.core.dto.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -51,11 +55,6 @@ import io.mosip.credentialstore.util.IdrepositaryUtil;
 import io.mosip.credentialstore.util.PolicyUtil;
 import io.mosip.credentialstore.util.Utilities;
 import io.mosip.credentialstore.util.WebSubUtil;
-import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
-import io.mosip.idrepository.core.dto.CredentialServiceResponseDto;
-import io.mosip.idrepository.core.dto.DocumentsDTO;
-import io.mosip.idrepository.core.dto.IdResponseDTO;
-import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.BDBInfoType;
@@ -224,26 +223,26 @@ public class CredentialStoreServiceImplTest {
 
 		response.setDocuments(docList);
 		idResponse.setResponse(response);
-		Mockito.when(cbeffutil.getBIRDataFromXML(Mockito.any())).thenReturn(birtypeList);
+		Mockito.when(cbeffutil.getBIRDataFromXML(any())).thenReturn(birtypeList);
 
 
 		Mockito.when(utilities.generateId()).thenReturn("123456");
-		Mockito.when(policyUtil.getPolicyDetail(Mockito.any(), Mockito.any(), Mockito.any()))
+		Mockito.when(policyUtil.getPolicyDetail(any(), any(), any()))
 				.thenReturn(policyDetailResponseDto);
-		Mockito.when(idrepositaryUtil.getData(Mockito.any(),Mockito.any()))
+		Mockito.when(idrepositaryUtil.getData(any(), any()))
 		.thenReturn(idResponse);
 		DataProviderResponse dataProviderResponse=new DataProviderResponse();
 		JSONObject jsonObject1 = new JSONObject();
 		jsonObject1.put("name", "value");
 		dataProviderResponse.setJSON(jsonObject1);
-		Mockito.when(credentialDefaultProvider.getFormattedCredentialData(Mockito.any(), Mockito.any()))
+		Mockito.when(credentialDefaultProvider.getFormattedCredentialData(any(), any()))
 
 				.thenReturn(dataProviderResponse);
 		DataShare dataShare=new DataShare();
-		Mockito.when(dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any(),
-				Mockito.any()))
+		Mockito.when(dataShareUtil.getDataShare(any(), any(), any(),
+				any()))
 				.thenReturn(dataShare);
-		Mockito.when(digitalSignatureUtil.sign(Mockito.any(), Mockito.any())).thenReturn("testdata");
+		Mockito.when(digitalSignatureUtil.sign(any(), any())).thenReturn("testdata");
 		PartnerExtractorResponse partnerExtractorResponse = new PartnerExtractorResponse();
 		List<PartnerExtractor> extractors = new ArrayList<>();
 
@@ -272,9 +271,9 @@ public class CredentialStoreServiceImplTest {
 		extractors.add(extractor2);
 		partnerExtractorResponse.setExtractors(extractors);
 		Mockito.when(
-				policyUtil.getPartnerExtractorFormat(Mockito.any(), Mockito.any(), Mockito.any()))
+				policyUtil.getPartnerExtractorFormat(any(), any(), any()))
 				.thenReturn(partnerExtractorResponse);
-		Mockito.when(encryptionUtil.encryptData(Mockito.any(), Mockito.any(), Mockito.any()))
+		Mockito.when(encryptionUtil.encryptData(any(), any(), any()))
 				.thenReturn("encryptedData");
 	}
 	
@@ -291,6 +290,65 @@ public class CredentialStoreServiceImplTest {
 	}
 
 	@Test
+	public void createCredentialIssueSuccess() {
+
+		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
+		credentialServiceRequestDto.setCredentialType("test");
+		credentialServiceRequestDto.setId("4238135072");
+		credentialServiceRequestDto.setIssuer("791212");
+		Map<String,Object> additionalData = new HashMap<>();
+		credentialServiceRequestDto.setAdditionalData(additionalData);
+		CredentialServiceResponseDto credentialServiceResponseDto = credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
+		assertEquals(credentialServiceResponseDto.getResponse().getStatus(), "ISSUED");
+	}
+
+	@Test
+	public void createCredentialIssue_WhenCredentialType_IdAuthProvider() {
+
+		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
+		credentialServiceRequestDto.setCredentialType(CredentialFormatter.IdAuthProvider.name());
+		Mockito.when(env.getProperty(any())).thenReturn(CredentialFormatter.IdAuthProvider.name());
+		credentialServiceRequestDto.setId("4238135072");
+		credentialServiceRequestDto.setIssuer("791212");
+		Map<String,Object> additionalData = new HashMap<>();
+		credentialServiceRequestDto.setAdditionalData(additionalData);
+		CredentialServiceResponseDto credentialServiceResponseDto = credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
+		ErrorDTO error = credentialServiceResponseDto.getErrors().get(0);
+		assertEquals("IDR-CRS-007", error.getErrorCode());
+		assertEquals("unknown exception", error.getMessage());
+	}
+
+	@Test
+	public void createCredentialIssue_WhenCredentialType_QrCodeProvider() {
+
+		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
+		credentialServiceRequestDto.setCredentialType(CredentialFormatter.QrCodeProvider.name());
+		Mockito.when(env.getProperty(any())).thenReturn(CredentialFormatter.QrCodeProvider.name());
+		credentialServiceRequestDto.setId("4238135072");
+		credentialServiceRequestDto.setIssuer("791212");
+		Map<String,Object> additionalData = new HashMap<>();
+		credentialServiceRequestDto.setAdditionalData(additionalData);
+		CredentialServiceResponseDto credentialServiceResponseDto = credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
+		assertNull(credentialServiceResponseDto.getResponse());
+	}
+
+	@Test
+	public void createCredentialIssue_WhenCredentialType_VerCredProvider() {
+
+		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
+		credentialServiceRequestDto.setCredentialType(CredentialFormatter.VerCredProvider.name());
+		Mockito.when(env.getProperty(any())).thenReturn(CredentialFormatter.VerCredProvider.name());
+		credentialServiceRequestDto.setId("4238135072");
+		credentialServiceRequestDto.setIssuer("791212");
+		Map<String,Object> additionalData = new HashMap<>();
+		credentialServiceRequestDto.setAdditionalData(additionalData);
+		CredentialServiceResponseDto credentialServiceResponseDto = credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
+		ErrorDTO error = credentialServiceResponseDto.getErrors().get(0);
+		assertEquals("IDR-CRS-007", error.getErrorCode());
+		assertEquals("unknown exception", error.getMessage());
+	}
+
+	@Test
 	public void createCredentialIssuance_WithSharableAttributes_PolicyException() throws ApiNotAccessibleException, PolicyException {
 
 		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
@@ -299,7 +357,7 @@ public class CredentialStoreServiceImplTest {
 		credentialServiceRequestDto.setIssuer("791212");
 		credentialServiceRequestDto.setSharableAttributes(List.of("ABC"));
 		credentialServiceRequestDto.setAdditionalData(null);
-		Mockito.when(policyUtil.getPolicyDetail(Mockito.any(), Mockito.any(), Mockito.any()))
+		Mockito.when(policyUtil.getPolicyDetail(any(), any(), any()))
 				.thenThrow(PolicyException.class);
 		CredentialServiceResponseDto credentialServiceResponseDto = credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 		assertEquals("ISSUED", credentialServiceResponseDto.getResponse().getStatus());
@@ -315,7 +373,7 @@ public class CredentialStoreServiceImplTest {
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		PolicyException e = new PolicyException();
-		Mockito.when(policyUtil.getPolicyDetail(Mockito.any(), Mockito.any(), Mockito.any()))
+		Mockito.when(policyUtil.getPolicyDetail(any(), any(), any()))
 				.thenThrow(e);
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorMessage());
@@ -330,7 +388,7 @@ public class CredentialStoreServiceImplTest {
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		ApiNotAccessibleException e = new ApiNotAccessibleException();
-		Mockito.when(idrepositaryUtil.getData(Mockito.any(),Mockito.any()))
+		Mockito.when(idrepositaryUtil.getData(any(), any()))
 		.thenThrow(e);
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.API_NOT_ACCESSIBLE_EXCEPTION.getErrorMessage());
@@ -345,7 +403,7 @@ public class CredentialStoreServiceImplTest {
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		IdRepoException e = new IdRepoException();
-		Mockito.when(idrepositaryUtil.getData(Mockito.any(),Mockito.any()))
+		Mockito.when(idrepositaryUtil.getData(any(), any()))
 		.thenThrow(e);
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.IPREPO_EXCEPTION.getErrorMessage());
@@ -360,8 +418,8 @@ public class CredentialStoreServiceImplTest {
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		CredentialFormatterException e = new CredentialFormatterException();
-		Mockito.when(credentialDefaultProvider.getFormattedCredentialData(Mockito.any(),
-		Mockito.any())).thenThrow(e);
+		Mockito.when(credentialDefaultProvider.getFormattedCredentialData(any(),
+		any())).thenThrow(e);
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.CREDENTIAL_FORMATTER_EXCEPTION.getErrorMessage());
 	}
@@ -374,8 +432,8 @@ public class CredentialStoreServiceImplTest {
 		credentialServiceRequestDto.setIssuer("791212");
 		Map<String,Object> additionalData = new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
-		Mockito.when(credentialDefaultProvider.getFormattedCredentialData(Mockito.any(),
-				Mockito.any())).thenThrow(new RuntimeException("Unknown Exception"));
+		Mockito.when(credentialDefaultProvider.getFormattedCredentialData(any(),
+				any())).thenThrow(new RuntimeException("Unknown Exception"));
 		CredentialServiceResponseDto credentialServiceResponseDto = credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 		assertEquals(CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage(), credentialServiceResponseDto.getErrors().get(0).getMessage());
 		assertEquals(CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorCode(), credentialServiceResponseDto.getErrors().get(0).getErrorCode());
@@ -390,7 +448,7 @@ public class CredentialStoreServiceImplTest {
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		IOException e = new IOException();
-		Mockito.when(idrepositaryUtil.getData(Mockito.any(),Mockito.any()))
+		Mockito.when(idrepositaryUtil.getData(any(), any()))
 		.thenThrow(e);
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.IO_EXCEPTION.getErrorMessage());
@@ -405,7 +463,7 @@ public class CredentialStoreServiceImplTest {
 		Map<String,Object> additionalData=new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		WebSubClientException e = new WebSubClientException("","");
-		Mockito.doThrow(e).when(webSubUtil).publishSuccess(Mockito.any(), Mockito.any());
+		Mockito.doThrow(e).when(webSubUtil).publishSuccess(any(), any());
 
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
 	    assertEquals(credentialServiceResponseDto.getErrors().get(0).getMessage(),CredentialServiceErrorCodes.WEBSUB_FAIL_EXCEPTION.getErrorMessage());
@@ -417,7 +475,7 @@ public class CredentialStoreServiceImplTest {
 		List<Type> typeList=new ArrayList<>();
 		Type type=new Type();
 		typeList.add(type);
-		Mockito.when(utilities.getTypes(Mockito.any(), Mockito.any())).thenReturn(typeList);
+		Mockito.when(utilities.getTypes(any(), any())).thenReturn(typeList);
 		CredentialTypeResponse credentialTypeResponse=credentialStoreServiceImpl.getCredentialTypes();
 		 assertEquals(credentialTypeResponse.getCredentialTypes(),typeList);
 	}
@@ -450,7 +508,7 @@ public class CredentialStoreServiceImplTest {
 		credentialServiceRequestDto.setAdditionalData(additionalData);
 		DataShareException e = new DataShareException();
 		Mockito.when(
-				dataShareUtil.getDataShare(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+				dataShareUtil.getDataShare(any(), any(), any(), any()))
 				.thenThrow(e);
 
 		CredentialServiceResponseDto credentialServiceResponseDto=credentialStoreServiceImpl.createCredentialIssuance(credentialServiceRequestDto);
@@ -496,7 +554,7 @@ public class CredentialStoreServiceImplTest {
 		credentialServiceRequestDto.setIssuer("791212");
 		Map<String, Object> additionalData = new HashMap<>();
 		credentialServiceRequestDto.setAdditionalData(additionalData);
-		Mockito.when(digitalSignatureUtil.sign(Mockito.any(), Mockito.any())).thenThrow(new SignatureException());
+		Mockito.when(digitalSignatureUtil.sign(any(), any())).thenThrow(new SignatureException());
 		CredentialServiceResponseDto credentialServiceResponseDto = credentialStoreServiceImpl
 				.createCredentialIssuance(credentialServiceRequestDto);
 

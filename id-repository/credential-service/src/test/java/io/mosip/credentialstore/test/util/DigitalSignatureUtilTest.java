@@ -199,4 +199,14 @@ public class DigitalSignatureUtilTest {
 		digitalSignatureUtil.signVerCred(test, "requestId");
 	}
 
+	@Test(expected = SignatureException.class)
+	public void signVerCred_ShouldReturn_NullResponse() throws IOException,
+			ApiNotAccessibleException, SignatureException {
+		String test = "testdata";
+
+		Mockito.when(objectMapper.readValue(signResponse, SignResponseDto.class))
+				.thenReturn(null);
+		digitalSignatureUtil.signVerCred(test, "requestId");
+	}
+
 }

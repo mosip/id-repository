@@ -298,6 +298,32 @@ public class VidRequestValidatorTest {
 			assertEquals("request", ((FieldError) error).getField());
 		});
 	}
+
+	@Test
+	public void testValidateRequest_UIN_Null() {
+		RequestWrapper<VidRequestDTO> req = new RequestWrapper<VidRequestDTO>();
+		req.setId("mosip.vid.create");
+		VidRequestDTO request = new VidRequestDTO();
+		request.setVidStatus("ACTIVE");
+		request.setUin(null);
+		request.setVidType(null);
+		req.setVersion("v1");
+		req.setRequesttime(DateUtils.getUTCCurrentDateTime()
+				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone())).toLocalDateTime());
+		req.setRequest(request);
+		HashSet<String> value = new HashSet<String>();
+		value.add("Perpetual");
+		value.add("Temporary");
+		Mockito.when(policyProvider.getAllVidTypes()).thenReturn(value);
+		Mockito.when(uinValidator.validateId(Mockito.anyString())).thenReturn(true);
+		ReflectionTestUtils.invokeMethod(requestValidator, "validate", req, errors);
+		errors.getAllErrors().forEach(error -> {
+			assertEquals(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(), error.getCode());
+			assertEquals(String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), "vidType"),
+					error.getDefaultMessage());
+			assertEquals("request", ((FieldError) error).getField());
+		});
+	}
 	
 	
 	

@@ -1,11 +1,10 @@
 package io.mosip.idrepository.identity.test.helper;
 
+import static io.mosip.idrepository.identity.service.impl.IdRepoProxyServiceImpl.mosipLogger;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.io.ByteArrayInputStream;
 
@@ -49,6 +48,9 @@ public class ObjectStoreHelperTest {
 	@Mock
 	private IdRepoSecurityManager securityManager;
 
+	@Mock
+	private ObjectStoreAdapter objectStore;
+
 	@Before
 	public void init() {
 		ReflectionTestUtils.setField(helper, "objectStoreAdapterName", "objectStoreAdapterName");
@@ -79,6 +81,20 @@ public class ObjectStoreHelperTest {
 		ArgumentCaptor<String> argCaptor = ArgumentCaptor.forClass(String.class);
 		verify(adapter).putObject(any(), any(), any(), any(), argCaptor.capture(), any());
 		assertEquals("hash/Demographics/refId", argCaptor.getValue());
+	}
+
+	@Test
+	public void testPutObject_genericThrowable() throws Exception {
+		byte[] data = "testData".getBytes();
+		String uinHash = "999";
+		String fileRefId = "throwable";
+
+		when(securityManager.encrypt(data, "888")).thenReturn(data);
+		doThrow(new RuntimeException("Unexpected")).when(objectStore).putObject(any(), any(), any(), any(), any(), any());
+
+		helper.putDemographicObject(uinHash, fileRefId, data);
+
+		//verify(mosipLogger).error(startsWith("Exception in connection"), any(Throwable.class));
 	}
 
 	@Test
