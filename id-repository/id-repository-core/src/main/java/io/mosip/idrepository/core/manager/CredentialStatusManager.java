@@ -88,7 +88,7 @@ public class CredentialStatusManager {
 	@Autowired
 	private AuditHelper auditHelper;
 	
-	@Async("credentialStatusManagerJobExecutor")
+//	@Async("credentialStatusManagerJobExecutor")
 	public void triggerEventNotifications() {
 		handleDeletedRequests();
 		handleExpiredRequests();
