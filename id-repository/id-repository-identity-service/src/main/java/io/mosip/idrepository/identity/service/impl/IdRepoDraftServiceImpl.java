@@ -513,10 +513,16 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	@Override
 	public IdResponseDTO extractBiometrics(String registrationId, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
+
+		idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "extractBiometrics",
+				"Received request for registrationId: " + registrationId + ", extractionFormats: " + extractionFormats);
+
 		if (!extractionFormats.isEmpty())
 			try {
 				Optional<UinDraft> draftOpt = uinDraftRepo.findByRegId(registrationId);
 				if (draftOpt.isPresent()) {
+					idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "extractBiometrics",
+							"Draft found for registrationId: " + registrationId);
 					extractBiometricsDraft(extractionFormats, draftOpt.get());
 				} else {
 					idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
@@ -528,6 +534,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 						e.getMessage());
 				throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 			}
+		idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "extractBiometrics",
+				"Biometrics extraction completed or skipped. Returning status DRAFTED.");
 		return constructIdResponse(null, DRAFTED, null, null);
 	}
 
@@ -535,7 +543,13 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			throws IdRepoAppException {
 		try {
 			String uinHash = draft.getUinHash().split("_")[1];
+			idrepoDraftLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+					"Starting biometric extraction for UIN hash: " + uinHash + ", formats: " + extractionFormats);
+
 			for (UinBiometricDraft bioDraft : draft.getBiometrics()) {
+				idrepoDraftLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+						"Processing biometric draft fileId: " + bioDraft.getBioFileId());
+
 				deleteExistingExtractedBioData(extractionFormats, uinHash, bioDraft);
 				extractAndGetCombinedCbeff(uinHash, bioDraft.getBioFileId(), extractionFormats);
 			}
@@ -553,6 +567,9 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 
 	private byte[] extractAndGetCombinedCbeff(String uinHash, String bioFileId, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
+		idrepoDraftLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "extractAndGetCombinedCbeff",
+				"Calling proxyService.getBiometricsForRequestedFormats with bioFileId: " + bioFileId +
+						", formats: " + extractionFormats);
 		return proxyService.getBiometricsForRequestedFormats(uinHash, bioFileId, extractionFormats,
 				super.objectStoreHelper.getBiometricObject(uinHash, bioFileId));
 	}
