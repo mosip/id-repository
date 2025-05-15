@@ -525,8 +525,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 							"Draft found for registrationId: " + registrationId);
 					extractBiometricsDraft(extractionFormats, draftOpt.get());
 				} else {
-					idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
-							DRAFT_RECORD_NOT_FOUND);
+					idrepoDraftLogger.warn(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+							"No draft found for registrationId: " + registrationId);
 					throw new IdRepoAppException(NO_RECORD_FOUND);
 				}
 			} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
@@ -554,15 +554,19 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				extractAndGetCombinedCbeff(uinHash, bioDraft.getBioFileId(), extractionFormats);
 			}
 		} catch (Exception e) {
-			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT, e.getMessage());
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
+					"Error during biometric extraction: " + e.getMessage());
 			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
 		}
 	}
 
 	private void deleteExistingExtractedBioData(Map<String, String> extractionFormats, String uinHash, UinBiometricDraft bioDraft) {
-		extractionFormats.entrySet()
-				.forEach(extractionFormat -> super.objectStoreHelper.deleteBiometricObject(uinHash,
-						buildExtractionFileName(extractionFormat, bioDraft.getBioFileId())));
+		extractionFormats.entrySet().forEach(extractionFormat -> {
+			String fileName = buildExtractionFileName(extractionFormat, bioDraft.getBioFileId());
+			idrepoDraftLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "deleteExistingExtractedBioData",
+					"Deleting biometric object with fileName: " + fileName + " for UIN hash: " + uinHash);
+			super.objectStoreHelper.deleteBiometricObject(uinHash, fileName);
+		});
 	}
 
 	private byte[] extractAndGetCombinedCbeff(String uinHash, String bioFileId, Map<String, String> extractionFormats)
@@ -575,8 +579,12 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	}
 
 	private String buildExtractionFileName(Entry<String, String> extractionFormat, String bioFileId) {
-		return bioFileId.split("\\.")[0].concat(DOT).concat(getModalityForFormat(extractionFormat.getKey())).concat(DOT)
-				.concat(extractionFormat.getValue());
+		String modality = getModalityForFormat(extractionFormat.getKey());
+		String fileName = bioFileId.split("\\.")[0].concat(DOT).concat(modality).concat(DOT).concat(extractionFormat.getValue());
+
+		idrepoDraftLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "buildExtractionFileName",
+				"Built file name: " + fileName + " from bioFileId: " + bioFileId + ", format: " + extractionFormat);
+		return fileName;
 	}
 	
 	private String getModalityForFormat(String formatQueryParam) {
