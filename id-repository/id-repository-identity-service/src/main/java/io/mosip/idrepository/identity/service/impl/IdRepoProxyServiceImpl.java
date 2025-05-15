@@ -669,7 +669,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 					verifiedAttributes);
 			if(!Objects.isNull(verifiedAttributes)) {
 				boolean isV1Version = ((List) verifiedAttributes).stream().allMatch(item -> item instanceof String);
-				if(!isV1Version) {
+				if(isV1Version) {
 					Set<String> attributes = new HashSet<>();
 					for(LinkedHashMap<String, Object> verificationMetadata : (List<LinkedHashMap<String, Object>>)verifiedAttributes) {
 						attributes.addAll((List<String>)verificationMetadata.get("claims"));
