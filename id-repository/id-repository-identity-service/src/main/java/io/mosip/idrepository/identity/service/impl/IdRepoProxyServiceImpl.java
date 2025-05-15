@@ -665,6 +665,8 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 			ObjectNode identityObject = convertToObject(uin.getUinData(), ObjectNode.class);
 
 			Object verifiedAttributes = mapper.convertValue(identityObject.get(VERIFIED_ATTRIBUTES), Object.class);
+			mosipLogger.info("DEBUG--- verifiedAttributes as fetched from the getidentity -> {} , verifiedAttributes -> {}", identityObject,
+					verifiedAttributes);
 			if(!Objects.isNull(verifiedAttributes)) {
 				boolean isV1Version = ((List) verifiedAttributes).stream().allMatch(item -> item instanceof String);
 				if(!isV1Version) {
