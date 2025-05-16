@@ -536,6 +536,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			}
 		idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, "extractBiometrics",
 				"Biometrics extraction completed or skipped. Returning status DRAFTED.");
+
 		return constructIdResponse(null, DRAFTED, null, null);
 	}
 
