@@ -318,7 +318,7 @@ public class CredentialProvider {
 				Object object = identity.get(attribute);
 				Object formattedObject = object;
 
-				LOGGER.info("DEBUG--- attribute : {}, object: {}", attribute, object);
+				LOGGER.info("DEBUG--- attribute : {}", attribute);
 
 				if (object != null) {
 					if (userReqMaskingAttributes != null && !userReqMaskingAttributes.isEmpty()
@@ -330,7 +330,6 @@ public class CredentialProvider {
 							formattedObject = formattedObjectVal;
 						}
 					}
-					LOGGER.info("DEBUG--- Adding attribute : {}, object: {}", attribute, formattedObject);
 					attributesMap.put(key, formattedObject);
 				} else if (isNameAttribute(attribute)
 						|| isFullAddressAttribute(attribute)) {
@@ -358,6 +357,13 @@ public class CredentialProvider {
 					attributesMap.put(key, vidInfoDTO.getVid());
 					additionalData.put("ExpiryTimestamp", vidInfoDTO.getExpiryTimestamp().toString());
 					additionalData.put("TransactionLimit", vidInfoDTO.getTransactionLimit());
+				} else if(attribute.equals(VERIFIED_ATTRIBUTES)) {
+					List savedVerifiedAttributes = (List) idResponseDto.getResponse().getVerifiedAttributes();
+					boolean metadataNotAvailable = savedVerifiedAttributes != null && savedVerifiedAttributes.stream().allMatch(item -> item instanceof String);
+					if(!metadataNotAvailable) {
+						attributesMap.put(key, idResponseDto.getResponse().getVerifiedAttributes());
+					}
+					LOGGER.info("DEBUG--- attribute equals(VERIFIED_ATTRIBUTES) : {} metadataNotAvailable: {}", attribute, metadataNotAvailable);
 				}
 			}
 
@@ -649,11 +655,7 @@ public class CredentialProvider {
 		} else if (isFullAddressAttribute(attribute) ) {
 			List<String> identityAttributesList = attributeFormat==null?List.of():Arrays.asList(attributeFormat.split(","));
 			formattedObject = formatData(identity, FULLADDRESS, identityAttributesList, source.getFilter());
-		} else if (isVerifiedAttributes(attribute) ) {
-			LOGGER.info("DEBUG--- attribute : {} isVerifiedAttributes", attribute);
-			formattedObject = identity.get(attribute);
-		} else if(identity.get(attribute) instanceof List){
-			LOGGER.info("DEBUG--- attribute : {} is a list", attribute);
+		} else if(identity.get(attribute) instanceof List) {
 			formattedObject = formatData(identity, attribute, List.of(), source.getFilter());
 		}
 
