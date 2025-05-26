@@ -38,7 +38,7 @@ public class IdRepoUtil extends AdminTestUtil {
 		String dob = dobArray.getString(0);
 		JSONArray emailArray = new JSONArray(getValueFromAuthActuator("json-property", "emailId"));
 		String email = emailArray.getString(0);
-		JSONArray phoneArray = new JSONArray(getValueFromAuthActuator("json-property", "phone_number"));
+//		JSONArray phoneArray = new JSONArray(getValueFromAuthActuator("json-property", "phone_number"));
 
 		if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("DOB")
 				&& (!isElementPresent(globalRequiredFields, dob))) {
