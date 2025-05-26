@@ -75,7 +75,7 @@ public class AuditHelper {
 		try {
 			restRequest = restBuilder.buildRequest(RestServicesConstants.AUDIT_MANAGER_SERVICE, auditRequest,
 					AuditResponseDTO.class);
-			restHelper.requestAsync(restRequest);
+			restHelper.requestSync(restRequest);
 		} catch (IdRepoDataValidationException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), "AuditRequestBuilder", "audit",
 					"Exception : " + ExceptionUtils.getStackTrace(e));
