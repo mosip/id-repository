@@ -2,6 +2,7 @@ package io.mosip.idrepository.identity.repository;
 
 import java.util.Optional;
 
+import io.mosip.idrepository.core.dto.RidDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -63,4 +64,8 @@ public interface UinRepo extends JpaRepository<Uin, String> {
 
 	@Query("select regId from Uin where uinHash = :uinHash")
 	String getRidByUinHash(@Param("uinHash") String uinHash);
+
+	@Query("select u.regId as rid, u.updatedDateTime as updatedDate from Uin u where u.uinHash = :uinHash")
+	RidDTO findRidInfoByUinHash(@Param("uinHash") String uinHash);
+
 }

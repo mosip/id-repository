@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.HandleInfoDTO;
+import io.mosip.idrepository.core.dto.RidDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 
 /**
@@ -73,7 +73,9 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 * @return ResponseWrapper<String>
 	 */
 	String getRidByIndividualId(String individualId, IdType idType) throws IdRepoAppException;
-	
+
+	RidDTO getRidInfoByIndividualId(String individualId, IdType idType) throws IdRepoAppException;
+
 	/**
 	 * This function is used to get the maximum allowed update count of an attribute
 	 * for the given individual id

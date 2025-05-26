@@ -8,12 +8,7 @@ import io.mosip.idrepository.core.constant.IDAEventType;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
-import io.mosip.idrepository.core.dto.DocumentsDTO;
-import io.mosip.idrepository.core.dto.HandleInfoDTO;
-import io.mosip.idrepository.core.dto.IdRequestDTO;
-import io.mosip.idrepository.core.dto.IdResponseDTO;
-import io.mosip.idrepository.core.dto.ResponseDTO;
-import io.mosip.idrepository.core.dto.RestRequestDTO;
+import io.mosip.idrepository.core.dto.*;
 import io.mosip.idrepository.core.entity.Handle;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
@@ -574,6 +569,26 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveRidByUin",
 					"NO_RECORD_FOUND");
 			throw new IdRepoAppException(NO_RECORD_FOUND);
+		}
+	}
+
+	public RidDTO getRidInfoByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
+		switch (idType) {
+			case VID:
+				individualId = getUinByVid(individualId);
+			case UIN:
+				String uinHash = retrieveUinHash(individualId);
+				if (uinRepo.existsByUinHash(uinHash)) {
+					return uinRepo.findRidInfoByUinHash(uinHash);
+				} else {
+					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveRidInfoByUin",
+							"NO_RECORD_FOUND");
+					throw new IdRepoAppException(NO_RECORD_FOUND);
+				}
+			default:
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getRidInfoByIndividualId",
+						"NO_RECORD_FOUND");
+				throw new IdRepoAppException(NO_RECORD_FOUND);
 		}
 	}
 

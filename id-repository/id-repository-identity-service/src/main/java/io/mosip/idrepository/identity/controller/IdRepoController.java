@@ -19,7 +19,6 @@ import javax.annotation.Nullable;
 import javax.annotation.Resource;
 
 import io.mosip.idrepository.core.dto.*;
-import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -495,6 +494,36 @@ public class IdRepoController {
 		responseWrapper.setResponse(ridDto);
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
 				individualId, individualIdType, "Get RID by IndividualId Request success");
+		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
+	}
+
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetRidByIndividualId())")
+	@GetMapping(path = "/rid/{uin}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "Get RID Info by IndividualId Request", description = "Get RID Info by IndividualId Request", tags = {
+			"id-repo-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Request authenticated successfully", content = @Content(array = @ArraySchema(schema = @Schema(implementation = IdRepoAppException.class)))),
+			@ApiResponse(responseCode = "400", description = "No Records Found", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
+	public ResponseEntity<ResponseWrapper<RidDTO>> getRidInfoByIndividualId(@PathVariable("uin") String uin,
+																		@RequestParam(name = ID_TYPE, required = false) @Nullable String idType) throws IdRepoAppException {
+
+		IdType individualIdType = Objects.isNull(idType) ? getIdType(uin) : validator.validateIdType(idType);
+		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
+				uin, individualIdType, "Request received");
+
+		RidDTO ridDTO = idRepoService.getRidInfoByIndividualId(uin, individualIdType);
+
+		ResponseWrapper<RidDTO> responseWrapper = new ResponseWrapper<>();
+		responseWrapper.setId(ridId);
+		responseWrapper.setVersion(ridVersion);
+		responseWrapper.setResponse(ridDTO);
+
+		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
+				uin, individualIdType, "Request success");
+
 		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}
 
