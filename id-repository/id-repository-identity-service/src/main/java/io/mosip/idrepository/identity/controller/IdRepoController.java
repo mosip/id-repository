@@ -497,7 +497,7 @@ public class IdRepoController {
 		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}
 
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getRidInfoByIndividualId())")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetRidInfoByIndividualId())")
 	@GetMapping(path = "/rid-info/{uin}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Get RID Info by IndividualId Request", description = "Get RID Info by IndividualId Request", tags = {
 			"id-repo-controller" })
