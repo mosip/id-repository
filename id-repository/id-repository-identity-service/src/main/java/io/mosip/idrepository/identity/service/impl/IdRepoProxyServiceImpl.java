@@ -579,7 +579,11 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			case UIN:
 				String uinHash = retrieveUinHash(individualId);
 				if (uinRepo.existsByUinHash(uinHash)) {
-					return uinRepo.findRidInfoByUinHash(uinHash);
+					Uin uin = uinRepo.findRidInfoByUinHash(uinHash);
+					RidDTO ridDTO = new RidDTO();
+					ridDTO.setRid(uin.getRegId());
+					ridDTO.setUpdatedDate(uin.getUpdatedDateTime());
+					return ridDTO;
 				} else {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveRidInfoByUin",
 							"NO_RECORD_FOUND");

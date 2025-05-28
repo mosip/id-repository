@@ -65,7 +65,7 @@ public interface UinRepo extends JpaRepository<Uin, String> {
 	@Query("select regId from Uin where uinHash = :uinHash")
 	String getRidByUinHash(@Param("uinHash") String uinHash);
 
-	@Query("select u.regId as rid, u.updatedDateTime as updatedDate from Uin u where u.uinHash = :uinHash")
-	RidDTO findRidInfoByUinHash(@Param("uinHash") String uinHash);
+	@Query("select u from Uin u where u.uinHash = :uinHash")
+	Uin findRidInfoByUinHash(@Param("uinHash") String uinHash);
 
 }
