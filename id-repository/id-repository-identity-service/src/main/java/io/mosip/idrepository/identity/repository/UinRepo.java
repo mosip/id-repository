@@ -65,7 +65,7 @@ public interface UinRepo extends JpaRepository<Uin, String> {
 	@Query("select regId from Uin where uinHash = :uinHash")
 	String getRidByUinHash(@Param("uinHash") String uinHash);
 
-	@Query("select new io.mosip.idrepository.core.dto.RidDTO(u.regId, u.updatedDateTime from Uin u where u.uinHash = :uinHash")
+	@Query("select new io.mosip.idrepository.core.dto.RidDTO(u.regId, u.updatedDateTime) from Uin u where u.uinHash = :uinHash")
 	RidDTO findRidInfoByUinHash(@Param("uinHash") String uinHash);
 
 }
