@@ -567,6 +567,45 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	}
 
 	/**
+	 * Retrieves detailed RID information for a given individual
+	 * based on the provided ID and its type.
+	 *
+	 * @param individualId the identifier of the individual whose RID information is to be fetched
+	 * @param idType       The type of ID that you're passing in.
+	 * @return a {@code RidDTO} containing detailed RID information
+	 * @throws IdRepoAppException if there is an error during retrieval
+	 */
+	public RidDTO getRidInfoByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
+		try {
+			switch (idType) {
+				case VID:
+					individualId = getUinByVid(individualId);
+				case UIN:
+					String uinHash = retrieveUinHash(individualId);
+					if (uinRepo.existsByUinHash(uinHash)) {
+						Uin uin = uinRepo.findRidInfoByUinHash(uinHash);
+						RidDTO ridDTO = new RidDTO();
+						ridDTO.setRid(uin.getRegId());
+						ridDTO.setUpdatedDate(uin.getUpdatedDateTime());
+						return ridDTO;
+					} else {
+						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveRidInfoByUin",
+								"NO_RECORD_FOUND");
+						throw new IdRepoAppException(NO_RECORD_FOUND);
+					}
+				default:
+					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getRidInfoByIndividualId",
+							"NO_RECORD_FOUND");
+					throw new IdRepoAppException(NO_RECORD_FOUND);
+			}
+		} catch (DataAccessException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
+					"getRidInfoByIndividualId", "DATABASE_ERROR");
+			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
+		}
+	}
+
+	/**
 	 * It takes a VID as input and returns the corresponding UIN
 	 *
 	 * @param vid Virtual ID

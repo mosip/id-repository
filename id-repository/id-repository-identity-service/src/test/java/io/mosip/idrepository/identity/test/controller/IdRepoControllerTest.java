@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -669,6 +670,28 @@ public class IdRepoControllerTest {
 		when(idRepoService.getRidByIndividualId(any(), any())).thenReturn("1234");
 		ResponseEntity<ResponseWrapper<RidDto>> ridResponse = controller.getRidByIndividualId("", "");
 		assertEquals("1234", ridResponse.getBody().getResponse().getRid());
+	}
+
+	@Test
+	public void testGetRidInfoByUin() throws IdRepoAppException {
+		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
+		RidDTO ridDTO = new RidDTO();
+		ridDTO.setRid("777777");
+		ridDTO.setUpdatedDate(LocalDateTime.now());
+		when(idRepoService.getRidInfoByIndividualId(any(), any())).thenReturn(ridDTO);
+		ResponseEntity<ResponseWrapper<RidDTO>> ridResponse = controller.getRidInfoByIndividualId("", null);
+		assertEquals("777777", ridResponse.getBody().getResponse().getRid());
+	}
+
+	@Test
+	public void testGetRidInfoByUinWithIdType() throws IdRepoAppException {
+		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
+		RidDTO ridDTO = new RidDTO();
+		ridDTO.setRid("777777");
+		ridDTO.setUpdatedDate(LocalDateTime.now());
+		when(idRepoService.getRidInfoByIndividualId(any(), any())).thenReturn(ridDTO);
+		ResponseEntity<ResponseWrapper<RidDTO>> ridResponse = controller.getRidInfoByIndividualId("", "");
+		assertEquals("777777", ridResponse.getBody().getResponse().getRid());
 	}
 	
 	@Test
