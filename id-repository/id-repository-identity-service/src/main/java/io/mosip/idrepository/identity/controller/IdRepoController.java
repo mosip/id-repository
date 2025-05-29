@@ -510,14 +510,11 @@ public class IdRepoController {
 	public ResponseEntity<ResponseWrapper<RidDTO>> getRidInfoByIndividualId(@PathVariable("uin") String uin,
 																		@RequestParam(name = ID_TYPE, required = false) @Nullable String idType) throws IdRepoAppException {
 
-		mosipLogger.info("Received UIN from path parameter: {}", uin);
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(uin) : validator.validateIdType(idType);
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
 				uin, individualIdType, "Request received");
 
 		RidDTO ridDTO = idRepoService.getRidInfoByIndividualId(uin, individualIdType);
-
-		mosipLogger.info("RID: {}, Updated Date: {}", ridDTO.getRid(), ridDTO.getUpdatedDate());
 
 		ResponseWrapper<RidDTO> responseWrapper = new ResponseWrapper<>();
 		responseWrapper.setId(ridId);
