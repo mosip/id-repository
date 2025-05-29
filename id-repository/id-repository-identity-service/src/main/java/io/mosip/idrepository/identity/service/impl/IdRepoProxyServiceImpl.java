@@ -595,7 +595,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 							"NO_RECORD_FOUND");
 					throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
-		} catch (DataAccessException dae) {
+		} catch (DataAccessException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
 					"getRidInfoByIndividualId", "DATABASE_ERROR");
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
