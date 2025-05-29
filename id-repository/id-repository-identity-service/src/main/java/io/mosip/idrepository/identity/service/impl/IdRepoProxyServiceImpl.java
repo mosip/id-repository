@@ -573,26 +573,32 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	}
 
 	public RidDTO getRidInfoByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
-		switch (idType) {
-			case VID:
-				individualId = getUinByVid(individualId);
-			case UIN:
-				String uinHash = retrieveUinHash(individualId);
-				if (uinRepo.existsByUinHash(uinHash)) {
-					Uin uin = uinRepo.findRidInfoByUinHash(uinHash);
-					RidDTO ridDTO = new RidDTO();
-					ridDTO.setRid(uin.getRegId());
-					ridDTO.setUpdatedDate(uin.getUpdatedDateTime());
-					return ridDTO;
-				} else {
-					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveRidInfoByUin",
+		try {
+			switch (idType) {
+				case VID:
+					individualId = getUinByVid(individualId);
+				case UIN:
+					String uinHash = retrieveUinHash(individualId);
+					if (uinRepo.existsByUinHash(uinHash)) {
+						Uin uin = uinRepo.findRidInfoByUinHash(uinHash);
+						RidDTO ridDTO = new RidDTO();
+						ridDTO.setRid(uin.getRegId());
+						ridDTO.setUpdatedDate(uin.getUpdatedDateTime());
+						return ridDTO;
+					} else {
+						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveRidInfoByUin",
+								"NO_RECORD_FOUND");
+						throw new IdRepoAppException(NO_RECORD_FOUND);
+					}
+				default:
+					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getRidInfoByIndividualId",
 							"NO_RECORD_FOUND");
 					throw new IdRepoAppException(NO_RECORD_FOUND);
-				}
-			default:
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getRidInfoByIndividualId",
-						"NO_RECORD_FOUND");
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+			}
+		} catch (DataAccessException dae) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
+					"getRidInfoByIndividualId", "DATABASE_ERROR");
+			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
 		}
 	}
 
