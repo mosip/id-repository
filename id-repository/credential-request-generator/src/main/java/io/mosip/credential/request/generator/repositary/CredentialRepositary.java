@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
+import io.mosip.credential.request.generator.api.annotation.SkipDecryption;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Lock;
@@ -47,6 +48,7 @@ public interface CredentialRepositary<T extends CredentialEntity, E> extends Bas
 	@Lock(value = LockModeType.PESSIMISTIC_WRITE) 
 	@QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "1") })
 	@Query("select c from CredentialEntity c where c.statusCode=:statusCode")
+	@SkipDecryption
 	Page<CredentialEntity> findCredentialByStatusCode(@Param("statusCode")String statusCode, Pageable pageable);
 
 	/**

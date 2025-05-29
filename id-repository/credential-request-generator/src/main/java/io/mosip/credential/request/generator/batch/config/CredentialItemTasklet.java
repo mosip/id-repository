@@ -80,7 +80,16 @@ public class CredentialItemTasklet implements Tasklet {
 		String batchId = UUID.randomUUID().toString();
 		LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 				"Inside CredentialItemTasklet.execute() method");
+		LOGGER.info("BEFORE CREDENTIAL METHOD");
 		List<CredentialEntity> credentialEntities = credentialDao.getCredentials(batchId);
+		if (credentialEntities == null || credentialEntities.isEmpty()) {
+			LOGGER.info("No credentials found for batchId: {}", batchId);
+		} else {
+			LOGGER.info("Fetched {} credential(s) for batchId: {}", credentialEntities.size(), batchId);
+			for (CredentialEntity credential : credentialEntities) {
+				LOGGER.info("Credential: {}", credential);
+			}
+		}
 
 		try {
 			forkJoinPool.submit(() -> credentialEntities.parallelStream().forEach(credential -> {
