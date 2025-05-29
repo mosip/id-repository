@@ -107,7 +107,7 @@
 		<junit.version>4.12</junit.version>
 		<mockito.version>2.22.0</mockito.version>
 
-		<kernel.logger.logback.version>1.2.0.1</kernel.logger.logback.version>
+		<kernel.logger.logback.version>1.2.1.0-SNAPSHOT</kernel.logger.logback.version>
 	</properties>
     <dependencies>
     	<!-- JUnit -->
