@@ -45,6 +45,7 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.websub.model.EventModel;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
+import static io.mosip.idrepository.core.security.IdRepoSecurityManager.ID_TYPE;
 
 /**
  * The Class CredentialServiceManager.
@@ -139,7 +140,6 @@ public class CredentialServiceManager {
 
 	@Autowired
 	private UinEncryptSaltRepo uinEncryptSaltRepo;
-
 	
 	@Value("${" + PROP_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS + ":"
 			+ DEFAULT_SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS + "}")
@@ -181,6 +181,8 @@ public class CredentialServiceManager {
 			Consumer<EventModel> idaEventModelConsumer, List<String> partnerIds, String requestId) {
 		try {
 			List<VidInfoDTO> vidInfoDtos = null;
+			mosipLogger.info("DEBUG--- notifyUinCredential uin>> {} isUpdate >> {} vidSupportDisabled >> {}", uin, isUpdate, vidSupportDisabled);
+
 			if (isUpdate && !vidSupportDisabled) {
 				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_VIDS_BY_UIN, null,
 						VidsInfosDTO.class);
@@ -191,8 +193,6 @@ public class CredentialServiceManager {
 
 			String uinHash = getUinHash(uin);
 			List<Handle> handles = getHandles(uinHash);
-
-
 
 			if (partnerIds.isEmpty() || (partnerIds.size() == 1 && dummyCheck.isDummyOLVPartner(partnerIds.get(0)))) {
 				partnerIds = partnerServiceManager.getOLVPartnerIds();
@@ -368,13 +368,17 @@ public class CredentialServiceManager {
 	public void sendUinEventsToCredService(String uin, LocalDateTime expiryTimestamp, boolean isUpdate,
 			List<VidInfoDTO> vidInfoDtos, List<HandleInfoDTO> handleInfoDtos, List<String> partnerIds, IntFunction<String> saltRetreivalFunction,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,String requestId) {
+
+		mosipLogger.info("DEBUG---  sendUinEventsToCredService vidInfoDtos {}", vidInfoDtos);
+
 		List<CredentialIssueRequestDto> eventRequestsList = new ArrayList<>();
 
 		if(!disableUINBasedCredentialRequest) {
 			eventRequestsList.addAll(partnerIds.stream().map(partnerId -> {
 				String token = tokenIDGenerator.generateTokenID(uin, partnerId);
-				return createCredReqDto(uin, partnerId, expiryTimestamp, null, token,
-						securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(uin, saltRetreivalFunction), requestId);
+				Map<String, String> hashAttributes = securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(uin, saltRetreivalFunction);
+				hashAttributes.put(ID_TYPE, IdType.UIN.getIdType());
+				return createCredReqDto(uin, partnerId, expiryTimestamp, null, token, hashAttributes, requestId);
 			}).collect(Collectors.toList()));
 		}
 
@@ -383,6 +387,7 @@ public class CredentialServiceManager {
 				LocalDateTime vidExpiryTime = Objects.isNull(expiryTimestamp) ? vidInfoDTO.getExpiryTimestamp() : expiryTimestamp;
 				return partnerIds.stream().map(partnerId -> {
 					String token = tokenIDGenerator.generateTokenID(uin, partnerId);
+					vidInfoDTO.getHashAttributes().put(ID_TYPE, IdType.VID.getIdType());
 					return createCredReqDto(vidInfoDTO.getVid(), partnerId, vidExpiryTime, vidInfoDTO.getTransactionLimit(),
 							token, vidInfoDTO.getHashAttributes());
 				});
@@ -396,6 +401,7 @@ public class CredentialServiceManager {
 			List<CredentialIssueRequestDto> handleRequests = handleInfoDtos.stream().flatMap(handleInfoDTO -> {
 				return partnerIds.stream().map(partnerId -> {
 					String token = tokenIDGenerator.generateTokenID(uin, partnerId);
+					handleInfoDTO.getAdditionalData().put(ID_TYPE, IdType.HANDLE.getIdType());
 					//Given requestId and the handle value is hashed together to generate a unique requestId for handle credential.
 					//Credential issuance status check systems should generate the handle requestId in the same way to get latest issuance status.
 					return createCredReqDto(handleInfoDTO.getHandle(), partnerId, null, null,
@@ -472,9 +478,10 @@ public class CredentialServiceManager {
 	 */
 	private void sendRequestToCredService(String partnerId, CredentialIssueRequestWrapperDto requestWrapper,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
+		Map<String, Object> response = Map.of();
 		try {
+			mosipLogger.info("DEBUG---  sendRequestToCredService requestWrapper {}", requestWrapper);
 
-			Map<String, Object> response = Map.of();
 			RestServicesConstants restServicesConstants = requestWrapper.getRequest().getRequestId() != null
 					&& !requestWrapper.getRequest().getRequestId().isEmpty()
 					? RestServicesConstants.CREDENTIAL_REQUEST_SERVICE_V2
@@ -489,9 +496,6 @@ public class CredentialServiceManager {
 					SEND_REQUEST_TO_CRED_SERVICE,
 					"Errors in response of Credential Request: " + response.getOrDefault("errors", "[]"));
 
-			if (credentialRequestResponseConsumer != null) {
-				credentialRequestResponseConsumer.accept(requestWrapper, response);
-			}
 
 		} catch (RestServiceException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_REQUEST_TO_CRED_SERVICE,
@@ -499,6 +503,10 @@ public class CredentialServiceManager {
 		} catch (IdRepoDataValidationException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_REQUEST_TO_CRED_SERVICE,
 					ExceptionUtils.getStackTrace(e));
+		} finally {
+			if (credentialRequestResponseConsumer != null) {
+				credentialRequestResponseConsumer.accept(requestWrapper, response);
+			}
 		}
 	}
 
@@ -538,10 +546,13 @@ public class CredentialServiceManager {
 		credentialIssueRequestDto.setRecepiant(credentialRecepiant);
 		credentialIssueRequestDto.setUser(IdRepoSecurityManager.getUser());
 		credentialIssueRequestDto.setAdditionalData(data);
+
+		mosipLogger.info("createCredReqDto id: {}, idHashAttributes : {}",id, idHashAttributes);
+
 		return credentialIssueRequestDto;
 	}
 	
-	public void sendEventsToCredService(List<? extends CredentialRequestStatus> requestEntities,
+	/*public void sendEventsToCredService(List<? extends CredentialRequestStatus> requestEntities,
 			List<String> partnerIds,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,
 			Predicate<? super CredentialIssueRequestDto> additionalFilterCondition,
@@ -567,7 +578,7 @@ public class CredentialServiceManager {
 			
 		}
 		
-	}
+	}*/
 
 	private boolean isExpired(CredentialRequestStatus entity) {
 		return entity.getIdExpiryTimestamp() != null && !DateUtils.getUTCCurrentDateTime().isAfter(entity.getIdExpiryTimestamp());
