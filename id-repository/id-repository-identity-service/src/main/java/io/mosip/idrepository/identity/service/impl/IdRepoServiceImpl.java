@@ -958,6 +958,11 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		return null;
 	}
 
+	@Override
+	public RidDTO getRidInfoByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
+		return null;
+	}
+
 	/**
 	 * This function is used to get the maximum allowed update count of an attribute
 	 * for the given individual id

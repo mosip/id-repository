@@ -1,6 +1,7 @@
 package io.mosip.idrepository.identity.dto;
 
 import lombok.Data;
+import java.time.LocalDateTime;
 
 /**
  * The Get RID dto.
@@ -11,5 +12,5 @@ import lombok.Data;
 public class RidDto {
 
 	private String rid;
-
+	private LocalDateTime updatedDate;
 }
