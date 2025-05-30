@@ -59,6 +59,7 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 			if(SkipDecryptionContext.isSkipDecryption()){
 				LOGGER.debug("Skipping decryption as SkipDecryptionContext is enabled");
 				decryptedData = requestValue;
+				LOGGER.info("DECRYPTED DATA : "+decryptedData);
 			}else {
 				try {
 					decryptedData = new String(CryptoUtil
