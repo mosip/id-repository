@@ -82,6 +82,7 @@ public class CredentialItemTasklet implements Tasklet {
 				"Inside CredentialItemTasklet.execute() method");
 		LOGGER.info("BEFORE CREDENTIAL METHOD");
 		List<CredentialEntity> credentialEntities = credentialDao.getCredentials(batchId);
+		LOGGER.info("AFTER CREDENTIAL METHOD");
 		if (credentialEntities == null || credentialEntities.isEmpty()) {
 			LOGGER.info("No credentials found for batchId: {}", batchId);
 		} else {
