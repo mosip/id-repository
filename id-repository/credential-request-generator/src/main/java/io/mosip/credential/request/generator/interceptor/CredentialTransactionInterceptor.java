@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 
+import io.mosip.credential.request.generator.util.SkipDecryptionContext;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
 import org.springframework.http.MediaType;
@@ -54,14 +55,20 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 			int indexOfData = Arrays.asList(propertyNames).indexOf(REQUEST);
 			String decryptedData;
 			String requestValue = (String) state[indexOfData];
-			try {
-				decryptedData = new String(CryptoUtil
-						.decodeURLSafeBase64(encryptDecryptData(ApiName.DECRYPTION, requestValue)));
-			} catch (Exception e) {
-				LOGGER.debug(
-						"Decryption failed. Falling back to treat the data as un-encrypted one for backward compatibility with 1.1.5.5\n "
-								+ ExceptionUtils.getStackTrace(e));
+
+			if(SkipDecryptionContext.isSkipDecryption()){
+				LOGGER.debug("Skipping decryption as SkipDecryptionContext is enabled");
 				decryptedData = requestValue;
+			}else {
+				try {
+					decryptedData = new String(CryptoUtil
+							.decodeURLSafeBase64(encryptDecryptData(ApiName.DECRYPTION, requestValue)));
+				} catch (Exception e) {
+					LOGGER.debug(
+							"Decryption failed. Falling back to treat the data as un-encrypted one for backward compatibility with 1.1.5.5\n "
+									+ ExceptionUtils.getStackTrace(e));
+					decryptedData = requestValue;
+				}
 			}
 			state[indexOfData] = decryptedData;
 		}
