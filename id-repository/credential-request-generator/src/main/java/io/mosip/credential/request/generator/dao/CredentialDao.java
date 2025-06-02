@@ -86,8 +86,12 @@ public class CredentialDao {
     }
 
     public Page<CredentialEntity> findByStatusCode(String statusCode, Pageable pageable){
-
-      return crdentialRepo.findByStatusCode(statusCode, pageable);
+      //return crdentialRepo.findByStatusCode(statusCode, pageable);
+        Page<CredentialEntity> credentialPage=crdentialRepo.findByStatusCode(statusCode,pageable);
+        credentialPage.forEach(credential ->
+                LOGGER.info("Credential ID: {}, Signature: {}", credential.getCredentialId(), credential.getSignature())
+        );
+        return credentialPage;
     }
     
     public Page<CredentialEntity> findByStatusCodeWithEffectiveDtimes(String statusCode,
