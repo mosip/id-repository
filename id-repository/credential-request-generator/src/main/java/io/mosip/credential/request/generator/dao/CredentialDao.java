@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CredentialDao {
 
-    @Value("${credential.batch.status:NEW}")
+    @Value("${credential.batch.status:STORED}")
     private String status;
 
     @Value("${credential.batch.page.size:100}")
