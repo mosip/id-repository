@@ -624,8 +624,11 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		Map<String, Object> metadata = new HashMap<>();
 		metadata.put("trust_framework", "NA");
 		metadata.put("verification_process", "NA");
+		metadata.put("time", DateUtils.getUTCCurrentDateTimeString());
 		verificationMetadata.setMetadata(metadata);
-		return List.of(verificationMetadata);
+		List<VerificationMetadata> verificationMetadataList = new ArrayList<>();
+		verificationMetadataList.add(verificationMetadata);
+		return verificationMetadataList;
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
