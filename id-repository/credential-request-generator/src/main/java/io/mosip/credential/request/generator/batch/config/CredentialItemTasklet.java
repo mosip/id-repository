@@ -88,7 +88,7 @@ public class CredentialItemTasklet implements Tasklet {
 		} else {
 			LOGGER.info("Fetched {} credential(s) for batchId: {}", credentialEntities.size(), batchId);
 			for (CredentialEntity credential : credentialEntities) {
-				LOGGER.info("Credential: {}", credential);
+				LOGGER.info("Credential: {}", credential.getCredentialId());
 			}
 		}
 
