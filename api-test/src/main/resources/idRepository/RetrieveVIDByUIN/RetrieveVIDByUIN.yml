@@ -91,17 +91,14 @@ RetrieveVIDByUIN:
       uniqueIdentifier: TC_IDRepo_RetrieveVIDByUIN_06
       role: idrepo
       restMethod: get
+      checkOnlyStatusCodeInResponse: true
       inputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUIN
-      outputTemplate: idRepository/error
+      outputTemplate: idRepository/responseCode
       input: '{
       "UIN":""
       }'
       output: '{
-   "errors": [
-    {
-      "errorCode": "IDR-IDC-003"
-    }
-  ]
+        "responseCode": "500"
 }'
 
   IdRepository_RetrieveVIDByUIN_With_Space Uin:
