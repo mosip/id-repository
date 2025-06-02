@@ -2,6 +2,7 @@ package io.mosip.credential.request.generator.Helper;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.credential.request.generator.batch.config.CredentialItemReprocessTasklet;
 import io.mosip.credential.request.generator.constants.ApiName;
 import io.mosip.credential.request.generator.constants.CredentialRequestErrorCodes;
 import io.mosip.credential.request.generator.dto.CryptomanagerRequestDto;
@@ -16,6 +17,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,8 @@ import java.util.Objects;
 public class CredentialIssueRequestHelper {
     @Autowired
     private RestUtil restUtil;
+
+    private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialIssueRequestHelper.class);
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -65,6 +69,7 @@ public class CredentialIssueRequestHelper {
 
     public CredentialIssueRequestDto getCredentialIssueRequestDto(CredentialEntity credentialEntity) throws JsonProcessingException {
         String request = credentialEntity.getRequest();
+        LOGGER.info("ENCRYPTED REQUEST"+request);
         String decryptedData = encryptDecryptData(ApiName.DECRYPTION, request);
         CredentialIssueRequestDto credentialIssueRequestDto = objectMapper.readValue(decryptedData, CredentialIssueRequestDto.class);
         return credentialIssueRequestDto;
