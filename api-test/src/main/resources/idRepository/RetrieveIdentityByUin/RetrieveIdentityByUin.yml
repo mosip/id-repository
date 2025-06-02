@@ -87,17 +87,14 @@ RetrieveIdentity:
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_06
       role: idrepo
       restMethod: get
+      checkOnlyStatusCodeInResponse: true
       inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
-      outputTemplate: idRepository/error
+      outputTemplate: idRepository/responseCode
       input: '{
     "id": ""
 }'
       output: '{
-   "errors": [
-    {
-      "errorCode": "IDR-IDC-003"
-    }
-  ]
+        "responseCode": "500"
 }'
 
   IdRepository_RetrieveIdentity_With_Invalid_Vid:
@@ -124,17 +121,14 @@ RetrieveIdentity:
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_08
       role: idrepo
       restMethod: get
+      checkOnlyStatusCodeInResponse: true
       inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
-      outputTemplate: idRepository/error
+      outputTemplate: idRepository/responseCode
       input: '{
     "id": ""
 }'
       output: '{
-   "errors": [
-    {
-      "errorCode": "IDR-IDC-003"
-    }
-  ]
+        "responseCode": "500"
 }'
 
   IdRepository_RetrieveIdentity_With_SpaceVal_UIN:

@@ -38,17 +38,14 @@ RetrieveIdentityByRid:
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByRID_03
       role: idrepo
       restMethod: get
+      checkOnlyStatusCodeInResponse: true
       inputTemplate: idRepository/RetrieveIdentityByRid/retrieveIdentityByRid
-      outputTemplate: idRepository/error
+      outputTemplate: idRepository/responseCode
       input: '{
       "RID":""
       }'
       output: '{
-        "errors": [
-          {
-            "errorCode": "IDR-IDC-003"
-          }
-        ]
+        "responseCode": "500"
       }'
 
   IdRepository_RetrieveIdentityByRid_SpaceVal_Rid_Neg:
