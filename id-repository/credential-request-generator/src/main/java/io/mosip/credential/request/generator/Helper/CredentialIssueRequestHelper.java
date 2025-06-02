@@ -20,10 +20,12 @@ import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Objects;
 
+@Component
 public class CredentialIssueRequestHelper {
     @Autowired
     private RestUtil restUtil;
