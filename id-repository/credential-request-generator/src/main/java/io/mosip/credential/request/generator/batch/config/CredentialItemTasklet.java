@@ -8,6 +8,7 @@ import java.util.concurrent.ForkJoinPool;
 
 import javax.annotation.PostConstruct;
 
+import io.mosip.credential.request.generator.Helper.CredentialIssueRequestHelper;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -51,6 +52,9 @@ public class CredentialItemTasklet implements Tasklet {
 	
 	@Autowired
 	private RestUtil restUtil;
+
+	@Autowired
+	private CredentialIssueRequestHelper credentialIssueRequestHelper;
 	
 	/**
 	 * The credentialDao.
@@ -99,18 +103,27 @@ public class CredentialItemTasklet implements Tasklet {
 				try {
 					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 							"started processing item : " + credential.getRequestId());
-					CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class);
-					CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
-					credentialServiceRequestDto.setCredentialType(credentialIssueRequestDto.getCredentialType());
-					credentialServiceRequestDto.setId(credentialIssueRequestDto.getId());
-					credentialServiceRequestDto.setIssuer(credentialIssueRequestDto.getIssuer());
-					credentialServiceRequestDto.setRecepiant(credentialIssueRequestDto.getIssuer());
-					credentialServiceRequestDto.setSharableAttributes(credentialIssueRequestDto.getSharableAttributes());
-					credentialServiceRequestDto.setUser(credentialIssueRequestDto.getUser());
-					credentialServiceRequestDto.setRequestId(credential.getRequestId());
-					credentialServiceRequestDto.setEncrypt(credentialIssueRequestDto.isEncrypt());
-					credentialServiceRequestDto.setEncryptionKey(credentialIssueRequestDto.getEncryptionKey());
-					credentialServiceRequestDto.setAdditionalData(credentialIssueRequestDto.getAdditionalData());
+//					CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class);
+//					CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
+//					credentialServiceRequestDto.setCredentialType(credentialIssueRequestDto.getCredentialType());
+//					credentialServiceRequestDto.setId(credentialIssueRequestDto.getId());
+//					credentialServiceRequestDto.setIssuer(credentialIssueRequestDto.getIssuer());
+//					credentialServiceRequestDto.setRecepiant(credentialIssueRequestDto.getIssuer());
+//					credentialServiceRequestDto.setSharableAttributes(credentialIssueRequestDto.getSharableAttributes());
+//					credentialServiceRequestDto.setUser(credentialIssueRequestDto.getUser());
+//					credentialServiceRequestDto.setRequestId(credential.getRequestId());
+//					credentialServiceRequestDto.setEncrypt(credentialIssueRequestDto.isEncrypt());
+//					credentialServiceRequestDto.setEncryptionKey(credentialIssueRequestDto.getEncryptionKey());
+//					credentialServiceRequestDto.setAdditionalData(credentialIssueRequestDto.getAdditionalData());
+
+					CredentialIssueRequestDto credentialIssueRequestDto = credentialIssueRequestHelper.getCredentialIssueRequestDto(credential);
+					long decryptEndTime = System.currentTimeMillis();
+					LOGGER.info(IdRepoSecurityManager.getUser(), "Perform" + CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
+							credential.getRequestId() + " | Decrypted data: " + mapper.writeValueAsString(credentialIssueRequestDto));
+
+					CredentialServiceRequestDto credentialServiceRequestDto = credentialIssueRequestHelper.getCredentialServiceRequestDto(credentialIssueRequestDto,
+							credential.getRequestId());
+					credential.setRequest(mapper.writeValueAsString(credentialIssueRequestDto));
 
 					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 							"Calling CRDENTIALSERVICE : " + credential.getRequestId());

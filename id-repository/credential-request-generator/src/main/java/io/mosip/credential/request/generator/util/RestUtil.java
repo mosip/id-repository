@@ -80,7 +80,7 @@ public class RestUtil {
 	public <T> T postApi(ApiName apiName, List<String> pathsegments, String queryParamName, String queryParamValue,
 			MediaType mediaType, Object requestType, Class<?> responseClass) throws Exception {
 		T result = null;
-		String apiHostIpPort = environment.getProperty(apiName.name());
+		String apiHostIpPort = environment.getProperty(apiName.getServiceName());
 		UriComponentsBuilder builder = null;
 		if (apiHostIpPort != null)
 			builder = UriComponentsBuilder.fromUriString(apiHostIpPort);
