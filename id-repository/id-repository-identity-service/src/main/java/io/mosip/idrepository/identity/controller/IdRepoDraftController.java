@@ -103,6 +103,11 @@ public class IdRepoDraftController {
 	public ResponseEntity<IdResponseDTO> createDraft(@PathVariable String registrationId,
 			@RequestParam(name = UIN, required = false) @Nullable String uin)
 			throws IdRepoAppException {
+
+		if (!registrationId.matches("\\d+")) {
+			throw new IdRepoAppException(INVALID_INPUT_PARAMETER);
+		}
+
 		try {
 			return new ResponseEntity<>(draftService.createDraft(registrationId, uin), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
