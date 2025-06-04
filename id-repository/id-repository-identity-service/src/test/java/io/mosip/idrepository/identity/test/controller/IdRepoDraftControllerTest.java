@@ -82,7 +82,7 @@ public class IdRepoDraftControllerTest {
 	public void testCreateDraft() throws IdRepoAppException {
 		IdResponseDTO responseDTO = new IdResponseDTO();
 		when(draftService.createDraft(any(), any())).thenReturn(responseDTO);
-		ResponseEntity<IdResponseDTO> createDraftResponse = controller.createDraft("", null);
+		ResponseEntity<IdResponseDTO> createDraftResponse = controller.createDraft("6666", null);
 		assertEquals(HttpStatus.OK, createDraftResponse.getStatusCode());
 		assertEquals(responseDTO, createDraftResponse.getBody());
 	}
