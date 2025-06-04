@@ -1,22 +1,30 @@
 package io.mosip.idrepository.identity.test.service.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 
+import io.mosip.idrepository.core.spi.BiometricExtractionService;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.repository.UinDraftRepo;
+import io.mosip.kernel.biometrics.entities.BIR;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -103,6 +111,9 @@ public class IdRepoProxyServiceTest {
 	IdRepoServiceImpl service;
 
 	@Mock
+	private BiometricExtractionService biometricExtractionService;
+
+	@Mock
 	IdRepoSecurityManager securityManager;
 
 	@Mock
@@ -134,6 +145,11 @@ public class IdRepoProxyServiceTest {
 
 	IdRequestDTO request = new IdRequestDTO();
 
+	private static final String UIN_HASH = "testUinHash";
+	private static final String FILE_NAME = "testFile.xml";
+
+	private Map<String, String> extractionFormats;
+
 	private Map<String, String> id;
 
 	public Map<String, String> getId() {
@@ -153,8 +169,8 @@ public class IdRepoProxyServiceTest {
 	 * @throws RestServiceException
 	 */
 	@Before
-	public void setup() throws FileNotFoundException, IOException, IdRepoDataValidationException, 
-			RestServiceException {
+	public void setup() throws FileNotFoundException, IOException, IdRepoDataValidationException,
+			RestServiceException, Exception {
 		ReflectionTestUtils.setField(proxyService, "mapper", mapper);
 		ReflectionTestUtils.setField(proxyService, "env", env);
 		ReflectionTestUtils.setField(proxyService, "id", id);
@@ -186,6 +202,28 @@ public class IdRepoProxyServiceTest {
 			.readValue("{}".getBytes(), VidsInfosDTO.class));
 
 		when(securityManager.hashwithSalt(any(), any())).thenReturn("hashwithsalt");
+
+		extractionFormats = Map.of("FINGER", "BIO", "IRIS", "BIO", "FACE", "BIO");
+		when(cbeffUtil.createXML(any())).thenReturn("<xml>processed</xml>".getBytes());
+	}
+
+	private byte[] invokeGetBiometricsForRequestedFormats(String sampleXml) throws Exception {
+		try {
+			byte[] xmlData = sampleXml.getBytes();
+			List<BIR> extractedBIRs = cbeffUtil.getBIRDataFromXML(xmlData);
+			when(cbeffUtil.getBIRDataFromXML(any())).thenReturn(extractedBIRs);
+
+			Method method = IdRepoProxyServiceImpl.class.getDeclaredMethod("getBiometricsForRequestedFormats", String.class, String.class, Map.class, byte[].class);
+			method.setAccessible(true);
+			return (byte[]) method.invoke(proxyService, UIN_HASH, FILE_NAME, extractionFormats, xmlData);
+		} catch (InvocationTargetException e) {
+			Throwable cause = e.getCause();
+			if (cause instanceof Exception) {
+				throw (Exception) cause;
+			} else {
+				throw new RuntimeException(cause);
+			}
+		}
 	}
 
 	@Test
@@ -259,4 +297,130 @@ public class IdRepoProxyServiceTest {
 		assertEquals("hashwithsalt", eventModel.getEvent().getData().get("id_hash"));
 		assertEquals("27841457360002620190730095024", eventModel.getEvent().getData().get("registration_id"));
 	}
+
+	//One modality marked as full exception (Finger)
+	@Test
+	public void testOneModalityMarkedAsFullException() throws Exception {
+		String sampleXml = """
+        <BiometricData>
+            <BIR>
+                <Type>FINGER</Type>
+                <EXCEPTION>true</EXCEPTION>
+            </BIR>
+            <BIR>
+                <Type>IRIS</Type>
+                <EXCEPTION>false</EXCEPTION>
+            </BIR>
+            <BIR>
+                <Type>FACE</Type>
+                <EXCEPTION>false</EXCEPTION>
+            </BIR>
+        </BiometricData>
+        """;
+
+		when(biometricExtractionService.extractTemplate(any(), any(), any(), any(), any()))
+				.thenReturn(CompletableFuture.completedFuture(List.of(mock(BIR.class))));
+
+		byte[] result = invokeGetBiometricsForRequestedFormats(sampleXml);
+		assertNotNull(result);
+	}
+
+	//Complete modality as exception
+	@Test
+	public void testCompleteModalityAsException() throws Exception {
+		String sampleXml = """
+        <BiometricData>
+            <BIR>
+                <Type>FINGER</Type>
+                <EXCEPTION>true</EXCEPTION>
+            </BIR>
+            <BIR>
+                <Type>IRIS</Type>
+                <EXCEPTION>true</EXCEPTION>
+            </BIR>
+            <BIR>
+                <Type>FACE</Type>
+                <EXCEPTION>true</EXCEPTION>
+            </BIR>
+        </BiometricData>
+        """;
+
+		byte[] result = invokeGetBiometricsForRequestedFormats(sampleXml);
+		assertNotNull(result);
+	}
+
+	//Any modality one or more as exception
+	@Test
+	public void testAnyModalityOneOrMoreAsException() throws Exception {
+		String sampleXml = """
+        <BiometricData>
+            <BIR>
+                <Type>FINGER</Type>
+                <EXCEPTION>true</EXCEPTION>
+            </BIR>
+            <BIR>
+                <Type>IRIS</Type>
+                <EXCEPTION>true</EXCEPTION>
+            </BIR>
+            <BIR>
+                <Type>FACE</Type>
+                <EXCEPTION>false</EXCEPTION>
+            </BIR>
+        </BiometricData>
+        """;
+
+		when(biometricExtractionService.extractTemplate(any(), any(), any(), any(), any()))
+				.thenReturn(CompletableFuture.completedFuture(List.of(mock(BIR.class))));
+
+		byte[] result = invokeGetBiometricsForRequestedFormats(sampleXml);
+		assertNotNull(result);
+	}
+
+	//Positive test case (No exceptions)
+	@Test
+	public void testPositiveWithoutException() throws Exception {
+		String sampleXml = """
+        <BiometricData>
+            <BIR>
+                <Type>FINGER</Type>
+                <EXCEPTION>false</EXCEPTION>
+            </BIR>
+            <BIR>
+                <Type>IRIS</Type>
+                <EXCEPTION>false</EXCEPTION>
+            </BIR>
+            <BIR>
+                <Type>FACE</Type>
+                <EXCEPTION>false</EXCEPTION>
+            </BIR>
+        </BiometricData>
+        """;
+
+		when(biometricExtractionService.extractTemplate(any(), any(), any(), any(), any()))
+				.thenReturn(CompletableFuture.completedFuture(List.of(mock(BIR.class))));
+
+		byte[] result = invokeGetBiometricsForRequestedFormats(sampleXml);
+		assertNotNull(result);
+	}
+
+	//Finger & Iris as full exception, Face not selected
+	@Test
+	public void testFingerAndIrisAsFullExceptionAndFaceNotSelectedByCountry() throws Exception {
+		String sampleXml = """
+        <BiometricData>
+            <BIR>
+                <Type>FINGER</Type>
+                <EXCEPTION>true</EXCEPTION>
+            </BIR>
+            <BIR>
+                <Type>IRIS</Type>
+                <EXCEPTION>true</EXCEPTION>
+            </BIR>
+        </BiometricData>
+        """;
+
+		byte[] result = invokeGetBiometricsForRequestedFormats(sampleXml);
+		assertNotNull(result);
+	}
+
 }
