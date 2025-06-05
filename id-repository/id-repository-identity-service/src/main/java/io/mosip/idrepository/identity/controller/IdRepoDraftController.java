@@ -86,7 +86,7 @@ public class IdRepoDraftController {
 	@Autowired
 	private Environment environment;
 
-	@Value("${validation.rid.pattern}")
+	@Value("${mosip.idrepo.rid.pattern}")
 	private String ridPattern;
 	
 	@InitBinder
