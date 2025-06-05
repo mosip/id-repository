@@ -128,55 +128,55 @@ public class CredentialItemTasklet implements Tasklet {
 					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 							"Calling CRDENTIALSERVICE : " + credential.getRequestId());
 
-					String responseString = restUtil.postApi(ApiName.CRDENTIALSERVICE, null, "", "",
-							MediaType.APPLICATION_JSON, credentialServiceRequestDto, String.class);
-
-					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
-							"Received response from CRDENTIALSERVICE : " + credential.getRequestId());
-
-					CredentialServiceResponseDto responseObject = mapper.readValue(responseString, CredentialServiceResponseDto.class);
-
-					if (responseObject != null &&
-							responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
-						LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
-								responseObject.toString());
-
-						ErrorDTO error = responseObject.getErrors().get(0);
-						credential.setStatusCode(CredentialStatusCode.FAILED.name());
-						credential.setStatusComment(error.getMessage());
-						retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
-
-					} else {
-						CredentialServiceResponse credentialServiceResponse=responseObject.getResponse();
-						credential.setCredentialId(credentialServiceResponse.getCredentialId());
-						credential.setDataShareUrl(credentialServiceResponse.getDataShareUrl());
-						credential.setIssuanceDate(credentialServiceResponse.getIssuanceDate());
-						credential.setStatusCode(credentialServiceResponse.getStatus());
-						credential.setSignature(credentialServiceResponse.getSignature());
-						credential.setStatusComment("credentials issued to partner");
-
-					}
-					credential.setUpdatedBy(CREDENTIAL_USER);
-					credential.setUpdateDateTime(DateUtils.getUTCCurrentDateTime());
-					if (retryCount != 0) {
-						credential.setRetryCount(retryCount);
-					}
-					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
-							"ended processing item : " + credential.getRequestId());
-				} catch (ApiNotAccessibleException e) {
-
-					LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
-							ExceptionUtils.getStackTrace(e));
-					credential.setStatusCode("FAILED");
-					credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
-					retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
-				} catch (IOException e) {
-
-					LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
-							ExceptionUtils.getStackTrace(e));
-					credential.setStatusCode("FAILED");
-					credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
-					retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
+//					String responseString = restUtil.postApi(ApiName.CRDENTIALSERVICE, null, "", "",
+//							MediaType.APPLICATION_JSON, credentialServiceRequestDto, String.class);
+//
+//					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
+//							"Received response from CRDENTIALSERVICE : " + credential.getRequestId());
+//
+//					CredentialServiceResponseDto responseObject = mapper.readValue(responseString, CredentialServiceResponseDto.class);
+//
+//					if (responseObject != null &&
+//							responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
+//						LOGGER.debug(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
+//								responseObject.toString());
+//
+//						ErrorDTO error = responseObject.getErrors().get(0);
+//						credential.setStatusCode(CredentialStatusCode.FAILED.name());
+//						credential.setStatusComment(error.getMessage());
+//						retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
+//
+//					} else {
+//						CredentialServiceResponse credentialServiceResponse=responseObject.getResponse();
+//						credential.setCredentialId(credentialServiceResponse.getCredentialId());
+//						credential.setDataShareUrl(credentialServiceResponse.getDataShareUrl());
+//						credential.setIssuanceDate(credentialServiceResponse.getIssuanceDate());
+//						credential.setStatusCode(credentialServiceResponse.getStatus());
+//						credential.setSignature(credentialServiceResponse.getSignature());
+//						credential.setStatusComment("credentials issued to partner");
+//
+//					}
+//					credential.setUpdatedBy(CREDENTIAL_USER);
+//					credential.setUpdateDateTime(DateUtils.getUTCCurrentDateTime());
+//					if (retryCount != 0) {
+//						credential.setRetryCount(retryCount);
+//					}
+//					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
+//							"ended processing item : " + credential.getRequestId());
+//				} catch (ApiNotAccessibleException e) {
+//
+//					LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
+//							ExceptionUtils.getStackTrace(e));
+//					credential.setStatusCode("FAILED");
+//					credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
+//					retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
+//				} catch (IOException e) {
+//
+//					LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
+//							ExceptionUtils.getStackTrace(e));
+//					credential.setStatusCode("FAILED");
+//					credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
+//					retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
 				} catch (Exception e) {
 					String errorMessage;
 					if (e.getCause() instanceof HttpClientErrorException) {
@@ -207,6 +207,6 @@ public class CredentialItemTasklet implements Tasklet {
 		if (!CollectionUtils.isEmpty(credentialEntities))
 			credentialDao.update(batchId, credentialEntities);
 
-		return RepeatStatus.FINISHED;
+			return RepeatStatus.FINISHED;
+		}
 	}
-}

@@ -71,6 +71,7 @@ public class CredentialIssueRequestHelper {
         String request = credentialEntity.getRequest();
         LOGGER.info("ENCRYPTED REQUEST"+request);
         String decryptedData = encryptDecryptData(ApiName.DECRYPTION, request);
+        LOGGER.info("DECRYPTED DATA "+decryptedData);
         CredentialIssueRequestDto credentialIssueRequestDto = objectMapper.readValue(decryptedData, CredentialIssueRequestDto.class);
         return credentialIssueRequestDto;
     }

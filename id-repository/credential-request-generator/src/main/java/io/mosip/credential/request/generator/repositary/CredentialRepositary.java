@@ -1,6 +1,7 @@
 package io.mosip.credential.request.generator.repositary;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
