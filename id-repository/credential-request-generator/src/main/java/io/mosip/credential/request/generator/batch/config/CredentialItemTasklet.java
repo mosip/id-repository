@@ -9,6 +9,7 @@ import java.util.concurrent.ForkJoinPool;
 import javax.annotation.PostConstruct;
 
 import io.mosip.credential.request.generator.Helper.CredentialIssueRequestHelper;
+import io.mosip.credential.request.generator.service.CredentialServiceFacade;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -49,6 +50,9 @@ public class CredentialItemTasklet implements Tasklet {
 
 	@Autowired
 	private ObjectMapper mapper;
+
+	@Autowired
+	private CredentialServiceFacade credentialServiceFacade;
 	
 	@Autowired
 	private RestUtil restUtil;
@@ -85,7 +89,7 @@ public class CredentialItemTasklet implements Tasklet {
 		LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 				"Inside CredentialItemTasklet.execute() method");
 		LOGGER.info("BEFORE CREDENTIAL METHOD");
-		List<CredentialEntity> credentialEntities = credentialDao.getCredentials(batchId);
+		List<CredentialEntity> credentialEntities = credentialServiceFacade.getCredentialsWithNoDecryption(batchId);
 		LOGGER.info("AFTER CREDENTIAL METHOD");
 		if (credentialEntities == null || credentialEntities.isEmpty()) {
 			LOGGER.info("No credentials found for batchId: {}", batchId);
