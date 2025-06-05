@@ -8,19 +8,20 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.idrepository.core.dto.*;
 import jakarta.servlet.http.HttpServletRequest;
 
-import io.mosip.idrepository.core.dto.IdentityMapping;
 import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,9 +52,6 @@ import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.IdRequestDTO;
-import io.mosip.idrepository.core.dto.RequestDTO;
-import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
@@ -151,6 +149,13 @@ public class IdRequestValidatorTest {
 		ReflectionTestUtils.setField(idRepoServiceHelper, "mapper", mapper);
 		ReflectionTestUtils.setField(idRepoServiceHelper, "restBuilder", restBuilder);
 		ReflectionTestUtils.setField(idRepoServiceHelper, "restHelper", restHelper);
+		ReflectionTestUtils.setField(validator, "allowedAuthTypes", "allowed");
+		List<String> list = new ArrayList<>();
+		list.add("test");
+		List<String> stringList = new ArrayList<>();
+		stringList.add("test123");
+		ReflectionTestUtils.setField(validator, "newRegistrationFields", list);
+		ReflectionTestUtils.setField(validator, "updateUinFields", stringList);
 
 		IdentityMapping identityMapping = new IdentityMapping();
 		identityMapping.setIdentity(new IdentityMapping.Identity());
@@ -176,6 +181,12 @@ public class IdRequestValidatorTest {
 	@Test
 	public void testSupport() {
 		assertTrue(validator.supports(IdRequestDTO.class));
+	}
+
+	@Test
+	public void init() {
+		validator.init();
+		assertFalse(errors.hasErrors());
 	}
 
 	@Test
@@ -576,5 +587,56 @@ public class IdRequestValidatorTest {
 		String response = validator.validateType("metadata,bio");
 		assertNotNull(response);
 	}
-	
+
+	@Test
+	public void validateAuthTypes_WithNullAuthTypeStatusList() {
+		assertThrows(IdRepoAppException.class, () -> {
+			validator.validateAuthTypes(null);
+		});
+	}
+
+	@Test
+	public void validateAuthTypes_WithEmptyAuthTypeStatusList() {
+		assertThrows(IdRepoAppException.class, () -> {
+			validator.validateAuthTypes(new ArrayList<>());
+		});
+	}
+
+	@Test
+	public void validateAuthTypes_IdRepoAppException() {
+		List<AuthtypeStatus> authTypeStatusList = new ArrayList<>();
+		AuthtypeStatus authtypeStatus = new AuthtypeStatus();
+		authtypeStatus.setAuthSubType("AB");
+		authTypeStatusList.add(authtypeStatus);
+		assertThrows(IdRepoAppException.class, () -> {
+			validator.validateAuthTypes(authTypeStatusList);
+		});
+
+	}
+
+	@Test
+	public void validateAuthTypes_shouldThrowException_whenAuthSubTypeIsNull() {
+		List<AuthtypeStatus> authTypeStatusList = new ArrayList<>();
+		AuthtypeStatus authtypeStatus = new AuthtypeStatus();
+		authtypeStatus.setAuthType("Demo");
+		authTypeStatusList.add(authtypeStatus);
+
+		assertThrows(IdRepoAppException.class, () -> {
+			validator.validateAuthTypes(authTypeStatusList);
+		});
+	}
+
+	@Test
+	public void validateAuthTypes_withNonNullAuthSubType_throwsIdRepoAppException() {
+		List<AuthtypeStatus> authTypeStatusList = new ArrayList<>();
+		AuthtypeStatus authtypeStatus = new AuthtypeStatus();
+		authtypeStatus.setAuthSubType("AB");
+		authtypeStatus.setAuthType("Demo");
+		authTypeStatusList.add(authtypeStatus);
+
+		assertThrows(IdRepoAppException.class, () -> {
+			validator.validateAuthTypes(authTypeStatusList);
+		});
+	}
+
 }

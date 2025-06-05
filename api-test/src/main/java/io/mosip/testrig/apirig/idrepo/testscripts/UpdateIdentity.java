@@ -31,11 +31,12 @@ import io.mosip.testrig.apirig.idrepo.utils.IdRepoUtil;
 import io.mosip.testrig.apirig.testrunner.BaseTestCase;
 import io.mosip.testrig.apirig.testrunner.HealthChecker;
 import io.mosip.testrig.apirig.utils.AdminTestException;
-import io.mosip.testrig.apirig.utils.AdminTestUtil;
+//import io.mosip.testrig.apirig.utils.AdminTestUtil;
 import io.mosip.testrig.apirig.utils.AuthenticationTestException;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
 import io.mosip.testrig.apirig.utils.OutputValidationUtil;
 import io.mosip.testrig.apirig.utils.ReportUtil;
+import io.mosip.testrig.apirig.utils.SecurityXSSException;
 import io.restassured.response.Response;
 
 public class UpdateIdentity extends IdRepoUtil implements ITest {
@@ -89,14 +90,14 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 	 * @throws AdminTestException
 	 */
 	@Test(dataProvider = "testcaselist")
-	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException {
+	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
 		testCaseName = testCaseDTO.getTestCaseName();
 		testCaseName = IdRepoUtil.isTestCaseValidForExecution(testCaseDTO);
 		updateIdentity(testCaseDTO);
 
 	}
 
-	public void updateIdentity(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException {
+	public void updateIdentity(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
 
 		testCaseName = testCaseDTO.getTestCaseName();
 		if (HealthChecker.signalTerminateExecution) {
@@ -144,7 +145,7 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 
 		String inputJson = getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate());
 
-		JSONObject reqJsonObject = new JSONObject(inputJson);
+//		JSONObject reqJsonObject = new JSONObject(inputJson);
 
 		
 

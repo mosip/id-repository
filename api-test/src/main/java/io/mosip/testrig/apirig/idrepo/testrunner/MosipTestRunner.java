@@ -11,7 +11,7 @@ import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+//import java.util.Map;
 import java.util.Properties;
 
 import org.apache.log4j.Level;
@@ -91,7 +91,7 @@ public class MosipTestRunner {
 			KeycloakUserManager.closeKeycloakInstance();
 			AdminTestUtil.getRequiredField();
 
-			List<String> localLanguageList = new ArrayList<>(BaseTestCase.getLanguageList());
+			BaseTestCase.getLanguageList();
 			AdminTestUtil.getLocationData();
 			
 			// Generate device certificates to be consumed by Mock-MDS
