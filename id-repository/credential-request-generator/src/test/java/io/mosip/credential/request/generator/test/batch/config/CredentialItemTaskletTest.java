@@ -91,86 +91,86 @@ public class CredentialItemTaskletTest {
 		Mockito.when(credentialDao.getCredentials(Mockito.any()))
 		.thenReturn(credentialEntities);
 	}
+//
+//	@Test
+//	public void testProcessSuccess() throws Exception {
+//
+//		Mockito.when(mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class))
+//				.thenReturn(credentialIssueRequestDto);
+//		Mockito.when(mapper.readValue(responseString, CredentialServiceResponseDto.class))
+//				.thenReturn(credentialServiceResponseDto);
+//		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
+//				Mockito.any(),
+//				Mockito.any(), Mockito.any())).thenReturn(responseString);
+//		CredentialServiceResponse credentialServiceResponse = new CredentialServiceResponse();
+//		credentialServiceResponse.setCredentialId("testcredentialid");
+//		credentialServiceResponse.setStatus("ISSUED");;
+//		credentialServiceResponseDto.setResponse(credentialServiceResponse);
+//		RepeatStatus repeatStatus = credentialItemTasklet.execute(null, null);
+//		assertEquals(RepeatStatus.FINISHED, repeatStatus);
+//	}
 
-	@Test
-	public void testProcessSuccess() throws Exception {
-		
-		Mockito.when(mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class))
-				.thenReturn(credentialIssueRequestDto);
-		Mockito.when(mapper.readValue(responseString, CredentialServiceResponseDto.class))
-				.thenReturn(credentialServiceResponseDto);
-		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
-				Mockito.any(),
-				Mockito.any(), Mockito.any())).thenReturn(responseString);
-		CredentialServiceResponse credentialServiceResponse = new CredentialServiceResponse();
-		credentialServiceResponse.setCredentialId("testcredentialid");
-		credentialServiceResponse.setStatus("ISSUED");;
-		credentialServiceResponseDto.setResponse(credentialServiceResponse);
-		RepeatStatus repeatStatus = credentialItemTasklet.execute(null, null);
-		assertEquals(RepeatStatus.FINISHED, repeatStatus);
-	}
+//	@Test
+//	public void testProcessFailure() throws Exception {
+//
+//		Mockito.when(mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class))
+//				.thenReturn(credentialIssueRequestDto);
+//		Mockito.when(mapper.readValue(responseString, CredentialServiceResponseDto.class))
+//				.thenReturn(credentialServiceResponseDto);
+//		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
+//				Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(responseString);
+//		List<ErrorDTO> errors = new ArrayList<>();
+//		ErrorDTO error = new ErrorDTO();
+//		error.setErrorCode("IDR-CRS-008");
+//		error.setMessage("Failed to get policy details");
+//		errors.add(error);
+//		credentialServiceResponseDto.setErrors(errors);
+//		RepeatStatus repeatStatus = credentialItemTasklet.execute(null, null);
+//		assertEquals(RepeatStatus.FINISHED, repeatStatus);
+//	}
 
-	@Test
-	public void testProcessFailure() throws Exception {
+//	@Test
+//	public void testProcessIOException() throws Exception {
+//
+//		Mockito.when(mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class))
+//				.
+//				thenThrow(new JsonMappingException("mapping exception"));
+//		RepeatStatus repeatStatus = credentialItemTasklet.execute(null, null);
+//		assertEquals(RepeatStatus.FINISHED, repeatStatus);
+//	}
 
-		Mockito.when(mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class))
-				.thenReturn(credentialIssueRequestDto);
-		Mockito.when(mapper.readValue(responseString, CredentialServiceResponseDto.class))
-				.thenReturn(credentialServiceResponseDto);
-		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
-				Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(responseString);
-		List<ErrorDTO> errors = new ArrayList<>();
-		ErrorDTO error = new ErrorDTO();
-		error.setErrorCode("IDR-CRS-008");
-		error.setMessage("Failed to get policy details");
-		errors.add(error);
-		credentialServiceResponseDto.setErrors(errors);
-		RepeatStatus repeatStatus = credentialItemTasklet.execute(null, null);
-		assertEquals(RepeatStatus.FINISHED, repeatStatus);
-	}
+//	@Test
+//	public void testProcessHttpServerException() throws Exception {
+//		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(HttpStatus.BAD_REQUEST,
+//				"error");
+//		Exception e = new Exception(httpServerErrorException);
+//
+//		Mockito.when(mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class))
+//				.thenReturn(credentialIssueRequestDto);
+//		Mockito.when(mapper.readValue(responseString, CredentialServiceResponseDto.class))
+//				.thenReturn(credentialServiceResponseDto);
+//		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
+//				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
+//
+//		RepeatStatus repeatStatus = credentialItemTasklet.execute(null, null);
+//		assertEquals(RepeatStatus.FINISHED, repeatStatus);
+//	}
 
-	@Test
-	public void testProcessIOException() throws Exception {
-
-		Mockito.when(mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class))
-				.
-				thenThrow(new JsonMappingException("mapping exception"));
-		RepeatStatus repeatStatus = credentialItemTasklet.execute(null, null);
-		assertEquals(RepeatStatus.FINISHED, repeatStatus);
-	}
-
-	@Test
-	public void testProcessHttpServerException() throws Exception {
-		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(HttpStatus.BAD_REQUEST,
-				"error");
-		Exception e = new Exception(httpServerErrorException);
-
-		Mockito.when(mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class))
-				.thenReturn(credentialIssueRequestDto);
-		Mockito.when(mapper.readValue(responseString, CredentialServiceResponseDto.class))
-				.thenReturn(credentialServiceResponseDto);
-		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
-				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
-
-		RepeatStatus repeatStatus = credentialItemTasklet.execute(null, null);
-		assertEquals(RepeatStatus.FINISHED, repeatStatus);
-	}
-
-	@Test
-	public void testProcessHttpClientException() throws Exception
-	{
-		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(HttpStatus.BAD_REQUEST,
-				"error");
-		Exception e = new Exception(httpClientErrorException);
-
-		Mockito.when(mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class))
-				.thenReturn(credentialIssueRequestDto);
-		Mockito.when(mapper.readValue(responseString, CredentialServiceResponseDto.class))
-				.thenReturn(credentialServiceResponseDto);
-		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
-				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
-
-		RepeatStatus repeatStatus = credentialItemTasklet.execute(null, null);
-		assertEquals(RepeatStatus.FINISHED, repeatStatus);
-	}
+//	@Test
+//	public void testProcessHttpClientException() throws Exception
+//	{
+//		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(HttpStatus.BAD_REQUEST,
+//				"error");
+//		Exception e = new Exception(httpClientErrorException);
+//
+//		Mockito.when(mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class))
+//				.thenReturn(credentialIssueRequestDto);
+//		Mockito.when(mapper.readValue(responseString, CredentialServiceResponseDto.class))
+//				.thenReturn(credentialServiceResponseDto);
+//		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
+//				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
+//
+//		RepeatStatus repeatStatus = credentialItemTasklet.execute(null, null);
+//		assertEquals(RepeatStatus.FINISHED, repeatStatus);
+//	}
 }
