@@ -1,6 +1,7 @@
 package io.mosip.idrepository.identity.controller;
 
 import io.mosip.idrepository.core.constant.AuditEvents;
+import org.springframework.beans.factory.annotation.Value;
 import io.mosip.idrepository.core.constant.AuditModules;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdType;
@@ -84,6 +85,9 @@ public class IdRepoDraftController {
 
 	@Autowired
 	private Environment environment;
+
+	@Value("${validation.rid.pattern}")
+	private String ridPattern;
 	
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
@@ -104,8 +108,8 @@ public class IdRepoDraftController {
 			@RequestParam(name = UIN, required = false) @Nullable String uin)
 			throws IdRepoAppException {
 
-		if (!registrationId.matches("\\d+")) {
-			throw new IdRepoAppException(INVALID_INPUT_PARAMETER);
+		if (!registrationId.matches(ridPattern)) {
+			throw new IdRepoAppException(INVALID_INPUT_PARAMETER, "Registration ID");
 		}
 
 		try {

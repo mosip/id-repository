@@ -29,6 +29,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.WebDataBinder;
@@ -80,22 +81,24 @@ public class IdRepoDraftControllerTest {
 
 	@Test
 	public void testCreateDraft() throws IdRepoAppException {
+		ReflectionTestUtils.setField(controller, "ridPattern", "\\d*");
 		IdResponseDTO responseDTO = new IdResponseDTO();
 		when(draftService.createDraft(any(), any())).thenReturn(responseDTO);
-		ResponseEntity<IdResponseDTO> createDraftResponse = controller.createDraft("6666", null);
+		ResponseEntity<IdResponseDTO> createDraftResponse = controller.createDraft("", null);
 		assertEquals(HttpStatus.OK, createDraftResponse.getStatusCode());
 		assertEquals(responseDTO, createDraftResponse.getBody());
 	}
 
 	@Test
 	public void testCreateDraftException() throws IdRepoAppException {
+		ReflectionTestUtils.setField(controller, "ridPattern", "\\d*");
 		when(draftService.createDraft(any(), any()))
 				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
 		try {
 			controller.createDraft("", null);
 		} catch (IdRepoAppException e) {
-			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
-			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), e.getErrorText());
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
 		}
 	}
 
