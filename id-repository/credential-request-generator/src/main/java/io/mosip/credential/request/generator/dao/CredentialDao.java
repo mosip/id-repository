@@ -56,6 +56,7 @@ public class CredentialDao {
         Sort sort = Sort.by(Sort.Direction.ASC, "createDateTime");
         Pageable pageable=PageRequest.of(0, pageSize,sort);
         List<CredentialEntity> credentialEntities=new ArrayList<>();
+        LOGGER.info("STATUS : "+status);
         Page<CredentialEntity> pagecredentialEntities= crdentialRepo.findCredentialByStatusCode(status, pageable);
 		if (pagecredentialEntities != null && pagecredentialEntities.getContent() != null && !pagecredentialEntities.getContent().isEmpty()) {
 	      credentialEntities=	pagecredentialEntities.getContent();
