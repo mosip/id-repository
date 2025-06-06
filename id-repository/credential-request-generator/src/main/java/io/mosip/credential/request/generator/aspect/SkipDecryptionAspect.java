@@ -17,7 +17,7 @@ public class SkipDecryptionAspect {
     private static final Logger LOGGER = IdRepoLogger.getLogger(SkipDecryptionAspect.class);
 
     @Around("@annotation(skipDecryption)")
-    public Object aroundSkipDecryption(ProceedingJoinPoint pjp) throws Throwable {
+    public Object aroundSkipDecryption(ProceedingJoinPoint pjp,SkipDecryption skipDecryption) throws Throwable {
         LOGGER.info(">>>>> AOP activated for SkipDecryption on method: " + pjp.getSignature());
         try {
             SkipDecryptionContext.setSkipDecryption(true);
