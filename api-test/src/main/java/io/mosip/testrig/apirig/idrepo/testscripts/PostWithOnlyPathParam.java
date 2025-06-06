@@ -117,8 +117,10 @@ public class PostWithOnlyPathParam extends IdRepoUtil implements ITest {
 		}
 
 		else {
+			String inputJson=getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate());
+			inputJson = inputStringKeyWordHandeler(inputJson, testCaseName);
 			response = postWithOnlyPathParamAndCookie(ApplnURI + testCaseDTO.getEndPoint(),
-					getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate()), COOKIENAME,
+					inputJson, COOKIENAME,
 					testCaseDTO.getRole(), testCaseDTO.getTestCaseName(), sendEsignetToken);
 
 			Map<String, List<OutputValidationDto>> ouputValid = null;
