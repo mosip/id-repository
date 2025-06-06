@@ -51,8 +51,6 @@ public class CredentialItemTasklet implements Tasklet {
 	@Autowired
 	private ObjectMapper mapper;
 
-	@Autowired
-	private CredentialServiceFacade credentialServiceFacade;
 	
 	@Autowired
 	private RestUtil restUtil;
