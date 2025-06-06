@@ -83,7 +83,7 @@ public class IdRepoDraftController {
 	@Autowired
 	private Environment environment;
 
-	@Value("${mosip.idrepo.rid.validation.pattern}")
+	@Value("${mosip.idrepo.rid.validation.pattern:\\d*}")
 	private String ridPattern;
 	
 	@InitBinder
@@ -104,13 +104,13 @@ public class IdRepoDraftController {
 	public ResponseEntity<IdResponseDTO> createDraft(@PathVariable String registrationId,
 			@RequestParam(name = UIN, required = false) @Nullable String uin)
 			throws IdRepoAppException {
-		if (!registrationId.matches(ridPattern)) {
-			throw new IdRepoAppException(
-					IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
-					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id")
-			);
-		}
 		try {
+			if (!registrationId.matches(ridPattern)) {
+				throw new IdRepoAppException(
+						IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id")
+				);
+			}
 			return new ResponseEntity<>(draftService.createDraft(registrationId, uin), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_DRAFT_REQUEST_RESPONSE,
