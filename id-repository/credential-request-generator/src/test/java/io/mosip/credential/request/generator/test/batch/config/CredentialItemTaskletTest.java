@@ -92,7 +92,7 @@ public class CredentialItemTaskletTest {
 		credentialItemTasklet.init();
 		 credentialEntities=new ArrayList();
 		credentialEntities.add(credential);
-		Mockito.when(credentialServiceFacade.getCredentialsWithNoDecryption(Mockito.any()))
+		Mockito.when(credentialDao.getCredentials(Mockito.any()))
 		.thenReturn(credentialEntities);
 	}
 
