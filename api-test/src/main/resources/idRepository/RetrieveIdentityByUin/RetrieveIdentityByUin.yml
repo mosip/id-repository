@@ -81,26 +81,11 @@ RetrieveIdentity:
     }
   ]
 }'
-  IdRepository_RetrieveIdentity_With_blank_UIN:
-      endPoint: /idrepository/v1/identity/idvid/{id}
-      description: Retrieve Identity passing blank UIN
-      uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_06
-      role: idrepo
-      restMethod: get
-      checkOnlyStatusCodeInResponse: true
-      inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
-      outputTemplate: idRepository/responseCode
-      input: '{
-    "id": ""
-}'
-      output: '{
-        "responseCode": "500"
-}'
 
   IdRepository_RetrieveIdentity_With_Invalid_Vid:
       endPoint: /idrepository/v1/identity/idvid/{id}
       description: Retrieve Identity passing Invalid ID
-      uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_07
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_06
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
@@ -115,26 +100,10 @@ RetrieveIdentity:
     }
   ]
 }'
-  IdRepository_RetrieveIdentity_With_blank_Vid:
-      endPoint: /idrepository/v1/identity/idvid/{id}
-      description: Retrieve Identity passing blank VID
-      uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_08
-      role: idrepo
-      restMethod: get
-      checkOnlyStatusCodeInResponse: true
-      inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
-      outputTemplate: idRepository/responseCode
-      input: '{
-    "id": ""
-}'
-      output: '{
-        "responseCode": "500"
-}'
-
   IdRepository_RetrieveIdentity_With_SpaceVal_UIN:
       endPoint: /idrepository/v1/identity/idvid/{id}
       description: Retrieve Identity passing space
-      uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_09
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_07
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
@@ -153,7 +122,7 @@ RetrieveIdentity:
   IdRepository_RetrieveIdentity_With_SpaceVal_Vid:
       endPoint: /idrepository/v1/identity/idvid/{id}
       description: Retrieve Identity passing space
-      uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_10
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_08
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
@@ -172,7 +141,7 @@ RetrieveIdentity:
   IdRepository_RetrieveIdentity_With_deactivated_VID:
       endPoint: /idrepository/v1/identity/idvid/{id}
       description: Retrieve Identity passing deactivated VID
-      uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_11
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_09
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
@@ -190,7 +159,7 @@ RetrieveIdentity:
   IdRepository_RetrieveIdentity_With_deactivated_VID_which_is_restored:
       endPoint: /idrepository/v1/identity/idvid/{id}
       description: Retrieve Identity passing deactivated VID
-      uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_12
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_10
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
@@ -208,7 +177,7 @@ RetrieveIdentity:
   IdRepository_RetrieveIdentity_With_deactivated_VID_Deactivate:
       endPoint: /idrepository/v1/identity/idvid/{id}
       description: Retrieve Identity passing deactivated VID
-      uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_13
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_11
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin

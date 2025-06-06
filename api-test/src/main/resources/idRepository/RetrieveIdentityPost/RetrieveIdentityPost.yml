@@ -1,0 +1,70 @@
+RetrieveIdentityPost:
+  IdRepository_RetrieveIdentityByRIDPost_withidType_Empty_Neg:
+      endPoint: /idrepository/v1/identity/idvid/
+      description: Retrieve details using RID with empty idType
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPost_01
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPost/retrieveIdentityTempPost
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "$RID$",
+    "type": "all",
+    "idType": "",
+    "fingerExtractionFormat": "mock-1.1",
+    "irisExtractionFormat":"mock-1.1",
+    "faceExtractionFormat":"mock-1.1"
+}'  
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+  IdRepository_RetrieveIdentityByRIDPost_UIN_with_EmptyIdType_Neg:
+      endPoint: /idrepository/v1/identity/idvid/
+      description: Retrieve details using UIN with empty idType
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPost_02
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPost/retrieveIdentityTempPost
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$",
+    "type": "all",
+    "idType": "",
+    "fingerExtractionFormat": "mock-1.1",
+    "irisExtractionFormat":"mock-1.1",
+    "faceExtractionFormat":"mock-1.1"
+}'  
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+  IdRepository_RetrieveIdentityByRIDPost_VID_with_EmptyIdType_Neg:
+      endPoint: /idrepository/v1/identity/idvid/
+      description: Retrieve details using VID with empty idType
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPost_03
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPost/retrieveIdentityTempPost
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "$ID:CreateVID_withValidParameters_For_VidType_Smoke_Perpetual_sid_VID$",
+    "type": "all",
+    "idType": "",
+    "fingerExtractionFormat": "mock-1.1",
+    "irisExtractionFormat":"mock-1.1",
+    "faceExtractionFormat":"mock-1.1"
+}'  
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
