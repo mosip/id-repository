@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import io.mosip.credential.request.generator.dao.CryptoCredentialDao;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,6 +69,9 @@ public class CredentialItemTaskletTest {
 
 	@Mock
 	private CredentialDao credentialDao;
+
+	@Mock
+	private CryptoCredentialDao cryptoCredentialDao;
 
 
 	List<CredentialEntity> credentialEntities;

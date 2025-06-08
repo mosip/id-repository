@@ -9,6 +9,7 @@ import java.util.concurrent.ForkJoinPool;
 import javax.annotation.PostConstruct;
 
 import io.mosip.credential.request.generator.Helper.CredentialIssueRequestHelper;
+import io.mosip.credential.request.generator.dao.CryptoCredentialDao;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -53,6 +54,9 @@ public class CredentialItemTasklet implements Tasklet {
 	
 	@Autowired
 	private RestUtil restUtil;
+
+	@Autowired
+	private CryptoCredentialDao cryptoCredentialDao;
 
 	@Autowired
 	private CredentialIssueRequestHelper credentialIssueRequestHelper;

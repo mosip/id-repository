@@ -30,7 +30,6 @@ public class CredentialDao {
 
     @Value("${credential.batch.page.size:10}")
     private int pageSize;
-    
 
     @Value("${credential.request.reprocess.statuscodes}")
     private String reprocessStatusCodes;
@@ -57,7 +56,7 @@ public class CredentialDao {
         Pageable pageable=PageRequest.of(0, pageSize,sort);
         List<CredentialEntity> credentialEntities=new ArrayList<>();
         LOGGER.info("STATUS : "+status);
-        Page<CredentialEntity> pagecredentialEntities= crdentialRepo.findCredentialByStatusCode(status, pageable);
+        Page<CredentialEntity> pagecredentialEntities= crdentialRepo.findCredentialByStatusCode(status,pageable);
 		if (pagecredentialEntities != null && pagecredentialEntities.getContent() != null && !pagecredentialEntities.getContent().isEmpty()) {
 	      credentialEntities=	pagecredentialEntities.getContent();
 		}

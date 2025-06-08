@@ -1,6 +1,6 @@
-package io.mosip.credential.request.generator.util;
+package io.mosip.credential.request.generator.aspect;
 
-public class SkipDecryptionContext {
+public class CryptoContext {
 
 
     private static final ThreadLocal<Boolean> skipDecryption = ThreadLocal.withInitial(() -> false);
@@ -12,9 +12,4 @@ public class SkipDecryptionContext {
     public static boolean isSkipDecryption() {
         return skipDecryption.get();
     }
-
-    public static void clear() {
-        skipDecryption.remove();
-    }
-
 }

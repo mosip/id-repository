@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 
-import io.mosip.credential.request.generator.util.SkipDecryptionContext;
+import io.mosip.credential.request.generator.aspect.CryptoContext;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
 import org.springframework.http.MediaType;
@@ -56,7 +56,7 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 			String decryptedData;
 			String requestValue = (String) state[indexOfData];
 
-			if(SkipDecryptionContext.isSkipDecryption()){
+			if(CryptoContext.isSkipDecryption()){
 				LOGGER.debug("Skipping decryption as SkipDecryptionContext is enabled");
 				decryptedData = requestValue;
 				LOGGER.info("DECRYPTED DATA : "+decryptedData);

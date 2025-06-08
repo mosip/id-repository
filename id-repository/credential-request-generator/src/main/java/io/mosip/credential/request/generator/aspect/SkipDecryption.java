@@ -1,4 +1,4 @@
-package io.mosip.credential.request.generator.api.annotation;
+package io.mosip.credential.request.generator.aspect;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
