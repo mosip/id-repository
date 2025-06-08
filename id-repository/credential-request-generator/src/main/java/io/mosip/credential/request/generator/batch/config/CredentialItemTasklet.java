@@ -90,7 +90,7 @@ public class CredentialItemTasklet implements Tasklet {
 		LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 				"Inside CredentialItemTasklet.execute() method");
 		LOGGER.info("BEFORE CREDENTIAL METHOD");
-		List<CredentialEntity> credentialEntities = credentialDao.getCredentials(batchId);
+		List<CredentialEntity> credentialEntities = cryptoCredentialDao.fetchCredentialsWithoutDecryption(batchId);
 		LOGGER.info("AFTER CREDENTIAL METHOD");
 		if (credentialEntities == null || credentialEntities.isEmpty()) {
 			LOGGER.info("No credentials found for batchId: {}", batchId);

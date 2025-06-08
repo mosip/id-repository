@@ -17,6 +17,7 @@ public class CryptoCredentialDao {
     @Autowired
     private CredentialDao credentialDao;
 
+    @SkipDecryption
     public List<CredentialEntity> fetchCredentialsWithoutDecryption(String batchId) {
         return credentialDao.getCredentials(batchId);
     }
