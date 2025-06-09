@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.Cache;
@@ -16,6 +18,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.google.common.cache.CacheBuilder;
+
+import javax.annotation.PostConstruct;
 
 
 /**
@@ -36,6 +40,7 @@ public class SimpleCacheConfig extends CachingConfigurerSupport {
     @Value("#{${mosip.idrepo.cache.expire-in-seconds}}")
     private Map<String, Integer> cacheExpireInSeconds;
 
+    private static final Logger logger = LoggerFactory.getLogger(SimpleCacheConfig.class);
 
     @Bean
     @Override
@@ -50,11 +55,18 @@ public class SimpleCacheConfig extends CachingConfigurerSupport {
     }
 	
     private ConcurrentMapCache buildMapCache(String name) {
+        int expireSeconds = cacheExpireInSeconds.getOrDefault(name, 60);
         return new ConcurrentMapCache(name,
                 CacheBuilder.newBuilder()
                         .maximumSize(cacheMaxSize.getOrDefault(name, 100))
-                		.expireAfterWrite(cacheExpireInSeconds.get(name), TimeUnit.SECONDS)
+                        .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                         .build()
                         .asMap(), true);
+    }
+
+    @PostConstruct
+    public void logCacheExpiry() {
+        cacheExpireInSeconds.forEach((key, value) ->
+                logger.info("Cache '{}' will expire in {} seconds", key, value));
     }
 }
