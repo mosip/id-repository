@@ -1,5 +1,5 @@
 RetrieveIdentityPost:
-  IdRepository_RetrieveIdentityByRIDPost_withidType_Empty_Neg:
+  IdRepository_RetrieveIdentityByRID_withidType_Empty_Neg:
       endPoint: /idrepository/v1/identity/idvid/
       description: Retrieve details using RID with empty idType
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPost_01
@@ -22,7 +22,7 @@ RetrieveIdentityPost:
     }
   ]
 }'
-  IdRepository_RetrieveIdentityByRIDPost_UIN_with_EmptyIdType_Neg:
+  IdRepository_RetrieveIdentityByRID_UIN_with_EmptyIdType_Neg:
       endPoint: /idrepository/v1/identity/idvid/
       description: Retrieve details using UIN with empty idType
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPost_02
@@ -45,7 +45,7 @@ RetrieveIdentityPost:
     }
   ]
 }'
-  IdRepository_RetrieveIdentityByRIDPost_VID_with_EmptyIdType_Neg:
+  IdRepository_RetrieveIdentityByRID_VID_with_EmptyIdType_Neg:
       endPoint: /idrepository/v1/identity/idvid/
       description: Retrieve details using VID with empty idType
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPost_03

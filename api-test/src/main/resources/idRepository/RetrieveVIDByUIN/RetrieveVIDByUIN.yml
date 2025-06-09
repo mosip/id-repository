@@ -88,7 +88,7 @@ RetrieveVIDByUIN:
   IdRepository_RetrieveVIDByUIN_With_Space Uin:
       endPoint: /idrepository/v1/vid/uin/{UIN}
       description: Retrieve VID passing space in UIN field
-      uniqueIdentifier: TC_IDRepo_RetrieveVIDByUIN_06
+      uniqueIdentifier: TC_IDRepo_RetrieveVIDByUIN_07
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUIN

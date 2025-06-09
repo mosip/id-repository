@@ -35,7 +35,7 @@ RetrieveIdentityByRid:
   IdRepository_RetrieveIdentityByRid_SpaceVal_Rid_Neg:
       endPoint: /idrepository/v1/identity/idvid/{RID}
       description: Retrieve Identity passing special value in RID
-      uniqueIdentifier: TC_IDRepo_RetrieveIdentityByRID_03
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityByRID_04
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/RetrieveIdentityByRid/retrieveIdentityByRid
