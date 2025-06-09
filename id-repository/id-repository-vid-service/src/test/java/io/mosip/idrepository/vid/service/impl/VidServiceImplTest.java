@@ -1,26 +1,27 @@
 package io.mosip.idrepository.vid.service.impl;
 
+import static io.mosip.kernel.core.hotlist.constant.HotlistIdTypes.VID;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mvel2.MVEL;
-import org.powermock.api.mockito.PowerMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -1180,6 +1181,157 @@ public class VidServiceImplTest {
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorMessage(), e.getErrorText());
 		}
+	}
+
+	@Test
+	public void retrieveVidsByUin_IdRepoAppUncheckedException() {
+		String uin = "testUin";
+		when(securityManager.getSaltKeyForId(uin)).thenThrow(new IdRepoAppUncheckedException(IdRepoErrorConstants.BIO_EXTRACTION_ERROR));
+
+		IdRepoAppException exception = Assertions.assertThrows(IdRepoAppException.class, () -> {
+			service.retrieveVidsByUin(uin);
+		});
+
+		assertEquals("Failed to extract template from bio extractor service", exception.getErrorText());
+		assertEquals("IDR-IDS-009", exception.getErrorCode());
+	}
+
+	@Test
+	public void retrieveVidsByUin_DatabaseException() {
+		String uin = "testUin";
+		int saltId = 12345;
+		String hashSalt = "someSalt";
+
+		when(securityManager.getSaltKeyForId(uin)).thenReturn(saltId);
+		when(uinHashSaltRepo.retrieveSaltById(saltId)).thenReturn(hashSalt);
+		when(securityManager.hashwithSalt(Mockito.any(), Mockito.any())).thenReturn("hashedUin");
+
+		when(vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(Mockito.anyString(), Mockito.anyString(), Mockito.any()))
+				.thenThrow(new DataAccessException("Simulated DataAccessException") {});
+
+		try {
+			service.retrieveVidsByUin(uin);
+		} catch (IdRepoAppException e) {
+			assertEquals("IDR-IDC-006", e.getErrorCode());
+            Assertions.assertInstanceOf(DataAccessException.class, e.getCause());
+		}
+	}
+
+	@Test
+	public void reactivateVIDsForUIN_withValidUin_returnsCorrectVidResponse() throws IdRepoAppException {
+		List<Vid> vidList = new ArrayList<>();
+		Vid vid = new Vid();
+		vid.setVid("782");
+		vid.setStatusCode("IBN_001");
+		vid.setUinHash("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
+		vid.setUin("0_7C9JlRD32RnFTzAmeTfIzg");
+		vid.setVidTypeCode("MIT");
+		vidList.add(vid);
+
+		when(securityManager.hashwithSalt(Mockito.any(), Mockito.any())).thenReturn("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
+
+		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC".getBytes());
+
+		VidPolicy vidPolicy = new VidPolicy();
+		vidPolicy.setAllowedTransactions(100000);
+		when(vidPolicyProvider.getPolicy(any())).thenReturn(vidPolicy);
+
+		when(vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(anyString(), anyString(), any())).thenReturn(vidList);
+		ResponseWrapper<VidResponseDTO> result = service.reactivateVIDsForUIN("764_7C9JlRD32RnFTzAmeTfIzg");
+		assertEquals("mosip.vid.reactivate", result.getId());
+		assertEquals("v1", result.getVersion());
+	}
+
+	@Test
+	public void retrieveVidsByUin_IdRepoAppException() {
+
+		Assertions.assertThrows(IdRepoAppException.class, () -> {
+			service.retrieveVidsByUin("654");
+		}, "IDR-IDC-007 --> No Record(s) found");
+	}
+
+	@Test
+	public void retrieveVidsByUin_withValidUin_returnsCorrectVidType() throws IdRepoAppException {
+
+		Vid vid = new Vid();
+		vid.setVid("123");
+		vid.setStatusCode("");
+		vid.setUinHash("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
+		vid.setUin("461_7C9JlRD32RnFTzAmeTfIzg");
+		vid.setVidTypeCode("Perpetual");
+
+		VidPolicy vidPolicy = new VidPolicy();
+		vidPolicy.setAllowedTransactions(100000);
+
+		when(vidPolicyProvider.getPolicy(Mockito.any())).thenReturn(vidPolicy);
+		when(securityManager.hashwithSalt(Mockito.any(), Mockito.any()))
+				.thenReturn("6B764AE0FF065490AEFAF796A039D6B4F251101A5F13DA93146B9DEB11087AFC");
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("YWJjZA==");
+		when(securityManager.getSaltKeyForId(Mockito.any())).thenReturn(461);
+		when(vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(Mockito.any(), Mockito.any(),Mockito.any()))
+				.thenReturn(List.of(vid));
+		VidsInfosDTO response = service.retrieveVidsByUin("654");
+		assertEquals("Perpetual", response.getResponse().get(0).getVidType());
+	}
+
+	@Test
+	public void updateVid_shouldUpdateVid_WhenExpiryCheckPasses() throws IdRepoAppException, JsonProcessingException {
+
+		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
+				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
+				.toLocalDateTime().plusDays(1);
+		VidRequestDTO request = new VidRequestDTO();
+		request.setUin("2953190571");
+		request.setVidStatus("Activated");
+
+		Vid vid = new Vid();
+		vid.setVid("12345");
+		vid.setExpiryDTimes(LocalDateTime.now());
+		vid.setVidTypeCode("vid123");
+		vid.setUin("2015642902372691");
+		vid.setUinHash("461_null");
+
+		Vid vid1 = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_null",
+				"461_7C9JlRD32RnFTzAmeTfIzg", "perpetual", currentTime, currentTime, "ACTIVATED", "IdRepo",
+				currentTime, "IdRepo", currentTime, false, currentTime);
+
+		Mockito.when(vidRepo.findByVid(Mockito.anyString())).thenReturn(vid);
+		Mockito.when(securityManager.decryptWithSalt(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("3920450236".getBytes());
+		VidPolicy policy = new VidPolicy();
+		policy.setAllowedTransactions(10000000);
+		policy.setAutoRestoreAllowed(true);
+		policy.setRestoreOnAction("Activated");
+		when(vidPolicyProvider.getPolicy(Mockito.anyString())).thenReturn(policy);
+
+		RestRequestDTO restRequestDTO = new RestRequestDTO();
+		restRequestDTO.setPathVariables(new HashMap<>());
+		Mockito.when(restBuilder.buildRequest(RestServicesConstants.IDREPO_IDENTITY_SERVICE, null, IdResponseDTO.class))
+				.thenReturn(restRequestDTO);
+
+		IdResponseDTO idResponse = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus("ACTIVATED");
+		responseDTO.setIdentity(VID);
+		Map<String, String> map = new HashMap<>();
+		map.put(VID, "vid");
+		idResponse.setResponse(responseDTO);
+		when(restHelper.requestSync(Mockito.any())).thenReturn(idResponse);
+
+		RestRequestDTO restReq = new RestRequestDTO();
+		when(restBuilder.buildRequest(RestServicesConstants.VID_GENERATOR_SERVICE, null, ResponseWrapper.class)).thenReturn(restReq);
+		ResponseWrapper<Object> responseWrapper = new ResponseWrapper<>();
+		ObjectNode node = mapper.createObjectNode();
+		node.put("vid", "12345");
+		responseWrapper.setResponse(mapper.readValue(node.toString(), Object.class));
+		when(restHelper.requestSync(restReq)).thenReturn(responseWrapper);
+
+		when(vidRepo.save(Mockito.any(Vid.class))).thenReturn(vid1);
+
+		when(vidRepo.findByVid("18b67aa3-a25a-5cec-94c2-90644bf5b05b")).thenReturn(vid1);
+		ResponseWrapper<VidResponseDTO> result = service.updateVid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", request);
+		assertEquals("v1", result.getVersion());
+		assertEquals("mosip.vid.update", result.getId());
+
 	}
 	
 	@Test

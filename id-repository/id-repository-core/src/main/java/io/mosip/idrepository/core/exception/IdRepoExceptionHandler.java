@@ -86,11 +86,12 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	@Override
 	protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException httpMessageNotReadableException, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 
+		String exceptionMessage = httpMessageNotReadableException.getMessage();
 		Throwable rootCause = getRootCause(httpMessageNotReadableException);
 		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_EXCEPTION_HANDLER,
 				"handleHttpMessageNotReadable - \n" + ExceptionUtils.getStackTrace(Objects.isNull(rootCause) ? httpMessageNotReadableException : rootCause));
 		IdRepoAppException idRepoAppException;
-		if(httpMessageNotReadableException.getMessage().contains(DATE_TIME_PARSE_EXCEPTION)){
+		if(exceptionMessage != null && httpMessageNotReadableException.getMessage().contains(DATE_TIME_PARSE_EXCEPTION)){
 			idRepoAppException = new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(), String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), REQUEST_TIME));
 			return new ResponseEntity<>(buildExceptionResponse(idRepoAppException, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.OK);
 		} else {
