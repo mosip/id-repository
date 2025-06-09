@@ -88,17 +88,8 @@ public class CredentialItemTasklet implements Tasklet {
 		String batchId = UUID.randomUUID().toString();
 		LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 				"Inside CredentialItemTasklet.execute() method");
-		LOGGER.info("BEFORE CREDENTIAL METHOD");
+
 		List<CredentialEntity> credentialEntities = cryptoCredentialDao.fetchCredentialsWithoutDecryption(batchId);
-		LOGGER.info("AFTER CREDENTIAL METHOD");
-		if (credentialEntities == null || credentialEntities.isEmpty()) {
-			LOGGER.info("No credentials found for batchId: {}", batchId);
-		} else {
-			LOGGER.info("Fetched {} credential(s) for batchId: {}", credentialEntities.size(), batchId);
-			for (CredentialEntity credential : credentialEntities) {
-				LOGGER.info("Credential: {}", credential.getRequest());
-			}
-		}
 
 		try {
 			forkJoinPool.submit(() -> credentialEntities.parallelStream().forEach(credential -> {
@@ -109,7 +100,7 @@ public class CredentialItemTasklet implements Tasklet {
 							"started processing item : " + credential.getRequestId());
 
 					CredentialIssueRequestDto credentialIssueRequestDto = credentialIssueRequestHelper.getCredentialIssueRequestDto(credential);
-					long decryptEndTime = System.currentTimeMillis();
+
 					LOGGER.info(IdRepoSecurityManager.getUser(), "Perform" + CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 							credential.getRequestId() + " | Decrypted data: " + mapper.writeValueAsString(credentialIssueRequestDto));
 
