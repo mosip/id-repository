@@ -108,18 +108,6 @@ public class CredentialItemTasklet implements Tasklet {
 				try {
 					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 							"started processing item : " + credential.getRequestId());
-//					CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class);
-//					CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
-//					credentialServiceRequestDto.setCredentialType(credentialIssueRequestDto.getCredentialType());
-//					credentialServiceRequestDto.setId(credentialIssueRequestDto.getId());
-//					credentialServiceRequestDto.setIssuer(credentialIssueRequestDto.getIssuer());
-//					credentialServiceRequestDto.setRecepiant(credentialIssueRequestDto.getIssuer());
-//					credentialServiceRequestDto.setSharableAttributes(credentialIssueRequestDto.getSharableAttributes());
-//					credentialServiceRequestDto.setUser(credentialIssueRequestDto.getUser());
-//					credentialServiceRequestDto.setRequestId(credential.getRequestId());
-//					credentialServiceRequestDto.setEncrypt(credentialIssueRequestDto.isEncrypt());
-//					credentialServiceRequestDto.setEncryptionKey(credentialIssueRequestDto.getEncryptionKey());
-//					credentialServiceRequestDto.setAdditionalData(credentialIssueRequestDto.getAdditionalData());
 
 					CredentialIssueRequestDto credentialIssueRequestDto = credentialIssueRequestHelper.getCredentialIssueRequestDto(credential);
 					long decryptEndTime = System.currentTimeMillis();
