@@ -52,7 +52,7 @@ public class CredentialDao {
     public List<CredentialEntity> getCredentials(String batchId) {
         LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
                 "Inside getCredentials() method");
-        List<CredentialEntity> credentialEntities= crdentialRepo.findCredentialByStatusCode("STORED",pageSize);
+        List<CredentialEntity> credentialEntities= crdentialRepo.findCredentialByStatusCode(status,pageSize);
 
         LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
                 "Total records picked from credential_transaction table for processing is " + credentialEntities.size());
