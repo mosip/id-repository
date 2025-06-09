@@ -1,12 +1,4 @@
 package io.mosip.credentialstore.provider;
-import static io.mosip.credentialstore.constants.CredentialConstants.ADDRESS_FORMAT_FUNCTION;
-import static io.mosip.credentialstore.constants.CredentialConstants.CREDENTIAL_ADDRESS_ATTRIBUTE_NAMES;
-import static io.mosip.credentialstore.constants.CredentialConstants.CREDENTIAL_NAME_ATTRIBUTE_NAMES;
-import static io.mosip.credentialstore.constants.CredentialConstants.CREDENTIAL_PHOTO_ATTRIBUTE_NAMES;
-import static io.mosip.credentialstore.constants.CredentialConstants.FULLADDRESS;
-import static io.mosip.credentialstore.constants.CredentialConstants.FULLNAME;
-import static io.mosip.credentialstore.constants.CredentialConstants.IDENTITY_ATTRIBUTES;
-import static io.mosip.credentialstore.constants.CredentialConstants.NAME_FORMAT_FUNCTION;
 import io.mosip.biometrics.util.face.FaceDecoder;
 import java.io.IOException;
 import java.io.InputStream;
@@ -86,6 +78,8 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 
+import static io.mosip.credentialstore.constants.CredentialConstants.*;
+
 
 /**
  * The Interface CredentialProvider.
@@ -98,6 +92,8 @@ public class CredentialProvider {
 	private static final String PHOTO = "photo";
 
 	private static final String DEFAULT = "default";
+
+	private static final String VERIFIED_ATTRIBUTES = "verifiedAttributes";
 
 	private static final String DOT = ".";
 
@@ -322,6 +318,8 @@ public class CredentialProvider {
 				Object object = identity.get(attribute);
 				Object formattedObject = object;
 
+				LOGGER.info("DEBUG--- attribute : {}", attribute);
+
 				if (object != null) {
 					if (userReqMaskingAttributes != null && !userReqMaskingAttributes.isEmpty()
 							&& userReqMaskingAttributes.contains(attribute)) {
@@ -359,6 +357,13 @@ public class CredentialProvider {
 					attributesMap.put(key, vidInfoDTO.getVid());
 					additionalData.put("ExpiryTimestamp", vidInfoDTO.getExpiryTimestamp().toString());
 					additionalData.put("TransactionLimit", vidInfoDTO.getTransactionLimit());
+				} else if(attribute.equals(VERIFIED_ATTRIBUTES)) {
+					List savedVerifiedAttributes = (List) idResponseDto.getResponse().getVerifiedAttributes();
+					boolean metadataNotAvailable = savedVerifiedAttributes != null && savedVerifiedAttributes.stream().allMatch(item -> item instanceof String);
+					if(!metadataNotAvailable) {
+						attributesMap.put(key, idResponseDto.getResponse().getVerifiedAttributes());
+					}
+					LOGGER.info("DEBUG--- attribute equals(VERIFIED_ATTRIBUTES) : {} metadataNotAvailable: {}", attribute, metadataNotAvailable);
 				}
 			}
 
@@ -397,8 +402,8 @@ public class CredentialProvider {
 				}
 
 			}
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"end preparing demo and bio sharable attributes");
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"DEBUG--- end preparing demo and bio sharable attributes : " + attributesMap);
 			return attributesMap;
 		} catch (Exception e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
@@ -422,6 +427,10 @@ public class CredentialProvider {
 	private boolean isAttributeInProperty(String attrName, String propName, String defaultValue) {
 		return Stream.of(env.getProperty(propName, "").split(","))
 				.anyMatch(attrName::equalsIgnoreCase);
+	}
+
+	private boolean isVerifiedAttributes(String attrName) {
+		return VERIFIED_ATTRIBUTES.equals(attrName);
 	}
 
 	private AllowedKycDto createAllowedKycDto(String attrName) {
@@ -643,11 +652,11 @@ public class CredentialProvider {
 		} else if (isNameAttribute(attribute)) {
 			List<String> identityAttributesList = attributeFormat==null?List.of():Arrays.asList(attributeFormat.split(","));
 			formattedObject = formatData(identity, CredentialConstants.NAME, identityAttributesList, source.getFilter());
-		}else if (isFullAddressAttribute(attribute) ) {
+		} else if (isFullAddressAttribute(attribute) ) {
 			List<String> identityAttributesList = attributeFormat==null?List.of():Arrays.asList(attributeFormat.split(","));
 			formattedObject = formatData(identity, FULLADDRESS, identityAttributesList, source.getFilter());
-		} else if(identity.get(attribute) instanceof List){
-				formattedObject = formatData(identity, attribute, List.of(), source.getFilter());
+		} else if(identity.get(attribute) instanceof List) {
+			formattedObject = formatData(identity, attribute, List.of(), source.getFilter());
 		}
 
 		return formattedObject;

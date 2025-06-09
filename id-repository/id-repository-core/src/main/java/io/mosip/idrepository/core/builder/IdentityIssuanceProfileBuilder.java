@@ -170,10 +170,13 @@ public class IdentityIssuanceProfileBuilder {
 					.filter(bir -> bir.getOthers().keySet().stream()
 							.anyMatch(key -> key.contentEquals("EXCEPTION")))
 					.filter(bir -> bir.getOthers().get("EXCEPTION").contentEquals("true"))
-					.map(bir -> Exceptions.builder()
-							.type(bir.getBdbInfo().getType().stream().map(BiometricType::value)
-									.collect(Collectors.joining(" ")))
-							.subType(String.join(" ", bir.getBdbInfo().getSubtype())).build())
+					.map(bir -> {
+						String type = bir.getBdbInfo().getType().stream().map(BiometricType::value)
+								.collect(Collectors.joining(" "));
+						return Exceptions.builder()
+								.type(type)
+								.subType("Face".equalsIgnoreCase(type) ? null : String.join(" ", bir.getBdbInfo().getSubtype())).build();
+							})
 					.collect(Collectors.toList());
 		return List.of();
 	}
@@ -201,11 +204,12 @@ public class IdentityIssuanceProfileBuilder {
 							digitalId = new String(
 									CryptoUtil.decodeURLSafeBase64(digitalIdEncoded.get("digitalId").split("\\.")[1]));
 						}
-						
+
+						String biometricType = bir.getBdbInfo().getType().stream().map(BiometricType::value)
+								.collect(Collectors.joining(" "));
 						return BiometricInfo.builder()
-								.type(bir.getBdbInfo().getType().stream().map(BiometricType::value)
-										.collect(Collectors.joining(" ")))
-								.subType(String.join(" ", bir.getBdbInfo().getSubtype()))
+								.type(biometricType)
+								.subType("Face".equalsIgnoreCase(biometricType) ? null : String.join(" ", bir.getBdbInfo().getSubtype()))
 								.qualityScore(bir.getBdbInfo().getQuality().getScore())
 								.attempts(Objects.nonNull(bir.getOthers()) && bir.getOthers().containsKey("RETRIES")
 										? bir.getOthers().get("RETRIES")
