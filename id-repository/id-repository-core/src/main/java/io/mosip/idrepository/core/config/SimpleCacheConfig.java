@@ -59,11 +59,10 @@ public class SimpleCacheConfig extends CachingConfigurerSupport {
     }
 	
     private ConcurrentMapCache buildMapCache(String name) {
-        int expireSeconds = cacheExpireInSeconds.getOrDefault(name, 60);
         return new ConcurrentMapCache(name,
                 CacheBuilder.newBuilder()
                         .maximumSize(cacheMaxSize.getOrDefault(name, 100))
-                        .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
+                        .expireAfterWrite(cacheExpireInSeconds.get(name), TimeUnit.SECONDS)
                         .build()
                         .asMap(), true);
     }
