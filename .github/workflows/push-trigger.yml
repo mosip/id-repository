@@ -21,6 +21,7 @@ on:
       - develop
       - MOSIP*
       - mosip*
+      - ES*
 
 jobs:
   build-maven-id-repository:

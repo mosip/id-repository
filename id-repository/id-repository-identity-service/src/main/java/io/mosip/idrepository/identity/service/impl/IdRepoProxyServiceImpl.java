@@ -387,12 +387,16 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 			if (allowedBioAttributes.contains(bio.getBiometricFileType())) {
 				try {
 					String uinHash = uinObject.getUinHash().split("_")[1];
+					mosipLogger.info("getting biometric data from minio");
 					byte[] data = objectStoreHelper.getBiometricObject(uinHash, bio.getBioFileId());
+					mosipLogger.info("received biometric data from minio");
 					if (Objects.nonNull(data)) {
 						if (Objects.nonNull(extractionFormats) && !extractionFormats.isEmpty()) {
+							mosipLogger.info("extracting biometric data");
 							byte[] extractedData = getBiometricsForRequestedFormats(uinHash, bio.getBioFileId(),
 									extractionFormats, data);
 							if (Objects.nonNull(extractedData)) {
+								mosipLogger.info("extracted data is not null");
 								documents.add(new DocumentsDTO(bio.getBiometricFileType(),
 										CryptoUtil.encodeToURLSafeBase64(extractedData)));
 							}
@@ -421,22 +425,34 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 													  Map<String, String> extractionFormats, byte[] originalData) throws IdRepoAppException {
 		try {
 			List<BIR> originalBirs = cbeffUtil.getBIRDataFromXML(originalData);
+			mosipLogger.info("Size of originalBirs: " + originalBirs.size());
 			List<BIR> finalBirs = new ArrayList<>();
 
 			List<CompletableFuture<List<BIR>>> extractionFutures = new ArrayList<>();
 
 			for (BiometricType modality : SUPPORTED_MODALITIES) {
 				List<BIR> birTypesForModality = originalBirs.stream()
-						.filter(bir -> bir.getBdbInfo().getType().get(0).value().equalsIgnoreCase(modality.value()))
+						.filter(bir -> {
+							List<BiometricType> types = bir.getBdbInfo().getType();
+							if(types.isEmpty()) mosipLogger.info("types is empty");
+							return !types.isEmpty() && types.get(0).value().equalsIgnoreCase(modality.value());
+						})
+						.filter(bir -> {
+							Map<String, String> others = bir.getOthers();
+							mosipLogger.info("others: {}", others == null || "false".equalsIgnoreCase(others.get("EXCEPTION")));
+							return others == null || "false".equalsIgnoreCase(others.get("EXCEPTION"));
+						})
 						.collect(Collectors.toList());
 
 				Optional<Entry<String, String>> extractionFormatForModality = extractionFormats.entrySet().stream()
 						.filter(ent -> ent.getKey().toLowerCase().contains(modality.value().toLowerCase())).findAny();
-
-				if (!extractionFormatForModality.isEmpty()) {
+				mosipLogger.info("Extraction Format {}, birTypesForModality-size: {}, extractionFormatFormatForModality: {}", extractionFormats, birTypesForModality.size(), extractionFormatForModality.isPresent());
+				if (!extractionFormatForModality.isEmpty() && !birTypesForModality.isEmpty()) {
 					Entry<String, String> format = extractionFormatForModality.get();
+					mosipLogger.info("Using biometricExtractionService for extraction");
 					CompletableFuture<List<BIR>> extractTemplateFuture = biometricExtractionService.extractTemplate(
 							uinHash, fileName, format.getKey(), format.getValue(), birTypesForModality);
+					mosipLogger.info("extraction completed for modality " + modality);
 					extractionFutures.add(extractTemplateFuture);
 
 				} else {
@@ -551,6 +567,45 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	}
 
 	/**
+	 * Retrieves detailed RID information for a given individual
+	 * based on the provided ID and its type.
+	 *
+	 * @param individualId the identifier of the individual whose RID information is to be fetched
+	 * @param idType       The type of ID that you're passing in.
+	 * @return a {@code RidDTO} containing detailed RID information
+	 * @throws IdRepoAppException if there is an error during retrieval
+	 */
+	public RidDTO getRidInfoByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
+		try {
+			switch (idType) {
+				case VID:
+					individualId = getUinByVid(individualId);
+				case UIN:
+					String uinHash = retrieveUinHash(individualId);
+					if (uinRepo.existsByUinHash(uinHash)) {
+						Uin uin = uinRepo.findRidInfoByUinHash(uinHash);
+						RidDTO ridDTO = new RidDTO();
+						ridDTO.setRid(uin.getRegId());
+						ridDTO.setUpdatedDate(uin.getUpdatedDateTime());
+						return ridDTO;
+					} else {
+						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveRidInfoByUin",
+								"NO_RECORD_FOUND");
+						throw new IdRepoAppException(NO_RECORD_FOUND);
+					}
+				default:
+					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getRidInfoByIndividualId",
+							"NO_RECORD_FOUND");
+					throw new IdRepoAppException(NO_RECORD_FOUND);
+			}
+		} catch (DataAccessException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
+					"getRidInfoByIndividualId", "DATABASE_ERROR");
+			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
+		}
+	}
+
+	/**
 	 * It takes a VID as input and returns the corresponding UIN
 	 *
 	 * @param vid Virtual ID
@@ -649,9 +704,11 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 			ObjectNode identityObject = convertToObject(uin.getUinData(), ObjectNode.class);
 
 			Object verifiedAttributes = mapper.convertValue(identityObject.get(VERIFIED_ATTRIBUTES), Object.class);
+			mosipLogger.info("DEBUG--- verifiedAttributes as fetched from the getidentity -> {} , verifiedAttributes -> {}", identityObject,
+					verifiedAttributes);
 			if(!Objects.isNull(verifiedAttributes)) {
 				boolean isV1Version = ((List) verifiedAttributes).stream().allMatch(item -> item instanceof String);
-				if(!isV1Version) {
+				if(isV1Version) {
 					Set<String> attributes = new HashSet<>();
 					for(LinkedHashMap<String, Object> verificationMetadata : (List<LinkedHashMap<String, Object>>)verifiedAttributes) {
 						attributes.addAll((List<String>)verificationMetadata.get("claims"));
