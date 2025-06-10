@@ -42,6 +42,10 @@ public class SimpleCacheConfig extends CachingConfigurerSupport {
 
     private static final Logger logger = LoggerFactory.getLogger(SimpleCacheConfig.class);
 
+    public SimpleCacheConfig() {
+        logger.info("SimpleCacheConfig constructor called");
+    }
+
     @Bean
     @Override
     public CacheManager cacheManager() {
