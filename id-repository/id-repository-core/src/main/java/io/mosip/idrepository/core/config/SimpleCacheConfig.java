@@ -66,6 +66,10 @@ public class SimpleCacheConfig extends CachingConfigurerSupport {
 
     @PostConstruct
     public void logCacheExpiry() {
+        if (cacheExpireInSeconds == null || cacheExpireInSeconds.isEmpty()) {
+            logger.warn("No cache expiry configurations found.");
+            return;
+        }
         cacheExpireInSeconds.forEach((key, value) ->
                 logger.info("Cache '{}' will expire in {} seconds", key, value));
     }
