@@ -6,7 +6,6 @@ import java.util.List;
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
-import io.mosip.credential.request.generator.aspect.SkipDecryption;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Lock;

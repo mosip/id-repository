@@ -8,7 +8,7 @@ import java.util.concurrent.ForkJoinPool;
 
 import javax.annotation.PostConstruct;
 
-import io.mosip.credential.request.generator.Helper.CredentialIssueRequestHelper;
+import io.mosip.credential.request.generator.helper.CredentialIssueRequestHelper;
 import io.mosip.credential.request.generator.dao.CryptoCredentialDao;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -88,8 +88,7 @@ public class CredentialItemTasklet implements Tasklet {
 		String batchId = UUID.randomUUID().toString();
 		LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 				"Inside CredentialItemTasklet.execute() method");
-
-		List<CredentialEntity> credentialEntities = cryptoCredentialDao.fetchCredentialsWithoutDecryption(batchId);
+		List<CredentialEntity> credentialEntities = credentialDao.getCredentials(batchId);
 
 		try {
 			forkJoinPool.submit(() -> credentialEntities.parallelStream().forEach(credential -> {
@@ -98,12 +97,16 @@ public class CredentialItemTasklet implements Tasklet {
 				try {
 					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 							"started processing item : " + credential.getRequestId());
-
+					long decryptStartTime=System.currentTimeMillis();
 					CredentialIssueRequestDto credentialIssueRequestDto = credentialIssueRequestHelper.getCredentialIssueRequestDto(credential);
+					long decryptEndTime = System.currentTimeMillis();
+					long decryptDuration = decryptEndTime - decryptStartTime;
 
-					LOGGER.info(IdRepoSecurityManager.getUser(), "Perform" + CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
-							credential.getRequestId() + " | Decrypted data: " + mapper.writeValueAsString(credentialIssueRequestDto));
-
+					// Log the decryption time at DEBUG level
+					LOGGER.debug(IdRepoSecurityManager.getUser(), "Perform " + CREDENTIAL_ITEM_TASKLET,
+							"batchid = " + batchId,
+							"Decryption completed for requestId = " + credential.getRequestId() +
+									", Time taken = " + decryptDuration + " ms");
 					CredentialServiceRequestDto credentialServiceRequestDto = credentialIssueRequestHelper.getCredentialServiceRequestDto(credentialIssueRequestDto,
 							credential.getRequestId());
 					credential.setRequest(mapper.writeValueAsString(credentialIssueRequestDto));

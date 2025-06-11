@@ -28,11 +28,15 @@ public class CredentialDao {
     @Value("${credential.batch.status:NEW}")
     private String status;
 
-    @Value("${credential.batch.page.size:10}")
+    @Value("${credential.batch.page.size:100}")
     private int pageSize;
+
 
     @Value("${credential.request.reprocess.statuscodes}")
     private String reprocessStatusCodes;
+
+    @Autowired
+    private CryptoCredentialDao cryptoCredentialDao;
     
 
     private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialDao.class);
@@ -52,11 +56,8 @@ public class CredentialDao {
     public List<CredentialEntity> getCredentials(String batchId) {
         LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
                 "Inside getCredentials() method");
-        List<CredentialEntity> credentialEntities= crdentialRepo.findCredentialByStatusCode(status,pageSize);
+        List<CredentialEntity> credentialEntities= cryptoCredentialDao.findCredentialByStatusCode(status, pageSize);
 
-        LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
-                "Total records picked from credential_transaction table for processing is " + credentialEntities.size());
-       
         return credentialEntities;
     }
 
@@ -73,12 +74,8 @@ public class CredentialDao {
     }
 
     public Page<CredentialEntity> findByStatusCode(String statusCode, Pageable pageable){
-      //return crdentialRepo.findByStatusCode(statusCode, pageable);
-        Page<CredentialEntity> credentialPage=crdentialRepo.findByStatusCode(statusCode,pageable);
-        credentialPage.forEach(credential ->
-                LOGGER.info("Credential ID: {}, Signature: {}", credential.getCredentialId(), credential.getSignature())
-        );
-        return credentialPage;
+
+      return crdentialRepo.findByStatusCode(statusCode, pageable);
     }
     
     public Page<CredentialEntity> findByStatusCodeWithEffectiveDtimes(String statusCode,

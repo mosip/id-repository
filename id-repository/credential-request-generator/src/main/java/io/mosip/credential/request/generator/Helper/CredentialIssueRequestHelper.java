@@ -1,8 +1,7 @@
-package io.mosip.credential.request.generator.Helper;
+package io.mosip.credential.request.generator.helper;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mosip.credential.request.generator.constants.ApiName;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
@@ -39,12 +38,11 @@ public class CredentialIssueRequestHelper {
         return credentialServiceRequestDto;
     }
 
+    //Convert the Encrypted data to Decrypted data
     public CredentialIssueRequestDto getCredentialIssueRequestDto(CredentialEntity credentialEntity) throws JsonProcessingException {
         String request = credentialEntity.getRequest();
-        LOGGER.info("ENCRYPTED REQUEST"+request);
         String decryptedData = new String(CryptoUtil
-                .decodeURLSafeBase64(cryptoUtil.encryptDecryptData(ApiName.DECRYPTION,request)));
-        LOGGER.info("DECRYPTED DATA "+decryptedData);
+                .decodeURLSafeBase64(cryptoUtil.encryptData(request)));
         CredentialIssueRequestDto credentialIssueRequestDto = objectMapper.readValue(decryptedData, CredentialIssueRequestDto.class);
         return credentialIssueRequestDto;
     }

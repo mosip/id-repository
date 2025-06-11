@@ -104,13 +104,13 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 	@Autowired
 	private ObjectMapper mapper;
 
-	@Value("${mosip.idrepo.identity-core-pool-size:3}")
+	@Value("${mosip.idrepo.extract.template.core-pool-size:20}")
 	private int corePoolSize;
 
-	@Value("${mosip.idrepo.identity-max-pool-size:3}")
+	@Value("${mosip.idrepo.extract.template.max-pool-size:20}")
 	private int maxPoolSize;
 
-	@Value("${mosip.idrepo.identity-queue-capacity:500}")
+	@Value("${mosip.idrepo.extract.template.queue-capacity:1000}")
 	private int queueCapacity;
 
 	@Override

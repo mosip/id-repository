@@ -18,7 +18,7 @@ public class CryptoEntityAspect {
 
     @Around("@annotation(skipDecryption)")
     public Object aroundSkipDecryption(ProceedingJoinPoint pjp, SkipDecryption skipDecryption) throws Throwable {
-        LOGGER.info(">>>>> AOP activated for @SkipDecryption on method: " + pjp.getSignature());
+        LOGGER.debug("AOP activated for @SkipDecryption on method: " + pjp.getSignature());
 
         try {
             CryptoContext.setSkipDecryption(true);

@@ -43,7 +43,6 @@ import io.mosip.idrepository.identity.helper.ChannelInfoHelper;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 import io.mosip.idrepository.identity.repository.AnonymousProfileRepo;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.UUIDUtils;
 
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)

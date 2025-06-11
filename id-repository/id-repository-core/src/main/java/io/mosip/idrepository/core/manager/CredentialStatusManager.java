@@ -130,10 +130,6 @@ public class CredentialStatusManager {
 			String activeStatus = EnvUtil.getUinActiveStatus();
 			List<CredentialRequestStatus> newIssueRequestList = statusRepo
 					.findByStatus(CredentialRequestStatusLifecycle.NEW.toString(), pageSize);
-
-			mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleNewOrUpdatedRequests",
-					"Total records picked from credential_request_status table for processing is " + newIssueRequestList.size());
-
 			for (CredentialRequestStatus credentialRequestStatus : newIssueRequestList) {
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
 				String idvId = decryptId(credentialRequestStatus.getIndividualId());

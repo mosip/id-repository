@@ -9,16 +9,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+/*
 
+ */
 @Component
 public class CryptoCredentialDao {
 
-
     @Autowired
-    private CredentialDao credentialDao;
+    private CredentialRepositary<CredentialEntity,String> credentialRepo;
 
     @SkipDecryption
-    public List<CredentialEntity> fetchCredentialsWithoutDecryption(String batchId) {
-        return credentialDao.getCredentials(batchId);
+    public List<CredentialEntity> findCredentialByStatusCode(String statusCode, int pageSize) {
+        return credentialRepo.findCredentialByStatusCode(statusCode, pageSize);
     }
 }
