@@ -34,7 +34,9 @@ public class CredentialDao {
 
     @Value("${credential.request.reprocess.statuscodes}")
     private String reprocessStatusCodes;
-    
+
+    @Autowired
+    private CryptoCredentialDao cryptoCredentialDao;
 
     private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialDao.class);
 
@@ -53,16 +55,7 @@ public class CredentialDao {
     public List<CredentialEntity> getCredentials(String batchId) {
         LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
                 "Inside getCredentials() method");
-        Sort sort = Sort.by(Sort.Direction.ASC, "createDateTime");
-        Pageable pageable=PageRequest.of(0, pageSize,sort);
-        List<CredentialEntity> credentialEntities=new ArrayList<>();
-        Page<CredentialEntity> pagecredentialEntities= crdentialRepo.findCredentialByStatusCode(status, pageable);
-		if (pagecredentialEntities != null && pagecredentialEntities.getContent() != null && !pagecredentialEntities.getContent().isEmpty()) {
-	      credentialEntities=	pagecredentialEntities.getContent();
-		}
-
-        LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
-                "Total records picked from credential_transaction table for processing is " + credentialEntities.size());
+        List<CredentialEntity> credentialEntities= cryptoCredentialDao.findCredentialByStatusCode(status, pageSize);
        
         return credentialEntities;
     }
@@ -70,18 +63,8 @@ public class CredentialDao {
     public List<CredentialEntity> getCredentialsForReprocess(String batchId) {
         LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
                 "Inside getCredentialsForReprocess() method");
-        Sort sort = Sort.by(Sort.Direction.ASC, "updateDateTime");
-        Pageable pageable=PageRequest.of(0, pageSize,sort);
         String[] statusCodes = reprocessStatusCodes.split(",");
-        List<CredentialEntity> credentialEntities=new ArrayList<>();
-        Page<CredentialEntity> pagecredentialEntities=  crdentialRepo.findCredentialByStatusCodes(statusCodes, pageable);
-        if (pagecredentialEntities != null && pagecredentialEntities.getContent() != null && !pagecredentialEntities.getContent().isEmpty()) {
-  	      credentialEntities=	pagecredentialEntities.getContent();
-  		}
-
-        LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
-                "Total records picked from credential_transaction table for reprocessing is " + credentialEntities.size());
-
+        List<CredentialEntity> credentialEntities=  crdentialRepo.findCredentialByStatusCodes(statusCodes, pageSize);
         return credentialEntities;
     }
 
