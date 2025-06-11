@@ -84,7 +84,6 @@ import io.restassured.response.Response;
 		 * @throws AuthenticationTestException
 		 * @throws AdminTestException
 		 * @throws NoSuchAlgorithmException
-		 * @throws SecurityXSSException 
 		 */
 		@Test(dataProvider = "testcaselist")
 		public void test(TestCaseDTO testCaseDTO)
@@ -107,7 +106,7 @@ import io.restassured.response.Response;
 	
 			inputJson = getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate());
 	
-			String outputJson = getJsonFromTemplate(testCaseDTO.getOutput(), testCaseDTO.getOutputTemplate());
+//			String outputJson = getJsonFromTemplate(testCaseDTO.getOutput(), testCaseDTO.getOutputTemplate());
 	
 			if (testCaseDTO.getTemplateFields() != null && templateFields.length > 0) {
 				ArrayList<JSONObject> inputtestCases = AdminTestUtil.getInputTestCase(testCaseDTO);

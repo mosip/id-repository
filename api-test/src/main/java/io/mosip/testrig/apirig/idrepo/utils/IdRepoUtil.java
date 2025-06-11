@@ -14,6 +14,7 @@ import io.mosip.testrig.apirig.utils.SkipTestCaseHandler;
 public class IdRepoUtil extends AdminTestUtil {
 
 	private static final Logger logger = Logger.getLogger(IdRepoUtil.class);
+	public static String genRidExt = "23456" + generateRandomNumberString(10);
 	
 	public static void setLogLevel() {
 		if (IdRepoConfigManager.IsDebugEnabled())
@@ -38,7 +39,7 @@ public class IdRepoUtil extends AdminTestUtil {
 		String dob = dobArray.getString(0);
 		JSONArray emailArray = new JSONArray(getValueFromAuthActuator("json-property", "emailId"));
 		String email = emailArray.getString(0);
-		JSONArray phoneArray = new JSONArray(getValueFromAuthActuator("json-property", "phone_number"));
+//		JSONArray phoneArray = new JSONArray(getValueFromAuthActuator("json-property", "phone_number"));
 
 		if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("DOB")
 				&& (!isElementPresent(globalRequiredFields, dob))) {
@@ -63,5 +64,17 @@ public class IdRepoUtil extends AdminTestUtil {
 
 		return testCaseName;
 	}
+	
+	public static String inputStringKeyWordHandeler(String jsonString, String testCaseName) {
+		if (jsonString == null) {
+			logger.info(" Request Json String is :" + jsonString);
+			return jsonString;
+		}
+		
+		if (jsonString.contains("$RIDEXT$"))
+			jsonString = replaceKeywordWithValue(jsonString, "$RIDEXT$", genRidExt);
+		return jsonString;
+	}
+
 	
 }
