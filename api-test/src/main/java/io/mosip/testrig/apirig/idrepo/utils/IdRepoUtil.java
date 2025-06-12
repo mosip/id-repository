@@ -73,6 +73,7 @@ public class IdRepoUtil extends AdminTestUtil {
 		
 		if (jsonString.contains("$RIDEXT$"))
 			jsonString = replaceKeywordWithValue(jsonString, "$RIDEXT$", genRidExt);
+		
 		return jsonString;
 	}
 
