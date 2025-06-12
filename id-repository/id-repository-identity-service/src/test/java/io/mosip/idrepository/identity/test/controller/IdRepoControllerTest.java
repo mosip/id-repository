@@ -734,7 +734,6 @@ public class IdRepoControllerTest {
 		assertEquals(dto, response.getBody().getResponse());
 	}
 
-
 	@Test
 	public void testGetRemainingUpdateCountByIndividualId() throws IdRepoAppException {
 		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);

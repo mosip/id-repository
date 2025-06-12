@@ -294,7 +294,6 @@ public class IdRepoProxyServiceTest {
 		assertEquals(uinObj.getRegId(), result.getRid());
 	}
 
-
 	@Test
 	public void testGetRidInfoByIndividualId_UIN_Success() throws Exception {
 		String uin = "9999999999";
