@@ -51,7 +51,7 @@ public class CredentialRequestGeneratorConfig extends HibernateDaoConfig {
 	@Override
 	public Map<String, Object> jpaProperties() {
 		Map<String, Object> jpaProperties = super.jpaProperties();
-		jpaProperties.put("hibernate.ejb.interceptor", new CredentialTransactionInterceptor(restUtil,cryptoUtil));
+		jpaProperties.put("hibernate.ejb.interceptor", new CredentialTransactionInterceptor(restUtil, cryptoUtil));
 		return jpaProperties;
 	}
 
