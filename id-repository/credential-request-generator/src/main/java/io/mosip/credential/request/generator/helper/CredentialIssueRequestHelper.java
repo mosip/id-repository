@@ -40,7 +40,7 @@ public class CredentialIssueRequestHelper {
     public CredentialIssueRequestDto getCredentialIssueRequestDto(CredentialEntity credentialEntity) throws JsonProcessingException {
         String request = credentialEntity.getRequest();
         String decryptedData = new String(CryptoUtil
-                .decodeURLSafeBase64(cryptoUtil.encryptData(request)));
+                .decodeURLSafeBase64(cryptoUtil.decryptData(request)));
         CredentialIssueRequestDto credentialIssueRequestDto = objectMapper.readValue(decryptedData, CredentialIssueRequestDto.class);
         return credentialIssueRequestDto;
     }

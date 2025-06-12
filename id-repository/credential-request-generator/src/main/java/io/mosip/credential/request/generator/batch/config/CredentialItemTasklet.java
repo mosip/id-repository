@@ -102,7 +102,6 @@ public class CredentialItemTasklet implements Tasklet {
 					long decryptEndTime = System.currentTimeMillis();
 					long decryptDuration = decryptEndTime - decryptStartTime;
 
-					// Log the decryption time at DEBUG level
 					LOGGER.debug(IdRepoSecurityManager.getUser(), "Perform " + CREDENTIAL_ITEM_TASKLET,
 							"batchid = " + batchId,
 							"Decryption completed for requestId = " + credential.getRequestId() +

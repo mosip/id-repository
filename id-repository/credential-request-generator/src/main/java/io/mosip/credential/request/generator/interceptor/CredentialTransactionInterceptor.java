@@ -34,7 +34,6 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 
 	private static final String REQUEST = "request";
 
-	@Autowired
 	private io.mosip.credential.request.generator.util.CryptoUtil cryptoUtil;
 
 	private transient RestUtil restUtil;
@@ -43,8 +42,10 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 	
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialTransactionInterceptor.class);
 
-	public CredentialTransactionInterceptor(RestUtil restUtil) {
+	public CredentialTransactionInterceptor(RestUtil restUtil, io.mosip.credential.request.generator.util.CryptoUtil cryptoUtil) {
 		this.restUtil = restUtil;
+		this.cryptoUtil=cryptoUtil;
+
 	}
 
 	@Override
@@ -65,7 +66,7 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 			String requestValue = (String) state[indexOfData];
 			try {
 				decryptedData = new String(CryptoUtil
-						.decodeURLSafeBase64(cryptoUtil.encryptData(requestValue)));
+						.decodeURLSafeBase64(cryptoUtil.decryptData(requestValue)));
 			} catch (Exception e) {
 				LOGGER.debug(
 						"Decryption failed. Falling back to treat the data as un-encrypted one for backward compatibility with 1.1.5.5\n "
@@ -87,7 +88,8 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 	private void encryptData(Object entity, Object[] state, String[] propertyNames) {
 		if (entity instanceof CredentialEntity) {
 			CredentialEntity credEntity = (CredentialEntity) entity;
-			String encryptedData = cryptoUtil.decryptData(CryptoUtil.encodeToURLSafeBase64(credEntity.getRequest().getBytes()));
+			String encryptedData = cryptoUtil.encryptData(CryptoUtil.encodeToURLSafeBase64(credEntity.getRequest().getBytes()));
+			credEntity.setRequest(encryptedData);
 			int indexOfData = Arrays.asList(propertyNames).indexOf(REQUEST);
 			state[indexOfData] = encryptedData;
 		}

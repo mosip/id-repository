@@ -17,13 +17,19 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * The Class CryptoUtil.
+ ** used for encryption and decryption
+ * @author tarique-azeez
+ */
+
 @Component
 public class CryptoUtil {
 
     @Autowired
     private RestUtil restUtil;
 
-    public String encryptData(String request) {
+    public String decryptData(String request) {
         try {
             RequestWrapper<CryptomanagerRequestDto> requestWrapper = new RequestWrapper<>();
             CryptomanagerRequestDto cryptoRequest = new CryptomanagerRequestDto();
@@ -50,7 +56,7 @@ public class CryptoUtil {
         }
     }
 
-    public String decryptData(String request) {
+    public String encryptData(String request) {
         try {
             RequestWrapper<CryptomanagerRequestDto> requestWrapper = new RequestWrapper<>();
             CryptomanagerRequestDto cryptoRequest = new CryptomanagerRequestDto();
