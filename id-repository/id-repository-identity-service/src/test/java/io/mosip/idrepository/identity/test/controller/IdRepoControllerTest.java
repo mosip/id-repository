@@ -91,7 +91,7 @@ public class IdRepoControllerTest {
 	@Autowired
 	ObjectMapper mapper;
 
-	private static final String RID_ID = "mosip.rid";
+	private static final String RID_ID = "idrepo.rid";
 	private static final String RID_VERSION = "1.0";
 
 	@Before
