@@ -44,8 +44,7 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 
 	public CredentialTransactionInterceptor(RestUtil restUtil, io.mosip.credential.request.generator.util.CryptoUtil cryptoUtil) {
 		this.restUtil = restUtil;
-		this.cryptoUtil=cryptoUtil;
-
+		this.cryptoUtil = cryptoUtil;
 	}
 
 	@Override

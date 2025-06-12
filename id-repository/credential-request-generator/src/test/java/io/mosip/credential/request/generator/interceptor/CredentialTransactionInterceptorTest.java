@@ -1,9 +1,7 @@
 package io.mosip.credential.request.generator.interceptor;
 
 
-import io.mosip.credential.request.generator.constants.ApiName;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
-import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorUncheckedException;
 import io.mosip.credential.request.generator.util.CryptoUtil;
 import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.kernel.core.exception.ServiceError;
@@ -16,7 +14,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
