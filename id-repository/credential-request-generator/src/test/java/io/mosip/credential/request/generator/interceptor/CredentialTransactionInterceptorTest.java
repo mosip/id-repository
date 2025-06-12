@@ -2,6 +2,7 @@ package io.mosip.credential.request.generator.interceptor;
 
 
 import io.mosip.credential.request.generator.entity.CredentialEntity;
+import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorUncheckedException;
 import io.mosip.credential.request.generator.util.CryptoUtil;
 import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.kernel.core.exception.ServiceError;
