@@ -8,10 +8,11 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.idrepository.core.constant.AuditEvents;
+import io.mosip.idrepository.core.constant.AuditModules;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.idrepository.core.dto.*;
 import org.assertj.core.util.Maps;
@@ -90,6 +91,9 @@ public class IdRepoControllerTest {
 	@Autowired
 	ObjectMapper mapper;
 
+	private static final String RID_ID = "mosip.rid";
+	private static final String RID_VERSION = "1.0";
+
 	@Before
 	public void before() {
 		Map<String, String> id = Maps.newHashMap("read", "mosip.id.read");
@@ -100,6 +104,8 @@ public class IdRepoControllerTest {
 		ReflectionTestUtils.setField(controller, "validator", validator);
 		ReflectionTestUtils.setField(validator, "id", id);
 		ReflectionTestUtils.setField(validator, "allowedTypes", Lists.newArrayList("bio", "demo", "all"));
+		ReflectionTestUtils.setField(controller, "ridId", RID_ID);
+		ReflectionTestUtils.setField(controller, "ridVersion", RID_VERSION);
 	}
 
 	@Test
@@ -673,27 +679,62 @@ public class IdRepoControllerTest {
 	}
 
 	@Test
-	public void testGetRidInfoByUin() throws IdRepoAppException {
-		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
-		RidDTO ridDTO = new RidDTO();
-		ridDTO.setRid("777777");
-		ridDTO.setUpdatedDate(LocalDateTime.now());
-		when(idRepoService.getRidInfoByIndividualId(any(), any())).thenReturn(ridDTO);
-		ResponseEntity<ResponseWrapper<RidDTO>> ridResponse = controller.getRidInfoByIndividualId("", null);
-		assertEquals("777777", ridResponse.getBody().getResponse().getRid());
+	public void testGetRidByIndividualIdV2_Success_UIN() throws Exception {
+		String uin = "1234567890";
+		IdType idType = IdType.UIN;
+		RidInfoDTO ridInfoDTO = new RidInfoDTO();
+
+		Mockito.when(validator.validateUin(uin)).thenReturn(true);
+		Mockito.when(idRepoService.getRidInfoByIndividualId(uin, idType)).thenReturn(ridInfoDTO);
+
+		ResponseEntity<ResponseWrapper<RidInfoDTO>> response = controller.getRidByIndividualIdV2(uin, null);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(RID_ID, response.getBody().getId());
+		assertEquals(RID_VERSION, response.getBody().getVersion());
+		assertEquals(ridInfoDTO, response.getBody().getResponse());
+
+		Mockito.verify(auditHelper, Mockito.times(1))
+				.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID, uin, idType, "Request received");
+		Mockito.verify(auditHelper, Mockito.times(1))
+				.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID, uin, idType, "Request success");
+
+		Mockito.verify(idRepoService).getRidInfoByIndividualId(uin, idType);
 	}
 
 	@Test
-	public void testGetRidInfoByUinWithIdType() throws IdRepoAppException {
-		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);
-		RidDTO ridDTO = new RidDTO();
-		ridDTO.setRid("777777");
-		ridDTO.setUpdatedDate(LocalDateTime.now());
-		when(idRepoService.getRidInfoByIndividualId(any(), any())).thenReturn(ridDTO);
-		ResponseEntity<ResponseWrapper<RidDTO>> ridResponse = controller.getRidInfoByIndividualId("", "");
-		assertEquals("777777", ridResponse.getBody().getResponse().getRid());
+	public void testGetRidByIndividualIdV2_WithExplicitIdType_VID() throws Exception {
+		String vid = "1234567890123456";
+		String idType = "VID";
+
+		RidInfoDTO dto = new RidInfoDTO();
+		Mockito.when(validator.validateIdType(idType)).thenReturn(IdType.VID);
+		Mockito.when(idRepoService.getRidInfoByIndividualId(vid, IdType.VID)).thenReturn(dto);
+
+		ResponseEntity<ResponseWrapper<RidInfoDTO>> response = controller.getRidByIndividualIdV2(vid, idType);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(dto, response.getBody().getResponse());
+		assertEquals(RID_ID, response.getBody().getId());
+		assertEquals(RID_VERSION, response.getBody().getVersion());
 	}
-	
+
+	@Test
+	public void testGetRidByIndividualIdV2_NullIdType_FallsBackTo_ID() throws Exception {
+		String someId = "id";
+		RidInfoDTO dto = new RidInfoDTO();
+
+		Mockito.when(validator.validateUin(someId)).thenReturn(false);
+		Mockito.when(validator.validateVid(someId)).thenReturn(false);
+		Mockito.when(idRepoService.getRidInfoByIndividualId(someId, IdType.ID)).thenReturn(dto);
+
+		ResponseEntity<ResponseWrapper<RidInfoDTO>> response = controller.getRidByIndividualIdV2(someId, null);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(dto, response.getBody().getResponse());
+	}
+
+
 	@Test
 	public void testGetRemainingUpdateCountByIndividualId() throws IdRepoAppException {
 		when(validator.validateIdType(anyString())).thenReturn(IdType.UIN);

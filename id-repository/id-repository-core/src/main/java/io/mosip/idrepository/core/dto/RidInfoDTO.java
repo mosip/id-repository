@@ -10,8 +10,9 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RidDTO {
+public class RidInfoDTO {
 
     private String rid;
-    private LocalDateTime updatedDate;
+    private LocalDateTime updationDate;
+    private LocalDateTime creationDate;
 }

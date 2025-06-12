@@ -36,6 +36,14 @@ public interface UinRepo extends JpaRepository<Uin, String> {
 	boolean existsByRegId(String regId);
 
 	/**
+	 * Retrieves the UIN entity by reg id.
+	 *
+	 * @param regId the reg id
+	 * @return the UIN entity if found
+	 */
+	Optional<Uin> findByRegId(String regId);
+
+	/**
 	 * Gets the status by uin.
 	 *
 	 * @param uin the uin
@@ -63,7 +71,4 @@ public interface UinRepo extends JpaRepository<Uin, String> {
 
 	@Query("select regId from Uin where uinHash = :uinHash")
 	String getRidByUinHash(@Param("uinHash") String uinHash);
-
-	@Query("select u from Uin u where u.uinHash = :uinHash")
-	Uin findRidInfoByUinHash(@Param("uinHash") String uinHash);
 }

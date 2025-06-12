@@ -575,29 +575,30 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	 * @return a {@code RidDTO} containing detailed RID information
 	 * @throws IdRepoAppException if there is an error during retrieval
 	 */
-	public RidDTO getRidInfoByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
+	public RidInfoDTO getRidInfoByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
 		try {
 			switch (idType) {
 				case VID:
 					individualId = getUinByVid(individualId);
 				case UIN:
 					String uinHash = retrieveUinHash(individualId);
-					if (uinRepo.existsByUinHash(uinHash)) {
-						Uin uin = uinRepo.findRidInfoByUinHash(uinHash);
-						RidDTO ridDTO = new RidDTO();
-						ridDTO.setRid(uin.getRegId());
-						ridDTO.setUpdatedDate(uin.getUpdatedDateTime());
-						return ridDTO;
-					} else {
-						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveRidInfoByUin",
-								"NO_RECORD_FOUND");
-						throw new IdRepoAppException(NO_RECORD_FOUND);
+					Optional<Uin> uin = uinRepo.findByUinHash(uinHash);
+					if (uin.isPresent()) {
+						return mapToRidInfoDTO(uin.get());
 					}
+					break;
+				case ID:
+					Optional<Uin> uinOptional = uinRepo.findByRegId(individualId);
+					if (uinOptional.isPresent()) {
+						return mapToRidInfoDTO(uinOptional.get());
+					}
+					break;
 				default:
-					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getRidInfoByIndividualId",
-							"NO_RECORD_FOUND");
-					throw new IdRepoAppException(NO_RECORD_FOUND);
+					// fall through to error
 			}
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getRidInfoByIndividualId",
+					"NO_RECORD_FOUND");
+			throw new IdRepoAppException(NO_RECORD_FOUND);
 		} catch (DataAccessException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
 					"getRidInfoByIndividualId", "DATABASE_ERROR");
@@ -827,4 +828,13 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 			throw new IdRepoAppException(errorCode, errorMsg, e);
 		}
 	}
+
+	private RidInfoDTO mapToRidInfoDTO(Uin uin) {
+		RidInfoDTO ridInfoDTO = new RidInfoDTO();
+		ridInfoDTO.setRid(uin.getRegId());
+		ridInfoDTO.setUpdationDate(uin.getUpdatedDateTime());
+		ridInfoDTO.setCreationDate(uin.getCreatedDateTime());
+		return ridInfoDTO;
+	}
+
 }

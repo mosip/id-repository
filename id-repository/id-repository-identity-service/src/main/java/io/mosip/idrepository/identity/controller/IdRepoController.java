@@ -570,9 +570,9 @@ public class IdRepoController {
 		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}
 
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetRidInfoByIndividualId())")
-	@GetMapping(path = "/rid-info/{uin}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get RID Info by IndividualId Request", description = "Get RID Info by IndividualId Request", tags = {
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetRidByIndividualId())")
+	@GetMapping(path = "v2/rid/{individualId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "Get RID Information by IndividualId Request", description = "Get RID Information by IndividualId Request", tags = {
 			"id-repo-controller" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "Request authenticated successfully", content = @Content(array = @ArraySchema(schema = @Schema(implementation = IdRepoAppException.class)))),
@@ -580,22 +580,22 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
-	public ResponseEntity<ResponseWrapper<RidDTO>> getRidInfoByIndividualId(@PathVariable("uin") String uin,
-																			@RequestParam(name = ID_TYPE, required = false) @Nullable String idType) throws IdRepoAppException {
+	public ResponseEntity<ResponseWrapper<RidInfoDTO>> getRidByIndividualIdV2(@PathVariable("individualId") String individualId,
+																			  @RequestParam(name = ID_TYPE, required = false) @Nullable String idType) throws IdRepoAppException {
 
-		IdType individualIdType = Objects.isNull(idType) ? getIdType(uin) : validator.validateIdType(idType);
+		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
-				uin, individualIdType, "Request received");
+				individualId, individualIdType, "Request received");
 
-		RidDTO ridDTO = idRepoService.getRidInfoByIndividualId(uin, individualIdType);
+		RidInfoDTO ridInfoDTO = idRepoService.getRidInfoByIndividualId(individualId, individualIdType);
 
-		ResponseWrapper<RidDTO> responseWrapper = new ResponseWrapper<>();
+		ResponseWrapper<RidInfoDTO> responseWrapper = new ResponseWrapper<>();
 		responseWrapper.setId(ridId);
 		responseWrapper.setVersion(ridVersion);
-		responseWrapper.setResponse(ridDTO);
+		responseWrapper.setResponse(ridInfoDTO);
 
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
-				uin, individualIdType, "Request success");
+				individualId, individualIdType, "Request success");
 
 		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}

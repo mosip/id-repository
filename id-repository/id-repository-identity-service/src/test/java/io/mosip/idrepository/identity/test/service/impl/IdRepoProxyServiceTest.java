@@ -1,5 +1,7 @@
 package io.mosip.idrepository.identity.test.service.impl;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
+import static org.assertj.core.api.Fail.fail;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -10,15 +12,19 @@ import static org.mockito.Mockito.verify;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
 
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
+import io.mosip.idrepository.core.constant.IdType;
+import io.mosip.idrepository.core.dto.*;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.repository.UinDraftRepo;
 import io.mosip.kernel.core.http.RequestWrapper;
+import io.mosip.kernel.core.http.ResponseWrapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,6 +37,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -46,11 +53,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
-import io.mosip.idrepository.core.dto.IdRequestDTO;
-import io.mosip.idrepository.core.dto.IdResponseDTO;
-import io.mosip.idrepository.core.dto.RequestDTO;
-import io.mosip.idrepository.core.dto.RestRequestDTO;
-import io.mosip.idrepository.core.dto.VidsInfosDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.RestServiceException;
@@ -260,5 +262,131 @@ public class IdRepoProxyServiceTest {
 		assertEquals(IDENTITY_UPDATED, eventModel.getTopic());
 		assertEquals("hashwithsalt", eventModel.getEvent().getData().get("id_hash"));
 		assertEquals("27841457360002620190730095024", eventModel.getEvent().getData().get("registration_id"));
+	}
+
+	@Test
+	public void testGetRidInfoByIndividualId_VID_Success() throws Exception {
+		String vid = "1234567890123456";
+		String uin = "9999999999";
+		int saltId = 123;
+		String hashSalt = "dummySalt";
+		String hashedUin = saltId + SPLITTER + "hashedUIN";
+		Uin uinObj = getMockUin();
+
+		RestRequestDTO req = new RestRequestDTO();
+		req.setUri("http://dummy/uin/{vid}");
+		Mockito.when(restBuilder.buildRequest(Mockito.any(), Mockito.isNull(), Mockito.eq(ResponseWrapper.class)))
+				.thenReturn(req);
+
+		ResponseWrapper<Map<String, String>> wrapper = new ResponseWrapper<>();
+		Map<String, String> response = new HashMap<>();
+		response.put("UIN", uin);
+		wrapper.setResponse(response);
+
+		Mockito.when(restHelper.requestSync(Mockito.any())).thenReturn(wrapper);
+
+		Mockito.when(securityManager.getSaltKeyForId(uin)).thenReturn(saltId);
+		Mockito.when(uinHashSaltRepo.retrieveSaltById(saltId)).thenReturn(hashSalt);
+		Mockito.when(securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes())).thenReturn("hashedUIN");
+		Mockito.when(uinRepo.findByUinHash(hashedUin)).thenReturn(Optional.of(uinObj));
+
+		RidInfoDTO result = proxyService.getRidInfoByIndividualId(vid, IdType.VID);
+		assertEquals(uinObj.getRegId(), result.getRid());
+	}
+
+
+	@Test
+	public void testGetRidInfoByIndividualId_UIN_Success() throws Exception {
+		String uin = "9999999999";
+		int saltId = 123;
+		String hashSalt = "dummySalt";
+		String hashedUin = saltId + SPLITTER + "hashedUIN";
+		Uin uinObj = getMockUin();
+
+		Mockito.when(securityManager.getSaltKeyForId(uin)).thenReturn(saltId);
+		Mockito.when(uinHashSaltRepo.retrieveSaltById(saltId)).thenReturn(hashSalt);
+		Mockito.when(securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes())).thenReturn("hashedUIN");
+		Mockito.when(uinRepo.findByUinHash(hashedUin)).thenReturn(Optional.of(uinObj));
+		RidInfoDTO result = proxyService.getRidInfoByIndividualId(uin, IdType.UIN);
+		assertEquals(uinObj.getRegId(), result.getRid());
+	}
+
+	@Test
+	public void testGetRidInfoByIndividualId_ID_Success() throws Exception {
+		String regId = "reg123";
+		Uin uinObj = getMockUin();
+
+		Mockito.when(uinRepo.findByRegId(regId)).thenReturn(Optional.of(uinObj));
+		RidInfoDTO result = proxyService.getRidInfoByIndividualId(regId, IdType.ID);
+		assertEquals(uinObj.getRegId(), result.getRid());
+	}
+
+	@Test
+	public void testGetRidInfoByIndividualId_NoRecordFound() {
+		String uin = "9999999999";
+		int saltId = 123;
+		String hashSalt = "dummySalt";
+
+		Mockito.when(securityManager.getSaltKeyForId(uin)).thenReturn(saltId);
+		Mockito.when(uinHashSaltRepo.retrieveSaltById(saltId)).thenReturn(hashSalt);
+		Mockito.when(securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes())).thenReturn("hashedUIN");
+		Mockito.when(uinRepo.findByUinHash(Mockito.anyString())).thenReturn(Optional.empty());
+
+		try {
+			proxyService.getRidInfoByIndividualId(uin, IdType.UIN);
+			fail("Expected IdRepoAppException to be thrown");
+		} catch (IdRepoAppException ex) {
+			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorCode(), ex.getErrorCode());
+			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorMessage(), ex.getErrorText());
+		}
+	}
+
+	@Test
+	public void testGetRidInfoByIndividualId_DatabaseException() {
+		String uin = "9999999999";
+		int saltId = 123;
+		String hashSalt = "dummySalt";
+
+		Mockito.when(securityManager.getSaltKeyForId(uin)).thenReturn(saltId);
+		Mockito.when(uinHashSaltRepo.retrieveSaltById(saltId)).thenReturn(hashSalt);
+		Mockito.when(securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes())).thenReturn("hashedUIN");
+		Mockito.when(uinRepo.findByUinHash(Mockito.anyString())).thenThrow(new DataAccessException("DB Error") {});
+
+		try {
+			proxyService.getRidInfoByIndividualId(uin, IdType.UIN);
+			fail("Expected IdRepoAppException to be thrown");
+		} catch (IdRepoAppException ex) {
+			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), ex.getErrorCode());
+			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorMessage(), ex.getErrorText());
+		}
+	}
+
+	@Test
+	public void testGetUinByVid_RestException() throws IdRepoDataValidationException, RestServiceException {
+		String vid = "1234567890123456";
+		RestServiceException ex = new RestServiceException(IdRepoErrorConstants.UNKNOWN_ERROR);
+
+		RestRequestDTO restRequestDTO = new RestRequestDTO();
+		restRequestDTO.setUri("http://dummy/uin/{vid}");
+		Mockito.when(restBuilder.buildRequest(Mockito.any(), Mockito.isNull(), Mockito.eq(ResponseWrapper.class)))
+				.thenReturn(restRequestDTO);
+
+		Mockito.when(restHelper.requestSync(Mockito.any())).thenThrow(ex);
+
+		try {
+			proxyService.getRidInfoByIndividualId(vid, IdType.VID);
+			fail("Expected IdRepoAppException to be thrown");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
+		}
+	}
+
+	private Uin getMockUin() {
+		Uin uin = new Uin();
+		uin.setRegId("reg123");
+		uin.setUpdatedDateTime(LocalDateTime.now());
+		uin.setCreatedDateTime(LocalDateTime.now().minusDays(1));
+		return uin;
 	}
 }
