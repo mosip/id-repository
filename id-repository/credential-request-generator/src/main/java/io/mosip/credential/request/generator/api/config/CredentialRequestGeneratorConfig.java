@@ -42,7 +42,6 @@ public class CredentialRequestGeneratorConfig extends HibernateDaoConfig {
 	private RestUtil restUtil;
 
 	@Autowired
-	@Qualifier("cryptoUtil")
 	private CryptoUtil cryptoUtil;
 	
 	@Autowired

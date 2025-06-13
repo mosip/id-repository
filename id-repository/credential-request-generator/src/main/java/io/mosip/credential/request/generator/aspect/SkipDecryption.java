@@ -6,7 +6,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * The custom annotation SkipDecryption.
+ * Custom annotation used to indicate that decryption should be skipped
+ * for the annotated method.
+ * Typically used in conjunction with AOP to dynamically bypass decryption logic
+ * by setting a flag in {@code CryptoContext}.
+ * This is useful for internal processes or batch jobs where decrypted data is not required.
  *
  * @author tarique-azeez
  */

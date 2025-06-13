@@ -55,8 +55,12 @@ public class CredentialDao {
     public List<CredentialEntity> getCredentials(String batchId) {
         LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
                 "Inside getCredentials() method");
-        List<CredentialEntity> credentialEntities= cryptoCredentialDao.findCredentialByStatusCode(status, pageSize);
-       
+
+        //Obtain the encrypted credentials for performance improvement
+        List<CredentialEntity> credentialEntities = cryptoCredentialDao.findCredentialByStatusCode(status, pageSize);
+
+        LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
+                "Total records picked from credential_transaction table for processing is " + credentialEntities.size());
         return credentialEntities;
     }
 
@@ -65,6 +69,9 @@ public class CredentialDao {
                 "Inside getCredentialsForReprocess() method");
         String[] statusCodes = reprocessStatusCodes.split(",");
         List<CredentialEntity> credentialEntities=  crdentialRepo.findCredentialByStatusCodes(statusCodes, pageSize);
+
+        LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
+                "Total records picked from credential_transaction table for reprocessing is " + credentialEntities.size());
         return credentialEntities;
     }
 

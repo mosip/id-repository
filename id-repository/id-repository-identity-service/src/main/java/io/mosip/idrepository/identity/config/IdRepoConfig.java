@@ -72,10 +72,10 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 	@Value("${" + IdRepoConstants.WEB_SUB_PUBLISH_URL + "}")
 	public String publisherHubURL;
 
-	@Value("${mosip.idrepo.extract.template.core-pool-size:20}")
+	@Value("${mosip.idrepo.extract.template.core-pool-size:50}")
 	private int corePoolSize;
 
-	@Value("${mosip.idrepo.extract.template.max-pool-size:20}")
+	@Value("${mosip.idrepo.extract.template.max-pool-size:100}")
 	private int maxPoolSize;
 
 	@Value("${mosip.idrepo.extract.template.queue-capacity:1000}")

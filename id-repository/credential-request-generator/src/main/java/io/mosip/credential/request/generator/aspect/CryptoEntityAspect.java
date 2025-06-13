@@ -7,6 +7,14 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
+/**
+ * Aspect to handle encryption and decryption of entity fields based on custom annotations.
+ * Intercepts methods or entities annotated with encryption-related annotations (e.g.,@SkipDecryption)
+ * and dynamically applies cryptographic logic before or after method execution.
+ * Typically used with AOP to centralize encryption/decryption concerns outside of business logic.
+ *
+ * @author tarique-azeez
+ */
 
 @Aspect
 @Component
@@ -16,7 +24,7 @@ public class CryptoEntityAspect {
 
     @Around("@annotation(skipDecryption)")
     public Object aroundSkipDecryption(ProceedingJoinPoint pjp, SkipDecryption skipDecryption) throws Throwable {
-        LOGGER.debug("AOP activated for @SkipDecryption on method: " + pjp.getSignature());
+        LOGGER.debug("aroundSkipDecryption() method called. Method signature: " + pjp.getSignature());
 
         try {
             CryptoContext.setSkipDecryption(true);

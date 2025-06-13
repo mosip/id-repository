@@ -7,8 +7,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 
 import javax.annotation.PostConstruct;
-
-import io.mosip.credential.request.generator.dao.CryptoCredentialDao;
 import io.mosip.credential.request.generator.helper.CredentialIssueRequestHelper;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -55,9 +53,6 @@ public class CredentialItemTasklet implements Tasklet {
 	private RestUtil restUtil;
 
 	@Autowired
-	private CryptoCredentialDao cryptoCredentialDao;
-
-	@Autowired
 	private CredentialIssueRequestHelper credentialIssueRequestHelper;
 	
 	/**
@@ -97,15 +92,14 @@ public class CredentialItemTasklet implements Tasklet {
 				try {
 					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 							"started processing item : " + credential.getRequestId());
-					long decryptStartTime=System.currentTimeMillis();
-					CredentialIssueRequestDto credentialIssueRequestDto = credentialIssueRequestHelper.getCredentialIssueRequestDto(credential);
-					long decryptEndTime = System.currentTimeMillis();
-					long decryptDuration = decryptEndTime - decryptStartTime;
 
+					//Decrypting data outside for performance improvement
+					long decryptStartTime = System.currentTimeMillis();
+					CredentialIssueRequestDto credentialIssueRequestDto = credentialIssueRequestHelper.getCredentialIssueRequestDto(credential);
 					LOGGER.debug(IdRepoSecurityManager.getUser(), "Perform " + CREDENTIAL_ITEM_TASKLET,
 							"batchid = " + batchId,
 							"Decryption completed for requestId = " + credential.getRequestId() +
-									", Time taken = " + decryptDuration + " ms");
+									", Time taken = " + (System.currentTimeMillis() - decryptStartTime) + " ms");
 					CredentialServiceRequestDto credentialServiceRequestDto = credentialIssueRequestHelper.getCredentialServiceRequestDto(credentialIssueRequestDto,
 							credential.getRequestId());
 					credential.setRequest(mapper.writeValueAsString(credentialIssueRequestDto));

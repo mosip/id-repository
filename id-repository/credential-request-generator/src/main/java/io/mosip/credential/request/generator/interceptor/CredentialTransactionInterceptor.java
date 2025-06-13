@@ -8,7 +8,6 @@ import java.util.Objects;
 import io.mosip.credential.request.generator.aspect.CryptoContext;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
 import io.mosip.credential.request.generator.constants.ApiName;

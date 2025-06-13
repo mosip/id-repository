@@ -50,7 +50,7 @@ public class CredentialTransactionInterceptorTest {
         Object[] state = {"a", "b", REQUEST};
         String[] propertyNames ={"a","b",REQUEST};
         Type[] types = {};
-        Mockito.when(cryptoUtil.decryptData(Mockito.anyString())).thenReturn("encrypted-secret");
+        Mockito.when(cryptoUtil.encryptData(Mockito.anyString())).thenReturn("encrypted-secret");
         Assert.assertFalse(credentialTransactionInterceptor.onSave(entity, id, state, propertyNames, types));
     }
 
