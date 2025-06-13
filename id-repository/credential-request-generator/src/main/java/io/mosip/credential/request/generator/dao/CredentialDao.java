@@ -68,6 +68,7 @@ public class CredentialDao {
         LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
                 "Inside getCredentialsForReprocess() method");
         String[] statusCodes = reprocessStatusCodes.split(",");
+
         List<CredentialEntity> credentialEntities=  crdentialRepo.findCredentialByStatusCodes(statusCodes, pageSize);
 
         LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
