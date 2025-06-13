@@ -13,7 +13,7 @@ import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.util.List;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.kernel.core.dataaccess.spi.repository.BaseRepository;
 
@@ -62,4 +62,14 @@ public interface CredentialRepositary<T extends CredentialEntity, E> extends Bas
 	@QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "1") })
 	@Query("SELECT crdn FROM CredentialEntity crdn WHERE crdn.statusCode in :statusCodes")
 	Page<CredentialEntity> findCredentialByStatusCodes(@Param("statusCodes") String[] statusCodes, Pageable pageable);
+
+	@Transactional
+	@Query(value = "SELECT * FROM credential_transaction ct"
+			+ " WHERE ct.status_code=:statusCode ORDER BY cr_dtimes FOR UPDATE SKIP LOCKED LIMIT :pageSize", nativeQuery = true)
+	List<CredentialEntity> findCredentialByStatusCode(@Param("statusCode")String statusCode, @Param("pageSize") int pageSize);
+
+	@Transactional
+	@Query(value = "SELECT * FROM credential_transaction ct"
+			+ " WHERE ct.status_code in :statusCodes ORDER BY upd_dtimes FOR UPDATE SKIP LOCKED LIMIT :pageSize", nativeQuery = true)
+	List<CredentialEntity> findCredentialByStatusCodes(@Param("statusCodes")String[] statusCodes, @Param("pageSize") int pageSize);
 }
