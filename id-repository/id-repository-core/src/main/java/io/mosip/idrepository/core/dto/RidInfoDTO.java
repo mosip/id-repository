@@ -13,6 +13,6 @@ import java.time.LocalDateTime;
 public class RidInfoDTO {
 
     private String rid;
-    private LocalDateTime updationDate;
     private LocalDateTime creationDate;
+    private LocalDateTime updationDate;
 }
