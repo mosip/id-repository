@@ -584,17 +584,15 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 					String uinHash = retrieveUinHash(individualId);
 					Optional<Uin> uin = uinRepo.findByUinHash(uinHash);
 					if (uin.isPresent()) {
-						return mapToRidInfoDTO(uin.get());
+						return getRidInfoDTO(uin.get());
 					}
 					break;
 				case ID:
 					Optional<Uin> uinOptional = uinRepo.findByRegId(individualId);
 					if (uinOptional.isPresent()) {
-						return mapToRidInfoDTO(uinOptional.get());
+						return getRidInfoDTO(uinOptional.get());
 					}
 					break;
-				default:
-					// fall through to error
 			}
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getRidInfoByIndividualId",
 					"NO_RECORD_FOUND");
@@ -829,7 +827,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 		}
 	}
 
-	private RidInfoDTO mapToRidInfoDTO(Uin uin) {
+	private RidInfoDTO getRidInfoDTO(Uin uin) {
 		RidInfoDTO ridInfoDTO = new RidInfoDTO();
 		ridInfoDTO.setRid(uin.getRegId());
 		ridInfoDTO.setUpdationDate(uin.getUpdatedDateTime());

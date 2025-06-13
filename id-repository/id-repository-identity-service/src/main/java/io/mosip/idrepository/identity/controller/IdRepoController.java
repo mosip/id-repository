@@ -570,8 +570,8 @@ public class IdRepoController {
 		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}
 
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetRidByIndividualId())")
-	@GetMapping(path = "v2/rid/{individualId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetRidByIndividualIdV2())")
+	@GetMapping(path = "/v2/rid/{individualId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Get RID Information by IndividualId Request", description = "Get RID Information by IndividualId Request", tags = {
 			"id-repo-controller" })
 	@ApiResponses(value = {
@@ -585,7 +585,7 @@ public class IdRepoController {
 
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
-				individualId, individualIdType, "Request received");
+				individualId, individualIdType, "Get v2 RID by IndividualId Request received");
 
 		RidInfoDTO ridInfoDTO = idRepoService.getRidInfoByIndividualId(individualId, individualIdType);
 
@@ -595,7 +595,7 @@ public class IdRepoController {
 		responseWrapper.setResponse(ridInfoDTO);
 
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
-				individualId, individualIdType, "Request success");
+				individualId, individualIdType, "Get v2 RID by IndividualId Request success");
 
 		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}
