@@ -570,9 +570,9 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	 * Retrieves detailed RID information for a given individual
 	 * based on the provided ID and its type.
 	 *
-	 * @param individualId the identifier of the individual whose RID information is to be fetched
+	 * @param individualId The ID of the individual whose RID information is to be fetched
 	 * @param idType       The type of ID that you're passing in.
-	 * @return a {@code RidDTO} containing detailed RID information
+	 * @return a {@code RidInfoDTO} containing detailed RID information
 	 * @throws IdRepoAppException if there is an error during retrieval
 	 */
 	public RidInfoDTO getRidInfoByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
