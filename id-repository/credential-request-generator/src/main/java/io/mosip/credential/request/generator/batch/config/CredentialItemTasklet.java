@@ -100,9 +100,10 @@ public class CredentialItemTasklet implements Tasklet {
 							"batchid = " + batchId,
 							"Decryption completed for requestId = " + credential.getRequestId() +
 									", Time taken = " + (System.currentTimeMillis() - decryptStartTime) + " ms");
+					credential.setRequest(mapper.writeValueAsString(credentialIssueRequestDto));
 					CredentialServiceRequestDto credentialServiceRequestDto = credentialIssueRequestHelper.getCredentialServiceRequestDto(credentialIssueRequestDto,
 							credential.getRequestId());
-					credential.setRequest(mapper.writeValueAsString(credentialIssueRequestDto));
+
 					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 							"Calling CRDENTIALSERVICE : " + credential.getRequestId());
 
