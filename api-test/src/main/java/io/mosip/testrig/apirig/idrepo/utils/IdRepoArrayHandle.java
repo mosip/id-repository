@@ -164,7 +164,6 @@ public class IdRepoArrayHandle {
 	                    if (identity.has("selectedHandles")) {
 
 	                        if (selectedHandles.length() > 0) {
-//	                            String firstHandleToKeep = selectedHandles.getString(0);
 
 	                            for (int j = 1; j < selectedHandles.length(); j++) {
 	                                if (identity.has(handle)) {
@@ -182,7 +181,6 @@ public class IdRepoArrayHandle {
 	                    if (identity.has("selectedHandles")) {
 
 	                        if (selectedHandles.length() > 0) {
-//	                            String firstHandleToKeep = selectedHandles.getString(0);
 
 	                            for (int j = 1; j < selectedHandles.length(); j++) {
 	                                if (identity.has(handle)) {
