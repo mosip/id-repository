@@ -49,7 +49,7 @@ public class AuthorizedRolesDto {
 	
 	private List<String> getRidByIndividualId;
 
-	private List<String> getRidInfoByIndividualId;
+	private List<String> getRidByIndividualIdV2;
 	
 	private List<String> remainingUpdateCountByIndividualId;
 
