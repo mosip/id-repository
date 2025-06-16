@@ -543,7 +543,8 @@ public class IdRepoController {
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		}
 	}
-	
+
+	@Deprecated
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetRidByIndividualId())")
 	@GetMapping(path = "/rid/{individualId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Get RID by IndividualId Request", description = "Get RID by IndividualId Request", tags = {
@@ -570,22 +571,25 @@ public class IdRepoController {
 		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}
 
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetRidByIndividualIdV2())")
-	@GetMapping(path = "/v2/rid/{individualId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostRidByIndividualIdV2())")
+	@PostMapping(path = "/v2/rid", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Get RID Information by IndividualId Request", description = "Get RID Information by IndividualId Request", tags = {
 			"id-repo-controller" })
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "Request authenticated successfully", content = @Content(array = @ArraySchema(schema = @Schema(implementation = IdRepoAppException.class)))),
+			@ApiResponse(responseCode = "200", description = "Request authenticated successfully", content = @Content(schema = @Schema(implementation = RidInfoDTO.class))),
 			@ApiResponse(responseCode = "400", description = "No Records Found", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
-	public ResponseEntity<ResponseWrapper<RidInfoDTO>> getRidByIndividualIdV2(@PathVariable("individualId") String individualId,
-																			  @RequestParam(name = ID_TYPE, required = false) @Nullable String idType) throws IdRepoAppException {
+	public ResponseEntity<ResponseWrapper<RidInfoDTO>> postRidByIndividualIdV2(@Validated @RequestBody RequestWrapper<RidRequestDTO> request,
+																			  @ApiIgnore Errors errors) throws IdRepoAppException {
+		RidRequestDTO ridRequest = request.getRequest();
+		String individualId = ridRequest.getIndividualId();
+		String idType = ridRequest.getIdType();
 
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
-				individualId, individualIdType, "Get v2 RID by IndividualId Request received");
+				individualId, individualIdType, "Post v2 RID by IndividualId Request received");
 
 		RidInfoDTO ridInfoDTO = idRepoService.getRidInfoByIndividualId(individualId, individualIdType);
 
@@ -595,7 +599,7 @@ public class IdRepoController {
 		responseWrapper.setResponse(ridInfoDTO);
 
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
-				individualId, individualIdType, "Get v2 RID by IndividualId Request success");
+				individualId, individualIdType, "Post v2 RID by IndividualId Request success");
 
 		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}
