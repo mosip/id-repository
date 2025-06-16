@@ -17,7 +17,6 @@ import io.mosip.idrepository.core.dto.*;
 import org.assertj.core.util.Maps;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -680,100 +679,108 @@ public class IdRepoControllerTest {
 
 	@Test
 	public void testWithUINType() throws Exception {
-		testRidCall("1234567890", "UIN", IdType.UIN);
+		LocalDateTime creationDate = LocalDateTime.of(2023, 1, 1, 10, 0);
+		LocalDateTime updationDate = LocalDateTime.of(2023, 1, 2, 10, 0);
+		testRidCall("1234567890", "UIN", IdType.UIN, creationDate, updationDate);
 	}
 
 	@Test
 	public void testWithVIDType() throws Exception {
-		testRidCall("4567891230", "VID", IdType.VID);
+		LocalDateTime creationDate = LocalDateTime.of(2023, 1, 3, 10, 0);
+		LocalDateTime updationDate = LocalDateTime.of(2023, 1, 4, 10, 0);
+		testRidCall("4567891230", "VID", IdType.VID, creationDate, updationDate);
 	}
 
 	@Test
 	public void testWithNullType_ValidUIN() throws Exception {
 		String id = "1234567890";
-		RidRequestDTO dto = new RidRequestDTO();
-		dto.setIndividualId(id);
-		dto.setIdType(null);
+		LocalDateTime creationDate = LocalDateTime.of(2023, 2, 1, 11, 0);
+		LocalDateTime updationDate = LocalDateTime.of(2023, 2, 2, 11, 0);
+		RidRequestDTO dto = new RidRequestDTO(id, null);
 		RequestWrapper<RidRequestDTO> wrapper = new RequestWrapper<>();
 		wrapper.setRequest(dto);
 
-		Mockito.when(validator.validateUin(id)).thenReturn(true);
-		Mockito.when(idRepoService.getRidInfoByIndividualId(id, IdType.UIN))
-				.thenReturn(getRidInfoDTO("regUIN"));
+		when(validator.validateUin(id)).thenReturn(true);
+		when(idRepoService.getRidInfoByIndividualId(id, IdType.UIN))
+				.thenReturn(getRidInfoDTO("regUIN", creationDate, updationDate));
 
 		ResponseEntity<ResponseWrapper<RidInfoDTO>> response =
 				controller.postRidByIndividualIdV2(wrapper, null);
 
-		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-		Assertions.assertEquals("regUIN", response.getBody().getResponse().getRid());
-		Assertions.assertNotNull(response.getBody().getResponse().getCreationDate());
-		Assertions.assertNotNull(response.getBody().getResponse().getUpdationDate());
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals("regUIN", response.getBody().getResponse().getRid());
+		assertEquals(creationDate, response.getBody().getResponse().getCreatedOn());
+		assertEquals(updationDate, response.getBody().getResponse().getUpdatedOn());
 	}
 
 	@Test
 	public void testWithNullType_ValidVID() throws Exception {
 		String id = "VID4567890";
-		RidRequestDTO dto = new RidRequestDTO();
-		dto.setIndividualId(id);
-		dto.setIdType(null);
+		LocalDateTime creationDate = LocalDateTime.of(2023, 3, 1, 12, 0);
+		LocalDateTime updationDate = LocalDateTime.of(2023, 3, 2, 12, 0);
+		RidRequestDTO dto = new RidRequestDTO(id, null);
 		RequestWrapper<RidRequestDTO> wrapper = new RequestWrapper<>();
 		wrapper.setRequest(dto);
 
-		Mockito.when(validator.validateUin(id)).thenReturn(false);
-		Mockito.when(validator.validateVid(id)).thenReturn(true);
-		Mockito.when(idRepoService.getRidInfoByIndividualId(id, IdType.VID))
-				.thenReturn(getRidInfoDTO("regVID"));
+		when(validator.validateUin(id)).thenReturn(false);
+		when(validator.validateVid(id)).thenReturn(true);
+		when(idRepoService.getRidInfoByIndividualId(id, IdType.VID))
+				.thenReturn(getRidInfoDTO("regVID", creationDate, updationDate));
 
 		ResponseEntity<ResponseWrapper<RidInfoDTO>> response =
 				controller.postRidByIndividualIdV2(wrapper, null);
 
-		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-		Assertions.assertEquals("regVID", response.getBody().getResponse().getRid());
-		Assertions.assertNotNull(response.getBody().getResponse().getCreationDate());
-		Assertions.assertNotNull(response.getBody().getResponse().getUpdationDate());
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals("regVID", response.getBody().getResponse().getRid());
+		assertEquals(creationDate, response.getBody().getResponse().getCreatedOn());
+		assertEquals(updationDate, response.getBody().getResponse().getUpdatedOn());
 	}
 
 	@Test
 	public void testWithNullType_FallbackToID() throws Exception {
 		String id = "ID98765";
-		RidRequestDTO dto = new RidRequestDTO();
-		dto.setIndividualId(id);
-		dto.setIdType(null);
+		LocalDateTime creationDate = LocalDateTime.of(2023, 4, 1, 13, 0);
+		LocalDateTime updationDate = LocalDateTime.of(2023, 4, 2, 13, 0);
+		RidRequestDTO dto = new RidRequestDTO(id, null);
 		RequestWrapper<RidRequestDTO> wrapper = new RequestWrapper<>();
 		wrapper.setRequest(dto);
 
-		Mockito.when(validator.validateUin(id)).thenReturn(false);
-		Mockito.when(validator.validateVid(id)).thenReturn(false);
-		Mockito.when(idRepoService.getRidInfoByIndividualId(id, IdType.ID))
-				.thenReturn(getRidInfoDTO("regID"));
+		when(validator.validateUin(id)).thenReturn(false);
+		when(validator.validateVid(id)).thenReturn(false);
+		when(idRepoService.getRidInfoByIndividualId(id, IdType.ID))
+				.thenReturn(getRidInfoDTO("regID", creationDate, updationDate));
 
 		ResponseEntity<ResponseWrapper<RidInfoDTO>> response =
 				controller.postRidByIndividualIdV2(wrapper, null);
 
-		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-		Assertions.assertEquals("regID", response.getBody().getResponse().getRid());
-		Assertions.assertNotNull(response.getBody().getResponse().getCreationDate());
-		Assertions.assertNotNull(response.getBody().getResponse().getUpdationDate());
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals("regID", response.getBody().getResponse().getRid());
+		assertEquals(creationDate, response.getBody().getResponse().getCreatedOn());
+		assertEquals(updationDate, response.getBody().getResponse().getUpdatedOn());
 	}
 
-	private void testRidCall(String individualId, String idType, IdType expectedEnum) throws Exception {
-		RidRequestDTO dto = new RidRequestDTO();
-		dto.setIndividualId(individualId);
-		dto.setIdType(idType);
+	private void testRidCall(String individualId, String idType, IdType expectedEnum,
+							 LocalDateTime creationDate, LocalDateTime updationDate) throws Exception {
+
+		RidRequestDTO dto = new RidRequestDTO(individualId, idType);
 		RequestWrapper<RidRequestDTO> wrapper = new RequestWrapper<>();
 		wrapper.setRequest(dto);
 
-		Mockito.when(validator.validateIdType(idType)).thenReturn(expectedEnum);
-		Mockito.when(idRepoService.getRidInfoByIndividualId(individualId, expectedEnum))
-				.thenReturn(getRidInfoDTO("reg" + idType));
+		when(validator.validateIdType(idType)).thenReturn(expectedEnum);
+		when(idRepoService.getRidInfoByIndividualId(individualId, expectedEnum))
+				.thenReturn(getRidInfoDTO("reg" + idType, creationDate, updationDate));
 
 		ResponseEntity<ResponseWrapper<RidInfoDTO>> response =
 				controller.postRidByIndividualIdV2(wrapper, null);
 
-		Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-		Assertions.assertEquals("reg" + idType, response.getBody().getResponse().getRid());
-		Assertions.assertNotNull(response.getBody().getResponse().getCreationDate());
-		Assertions.assertNotNull(response.getBody().getResponse().getUpdationDate());
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals("reg" + idType, response.getBody().getResponse().getRid());
+		assertEquals(creationDate, response.getBody().getResponse().getCreatedOn());
+		assertEquals(updationDate, response.getBody().getResponse().getUpdatedOn());
+	}
+
+	private RidInfoDTO getRidInfoDTO(String rid, LocalDateTime creationDate, LocalDateTime updationDate) {
+		return new RidInfoDTO(rid, creationDate, updationDate);
 	}
 
 	@Test
@@ -791,13 +798,4 @@ public class IdRepoControllerTest {
 		ResponseEntity<ResponseWrapper<AttributeListDto>> response = controller.getRemainingUpdateCountByIndividualId("1234", "UIN", null);
 		response.getBody().getResponse();
 	}
-
-	private RidInfoDTO getRidInfoDTO(String rid) {
-		return new RidInfoDTO(
-				rid,
-				LocalDateTime.now().minusDays(1),
-				LocalDateTime.now()
-		);
-	}
-
 }

@@ -830,8 +830,8 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	private RidInfoDTO getRidInfoDTO(Uin uin) {
 		RidInfoDTO ridInfoDTO = new RidInfoDTO();
 		ridInfoDTO.setRid(uin.getRegId());
-		ridInfoDTO.setUpdationDate(uin.getUpdatedDateTime());
-		ridInfoDTO.setCreationDate(uin.getCreatedDateTime());
+		ridInfoDTO.setUpdatedOn(uin.getUpdatedDateTime());
+		ridInfoDTO.setCreatedOn(uin.getCreatedDateTime());
 		return ridInfoDTO;
 	}
 

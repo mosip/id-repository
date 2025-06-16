@@ -291,8 +291,8 @@ public class IdRepoProxyServiceTest {
 
 		RidInfoDTO result = proxyService.getRidInfoByIndividualId(vid, IdType.VID);
 		assertEquals(uinObj.getRegId(), result.getRid());
-		assertEquals(uinObj.getCreatedDateTime(), result.getCreationDate());
-		assertEquals(uinObj.getUpdatedDateTime(), result.getUpdationDate());
+		assertEquals(uinObj.getCreatedDateTime(), result.getCreatedOn());
+		assertEquals(uinObj.getUpdatedDateTime(), result.getUpdatedOn());
 	}
 
 	@Test
@@ -309,8 +309,8 @@ public class IdRepoProxyServiceTest {
 		Mockito.when(uinRepo.findByUinHash(hashedUin)).thenReturn(Optional.of(uinObj));
 		RidInfoDTO result = proxyService.getRidInfoByIndividualId(uin, IdType.UIN);
 		assertEquals(uinObj.getRegId(), result.getRid());
-		assertEquals(uinObj.getCreatedDateTime(), result.getCreationDate());
-		assertEquals(uinObj.getUpdatedDateTime(), result.getUpdationDate());
+		assertEquals(uinObj.getCreatedDateTime(), result.getCreatedOn());
+		assertEquals(uinObj.getUpdatedDateTime(), result.getUpdatedOn());
 	}
 
 	@Test
@@ -321,8 +321,8 @@ public class IdRepoProxyServiceTest {
 		Mockito.when(uinRepo.findByRegId(regId)).thenReturn(Optional.of(uinObj));
 		RidInfoDTO result = proxyService.getRidInfoByIndividualId(regId, IdType.ID);
 		assertEquals(uinObj.getRegId(), result.getRid());
-		assertEquals(uinObj.getCreatedDateTime(), result.getCreationDate());
-		assertEquals(uinObj.getUpdatedDateTime(), result.getUpdationDate());
+		assertEquals(uinObj.getCreatedDateTime(), result.getCreatedOn());
+		assertEquals(uinObj.getUpdatedDateTime(), result.getUpdatedOn());
 	}
 
 	@Test(expected = IdRepoAppException.class)
