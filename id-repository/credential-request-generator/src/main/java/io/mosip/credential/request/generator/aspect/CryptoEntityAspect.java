@@ -8,10 +8,10 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
 /**
- * Aspect to handle encryption and decryption of entity fields based on custom annotations.
- * Intercepts methods or entities annotated with encryption-related annotations (e.g.,@SkipDecryption)
- * and dynamically applies cryptographic logic before or after method execution.
- * Typically used with AOP to centralize encryption/decryption concerns outside of business logic.
+ * This class is designed for keeping the AOP aspects related to entities.
+ * Example: AOP aspect is created for intercepting the method call annotated
+ * with @SkipDecryption, to avoid decryption for an entity in hibernate interceptor
+ * using the JPA method.
  *
  * @author tarique-azeez
  */
