@@ -7,7 +7,9 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATA_VALI
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_REQUEST;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
+import static io.mosip.kernel.core.util.DateUtils.formatToISOString;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -572,8 +574,8 @@ public class IdRepoController {
 	}
 
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostRidByIndividualIdV2())")
-	@PostMapping(path = "/v2/rid", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "Get RID Information by IndividualId Request", description = "Get RID Information by IndividualId Request", tags = {
+	@PostMapping(path = "/idvid-metadata/search", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "Search RID information using Individual ID", description = "Search RID information using Individual ID", tags = {
 			"id-repo-controller" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "Request authenticated successfully", content = @Content(schema = @Schema(implementation = RidInfoDTO.class))),
@@ -581,25 +583,27 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
-	public ResponseEntity<ResponseWrapper<RidInfoDTO>> postRidByIndividualIdV2(@Validated @RequestBody RequestWrapper<RidRequestDTO> request,
-																			  @ApiIgnore Errors errors) throws IdRepoAppException {
-		RidRequestDTO ridRequest = request.getRequest();
+	public ResponseEntity<ResponseWrapper<RidInfoDTO>> searchRidByIdVidMetadata(@RequestBody RidRequestDTO ridRequest) throws IdRepoAppException {
+
 		String individualId = ridRequest.getIndividualId();
 		String idType = ridRequest.getIdType();
-
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
-				individualId, individualIdType, "Post v2 RID by IndividualId Request received");
+				individualId, individualIdType, "Received request to search RID information via IDVID metadata");
 
 		RidInfoDTO ridInfoDTO = idRepoService.getRidInfoByIndividualId(individualId, individualIdType);
 
+		if (ridInfoDTO != null) {
+			ridInfoDTO.setCreatedOn(LocalDateTime.parse((formatToISOString(ridInfoDTO.getCreatedOn()))));
+			ridInfoDTO.setUpdatedOn(LocalDateTime.parse(formatToISOString(ridInfoDTO.getUpdatedOn())));
+		}
 		ResponseWrapper<RidInfoDTO> responseWrapper = new ResponseWrapper<>();
 		responseWrapper.setId(ridId);
 		responseWrapper.setVersion(ridVersion);
 		responseWrapper.setResponse(ridInfoDTO);
 
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
-				individualId, individualIdType, "Post v2 RID by IndividualId Request success");
+				individualId, individualIdType, "Successfully retrieved RID information via IDVID metadata");
 
 		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}

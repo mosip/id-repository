@@ -697,15 +697,13 @@ public class IdRepoControllerTest {
 		LocalDateTime creationDate = LocalDateTime.of(2023, 2, 1, 11, 0);
 		LocalDateTime updationDate = LocalDateTime.of(2023, 2, 2, 11, 0);
 		RidRequestDTO dto = new RidRequestDTO(id, null);
-		RequestWrapper<RidRequestDTO> wrapper = new RequestWrapper<>();
-		wrapper.setRequest(dto);
 
 		when(validator.validateUin(id)).thenReturn(true);
 		when(idRepoService.getRidInfoByIndividualId(id, IdType.UIN))
 				.thenReturn(getRidInfoDTO("regUIN", creationDate, updationDate));
 
 		ResponseEntity<ResponseWrapper<RidInfoDTO>> response =
-				controller.postRidByIndividualIdV2(wrapper, null);
+				controller.searchRidByIdVidMetadata(dto);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals("regUIN", response.getBody().getResponse().getRid());
@@ -719,8 +717,6 @@ public class IdRepoControllerTest {
 		LocalDateTime creationDate = LocalDateTime.of(2023, 3, 1, 12, 0);
 		LocalDateTime updationDate = LocalDateTime.of(2023, 3, 2, 12, 0);
 		RidRequestDTO dto = new RidRequestDTO(id, null);
-		RequestWrapper<RidRequestDTO> wrapper = new RequestWrapper<>();
-		wrapper.setRequest(dto);
 
 		when(validator.validateUin(id)).thenReturn(false);
 		when(validator.validateVid(id)).thenReturn(true);
@@ -728,7 +724,7 @@ public class IdRepoControllerTest {
 				.thenReturn(getRidInfoDTO("regVID", creationDate, updationDate));
 
 		ResponseEntity<ResponseWrapper<RidInfoDTO>> response =
-				controller.postRidByIndividualIdV2(wrapper, null);
+				controller.searchRidByIdVidMetadata(dto);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals("regVID", response.getBody().getResponse().getRid());
@@ -742,8 +738,6 @@ public class IdRepoControllerTest {
 		LocalDateTime creationDate = LocalDateTime.of(2023, 4, 1, 13, 0);
 		LocalDateTime updationDate = LocalDateTime.of(2023, 4, 2, 13, 0);
 		RidRequestDTO dto = new RidRequestDTO(id, null);
-		RequestWrapper<RidRequestDTO> wrapper = new RequestWrapper<>();
-		wrapper.setRequest(dto);
 
 		when(validator.validateUin(id)).thenReturn(false);
 		when(validator.validateVid(id)).thenReturn(false);
@@ -751,7 +745,7 @@ public class IdRepoControllerTest {
 				.thenReturn(getRidInfoDTO("regID", creationDate, updationDate));
 
 		ResponseEntity<ResponseWrapper<RidInfoDTO>> response =
-				controller.postRidByIndividualIdV2(wrapper, null);
+				controller.searchRidByIdVidMetadata(dto);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals("regID", response.getBody().getResponse().getRid());
@@ -763,15 +757,13 @@ public class IdRepoControllerTest {
 							 LocalDateTime creationDate, LocalDateTime updationDate) throws Exception {
 
 		RidRequestDTO dto = new RidRequestDTO(individualId, idType);
-		RequestWrapper<RidRequestDTO> wrapper = new RequestWrapper<>();
-		wrapper.setRequest(dto);
 
 		when(validator.validateIdType(idType)).thenReturn(expectedEnum);
 		when(idRepoService.getRidInfoByIndividualId(individualId, expectedEnum))
 				.thenReturn(getRidInfoDTO("reg" + idType, creationDate, updationDate));
 
 		ResponseEntity<ResponseWrapper<RidInfoDTO>> response =
-				controller.postRidByIndividualIdV2(wrapper, null);
+				controller.searchRidByIdVidMetadata(dto);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals("reg" + idType, response.getBody().getResponse().getRid());
