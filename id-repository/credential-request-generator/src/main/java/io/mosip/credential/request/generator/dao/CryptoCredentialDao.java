@@ -9,13 +9,9 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * CryptoCredentialDao class for retrieving credential data with cryptographic context awareness.
- * <p>
- * This class provides access to {@link CredentialEntity} objects from the database
- * while selectively bypassing decryption logic using the {@link SkipDecryption} annotation.
- * </p>
- * The {@code findCredentialByStatusCode} method fetches credentials by status code,
- * and decryption is skipped to improve performance for internal processing like batch jobs.
+ * This class is designed for keeping the data access methods where we want control the
+ * cryptographic loading CredentialEntity. Example: Avoid decryption while loading the
+ * CredentialEntity.
  *
  * @author tarique-azeez
  */
@@ -24,7 +20,7 @@ import java.util.List;
 public class CryptoCredentialDao {
 
     @Autowired
-    private CredentialRepositary<CredentialEntity,String> credentialRepo;
+    private CredentialRepositary<CredentialEntity, String> credentialRepo;
 
     @SkipDecryption
     public List<CredentialEntity> findCredentialByStatusCode(String statusCode, int pageSize) {
