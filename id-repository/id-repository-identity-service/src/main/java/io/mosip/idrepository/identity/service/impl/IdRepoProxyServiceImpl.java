@@ -7,6 +7,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DOCUMENT_
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
+import static io.mosip.kernel.core.util.DateUtils.formatToISOString;
 
 import java.io.IOException;
 import java.util.*;
@@ -575,7 +576,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	 * @return a {@code RidInfoDTO} containing detailed RID information
 	 * @throws IdRepoAppException if there is an error during retrieval
 	 */
-	public RidInfoDTO getRidInfoByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
+	public IdVidMetaDataResponse getRidInfoByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
 		try {
 			switch (idType) {
 				case VID:
@@ -753,7 +754,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	private EventModel createEventModel(String topic, Map<String, Object> eventData, String transactionId) {
 		EventModel model = new EventModel();
 		model.setPublisher(ID_REPO);
-		String dateTime = DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime());
+		String dateTime = formatToISOString(DateUtils.getUTCCurrentDateTime());
 		model.setPublishedOn(dateTime);
 		Event event = new Event();
 		event.setTimestamp(dateTime);
@@ -827,11 +828,11 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 		}
 	}
 
-	private RidInfoDTO getRidInfoDTO(Uin uin) {
-		RidInfoDTO ridInfoDTO = new RidInfoDTO();
+	private IdVidMetaDataResponse getRidInfoDTO(Uin uin) {
+		IdVidMetaDataResponse ridInfoDTO = new IdVidMetaDataResponse();
 		ridInfoDTO.setRid(uin.getRegId());
-		ridInfoDTO.setUpdatedOn(uin.getUpdatedDateTime());
-		ridInfoDTO.setCreatedOn(uin.getCreatedDateTime());
+		ridInfoDTO.setUpdatedOn(formatToISOString(uin.getUpdatedDateTime()));
+		ridInfoDTO.setCreatedOn(formatToISOString(uin.getCreatedDateTime()));
 		return ridInfoDTO;
 	}
 

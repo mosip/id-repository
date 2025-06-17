@@ -5,14 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RidInfoDTO {
+public class IdVidMetaDataResponse {
 
     private String rid;
-    private LocalDateTime createdOn;
-    private LocalDateTime updatedOn;
+    private String createdOn;
+    private String updatedOn;
 }

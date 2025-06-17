@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -678,101 +677,74 @@ public class IdRepoControllerTest {
 	}
 
 	@Test
-	public void testWithUINType() throws Exception {
-		LocalDateTime creationDate = LocalDateTime.of(2023, 1, 1, 10, 0);
-		LocalDateTime updationDate = LocalDateTime.of(2023, 1, 2, 10, 0);
-		testRidCall("1234567890", "UIN", IdType.UIN, creationDate, updationDate);
+	public void testSearchIdVidMetadata_ValidUIN() throws Exception {
+		String individualId = "123456789012";
+		IdVidMetaDataRequest request = new IdVidMetaDataRequest();
+		request.setIndividualId(individualId);
+		request.setIdType(null);
+
+		String createdOn = "2023-03-01T12:00:00";
+		String updatedOn = "2023-03-02T12:00:00";
+
+		IdVidMetaDataResponse expected = new IdVidMetaDataResponse("RID001", createdOn, updatedOn);
+
+		when(validator.validateUin(individualId)).thenReturn(true);
+		when(idRepoService.getRidInfoByIndividualId(individualId, IdType.UIN)).thenReturn(expected);
+
+		ResponseEntity<ResponseWrapper<IdVidMetaDataResponse>> response = controller.searchIdVidMetadata(request);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals("RID001", response.getBody().getResponse().getRid());
+		assertEquals(createdOn, response.getBody().getResponse().getCreatedOn());
+		assertEquals(updatedOn, response.getBody().getResponse().getUpdatedOn());
 	}
 
 	@Test
-	public void testWithVIDType() throws Exception {
-		LocalDateTime creationDate = LocalDateTime.of(2023, 1, 3, 10, 0);
-		LocalDateTime updationDate = LocalDateTime.of(2023, 1, 4, 10, 0);
-		testRidCall("4567891230", "VID", IdType.VID, creationDate, updationDate);
+	public void testSearchIdVidMetadata_ValidVID() throws Exception {
+		String individualId = "VID4567890";
+		IdVidMetaDataRequest request = new IdVidMetaDataRequest();
+		request.setIndividualId(individualId);
+		request.setIdType(null);
+
+		String createdOn = "2023-03-01T12:00:00";
+		String updatedOn = "2023-03-02T12:00:00";
+
+		IdVidMetaDataResponse expected = new IdVidMetaDataResponse("RID002", createdOn, updatedOn);
+
+		when(validator.validateUin(individualId)).thenReturn(false);
+		when(validator.validateVid(individualId)).thenReturn(true);
+		when(idRepoService.getRidInfoByIndividualId(individualId, IdType.VID)).thenReturn(expected);
+
+		ResponseEntity<ResponseWrapper<IdVidMetaDataResponse>> response = controller.searchIdVidMetadata(request);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals("RID002", response.getBody().getResponse().getRid());
+		assertEquals(createdOn, response.getBody().getResponse().getCreatedOn());
+		assertEquals(updatedOn, response.getBody().getResponse().getUpdatedOn());
 	}
 
 	@Test
-	public void testWithNullType_ValidUIN() throws Exception {
-		String id = "1234567890";
-		LocalDateTime creationDate = LocalDateTime.of(2023, 2, 1, 11, 0);
-		LocalDateTime updationDate = LocalDateTime.of(2023, 2, 2, 11, 0);
-		RidRequestDTO dto = new RidRequestDTO(id, null);
+	public void testSearchIdVidMetadata_DefaultsToID() throws Exception {
+		String individualId = "IND123";
+		IdVidMetaDataRequest request = new IdVidMetaDataRequest();
+		request.setIndividualId(individualId);
+		request.setIdType(null);
 
-		when(validator.validateUin(id)).thenReturn(true);
-		when(idRepoService.getRidInfoByIndividualId(id, IdType.UIN))
-				.thenReturn(getRidInfoDTO("regUIN", creationDate, updationDate));
+		String createdOn = "2023-03-01T12:00:00";
+		String updatedOn = "2023-03-02T12:00:00";
 
-		ResponseEntity<ResponseWrapper<RidInfoDTO>> response =
-				controller.searchRidByIdVidMetadata(dto);
+		IdVidMetaDataResponse expected = new IdVidMetaDataResponse("RID003", createdOn, updatedOn);
 
-		assertEquals(HttpStatus.OK, response.getStatusCode());
-		assertEquals("regUIN", response.getBody().getResponse().getRid());
-		assertEquals(creationDate, response.getBody().getResponse().getCreatedOn());
-		assertEquals(updationDate, response.getBody().getResponse().getUpdatedOn());
-	}
+		when(validator.validateUin(individualId)).thenReturn(false);
+		when(validator.validateVid(individualId)).thenReturn(false);
+		when(idRepoService.getRidInfoByIndividualId(individualId, IdType.ID)).thenReturn(expected);
 
-	@Test
-	public void testWithNullType_ValidVID() throws Exception {
-		String id = "VID4567890";
-		LocalDateTime creationDate = LocalDateTime.of(2023, 3, 1, 12, 0);
-		LocalDateTime updationDate = LocalDateTime.of(2023, 3, 2, 12, 0);
-		RidRequestDTO dto = new RidRequestDTO(id, null);
-
-		when(validator.validateUin(id)).thenReturn(false);
-		when(validator.validateVid(id)).thenReturn(true);
-		when(idRepoService.getRidInfoByIndividualId(id, IdType.VID))
-				.thenReturn(getRidInfoDTO("regVID", creationDate, updationDate));
-
-		ResponseEntity<ResponseWrapper<RidInfoDTO>> response =
-				controller.searchRidByIdVidMetadata(dto);
+		ResponseEntity<ResponseWrapper<IdVidMetaDataResponse>> response = controller.searchIdVidMetadata(request);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
-		assertEquals("regVID", response.getBody().getResponse().getRid());
-		assertEquals(creationDate, response.getBody().getResponse().getCreatedOn());
-		assertEquals(updationDate, response.getBody().getResponse().getUpdatedOn());
-	}
-
-	@Test
-	public void testWithNullType_FallbackToID() throws Exception {
-		String id = "ID98765";
-		LocalDateTime creationDate = LocalDateTime.of(2023, 4, 1, 13, 0);
-		LocalDateTime updationDate = LocalDateTime.of(2023, 4, 2, 13, 0);
-		RidRequestDTO dto = new RidRequestDTO(id, null);
-
-		when(validator.validateUin(id)).thenReturn(false);
-		when(validator.validateVid(id)).thenReturn(false);
-		when(idRepoService.getRidInfoByIndividualId(id, IdType.ID))
-				.thenReturn(getRidInfoDTO("regID", creationDate, updationDate));
-
-		ResponseEntity<ResponseWrapper<RidInfoDTO>> response =
-				controller.searchRidByIdVidMetadata(dto);
-
-		assertEquals(HttpStatus.OK, response.getStatusCode());
-		assertEquals("regID", response.getBody().getResponse().getRid());
-		assertEquals(creationDate, response.getBody().getResponse().getCreatedOn());
-		assertEquals(updationDate, response.getBody().getResponse().getUpdatedOn());
-	}
-
-	private void testRidCall(String individualId, String idType, IdType expectedEnum,
-							 LocalDateTime creationDate, LocalDateTime updationDate) throws Exception {
-
-		RidRequestDTO dto = new RidRequestDTO(individualId, idType);
-
-		when(validator.validateIdType(idType)).thenReturn(expectedEnum);
-		when(idRepoService.getRidInfoByIndividualId(individualId, expectedEnum))
-				.thenReturn(getRidInfoDTO("reg" + idType, creationDate, updationDate));
-
-		ResponseEntity<ResponseWrapper<RidInfoDTO>> response =
-				controller.searchRidByIdVidMetadata(dto);
-
-		assertEquals(HttpStatus.OK, response.getStatusCode());
-		assertEquals("reg" + idType, response.getBody().getResponse().getRid());
-		assertEquals(creationDate, response.getBody().getResponse().getCreatedOn());
-		assertEquals(updationDate, response.getBody().getResponse().getUpdatedOn());
-	}
-
-	private RidInfoDTO getRidInfoDTO(String rid, LocalDateTime creationDate, LocalDateTime updationDate) {
-		return new RidInfoDTO(rid, creationDate, updationDate);
+		assertEquals("RID003", response.getBody().getResponse().getRid());
+		assertEquals(createdOn, response.getBody().getResponse().getCreatedOn());
+		assertEquals(updatedOn, response.getBody().getResponse().getUpdatedOn());
 	}
 
 	@Test

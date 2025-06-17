@@ -1,6 +1,7 @@
 package io.mosip.idrepository.identity.test.service.impl;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
+import static io.mosip.kernel.core.util.DateUtils.formatToISOString;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -283,16 +284,17 @@ public class IdRepoProxyServiceTest {
 		wrapper.setResponse(response);
 
 		Mockito.when(restHelper.requestSync(Mockito.any())).thenReturn(wrapper);
-
 		Mockito.when(securityManager.getSaltKeyForId(uin)).thenReturn(saltId);
 		Mockito.when(uinHashSaltRepo.retrieveSaltById(saltId)).thenReturn(hashSalt);
 		Mockito.when(securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes())).thenReturn("hashedUIN");
 		Mockito.when(uinRepo.findByUinHash(hashedUin)).thenReturn(Optional.of(uinObj));
 
-		RidInfoDTO result = proxyService.getRidInfoByIndividualId(vid, IdType.VID);
+		IdVidMetaDataResponse result = proxyService.getRidInfoByIndividualId(vid, IdType.VID);
 		assertEquals(uinObj.getRegId(), result.getRid());
-		assertEquals(uinObj.getCreatedDateTime(), result.getCreatedOn());
-		assertEquals(uinObj.getUpdatedDateTime(), result.getUpdatedOn());
+		String expectedCreated = formatToISOString(uinObj.getCreatedDateTime());
+		String expectedUpdated = formatToISOString(uinObj.getUpdatedDateTime());
+		assertEquals(expectedCreated, result.getCreatedOn());
+		assertEquals(expectedUpdated, result.getUpdatedOn());
 	}
 
 	@Test
@@ -307,22 +309,27 @@ public class IdRepoProxyServiceTest {
 		Mockito.when(uinHashSaltRepo.retrieveSaltById(saltId)).thenReturn(hashSalt);
 		Mockito.when(securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes())).thenReturn("hashedUIN");
 		Mockito.when(uinRepo.findByUinHash(hashedUin)).thenReturn(Optional.of(uinObj));
-		RidInfoDTO result = proxyService.getRidInfoByIndividualId(uin, IdType.UIN);
+		IdVidMetaDataResponse result = proxyService.getRidInfoByIndividualId(uin, IdType.UIN);
+
 		assertEquals(uinObj.getRegId(), result.getRid());
-		assertEquals(uinObj.getCreatedDateTime(), result.getCreatedOn());
-		assertEquals(uinObj.getUpdatedDateTime(), result.getUpdatedOn());
+		String expectedCreated = formatToISOString(uinObj.getCreatedDateTime());
+		String expectedUpdated = formatToISOString(uinObj.getUpdatedDateTime());
+		assertEquals(expectedCreated, result.getCreatedOn());
+		assertEquals(expectedUpdated, result.getUpdatedOn());
 	}
 
 	@Test
 	public void testGetRidInfoByIndividualId_ID_Success() throws Exception {
 		String regId = "reg123";
 		Uin uinObj = getMockUin();
-
 		Mockito.when(uinRepo.findByRegId(regId)).thenReturn(Optional.of(uinObj));
-		RidInfoDTO result = proxyService.getRidInfoByIndividualId(regId, IdType.ID);
+
+		IdVidMetaDataResponse result = proxyService.getRidInfoByIndividualId(regId, IdType.ID);
 		assertEquals(uinObj.getRegId(), result.getRid());
-		assertEquals(uinObj.getCreatedDateTime(), result.getCreatedOn());
-		assertEquals(uinObj.getUpdatedDateTime(), result.getUpdatedOn());
+		String expectedCreated = formatToISOString(uinObj.getCreatedDateTime());
+		String expectedUpdated = formatToISOString(uinObj.getUpdatedDateTime());
+		assertEquals(expectedCreated, result.getCreatedOn());
+		assertEquals(expectedUpdated, result.getUpdatedOn());
 	}
 
 	@Test(expected = IdRepoAppException.class)

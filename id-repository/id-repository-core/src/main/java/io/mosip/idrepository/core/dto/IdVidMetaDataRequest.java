@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RidRequestDTO {
+public class IdVidMetaDataRequest {
 
     private String individualId;
     private String idType;

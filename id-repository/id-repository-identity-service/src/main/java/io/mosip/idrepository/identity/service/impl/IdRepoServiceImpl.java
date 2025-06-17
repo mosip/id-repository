@@ -964,7 +964,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	}
 
 	@Override
-	public RidInfoDTO getRidInfoByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
+	public IdVidMetaDataResponse getRidInfoByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
 		return null;
 	}
 
