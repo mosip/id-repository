@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import io.mosip.credential.request.generator.dao.CryptoCredentialDao;
 
 import io.mosip.idrepository.core.util.EnvUtil;
 import org.junit.Before;
@@ -43,6 +44,9 @@ public class CredentialDaoTest {
 
 	@InjectMocks
 	private CredentialDao credentialDao;
+	
+	@Mock
+	private CryptoCredentialDao cryptoCredentialDao;
 	
 	@Before
 	public void setUp() {
@@ -86,15 +90,15 @@ public class CredentialDaoTest {
 	}
 	@Test
 	public void testGetCredentials(){
-		List<CredentialEntity> credentialList=new ArrayList<CredentialEntity>();
+		List<CredentialEntity> credentialList = new ArrayList<>();
 		CredentialEntity credentialEntity = new CredentialEntity();
 		credentialEntity.setRequestId("1234");
 		credentialEntity.setRequest("test");
 		credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		credentialList.add(credentialEntity);
-		Page<CredentialEntity> page = new PageImpl<>(credentialList);
-		Mockito.when(credentialRepo.findCredentialByStatusCode(Mockito.any(), Mockito.any())).thenReturn(page);
+		Mockito.when(cryptoCredentialDao.findCredentialByStatusCode(Mockito.anyString(), Mockito.anyInt()))
+				.thenReturn(credentialList);
 		credentialDao.getCredentials("1234");
 	}
 	
