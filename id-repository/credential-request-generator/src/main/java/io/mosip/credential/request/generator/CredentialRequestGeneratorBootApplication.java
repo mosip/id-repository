@@ -4,6 +4,7 @@ import io.mosip.kernel.websub.api.client.SubscriberClientImpl;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -28,6 +29,7 @@ import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
 				IdRepoDataSourceConfig.class }) })
 
 @EnableScheduling
+@EnableAspectJAutoProxy
 public class CredentialRequestGeneratorBootApplication {
 
 	/**
