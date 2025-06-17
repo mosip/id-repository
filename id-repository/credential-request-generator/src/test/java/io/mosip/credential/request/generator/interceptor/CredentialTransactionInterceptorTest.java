@@ -104,7 +104,7 @@ public class CredentialTransactionInterceptorTest {
         String[] propertyNames = {"a", "b", REQUEST};
         Type[] types = {};
         Mockito.when(cryptoUtil.decryptData(Mockito.any()))
-                .thenThrow(new RuntimeException("Simulated internal failure"));
+                .thenThrow(new Exception("Simulated internal failure"));
         Assert.assertFalse(credentialTransactionInterceptor.onLoad(entity, id, state, propertyNames, types));
 
     }
