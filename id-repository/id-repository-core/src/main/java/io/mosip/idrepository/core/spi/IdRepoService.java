@@ -75,12 +75,12 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	String getRidByIndividualId(String individualId, IdType idType) throws IdRepoAppException;
 
 	/**
-	 * Retrieves detailed RID information for a given individual
+	 * Retrieves the ID-Vid metadata information for a given individual
 	 * based on the provided ID and its type.
 	 *
 	 * @param individualId the identifier of the individual whose RID information is to be fetched
 	 * @param idType       The type of ID that you're passing in.
-	 * @return a {@code RidDTO} containing detailed RID information
+	 * @return an {@code IdVidMetaDataResponseDTO} containing RID, createdOn, and updatedOn
 	 * @throws IdRepoAppException if there is an error during retrieval
 	 */
 	IdVidMetaDataResponseDTO getIdVidMetaDataForIndividual(String individualId, IdType idType) throws IdRepoAppException;
