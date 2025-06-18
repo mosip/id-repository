@@ -581,48 +581,26 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
-	public ResponseEntity<ResponseWrapper<IdVidMetaDataResponse>> searchIdVidMetadata(@Validated @RequestBody IdVidMetaDataRequest request) throws IdRepoAppException {
+	public ResponseEntity<ResponseWrapper<IdVidMetaDataResponse>> searchIdVidMetadata(@Validated @RequestBody RequestWrapper<IdVidMetaDataRequest> request,
+																					  @ApiIgnore Errors errors) throws IdRepoAppException {
 
-		mosipLogger.info("Entered searchIdVidMetadata()");
-		mosipLogger.debug("Request payload received: {}", request);
-
-		String individualId = request.getIndividualId();
-		mosipLogger.debug("Extracted individualId: {}", individualId);
-
-		String idType = request.getIdType();
-		mosipLogger.debug("Extracted idType: {}", idType);
-
-		IdType individualIdType = null;
-		try {
-			individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
-			mosipLogger.debug("Determined individualIdType: {}", individualIdType);
-		} catch (Exception e) {
-			mosipLogger.error("Error while determining IdType", e);
-			throw e;
-		}
-
+		IdVidMetaDataRequest metaDataRequest = request.getRequest();
+		String individualId = metaDataRequest.getIndividualId();
+		String idType = metaDataRequest.getIdType();
+		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
 				individualId, individualIdType, "Search IdVid metadata request received");
 
-		IdVidMetaDataResponse metaDataResponse;
-		try {
-			metaDataResponse = idRepoService.getRidInfoByIndividualId(individualId, individualIdType);
-			mosipLogger.debug("Received metadata response from service");
-		} catch (Exception e) {
-			mosipLogger.error("Error while retrieving metadata", e);
-			throw e;
-		}
+		IdVidMetaDataResponse metaDataResponse = idRepoService.getRidInfoByIndividualId(individualId, individualIdType);
 
 		ResponseWrapper<IdVidMetaDataResponse> responseWrapper = new ResponseWrapper<>();
 		responseWrapper.setId(ridId);
 		responseWrapper.setVersion(ridVersion);
 		responseWrapper.setResponse(metaDataResponse);
-		mosipLogger.debug("Constructed response wrapper");
 
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
 				individualId, individualIdType, "Search IdVid metadata request successful");
 
-		mosipLogger.info("Returning successful response for searchIdVidMetadata()");
 		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}
 	
