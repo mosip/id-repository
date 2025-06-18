@@ -581,8 +581,7 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
-	public ResponseEntity<ResponseWrapper<IdVidMetaDataResponse>> searchIdVidMetadata(
-			@RequestBody IdVidMetaDataRequest request) throws IdRepoAppException {
+	public ResponseEntity<ResponseWrapper<IdVidMetaDataResponse>> searchIdVidMetadata(@Validated @RequestBody IdVidMetaDataRequest request) throws IdRepoAppException {
 
 		mosipLogger.info("Entered searchIdVidMetadata()");
 		mosipLogger.debug("Request payload received: {}", request);
