@@ -831,15 +831,12 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	private IdVidMetaDataResponseDTO getRidInfoDTO(Uin uin) {
 		IdVidMetaDataResponseDTO metaDataResponseDTO = new IdVidMetaDataResponseDTO();
 		metaDataResponseDTO.setRid(uin.getRegId());
-
 		if (uin.getUpdatedDateTime() != null) {
 			metaDataResponseDTO.setUpdatedOn(formatToISOString(uin.getUpdatedDateTime()));
 		}
-
 		if (uin.getCreatedDateTime() != null) {
 			metaDataResponseDTO.setCreatedOn(formatToISOString(uin.getCreatedDateTime()));
 		}
-
 		return metaDataResponseDTO;
 	}
 }
