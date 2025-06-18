@@ -43,7 +43,7 @@ public class CredentialDaoTest {
 	private CredentialDao credentialDao;
 	
 	@Mock
-	private EncryptedCredentialDao cryptoCredentialDao;
+	private EncryptedCredentialDao encryptedCredentialDao;
 	
 	@Before
 	public void setUp() {
