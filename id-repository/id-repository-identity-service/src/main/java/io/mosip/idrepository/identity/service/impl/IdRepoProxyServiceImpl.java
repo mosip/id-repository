@@ -585,13 +585,13 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 					String uinHash = retrieveUinHash(individualId);
 					Optional<Uin> uin = uinRepo.findByUinHash(uinHash);
 					if (uin.isPresent()) {
-						return getRidInfoDTO(uin.get());
+						return getIdVidMetaDataResponseDTO(uin.get());
 					}
 					break;
 				case ID:
 					Optional<Uin> uinOptional = uinRepo.findByRegId(individualId);
 					if (uinOptional.isPresent()) {
-						return getRidInfoDTO(uinOptional.get());
+						return getIdVidMetaDataResponseDTO(uinOptional.get());
 					}
 					break;
 			}
@@ -828,7 +828,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 		}
 	}
 
-	private IdVidMetaDataResponseDTO getRidInfoDTO(Uin uin) {
+	private IdVidMetaDataResponseDTO getIdVidMetaDataResponseDTO(Uin uin) {
 		IdVidMetaDataResponseDTO metaDataResponseDTO = new IdVidMetaDataResponseDTO();
 		metaDataResponseDTO.setRid(uin.getRegId());
 		if (uin.getUpdatedDateTime() != null) {
