@@ -289,7 +289,7 @@ public class IdRepoProxyServiceTest {
 		Mockito.when(securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes())).thenReturn("hashedUIN");
 		Mockito.when(uinRepo.findByUinHash(hashedUin)).thenReturn(Optional.of(uinObj));
 
-		IdVidMetaDataResponseDTO result = proxyService.getRidInfoByIndividualId(vid, IdType.VID);
+		IdVidMetaDataResponseDTO result = proxyService.getIdVidMetaDataForIndividual(vid, IdType.VID);
 		assertEquals(uinObj.getRegId(), result.getRid());
 		String expectedCreated = formatToISOString(uinObj.getCreatedDateTime());
 		String expectedUpdated = formatToISOString(uinObj.getUpdatedDateTime());
@@ -309,7 +309,7 @@ public class IdRepoProxyServiceTest {
 		Mockito.when(uinHashSaltRepo.retrieveSaltById(saltId)).thenReturn(hashSalt);
 		Mockito.when(securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes())).thenReturn("hashedUIN");
 		Mockito.when(uinRepo.findByUinHash(hashedUin)).thenReturn(Optional.of(uinObj));
-		IdVidMetaDataResponseDTO result = proxyService.getRidInfoByIndividualId(uin, IdType.UIN);
+		IdVidMetaDataResponseDTO result = proxyService.getIdVidMetaDataForIndividual(uin, IdType.UIN);
 
 		assertEquals(uinObj.getRegId(), result.getRid());
 		String expectedCreated = formatToISOString(uinObj.getCreatedDateTime());
@@ -324,7 +324,7 @@ public class IdRepoProxyServiceTest {
 		Uin uinObj = getMockUin();
 		Mockito.when(uinRepo.findByRegId(regId)).thenReturn(Optional.of(uinObj));
 
-		IdVidMetaDataResponseDTO result = proxyService.getRidInfoByIndividualId(regId, IdType.ID);
+		IdVidMetaDataResponseDTO result = proxyService.getIdVidMetaDataForIndividual(regId, IdType.ID);
 		assertEquals(uinObj.getRegId(), result.getRid());
 		String expectedCreated = formatToISOString(uinObj.getCreatedDateTime());
 		String expectedUpdated = formatToISOString(uinObj.getUpdatedDateTime());
@@ -342,7 +342,7 @@ public class IdRepoProxyServiceTest {
 		Mockito.when(uinHashSaltRepo.retrieveSaltById(saltId)).thenReturn(hashSalt);
 		Mockito.when(securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes())).thenReturn("hashedUIN");
 		Mockito.when(uinRepo.findByUinHash(Mockito.anyString())).thenReturn(Optional.empty());
-		proxyService.getRidInfoByIndividualId(uin, IdType.UIN);
+		proxyService.getIdVidMetaDataForIndividual(uin, IdType.UIN);
 	}
 
 	@Test(expected = IdRepoAppException.class)
@@ -355,7 +355,7 @@ public class IdRepoProxyServiceTest {
 		Mockito.when(uinHashSaltRepo.retrieveSaltById(saltId)).thenReturn(hashSalt);
 		Mockito.when(securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes())).thenReturn("hashedUIN");
 		Mockito.when(uinRepo.findByUinHash(Mockito.anyString())).thenThrow(new DataAccessException("DB Error") {});
-		proxyService.getRidInfoByIndividualId(uin, IdType.UIN);
+		proxyService.getIdVidMetaDataForIndividual(uin, IdType.UIN);
 	}
 
 	@Test(expected = IdRepoAppException.class)
@@ -368,7 +368,7 @@ public class IdRepoProxyServiceTest {
 		Mockito.when(restBuilder.buildRequest(Mockito.any(), Mockito.isNull(), Mockito.eq(ResponseWrapper.class)))
 				.thenReturn(restRequestDTO);
 		Mockito.when(restHelper.requestSync(Mockito.any())).thenThrow(ex);
-		proxyService.getRidInfoByIndividualId(vid, IdType.VID);
+		proxyService.getIdVidMetaDataForIndividual(vid, IdType.VID);
 	}
 
 	private Uin getMockUin() {

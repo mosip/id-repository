@@ -32,7 +32,6 @@ import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.Errors;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -694,9 +693,8 @@ public class IdRepoControllerTest {
 		IdVidMetaDataResponseDTO expected = new IdVidMetaDataResponseDTO("RID001", createdOn, updatedOn);
 
 		when(validator.validateUin(individualId)).thenReturn(true);
-		when(idRepoService.getRidInfoByIndividualId(individualId, IdType.UIN)).thenReturn(expected);
+		when(idRepoService.getIdVidMetaDataForIndividual(individualId, IdType.UIN)).thenReturn(expected);
 
-		Errors errors = mock(Errors.class);
 		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -722,9 +720,8 @@ public class IdRepoControllerTest {
 
 		when(validator.validateUin(individualId)).thenReturn(false);
 		when(validator.validateVid(individualId)).thenReturn(true);
-		when(idRepoService.getRidInfoByIndividualId(individualId, IdType.VID)).thenReturn(expected);
+		when(idRepoService.getIdVidMetaDataForIndividual(individualId, IdType.VID)).thenReturn(expected);
 
-		Errors errors = mock(Errors.class);
 		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -750,9 +747,8 @@ public class IdRepoControllerTest {
 
 		when(validator.validateUin(individualId)).thenReturn(false);
 		when(validator.validateVid(individualId)).thenReturn(false);
-		when(idRepoService.getRidInfoByIndividualId(individualId, IdType.ID)).thenReturn(expected);
+		when(idRepoService.getIdVidMetaDataForIndividual(individualId, IdType.ID)).thenReturn(expected);
 
-		Errors errors = mock(Errors.class);
 		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());

@@ -590,7 +590,7 @@ public class IdRepoController {
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
 				individualId, individualIdType, "Search IdVid metadata request received");
 
-		IdVidMetaDataResponseDTO metaDataResponse = idRepoService.getRidInfoByIndividualId(individualId, individualIdType);
+		IdVidMetaDataResponseDTO metaDataResponse = idRepoService.getIdVidMetaDataForIndividual(individualId, individualIdType);
 
 		ResponseWrapper<IdVidMetaDataResponseDTO> responseWrapper = new ResponseWrapper<>();
 		responseWrapper.setId(ridId);

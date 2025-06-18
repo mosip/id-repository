@@ -568,15 +568,15 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	}
 
 	/**
-	 * Retrieves detailed RID information for a given individual
+	 * Retrieves the ID-Vid metadata information for a given individual
 	 * based on the provided ID and its type.
 	 *
 	 * @param individualId The ID of the individual whose RID information is to be fetched
 	 * @param idType       The type of ID that you're passing in.
-	 * @return a {@code RidInfoDTO} containing detailed RID information
+	 * @return an {@code IdVidMetaDataResponseDTO} containing RID, createdOn, and updatedOn
 	 * @throws IdRepoAppException if there is an error during retrieval
 	 */
-	public IdVidMetaDataResponseDTO getRidInfoByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
+	public IdVidMetaDataResponseDTO getIdVidMetaDataForIndividual(String individualId, IdType idType) throws IdRepoAppException {
 		try {
 			switch (idType) {
 				case VID:

@@ -83,7 +83,7 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 * @return a {@code RidDTO} containing detailed RID information
 	 * @throws IdRepoAppException if there is an error during retrieval
 	 */
-	IdVidMetaDataResponseDTO getRidInfoByIndividualId(String individualId, IdType idType) throws IdRepoAppException;
+	IdVidMetaDataResponseDTO getIdVidMetaDataForIndividual(String individualId, IdType idType) throws IdRepoAppException;
 	
 	/**
 	 * This function is used to get the maximum allowed update count of an attribute
