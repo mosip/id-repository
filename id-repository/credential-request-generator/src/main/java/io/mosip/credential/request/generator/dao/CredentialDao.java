@@ -1,16 +1,13 @@
 package io.mosip.credential.request.generator.dao;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import io.mosip.credential.request.generator.entity.CredentialEntity;
@@ -38,7 +35,7 @@ public class CredentialDao {
 	private CredentialRepositary<CredentialEntity, String> credentialRepo;
 	
 	@Autowired
-    private CryptoCredentialDao cryptoCredentialDao;
+    private EncryptedCredentialDao encryptedCredentialDao;
 
 	public void update(String batchId, List<CredentialEntity> credentialEntities) {
 		credentialRepo.saveAll(credentialEntities);
@@ -50,7 +47,7 @@ public class CredentialDao {
 		LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
 				"Inside getCredentials() method");
 		//Obtain the encrypted credentials for performance improvement
-        List<CredentialEntity> credentialEntities = cryptoCredentialDao.findCredentialByStatusCode(status, pageSize);
+        List<CredentialEntity> credentialEntities = encryptedCredentialDao.getCredentialByStatus(status, pageSize);
 
 		LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
 				"Total records picked from credential_transaction table for processing is "

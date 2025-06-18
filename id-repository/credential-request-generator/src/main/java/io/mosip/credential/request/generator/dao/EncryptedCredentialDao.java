@@ -1,6 +1,6 @@
 package io.mosip.credential.request.generator.dao;
 
-import io.mosip.credential.request.generator.aspect.SkipDecryption;
+import io.mosip.credential.request.generator.aspect.CryptoContext;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,13 +17,18 @@ import java.util.List;
  */
 
 @Component
-public class CryptoCredentialDao {
+public class EncryptedCredentialDao {
 
     @Autowired
     private CredentialRepositary<CredentialEntity, String> credentialRepo;
 
-    @SkipDecryption
-    public List<CredentialEntity> findCredentialByStatusCode(String statusCode, int pageSize) {
-        return credentialRepo.findCredentialByStatusCode(statusCode, pageSize);
+    public List<CredentialEntity> getCredentialByStatus(String statusCode, int pageSize) {
+        try{
+            CryptoContext.setSkipDecryption(true);
+            return credentialRepo.findCredentialByStatusCode(statusCode, pageSize);
+        }
+        finally {
+            CryptoContext.setSkipDecryption(false);
+        }
     }
 }
