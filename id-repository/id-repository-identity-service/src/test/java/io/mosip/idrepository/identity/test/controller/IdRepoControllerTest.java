@@ -681,23 +681,23 @@ public class IdRepoControllerTest {
 	@Test
 	public void testSearchIdVidMetadata_ValidUIN() throws Exception {
 		String individualId = "123456789012";
-		IdVidMetaDataRequest dto = new IdVidMetaDataRequest();
+		IdVidMetaDataRequestDTO dto = new IdVidMetaDataRequestDTO();
 		dto.setIndividualId(individualId);
 		dto.setIdType(null);
 
-		RequestWrapper<IdVidMetaDataRequest> request = new RequestWrapper<>();
+		RequestWrapper<IdVidMetaDataRequestDTO> request = new RequestWrapper<>();
 		request.setRequest(dto);
 
 		String createdOn = "2023-03-01T12:00:00";
 		String updatedOn = "2023-03-02T12:00:00";
 
-		IdVidMetaDataResponse expected = new IdVidMetaDataResponse("RID001", createdOn, updatedOn);
+		IdVidMetaDataResponseDTO expected = new IdVidMetaDataResponseDTO("RID001", createdOn, updatedOn);
 
 		when(validator.validateUin(individualId)).thenReturn(true);
 		when(idRepoService.getRidInfoByIndividualId(individualId, IdType.UIN)).thenReturn(expected);
 
 		Errors errors = mock(Errors.class);
-		ResponseEntity<ResponseWrapper<IdVidMetaDataResponse>> response = controller.searchIdVidMetadata(request, errors);
+		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request, errors);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals("RID001", response.getBody().getResponse().getRid());
@@ -708,24 +708,24 @@ public class IdRepoControllerTest {
 	@Test
 	public void testSearchIdVidMetadata_ValidVID() throws Exception {
 		String individualId = "VID4567890";
-		IdVidMetaDataRequest dto = new IdVidMetaDataRequest();
+		IdVidMetaDataRequestDTO dto = new IdVidMetaDataRequestDTO();
 		dto.setIndividualId(individualId);
 		dto.setIdType(null);
 
-		RequestWrapper<IdVidMetaDataRequest> request = new RequestWrapper<>();
+		RequestWrapper<IdVidMetaDataRequestDTO> request = new RequestWrapper<>();
 		request.setRequest(dto);
 
 		String createdOn = "2023-03-01T12:00:00";
 		String updatedOn = "2023-03-02T12:00:00";
 
-		IdVidMetaDataResponse expected = new IdVidMetaDataResponse("RID002", createdOn, updatedOn);
+		IdVidMetaDataResponseDTO expected = new IdVidMetaDataResponseDTO("RID002", createdOn, updatedOn);
 
 		when(validator.validateUin(individualId)).thenReturn(false);
 		when(validator.validateVid(individualId)).thenReturn(true);
 		when(idRepoService.getRidInfoByIndividualId(individualId, IdType.VID)).thenReturn(expected);
 
 		Errors errors = mock(Errors.class);
-		ResponseEntity<ResponseWrapper<IdVidMetaDataResponse>> response = controller.searchIdVidMetadata(request, errors);
+		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request, errors);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals("RID002", response.getBody().getResponse().getRid());
@@ -736,24 +736,24 @@ public class IdRepoControllerTest {
 	@Test
 	public void testSearchIdVidMetadata_DefaultsToID() throws Exception {
 		String individualId = "IND123";
-		IdVidMetaDataRequest dto = new IdVidMetaDataRequest();
+		IdVidMetaDataRequestDTO dto = new IdVidMetaDataRequestDTO();
 		dto.setIndividualId(individualId);
 		dto.setIdType(null);
 
-		RequestWrapper<IdVidMetaDataRequest> request = new RequestWrapper<>();
+		RequestWrapper<IdVidMetaDataRequestDTO> request = new RequestWrapper<>();
 		request.setRequest(dto);
 
 		String createdOn = "2023-03-01T12:00:00";
 		String updatedOn = "2023-03-02T12:00:00";
 
-		IdVidMetaDataResponse expected = new IdVidMetaDataResponse("RID003", createdOn, updatedOn);
+		IdVidMetaDataResponseDTO expected = new IdVidMetaDataResponseDTO("RID003", createdOn, updatedOn);
 
 		when(validator.validateUin(individualId)).thenReturn(false);
 		when(validator.validateVid(individualId)).thenReturn(false);
 		when(idRepoService.getRidInfoByIndividualId(individualId, IdType.ID)).thenReturn(expected);
 
 		Errors errors = mock(Errors.class);
-		ResponseEntity<ResponseWrapper<IdVidMetaDataResponse>> response = controller.searchIdVidMetadata(request, errors);
+		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request, errors);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals("RID003", response.getBody().getResponse().getRid());

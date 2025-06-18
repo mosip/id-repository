@@ -576,7 +576,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	 * @return a {@code RidInfoDTO} containing detailed RID information
 	 * @throws IdRepoAppException if there is an error during retrieval
 	 */
-	public IdVidMetaDataResponse getRidInfoByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
+	public IdVidMetaDataResponseDTO getRidInfoByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
 		try {
 			switch (idType) {
 				case VID:
@@ -828,8 +828,8 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 		}
 	}
 
-	private IdVidMetaDataResponse getRidInfoDTO(Uin uin) {
-		IdVidMetaDataResponse ridInfoDTO = new IdVidMetaDataResponse();
+	private IdVidMetaDataResponseDTO getRidInfoDTO(Uin uin) {
+		IdVidMetaDataResponseDTO ridInfoDTO = new IdVidMetaDataResponseDTO();
 		ridInfoDTO.setRid(uin.getRegId());
 		ridInfoDTO.setUpdatedOn(formatToISOString(uin.getUpdatedDateTime()));
 		ridInfoDTO.setCreatedOn(formatToISOString(uin.getCreatedDateTime()));

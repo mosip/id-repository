@@ -576,24 +576,24 @@ public class IdRepoController {
 	@Operation(summary = "Search IdVid metadata using Individual Id", description = "Search IdVid metadata using Individual Id", tags = {
 			"id-repo-controller" })
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "Request authenticated successfully", content = @Content(schema = @Schema(implementation = IdVidMetaDataResponse.class))),
+			@ApiResponse(responseCode = "200", description = "Request authenticated successfully", content = @Content(schema = @Schema(implementation = IdVidMetaDataResponseDTO.class))),
 			@ApiResponse(responseCode = "400", description = "No Records Found", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
-	public ResponseEntity<ResponseWrapper<IdVidMetaDataResponse>> searchIdVidMetadata(@Validated @RequestBody RequestWrapper<IdVidMetaDataRequest> request,
-																					  @ApiIgnore Errors errors) throws IdRepoAppException {
+	public ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> searchIdVidMetadata(@Validated @RequestBody RequestWrapper<IdVidMetaDataRequestDTO> request,
+																						 @ApiIgnore Errors errors) throws IdRepoAppException {
 
-		IdVidMetaDataRequest metaDataRequest = request.getRequest();
+		IdVidMetaDataRequestDTO metaDataRequest = request.getRequest();
 		String individualId = metaDataRequest.getIndividualId();
 		String idType = metaDataRequest.getIdType();
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
 				individualId, individualIdType, "Search IdVid metadata request received");
 
-		IdVidMetaDataResponse metaDataResponse = idRepoService.getRidInfoByIndividualId(individualId, individualIdType);
+		IdVidMetaDataResponseDTO metaDataResponse = idRepoService.getRidInfoByIndividualId(individualId, individualIdType);
 
-		ResponseWrapper<IdVidMetaDataResponse> responseWrapper = new ResponseWrapper<>();
+		ResponseWrapper<IdVidMetaDataResponseDTO> responseWrapper = new ResponseWrapper<>();
 		responseWrapper.setId(ridId);
 		responseWrapper.setVersion(ridVersion);
 		responseWrapper.setResponse(metaDataResponse);
