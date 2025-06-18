@@ -3,7 +3,7 @@ package io.mosip.credential.request.generator.interceptor;
 import java.io.Serializable;
 import java.util.Arrays;
 
-import io.mosip.credential.request.generator.aspect.CryptoContext;
+import io.mosip.credential.request.generator.context.CryptoContext;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
 
