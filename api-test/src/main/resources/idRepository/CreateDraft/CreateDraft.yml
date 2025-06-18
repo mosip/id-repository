@@ -1,0 +1,99 @@
+CreateDraft:
+  IdRepository_CreateDraft_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/create/{registrationId}
+      description: Create a draft passing valid registrationID
+      uniqueIdentifier: TC_IDRepo_CreateDraft_01
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: post
+      inputTemplate: idRepository/CreateDraft/createDraft
+      outputTemplate: idRepository/CreateDraft/createDraftResult
+      input: '{
+      "registrationId":"$RID$"
+      }'
+      output: '{
+    "status": "DRAFTED"
+}'
+  IdRepository_Verify_UIN_Only_One_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/create/{registrationId}
+      description: Verify UIN passing valid registration ID
+      uniqueIdentifier: TC_IDRepo_CreateDraft_02
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/CreateDraft/createDraft
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RID$"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-012"
+    }
+  ]
+}'
+  IdRepository_CreateDraft_delete_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/create/{registrationId}
+      description: Delete a draft passing valid registartionId
+      uniqueIdentifier: TC_IDRepo_CreateDraft_03
+      role: idrepo
+      restMethod: post
+      checkErrorsOnlyInResponse: true
+      inputTemplate: idRepository/CreateDraft/createDraft
+      outputTemplate: idRepository/CreateDraft/createDraftResult
+      input: '{
+      "registrationId":"$RIDDEL$"
+      }'
+      output: '{
+}'
+  IdRepository_CreateDraft_invalid_rid:
+      endPoint: /idrepository/v1/identity/draft/create/{registrationId}
+      description: Create a draft passing invalid RID
+      uniqueIdentifier: TC_IDRepo_CreateDraft_01
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/CreateDraft/createDraft
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"ajajaj@gddb#$"
+      }'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-012"
+    }
+  ]
+}'
+  IdRepository_CreateDraft_blank_rid:
+      endPoint: /idrepository/v1/identity/draft/create/{registrationId}
+      description: Create a draft passing blank RID
+      uniqueIdentifier: TC_IDRepo_CreateDraft_06
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/CreateDraft/createDraft
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":""
+      }'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+  IdRepository_CreateDraft_forExtractionSmoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/create/{registrationId}
+      description: Create a draft passing valid registrationID use for extraction
+      uniqueIdentifier: TC_IDRepo_CreateDraft_07
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: post
+      inputTemplate: idRepository/CreateDraft/createDraft
+      outputTemplate: idRepository/CreateDraft/createDraftResult
+      input: '{
+      "registrationId":"$RIDEXT$"
+      }'
+      output: '{
+    "status": "DRAFTED"
+}'
