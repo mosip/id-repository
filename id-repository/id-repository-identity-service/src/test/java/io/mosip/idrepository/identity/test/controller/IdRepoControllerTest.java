@@ -697,7 +697,7 @@ public class IdRepoControllerTest {
 		when(idRepoService.getRidInfoByIndividualId(individualId, IdType.UIN)).thenReturn(expected);
 
 		Errors errors = mock(Errors.class);
-		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request, errors);
+		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals("RID001", response.getBody().getResponse().getRid());
@@ -725,7 +725,7 @@ public class IdRepoControllerTest {
 		when(idRepoService.getRidInfoByIndividualId(individualId, IdType.VID)).thenReturn(expected);
 
 		Errors errors = mock(Errors.class);
-		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request, errors);
+		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals("RID002", response.getBody().getResponse().getRid());
@@ -753,7 +753,7 @@ public class IdRepoControllerTest {
 		when(idRepoService.getRidInfoByIndividualId(individualId, IdType.ID)).thenReturn(expected);
 
 		Errors errors = mock(Errors.class);
-		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request, errors);
+		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals("RID003", response.getBody().getResponse().getRid());
