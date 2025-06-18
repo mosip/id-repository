@@ -544,7 +544,7 @@ public class IdRepoController {
 		}
 	}
 
-	@Deprecated
+	@Deprecated(since = "1.2.3")
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetRidByIndividualId())")
 	@GetMapping(path = "/rid/{individualId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Get RID by IndividualId Request", description = "Get RID by IndividualId Request", tags = {
