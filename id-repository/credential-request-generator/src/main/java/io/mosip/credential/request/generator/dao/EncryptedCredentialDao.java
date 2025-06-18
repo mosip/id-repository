@@ -1,6 +1,6 @@
 package io.mosip.credential.request.generator.dao;
 
-import io.mosip.credential.request.generator.aspect.CryptoContext;
+import io.mosip.credential.request.generator.context.CryptoContext;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import org.springframework.beans.factory.annotation.Autowired;
