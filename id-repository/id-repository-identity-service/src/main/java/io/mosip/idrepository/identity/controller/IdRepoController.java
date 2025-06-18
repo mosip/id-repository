@@ -581,8 +581,7 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
-	public ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> searchIdVidMetadata(@Validated @RequestBody RequestWrapper<IdVidMetaDataRequestDTO> request,
-																						 @ApiIgnore Errors errors) throws IdRepoAppException {
+	public ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> searchIdVidMetadata(@Validated @RequestBody RequestWrapper<IdVidMetaDataRequestDTO> request) throws IdRepoAppException {
 
 		IdVidMetaDataRequestDTO metaDataRequest = request.getRequest();
 		String individualId = metaDataRequest.getIndividualId();
