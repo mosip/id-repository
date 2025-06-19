@@ -577,7 +577,7 @@ public class IdRepoController {
 		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}
 
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostZearchIdVidMetadata())")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostSearchIdVidMetadata())")
 	@PostMapping(path = "/idvid-metadata/search", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Search IdVid metadata using Individual Id", description = "Search IdVid metadata using Individual Id", tags = {
 			"id-repo-controller" })
