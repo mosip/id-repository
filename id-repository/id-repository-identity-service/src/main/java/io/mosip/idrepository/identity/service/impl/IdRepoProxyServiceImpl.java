@@ -584,13 +584,13 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 					String uinHash = retrieveUinHash(individualId);
 					Optional<Uin> uin = uinRepo.findByUinHash(uinHash);
 					if (uin.isPresent()) {
-						return getIdVidMetaDataResponseDTO(uin.get());
+						return getIdVidMetadataResponseDTO(uin.get());
 					}
 					break;
 				case ID:
 					Optional<Uin> uinOptional = uinRepo.findByRegId(individualId);
 					if (uinOptional.isPresent()) {
-						return getIdVidMetaDataResponseDTO(uinOptional.get());
+						return getIdVidMetadataResponseDTO(uinOptional.get());
 					}
 					break;
 			}
@@ -827,15 +827,15 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 		}
 	}
 
-	private IdVidMetaDataResponseDTO getIdVidMetaDataResponseDTO(Uin uin) {
-		IdVidMetaDataResponseDTO metaDataResponseDTO = new IdVidMetaDataResponseDTO();
-		metaDataResponseDTO.setRid(uin.getRegId());
+	private IdVidMetaDataResponseDTO getIdVidMetadataResponseDTO(Uin uin) {
+		IdVidMetaDataResponseDTO metadataResponseDTO = new IdVidMetaDataResponseDTO();
+		metadataResponseDTO.setRid(uin.getRegId());
 		if (uin.getUpdatedDateTime() != null) {
-			metaDataResponseDTO.setUpdatedOn(DateUtils.formatToISOString(uin.getUpdatedDateTime()));
+			metadataResponseDTO.setUpdatedOn(DateUtils.formatToISOString(uin.getUpdatedDateTime()));
 		}
 		if (uin.getCreatedDateTime() != null) {
-			metaDataResponseDTO.setCreatedOn(DateUtils.formatToISOString(uin.getCreatedDateTime()));
+			metadataResponseDTO.setCreatedOn(DateUtils.formatToISOString(uin.getCreatedDateTime()));
 		}
-		return metaDataResponseDTO;
+		return metadataResponseDTO;
 	}
 }

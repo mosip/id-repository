@@ -265,7 +265,7 @@ public class IdRepoProxyServiceTest {
 	}
 
 	@Test
-	public void testGetIdVidMetaDataForIndividual_VID_Success() throws Exception {
+	public void testGetIdVidMetadataForIndividual_VID_Success() throws Exception {
 		String vid = "1234567890123456";
 		String uin = "9999999999";
 		int saltId = 123;
@@ -298,7 +298,7 @@ public class IdRepoProxyServiceTest {
 	}
 
 	@Test
-	public void testGetIdVidMetaDataForIndividual_UIN_Success() throws Exception {
+	public void testGetIdVidMetadataForIndividual_UIN_Success() throws Exception {
 		String uin = "9999999999";
 		int saltId = 123;
 		String hashSalt = "dummySalt";
@@ -319,7 +319,7 @@ public class IdRepoProxyServiceTest {
 	}
 
 	@Test
-	public void testGetIdVidMetaDataForIndividual_ID_Success() throws Exception {
+	public void testGetIdVidMetadataForIndividual_ID_Success() throws Exception {
 		String regId = "reg123";
 		Uin uinObj = getMockUin();
 		Mockito.when(uinRepo.findByRegId(regId)).thenReturn(Optional.of(uinObj));
@@ -333,7 +333,7 @@ public class IdRepoProxyServiceTest {
 	}
 
 	@Test(expected = IdRepoAppException.class)
-	public void testGetIdVidMetaDataForIndividual_NoRecordFound() throws IdRepoAppException {
+	public void testGetIdVidMetadataForIndividual_NoRecordFound() throws IdRepoAppException {
 		String uin = "9999999999";
 		int saltId = 123;
 		String hashSalt = "dummySalt";
@@ -346,7 +346,7 @@ public class IdRepoProxyServiceTest {
 	}
 
 	@Test(expected = IdRepoAppException.class)
-	public void testGetIdVidMetaDataForIndividual_DatabaseException() throws IdRepoAppException {
+	public void testGetIdVidMetadataForIndividual_DatabaseException() throws IdRepoAppException {
 		String uin = "9999999999";
 		int saltId = 123;
 		String hashSalt = "dummySalt";
