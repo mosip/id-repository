@@ -59,11 +59,11 @@ public enum AuditEvents {
 	
 	GET_RID_BY_INDIVIDUALID("IDR-026", "System Event"),
 
-	ID_VID_METADATA("IDR-028", "System Event"),
-
 	GET_DRAFT_UIN_REQUEST_RESPONSE("IDR-027", "System Event"),
 	
-	REMOVE_ID_STATUS("IDR-028", "System Event");
+	REMOVE_ID_STATUS("IDR-028", "System Event"),
+
+	ID_VID_METADATA("IDR-029", "System Event");
 	
 	
 
