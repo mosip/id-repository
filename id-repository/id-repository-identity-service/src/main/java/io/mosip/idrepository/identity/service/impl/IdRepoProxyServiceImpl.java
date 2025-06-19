@@ -7,7 +7,6 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DOCUMENT_
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
-import static io.mosip.kernel.core.util.DateUtils.formatToISOString;
 
 import java.io.IOException;
 import java.util.*;
@@ -568,15 +567,15 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	}
 
 	/**
-	 * Retrieves the ID-Vid metadata information for a given individual
+	 * Retrieves the id vid metadata information for a given individual
 	 * based on the provided ID and its type.
 	 *
-	 * @param individualId The ID of the individual whose RID information is to be fetched
-	 * @param idType       The type of ID that you're passing in.
-	 * @return an {@code IdVidMetaDataResponseDTO} containing RID, createdOn, and updatedOn
+	 * @param individualId the identifier of the individual whose metadata is to be fetched.
+	 * @param idType The type of ID that you're passing in.
+	 * @return an {@code IdVidMetaDataResponseDTO} containing rid, createdOn, and updatedOn
 	 * @throws IdRepoAppException if there is an error during retrieval
 	 */
-	public IdVidMetaDataResponseDTO getIdVidMetaDataForIndividual(String individualId, IdType idType) throws IdRepoAppException {
+	public IdVidMetaDataResponseDTO getIdVidMetadata(String individualId, IdType idType) throws IdRepoAppException {
 		try {
 			switch (idType) {
 				case VID:
@@ -595,12 +594,12 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 					}
 					break;
 			}
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getRidInfoByIndividualId",
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getIdVidMetadata",
 					"NO_RECORD_FOUND");
 			throw new IdRepoAppException(NO_RECORD_FOUND);
 		} catch (DataAccessException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
-					"getRidInfoByIndividualId", "DATABASE_ERROR");
+					"getIdVidMetadata", "DATABASE_ERROR");
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
 		}
 	}
@@ -754,7 +753,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	private EventModel createEventModel(String topic, Map<String, Object> eventData, String transactionId) {
 		EventModel model = new EventModel();
 		model.setPublisher(ID_REPO);
-		String dateTime = formatToISOString(DateUtils.getUTCCurrentDateTime());
+		String dateTime = DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime());
 		model.setPublishedOn(dateTime);
 		Event event = new Event();
 		event.setTimestamp(dateTime);
@@ -832,10 +831,10 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 		IdVidMetaDataResponseDTO metaDataResponseDTO = new IdVidMetaDataResponseDTO();
 		metaDataResponseDTO.setRid(uin.getRegId());
 		if (uin.getUpdatedDateTime() != null) {
-			metaDataResponseDTO.setUpdatedOn(formatToISOString(uin.getUpdatedDateTime()));
+			metaDataResponseDTO.setUpdatedOn(DateUtils.formatToISOString(uin.getUpdatedDateTime()));
 		}
 		if (uin.getCreatedDateTime() != null) {
-			metaDataResponseDTO.setCreatedOn(formatToISOString(uin.getCreatedDateTime()));
+			metaDataResponseDTO.setCreatedOn(DateUtils.formatToISOString(uin.getCreatedDateTime()));
 		}
 		return metaDataResponseDTO;
 	}

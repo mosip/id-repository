@@ -145,6 +145,12 @@ public class IdRepoController {
 	@Value("${mosip.idrepo.rid.get.version}")
 	private String ridVersion;
 
+	@Value("${mosip.idrepo.idvid.metadata.id}")
+	private String idvidMetadataId;
+
+	@Value("${mosip.idrepo.idvid.metadata.version}")
+	private String idvidMetadataVersion;
+
 	/**
 	 * Inits the binder.
 	 *
@@ -571,7 +577,7 @@ public class IdRepoController {
 		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}
 
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getSearchIdVidMetadata())")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostZearchIdVidMetadata())")
 	@PostMapping(path = "/idvid-metadata/search", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Search IdVid metadata using Individual Id", description = "Search IdVid metadata using Individual Id", tags = {
 			"id-repo-controller" })
@@ -581,24 +587,26 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
-	public ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> searchIdVidMetadata(@Validated @RequestBody RequestWrapper<IdVidMetaDataRequestDTO> request) throws IdRepoAppException {
+	public ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> searchIdVidMetadata(@Validated @RequestBody RequestWrapper<IdVidMetaDataRequestDTO> request,
+																						 @ApiIgnore Errors errors) throws IdRepoAppException {
 
-		IdVidMetaDataRequestDTO metaDataRequest = request.getRequest();
-		String individualId = metaDataRequest.getIndividualId();
-		String idType = metaDataRequest.getIdType();
+		IdVidMetaDataRequestDTO metadataRequest = request.getRequest();
+		String individualId = metadataRequest.getIndividualId();
+		String idType = metadataRequest.getIdType();
+		DataValidationUtil.validate(errors);
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
-		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
-				individualId, individualIdType, "Search IdVid metadata request received");
+		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
+				individualId, individualIdType, "IdVid metadata search request received");
 
-		IdVidMetaDataResponseDTO metaDataResponse = idRepoService.getIdVidMetaDataForIndividual(individualId, individualIdType);
+		IdVidMetaDataResponseDTO metadataResponse = idRepoService.getIdVidMetadata(individualId, individualIdType);
 
 		ResponseWrapper<IdVidMetaDataResponseDTO> responseWrapper = new ResponseWrapper<>();
-		responseWrapper.setId(ridId);
-		responseWrapper.setVersion(ridVersion);
-		responseWrapper.setResponse(metaDataResponse);
+		responseWrapper.setId(idvidMetadataId);
+		responseWrapper.setVersion(idvidMetadataVersion);
+		responseWrapper.setResponse(metadataResponse);
 
-		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
-				individualId, individualIdType, "Search IdVid metadata request successful");
+		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
+				individualId, individualIdType, "IdVid metadata search request successful");
 
 		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}

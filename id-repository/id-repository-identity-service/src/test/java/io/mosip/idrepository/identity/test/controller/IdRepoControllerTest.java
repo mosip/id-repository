@@ -32,6 +32,7 @@ import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -90,8 +91,8 @@ public class IdRepoControllerTest {
 	@Autowired
 	ObjectMapper mapper;
 
-	private static final String RID_ID = "idrepo.rid";
-	private static final String RID_VERSION = "1.0";
+	private static final String idvidMetadataId = "mosip.idrepo.idvid.metadata";
+	private static final String idvidMetadataVersion = "1.0";
 
 	@Before
 	public void before() {
@@ -103,8 +104,8 @@ public class IdRepoControllerTest {
 		ReflectionTestUtils.setField(controller, "validator", validator);
 		ReflectionTestUtils.setField(validator, "id", id);
 		ReflectionTestUtils.setField(validator, "allowedTypes", Lists.newArrayList("bio", "demo", "all"));
-		ReflectionTestUtils.setField(controller, "ridId", RID_ID);
-		ReflectionTestUtils.setField(controller, "ridVersion", RID_VERSION);
+		ReflectionTestUtils.setField(controller, "idvidMetadataId", idvidMetadataId);
+		ReflectionTestUtils.setField(controller, "idvidMetadataVersion", idvidMetadataVersion);
 	}
 
 	@Test
@@ -687,17 +688,22 @@ public class IdRepoControllerTest {
 		RequestWrapper<IdVidMetaDataRequestDTO> request = new RequestWrapper<>();
 		request.setRequest(dto);
 
-		String createdOn = "2023-03-01T12:00:00";
-		String updatedOn = "2023-03-02T12:00:00";
+		String createdOn = "2025-06-18T12:08:04.536Z";
+		String updatedOn = "2025-06-18T12:08:04.536Z";
 
 		IdVidMetaDataResponseDTO expected = new IdVidMetaDataResponseDTO("RID001", createdOn, updatedOn);
 
-		when(validator.validateUin(individualId)).thenReturn(true);
-		when(idRepoService.getIdVidMetaDataForIndividual(individualId, IdType.UIN)).thenReturn(expected);
+		Errors errors = mock(Errors.class);
+		when(errors.hasErrors()).thenReturn(false);
 
-		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request);
+		when(validator.validateUin(individualId)).thenReturn(true);
+		when(idRepoService.getIdVidMetadata(individualId, IdType.UIN)).thenReturn(expected);
+
+		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request, errors);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(idvidMetadataId, response.getBody().getId());
+		assertEquals(idvidMetadataVersion, response.getBody().getVersion());
 		assertEquals("RID001", response.getBody().getResponse().getRid());
 		assertEquals(createdOn, response.getBody().getResponse().getCreatedOn());
 		assertEquals(updatedOn, response.getBody().getResponse().getUpdatedOn());
@@ -713,18 +719,23 @@ public class IdRepoControllerTest {
 		RequestWrapper<IdVidMetaDataRequestDTO> request = new RequestWrapper<>();
 		request.setRequest(dto);
 
-		String createdOn = "2023-03-01T12:00:00";
-		String updatedOn = "2023-03-02T12:00:00";
+		String createdOn = "2025-06-18T12:08:04.536Z";
+		String updatedOn = "2025-06-18T12:08:04.536Z";
 
 		IdVidMetaDataResponseDTO expected = new IdVidMetaDataResponseDTO("RID002", createdOn, updatedOn);
 
+		Errors errors = mock(Errors.class);
+		when(errors.hasErrors()).thenReturn(false);
+
 		when(validator.validateUin(individualId)).thenReturn(false);
 		when(validator.validateVid(individualId)).thenReturn(true);
-		when(idRepoService.getIdVidMetaDataForIndividual(individualId, IdType.VID)).thenReturn(expected);
+		when(idRepoService.getIdVidMetadata(individualId, IdType.VID)).thenReturn(expected);
 
-		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request);
+		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request, errors);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(idvidMetadataId, response.getBody().getId());
+		assertEquals(idvidMetadataVersion, response.getBody().getVersion());
 		assertEquals("RID002", response.getBody().getResponse().getRid());
 		assertEquals(createdOn, response.getBody().getResponse().getCreatedOn());
 		assertEquals(updatedOn, response.getBody().getResponse().getUpdatedOn());
@@ -740,22 +751,142 @@ public class IdRepoControllerTest {
 		RequestWrapper<IdVidMetaDataRequestDTO> request = new RequestWrapper<>();
 		request.setRequest(dto);
 
-		String createdOn = "2023-03-01T12:00:00";
-		String updatedOn = "2023-03-02T12:00:00";
+		String createdOn = "2025-06-18T12:08:04.536Z";
+		String updatedOn = "2025-06-18T12:08:04.536Z";
 
 		IdVidMetaDataResponseDTO expected = new IdVidMetaDataResponseDTO("RID003", createdOn, updatedOn);
 
+		Errors errors = mock(Errors.class);
+		when(errors.hasErrors()).thenReturn(false);
+
 		when(validator.validateUin(individualId)).thenReturn(false);
 		when(validator.validateVid(individualId)).thenReturn(false);
-		when(idRepoService.getIdVidMetaDataForIndividual(individualId, IdType.ID)).thenReturn(expected);
+		when(idRepoService.getIdVidMetadata(individualId, IdType.ID)).thenReturn(expected);
 
-		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request);
+		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request, errors);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(idvidMetadataId, response.getBody().getId());
+		assertEquals(idvidMetadataVersion, response.getBody().getVersion());
 		assertEquals("RID003", response.getBody().getResponse().getRid());
 		assertEquals(createdOn, response.getBody().getResponse().getCreatedOn());
 		assertEquals(updatedOn, response.getBody().getResponse().getUpdatedOn());
 	}
+
+	@Test
+	public void testSearchIdVidMetadata_WithExplicitUINType() throws Exception {
+		String individualId = "123456789012";
+		String idTypeValue = "UIN";
+
+		IdVidMetaDataRequestDTO dto = new IdVidMetaDataRequestDTO();
+		dto.setIndividualId(individualId);
+		dto.setIdType(idTypeValue);
+
+		RequestWrapper<IdVidMetaDataRequestDTO> request = new RequestWrapper<>();
+		request.setRequest(dto);
+
+		String createdOn = "2025-06-18T12:08:04.536Z";
+		String updatedOn = "2025-06-18T12:08:04.536Z";
+
+		IdVidMetaDataResponseDTO expected = new IdVidMetaDataResponseDTO("RID004", createdOn, updatedOn);
+
+		Errors errors = mock(Errors.class);
+		when(errors.hasErrors()).thenReturn(false);
+
+		when(validator.validateIdType(idTypeValue)).thenReturn(IdType.UIN);
+		when(idRepoService.getIdVidMetadata(individualId, IdType.UIN)).thenReturn(expected);
+
+		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request, errors);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(idvidMetadataId, response.getBody().getId());
+		assertEquals(idvidMetadataVersion, response.getBody().getVersion());
+		assertEquals("RID004", response.getBody().getResponse().getRid());
+		assertEquals(createdOn, response.getBody().getResponse().getCreatedOn());
+		assertEquals(updatedOn, response.getBody().getResponse().getUpdatedOn());
+	}
+
+	@Test
+	public void testSearchIdVidMetadata_WithExplicitVIDType() throws Exception {
+		String individualId = "VID4567890";
+		String idTypeValue = "VID";
+
+		IdVidMetaDataRequestDTO dto = new IdVidMetaDataRequestDTO();
+		dto.setIndividualId(individualId);
+		dto.setIdType(idTypeValue);
+
+		RequestWrapper<IdVidMetaDataRequestDTO> request = new RequestWrapper<>();
+		request.setRequest(dto);
+
+		String createdOn = "2025-06-18T12:08:04.536Z";
+		String updatedOn = "2025-06-18T12:08:04.536Z";
+
+		IdVidMetaDataResponseDTO expected = new IdVidMetaDataResponseDTO("RID005", createdOn, updatedOn);
+
+		Errors errors = mock(Errors.class);
+		when(errors.hasErrors()).thenReturn(false);
+
+		when(validator.validateIdType(idTypeValue)).thenReturn(IdType.VID);
+		when(idRepoService.getIdVidMetadata(individualId, IdType.VID)).thenReturn(expected);
+
+		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request, errors);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(idvidMetadataId, response.getBody().getId());
+		assertEquals(idvidMetadataVersion, response.getBody().getVersion());
+		assertEquals("RID005", response.getBody().getResponse().getRid());
+		assertEquals(createdOn, response.getBody().getResponse().getCreatedOn());
+		assertEquals(updatedOn, response.getBody().getResponse().getUpdatedOn());
+	}
+
+	@Test
+	public void testSearchIdVidMetadata_WithExplicitIDType() throws Exception {
+		String individualId = "IND123456";
+		String idTypeValue = "ID";
+
+		IdVidMetaDataRequestDTO dto = new IdVidMetaDataRequestDTO();
+		dto.setIndividualId(individualId);
+		dto.setIdType(idTypeValue);
+
+		RequestWrapper<IdVidMetaDataRequestDTO> request = new RequestWrapper<>();
+		request.setRequest(dto);
+
+		String createdOn = "2025-06-18T12:08:04.536Z";
+		String updatedOn = "2025-06-18T12:08:04.536Z";
+
+		IdVidMetaDataResponseDTO expected = new IdVidMetaDataResponseDTO("RID006", createdOn, updatedOn);
+
+		Errors errors = mock(Errors.class);
+		when(errors.hasErrors()).thenReturn(false);
+
+		when(validator.validateIdType(idTypeValue)).thenReturn(IdType.ID);
+		when(idRepoService.getIdVidMetadata(individualId, IdType.ID)).thenReturn(expected);
+
+		ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> response = controller.searchIdVidMetadata(request, errors);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(idvidMetadataId, response.getBody().getId());
+		assertEquals(idvidMetadataVersion, response.getBody().getVersion());
+		assertEquals("RID006", response.getBody().getResponse().getRid());
+		assertEquals(createdOn, response.getBody().getResponse().getCreatedOn());
+		assertEquals(updatedOn, response.getBody().getResponse().getUpdatedOn());
+	}
+
+	@Test(expected = IdRepoAppException.class)
+	public void testSearchIdVidMetadata_ValidationFailure() throws IdRepoAppException {
+		String individualId = null;
+		IdVidMetaDataRequestDTO dto = new IdVidMetaDataRequestDTO();
+		dto.setIndividualId(individualId);
+		dto.setIdType(null);
+
+		RequestWrapper<IdVidMetaDataRequestDTO> request = new RequestWrapper<>();
+		request.setRequest(dto);
+
+		Errors errors = mock(Errors.class);
+		when(errors.hasErrors()).thenReturn(true);
+			controller.searchIdVidMetadata(request, errors);
+	}
+
 
 	@Test
 	public void testGetRemainingUpdateCountByIndividualId() throws IdRepoAppException {
