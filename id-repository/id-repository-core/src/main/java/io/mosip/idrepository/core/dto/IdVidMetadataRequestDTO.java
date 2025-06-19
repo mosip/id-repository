@@ -1,6 +1,5 @@
 package io.mosip.idrepository.core.dto;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,9 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class IdVidMetaDataResponseDTO {
+public class IdVidMetadataRequestDTO {
 
-    private String rid;
-    private String createdOn;
-    private String updatedOn;
+    private String individualId;
+    private String idType;
 }

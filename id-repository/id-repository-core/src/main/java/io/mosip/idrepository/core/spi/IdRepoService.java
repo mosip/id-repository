@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.IdVidMetaDataResponseDTO;
+import io.mosip.idrepository.core.dto.IdVidMetadataResponseDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 
 /**
@@ -83,7 +83,7 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 * @return an {@code IdVidMetaDataResponseDTO} containing rid, createdOn, and updatedOn
 	 * @throws IdRepoAppException if there is an error during retrieval
 	 */
-	IdVidMetaDataResponseDTO getIdVidMetadata(String individualId, IdType idType) throws IdRepoAppException;
+	IdVidMetadataResponseDTO getIdVidMetadata(String individualId, IdType idType) throws IdRepoAppException;
 
 	/**
 	 * This function is used to get the maximum allowed update count of an attribute

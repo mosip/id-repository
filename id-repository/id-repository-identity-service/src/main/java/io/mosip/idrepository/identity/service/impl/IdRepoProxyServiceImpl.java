@@ -575,7 +575,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	 * @return an {@code IdVidMetaDataResponseDTO} containing rid, createdOn, and updatedOn
 	 * @throws IdRepoAppException if there is an error during retrieval
 	 */
-	public IdVidMetaDataResponseDTO getIdVidMetadata(String individualId, IdType idType) throws IdRepoAppException {
+	public IdVidMetadataResponseDTO getIdVidMetadata(String individualId, IdType idType) throws IdRepoAppException {
 		try {
 			switch (idType) {
 				case VID:
@@ -827,8 +827,8 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 		}
 	}
 
-	private IdVidMetaDataResponseDTO getIdVidMetadataResponseDTO(Uin uin) {
-		IdVidMetaDataResponseDTO metadataResponseDTO = new IdVidMetaDataResponseDTO();
+	private IdVidMetadataResponseDTO getIdVidMetadataResponseDTO(Uin uin) {
+		IdVidMetadataResponseDTO metadataResponseDTO = new IdVidMetadataResponseDTO();
 		metadataResponseDTO.setRid(uin.getRegId());
 		if (uin.getUpdatedDateTime() != null) {
 			metadataResponseDTO.setUpdatedOn(DateUtils.formatToISOString(uin.getUpdatedDateTime()));

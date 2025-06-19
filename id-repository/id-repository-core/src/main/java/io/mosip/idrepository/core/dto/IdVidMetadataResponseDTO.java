@@ -1,17 +1,16 @@
 package io.mosip.idrepository.core.dto;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotNull;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class IdVidMetaDataRequestDTO {
+public class IdVidMetadataResponseDTO {
 
-    @NotNull
-    private String individualId;
-    private String idType;
+    private String rid;
+    private String createdOn;
+    private String updatedOn;
 }
