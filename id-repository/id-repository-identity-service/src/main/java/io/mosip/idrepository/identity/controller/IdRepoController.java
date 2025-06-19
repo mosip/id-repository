@@ -21,6 +21,7 @@ import javax.annotation.Resource;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.dto.*;
 import io.mosip.kernel.core.http.RequestWrapper;
+import io.mosip.kernel.core.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -594,7 +595,7 @@ public class IdRepoController {
 		String individualId = metadataRequest.getIndividualId();
 		String idType = metadataRequest.getIdType();
 
-		if (individualId == null) {
+		if (StringUtils.isBlank(individualId)) {
 			throw new IdRepoAppException(
 					IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
 					String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), "Individual Id")
