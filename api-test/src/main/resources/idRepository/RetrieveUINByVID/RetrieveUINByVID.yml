@@ -1,0 +1,334 @@
+Retrieve_VID_pos:
+  IdRepository_Retrieve_VID_pos_perpetual_Active_smoke:
+      endPoint: /idrepository/v1/vid/{VID}
+      description: Retrieve UIN passing perpetual VID
+      uniqueIdentifier: TC_IDRepo_RetrieveVID_01
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVIDResult
+      input: '{
+    "VID": "$ID:CreateVID_withValidParameters_For_VidType_Smoke_Perpetual_sid_VID$"
+}'
+      output: '{
+       "vidStatus": "$IGNORE$",
+        "UIN": "$IGNORE$"
+}'
+
+  IdRepository_Retrieve_VID_pos_Temp_Active_smoke:
+      endPoint: /idrepository/v1/vid/{VID}
+      description: Retrieve UIN passing perpetual VID
+      uniqueIdentifier: TC_IDRepo_RetrieveVID_02
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVIDResult
+      input: '{
+    "VID": "$ID:CreateVID_withValidParameters_Smoke_Temp1_sid_VID$"
+}'
+      output: '{
+       "vidStatus": "$IGNORE$",
+        "UIN": "$IGNORE$"
+      
+}'
+
+  IdRepository_Retrieve_VID_pos_Onetimeuse_Active_smoke:
+      endPoint: /idrepository/v1/vid/{VID}
+      description: Retrieve UIN passing onetimeuse VID
+      uniqueIdentifier: TC_IDRepo_RetrieveVID_03
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVIDResult
+      input: '{
+    "VID": "$ID:CreateVID_withValidParameters_Smoke_Onetime_sid_VID$"
+}'
+      output: '{
+      "vidStatus": "$IGNORE$",
+        "UIN": "$IGNORE$"
+}'
+
+  IdRepository_Retrieve_VID_pos_perpetual_DEACTIVATED:
+      endPoint: /idrepository/v1/vid/{VID}
+      description: Retrieve UIN passing Deactivated perpetual VID
+      uniqueIdentifier: TC_IDRepo_RetrieveVID_04
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": "$ID:CreateVID_withValidParameters_pdea_Smoke_Perpetual_sid_VID$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-VID-001"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_VID_pos_Onetimeuse_DEACTIVATED:
+      endPoint: /idrepository/v1/vid/{VID}
+      description: Retrieve UIN passing Deactivated onetimeuse VID
+      uniqueIdentifier: TC_IDRepo_RetrieveVID_05
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": "$ID:CreateVID_withValidParameters_For_VidType_Smoke_Onetimeuse_sid_VID$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-VID-001"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_VID_pos_perpetual_Expired:
+      endPoint: /idrepository/v1/vid/{VID}
+      description: Retrieve UIN passsing Expired perpetual VID
+      uniqueIdentifier: TC_IDRepo_RetrieveVID_06
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": "$ID:CreateVID_withValidParameters_pexp_Smoke_Perpetual_sid_VID$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-VID-001"
+    }
+  ]
+}'
+  IdRepository_Retrieve_VID_pos_perpetual_Revoked:
+      endPoint: /idrepository/v1/vid/{VID}
+      description: Retrieve UIN passing Revoked perpetual VID
+      uniqueIdentifier: TC_IDRepo_RetrieveVID_07
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": "$ID:CreateVID_withValidParameters_pre_Smoke_Perpetual_sid_VID$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-VID-001"
+    }
+  ]
+}'
+  IdRepository_Retrieve_VID_pos_Temperory_DEACTIVATED:
+      endPoint: /idrepository/v1/vid/{VID}
+      description: Retrieve UIN passing Deactivated temporary VID
+      uniqueIdentifier: TC_IDRepo_RetrieveVID_08
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": "$ID:CreateVID_withValidParameters_tdea_Smoke_Temporary_sid_VID$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-VID-001"
+    }
+  ]
+}'
+  IdRepository_Retrieve_VID_pos_Temperory_Revoked:
+      endPoint: /idrepository/v1/vid/{VID}
+      description: Retrieve UIN passing revoked temporary VID
+      uniqueIdentifier: TC_IDRepo_RetrieveVID_09
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": "$ID:CreateVID_withValidParameters_tre_Smoke_Temporary_sid_VID$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-VID-001"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_PVID_with_invalid_vid_data:
+      endPoint: /idrepository/v1/vid/{VID}
+      description: Retrieve UIN passing invalid VID data
+      uniqueIdentifier: TC_IDRepo_RetrieveVID_10
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": "nbdsfjas"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_PVID_with_Empty_vid:
+      endPoint: /idrepository/v1/vid/{VID}
+      description: Retrieve UIN passing empty VID
+      uniqueIdentifier: TC_IDRepo_RetrieveVID_11
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": ""
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_PVID_with_SpaceVal_vid_data:
+      endPoint: /idrepository/v1/vid/{VID}
+      description: Retrieve UIN passing space in the VID field
+      uniqueIdentifier: TC_IDRepo_RetrieveVID_12
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": " "
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_VID_with_invalid_vid_data:
+      endPoint: /idrepository/v1/vid/{VID}
+      description: Retrieve UIN passing invalid vid data
+      uniqueIdentifier: TC_IDRepo_RetrieveVID_13
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": "nbdsfjas"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_VID_Temp_Empty_vid:
+      endPoint: /idrepository/v1/vid/{VID}
+      description: Retrieve UIN passing empty VID
+      uniqueIdentifier: TC_IDRepo_RetrieveVID_14
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": ""
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_VID_with_SpaceVal_vid_data:
+      endPoint: /idrepository/v1/vid/{VID}
+      description: Retrieve UIN passing Space Value in vid data
+      uniqueIdentifier: TC_IDRepo_RetrieveVID_15
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": " "
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_VID_with_Invalid_vid:
+      endPoint: /idrepository/v1/vid/{VID}
+      description: Retrieve UIN passing Invalid vid
+      uniqueIdentifier: TC_IDRepo_RetrieveVID_16
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": "nbdsfjas"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_VID_with_Empty_vid:
+      endPoint: /idrepository/v1/vid/{VID}
+      description: Retrieve UIN passing empty VID
+      uniqueIdentifier: TC_IDRepo_RetrieveVID_17
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": ""
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+  IdRepository_Retrieve_VID_with_SpaceVal_vid:
+      endPoint: /idrepository/v1/vid/{VID}
+      description: Retrieve UIN passing space value in VID field
+      uniqueIdentifier: TC_IDRepo_RetrieveVID_18
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveUINByVID/retrieveUINByVID
+      outputTemplate: idRepository/error
+      input: '{
+    "VID": " "
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
