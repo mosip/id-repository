@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.Resource;
 
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.dto.*;
 import io.mosip.kernel.core.http.RequestWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -587,13 +588,18 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
-	public ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> searchIdVidMetadata(@Validated @RequestBody RequestWrapper<IdVidMetaDataRequestDTO> request,
-																						 @ApiIgnore Errors errors) throws IdRepoAppException {
+	public ResponseEntity<ResponseWrapper<IdVidMetaDataResponseDTO>> searchIdVidMetadata(@Validated @RequestBody RequestWrapper<IdVidMetaDataRequestDTO> request) throws IdRepoAppException {
 
 		IdVidMetaDataRequestDTO metadataRequest = request.getRequest();
 		String individualId = metadataRequest.getIndividualId();
 		String idType = metadataRequest.getIdType();
-		DataValidationUtil.validate(errors);
+
+		if (individualId == null) {
+			throw new IdRepoAppException(
+					IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
+					String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), "Individual Id")
+			);
+		}
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
 				individualId, individualIdType, "IdVid metadata search request received");
