@@ -29,20 +29,20 @@ public class CryptoUtil {
     @Autowired
     private RestUtil restUtil;
 
-    public String decryptData(String request) {
-        return encryptDecryptData(ApiName.DECRYPTION,request);
+    public String decryptData(String data) {
+        return encryptDecryptData(ApiName.DECRYPTION,data);
     }
 
-    public String encryptData(String request) {
-        return encryptDecryptData(ApiName.ENCRYPTION,request);
+    public String encryptData(String data) {
+        return encryptDecryptData(ApiName.ENCRYPTION,data);
     }
 
-    private String encryptDecryptData(ApiName api, String request) {
+    private String encryptDecryptData(ApiName api, String data) {
         try {
             RequestWrapper<CryptomanagerRequestDto> requestWrapper = new RequestWrapper<>();
             CryptomanagerRequestDto cryptoRequest = new CryptomanagerRequestDto();
             cryptoRequest.setApplicationId(EnvUtil.getAppId());
-            cryptoRequest.setData(request);
+            cryptoRequest.setData(data);
             cryptoRequest.setReferenceId(EnvUtil.getCredCryptoRefId());
             requestWrapper.setRequest(cryptoRequest);
             cryptoRequest.setTimeStamp(DateUtils.getUTCCurrentDateTime());

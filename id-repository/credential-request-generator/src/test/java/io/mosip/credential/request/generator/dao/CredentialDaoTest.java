@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import io.mosip.credential.request.generator.dao.CryptoCredentialDao;
 
 import io.mosip.idrepository.core.util.EnvUtil;
 import org.junit.Before;
@@ -15,8 +14,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
@@ -46,7 +43,7 @@ public class CredentialDaoTest {
 	private CredentialDao credentialDao;
 	
 	@Mock
-	private CryptoCredentialDao cryptoCredentialDao;
+	private EncryptedCredentialDao encryptedCredentialDao;
 	
 	@Before
 	public void setUp() {
@@ -97,7 +94,7 @@ public class CredentialDaoTest {
 		credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		credentialList.add(credentialEntity);
-		Mockito.when(cryptoCredentialDao.findCredentialByStatusCode(Mockito.anyString(), Mockito.anyInt()))
+		Mockito.when(encryptedCredentialDao.getCredentialByStatus(Mockito.anyString(), Mockito.anyInt()))
 				.thenReturn(credentialList);
 		credentialDao.getCredentials("1234");
 	}

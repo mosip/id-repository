@@ -1,4 +1,4 @@
-package io.mosip.credential.request.generator.aspect;
+package io.mosip.credential.request.generator.context;
 
 /**
  * This class is used for passing the context information inside a thread.
