@@ -1,99 +1,85 @@
 package io.mosip.credential.request.generator.interceptor;
 
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
 import io.mosip.credential.request.generator.aspect.CryptoContext;
-
-import org.hibernate.Interceptor;
-import org.hibernate.type.Type;
-import org.springframework.http.MediaType;
-
-import io.mosip.credential.request.generator.constants.ApiName;
-import io.mosip.credential.request.generator.constants.CredentialRequestErrorCodes;
-import io.mosip.credential.request.generator.dto.CryptomanagerRequestDto;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
-import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorUncheckedException;
 import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
-import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.core.http.RequestWrapper;
-import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
+import org.hibernate.Interceptor;
+import org.hibernate.type.Type;
+
+import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * @author Manoj SP
- *
  */
 public class CredentialTransactionInterceptor implements Interceptor {
 
-	private static final String REQUEST = "request";
-	
-	private io.mosip.credential.request.generator.util.CryptoUtil cryptoUtil;
+    private static final String REQUEST = "request";
 
-	private transient RestUtil restUtil;
-	
-	private static final long serialVersionUID = 1L;
-	
-	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialTransactionInterceptor.class);
+    private final io.mosip.credential.request.generator.util.CryptoUtil cryptoUtil;
 
-	public CredentialTransactionInterceptor(RestUtil restUtil, io.mosip.credential.request.generator.util.CryptoUtil cryptoUtil) {
-		this.restUtil = restUtil;
-		this.cryptoUtil = cryptoUtil;
-	}
+    private transient RestUtil restUtil;
 
-	@Override
-	public boolean onSave(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
-		encryptData(entity, state, propertyNames);
-		return Interceptor.super.onSave(entity, id, state, propertyNames, types);
-	}
+    private static final long serialVersionUID = 1L;
 
-	@Override
-	public boolean onLoad(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
-		if (CryptoContext.isSkipDecryption()) {Add commentMore actions
-			LOGGER.debug("SkipDecryption is enabled. Entity class: "+ entity.getClass().toString());
-			return super.onLoad(entity, id, state, propertyNames, types);
-		}
-		if (entity instanceof CredentialEntity) {
-			int indexOfData = Arrays.asList(propertyNames).indexOf(REQUEST);
-			String decryptedData;
-			String requestValue = (String) state[indexOfData];
-			try {
-				decryptedData = new String(CryptoUtil
-						.decodeURLSafeBase64(cryptoUtil.decryptData(requestValue)));
-			} catch (Exception e) {
-				LOGGER.debug(
-						"Decryption failed. Falling back to treat the data as un-encrypted one for backward compatibility with 1.1.5.5\n "
-								+ ExceptionUtils.getStackTrace(e));
-				decryptedData = requestValue;
-			}
-			state[indexOfData] = decryptedData;
-		}
-		return Interceptor.super.onLoad(entity, id, state, propertyNames, types);
-	}
-	
-	@Override
-	public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState,
-			String[] propertyNames, Type[] types) {
-		encryptData(entity, currentState, propertyNames);
-		return Interceptor.super.onFlushDirty(entity, id, currentState, previousState, propertyNames, types);
-	}
+    private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialTransactionInterceptor.class);
 
-	private void encryptData(Object entity, Object[] state, String[] propertyNames) {
-		if (entity instanceof CredentialEntity) {
-			CredentialEntity credEntity = (CredentialEntity) entity;
-			String encryptedData = cryptoUtil.encryptData(CryptoUtil.encodeToURLSafeBase64(credEntity.getRequest().getBytes()));
-			credEntity.setRequest(encryptedData);
-			int indexOfData = Arrays.asList(propertyNames).indexOf(REQUEST);
-			state[indexOfData] = encryptedData;
-		}
-	}
+    public CredentialTransactionInterceptor(RestUtil restUtil, io.mosip.credential.request.generator.util.CryptoUtil cryptoUtil) {
+        this.restUtil = restUtil;
+        this.cryptoUtil = cryptoUtil;
+    }
 
-	public void setRestUtil(RestUtil restUtil) {
-		this.restUtil = restUtil;
-	}
+    @Override
+    public boolean onSave(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
+        encryptData(entity, state, propertyNames);
+        return Interceptor.super.onSave(entity, id, state, propertyNames, types);
+    }
+
+    @Override
+    public boolean onLoad(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
+        if (CryptoContext.isSkipDecryption()) {
+            LOGGER.debug("SkipDecryption is enabled. Entity class: " + entity.getClass());
+            return Interceptor.super.onLoad(entity, id, state, propertyNames, types);
+        }
+        if (entity instanceof CredentialEntity) {
+            int indexOfData = Arrays.asList(propertyNames).indexOf(REQUEST);
+            String decryptedData;
+            String requestValue = (String) state[indexOfData];
+            try {
+                decryptedData = new String(CryptoUtil
+                        .decodeURLSafeBase64(cryptoUtil.decryptData(requestValue)));
+            } catch (Exception e) {
+                LOGGER.debug(
+                        "Decryption failed. Falling back to treat the data as un-encrypted one for backward compatibility with 1.1.5.5\n "
+                                + ExceptionUtils.getStackTrace(e));
+                decryptedData = requestValue;
+            }
+            state[indexOfData] = decryptedData;
+        }
+        return Interceptor.super.onLoad(entity, id, state, propertyNames, types);
+    }
+
+    @Override
+    public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState,
+                                String[] propertyNames, Type[] types) {
+        encryptData(entity, currentState, propertyNames);
+        return Interceptor.super.onFlushDirty(entity, id, currentState, previousState, propertyNames, types);
+    }
+
+    private void encryptData(Object entity, Object[] state, String[] propertyNames) {
+        if (entity instanceof CredentialEntity credEntity) {
+            String encryptedData = cryptoUtil.encryptData(CryptoUtil.encodeToURLSafeBase64(credEntity.getRequest().getBytes()));
+            credEntity.setRequest(encryptedData);
+            int indexOfData = Arrays.asList(propertyNames).indexOf(REQUEST);
+            state[indexOfData] = encryptedData;
+        }
+    }
+
+    public void setRestUtil(RestUtil restUtil) {
+        this.restUtil = restUtil;
+    }
 }
