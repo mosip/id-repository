@@ -567,40 +567,39 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	}
 
 	/**
-	 * Retrieves detailed RID information for a given individual
+	 * Retrieves the id vid metadata information for a given individual
 	 * based on the provided ID and its type.
 	 *
-	 * @param individualId the identifier of the individual whose RID information is to be fetched
-	 * @param idType       The type of ID that you're passing in.
-	 * @return a {@code RidDTO} containing detailed RID information
+	 * @param individualId the identifier of the individual whose metadata is to be fetched.
+	 * @param idType The type of ID that you're passing in.
+	 * @return an {@code IdVidMetaDataResponseDTO} containing rid, createdOn, and updatedOn
 	 * @throws IdRepoAppException if there is an error during retrieval
 	 */
-	public RidDTO getRidInfoByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
+	public IdVidMetadataResponseDTO getIdVidMetadata(String individualId, IdType idType) throws IdRepoAppException {
 		try {
 			switch (idType) {
 				case VID:
 					individualId = getUinByVid(individualId);
 				case UIN:
 					String uinHash = retrieveUinHash(individualId);
-					if (uinRepo.existsByUinHash(uinHash)) {
-						Uin uin = uinRepo.findRidInfoByUinHash(uinHash);
-						RidDTO ridDTO = new RidDTO();
-						ridDTO.setRid(uin.getRegId());
-						ridDTO.setUpdatedDate(uin.getUpdatedDateTime());
-						return ridDTO;
-					} else {
-						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "retrieveRidInfoByUin",
-								"NO_RECORD_FOUND");
-						throw new IdRepoAppException(NO_RECORD_FOUND);
+					Optional<Uin> uin = uinRepo.findByUinHash(uinHash);
+					if (uin.isPresent()) {
+						return getIdVidMetadataResponseDTO(uin.get());
 					}
-				default:
-					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getRidInfoByIndividualId",
-							"NO_RECORD_FOUND");
-					throw new IdRepoAppException(NO_RECORD_FOUND);
+					break;
+				case ID:
+					Optional<Uin> uinOptional = uinRepo.findByRegId(individualId);
+					if (uinOptional.isPresent()) {
+						return getIdVidMetadataResponseDTO(uinOptional.get());
+					}
+					break;
 			}
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getIdVidMetadata",
+					"NO_RECORD_FOUND");
+			throw new IdRepoAppException(NO_RECORD_FOUND);
 		} catch (DataAccessException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
-					"getRidInfoByIndividualId", "DATABASE_ERROR");
+					"getIdVidMetadata", "DATABASE_ERROR");
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
 		}
 	}
@@ -826,5 +825,17 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 					: ((IdRepoAppUncheckedException) e).getErrorText();
 			throw new IdRepoAppException(errorCode, errorMsg, e);
 		}
+	}
+
+	private IdVidMetadataResponseDTO getIdVidMetadataResponseDTO(Uin uin) {
+		IdVidMetadataResponseDTO metadataResponseDTO = new IdVidMetadataResponseDTO();
+		metadataResponseDTO.setRid(uin.getRegId());
+		if (uin.getUpdatedDateTime() != null) {
+			metadataResponseDTO.setUpdatedOn(DateUtils.formatToISOString(uin.getUpdatedDateTime()));
+		}
+		if (uin.getCreatedDateTime() != null) {
+			metadataResponseDTO.setCreatedOn(DateUtils.formatToISOString(uin.getCreatedDateTime()));
+		}
+		return metadataResponseDTO;
 	}
 }
