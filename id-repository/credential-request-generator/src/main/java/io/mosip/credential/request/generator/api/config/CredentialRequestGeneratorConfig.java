@@ -3,6 +3,7 @@ package io.mosip.credential.request.generator.api.config;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
+import io.mosip.credential.request.generator.util.CryptoUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,12 +43,15 @@ public class CredentialRequestGeneratorConfig extends HibernateDaoConfig {
 	private RestUtil restUtil;
 	
 	@Autowired
+	private CryptoUtil cryptoUtil;
+	
+	@Autowired
 	private OpenApiProperties openApiProperties;
 	
 	@Override
 	public Map<String, Object> jpaProperties() {
 		Map<String, Object> jpaProperties = super.jpaProperties();
-		jpaProperties.put("hibernate.session_factory.interceptor", new CredentialTransactionInterceptor(restUtil));
+		jpaProperties.put("hibernate.session_factory.interceptor", new CredentialTransactionInterceptor(restUtil, cryptoUtil));
 		return jpaProperties;
 	}
 
