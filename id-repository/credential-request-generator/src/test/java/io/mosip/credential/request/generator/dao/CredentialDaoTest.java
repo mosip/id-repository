@@ -23,7 +23,6 @@ import java.util.Optional;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import io.mosip.credential.request.generator.dao.CryptoCredentialDao;
 
 @RunWith(MockitoJUnitRunner.class)
 @Ignore    // TODO ignored temporarily because it is causing build failure on GitHub.
@@ -34,9 +33,9 @@ public class CredentialDaoTest {
 
     @InjectMocks
     private CredentialDao credentialDao;
-	
-	@Mock
-	private CryptoCredentialDao cryptoCredentialDao;
+
+    @Mock
+    private CryptoCredentialDao cryptoCredentialDao;
 
     @Before
     public void setUp() {
