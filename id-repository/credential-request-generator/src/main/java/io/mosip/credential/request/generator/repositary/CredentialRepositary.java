@@ -72,4 +72,14 @@ public interface CredentialRepositary extends BaseRepository<CredentialEntity, S
 	@Query(value = "SELECT * FROM credential_transaction ct"
 			+ " WHERE ct.status_code in :statusCodes ORDER BY cr_dtimes FOR UPDATE SKIP LOCKED LIMIT :pageSize", nativeQuery = true)
 	List<CredentialEntity> findCredentialByStatusCodes(@Param("statusCodes")String[] statusCodes, @Param("pageSize") int pageSize);
+	
+	@TransactionalAdd commentMore actions
+	@Query(value = "SELECT * FROM credential_transaction ct"
+			+ " WHERE ct.status_code=:statusCode ORDER BY cr_dtimes FOR UPDATE SKIP LOCKED LIMIT :pageSize", nativeQuery = true)Add commentMore actions
+	List<CredentialEntity> findCredentialByStatusCode(@Param("statusCode")String statusCode, @Param("pageSize") int pageSize);
+
+	@Transactional
+	@Query(value = "SELECT * FROM credential_transaction ct"
+			+ " WHERE ct.status_code in :statusCodes ORDER BY upd_dtimes FOR UPDATE SKIP LOCKED LIMIT :pageSize", nativeQuery = true)
+	List<CredentialEntity> findCredentialByStatusCodes(@Param("statusCodes")String[] statusCodes, @Param("pageSize") int pageSize);
 }
