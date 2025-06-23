@@ -63,8 +63,7 @@ You can access the test automation code using either of the following methods:
 ---
 
 ## Update the property file
-1. Navigate to the masterdata.properties file located at:
-    ```sh
+1. Navigate to the Idrepo.properties file located at:
     id-repository\api-test\src\main\resources\config\Idrepo.properties
 2. Open the file in your preferred editor
 3. Update the client secret values and other required credentials as per your environment
@@ -104,7 +103,7 @@ To execute the tests using Jar, use the following steps:
 
 2. Run the automation test suite JAR file:
    ```
-   java -jar -Dmodules=idrepo -Denv.user=api-internal.<env_name> -Denv.endpoint=<base_env> -Denv.testLevel=smokeAndRegression -jar apitest-idrepo-1.3.0-SNAPSHOT-jar-with-dependencies.jar
+   java -jar -Dmodules=idrepo -Denv.user=api-internal.<env_name> -Denv.endpoint=<base_env> -Denv.testLevel=smokeAndRegression -jar apitest-idrepo-1.2.3.0-jar-with-dependencies.jar
    ```
    
 # Using Eclipse IDE
