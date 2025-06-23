@@ -1,16 +1,1 @@
--- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_idrepo
--- Purpose    	: Revoking Database alter scripts for release of ID Repository DB.       
--- Create By   	: Ritik Jain
--- Created Date	: May-2024
--- 
--- Modified Date        Modified By         Comments / Remarks
--- -------------------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------------------------
-
-\c mosip_idrepo sysadmin
----------------------------------------------------------------------------------------------------
-
-ALTER TABLE idrepo.handle DROP COLUMN IF EXISTS status;
-
-------------------------------------------------------------------------------------------------
+\echo 'Upgrade Queries not required for transition from $CURRENT_VERSION to $UPGRADE_VERSION'
