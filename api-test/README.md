@@ -59,7 +59,6 @@ You can access the test automation code using either of the following methods:
    ```sh
    git clone https://github.com/mosip/id-repository
    ```
-
 ---
 
 ## Update the property file
