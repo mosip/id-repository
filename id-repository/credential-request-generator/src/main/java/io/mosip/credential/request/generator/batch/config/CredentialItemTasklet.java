@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import io.mosip.credential.request.generator.helper.CredentialIssueRequestHelper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -42,33 +43,36 @@ import jakarta.annotation.PostConstruct;
 
 @Component
 public class CredentialItemTasklet implements Tasklet {
-	
+
 	@Value("${credential.batch.thread.count:10}")
 	private int threadCount;
 
 	@Lazy
 	@Autowired
 	private ObjectMapper mapper;
-	
+
 	@Autowired
 	private RestUtil restUtil;
-	
+
 	/**
 	 * The credentialDao.
 	 */
 	@Autowired
 	private CredentialDao credentialDao;
 
+	@Autowired
+	private CredentialIssueRequestHelper credentialIssueRequestHelper;
+
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialItemTasklet.class);
-	
+
 	private static final String CREDENTIAL_USER = "service-account-mosip-crereq-client";
-	
+
 	/**
 	 * The Constant ID_REPO_SERVICE_IMPL.
 	 */
 	private static final String CREDENTIAL_ITEM_TASKLET = "CredentialItemTasklet";
-	
+
 	ForkJoinPool forkJoinPool;
 
 	@PostConstruct
@@ -90,18 +94,16 @@ public class CredentialItemTasklet implements Tasklet {
 				try {
 					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 							"started processing item : " + credential.getRequestId());
-					CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credential.getRequest(), CredentialIssueRequestDto.class);
-					CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
-					credentialServiceRequestDto.setCredentialType(credentialIssueRequestDto.getCredentialType());
-					credentialServiceRequestDto.setId(credentialIssueRequestDto.getId());
-					credentialServiceRequestDto.setIssuer(credentialIssueRequestDto.getIssuer());
-					credentialServiceRequestDto.setRecepiant(credentialIssueRequestDto.getIssuer());
-					credentialServiceRequestDto.setSharableAttributes(credentialIssueRequestDto.getSharableAttributes());
-					credentialServiceRequestDto.setUser(credentialIssueRequestDto.getUser());
-					credentialServiceRequestDto.setRequestId(credential.getRequestId());
-					credentialServiceRequestDto.setEncrypt(credentialIssueRequestDto.isEncrypt());
-					credentialServiceRequestDto.setEncryptionKey(credentialIssueRequestDto.getEncryptionKey());
-					credentialServiceRequestDto.setAdditionalData(credentialIssueRequestDto.getAdditionalData());
+					//Decrypting data outside for performance improvement
+					long decryptStartTime = System.currentTimeMillis();
+					CredentialIssueRequestDto credentialIssueRequestDto = credentialIssueRequestHelper.getCredentialIssueRequestDto(credential);
+					LOGGER.debug(IdRepoSecurityManager.getUser(), "Perform " + CREDENTIAL_ITEM_TASKLET,
+							"batchid = " + batchId,
+							"Decryption completed for requestId = " + credential.getRequestId() +
+									", Time taken = " + (System.currentTimeMillis() - decryptStartTime) + " ms");
+					credential.setRequest(mapper.writeValueAsString(credentialIssueRequestDto));
+					CredentialServiceRequestDto credentialServiceRequestDto = credentialIssueRequestHelper.getCredentialServiceRequestDto(credentialIssueRequestDto,
+							credential.getRequestId());
 
 					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 							"Calling CRDENTIALSERVICE : " + credential.getRequestId());
@@ -157,12 +159,10 @@ public class CredentialItemTasklet implements Tasklet {
 					retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
 				} catch (Exception e) {
 					String errorMessage;
-					if (e.getCause() instanceof HttpClientErrorException) {
-						HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
-						errorMessage = httpClientException.getResponseBodyAsString();
-					} else if (e.getCause() instanceof HttpServerErrorException) {
-						HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
-						errorMessage = httpServerException.getResponseBodyAsString();
+					if (e.getCause() instanceof HttpClientErrorException httpClientException) {
+                        errorMessage = httpClientException.getResponseBodyAsString();
+					} else if (e.getCause() instanceof HttpServerErrorException httpServerException) {
+                        errorMessage = httpServerException.getResponseBodyAsString();
 					} else {
 						errorMessage = e.getMessage();
 					}
