@@ -20,7 +20,7 @@ import java.util.List;
 public class EncryptedCredentialDao {
 
     @Autowired
-    private CredentialRepositary<CredentialEntity, String> credentialRepo;
+    private CredentialRepositary credentialRepo;
 
     public List<CredentialEntity> getCredentialByStatus(String statusCode, int pageSize) {
         try{
