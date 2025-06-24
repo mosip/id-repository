@@ -7,11 +7,11 @@
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.2.1-SNAPSHOT</version>
+		<version>1.2.1-rc1</version>
 	</parent>
 
 	<artifactId>credential-request-generator</artifactId>
-	<version>1.2.1-SNAPSHOT</version>
+	<version>1.2.1-rc1</version>
 	<name>credential-request-generator</name>
 
 	<properties>
@@ -24,18 +24,20 @@
 		<spring-cloud-config.version>2.0.0.RELEASE</spring-cloud-config.version>
 		<h2.version>1.4.197</h2.version>
 		<swagger.version>2.9.2</swagger.version>
-		<kernel.core.version>1.2.1-SNAPSHOT</kernel.core.version>
+		<kernel.core.version>1.3.0-beta.1</kernel.core.version>
 		<powermock.module.junit4.version>1.7.4</powermock.module.junit4.version>
 		<powermock.api.mockito.version>1.7.4</powermock.api.mockito.version>
-		<kernel.dataaccess.hibernate.version>1.2.1-SNAPSHOT</kernel.dataaccess.hibernate.version>
+		<kernel.dataaccess.hibernate.version>1.3.0-beta.1</kernel.dataaccess.hibernate.version>
 		<apache.httpcomponents.version>4.5.6</apache.httpcomponents.version>
 		<gson.version>2.8.4</gson.version>
 		<postgresql.version>42.2.2</postgresql.version>
 		<io.micrometer.prometheus.version>1.4.2</io.micrometer.prometheus.version>
-		<kernel.websubclient.version>1.2.1-SNAPSHOT</kernel.websubclient.version>
+		<kernel.websubclient.version>1.3.0-beta.1</kernel.websubclient.version>
 		<spring.batch.integration.version>4.0.1.RELEASE</spring.batch.integration.version>
 		<springdoc.version>1.5.10</springdoc.version>
-		<kernel.auth.adapter.version>1.2.1-SNAPSHOT</kernel.auth.adapter.version>
+		<kernel.auth.adapter.version>1.3.0-beta.1</kernel.auth.adapter.version>
+		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
+
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -212,8 +214,28 @@
 		    <artifactId>hibernate-validator</artifactId>
 		</dependency>
 	</dependencies>
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://central.sonatype.com/repository/maven-snapshots/</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://central.sonatype.com/api/v1/publisher</url>
+		</repository>
+	</distributionManagement>
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<version>${central.publishing.maven.plugin.version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<publishingServerId>ossrh</publishingServerId>
+					<autoPublish>false</autoPublish>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
@@ -228,6 +250,9 @@
 							<goal>build-info</goal>
 							<goal>repackage</goal>
 						</goals>
+						<configuration>
+							<attach>false</attach>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
