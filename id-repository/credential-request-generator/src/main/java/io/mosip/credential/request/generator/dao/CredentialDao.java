@@ -54,8 +54,9 @@ public class CredentialDao {
 		//Obtain the encrypted credentials for performance improvement
 		List<CredentialEntity> credentialEntities = encryptedCredentialDao.getCredentialByStatus(status, pageSize);
 
-        LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
-                "Total records picked from credential_transaction table for processing is " + credentialEntities.size() + " (" + (endTime - startTime) + "ms)");
+		LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
+				"Total records picked from credential_transaction table for processing is "
+						+ credentialEntities.size());
 
         return ((credentialEntities != null && credentialEntities.size() > 0) ? credentialEntities : new ArrayList<>());
 	}
