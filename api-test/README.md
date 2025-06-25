@@ -137,8 +137,9 @@ To execute the tests using Eclipse IDE, use the following steps:
      - In the **Main** tab, select the project by browsing the location where the `api-test` folder is saved, and select the **Main class** as `io.mosip.testrig.apirig.idrepo.testrunner.MosipTestRunner`.
    - In the **Arguments** tab, add the necessary **VM arguments**:
      - **VM Arguments**:
-       ```
-       -Dmodules=idrepo -Denv.user=api-internal.<env_name> -Denv.endpoint=<base_env> -Denv.testLevel=smokeAndRegression```
+		```
+		-Dmodules=idrepo -Denv.user=api-internal.<env_name> -Denv.endpoint=<base_env> -Denv.testLevel=smokeAndRegression
+		```
 
 ## 5. **Run the Configuration**
 
@@ -157,15 +158,17 @@ To execute the tests using Eclipse IDE, use the following steps:
 
 ## Test Report Column Definitions
 This section describes the meaning of each column in the test report:
-- **Passed**
+- **Total (T)**
+  The total number of test cases considered in the report.
+- **Passed (P)**
   Indicates the number of test cases that executed successfully with the expected results.
-- **Failed**
+- **Failed (F)**
   Indicates the number of test cases that failed due to issues such as output validation mismatches or unexpected errors during execution.
-- **Skipped**
+- **Skipped (S)**
   Represents test cases that were not executed due to missing prerequisites or data dependencies.
-- **Ignored**
+- **Ignored (I)**
   Represents test cases that were intentionally not executed due to limitations such as unsupported features, incompatibilities, or undeployed services.
-- **Known Issues**
+- **Known Issues (KI)**
   Indicates test cases that failed but are already acknowledged as known issues for the current release, typically linked with a bug or defect ID.
 
 ## Details of Arguments Used
@@ -173,7 +176,7 @@ This section describes the meaning of each column in the test report:
 - **env.user**: Replace `<env_name>` with the appropriate environment name (e.g., `dev`, `qa`, etc.).
 - **env.endpoint**: The environment where the application under test is deployed. Replace `<base_env>` with the correct base URL for the environment (e.g., `https://api-internal.<env_name>.mosip.net`).
 - **env.testLevel**: Set this to `smoke` to run only smoke test cases, or `smokeAndRegression` to run both smoke and regression tests.
-- **jar**: Specify the name of the JAR file to execute. The version will change according to the development code version. For example, the current version may look like `apitest-idrepo-1.2.2.0-jar-with-dependencies.jar`.
+- **jar**: Specify the name of the JAR file to execute. The version will change according to the development code version. For example, the current version may look like `apitest-idrepo-1.2.2.2-jar-with-dependencies.jar`.
 
 ### Build and Run Info
 
