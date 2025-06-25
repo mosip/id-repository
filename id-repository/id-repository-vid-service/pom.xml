@@ -5,10 +5,10 @@
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.2.2.1</version>
+		<version>1.2.2.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>id-repository-vid-service</artifactId>
-	<version>1.2.2.1</version>
+	<version>1.2.2.2-SNAPSHOT</version>
 	<name>vid-service</name>
 	<description>ID-Repository Virtual ID Service</description>
 
@@ -90,7 +90,7 @@
 			<artifactId>spring-cloud-starter-config</artifactId>
 			<version>${spring-cloud-config.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.mvel</groupId>
 			<artifactId>mvel2</artifactId>
