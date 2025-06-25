@@ -1,0 +1,105 @@
+RetrieveVIDByUIN:
+  IdRepository_RetrieveVIDByUIN_With_Valid_Smoke_Temp:
+      endPoint: /idrepository/v1/vid/uin/{UIN}
+      description: Retrieve VID passing temporary UIN
+      uniqueIdentifier: TC_IDRepo_RetrieveVIDByUIN_01
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUIN
+      outputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUINResult
+      input: '{
+      "UIN":"$ID:AddIdentity_ValidParam_smoke_Pos_UIN$"
+      }'
+      output: '{
+      "vidType": "$IGNORE$"
+}'
+  IdRepository_RetrieveVIDByUIN_With_blocked_vid_:
+      endPoint: /idrepository/v1/vid/uin/{UIN}
+      description: Retrieve VID passing blocked UIN
+      uniqueIdentifier: TC_IDRepo_RetrieveVIDByUIN_02
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUIN
+      outputTemplate: idRepository/error
+      input: '{
+      "UIN":"$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$"
+      }'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+  IdRepository_RetrieveVIDByUIN_With_Valid_Smoke_Perp:
+      endPoint: /idrepository/v1/vid/uin/{UIN}
+      description: Retrieve UIN by passing perpetual UIN
+      uniqueIdentifier: TC_IDRepo_RetrieveVIDByUIN_03
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUIN
+      outputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUINResult
+      input: '{
+      "UIN":"$ID:AddIdentity_ValidParam_smoke_Pos_UIN$"
+      }'
+      output: '{
+      "vidType": "$IGNORE$"
+      
+}'
+
+  IdRepository_RetrieveVIDByUIN_With_All_Vid_Valid_Smoke:
+      endPoint: /idrepository/v1/vid/uin/{UIN}
+      description: Retrieve UIN by passing valid UIN
+      uniqueIdentifier: TC_IDRepo_RetrieveVIDByUIN_04
+      role: idrepo
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUIN
+      outputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUINResult
+      input: '{
+      "UIN":"$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$"
+      }'
+      output: '{
+      "vidType": "$IGNORE$"
+}'
+
+  IdRepository_RetrieveVIDByUIN_With_Invalid Uin:
+      endPoint: /idrepository/v1/vid/uin/{UIN}
+      description: Retrieving VID passing invlalid UIN
+      uniqueIdentifier: TC_IDRepo_RetrieveVIDByUIN_05
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUIN
+      outputTemplate: idRepository/error
+      input: '{
+      "UIN":"sdfhsbfdk"
+      }'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-004"
+    }
+  ]
+}'
+
+  IdRepository_RetrieveVIDByUIN_With_Space Uin:
+      endPoint: /idrepository/v1/vid/uin/{UIN}
+      description: Retrieve VID passing space in UIN field
+      uniqueIdentifier: TC_IDRepo_RetrieveVIDByUIN_07
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUIN
+      outputTemplate: idRepository/error
+      input: '{
+      "UIN":" "
+      }'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-004"
+    }
+  ]
+}'

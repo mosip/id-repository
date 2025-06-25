@@ -1,0 +1,319 @@
+GetUpdateCount:
+   IdRepository_GetUpdateCount_Uin_Valid_Smoke:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      description: Get update count passing valid UIN
+      uniqueIdentifier: TC_IDRepo_GetUpdateCount_01
+      role: resident
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/GetUpdateCount/GetUpdateCountResult
+      input: '{
+      "individualId": "$ID:AddIdentity_UpdateCount_smoke_Pos_UIN$",
+      "idType": "UIN",
+       "attribute_list": "fullName"
+}'
+      output: '{
+       
+}'
+
+   IdRepository_GetUpdateCount_Uin_Invalid_IndivualId:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      description: Get update count by passing invalid individual ID
+      uniqueIdentifier: TC_IDRepo_GetUpdateCount_02
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$123ds",
+      "idType": "UIN",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-004"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Uin_Empty_IndivId:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      description: Get update count by passing empty individual ID
+      uniqueIdentifier: TC_IDRepo_GetUpdateCount_03
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "",
+      "idType": "UIN",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Uin_SpaceVal_IndivId:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      description: Get update count passing space value in individual id
+      uniqueIdentifier: TC_IDRepo_GetUpdateCount_04
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": " ",
+      "idType": "UIN",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-004"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Uin_StatusCode_Invalid_Token:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      description: Get update count passing invalid token
+      uniqueIdentifier: TC_IDRepo_GetUpdateCount_05
+      role: invalid
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$ID:AddIdentity_UpdateCount_smoke_Pos_UIN$",
+      "idType": "UIN",
+       "attribute_list": "fullName"
+}'
+      output: "500"
+
+   IdRepository_GetUpdateCount_Vid_Valid_Smoke:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      description: Get update count by passing valid VID
+      uniqueIdentifier: TC_IDRepo_GetUpdateCount_06
+      role: resident
+      checkErrorsOnlyInResponse: true
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/GetUpdateCount/GetUpdateCountResult
+      input: '{
+      "individualId": "$ID:CreateVID_UpdateCount_Smoke_Perpetual_sid_VID$",
+      "idType": "VID",
+       "attribute_list": "fullName"
+}'
+      output: '{
+       
+}'
+
+   IdRepository_GetUpdateCount_Uin_Invalid_IndivId:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      description: Get update count by passing invalid UIN
+      uniqueIdentifier: TC_IDRepo_GetUpdateCount_07
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$123ds",
+      "idType": "VID",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Uin_StaatusCode_Empty_IndivId:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      description: Get update count by passing empty space in individual id
+      uniqueIdentifier: TC_IDRepo_GetUpdateCount_08
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": " ",
+      "idType": "VID",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Uin_SppaceVal_IndivId:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      description: Get update count by passing space in individual id
+      uniqueIdentifier: TC_IDRepo_GetUpdateCount_09
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": " ",
+      "idType": "VID",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Uinn_StatusCode_Invalid_Token:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      description: Get update count by passing invalid token
+      uniqueIdentifier: TC_IDRepo_GetUpdateCount_10
+      role: invalid
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$ID:CreateVID_UpdateCount_Smoke_Perpetual_sid_VID$",
+      "idType": "VID",
+       "attribute_list": "fullName"
+}'
+      output: "500"
+      
+   IdRepository_GetUpdateCount_Uin_Invalid_idType:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      description: Get update count by passing invalid idtype
+      uniqueIdentifier: TC_IDRepo_GetUpdateCount_11
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$ID:AddIdentity_UpdateCount_smoke_Pos_UIN$",
+      "idType": "dfsdf",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Uin_Empty_idType:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      description: Get update count by passing empty Id type
+      uniqueIdentifier: TC_IDRepo_GetUpdateCount_12
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$ID:AddIdentity_UpdateCount_smoke_Pos_UIN$",
+      "idType": "",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Uin_Spaceval_idType:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      description: Get update count by passing space in id type
+      uniqueIdentifier: TC_IDRepo_GetUpdateCount_13
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$ID:AddIdentity_UpdateCount_smoke_Pos_UIN$",
+      "idType": " ",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Vid_Invalid_idType:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      description: Get update count by passing invalid id type
+      uniqueIdentifier: TC_IDRepo_GetUpdateCount_14
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$ID:CreateVID_UpdateCount_Smoke_Perpetual_sid_VID$",
+      "idType": "dfsdf",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Vid_Empty_idType:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      description: Get update count by passing invalid idtype
+      uniqueIdentifier: TC_IDRepo_GetUpdateCount_15
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$ID:CreateVID_UpdateCount_Smoke_Perpetual_sid_VID$",
+      "idType": "",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002",
+      "message": "Invalid Input Parameter - idType"
+    }
+  ]
+}'
+
+   IdRepository_GetUpdateCount_Vid_Spaceval_idType:
+      endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
+      description: Get update count by passing space value in idtype
+      uniqueIdentifier: TC_IDRepo_GetUpdateCount_16
+      role: resident
+      restMethod: get
+      inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
+      outputTemplate: idRepository/error
+      input: '{
+      "individualId": "$ID:CreateVID_UpdateCount_Smoke_Perpetual_sid_VID$",
+      "idType": " ",
+       "attribute_list": "fullName"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
