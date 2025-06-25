@@ -99,11 +99,11 @@ jobs:
       GPG_SECRET: ${{ secrets.GPG_SECRET }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-  build-maven-apitest-resident:
+  build-maven-apitest-idrepo:
     uses: mosip/kattu/.github/workflows/maven-build.yml@master-java21
     with:
       SERVICE_LOCATION: ./api-test
-      BUILD_ARTIFACT: apitest-resident
+      BUILD_ARTIFACT: apitest-idrepo
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
       OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
@@ -111,9 +111,9 @@ jobs:
       GPG_SECRET: ${{ secrets.GPG_SECRET }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-  publish_to_nexus_apitest:
+  publish_to_nexus_apitest_idrepo:
     if: "${{ !contains(github.ref, 'master') && github.event_name != 'pull_request' && github.event_name != 'release' && github.event_name != 'prerelease' && github.event_name != 'publish' }}"
-    needs: build-maven-apitest-resident
+    needs: build-maven-apitest-idrepo
     uses: mosip/kattu/.github/workflows/maven-publish-to-nexus.yml@master-java21
     with:
       SERVICE_LOCATION: ./api-test
@@ -125,14 +125,14 @@ jobs:
       GPG_SECRET: ${{ secrets.GPG_SECRET }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-  build-apitest-resident-local:
-    needs: build-maven-apitest-resident
+  build-apitest-idrepo-local:
+    needs: build-maven-apitest-idrepo
     runs-on: ubuntu-latest
     env:
       NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
-      SERVICE_NAME: apitest-resident
+      SERVICE_NAME: apitest-idrepo
       SERVICE_LOCATION: api-test
-      BUILD_ARTIFACT: apitest-resident-local
+      BUILD_ARTIFACT: apitest-idrepo-local
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 21
@@ -142,8 +142,10 @@ jobs:
           java-version: 21
           server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
           settings-path: ${{ github.workspace }} # location for the settings.xml file
+
       - name: Setup the settings file for ossrh server
         run: echo "<settings> <servers>  <server>  <id>ossrh</id>    <username>${{secrets.ossrh_user}}</username> <password>${{secrets.ossrh_secret}}</password> </server> </servers> <profiles> <profile>     <id>ossrh</id> <activation> <activeByDefault>true</activeByDefault> </activation>  <properties> <gpg.executable>gpg2</gpg.executable> <gpg.passphrase>${{secrets.gpg_secret}}</gpg.passphrase> </properties> </profile> <profile> <id>allow-snapshots</id>       <activation><activeByDefault>true</activeByDefault></activation> <repositories> <repository>        <id>snapshots-repo</id> <url>https://oss.sonatype.org/content/repositories/snapshots</url> <releases><enabled>false</enabled></releases> <snapshots><enabled>true</enabled></snapshots> </repository>  <repository>         <id>releases-repo</id>  <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>         <releases><enabled>true</enabled></releases>         <snapshots><enabled>false</enabled></snapshots> </repository> </repositories>  </profile> <profile> <id>sonar</id> <properties>  <sonar.sources>.</sonar.sources> <sonar.host.url>https://sonarcloud.io</sonar.host.url>  </properties> <activation> <activeByDefault>false</activeByDefault> </activation> </profile> </profiles> </settings>" > $GITHUB_WORKSPACE/settings.xml
+
       - name: Build Automationtests with Maven
         run: |
           cd ${{ env.SERVICE_LOCATION}}
@@ -163,6 +165,7 @@ jobs:
         with:
           name: ${{ env.BUILD_ARTIFACT }}
           path: ${{ env.BUILD_ARTIFACT }}.zip
+
       - uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
@@ -171,14 +174,14 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # required
         if: failure() # Pick up events even if the job fails or is canceled.
 
-  build-dockers_apitest_resident:
-    needs: build-apitest-resident-local
+  build-dockers_apitest_idrepo:
+    needs: build-apitest-idrepo-local
     strategy:
       matrix:
         include:
           - SERVICE_LOCATION: 'api-test'
-            SERVICE_NAME: 'apitest-resident'
-            BUILD_ARTIFACT: 'apitest-resident-local'
+            SERVICE_NAME: 'apitest-idrepo'
+            BUILD_ARTIFACT: 'apitest-idrepo-local'
             ONLY_DOCKER: true
       fail-fast: false
     name: ${{ matrix.SERVICE_NAME }}
