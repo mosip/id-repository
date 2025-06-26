@@ -75,7 +75,7 @@ public class CredentialTransactionInterceptor implements Interceptor {
 	private void encryptData(Object entity, Object[] state, String[] propertyNames) {
 		if (entity instanceof CredentialEntity) {
 			CredentialEntity credEntity = (CredentialEntity) entity;
-            String encryptedData = cryptoUtil.encryptData(CryptoUtil.encodeToURLSafeBase64(credEntity.getRequest().getBytes()));
+			String encryptedData = cryptoUtil.encryptData(CryptoUtil.encodeToURLSafeBase64(credEntity.getRequest().getBytes()));
 			credEntity.setRequest(encryptedData);
 			int indexOfData = Arrays.asList(propertyNames).indexOf(REQUEST);
 			state[indexOfData] = encryptedData;
