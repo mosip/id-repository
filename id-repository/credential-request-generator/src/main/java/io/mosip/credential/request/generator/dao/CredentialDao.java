@@ -47,17 +47,13 @@ public class CredentialDao {
 	}
 
 	public List<CredentialEntity> getCredentials(String batchId) {
-
-        LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
-                "Inside getCredentials() method");
-
+		LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
+				"Inside getCredentials() method");
 		//Obtain the encrypted credentials for performance improvement
 		List<CredentialEntity> credentialEntities = encryptedCredentialDao.getCredentialByStatus(status, pageSize);
-
 		LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
 				"Total records picked from credential_transaction table for processing is "
 						+ credentialEntities.size());
-
 		return credentialEntities;
 	}
 
