@@ -12,6 +12,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationListener;
+import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -70,6 +71,15 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 
 	/** The id. */
 	private Map<String, String> id;
+
+    @Value("${mosip.idrepo.extract.template.core-pool-size:50}")
+    private int corePoolSize;
+
+    @Value("${mosip.idrepo.extract.template.max-pool-size:100}")
+    private int maxPoolSize;
+
+    @Value("${mosip.idrepo.extract.template.queue-capacity:1000}")
+    private int queueCapacity;
 
 	/**
 	 * Gets the db.
@@ -194,7 +204,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 	    executor.initialize();
 	    return executor;
 	}
-	
+
 	@Bean
 	@Qualifier("webSubHelperExecutor")
 	public Executor webSubHelperExecutor() {
@@ -206,7 +216,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 	    executor.initialize();
 	    return executor;
 	}
-	
+
 	@Bean
 	@Qualifier("credentialStatusManagerJobExecutor")
 	public Executor credentialStatusManagerJobExecutor() {
@@ -218,7 +228,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 	    executor.initialize();
 	    return executor;
 	}
-	
+
 	@Bean
 	@Qualifier("anonymousProfileExecutor")
 	public Executor anonymousProfileExecutor() {
@@ -230,7 +240,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 	    executor.initialize();
 	    return executor;
 	}
-	
+
 	@Scheduled(fixedRateString = "${" + "mosip.idrepo.monitor-thread-queue-in-ms" + ":10000}")
 	public void monitorThreadQueueLimit() {
 		if (StringUtils.isNotBlank(EnvUtil.getMonitorAsyncThreadQueue())) {
@@ -252,5 +262,25 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 			mosipLogger.info(monitoringLog, threadPoolTaskExecutor.getThreadNamePrefix(),
 					threadPoolTaskExecutor.getActiveCount(),
 					threadPoolTaskExecutor.getThreadPoolExecutor().getTaskCount(), threadPoolQueueSize);
+	}
+
+	/*
+	 * This bean is returned because for async task the security context needs to be
+	 * passed.
+	 *
+	 */
+	@Bean("withSecurityContext")
+	public DelegatingSecurityContextAsyncTaskExecutor taskExecutor() {
+		return new DelegatingSecurityContextAsyncTaskExecutor(threadPoolTaskExecutor());
+	}
+
+	private ThreadPoolTaskExecutor threadPoolTaskExecutor() {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(corePoolSize);
+		executor.setMaxPoolSize(maxPoolSize);
+		executor.setQueueCapacity(queueCapacity);
+		executor.setThreadNamePrefix("idrepo-");
+		executor.initialize();
+		return executor;
 	}
 }
