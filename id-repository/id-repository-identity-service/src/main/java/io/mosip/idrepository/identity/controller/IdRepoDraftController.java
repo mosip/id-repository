@@ -4,6 +4,7 @@ import io.mosip.idrepository.core.constant.AuditEvents;
 import io.mosip.idrepository.core.constant.AuditModules;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdType;
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import org.springframework.beans.factory.annotation.Value;
 import io.mosip.idrepository.core.dto.DraftResponseDto;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
