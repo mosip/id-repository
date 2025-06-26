@@ -706,7 +706,7 @@ public class IdRepoController {
 		validator.validateTypeAndExtractionFormats(type, extractionFormats);
 		if (StringUtils.isBlank(idType)) {
 			throw new IdRepoAppException(
-					IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
+					IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
 					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "idType")
 			);
 		}
