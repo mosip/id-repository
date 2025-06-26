@@ -864,4 +864,18 @@ public class IdRepoControllerTest {
 		ResponseEntity<ResponseWrapper<AttributeListDto>> response = controller.getRemainingUpdateCountByIndividualId("1234", "UIN", null);
 		response.getBody().getResponse();
 	}
+	@Test(expected = IdRepoAppException.class)
+	public void retrieveIdentityById_shouldThrowException_whenIdTypeIsNull() throws IdRepoAppException {
+		IdRequestByIdDTO requestDto = new IdRequestByIdDTO();
+		requestDto.setId("1234567890");
+		requestDto.setType("biometric");
+		requestDto.setIdType(null);
+		requestDto.setFingerExtractionFormat("ISO");
+
+		RequestWrapper<IdRequestByIdDTO> requestWrapper = new RequestWrapper<>();
+		requestWrapper.setRequest(requestDto);
+
+		when(validator.validateType("biometric")).thenReturn("biometric");
+		controller.retrieveIdentityById(requestWrapper, null);
+	}
 }
