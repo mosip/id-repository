@@ -704,7 +704,14 @@ public class IdRepoController {
 		}
 		extractionFormats.remove(null);
 		validator.validateTypeAndExtractionFormats(type, extractionFormats);
-		return idRepoService.retrieveIdentity(individualId, Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType),
+		if (StringUtils.isBlank(idType)) {
+			throw new IdRepoAppException(
+					IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
+					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "idType")
+			);
+		}
+		IdType resolvedIdType = validator.validateIdType(idType);
+		return idRepoService.retrieveIdentity(individualId, resolvedIdType,
 				type, extractionFormats);
 	}
 }
