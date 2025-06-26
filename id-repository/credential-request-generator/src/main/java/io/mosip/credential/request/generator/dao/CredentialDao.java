@@ -58,7 +58,7 @@ public class CredentialDao {
 				"Total records picked from credential_transaction table for processing is "
 						+ credentialEntities.size());
 
-        return ((credentialEntities != null && credentialEntities.size() > 0) ? credentialEntities : new ArrayList<>());
+		return credentialEntities;
 	}
 
 	public List<CredentialEntity> getCredentialsForReprocess(String batchId) {
