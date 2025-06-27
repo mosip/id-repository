@@ -710,8 +710,7 @@ public class IdRepoController {
 					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "idType")
 			);
 		}
-		IdType resolvedIdType = validator.validateIdType(idType);
-		return idRepoService.retrieveIdentity(individualId, resolvedIdType,
+		return idRepoService.retrieveIdentity(individualId, IdType.valueOf(idType),
 				type, extractionFormats);
 	}
 }
