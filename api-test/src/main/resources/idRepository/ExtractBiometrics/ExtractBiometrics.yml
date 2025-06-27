@@ -22,7 +22,7 @@ ExtractBiometrics:
       inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
       outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
       input: '{
-      "registrationId":"$RID$"
+      "registrationId":"$RIDEXT$"
       }'
       output: '{
       "status": "DRAFTED"
@@ -36,7 +36,7 @@ ExtractBiometrics:
       inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
       outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
       input: '{
-      "registrationId":"$RID$"
+      "registrationId":"$RIDEXT$"
       }'
       output: '{
       "status": "DRAFTED"
@@ -50,7 +50,7 @@ ExtractBiometrics:
       inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
       outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
       input: '{
-      "registrationId":"$RID$"
+      "registrationId":"$RIDEXT$"
       }'
       output: '{
       "status": "DRAFTED"
@@ -64,7 +64,7 @@ ExtractBiometrics:
       inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
       outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
       input: '{
-      "registrationId":"$RID$"
+      "registrationId":"$RIDEXT$"
       }'
       output: '{
       "status": "DRAFTED"
