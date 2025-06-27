@@ -14,8 +14,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
@@ -43,6 +41,9 @@ public class CredentialDaoTest {
 
 	@InjectMocks
 	private CredentialDao credentialDao;
+	
+	@Mock
+	private EncryptedCredentialDao encryptedCredentialDao;
 	
 	@Before
 	public void setUp() {
@@ -86,15 +87,15 @@ public class CredentialDaoTest {
 	}
 	@Test
 	public void testGetCredentials(){
-		List<CredentialEntity> credentialList=new ArrayList<CredentialEntity>();
+		List<CredentialEntity> credentialList = new ArrayList<>();
 		CredentialEntity credentialEntity = new CredentialEntity();
 		credentialEntity.setRequestId("1234");
 		credentialEntity.setRequest("test");
 		credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		credentialList.add(credentialEntity);
-		Page<CredentialEntity> page = new PageImpl<>(credentialList);
-		Mockito.when(credentialRepo.findCredentialByStatusCode(Mockito.any(), Mockito.any())).thenReturn(page);
+		Mockito.when(encryptedCredentialDao.getCredentialByStatus(Mockito.anyString(), Mockito.anyInt()))
+				.thenReturn(credentialList);
 		credentialDao.getCredentials("1234");
 	}
 	
