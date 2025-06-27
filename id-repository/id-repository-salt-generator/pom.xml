@@ -187,14 +187,6 @@
 			<version>1.4.200</version>
 		</dependency>
 	</dependencies>
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.hibernate.validator</groupId>
-				<artifactId>hibernate-validator</artifactId>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 	<distributionManagement>
 		<snapshotRepository>
 			<id>ossrh</id>
