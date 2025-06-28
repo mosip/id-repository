@@ -1033,6 +1033,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 
 		List<CredentialRequestStatus> credStatusList = credRequestRepo.findByIndividualIdHash(uinHash);
 		String triggerAction = isUpdate ? CredentialTriggerAction.UPDATE.toString() : CredentialTriggerAction.CREATE.toString();
+		final String rId = (enableConventionBasedId && (requestId != null))? requestId : null;
 
 		if (!credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {
@@ -1040,6 +1041,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setTriggerAction(triggerAction);
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
+				credStatus.setRequestId(rId); //Assumption, there is no chance of more than 1 entry for the given UINHash
 				credRequestRepo.save(credStatus);
 			});
 		} else if (!credStatusList.isEmpty() && !uinStatus.contentEquals(activeStatus)) {
@@ -1048,6 +1050,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 				credStatus.setStatus(CredentialRequestStatusLifecycle.DELETED.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
+				credStatus.setRequestId(rId);//Assumption, there is no chance of more than 1 entry for the given UINHash
 				credRequestRepo.save(credStatus);
 			});
 		} else if (credStatusList.isEmpty()) {
@@ -1061,13 +1064,11 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
 			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
 			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
-			if(enableConventionBasedId && (requestId != null)) {
-				credStatus.setRequestId(requestId);
-			}
+			credStatus.setRequestId(rId);
 			credRequestRepo.save(credStatus);
 		}
-		mosipLogger.info("DEBUG--- Entry created with operationStatus : {} enableConventionBasedId : {} requestId : {} uinHash : {}",
-				triggerAction, enableConventionBasedId, requestId, uinHash);
+		mosipLogger.info("DEBUG--- exitingEntries: {}, Entry created with operationStatus : {} enableConventionBasedId : {} requestId : {} uinHash : {}",
+				credStatusList.size(), triggerAction, enableConventionBasedId, requestId, uinHash);
 	}
 
 	/**
