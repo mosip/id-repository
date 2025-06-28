@@ -480,7 +480,7 @@ public class CredentialServiceManager {
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
 		Map<String, Object> response = Map.of();
 		try {
-			mosipLogger.info("DEBUG---  sendRequestToCredService requestWrapper {}", requestWrapper);
+			mosipLogger.info("DEBUG---  sendRequestToCredService requestId {}", requestWrapper.getRequest().getRequestId());
 
 			RestServicesConstants restServicesConstants = requestWrapper.getRequest().getRequestId() != null
 					&& !requestWrapper.getRequest().getRequestId().isEmpty()
@@ -547,7 +547,7 @@ public class CredentialServiceManager {
 		credentialIssueRequestDto.setUser(IdRepoSecurityManager.getUser());
 		credentialIssueRequestDto.setAdditionalData(data);
 
-		mosipLogger.info("createCredReqDto id: {}, idHashAttributes : {}",id, idHashAttributes);
+		mosipLogger.info("createCredReqDto id: {}, requestId:{}, idHashAttributes : {}",id, requestId, idHashAttributes);
 
 		return credentialIssueRequestDto;
 	}
