@@ -493,7 +493,8 @@
 								</goals>
 							</execution>
 						</executions>
-					</plugin>					<plugin>
+					</plugin>
+					<plugin>
 						<groupId>org.springdoc</groupId>
 						<artifactId>springdoc-openapi-maven-plugin</artifactId>
 						<version>0.2</version>
