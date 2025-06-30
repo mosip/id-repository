@@ -20,7 +20,6 @@ AuthInternalLock:
     "unlockForSeconds": 0
 }'
       output: '{
-      "responsetime": "$IGNORE$"
 }'
 
   IdRepository_AuthInternalLock_Vid_Demo_Smoke_Pos:
@@ -68,7 +67,6 @@ AuthInternalLock:
   "requestTime": "$TIMESTAMP$"
 }'
       output: '{
-      "responsetime": "$IGNORE$"
 }'
 
   IdRepository_AuthInternalLock_Vid_FACE_Smoke_Pos:
