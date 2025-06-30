@@ -16,10 +16,14 @@ public class CredentialIssueRequestHelper {
     private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialIssueRequestHelper.class);
 
     @Autowired
+    private io.mosip.credential.request.generator.util.CryptoUtil cryptoUtil;
+
     private ObjectMapper objectMapper;
 
     @Autowired
-    private io.mosip.credential.request.generator.util.CryptoUtil cryptoUtil;
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public CredentialServiceRequestDto getCredentialServiceRequestDto(CredentialIssueRequestDto credentialIssueRequestDto, String requestId) throws JsonProcessingException {
         CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
