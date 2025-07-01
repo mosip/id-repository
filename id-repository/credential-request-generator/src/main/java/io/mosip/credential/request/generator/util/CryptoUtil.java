@@ -17,6 +17,12 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * The Class CryptoUtil.
+ ** used for encryption and decryption
+ * @author tarique-azeez
+ */
+
 @Component
 public class CryptoUtil {
 
