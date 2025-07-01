@@ -33,7 +33,9 @@ CREATE TABLE credential.credential_transaction(
 	CONSTRAINT pk_credtrn_id PRIMARY KEY (id)
 
 );
-
+--index section starts----
+CREATE INDEX IF NOT EXISTS cred_txn_status_code ON credential.credential_transaction USING btree (status_code);
+--index section ends------
 CREATE INDEX cred_tran_NEW_status_cr_dtimes ON credential.credential_transaction USING btree (cr_dtimes) WHERE status_code = 'NEW';
 
 -- ddl-end --
