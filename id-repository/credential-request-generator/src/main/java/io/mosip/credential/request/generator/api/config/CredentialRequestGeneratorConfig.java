@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springdoc.core.models.GroupedOpenApi;
@@ -90,6 +92,9 @@ public class CredentialRequestGeneratorConfig extends HibernateDaoConfig {
 
 	@Bean(name = "credentialObjectMapper")
 	public ObjectMapper credentialObjectMapper() {
-		return new ObjectMapper();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.registerModule(new JavaTimeModule());
+		mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); 
+		return mapper;
 	}
 }
