@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import io.mosip.credential.request.generator.util.CryptoUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springdoc.core.GroupedOpenApi;
@@ -39,14 +40,17 @@ public class CredentialRequestGeneratorConfig extends HibernateDaoConfig {
 	@Autowired
 	@Qualifier("restUtil")
 	private RestUtil restUtil;
-	
+
+	@Autowired
+	private CryptoUtil cryptoUtil;
+
 	@Autowired
 	private OpenApiProperties openApiProperties;
 	
 	@Override
 	public Map<String, Object> jpaProperties() {
 		Map<String, Object> jpaProperties = super.jpaProperties();
-		jpaProperties.put("hibernate.ejb.interceptor", new CredentialTransactionInterceptor(restUtil));
+		jpaProperties.put("hibernate.ejb.interceptor", new CredentialTransactionInterceptor(restUtil, cryptoUtil));
 		return jpaProperties;
 	}
 

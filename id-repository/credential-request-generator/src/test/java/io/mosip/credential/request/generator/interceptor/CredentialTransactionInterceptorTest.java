@@ -3,6 +3,7 @@ package io.mosip.credential.request.generator.interceptor;
 
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorUncheckedException;
+import io.mosip.credential.request.generator.util.CryptoUtil;
 import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
@@ -33,6 +34,9 @@ public class CredentialTransactionInterceptorTest {
     @Mock
     private RestUtil restUtil;
 
+    @Mock
+    private CryptoUtil cryptoUtil;
+
     /**
      * This class tests the onSave method
      * @throws Exception
@@ -46,18 +50,7 @@ public class CredentialTransactionInterceptorTest {
         Object[] state = {"a", "b", REQUEST};
         String[] propertyNames ={"a","b",REQUEST};
         Type[] types = {};
-        ResponseWrapper<Map<String, String>> restResponse = new ResponseWrapper<>();
-        restResponse.setErrors(null);
-        Map<String, String> response = new HashMap<>();
-        response.put("data", "1122");
-        restResponse.setResponse(response);
-        restResponse.getResponse().put("data", "data");
-        Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restResponse);
-        Assert.assertFalse(credentialTransactionInterceptor.onSave(entity, id, state, propertyNames, types));
-
-        List<io.mosip.kernel.core.exception.ServiceError> errors = new ArrayList<>();
-        restResponse.setErrors(errors);
+        Mockito.when(cryptoUtil.encryptData(Mockito.anyString())).thenReturn("encrypted-secret");
         Assert.assertFalse(credentialTransactionInterceptor.onSave(entity, id, state, propertyNames, types));
     }
 
@@ -73,14 +66,7 @@ public class CredentialTransactionInterceptorTest {
         Object[] state = {"a", "b", REQUEST};
         String[] propertyNames ={"a","b",REQUEST};
         Type[] types = {};
-        ResponseWrapper<Map<String, String>> restResponse = new ResponseWrapper<>();
-        restResponse.setErrors(null);
-        Map<String, String> response = new HashMap<>();
-        response.put("data", "1122");
-        restResponse.setResponse(response);
-        restResponse.getResponse().put("data", "data");
-        Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restResponse);
+        Mockito.when(cryptoUtil.decryptData(Mockito.any())).thenReturn("decrypted-data");
         Assert.assertFalse(credentialTransactionInterceptor.onLoad(entity, id, state, propertyNames, types));
     }
 
@@ -96,14 +82,6 @@ public class CredentialTransactionInterceptorTest {
         Object[] state = {"a", "b", REQUEST};
         String[] propertyNames ={"a","b",REQUEST};
         Type[] types = {};
-        ResponseWrapper<Map<String, String>> restResponse = new ResponseWrapper<>();
-        restResponse.setErrors(null);
-        Map<String, String> response = new HashMap<>();
-        response.put("data", "1122");
-        restResponse.setResponse(response);
-        restResponse.getResponse().put("data", "data");
-        Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restResponse);
         Assert.assertFalse(credentialTransactionInterceptor.onLoad(entity, id, state, propertyNames, types));
     }
 
@@ -119,17 +97,9 @@ public class CredentialTransactionInterceptorTest {
         Object[] state = {"a", "b", REQUEST};
         String[] propertyNames ={"a","b",REQUEST};
         Type[] types = {};
-        ResponseWrapper<Map<String, String>> restResponse = new ResponseWrapper<>();
-        restResponse.setErrors(null);
-        Map<String, String> response = new HashMap<>();
-        response.put("data", "1122");
-        restResponse.setResponse(response);
-        restResponse.getResponse().put("data", "data");
-        List <io.mosip.kernel.core.exception.ServiceError> errors = new ArrayList<>();
-        errors.add(new ServiceError());
-        restResponse.setErrors(errors);
-        Mockito.when(restUtil.postApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
-                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restResponse);
+
+        Mockito.when(cryptoUtil.decryptData(Mockito.any()))
+                .thenThrow(new RuntimeException("Simulated internal failure"));
         Assert.assertFalse(credentialTransactionInterceptor.onLoad(entity, id, state, propertyNames, types));
     }
 
