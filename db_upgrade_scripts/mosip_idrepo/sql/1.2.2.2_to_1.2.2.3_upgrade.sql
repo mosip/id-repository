@@ -7,5 +7,3 @@ CREATE INDEX IF NOT EXISTS idx_cred_req_NEW_status_cr_dtimes ON idrepo.credentia
 CREATE INDEX IF NOT EXISTS idx_cred_tran_status ON idrepo.credential_request_status USING  btree(status);
 
 CREATE INDEX IF NOT EXISTS cred_tran_indidhash ON idrepo.credential_request_status USING btree (individual_id_hash);
-
-CREATE INDEX IF NOT EXISTS cred_txn_status_code ON credential.credential_transaction USING btree (status_code);

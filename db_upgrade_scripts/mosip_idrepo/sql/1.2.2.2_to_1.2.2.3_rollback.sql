@@ -6,3 +6,4 @@ DROP INDEX IF EXISTS idx_handle_handle_hash ON idrepo.handle;
 DROP INDEX IF EXISTS idx_handle_uin_hash ON idrepo.handle;
 DROP INDEX IF EXISTS idx_cred_req_NEW_status_cr_dtimes ON idrepo.credential_request_status;
 DROP INDEX IF EXISTS idx_cred_tran_status ON idrepo.credential_request_status;
+DROP INDEX IF EXISTS cred_tran_indidhash ON idrepo.credential_request_status;
