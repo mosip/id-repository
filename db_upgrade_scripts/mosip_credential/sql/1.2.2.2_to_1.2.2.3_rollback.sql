@@ -1,1 +1,1 @@
-DROP INDEX IF NOT EXISTS cred_txn_status_code;
+DROP INDEX IF EXISTS cred_txn_status_code;

@@ -1,6 +1,7 @@
 package io.mosip.credential.request.generator.interceptor;
 
 
+import io.mosip.credential.request.generator.context.CryptoContext;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorUncheckedException;
 import io.mosip.credential.request.generator.util.CryptoUtil;
@@ -100,6 +101,19 @@ public class CredentialTransactionInterceptorTest {
 
         Mockito.when(cryptoUtil.decryptData(Mockito.any()))
                 .thenThrow(new RuntimeException("Simulated internal failure"));
+        Assert.assertFalse(credentialTransactionInterceptor.onLoad(entity, id, state, propertyNames, types));
+    }
+
+    @Test
+    public void onLoad_SkipDecryption() throws Exception {
+        CredentialEntity entity = new CredentialEntity();
+        Serializable id = new Serializable() {
+        };
+        String REQUEST = "request";
+        Object[] state = {"a", "b", REQUEST};
+        String[] propertyNames = {"a", "b", REQUEST};
+        Type[] types = {};
+        CryptoContext.setSkipDecryption(true);
         Assert.assertFalse(credentialTransactionInterceptor.onLoad(entity, id, state, propertyNames, types));
     }
 

@@ -49,7 +49,7 @@ public class CredentialDao {
     public List<CredentialEntity> getCredentials(String batchId) {
         LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
                 "Inside getCredentials() method");
-        //Obtain the encrypted credentials for performance improvementAdd commentMore actions
+        //Obtain the encrypted credentials for performance improvement
         List<CredentialEntity> credentialEntities = encryptedCredentialDao.getCredentialByStatus(status, pageSize);
 
         LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,

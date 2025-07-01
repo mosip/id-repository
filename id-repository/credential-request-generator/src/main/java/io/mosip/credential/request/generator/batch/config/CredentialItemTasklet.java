@@ -93,7 +93,7 @@ public class CredentialItemTasklet implements Tasklet {
 				try {
 					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 							"started processing item : " + credential.getRequestId());
-					//Decrypting data outside for performance improvementAdd commentMore actions
+					//Decrypting data outside for performance improvement
 					long decryptStartTime = System.currentTimeMillis();
 					CredentialIssueRequestDto credentialIssueRequestDto = credentialIssueRequestHelper.getCredentialIssueRequestDto(credential);
 					LOGGER.debug(IdRepoSecurityManager.getUser(), "Perform " + CREDENTIAL_ITEM_TASKLET,
