@@ -79,6 +79,12 @@
 		<class name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
 	</classes>
 	</test>
+	<test name="RetrieveIdentityPost">
+		<parameter name="ymlFile"	value="idRepository/RetrieveIdentityPost/RetrieveIdentityPost.yml" />
+	<classes>
+		<class name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePostForAutoGenId" />
+	</classes>
+	</test>
 	
 	
 	<test name="RetrieveVIDByUIN">
