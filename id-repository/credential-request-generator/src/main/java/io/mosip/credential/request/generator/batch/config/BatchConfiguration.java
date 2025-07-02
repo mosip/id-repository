@@ -79,7 +79,7 @@ public class BatchConfiguration {
 	@Bean
 	@DependsOn("alterAnnotation")
 	public Step credentialReProcessStep(JobRepository jobRepository,PlatformTransactionManager transactionManager) {
-		Step step = new StepBuilder("credentialReProcessJob", jobRepository).tasklet(credentialItemReprocessTasklet, null).transactionManager(transactionManager)
+		Step step = new StepBuilder("credentialProcessJob", jobRepository).tasklet(credentialItemReprocessTasklet, null).transactionManager(transactionManager)
 				.build();
 		return step;
 	}

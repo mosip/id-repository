@@ -29,33 +29,33 @@ import io.mosip.kernel.core.logger.spi.Logger;
 
 /**
  * The Class BiometricExtractionServiceImpl.
- *
+ * 
  * @author Loganathan Sekar
  */
 @Service
 public class BiometricExtractionServiceImpl implements BiometricExtractionService {
-
+	
 	/** The Constant EXTRACT_TEMPLATE. */
 	private static final String EXTRACT_TEMPLATE = "extractTemplate";
 
 	/** The Constant mosipLogger. */
 	private static final Logger mosipLogger = IdRepoLogger.getLogger(BiometricExtractionServiceImpl.class);
-
+	
 	/** The object store helper. */
 	@Autowired
 	private ObjectStoreHelper objectStoreHelper;
-
+	
 	/** The Constant FORMAT_FLAG_SUFFIX. */
 	private static final String FORMAT_FLAG_SUFFIX = ".format";
 
 	/** The bio exraction helper. */
 	@Autowired
 	private BioExtractionHelper bioExractionHelper;
-
+	
 	/** The cbeff util. */
 	@Autowired
 	private CbeffUtil cbeffUtil;
-
+	
 	/**
 	 * Extract template.
 	 *
@@ -67,7 +67,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	 * @return the completable future
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	@Async("withSecurityContext")
+	@Async
 	public CompletableFuture<List<BIR>> extractTemplate(String uinHash, String fileName,
 			String extractionType, String extractionFormat, List<BIR> birsForModality) throws IdRepoAppException {
 		try {
@@ -84,7 +84,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 				mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
 						e.getMessage());
 			}
-
+			
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
 					"EXTRATCING BIOMETRICS FOR FORMAT: " + extractionType +" : "+ extractionFormat);
 			Map<String, String> formatFlag = Map.of(getFormatFlag(extractionType), extractionFormat);
@@ -101,7 +101,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);
 		}
 	}
-
+	
 	/**
 	 * Gets the format flag.
 	 *
@@ -111,7 +111,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	private String getFormatFlag(String formatQueryParam) {
 		return formatQueryParam.replace(EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX, FORMAT_FLAG_SUFFIX);
 	}
-
+	
 	/**
 	 * Gets the modality for format.
 	 *
@@ -134,11 +134,11 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 			throws BiometricExtractionException {
 		mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "extractBiometricTemplate",
 				"INVOKING BIOMETRIC EXTRACTION FOR THE FORMAT: " + extractionFormats);
-
+		
 		BioExtractRequestDTO bioExtractReq = new BioExtractRequestDTO();
 		bioExtractReq.setBiometrics(birs);
 		bioExtractReq.setExtractionFormats(extractionFormats);
-
+		
 		BioExtractResponseDTO bioExtractResponseDTO = extractBiometrics(bioExtractReq);
 		return bioExtractResponseDTO.getExtractedBiometrics();
 	}

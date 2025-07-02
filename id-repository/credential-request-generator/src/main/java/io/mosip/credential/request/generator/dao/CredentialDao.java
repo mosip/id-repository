@@ -37,9 +37,6 @@ public class CredentialDao {
 	@Autowired
 	private CredentialRepositary credentialRepo;
 
-	@Autowired
-	private EncryptedCredentialDao encryptedCredentialDao;
-
 	public void update(String batchId, List<CredentialEntity> credentialEntities) {
 		credentialRepo.saveAll(credentialEntities);
 		LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
@@ -47,14 +44,18 @@ public class CredentialDao {
 	}
 
 	public List<CredentialEntity> getCredentials(String batchId) {
-		LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
-				"Inside getCredentials() method");
-		//Obtain the encrypted credentials for performance improvement
-		List<CredentialEntity> credentialEntities = encryptedCredentialDao.getCredentialByStatus(status, pageSize);
-		LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
-				"Total records picked from credential_transaction table for processing is "
-						+ credentialEntities.size());
-		return credentialEntities;
+
+        LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
+                "Inside getCredentials() method");
+
+        long startTime = System.currentTimeMillis();
+        List<CredentialEntity> credentialEntities = credentialRepo.findCredentialByStatusCode(status, pageSize);
+        long endTime = System.currentTimeMillis();
+
+        LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
+                "Total records picked from credential_transaction table for processing is " + credentialEntities.size() + " (" + (endTime - startTime) + "ms)");
+       
+        return ((credentialEntities != null && credentialEntities.size() > 0) ? credentialEntities : new ArrayList<>());
 	}
 
 	public List<CredentialEntity> getCredentialsForReprocess(String batchId) {
