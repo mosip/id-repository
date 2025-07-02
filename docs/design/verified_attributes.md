@@ -32,3 +32,48 @@ metadata schema.
 	b. Update request to update user attribute but does not contain any verification metadata for the same user attribute.
 
 		* If the saved identity object already contains verification metadata for the input user attribute, then remove all the verification metadata mapped to input user attribute.
+
+
+## Sample request showcasing the verified attributes in the add/update identity request
+
+   ```
+   {
+    "id": "mosip.id.create",
+    "version": "v1",
+    "rquesttime": "2025-07-01T17:01:23.202Z",
+    "request": {
+        "identity": {
+            "IDSchemaVersion": 0.1,
+            "fullName": [
+                {
+                    "language": "eng",
+                    "value": "qwerty"
+                }
+            ]
+        },
+        "registrationId": "278474680010922202404180640",
+        "uin": "3867315603"
+        "verifiedAttributes": [
+            {
+                "trustFramework": "eidas",
+                "verificationProcess": "online_video",
+                "claims": [
+                    "fullName"
+                ],
+                "metadata": {
+                    "trust_framework": "eidas",
+                    "time": "2025-06-29T06:03:22.339Z",
+                    "assurance_level": "Gold",
+                    "verification_process": "online_video"
+                }
+            }
+        ]
+    },
+    "errors": []
+   }
+   ```
+
+1. Fields inside the `verifiedAttributes->metadata` is configurable based on the schema defined in this property `mosip.idrepo.verified-attributes.schema-url`
+2. `claims` defined inside the `verifiedAttributes` should match the field Ids in the `ID schema`. This validation can be part of the schema defined in `mosip.idrepo.verified-attributes.schema-url`. But default it is not added as its country specific requirement.
+3. verifiedAttributes will shared with IDA only its part of the datashare policy under shareable KYC attributes.
+
