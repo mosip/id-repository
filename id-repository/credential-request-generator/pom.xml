@@ -125,6 +125,10 @@
 			<artifactId>kernel-dataaccess-hibernate</artifactId>
 			<version>${kernel.dataaccess.hibernate.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+		</dependency>
 <!--		<dependency>-->
 <!--			<groupId>io.mosip.kernel</groupId>-->
 <!--			<artifactId>kernel-auth-adapter</artifactId>-->
