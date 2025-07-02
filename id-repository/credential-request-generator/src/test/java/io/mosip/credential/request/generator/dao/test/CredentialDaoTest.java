@@ -7,6 +7,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.credential.request.generator.dao.EncryptedCredentialDao;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,17 +26,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.WebApplicationContext;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import io.mosip.credential.request.generator.dao.CredentialDao;
 
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
-import io.mosip.credential.request.generator.service.impl.CredentialRequestServiceImpl;
-import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
-import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.util.EnvUtil;
-import io.mosip.kernel.core.http.ResponseWrapper;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest @Import(EnvUtil.class)
@@ -46,6 +41,9 @@ public class CredentialDaoTest {
 
 	@InjectMocks
 	private CredentialDao credentialDao;
+
+	@Mock
+	private EncryptedCredentialDao encryptedCredentialDao;
 	
 	@Before
 	public void setUp() {
@@ -85,15 +83,15 @@ public class CredentialDaoTest {
 	}
 	@Test
 	public void testGetCredentials(){
-		List<CredentialEntity> credentialList=new ArrayList<CredentialEntity>();
+		List<CredentialEntity> credentialList = new ArrayList<>();
 		CredentialEntity credentialEntity = new CredentialEntity();
 		credentialEntity.setRequestId("1234");
 		credentialEntity.setRequest("test");
 		credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 		credentialList.add(credentialEntity);
-		Page<CredentialEntity> page = new PageImpl<>(credentialList);
-		Mockito.when(crdentialRepo.findCredentialByStatusCode(Mockito.any(), Mockito.any())).thenReturn(page);
+		Mockito.when(encryptedCredentialDao.getCredentialByStatus(Mockito.anyString(), Mockito.anyInt()))
+				.thenReturn(credentialList);
 		credentialDao.getCredentials("1234");
 	}
 	
