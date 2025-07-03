@@ -17,7 +17,7 @@
   ```
     $ ./restart.sh
    ```
-### Install Keycloak
+### Install Keycloak client
   ```
     cd deploy/keycloak
     $ ./keycloak_init.sh
