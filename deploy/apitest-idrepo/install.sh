@@ -98,7 +98,7 @@ function installing_apitestrig() {
  fi
 
   echo Installing idrepo apitestrig
-  helm -n $NS install idrepo-apitestrig1 mosip/apitestrig \
+  helm -n $NS install idrepo-apitestrig mosip/apitestrig \
   --set crontime="0 $time * * *" \
   -f values.yaml  \
   --version $CHART_VERSION \
