@@ -3,5 +3,5 @@ modules:
     enabled: true
     image:
       repository: mosipqa/apitest-idrepo
-      tag: develop
+      tag: 1.2.2.x
       pullPolicy: Always
