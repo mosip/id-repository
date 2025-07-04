@@ -15,6 +15,7 @@ import io.mosip.testrig.apirig.utils.SkipTestCaseHandler;
 public class IdRepoUtil extends AdminTestUtil {
 
 	private static final Logger logger = Logger.getLogger(IdRepoUtil.class);
+	public static String genRidExt = "23456" + generateRandomNumberString(10);
 	
 	public static void setLogLevel() {
 		if (IdRepoConfigManager.IsDebugEnabled())
@@ -78,6 +79,17 @@ public class IdRepoUtil extends AdminTestUtil {
 		DBManager.executeDBQueries(IdRepoConfigManager.getIdRepoDbUrl(), IdRepoConfigManager.getIdRepoDbUser(),
 				IdRepoConfigManager.getPMSDbPass(), "idrepo",
 				getGlobalResourcePath() + "/" + "config/idrepoCertDataDeleteQueries.txt");
+	}
+	
+	public static String inputStringKeyWordHandeler(String jsonString, String testCaseName) {
+		if (jsonString == null) {
+			logger.info(" Request Json String is :" + jsonString);
+			return jsonString;
+		}
+		
+		if (jsonString.contains("$RIDEXT$"))
+			jsonString = replaceKeywordWithValue(jsonString, "$RIDEXT$", genRidExt);
+		return jsonString;
 	}
 	
 }

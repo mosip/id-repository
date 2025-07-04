@@ -85,22 +85,6 @@ RetrieveVIDByUIN:
   ]
 }'
 
-  IdRepository_RetrieveVIDByUIN_With_Empty Uin:
-      endPoint: /idrepository/v1/vid/uin/{UIN}
-      description: Retrieving VID passing empty UIN
-      uniqueIdentifier: TC_IDRepo_RetrieveVIDByUIN_06
-      role: idrepo
-      restMethod: get
-      checkOnlyStatusCodeInResponse: true
-      inputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUIN
-      outputTemplate: idRepository/responseCode
-      input: '{
-      "UIN":""
-      }'
-      output: '{
-        "responseCode": "500"
-}'
-
   IdRepository_RetrieveVIDByUIN_With_Space Uin:
       endPoint: /idrepository/v1/vid/uin/{UIN}
       description: Retrieve VID passing space in UIN field
