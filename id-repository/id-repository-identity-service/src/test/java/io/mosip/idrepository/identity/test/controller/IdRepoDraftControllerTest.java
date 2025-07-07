@@ -81,8 +81,7 @@ public class IdRepoDraftControllerTest {
 
 	@Test
 	public void testCreateDraft() throws IdRepoAppException {
-		ReflectionTestUtils.setField(controller, "ridPattern", "\\d*");
-		controller.compilePattern();
+		controller.setRidPattern("\\d*");
 		IdResponseDTO responseDTO = new IdResponseDTO();
 		when(draftService.createDraft(any(), any())).thenReturn(responseDTO);
 		ResponseEntity<IdResponseDTO> createDraftResponse = controller.createDraft("", null);
@@ -92,15 +91,14 @@ public class IdRepoDraftControllerTest {
 
 	@Test
 	public void testCreateDraftException() throws IdRepoAppException {
-		ReflectionTestUtils.setField(controller, "ridPattern", "\\d*");
-		controller.compilePattern();
+		controller.setRidPattern("\\d*");
 		when(draftService.createDraft(any(), any()))
 				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
 		try {
-			controller.createDraft("12345", null);
+			controller.createDraft("abc", null);
 		} catch (IdRepoAppException e) {
-			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
-			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
+			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+			String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id");
 		}
 	}
 

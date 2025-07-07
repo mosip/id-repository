@@ -94,9 +94,9 @@ public class IdRepoDraftController {
 
 	private Pattern ridCompiledPattern;
 
-	@PostConstruct
-	public void compilePattern() {
-		ridCompiledPattern = Pattern.compile(ridPattern);
+	public void setRidPattern(String ridPattern) {
+		this.ridPattern = ridPattern;
+		this.ridCompiledPattern = Pattern.compile(ridPattern);
 	}
 	
 	@InitBinder
