@@ -9,6 +9,7 @@ import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,10 +17,11 @@ public class CredentialIssueRequestHelper {
     private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialIssueRequestHelper.class);
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private io.mosip.credential.request.generator.util.CryptoUtil cryptoUtil;
 
     @Autowired
-    private io.mosip.credential.request.generator.util.CryptoUtil cryptoUtil;
+    @Qualifier("credentialObjectMapper")
+    private ObjectMapper objectMapper;
 
     public CredentialServiceRequestDto getCredentialServiceRequestDto(CredentialIssueRequestDto credentialIssueRequestDto, String requestId) throws JsonProcessingException {
         CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
