@@ -1,9 +1,8 @@
 package io.mosip.idrepository.identity.controller;
 
-import io.mosip.idrepository.core.constant.AuditEvents;
-import io.mosip.idrepository.core.constant.AuditModules;
-import io.mosip.idrepository.core.constant.IdRepoConstants;
-import io.mosip.idrepository.core.constant.IdType;
+import colesico.framework.ioc.listener.PostConstruct;
+import io.mosip.idrepository.core.constant.*;
+import org.springframework.beans.factory.annotation.Value;
 import io.mosip.idrepository.core.dto.DraftResponseDto;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
@@ -51,6 +50,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FACE_EXTRACTION_FORMAT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FINGER_EXTRACTION_FORMAT;
@@ -84,6 +84,16 @@ public class IdRepoDraftController {
 
 	@Autowired
 	private Environment environment;
+
+	@Value("${mosip.idrepo.rid.validation.pattern:\\d*}")
+	private String ridPattern;
+
+	private Pattern ridCompiledPattern;
+
+	@PostConstruct
+	public void compilePattern() {
+		ridCompiledPattern = Pattern.compile(ridPattern);
+	}
 	
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
@@ -104,6 +114,12 @@ public class IdRepoDraftController {
 			@RequestParam(name = UIN, required = false) @Nullable String uin)
 			throws IdRepoAppException {
 		try {
+			if (!ridCompiledPattern.matcher(registrationId).matches()) {
+				throw new IdRepoAppException(
+						IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id")
+				);
+			}
 			return new ResponseEntity<>(draftService.createDraft(registrationId, uin), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_DRAFT_REQUEST_RESPONSE,
