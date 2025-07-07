@@ -86,7 +86,6 @@ public class MosipTestRunner {
 			Thread trigger = new Thread(healthcheck);
 			trigger.start();
 			
-			IdRepoUtil.dbCleanUp();
 			KeycloakUserManager.removeUser();
 			KeycloakUserManager.createUsers();
 			KeycloakUserManager.closeKeycloakInstance();
