@@ -2,7 +2,7 @@ apiVersion: v2
 name: identity
 description: A Helm chart for MOSIP IDRepo Identity Service
 type: application
-version: 12.2.1-develop
+version: 12.2.2
 appVersion: ""
 dependencies:
   - name: common
