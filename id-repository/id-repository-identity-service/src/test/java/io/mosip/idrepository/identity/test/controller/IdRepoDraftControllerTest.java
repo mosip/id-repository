@@ -97,7 +97,7 @@ public class IdRepoDraftControllerTest {
 		when(draftService.createDraft(any(), any()))
 				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
 		try {
-			controller.createDraft("", null);
+			controller.createDraft("12345", null);
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
