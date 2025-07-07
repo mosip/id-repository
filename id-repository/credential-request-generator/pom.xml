@@ -7,11 +7,11 @@
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.3.0-SNAPSHOT</version>
+		<version>1.3.0-RC</version>
 	</parent>
 
 	<artifactId>credential-request-generator</artifactId>
-	<version>1.3.0-SNAPSHOT</version>
+	<version>1.3.0-RC</version>
 	<name>credential-request-generator</name>
 
 	<properties>
@@ -33,6 +33,8 @@
 		<kernel.websubclient.version>1.3.0-SNAPSHOT</kernel.websubclient.version>
 		<spring.batch.integration.version>4.0.1.RELEASE</spring.batch.integration.version>
 		<springdoc.version>1.5.10</springdoc.version>
+		<maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
+		<nexus.staging.maven.plugin.version>1.6.14</nexus.staging.maven.plugin.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -247,6 +249,45 @@
                                        <!-- <format>json</format> -->
                                </configuration>
                        </plugin>
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>${maven.deploy.plugin.version}</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+				<executions>
+					<execution>
+						<id>default-deploy</id>
+						<phase>none</phase>
+						<goals>
+							<goal>deploy</goal>
+						</goals>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>${nexus.staging.maven.plugin.version}</version>
+				<extensions>true</extensions>
+				<executions>
+					<execution>
+						<id>default-deploy</id>
+						<phase>none</phase>
+						<goals>
+							<goal>deploy</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<serverId>ossrh</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>false</autoReleaseAfterClose>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 </project>
