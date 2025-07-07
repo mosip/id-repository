@@ -13,6 +13,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.controller.IdRepoDraftController;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.http.ResponseWrapper;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -80,6 +81,8 @@ public class IdRepoDraftControllerTest {
 
 	@Test
 	public void testCreateDraft() throws IdRepoAppException {
+		ReflectionTestUtils.setField(controller, "ridPattern", "\\d*");
+		controller.compilePattern();
 		IdResponseDTO responseDTO = new IdResponseDTO();
 		when(draftService.createDraft(any(), any())).thenReturn(responseDTO);
 		ResponseEntity<IdResponseDTO> createDraftResponse = controller.createDraft("", null);
@@ -89,6 +92,8 @@ public class IdRepoDraftControllerTest {
 
 	@Test
 	public void testCreateDraftException() throws IdRepoAppException {
+		ReflectionTestUtils.setField(controller, "ridPattern", "\\d*");
+		controller.compilePattern();
 		when(draftService.createDraft(any(), any()))
 				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
 		try {
