@@ -91,13 +91,13 @@ public class CredentialRequestGeneratorConfig extends HibernateDaoConfig {
 				.map(RestServicesConstants::getServiceName).collect(Collectors.toList()));
 	}
 
-	@Bean(name = "credentialObjectMapper")
-	public ObjectMapper credentialObjectMapper() {
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.registerModule(new JavaTimeModule());
-		mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		return mapper;
-	}
+//	@Bean(name = "credentialObjectMapper")
+//	public ObjectMapper credentialObjectMapper() {
+//		ObjectMapper mapper = new ObjectMapper();
+//		mapper.registerModule(new JavaTimeModule());
+//		mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+//		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+//		return mapper;
+//	}
 
 }
