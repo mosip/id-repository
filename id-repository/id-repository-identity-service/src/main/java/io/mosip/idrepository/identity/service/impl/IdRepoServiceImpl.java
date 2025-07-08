@@ -310,7 +310,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	private void addBiometricDocuments(String uinHash, String uinRefId, List<UinBiometric> bioList, DocumentsDTO doc,
 			JsonNode docType, boolean isDraft, int index) throws IdRepoAppException {
 		byte[] data = null;
-		String fileRefId = UUID.randomUUID().toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
+		String fileRefId = getFileRefId(docType);
 
 		data = CryptoUtil.decodeURLSafeBase64(doc.getValue());
 		//print doc.getvalue
@@ -349,10 +349,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 */
 	private void addDemographicDocuments(String uinHash, String uinRefId, List<UinDocument> docList, DocumentsDTO doc,
 			JsonNode docType, boolean isDraft) throws IdRepoAppException {
-		String fileRefId = UUIDUtils
-				.getUUID(UUIDUtils.NAMESPACE_OID,
-						docType.get(FILE_NAME_ATTRIBUTE).asText() + SPLITTER + DateUtils.getUTCCurrentDateTime())
-				.toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
+		String fileRefId = getFileRefId(docType);
 
 		byte[] data = CryptoUtil.decodeURLSafeBase64(doc.getValue());
 		objectStoreHelper.putDemographicObject(uinHash, fileRefId, data);
@@ -992,5 +989,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						"Record successfully saved in db");
 			}
 		}
+	}
+	private String getFileRefId(JsonNode docType) {
+		return UUID.randomUUID().toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
 	}
 }
