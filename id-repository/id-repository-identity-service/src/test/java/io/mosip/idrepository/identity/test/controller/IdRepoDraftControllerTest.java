@@ -100,7 +100,10 @@ public class IdRepoDraftControllerTest {
 			controller.createDraft("abc", null);
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
-			String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id");
+			assertEquals(
+					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id"),
+					e.getErrorText()
+			);
 		}
 	}
 
