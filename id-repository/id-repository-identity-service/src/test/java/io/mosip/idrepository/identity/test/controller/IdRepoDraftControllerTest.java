@@ -81,7 +81,8 @@ public class IdRepoDraftControllerTest {
 
 	@Test
 	public void testCreateDraft() throws IdRepoAppException {
-		controller.setRidPattern("\\d*");
+		ReflectionTestUtils.setField(controller, "ridPattern", "\\d*");
+		controller.compilePattern();
 		IdResponseDTO responseDTO = new IdResponseDTO();
 		when(draftService.createDraft(any(), any())).thenReturn(responseDTO);
 		ResponseEntity<IdResponseDTO> createDraftResponse = controller.createDraft("", null);
@@ -91,7 +92,8 @@ public class IdRepoDraftControllerTest {
 
 	@Test
 	public void testCreateDraftException() throws IdRepoAppException {
-		controller.setRidPattern("\\d*");
+		ReflectionTestUtils.setField(controller, "ridPattern", "\\d*");
+		controller.compilePattern();
 		when(draftService.createDraft(any(), any()))
 				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
 		try {
