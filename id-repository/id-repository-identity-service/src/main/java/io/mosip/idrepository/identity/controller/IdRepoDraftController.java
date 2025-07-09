@@ -97,6 +97,7 @@ public class IdRepoDraftController {
 	@PostConstruct
 	public void compilePattern() {
 		ridCompiledPattern = Pattern.compile(ridPattern);
+		mosipLogger.info("RID pattern compiled successfully with pattern: {}", ridPattern);
 	}
 	
 	@InitBinder
