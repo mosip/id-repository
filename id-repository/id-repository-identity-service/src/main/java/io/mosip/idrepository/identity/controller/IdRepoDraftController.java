@@ -96,6 +96,7 @@ public class IdRepoDraftController {
 
 	@PostConstruct
 	public void compilePattern() {
+		mosipLogger.info("Inside PostConstruct for RID pattern compilation");
 		ridCompiledPattern = Pattern.compile(ridPattern);
 		mosipLogger.info("RID pattern compiled successfully with pattern: {}", ridPattern);
 	}
@@ -118,6 +119,7 @@ public class IdRepoDraftController {
 	public ResponseEntity<IdResponseDTO> createDraft(@PathVariable String registrationId,
 			@RequestParam(name = UIN, required = false) @Nullable String uin)
 			throws IdRepoAppException {
+		mosipLogger.info("RID Compiled Pattern: {}", ridCompiledPattern);
 		try {
 			if (!ridCompiledPattern.matcher(registrationId).matches()) {
 				throw new IdRepoAppException(
