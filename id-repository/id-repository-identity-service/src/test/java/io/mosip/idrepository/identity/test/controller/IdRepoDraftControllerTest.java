@@ -92,14 +92,12 @@ public class IdRepoDraftControllerTest {
 	@Test
 	public void testCreateDraftException() throws IdRepoAppException {
 		ReflectionTestUtils.setField(controller, "ridPattern", "\\d*");
-		when(draftService.createDraft(any(), any()))
-				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
+		when(draftService.createDraft(any(), any())).thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
 		try {
 			controller.createDraft("abc", null);
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
-			assertEquals(
-					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id"),
+			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id"),
 					e.getErrorText()
 			);
 		}

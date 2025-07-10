@@ -112,7 +112,6 @@ public class IdRepoDraftController {
 	public ResponseEntity<IdResponseDTO> createDraft(@PathVariable String registrationId,
 			@RequestParam(name = UIN, required = false) @Nullable String uin)
 			throws IdRepoAppException {
-		mosipLogger.info("RID Compiled Pattern: {}", ridCompiledPattern);
 		try {
 			if (ridCompiledPattern == null)
 				ridCompiledPattern = Pattern.compile(ridPattern);
