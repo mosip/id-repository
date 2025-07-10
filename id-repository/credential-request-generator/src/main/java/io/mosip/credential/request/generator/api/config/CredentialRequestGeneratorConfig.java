@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springdoc.core.models.GroupedOpenApi;
@@ -86,10 +85,5 @@ public class CredentialRequestGeneratorConfig extends HibernateDaoConfig {
 	public RestRequestBuilder getRestRequestBuilder() {
 		return new RestRequestBuilder(Arrays.stream(RestServicesConstants.values())
 				.map(RestServicesConstants::getServiceName).collect(Collectors.toList()));
-	}
-
-	@Bean(name = "credentialObjectMapper")
-	public ObjectMapper credentialObjectMapper() {
-		return new ObjectMapper();
 	}
 }
