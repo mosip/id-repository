@@ -94,18 +94,9 @@ public class IdRepoDraftController {
 
 	private Pattern ridCompiledPattern;
 
-	@PostConstruct
-	public void compilePattern() {
-		mosipLogger.info("Inside PostConstruct for RID pattern compilation");
-		ridCompiledPattern = Pattern.compile(ridPattern);
-		mosipLogger.info("RID pattern compiled successfully with pattern: {}", ridPattern);
-	}
-	
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
-		mosipLogger.info("before initBinder");
 		binder.addValidators(validator);
-		mosipLogger.info("after initBinder");
 	}
 	
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostdraftcreateregistrationId())")
@@ -123,6 +114,9 @@ public class IdRepoDraftController {
 			throws IdRepoAppException {
 		mosipLogger.info("RID Compiled Pattern: {}", ridCompiledPattern);
 		try {
+			if (ridCompiledPattern == null)
+				ridCompiledPattern = Pattern.compile(ridPattern);
+
 			if (!ridCompiledPattern.matcher(registrationId).matches()) {
 				throw new IdRepoAppException(
 						IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
