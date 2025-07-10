@@ -13,6 +13,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.controller.IdRepoDraftController;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.http.ResponseWrapper;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -80,6 +81,7 @@ public class IdRepoDraftControllerTest {
 
 	@Test
 	public void testCreateDraft() throws IdRepoAppException {
+		ReflectionTestUtils.setField(controller, "ridPattern", "\\d*");
 		IdResponseDTO responseDTO = new IdResponseDTO();
 		when(draftService.createDraft(any(), any())).thenReturn(responseDTO);
 		ResponseEntity<IdResponseDTO> createDraftResponse = controller.createDraft("", null);
@@ -89,13 +91,15 @@ public class IdRepoDraftControllerTest {
 
 	@Test
 	public void testCreateDraftException() throws IdRepoAppException {
-		when(draftService.createDraft(any(), any()))
-				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
+		ReflectionTestUtils.setField(controller, "ridPattern", "\\d*");
+		when(draftService.createDraft(any(), any())).thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
 		try {
-			controller.createDraft("", null);
+			controller.createDraft("abc", null);
 		} catch (IdRepoAppException e) {
-			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
-			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
+			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id"),
+					e.getErrorText()
+			);
 		}
 	}
 
