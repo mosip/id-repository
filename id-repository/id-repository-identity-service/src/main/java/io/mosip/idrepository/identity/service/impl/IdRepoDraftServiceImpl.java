@@ -293,6 +293,12 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 
 	private void updateDocuments(RequestDTO requestDTO, UinDraft draftToUpdate) throws IdRepoAppException {
 		if (Objects.nonNull(requestDTO.getDocuments()) && !requestDTO.getDocuments().isEmpty()) {
+			try {
+				mosipLogger.info("Received requestDTO for document update: {}",
+						new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(requestDTO));
+			} catch (JsonProcessingException e) {
+				mosipLogger.warn("Failed to log requestDTO: {}", e.getMessage());
+			}
 			Uin uinObject = mapper.convertValue(draftToUpdate, Uin.class);
 			String uinHashWithSalt = draftToUpdate.getUinHash().split(SPLITTER)[1];
 			super.updateDocuments(uinHashWithSalt, uinObject, requestDTO, true);
