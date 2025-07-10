@@ -5,13 +5,13 @@
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.3.0-SNAPSHOT</version>
+		<version>1.3.0-RC</version>
 	</parent>
 
 	<artifactId>id-repository-core</artifactId>
 	<name>idrepo-core</name>
 	<description>ID-Repository core</description>
-	<version>1.3.0-SNAPSHOT</version>
+	<version>1.3.0-RC</version>
 
 	<properties>
 		<kernel-websubclient-api.version>1.3.0-SNAPSHOT</kernel-websubclient-api.version>
