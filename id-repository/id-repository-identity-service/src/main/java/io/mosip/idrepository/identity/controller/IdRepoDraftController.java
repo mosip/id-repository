@@ -103,7 +103,9 @@ public class IdRepoDraftController {
 	
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
+		mosipLogger.info("before initBinder");
 		binder.addValidators(validator);
+		mosipLogger.info("after initBinder");
 	}
 	
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostdraftcreateregistrationId())")
