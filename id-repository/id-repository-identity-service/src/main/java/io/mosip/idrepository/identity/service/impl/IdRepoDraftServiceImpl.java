@@ -27,17 +27,8 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_E
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -288,6 +279,23 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 
 	private void updateDocuments(RequestDTO requestDTO, UinDraft draftToUpdate) throws IdRepoAppException {
 		if (Objects.nonNull(requestDTO.getDocuments()) && !requestDTO.getDocuments().isEmpty()) {
+			try {
+				mosipLogger.info("Received requestDTO for document update: {}",
+						new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(requestDTO));
+
+				// Decode and log document value (for debugging purpose ONLY)
+				for (DocumentsDTO doc : requestDTO.getDocuments()) {
+					String base64Value = doc.getValue();
+					byte[] decodedBytes = Base64.getDecoder().decode(base64Value);
+					String decodedContent = new String(decodedBytes);
+					mosipLogger.info("Decoded Document Value for category {}: \n{}", doc.getCategory(), decodedContent);
+				}
+
+			} catch (JsonProcessingException e) {
+				mosipLogger.warn("Failed to log requestDTO: {}", e.getMessage());
+			} catch (Exception e) {
+				mosipLogger.error("Error decoding document value: {}", e.getMessage());
+			}
 			Uin uinObject = mapper.convertValue(draftToUpdate, Uin.class);
 			String uinHashWithSalt = draftToUpdate.getUinHash().split(SPLITTER)[1];
 			super.updateDocuments(uinHashWithSalt, uinObject, requestDTO, true);
