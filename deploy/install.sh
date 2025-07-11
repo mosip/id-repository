@@ -7,7 +7,7 @@ if [ $# -ge 1 ] ; then
 fi
 
 NS=idrepo
-CHART_VERSION=12.2.2
+CHART_VERSION=12.2.2-develop
 
 echo Create $NS namespace
 kubectl create ns $NS
