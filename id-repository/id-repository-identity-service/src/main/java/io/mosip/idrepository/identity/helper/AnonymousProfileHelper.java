@@ -6,6 +6,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -100,7 +101,7 @@ public class AnonymousProfileHelper {
 				if (Objects.nonNull(newCbeff))
 					newDocList = List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
 							.getIdentity().getIndividualBiometrics().getValue(), newCbeff));
-				String id = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, regId).toString();
+				String id = UUID.randomUUID().toString();
 				IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
 						.setFilterLanguage(EnvUtil.getAnonymousProfileFilterLanguage())
 						.setProcessName(Objects.isNull(oldUinData) ? "New" : "Update").setOldIdentity(oldUinData)
