@@ -6,7 +6,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
+import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -241,7 +241,8 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 				} else {
 					validateDocuments(requestMap, errors);
 					validateVerifiedAttributes(requestMap,errors);
-					requestMap.keySet().parallelStream().filter(key -> !key.contentEquals(ROOT_PATH)).forEach(requestMap::remove);
+					Set<String> keysToRemove =  requestMap.keySet().stream().filter(key -> !key.contentEquals(ROOT_PATH)).collect(Collectors.toSet());
+					keysToRemove.forEach(requestMap::remove);
 					if (!errors.hasErrors()) {
 						String schemaVersion;
 						if (requestMap.get(ROOT_PATH) != null) {

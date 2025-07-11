@@ -332,10 +332,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	private void addBiometricDocuments(String uinHash, String uinRefId, List<UinBiometric> bioList, DocumentsDTO doc,
 									   JsonNode docType, boolean isDraft, int index) throws IdRepoAppException {
 		byte[] data = null;
-		String fileRefId = UUIDUtils
-				.getUUID(UUIDUtils.NAMESPACE_OID,
-						docType.get(FILE_NAME_ATTRIBUTE).asText() + SPLITTER + DateUtils.getUTCCurrentDateTime())
-				.toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
+		String fileRefId = UUID.randomUUID().toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
 
 		data = CryptoUtil.decodeURLSafeBase64(doc.getValue());
 		try {
