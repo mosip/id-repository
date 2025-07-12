@@ -60,7 +60,8 @@
     "claims": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "enum" : ["fullName", "phone", "email", "dateOfBirth"]
       }
     },
     "metadata": {

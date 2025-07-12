@@ -199,6 +199,12 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	@Value("#{${mosip.idrepo.update-identity.fields-to-replace}}")
 	private List<String> fieldsToReplaceOnUpdate;
 
+	private static final Configuration configuration;
+	static {
+		configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
+				.mappingProvider(new JacksonMappingProvider()).build();
+	}
+
 	/**
 	 * Adds the identity to DB.
 	 *
@@ -213,11 +219,15 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		String uinRefId = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils.getUTCCurrentDateTime())
 				.toString();
 		Map<String,Object> identityObject = mapper.convertValue(request.getIdentity(), Map.class);
-		//Setting the verified attributes as received
-		identityObject.put(VERIFIED_ATTRIBUTES, request.getVerifiedAttributes());
+
 		//Validate handles, check for duplicates and update final selected handles
 		Map<String, List<HandleDto>> selectedUniqueHandlesMap = checkAndGetHandles(request, null, null, CREATE);
 		idRepoServiceHelper.updateSelectedHandleFields(identityObject,selectedUniqueHandlesMap);
+
+		//Setting the verified attributes as received
+		DocumentContext dbData = JsonPath.using(configuration).parse(new HashMap<>());
+		updateVerifiedAttributes(request, JsonPath.using(configuration).parse(identityObject), dbData);
+		identityObject.put(VERIFIED_ATTRIBUTES, dbData.read("$." + VERIFIED_ATTRIBUTES));
 
 		byte[] identityInfo = convertToBytes(identityObject);
 		String uinHash = getUinHash(uin);
@@ -414,10 +424,10 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	 * (non-Javadoc)
 	 *
 	 * @see io.mosip.kernel.core.idrepo.spi.IdRepoService#updateIdentity(java.lang.
-	 * Object, java.lang.String)
+	 * Object, java.lang.String, boolean)
 	 */
 	@Override
-	public Uin updateIdentity(IdRequestDTO<T> request, String uin, boolean isV2Flag) throws IdRepoAppException {
+	public Uin updateIdentity(IdRequestDTO<T> request, String uin) throws IdRepoAppException {
 		anonymousProfileHelper.setRegId(request.getRegistrationId());
 		String uinHash = getUinHash(uin);
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
@@ -441,12 +451,10 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 				inputSelectedHandlesMap = getNewAndDeleteExistingHandles(request, uinObject, UPDATE);
 				Map<String,Object> identityObjectMap = mapper.convertValue(request.getIdentity(),Map.class);
 				idRepoServiceHelper.updateSelectedHandleFields(identityObjectMap,inputSelectedHandlesMap);
-				Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
-						.mappingProvider(new JacksonMappingProvider()).build();
 				DocumentContext inputData = JsonPath.using(configuration).parse(identityObjectMap);
 				DocumentContext dbData = JsonPath.using(configuration).parse(new String(uinObject.getUinData()));
 				anonymousProfileHelper.setOldUinData(dbData.jsonString().getBytes());
-				updateVerifiedAttributes(request, inputData, dbData, isV2Flag);
+				updateVerifiedAttributes(request, inputData, dbData);
 				replaceConfiguredFieldsOnUpdate(inputData, dbData);
 				//TODO We should remove below json comparison as update operation always replaces the existing with new value
 				JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(),
@@ -543,24 +551,26 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	 * @param requestDTO
 	 * @param inputData
 	 * @param dbData
-	 * @param isV2Version
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected void updateVerifiedAttributes(
 			IdRequestDTO<T> requestDTO,
 			DocumentContext inputData,
-			DocumentContext dbData,
-			boolean isV2Version) {
+			DocumentContext dbData) {
 
 		//Fetch the existing verifiedAttributes from DB record
 		List savedVerifiedAttributes = (List) getSavedVerifiedAttributes(dbData);
-		boolean isV1Saved = savedVerifiedAttributes != null && savedVerifiedAttributes.stream().allMatch(item -> item instanceof String);
+		boolean isV1Saved = savedVerifiedAttributes != null && isListInstanceOfString(savedVerifiedAttributes);
 		List<VerificationMetadata> dbVerifiedAttributes = isV1Saved ? convertToV2VerifiedAttributes(savedVerifiedAttributes) :
 				savedVerifiedAttributes != null ? mapper.convertValue(savedVerifiedAttributes,
 						mapper.getTypeFactory().constructCollectionType(List.class, VerificationMetadata.class)) : null;
 
-		List<VerificationMetadata> inputVerifiedAttributes = isV2Version ? (List<VerificationMetadata>) requestDTO.getVerifiedAttributes() :
-				convertToV2VerifiedAttributes((List<String>) requestDTO.getVerifiedAttributes());
+		List<VerificationMetadata> inputVerifiedAttributes = requestDTO.getVerifiedAttributes() == null? null :
+				( isListInstanceOfString((List<T>) requestDTO.getVerifiedAttributes()) ?
+						convertToV2VerifiedAttributes((List<String>) requestDTO.getVerifiedAttributes()) :
+						(List<VerificationMetadata>) requestDTO.getVerifiedAttributes() );
+
+		removeClaimsWithNoValue(inputData, dbData, inputVerifiedAttributes);
 
 		//No verification metadata exists in DB, update with the input
 		if(dbVerifiedAttributes == null || dbVerifiedAttributes.isEmpty()) {
@@ -603,6 +613,34 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		inputData.put("$", VERIFIED_ATTRIBUTES, inputVerifiedAttributes);
 	}
 
+	private void removeClaimsWithNoValue(DocumentContext inputData,
+												 DocumentContext dbData,
+												 List<VerificationMetadata> inputVerifiedAttributes) {
+		if(inputVerifiedAttributes == null || inputVerifiedAttributes.isEmpty())
+			return;
+
+		//check if the verified claim has value in the identity object
+		for(VerificationMetadata verificationMetadata : inputVerifiedAttributes) {
+			List<String> onlyClaimsWithValue = verificationMetadata.getClaims()
+					.stream()
+					.filter( it -> doesFieldExists(it, inputData) ||  doesFieldExists(it, dbData))
+					.collect(Collectors.toList());
+			//Verified claims will be considered only if value is present for the verified claim
+			// either in input or in the saved identity object
+			verificationMetadata.setClaims(onlyClaimsWithValue);
+		}
+
+		//Remove it the claims list is empty
+		inputVerifiedAttributes.removeIf(it -> it.getClaims().isEmpty());
+	}
+
+	private boolean doesFieldExists(String fieldId, DocumentContext inputData) {
+		try {
+			return inputData.read("$." + fieldId) != null;
+		} catch (PathNotFoundException ignored) {} //ignore
+		return false;
+	}
+
 	private Object getSavedVerifiedAttributes(DocumentContext dbData) {
 		try {
 			return dbData.read(VERIFIED_ATTRIBUTES_PATH);
@@ -629,6 +667,10 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		List<VerificationMetadata> verificationMetadataList = new ArrayList<>();
 		verificationMetadataList.add(verificationMetadata);
 		return verificationMetadataList;
+	}
+
+	private boolean isListInstanceOfString(List<T> verifiedAttributes) {
+		return verifiedAttributes.stream().allMatch(item -> item instanceof String);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -1067,8 +1109,8 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			credStatus.setRequestId(rId);
 			credRequestRepo.save(credStatus);
 		}
-		mosipLogger.info("DEBUG--- exitingEntries: {}, Entry created with operationStatus : {} enableConventionBasedId : {} requestId : {} uinHash : {}",
-				credStatusList.size(), triggerAction, enableConventionBasedId, requestId, uinHash);
+		mosipLogger.debug("issueCredential exitingEntries: {}, Entry created with operationStatus : {} enableConventionBasedId : {} requestId : {}",
+				credStatusList.size(), triggerAction, enableConventionBasedId, requestId);
 	}
 
 	/**
@@ -1218,7 +1260,7 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			//Update the handle status as 'DELETE' in the "mosip_idrepo.handle" table
 			//and will delete the record after getting an acknowledgement from IDA.
 			handleRepo.updateStatusByHandleHash(handleHash, DELETE.name());
-			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getNewAndDeleteExistingHandles", "Record successfully updated as delete in db",handleHash);
+			mosipLogger.debug("getNewAndDeleteExistingHandles - {} Record successfully updated as delete in db", handleHash);
 		}
 		return inputSelectedHandlesMap;
 	}

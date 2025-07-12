@@ -277,7 +277,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			DocumentContext dbData = JsonPath.using(configuration).parse(new String(draftToUpdate.getUinData()));
 			JsonPath uinJsonPath = JsonPath.compile(uinPath.replace(ROOT_PATH, "$"));
 			inputData.set(uinJsonPath, dbData.read(uinJsonPath));
-			super.updateVerifiedAttributes(request, inputData, dbData,false);
+			super.updateVerifiedAttributes(request, inputData, dbData);
 			JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(),
 					JSONCompareMode.LENIENT);
 
@@ -384,7 +384,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				String uin = decryptUin(draft.getUin(), draft.getUinHash());
 				final Uin uinObject;
 				if (uinRepo.existsByUinHash(draft.getUinHash())) {
-					uinObject = super.updateIdentity(idRequest, uin,false);
+					uinObject = super.updateIdentity(idRequest, uin);
 				} else {
 					draftVid = vidDraftHelper.generateDraftVid(uin);
 					uinObject = super.addIdentity(idRequest, uin);
