@@ -389,7 +389,7 @@ public class IdRepoControllerTest {
 	public void updateIdentity() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
 		IdResponseDTO response = new IdResponseDTO();
 		when(validator.validateUin(anyString())).thenReturn(true);
-		when(idRepoService.updateIdentity(any(), any(),anyBoolean())).thenReturn(response);
+		when(idRepoService.updateIdentity(any(), any())).thenReturn(response);
 		RequestWrapper<IdRequestDTO<List<String>>> request = new RequestWrapper<>();
 		request.setId("mosip.id.update");
 		IdRequestDTO requestDTO = new IdRequestDTO();
@@ -408,7 +408,7 @@ public class IdRepoControllerTest {
 	@Test
 	public void updateIdentityInvalidId() throws Throwable {
 		try {
-			when(idRepoService.updateIdentity(any(), any(),anyBoolean()))
+			when(idRepoService.updateIdentity(any(), any()))
 					.thenThrow(new IdRepoAppException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
 							String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), UIN)));
 			RequestWrapper<IdRequestDTO<List<String>>> request = new RequestWrapper<>();
@@ -435,7 +435,7 @@ public class IdRepoControllerTest {
 		try {
 			IdResponseDTO response = new IdResponseDTO();
 			when(validator.validateUin(anyString())).thenReturn(true);
-			when(idRepoService.updateIdentity(any(), any(),anyBoolean())).thenReturn(response);
+			when(idRepoService.updateIdentity(any(), any())).thenReturn(response);
 			RequestWrapper<IdRequestDTO<List<String>>> request = new RequestWrapper<>();
 			request.setId("mosip.id.update");
 			IdRequestDTO requestDTO = new IdRequestDTO();
@@ -467,7 +467,7 @@ public class IdRepoControllerTest {
 				Object.class);
 		requestDTO.setIdentity(identity);
 		request.setRequest(requestDTO);
-		when(idRepoService.updateIdentity(any(), any(),anyBoolean()))
+		when(idRepoService.updateIdentity(any(), any()))
 				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
 		ResponseEntity<IdResponseDTO<List<String>>> responseEntity = controller.updateIdentity(request,
 				new BeanPropertyBindingResult(request, "IdRequestDTO"));
