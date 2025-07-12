@@ -489,7 +489,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	 * Object, java.lang.String)
 	 */
 	@Override
-	public IdResponseDTO<T> updateIdentity(IdRequestDTO<T> request, String uin,boolean isV2Flag) throws IdRepoAppException {
+	public IdResponseDTO<T> updateIdentity(IdRequestDTO<T> request, String uin) throws IdRepoAppException {
 		String regId = request.getRegistrationId();
 		try {
 			String uinHash = retrieveUinHash(uin);
@@ -501,7 +501,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 							RECORD_EXISTS.getErrorMessage());
 					throw new IdRepoAppException(RECORD_EXISTS);
 				}
-				Uin uinObject=service.updateIdentity(request, uin,isV2Flag);
+				Uin uinObject=service.updateIdentity(request, uin);
 				mosipLogger.info("Uin updated");
 				String activeStatus = env.getProperty(ACTIVE_STATUS);
 				if (activeStatus != null && activeStatus.equalsIgnoreCase(uinObject.getStatusCode())) {
@@ -703,8 +703,6 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 			ObjectNode identityObject = convertToObject(uin.getUinData(), ObjectNode.class);
 
 			Object verifiedAttributes = mapper.convertValue(identityObject.get(VERIFIED_ATTRIBUTES), Object.class);
-			mosipLogger.info("DEBUG--- verifiedAttributes as fetched from the getidentity -> {} , verifiedAttributes -> {}", identityObject,
-					verifiedAttributes);
 			if(!Objects.isNull(verifiedAttributes)) {
 				boolean isV1Version = ((List) verifiedAttributes).stream().allMatch(item -> item instanceof String);
 				if(isV1Version) {
@@ -717,6 +715,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 				else {
 					response.setVerifiedAttributes(verifiedAttributes);
 				}
+				mosipLogger.debug("verifiedAttributes fetched from the getIdentity. isV1Version -> {}", isV1Version);
 			}
 			identityObject.remove(VERIFIED_ATTRIBUTES);
 			response.setIdentity(identityObject);
@@ -786,7 +785,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	}
 
 	private void sendGenericIdentityEvents(String uin, boolean isUpdate, String registrationId) {
-		mosipLogger.info("Inside sendGenericIdentityEvents");
+		mosipLogger.debug("Inside sendGenericIdentityEvents");
 		EventType eventType = isUpdate ? IDAEventType.IDENTITY_UPDATED : IDAEventType.IDENTITY_CREATED;
 		Map<String, Object> eventData = new HashMap<>();
 		eventData.put(ID_HASH, getIdHash(uin));
