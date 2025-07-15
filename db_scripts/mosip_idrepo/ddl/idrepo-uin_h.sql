@@ -38,6 +38,9 @@ CREATE TABLE idrepo.uin_h(
 	CONSTRAINT uk_uinh UNIQUE (uin,eff_dtimes)
 
 );
+--index section starts----
+CREATE INDEX IF NOT EXISTS idx_uin_h_reg_id ON idrepo.uin_h USING btree(reg_id);
+--index section ends------
 -- ddl-end --
 COMMENT ON TABLE idrepo.uin_h IS 'UIN History : This to track changes to base table record whenever there is an INSERT/UPDATE/DELETE ( soft delete ), Effective DateTimestamp is used for identifying latest or point in time information. Refer base table description for details.   ';
 -- ddl-end --
