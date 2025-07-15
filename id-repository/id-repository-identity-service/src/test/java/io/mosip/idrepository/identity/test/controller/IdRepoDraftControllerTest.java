@@ -37,6 +37,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -82,6 +83,7 @@ public class IdRepoDraftControllerTest {
 	@Test
 	public void testCreateDraft() throws IdRepoAppException {
 		ReflectionTestUtils.setField(controller, "ridPattern", "\\d*");
+		controller.compilePattern();
 		IdResponseDTO responseDTO = new IdResponseDTO();
 		when(draftService.createDraft(any(), any())).thenReturn(responseDTO);
 		ResponseEntity<IdResponseDTO> createDraftResponse = controller.createDraft("", null);
@@ -90,17 +92,17 @@ public class IdRepoDraftControllerTest {
 	}
 
 	@Test
-	public void testCreateDraftException() throws IdRepoAppException {
+	public void testCreateDraft_InvalidRegistrationIdPattern() {
 		ReflectionTestUtils.setField(controller, "ridPattern", "\\d*");
-		when(draftService.createDraft(any(), any())).thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
-		try {
+		controller.compilePattern();
+		IdRepoAppException ex = assertThrows(IdRepoAppException.class, () -> {
 			controller.createDraft("abc", null);
-		} catch (IdRepoAppException e) {
-			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
-			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id"),
-					e.getErrorText()
-			);
-		}
+		});
+		assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), ex.getErrorCode());
+		assertEquals(
+				String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id"),
+				ex.getErrorText()
+		);
 	}
 
 	@Test

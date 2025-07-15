@@ -1,6 +1,6 @@
 package io.mosip.idrepository.identity.controller;
 
-import colesico.framework.ioc.listener.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import io.mosip.idrepository.core.constant.AuditEvents;
 import io.mosip.idrepository.core.constant.AuditModules;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
@@ -94,6 +94,11 @@ public class IdRepoDraftController {
 
 	private Pattern ridCompiledPattern;
 
+	@PostConstruct
+	public void compilePattern() {
+		ridCompiledPattern = Pattern.compile(ridPattern);
+	}
+
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
 		binder.addValidators(validator);
@@ -113,9 +118,6 @@ public class IdRepoDraftController {
 			@RequestParam(name = UIN, required = false) @Nullable String uin)
 			throws IdRepoAppException {
 		try {
-			if (ridCompiledPattern == null)
-				ridCompiledPattern = Pattern.compile(ridPattern);
-
 			if (!ridCompiledPattern.matcher(registrationId).matches()) {
 				throw new IdRepoAppException(
 						IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
