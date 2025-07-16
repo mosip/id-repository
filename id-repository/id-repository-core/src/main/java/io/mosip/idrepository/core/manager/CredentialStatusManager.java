@@ -151,7 +151,7 @@ public class CredentialStatusManager {
 				credentialRequestStatus.getIndividualIdHash(), dummyPartner.getDummyOLVPartnerId());
 		if (idWithDummyPartnerOptional.isPresent() && !idWithDummyPartnerOptional.get().getStatus()
 				.contentEquals(CredentialRequestStatusLifecycle.FAILED.toString())) {
-			mosipLogger.info("DEBUG---  deleteDummyPartner IndividualIdHash {}", idWithDummyPartnerOptional.get().getIndividualIdHash());
+			mosipLogger.debug("deleteDummyPartner {}", dummyPartner.getDummyOLVPartnerId());
 			statusRepo.delete(idWithDummyPartnerOptional.get());
 		}
 	}
@@ -168,8 +168,8 @@ public class CredentialStatusManager {
 			Optional<CredentialRequestStatus> credStatusOptional = statusRepo
 					.findByIndividualIdHashAndPartnerId(idHash, request.getRequest().getIssuer());
 
-			mosipLogger.info("DEBUG--- credentialRequestResponseConsumer issuer: {}, credStatusOptional : {} additionalData : {}",
-					request.getRequest().getIssuer(), credStatusOptional.isPresent(), additionalData);
+			mosipLogger.debug("credentialRequestResponseConsumer issuer: {}, credStatusOptional : {}",
+					request.getRequest().getIssuer(), credStatusOptional.isPresent());
 
 			CredentialRequestStatus credStatus = credStatusOptional.orElse(null);
 			if (credStatus == null) {

@@ -318,8 +318,6 @@ public class CredentialProvider {
 				Object object = identity.get(attribute);
 				Object formattedObject = object;
 
-				LOGGER.info("DEBUG--- attribute : {}", attribute);
-
 				if (object != null) {
 					if (userReqMaskingAttributes != null && !userReqMaskingAttributes.isEmpty()
 							&& userReqMaskingAttributes.contains(attribute)) {
@@ -363,7 +361,7 @@ public class CredentialProvider {
 					if(!metadataNotAvailable) {
 						attributesMap.put(key, idResponseDto.getResponse().getVerifiedAttributes());
 					}
-					LOGGER.info("DEBUG--- attribute equals(VERIFIED_ATTRIBUTES) : {} metadataNotAvailable: {}", attribute, metadataNotAvailable);
+					LOGGER.debug("VERIFIED_ATTRIBUTES allowed, metadataNotAvailable: {}", metadataNotAvailable);
 				}
 			}
 
@@ -402,8 +400,8 @@ public class CredentialProvider {
 				}
 
 			}
-			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"DEBUG--- end preparing demo and bio sharable attributes : " + attributesMap);
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Final sharable attributes : " + attributesMap.keySet());
 			return attributesMap;
 		} catch (Exception e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
@@ -683,7 +681,6 @@ public class CredentialProvider {
 		}
 		Map<String, Map<String, String>> languageMap = new HashMap<>();
 		JSONArray array = new JSONArray();
-		LOGGER.debug("name attributes:  ");
 		for (String identityAttr : identityAttributesList) {
 			Object identityObj = identity.get(identityAttr);
 			if (identityObj != null && identityObj instanceof List) {

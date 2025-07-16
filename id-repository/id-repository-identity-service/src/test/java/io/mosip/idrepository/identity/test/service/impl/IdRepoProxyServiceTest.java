@@ -238,7 +238,7 @@ public class IdRepoProxyServiceTest {
 						.getBytes(), Object.class);
 		uinObj.setUinData(mapper.writeValueAsBytes(obj2));
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
-		when(service.updateIdentity(any(), anyString(),anyBoolean())).thenReturn(uinObj);
+		when(service.updateIdentity(any(), anyString())).thenReturn(uinObj);
 		when(service.retrieveIdentity(anyString(), any(), any(), any())).thenReturn(uinObj);
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
@@ -253,7 +253,7 @@ public class IdRepoProxyServiceTest {
 		req.setRegistrationId("27841457360002620190730095024");
 		req.setIdentity(obj);
 		request.setRequest(req);
-		proxyService.updateIdentity(request.getRequest(), "1234",false).getResponse().equals(obj2);
+		proxyService.updateIdentity(request.getRequest(), "1234").getResponse().equals(obj2);
 
 		ArgumentCaptor<EventModel> argumentCaptor = ArgumentCaptor.forClass(EventModel.class);
 		verify(publisherCient, times(1)).publishUpdate(anyString(), argumentCaptor.capture(), anyString(), 
