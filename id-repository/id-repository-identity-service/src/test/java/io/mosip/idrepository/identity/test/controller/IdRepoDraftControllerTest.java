@@ -13,6 +13,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.controller.IdRepoDraftController;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.http.ResponseWrapper;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +37,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -80,6 +82,8 @@ public class IdRepoDraftControllerTest {
 
 	@Test
 	public void testCreateDraft() throws IdRepoAppException {
+		ReflectionTestUtils.setField(controller, "ridPattern", "\\d*");
+		controller.compilePattern();
 		IdResponseDTO responseDTO = new IdResponseDTO();
 		when(draftService.createDraft(any(), any())).thenReturn(responseDTO);
 		ResponseEntity<IdResponseDTO> createDraftResponse = controller.createDraft("", null);
@@ -88,15 +92,17 @@ public class IdRepoDraftControllerTest {
 	}
 
 	@Test
-	public void testCreateDraftException() throws IdRepoAppException {
-		when(draftService.createDraft(any(), any()))
-				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
-		try {
-			controller.createDraft("", null);
-		} catch (IdRepoAppException e) {
-			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
-			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
-		}
+	public void testCreateDraft_InvalidRegistrationIdPattern() {
+		ReflectionTestUtils.setField(controller, "ridPattern", "\\d*");
+		controller.compilePattern();
+		IdRepoAppException ex = assertThrows(IdRepoAppException.class, () -> {
+			controller.createDraft("abc", null);
+		});
+		assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), ex.getErrorCode());
+		assertEquals(
+				String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id"),
+				ex.getErrorText()
+		);
 	}
 
 	@Test
