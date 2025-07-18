@@ -6,20 +6,13 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.logger.spi.Logger;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
-import org.apache.commons.math3.stat.descriptive.moment.SemiVariance.Direction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -34,6 +27,9 @@ public class CredentialDao {
 
     @Value("${credential.request.reprocess.statuscodes}")
     private String reprocessStatusCodes;
+
+    @Autowired
+    private EncryptedCredentialDao encryptedCredentialDao;
     
 
     private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialDao.class);
@@ -53,13 +49,8 @@ public class CredentialDao {
     public List<CredentialEntity> getCredentials(String batchId) {
         LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
                 "Inside getCredentials() method");
-        Sort sort = Sort.by(Sort.Direction.ASC, "createDateTime");
-        Pageable pageable=PageRequest.of(0, pageSize,sort);
-        List<CredentialEntity> credentialEntities=new ArrayList<>();
-        Page<CredentialEntity> pagecredentialEntities= crdentialRepo.findCredentialByStatusCode(status, pageable);
-		if (pagecredentialEntities != null && pagecredentialEntities.getContent() != null && !pagecredentialEntities.getContent().isEmpty()) {
-	      credentialEntities=	pagecredentialEntities.getContent();
-		}
+        //Obtain the encrypted credentials for performance improvement
+        List<CredentialEntity> credentialEntities = encryptedCredentialDao.getCredentialByStatus(status, pageSize);
 
         LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
                 "Total records picked from credential_transaction table for processing is " + credentialEntities.size());
@@ -70,14 +61,9 @@ public class CredentialDao {
     public List<CredentialEntity> getCredentialsForReprocess(String batchId) {
         LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
                 "Inside getCredentialsForReprocess() method");
-        Sort sort = Sort.by(Sort.Direction.ASC, "updateDateTime");
-        Pageable pageable=PageRequest.of(0, pageSize,sort);
+
         String[] statusCodes = reprocessStatusCodes.split(",");
-        List<CredentialEntity> credentialEntities=new ArrayList<>();
-        Page<CredentialEntity> pagecredentialEntities=  crdentialRepo.findCredentialByStatusCodes(statusCodes, pageable);
-        if (pagecredentialEntities != null && pagecredentialEntities.getContent() != null && !pagecredentialEntities.getContent().isEmpty()) {
-  	      credentialEntities=	pagecredentialEntities.getContent();
-  		}
+        List<CredentialEntity> credentialEntities=  crdentialRepo.findCredentialByStatusCodes(statusCodes, pageSize);
 
         LOGGER.info(IdRepoSecurityManager.getUser(), "CredentialDao", "batchid = " + batchId,
                 "Total records picked from credential_transaction table for reprocessing is " + credentialEntities.size());
