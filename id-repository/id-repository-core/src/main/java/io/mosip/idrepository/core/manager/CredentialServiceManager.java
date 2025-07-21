@@ -187,8 +187,13 @@ public class CredentialServiceManager {
 				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_VIDS_BY_UIN, null,
 						VidsInfosDTO.class);
 				restRequest.setUri(restRequest.getUri().replace("{uin}", uin));
-				VidsInfosDTO response = restHelper.requestSync(restRequest);
-				vidInfoDtos = response.getResponse();
+				try {
+					VidsInfosDTO response = restHelper.requestSync(restRequest);
+					vidInfoDtos = response.getResponse();
+				} catch (Exception e) {
+					mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
+							"Error retrieving vids for uin " + e.getMessage(), e);
+				}
 			}
 
 			String uinHash = getUinHash(uin);
