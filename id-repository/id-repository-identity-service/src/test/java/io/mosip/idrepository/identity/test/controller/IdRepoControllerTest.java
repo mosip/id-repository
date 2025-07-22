@@ -1,9 +1,12 @@
 package io.mosip.idrepository.identity.test.controller;
 
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.*;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doNothing;
 
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
