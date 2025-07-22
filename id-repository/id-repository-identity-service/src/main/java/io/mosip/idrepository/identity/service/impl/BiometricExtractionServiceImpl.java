@@ -5,11 +5,13 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.EXTRACTION_FOR
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -55,7 +57,10 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	/** The cbeff util. */
 	@Autowired
 	private CbeffUtil cbeffUtil;
-	
+
+	@Value("#{${mosip.idrepo.identity.extract.sdk.flags:null}}")
+	private Map<String, String> flags;
+
 	/**
 	 * Extract template.
 	 *
@@ -87,7 +92,12 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 			
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
 					"EXTRATCING BIOMETRICS FOR FORMAT: " + extractionType +" : "+ extractionFormat);
-			Map<String, String> formatFlag = Map.of(getFormatFlag(extractionType), extractionFormat);
+
+			Map<String, String> formatFlag = new HashMap<>();
+			formatFlag.put(getFormatFlag(extractionType), extractionFormat);
+			if(flags != null)
+				formatFlag.putAll(flags);
+
 			List<BIR> extractedBiometrics = extractBiometricTemplate(formatFlag, birsForModality);
 			if (!extractedBiometrics.isEmpty()) {
 				objectStoreHelper.putBiometricObject(uinHash, extractionFileName, cbeffUtil.createXML(extractedBiometrics));
