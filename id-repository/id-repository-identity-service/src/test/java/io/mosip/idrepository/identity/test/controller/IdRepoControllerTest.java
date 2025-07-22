@@ -1,11 +1,9 @@
 package io.mosip.idrepository.identity.test.controller;
 
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -375,6 +373,65 @@ public class IdRepoControllerTest {
 		assertEquals(response, responseEntity.getBody());
 		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 	}
+
+	IdRequestByIdDTO getIdRequestByIdDTO() {
+		IdRequestByIdDTO idRequestByIdDTO = new IdRequestByIdDTO();
+		idRequestByIdDTO.setId("123456789012");
+		idRequestByIdDTO.setType("all");
+		idRequestByIdDTO.setIdType("UIN");
+		idRequestByIdDTO.setFingerExtractionFormat("ISO");
+		idRequestByIdDTO.setIrisExtractionFormat("ISO");
+		idRequestByIdDTO.setFaceExtractionFormat("JPEG");
+		return idRequestByIdDTO;
+	}
+
+	@Test
+	public void testRetrieveIdentityByIdV2_success() throws Exception {
+		IdRequestByIdDTO request = getIdRequestByIdDTO();
+		when(validator.validateType("all")).thenReturn("all");
+		when(validator.validateIdType("UIN")).thenReturn(IdType.UIN);
+		doNothing().when(validator).validateTypeAndExtractionFormats(eq("all"), anyMap());
+
+		IdResponseDTO<?> mockResponse = new IdResponseDTO<>();
+		mockResponse.setId("123456789012");
+
+		when(idRepoService.retrieveIdentity(
+				eq("123456789012"), eq(IdType.UIN), eq("all"), anyMap()
+		)).thenReturn(mockResponse);
+
+		ResponseEntity<IdResponseDTO<?>> response = controller.retrieveIdentityByIdV2(request);
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals("123456789012", response.getBody().getId());
+	}
+
+	@Test
+	public void testRetrieveIdentityByIdV2_WithoutExtractionFormat() throws Exception {
+		when(validator.validateType("all")).thenReturn("all");
+		when(validator.validateIdType("UIN")).thenReturn(IdType.UIN);
+		doNothing().when(validator).validateTypeAndExtractionFormats(eq("all"), anyMap());
+
+		IdResponseDTO<?> mockResponse = new IdResponseDTO<>();
+		mockResponse.setId("123456789012");
+
+		when(idRepoService.retrieveIdentity(
+				eq("123456789012"), eq(IdType.UIN), eq("all"), anyMap()
+		)).thenReturn(mockResponse);
+
+		ResponseEntity<IdResponseDTO<?>> response = controller.retrieveIdentityByIdV2(new IdRequestByIdDTO("123456789012", "all", "UIN", null, null, null));
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals("123456789012", response.getBody().getId());
+	}
+
+	@Test(expected = IdRepoAppException.class)
+	public void testRetrieveIdentityByIdV2_exception() throws Exception {
+		IdRequestByIdDTO request = getIdRequestByIdDTO();
+		when(validator.validateType(any())).thenThrow(new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+				String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "type")));
+		when(validator.validateIdType("UIN")).thenReturn(IdType.UIN);
+		doNothing().when(validator).validateTypeAndExtractionFormats(eq("all"), anyMap());
+		controller.retrieveIdentityByIdV2(request);
+	}
+
 	/**
 	 * Test init binder.
 	 */
