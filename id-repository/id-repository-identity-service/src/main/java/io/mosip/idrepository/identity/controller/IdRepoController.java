@@ -334,6 +334,32 @@ public class IdRepoController {
 		}
 	}
 
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostidvididv2())")
+	@PostMapping(path = "/idvid/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "retrieveIdentityByIdV2", description = "retrieveIdentityByIdV2", tags = { "id-repo-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true)))})
+
+	public ResponseEntity<IdResponseDTO<?>> retrieveIdentityByIdV2(@Validated @RequestBody IdRequestByIdDTO request) throws IdRepoAppException {
+
+		try {
+			return new ResponseEntity<>(getIdentity(request.getId(), request.getType(),
+					request.getIdType(), request.getFingerExtractionFormat(),
+					request.getIrisExtractionFormat(), request.getFaceExtractionFormat()), HttpStatus.OK);
+		} catch (IdRepoAppException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE,
+					AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, request.getId(), IdType.UIN, e);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY, e.getMessage());
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		} finally {
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, request.getId(),
+					IdType.UIN, "Retrieve Identity requested");
+		}
+	}
+
 	/**
 	 * This operation will update an existing ID record in the ID repository for a
 	 * given UIN.
