@@ -61,7 +61,7 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 * @return the response
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	RESPONSE updateIdentity(REQUEST request, String uin,boolean isV2Flag) throws IdRepoAppException;
+	RESPONSE updateIdentity(REQUEST request, String uin) throws IdRepoAppException;
 
 	/**
 	 * This function takes an individualId and an IdType as input and returns the
