@@ -309,15 +309,15 @@ public class IdRepoController {
 		}
 	}
 
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostidvidid())")
-	@PostMapping(path = "/idvid/", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "retrieveIdentityById", description = "retrieveIdentityById", tags = { "id-repo-controller" })
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostidvididv2())")
+	@PostMapping(path = "/idvid/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "retrieveIdentityByIdV2", description = "retrieveIdentityByIdV2", tags = { "id-repo-controller" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK"),
 			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
-	public ResponseEntity<IdResponseDTO<?>> retrieveIdentityById(@Validated @RequestBody RequestWrapper<IdRequestByIdDTO> request,
+	public ResponseEntity<IdResponseDTO<?>> retrieveIdentityByIdV2(@Validated @RequestBody RequestWrapper<IdRequestByIdDTO> request,
 														   @ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
 			return new ResponseEntity<>(getIdentity(request.getRequest().getId(), request.getRequest().getType(),
@@ -334,16 +334,16 @@ public class IdRepoController {
 		}
 	}
 
-	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostidvididv2())")
-	@PostMapping(path = "/idvid/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "retrieveIdentityByIdV2", description = "retrieveIdentityByIdV2", tags = { "id-repo-controller" })
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostidvidid())")
+	@PostMapping(path = "/idvid/", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "retrieveIdentityById", description = "retrieveIdentityById", tags = { "id-repo-controller" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK"),
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true)))})
 
-	public ResponseEntity<IdResponseDTO> retrieveIdentityByIdV2(@Validated @RequestBody IdRequestByIdDTO requestById,
+	public ResponseEntity<IdResponseDTO> retrieveIdentityById(@Validated @RequestBody IdRequestByIdDTO requestById,
 															  @ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
 			String type = validator.validateType(requestById.getType());
