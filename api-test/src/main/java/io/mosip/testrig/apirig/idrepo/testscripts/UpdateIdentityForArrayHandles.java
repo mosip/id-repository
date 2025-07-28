@@ -131,12 +131,12 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 				} catch (Exception e) {
 					logger.error(e.getMessage());
 				}
-			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber, testCaseName);
+			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber);
 			
 			
 		}
 		if (inputJson.contains("$EMAILVALUE$")) {
-			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", email, testCaseName);
+			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", email);
 
 		}
 		
@@ -155,7 +155,7 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 
 		if (inputJson.contains("$FUNCTIONALID$")) {
 			inputJson = replaceKeywordWithValue(inputJson, "$FUNCTIONALID$", generateRandomNumberString(2)
-					+ Calendar.getInstance().getTimeInMillis(), testCaseName);
+					+ Calendar.getInstance().getTimeInMillis());
 		}
 
 		JSONObject jsonString = new JSONObject(inputJson);

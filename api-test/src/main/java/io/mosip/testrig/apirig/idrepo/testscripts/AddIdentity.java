@@ -139,7 +139,7 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 		//For_Array-Handle Related Cases
 		if (inputJson.contains("$FUNCTIONALID$")) {
 			inputJson = replaceKeywordWithValue(inputJson, "$FUNCTIONALID$", generateRandomNumberString(2)
-					+ Calendar.getInstance().getTimeInMillis(), testCaseName);
+					+ Calendar.getInstance().getTimeInMillis());
 		}
 		
 		JSONObject jsonString = new JSONObject(inputJson);
@@ -147,13 +147,13 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 			inputJson = IdRepoArrayHandle.replaceArrayHandleValues(inputJson,testCaseName);
 		}
 		if (testCaseName.contains("_withInvalidEmail") || testCaseName.contains("_invalid_Email")) {
-			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "@#$DDFFGG", testCaseName);
+			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "@#$DDFFGG");
 		}
 		if (testCaseName.contains("Empty_Email")) {
-			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", " ", testCaseName);
+			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", " ");
 		}
 		if (testCaseName.contains("SpaceVal_Email")) {
-			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "  ", testCaseName);
+			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "  ");
 		}
 
 		inputJson = inputJson.replace("$UIN$", uin);
@@ -167,8 +167,8 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 				} catch (Exception e) {
 					logger.error(e.getMessage());
 				}
-			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber, testCaseName);
-			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", email, testCaseName);
+			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber);
+			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", email);
 			
 		}
 

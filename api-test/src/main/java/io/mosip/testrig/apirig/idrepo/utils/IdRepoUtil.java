@@ -31,6 +31,7 @@ public class IdRepoUtil extends AdminTestUtil {
 	
 	public static String isTestCaseValidForExecution(TestCaseDTO testCaseDTO) {
 		String testCaseName = testCaseDTO.getTestCaseName();
+		currentTestCaseName = testCaseName;
 
 		int indexof = testCaseName.indexOf("_");
 		String modifiedTestCaseName = testCaseName.substring(indexof + 1);
@@ -98,7 +99,7 @@ public class IdRepoUtil extends AdminTestUtil {
 		}
 		
 		if (jsonString.contains("$RIDEXT$"))
-			jsonString = replaceKeywordWithValue(jsonString, "$RIDEXT$", genRidExt, testCaseName);
+			jsonString = replaceKeywordWithValue(jsonString, "$RIDEXT$", genRidExt);
 		return jsonString;
 	}
 	
