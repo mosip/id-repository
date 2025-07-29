@@ -6,6 +6,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doNothing;
 
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -271,7 +272,7 @@ public class IdRepoControllerTest {
 	 * @throws IdRepoAppException the id repo app exception
 	 */
 	@Test
-	public void testRetrieveIdentityById() throws Throwable {
+	public void testRetrieveIdentityByIdV2() throws Throwable {
 		RequestWrapper<IdRequestByIdDTO> idDTORequestWrapper=new RequestWrapper<>();
 		IdResponseDTO response = new IdResponseDTO();
 		when(validator.validateUin(anyString())).thenReturn(true);
@@ -279,7 +280,112 @@ public class IdRepoControllerTest {
 		String idRequest = "{\"id\":\"1234\",\"type\":\"demo\",\"idType\":null,\"fingerExtractionFormat\":\"fingerFormat\",\"irisExtractionFormat\":\"irisFormat\",\"faceExtractionFormat\":\"faceFormat\"}";
 		IdRequestByIdDTO request = mapper.readValue(idRequest, IdRequestByIdDTO.class);
 		idDTORequestWrapper.setRequest(request);
-		ResponseEntity<IdResponseDTO<?>> responseEntity = controller.retrieveIdentityById(idDTORequestWrapper, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
+		ResponseEntity<IdResponseDTO<?>> responseEntity = controller.retrieveIdentityByIdV2(idDTORequestWrapper, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
+
+		assertEquals(response, responseEntity.getBody());
+		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+	}
+
+	@Test
+	public void testRetrieveIdentityByIdV2All() throws Throwable {
+		IdResponseDTO response = new IdResponseDTO();
+		when(validator.validateUin(anyString())).thenReturn(true);
+		when(idRepoService.retrieveIdentity(any(), any(), any(), any())).thenReturn(response);
+
+		String idRequest = "{\"id\":\"1234\",\"type\":\"demo,all\",\"idType\":null,\"fingerExtractionFormat\":\"fingerFormat\",\"irisExtractionFormat\":\"irisFormat\",\"faceExtractionFormat\":\"faceFormat\"}";
+		IdRequestByIdDTO request = mapper.readValue(idRequest, IdRequestByIdDTO.class);
+		RequestWrapper<IdRequestByIdDTO> idDTORequestWrapper=new RequestWrapper<>();
+		idDTORequestWrapper.setRequest(request);
+		ResponseEntity<IdResponseDTO<?>> responseEntity = controller.retrieveIdentityByIdV2(idDTORequestWrapper, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
+
+		assertEquals(response, responseEntity.getBody());
+		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+	}
+
+	@Test
+	public void testRetrieveIdentityByIdV2AllWithExtractionFormatsForVID() throws Throwable {
+		when(validator.validateUin(any())).thenReturn(false);
+		when(validator.validateVid(any())).thenReturn(true);
+		IdResponseDTO response = new IdResponseDTO();
+		when(idRepoService.retrieveIdentity(any(), any(), any(), any())).thenReturn(response);
+		String idRequest = "{\"id\":\"1234\",\"type\":\"demo,all\",\"idType\":null,\"fingerExtractionFormat\":\"fingerFormat\",\"irisExtractionFormat\":\"irisFormat\",\"faceExtractionFormat\":\"faceFormat\"}";
+		IdRequestByIdDTO request = mapper.readValue(idRequest, IdRequestByIdDTO.class);
+		RequestWrapper<IdRequestByIdDTO> idDTORequestWrapper=new RequestWrapper<>();
+		idDTORequestWrapper.setRequest(request);
+		ResponseEntity<IdResponseDTO<?>> responseEntity = controller.retrieveIdentityByIdV2(idDTORequestWrapper, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
+		assertEquals(response, responseEntity.getBody());
+		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+	}
+
+	/**
+	 * Test retrieve identity.
+	 *
+	 * @throws IdRepoAppException the id repo app exception
+	 */
+	@Test
+	public void testRetrieveIdentityByIdV2InvalidUin() throws Throwable {
+		try {
+			when(idRepoService.retrieveIdentity(any(), any(), any(), any()))
+					.thenThrow(new IdRepoAppException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+							String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "id")));
+			String idRequest = "{\"id\":\"1234\",\"type\":\"demo\",\"idType\":null,\"fingerExtractionFormat\":null,\"irisExtractionFormat\":null,\"faceExtractionFormat\":null}";
+			IdRequestByIdDTO request = mapper.readValue(idRequest, IdRequestByIdDTO.class);
+			RequestWrapper<IdRequestByIdDTO> idDTORequestWrapper=new RequestWrapper<>();
+			idDTORequestWrapper.setRequest(request);
+			controller.retrieveIdentityByIdV2(idDTORequestWrapper, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "id"),
+					e.getErrorText());
+		}
+	}
+
+	@Test(expected = IdRepoAppException.class)
+	public void testRetrieveIdentityByIdV2RequestParameterMap() throws Throwable {
+		when(validator.validateType(any())).thenThrow(new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+				String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "type")));
+		String idRequest = "{\"id\":\"1234\",\"type\":\"dem, abc\",\"idType\":\"UIN\",\"fingerExtractionFormat\":null,\"irisExtractionFormat\":null,\"faceExtractionFormat\":null}";
+		IdRequestByIdDTO request = mapper.readValue(idRequest, IdRequestByIdDTO.class);
+		RequestWrapper<IdRequestByIdDTO> idDTORequestWrapper=new RequestWrapper<>();
+		idDTORequestWrapper.setRequest(request);
+		controller.retrieveIdentityByIdV2(idDTORequestWrapper, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
+	}
+
+	@Test
+	public void testRetrieveIdentityByV2HandleMultipleValidType() throws Throwable {
+		IdResponseDTO response = new IdResponseDTO();
+		when(idRepoService.retrieveIdentity(any(), any(), any(), any())).thenReturn(response);
+		String idRequest = "{\"id\":\"123456789@phone\",\"type\":\"demo, all,bio\",\"idType\":\"handle\",\"fingerExtractionFormat\":null,\"irisExtractionFormat\":null,\"faceExtractionFormat\":null}";
+		IdRequestByIdDTO request = mapper.readValue(idRequest, IdRequestByIdDTO.class);
+		RequestWrapper<IdRequestByIdDTO> idDTORequestWrapper=new RequestWrapper<>();
+		idDTORequestWrapper.setRequest(request);
+		ResponseEntity<IdResponseDTO<?>> responseEntity = controller.retrieveIdentityByIdV2(idDTORequestWrapper, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
+		assertEquals(response, responseEntity.getBody());
+		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+	}
+
+	@Test
+	public void testRetrieveIdentityByV2HandleWithSlash() throws Throwable {
+		IdResponseDTO response = new IdResponseDTO();
+		when(idRepoService.retrieveIdentity(any(), any(), any(), any())).thenReturn(response);
+		String idRequest = "{\"id\":\"111111/01/1@nrcid\",\"type\":\"all\",\"idType\":\"handle\",\"fingerExtractionFormat\":null,\"irisExtractionFormat\":null,\"faceExtractionFormat\":null}";
+		IdRequestByIdDTO request = mapper.readValue(idRequest, IdRequestByIdDTO.class);
+		RequestWrapper<IdRequestByIdDTO> idDTORequestWrapper=new RequestWrapper<>();
+		idDTORequestWrapper.setRequest(request);
+		ResponseEntity<IdResponseDTO<?>> responseEntity = controller.retrieveIdentityByIdV2(idDTORequestWrapper, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
+		assertEquals(response, responseEntity.getBody());
+		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+	}
+
+	@Test
+	public void testRetrieveIdentityById() throws Throwable {
+		IdResponseDTO response = new IdResponseDTO();
+		when(validator.validateUin(anyString())).thenReturn(true);
+		when(idRepoService.retrieveIdentity(any(), any(), any(), any())).thenReturn(response);
+		String idRequest = "{\"id\":\"1234\",\"type\":\"demo\",\"idType\":null,\"fingerExtractionFormat\":\"fingerFormat\",\"irisExtractionFormat\":\"irisFormat\",\"faceExtractionFormat\":\"faceFormat\"}";
+		IdRequestByIdDTO request = mapper.readValue(idRequest, IdRequestByIdDTO.class);
+
+		ResponseEntity<IdResponseDTO> responseEntity = controller.retrieveIdentityById(request, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
 
 		assertEquals(response, responseEntity.getBody());
 		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -293,9 +399,8 @@ public class IdRepoControllerTest {
 
 		String idRequest = "{\"id\":\"1234\",\"type\":\"demo,all\",\"idType\":null,\"fingerExtractionFormat\":\"fingerFormat\",\"irisExtractionFormat\":\"irisFormat\",\"faceExtractionFormat\":\"faceFormat\"}";
 		IdRequestByIdDTO request = mapper.readValue(idRequest, IdRequestByIdDTO.class);
-		RequestWrapper<IdRequestByIdDTO> idDTORequestWrapper=new RequestWrapper<>();
-		idDTORequestWrapper.setRequest(request);
-		ResponseEntity<IdResponseDTO<?>> responseEntity = controller.retrieveIdentityById(idDTORequestWrapper, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
+
+		ResponseEntity<IdResponseDTO> responseEntity = controller.retrieveIdentityById(request, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
 
 		assertEquals(response, responseEntity.getBody());
 		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -309,9 +414,8 @@ public class IdRepoControllerTest {
 		when(idRepoService.retrieveIdentity(any(), any(), any(), any())).thenReturn(response);
 		String idRequest = "{\"id\":\"1234\",\"type\":\"demo,all\",\"idType\":null,\"fingerExtractionFormat\":\"fingerFormat\",\"irisExtractionFormat\":\"irisFormat\",\"faceExtractionFormat\":\"faceFormat\"}";
 		IdRequestByIdDTO request = mapper.readValue(idRequest, IdRequestByIdDTO.class);
-		RequestWrapper<IdRequestByIdDTO> idDTORequestWrapper=new RequestWrapper<>();
-		idDTORequestWrapper.setRequest(request);
-		ResponseEntity<IdResponseDTO<?>> responseEntity = controller.retrieveIdentityById(idDTORequestWrapper, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
+
+		ResponseEntity<IdResponseDTO> responseEntity = controller.retrieveIdentityById(request, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
 		assertEquals(response, responseEntity.getBody());
 		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 	}
@@ -329,9 +433,8 @@ public class IdRepoControllerTest {
 							String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "id")));
 			String idRequest = "{\"id\":\"1234\",\"type\":\"demo\",\"idType\":null,\"fingerExtractionFormat\":null,\"irisExtractionFormat\":null,\"faceExtractionFormat\":null}";
 			IdRequestByIdDTO request = mapper.readValue(idRequest, IdRequestByIdDTO.class);
-			RequestWrapper<IdRequestByIdDTO> idDTORequestWrapper=new RequestWrapper<>();
-			idDTORequestWrapper.setRequest(request);
-			controller.retrieveIdentityById(idDTORequestWrapper, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
+
+			controller.retrieveIdentityById(request, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
 			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "id"),
@@ -345,36 +448,34 @@ public class IdRepoControllerTest {
 				String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "type")));
 		String idRequest = "{\"id\":\"1234\",\"type\":\"dem, abc\",\"idType\":\"UIN\",\"fingerExtractionFormat\":null,\"irisExtractionFormat\":null,\"faceExtractionFormat\":null}";
 		IdRequestByIdDTO request = mapper.readValue(idRequest, IdRequestByIdDTO.class);
-		RequestWrapper<IdRequestByIdDTO> idDTORequestWrapper=new RequestWrapper<>();
-		idDTORequestWrapper.setRequest(request);
-		controller.retrieveIdentityById(idDTORequestWrapper, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
+
+		controller.retrieveIdentityById(request, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
 	}
 
 	@Test
-	public void testRetrieveIdentityByHandleMultipleValidType() throws Throwable {
+	public void testRetrieveIdentityByIdHandleMultipleValidType() throws Throwable {
 		IdResponseDTO response = new IdResponseDTO();
 		when(idRepoService.retrieveIdentity(any(), any(), any(), any())).thenReturn(response);
 		String idRequest = "{\"id\":\"123456789@phone\",\"type\":\"demo, all,bio\",\"idType\":\"handle\",\"fingerExtractionFormat\":null,\"irisExtractionFormat\":null,\"faceExtractionFormat\":null}";
 		IdRequestByIdDTO request = mapper.readValue(idRequest, IdRequestByIdDTO.class);
-		RequestWrapper<IdRequestByIdDTO> idDTORequestWrapper=new RequestWrapper<>();
-		idDTORequestWrapper.setRequest(request);
-		ResponseEntity<IdResponseDTO<?>> responseEntity = controller.retrieveIdentityById(idDTORequestWrapper, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
+
+		ResponseEntity<IdResponseDTO> responseEntity = controller.retrieveIdentityById(request, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
 		assertEquals(response, responseEntity.getBody());
 		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 	}
 
 	@Test
-	public void testRetrieveIdentityByHandleWithSlash() throws Throwable {
+	public void testRetrieveIdentityByIdHandleWithSlash() throws Throwable {
 		IdResponseDTO response = new IdResponseDTO();
 		when(idRepoService.retrieveIdentity(any(), any(), any(), any())).thenReturn(response);
 		String idRequest = "{\"id\":\"111111/01/1@nrcid\",\"type\":\"all\",\"idType\":\"handle\",\"fingerExtractionFormat\":null,\"irisExtractionFormat\":null,\"faceExtractionFormat\":null}";
 		IdRequestByIdDTO request = mapper.readValue(idRequest, IdRequestByIdDTO.class);
-		RequestWrapper<IdRequestByIdDTO> idDTORequestWrapper=new RequestWrapper<>();
-		idDTORequestWrapper.setRequest(request);
-		ResponseEntity<IdResponseDTO<?>> responseEntity = controller.retrieveIdentityById(idDTORequestWrapper, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
+
+		ResponseEntity<IdResponseDTO> responseEntity = controller.retrieveIdentityById(request, new BeanPropertyBindingResult(request, "IdRequestByIdDTO"));
 		assertEquals(response, responseEntity.getBody());
 		assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 	}
+
 	/**
 	 * Test init binder.
 	 */

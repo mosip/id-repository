@@ -23,7 +23,9 @@ public class AuthorizedRolesDto {
 	
     	private List<String> getidvidid;
 
-	private List<String> postidvidid;	
+	private List<String> postidvidid;
+
+	private List<String> postidvididv2;
 	
 	private List<String> patchidrepo; 
 	
