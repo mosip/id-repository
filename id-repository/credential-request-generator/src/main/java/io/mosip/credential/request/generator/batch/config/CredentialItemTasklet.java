@@ -51,7 +51,6 @@ public class CredentialItemTasklet implements Tasklet {
 	@Autowired
 	private ObjectMapper mapper;
 	
-	@Lazy
 	@Autowired
 	private RestUtil restUtil;
 	

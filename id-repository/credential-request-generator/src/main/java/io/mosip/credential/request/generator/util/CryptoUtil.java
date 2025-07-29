@@ -11,7 +11,6 @@ import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +26,6 @@ import java.util.Objects;
 @Component
 public class CryptoUtil {
 
-    @Lazy
     @Autowired
     private RestUtil restUtil;
 
