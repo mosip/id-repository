@@ -173,8 +173,8 @@ public class CredentialItemTasklet implements Tasklet {
 					credential.setStatusCode("FAILED");
 					credential.setStatusComment(trimMessage.trimExceptionMessage(errorMessage));
 					retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
-					credentialDao.save(credential);
 				}
+				credentialDao.save(credential);
 			})).get();
 		} catch (InterruptedException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
