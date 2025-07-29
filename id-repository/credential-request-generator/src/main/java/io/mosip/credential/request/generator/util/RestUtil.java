@@ -1,7 +1,9 @@
 package io.mosip.credential.request.generator.util;
 
 import io.mosip.credential.request.generator.constants.ApiName;
+import io.mosip.idrepository.core.util.EnvUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
@@ -27,18 +29,13 @@ import java.util.Objects;
 @Component
 public class RestUtil {
 
-	@Value("${idrepo.default.processor.httpclient.connections.max.per.host:20}")
-	private int maxConnectionPerRoute;
-
-	@Value("${idrepo.default.processor.httpclient.connections.max:100}")
-	private int totalMaxConnection;
-
 	private static final String CONTENT_TYPE = "Content-Type";
 
 	@Autowired
-	private Environment environment;
+	private EnvUtil environment;
 
 	@Autowired
+	@Qualifier("selfTokenRestTemplate")
 	private RestTemplate restTemplate;
 
 	/**
