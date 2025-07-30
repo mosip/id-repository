@@ -36,7 +36,6 @@ public class CredentialRequestGeneratorConfig extends HibernateDaoConfig {
 
 	private static final Logger logger = LoggerFactory.getLogger(CredentialRequestGeneratorConfig.class);
 	
-	@Lazy
 	@Autowired
 	private RestUtil restUtil;
 	
