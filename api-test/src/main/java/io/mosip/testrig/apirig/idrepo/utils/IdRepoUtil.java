@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.testng.SkipException;
 
+import io.mosip.testrig.apirig.dbaccess.DBManager;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
 import io.mosip.testrig.apirig.utils.AdminTestUtil;
 import io.mosip.testrig.apirig.utils.ConfigManager;
@@ -14,6 +15,7 @@ import io.mosip.testrig.apirig.utils.SkipTestCaseHandler;
 public class IdRepoUtil extends AdminTestUtil {
 
 	private static final Logger logger = Logger.getLogger(IdRepoUtil.class);
+	public static String genRidExt = "23456" + generateRandomNumberString(10);
 	
 	public static void setLogLevel() {
 		if (IdRepoConfigManager.IsDebugEnabled())
@@ -21,6 +23,7 @@ public class IdRepoUtil extends AdminTestUtil {
 		else
 			logger.setLevel(Level.ERROR);
 	}
+	
 	
 	public static String isTestCaseValidForExecution(TestCaseDTO testCaseDTO) {
 		String testCaseName = testCaseDTO.getTestCaseName();
@@ -62,6 +65,33 @@ public class IdRepoUtil extends AdminTestUtil {
 		}
 
 		return testCaseName;
+	}
+	
+	public static void dbCleanUp() {
+		DBManager.executeDBQueries(IdRepoConfigManager.getKMDbUrl(), IdRepoConfigManager.getKMDbUser(),
+				IdRepoConfigManager.getKMDbPass(), IdRepoConfigManager.getKMDbSchema(),
+				getGlobalResourcePath() + "/" + "config/keyManagerCertDataDeleteQueries.txt");
+		DBManager.executeDBQueries(IdRepoConfigManager.getIdaDbUrl(), IdRepoConfigManager.getIdaDbUser(),
+				IdRepoConfigManager.getPMSDbPass(), IdRepoConfigManager.getIdaDbSchema(),
+				getGlobalResourcePath() + "/" + "config/idaCertDataDeleteQueries.txt");
+		DBManager.executeDBQueries(IdRepoConfigManager.getMASTERDbUrl(), IdRepoConfigManager.getMasterDbUser(),
+				IdRepoConfigManager.getMasterDbPass(), IdRepoConfigManager.getMasterDbSchema(),
+				getGlobalResourcePath() + "/" + "config/masterDataCertDataDeleteQueries.txt");
+
+		DBManager.executeDBQueries(IdRepoConfigManager.getIdRepoDbUrl(), IdRepoConfigManager.getIdRepoDbUser(),
+				IdRepoConfigManager.getPMSDbPass(), "idrepo",
+				getGlobalResourcePath() + "/" + "config/idrepoCertDataDeleteQueries.txt");
+	}
+	
+	public static String inputStringKeyWordHandeler(String jsonString, String testCaseName) {
+		if (jsonString == null) {
+			logger.info(" Request Json String is :" + jsonString);
+			return jsonString;
+		}
+		
+		if (jsonString.contains("$RIDEXT$"))
+			jsonString = replaceKeywordWithValue(jsonString, "$RIDEXT$", genRidExt);
+		return jsonString;
 	}
 	
 }

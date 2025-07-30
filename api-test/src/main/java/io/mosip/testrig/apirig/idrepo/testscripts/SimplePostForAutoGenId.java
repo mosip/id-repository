@@ -106,9 +106,7 @@ import io.restassured.response.Response;
 			String inputJson = "";
 	
 			inputJson = getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate());
-	
-			String outputJson = getJsonFromTemplate(testCaseDTO.getOutput(), testCaseDTO.getOutputTemplate());
-	
+		
 			if (testCaseDTO.getTemplateFields() != null && templateFields.length > 0) {
 				ArrayList<JSONObject> inputtestCases = AdminTestUtil.getInputTestCase(testCaseDTO);
 				ArrayList<JSONObject> outputtestcase = AdminTestUtil.getOutputTestCase(testCaseDTO);
