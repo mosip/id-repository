@@ -21,7 +21,7 @@ public class CredentialIssueRequestHelper {
     private io.mosip.credential.request.generator.util.CryptoUtil cryptoUtil;
 
     @Autowired
-    @Lazy
+    @Qualifier("credentialObjectMapper")
     private ObjectMapper objectMapper;
 
     public CredentialServiceRequestDto getCredentialServiceRequestDto(CredentialIssueRequestDto credentialIssueRequestDto, String requestId) throws JsonProcessingException {
