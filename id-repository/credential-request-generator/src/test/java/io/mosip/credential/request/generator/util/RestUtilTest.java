@@ -31,7 +31,6 @@ import io.mosip.credential.request.generator.constants.ApiName;
 import io.mosip.idrepository.core.util.EnvUtil;
 
 
-@Ignore
 @WebMvcTest
 @ContextConfiguration(classes = {TestContext.class, WebApplicationContext.class})
 @RunWith(SpringRunner.class)
