@@ -81,6 +81,7 @@ RetrieveIdentity:
     }
   ]
 }'
+
   IdRepository_RetrieveIdentity_With_blank_UIN:
       endPoint: /idrepository/v1/identity/idvid/{id}
       description: Retrieve Identity passing blank UIN
@@ -118,6 +119,7 @@ RetrieveIdentity:
     }
   ]
 }'
+
   IdRepository_RetrieveIdentity_With_blank_Vid:
       endPoint: /idrepository/v1/identity/idvid/{id}
       description: Retrieve Identity passing blank VID
