@@ -16,6 +16,7 @@ import java.util.Properties;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import io.mosip.testrig.apirig.utils.DependencyResolver;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.testng.TestNG;
 
@@ -101,6 +102,14 @@ public class MosipTestRunner {
 			PartnerRegistration.deviceGeneration();
 
 			BiometricDataProvider.generateBiometricTestData("Registration");
+			
+			String testCasesToExecuteString = IdRepoConfigManager.getproperty("testCasesToExecute");
+			
+			DependencyResolver.loadDependencies(
+					getGlobalResourcePath() + "/" + "config/testCaseInterDependency.json");
+			if (!testCasesToExecuteString.isBlank()) {
+				IdRepoUtil.testCasesInRunScope = DependencyResolver.getDependencies(testCasesToExecuteString);
+			}
 
 			startTestRunner();
 		} catch (Exception e) {
@@ -114,7 +123,9 @@ public class MosipTestRunner {
 		OTPListener.bTerminate = true;
 
 		HealthChecker.bTerminate = true;
-
+		
+		// Used for generating the test case interdependency JSON file
+		// AdminTestUtil.generateTestCaseInterDependencies(getGlobalResourcePath() + "/config/testCaseInterDependency.json");
 		System.exit(0);
 
 	}
