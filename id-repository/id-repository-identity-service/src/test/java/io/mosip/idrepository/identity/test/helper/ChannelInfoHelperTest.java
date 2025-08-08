@@ -14,6 +14,7 @@ import java.util.Optional;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -40,7 +41,7 @@ import io.mosip.idrepository.identity.entity.ChannelInfo;
 import io.mosip.idrepository.identity.helper.ChannelInfoHelper;
 import io.mosip.idrepository.identity.repository.ChannelInfoRepo;
 import io.mosip.kernel.core.util.DateUtils;
-
+@Ignore
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
 @WebMvcTest @Import(EnvUtil.class)

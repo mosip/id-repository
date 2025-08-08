@@ -67,11 +67,16 @@ public class VidPolicyProvider {
 		JsonSchema jsonSchema = JsonSchemaFactory.byDefault().getJsonSchema(schema);
 		jsonSchema.validate(policyJson);
 
-		// Extract types and policies directly from JsonNode
+		// Extract
 		List<String> vidTypes = VID_TYPE_PATH_EXPR.read(policyJson, READ_LIST_OPTIONS);
 		List<Object> vidPolicyObjs = VID_POLICY_PATH_EXPR.read(policyJson, READ_LIST_OPTIONS);
 
-		Map<String, VidPolicy> newMap = IntStream.range(0, vidTypes.size())
+		if (vidTypes.isEmpty() || vidPolicyObjs.isEmpty()) {
+			mosipLogger.error("No VID types or policies found in {} — check JSONPath expressions or policy file content.",
+					EnvUtil.getVidPolicyFileUrl());
+		}
+
+		Map<String, VidPolicy> newMap = IntStream.range(0, Math.min(vidTypes.size(), vidPolicyObjs.size()))
 				.boxed()
 				.collect(Collectors.toMap(
 						i -> vidTypes.get(i).toUpperCase(Locale.ROOT),
@@ -81,12 +86,19 @@ public class VidPolicyProvider {
 		vidPoliciesRef.set(Collections.unmodifiableMap(newMap));
 
 		mosipLogger.info("VID policies loaded: {} entries in {} ms",
-						newMap.size(), (System.currentTimeMillis() - start));
+				newMap.size(), (System.currentTimeMillis() - start));
 	}
 
 	public VidPolicy getPolicy(String vidType) {
-		if (vidType == null) return null;
-		return vidPoliciesRef.get().get(vidType.toUpperCase(Locale.ROOT));
+		if (vidType == null) {
+			mosipLogger.warn("Requested VID policy for null vidType.");
+			return null;
+		}
+		VidPolicy policy = vidPoliciesRef.get().get(vidType.toUpperCase(Locale.ROOT));
+		if (policy == null) {
+			mosipLogger.warn("No VID policy found for type '{}'.", vidType);
+		}
+		return policy;
 	}
 
 	public Set<String> getAllVidTypes() {

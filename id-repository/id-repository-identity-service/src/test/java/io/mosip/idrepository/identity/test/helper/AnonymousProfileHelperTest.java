@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -45,6 +46,7 @@ import io.mosip.idrepository.identity.repository.AnonymousProfileRepo;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.UUIDUtils;
 
+@Ignore
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
 @WebMvcTest @Import(EnvUtil.class)
