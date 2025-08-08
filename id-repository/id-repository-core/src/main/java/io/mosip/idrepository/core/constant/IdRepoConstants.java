@@ -25,9 +25,9 @@ public class IdRepoConstants {
 	/** The identity file name key. */
 	public static final String FILE_NAME_ATTRIBUTE = "value";
 	
-	public static final String VID_TYPE_PATH = "$.vidPolicies[*].vidType";
+	public static final String VID_TYPE_PATH = "vidPolicies.*.vidType";
 	
-	public static final String VID_POLICY_PATH = "$.vidPolicies[*].vidPolicy";
+	public static final String VID_POLICY_PATH = "vidPolicies.*.vidPolicy";
 
 	/** The root path. */
 	public static final String ROOT_PATH = "identity";
