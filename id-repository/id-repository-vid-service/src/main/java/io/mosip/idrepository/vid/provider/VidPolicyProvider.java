@@ -68,19 +68,18 @@ public class VidPolicyProvider {
 		jsonSchema.validate(policyJson);
 
 		// Extract
-		List<String> vidTypes = VID_TYPE_PATH_EXPR.read(policyJson, READ_LIST_OPTIONS);
-		List<Object> vidPolicyObjs = VID_POLICY_PATH_EXPR.read(policyJson, READ_LIST_OPTIONS);
-
-		if (vidTypes.isEmpty() || vidPolicyObjs.isEmpty()) {
+		List<String> vidTypes = VID_TYPE_PATH_EXPR.read(policyJson.toString(), READ_LIST_OPTIONS);
+		List<Object> vidPolicies = VID_POLICY_PATH_EXPR.read(policyJson.toString(), READ_LIST_OPTIONS);
+		if (vidTypes.isEmpty() || vidPolicies.isEmpty()) {
 			mosipLogger.error("No VID types or policies found in {} — check JSONPath expressions or policy file content.",
 					EnvUtil.getVidPolicyFileUrl());
 		}
 
-		Map<String, VidPolicy> newMap = IntStream.range(0, Math.min(vidTypes.size(), vidPolicyObjs.size()))
+		Map<String, VidPolicy> newMap = IntStream.range(0, Math.min(vidTypes.size(), vidPolicies.size()))
 				.boxed()
 				.collect(Collectors.toMap(
 						i -> vidTypes.get(i).toUpperCase(Locale.ROOT),
-						i -> mapper.convertValue(vidPolicyObjs.get(i), VidPolicy.class)
+						i -> mapper.convertValue(vidPolicies.get(i), VidPolicy.class)
 				));
 
 		vidPoliciesRef.set(Collections.unmodifiableMap(newMap));
