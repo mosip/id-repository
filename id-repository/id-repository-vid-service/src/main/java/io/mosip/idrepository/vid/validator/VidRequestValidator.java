@@ -5,7 +5,10 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_I
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,177 +41,135 @@ import io.mosip.kernel.core.logger.spi.Logger;
 public class VidRequestValidator extends BaseIdRepoValidator implements Validator {
 
 	private static final String REACTIVATE = "reactivate";
-
 	private static final String DEACTIVATE = "deactivate";
-
-	/** The mosip logger. */
-	private Logger mosipLogger = IdRepoLogger.getLogger(VidRequestValidator.class);
-
-	/** The Constant VID_REQUEST_VALIDATOR. */
-	private static final String VID_REQUEST_VALIDATOR = "VidRequestValidator";
-
-	/** The Constant VID_TYPE. */
-	private static final String VID_TYPE = "vidType";
-
-	/** The Constant CREATE. */
 	private static final String CREATE = "create";
-
-	/** The Constant UPDATE. */
 	private static final String UPDATE = "update";
-
-	/** The Constant REQUEST. */
-	private static final String REQUEST = "request";
-
-	/** The Constant STATUS_FIELD. */
+	private static final String VID_TYPE = "vidType";
 	private static final String STATUS_FIELD = "vidStatus";
-
-	/** The Constant UIN. */
+	private static final String REQUEST = "request";
 	private static final String UIN = "UIN";
 
-	/** The policy provider. */
+	private final Logger mosipLogger = IdRepoLogger.getLogger(VidRequestValidator.class);
+
 	@Autowired
 	private VidPolicyProvider policyProvider;
 
-	/** The Vid Validator. */
 	@Autowired
 	private VidValidator<String> vidValidator;
 
-	/** The uin validator. */
 	@Autowired
 	private UinValidator<String> uinValidator;
 
-	/** The allowed types. */
 	@Resource
 	private List<String> allowedStatus;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.validation.Validator#supports(java.lang.Class)
-	 */
-	@Override
-	public boolean supports(Class<?> clazz) {
-		return clazz.isAssignableFrom(RequestWrapper.class);
+	/** Cached set of all VID types for fast lookup. */
+	private volatile Set<String> cachedVidTypes;
+
+	/** Reload cache from the provider */
+	@PostConstruct
+	public void loadVidTypesCache() {
+		cachedVidTypes = policyProvider.getAllVidTypes();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.validation.Validator#validate(java.lang.Object,
-	 * org.springframework.validation.Errors)
-	 */
+	/** Manually refresh cache if VID policies are reloaded. */
+	public void refreshVidTypesCache() {
+		cachedVidTypes = policyProvider.getAllVidTypes();
+	}
+
+	@Override
+	public boolean supports(Class<?> clazz) {
+		return RequestWrapper.class.isAssignableFrom(clazz);
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public void validate(@NonNull Object target, Errors errors) {
-		RequestWrapper<VidRequestDTO> request = (RequestWrapper<VidRequestDTO>) target;
-		validateReqTime(request.getRequesttime(), errors);
-		validateVersion(request.getVersion(), errors);
-		validateRequest(request.getRequest(), errors);
-		String requestId = request.getId();
+		RequestWrapper<VidRequestDTO> requestWrapper = (RequestWrapper<VidRequestDTO>) target;
+		String currentUser = IdRepoSecurityManager.getUser();
 
-		if (Objects.nonNull(requestId)) {
-			if (!errors.hasErrors() && requestId.equals(id.get(CREATE))) {
-				validateVidType(request.getRequest().getVidType(), errors);
-				validateUin(request.getRequest().getUin(), errors);
-			}
+		validateReqTime(requestWrapper.getRequesttime(), errors);
+		validateVersion(requestWrapper.getVersion(), errors);
+		validateRequest(requestWrapper.getRequest(), errors);
 
-			if (!errors.hasErrors() && request.getId().equals(id.get(UPDATE))) {
-				validateStatus(request.getRequest().getVidStatus(), errors);
-			}
-			if (!errors.hasErrors()
-					&& (requestId.equals(id.get(DEACTIVATE)) || requestId.equals(id.get(REACTIVATE)))) {
-				validateUin(request.getRequest().getUin(), errors);
-			}
+		if (errors.hasErrors()) return;
+
+		String requestId = requestWrapper.getId();
+		VidRequestDTO request = requestWrapper.getRequest();
+
+		if (requestId == null) return;
+
+		switch (requestId) {
+			case CREATE:
+				validateVidType(request.getVidType(), errors, currentUser);
+				if (!errors.hasErrors()) {
+					validateUin(request.getUin(), errors, currentUser);
+				}
+				break;
+
+			case UPDATE:
+				validateStatus(request.getVidStatus(), errors, currentUser);
+				break;
+
+			case DEACTIVATE, REACTIVATE:
+				validateUin(request.getUin(), errors, currentUser);
+				break;
+
+            default:
+				// Unknown requestId — silently ignore or log if required
+				break;
 		}
 	}
 
-	/**
-	 * Validate vid type.
-	 *
-	 * @param vidType the vid type
-	 * @param errors  the errors
-	 */
-	private void validateVidType(String vidType, Errors errors) {
-		if (Objects.isNull(vidType)) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_REQUEST_VALIDATOR, "validateVidType",
-					"vidType is null");
-			errors.rejectValue(REQUEST, MISSING_INPUT_PARAMETER.getErrorCode(),
-					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), VID_TYPE));
-		} else if (!policyProvider.getAllVidTypes().contains(vidType.toUpperCase())) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_REQUEST_VALIDATOR, "validateVidType",
-					"vidType is invalid - " + vidType);
-			errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
-					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), VID_TYPE));
+	private void validateVidType(String vidType, Errors errors, String currentUser) {
+		if (vidType == null) {
+			logAndReject(errors, currentUser, "validateVidType", "vidType is null",
+					MISSING_INPUT_PARAMETER, VID_TYPE);
+		} else if (!cachedVidTypes.contains(vidType.toUpperCase())) {
+			logAndReject(errors, currentUser, "validateVidType", "vidType is invalid - " + vidType,
+					INVALID_INPUT_PARAMETER, VID_TYPE);
 		}
 	}
 
-	/**
-	 * Validate uin.
-	 *
-	 * @param uin    the uin
-	 * @param errors the errors
-	 */
-	private void validateUin(String uin, Errors errors) {
-		if (Objects.isNull(uin)) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_REQUEST_VALIDATOR, "validateUin",
-					"\n" + "uin is null");
-			errors.rejectValue(REQUEST, MISSING_INPUT_PARAMETER.getErrorCode(),
-					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), UIN));
+	private void validateUin(String uin, Errors errors, String currentUser) {
+		if (uin == null) {
+			logAndReject(errors, currentUser, "validateUin", "uin is null",
+					MISSING_INPUT_PARAMETER, UIN);
 		} else {
 			try {
 				uinValidator.validateId(uin);
 			} catch (InvalidIDException e) {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), VID_REQUEST_VALIDATOR, "validateUin",
-						"\n" + e.getMessage());
-				errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
-						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
+				logAndReject(errors, currentUser, "validateUin", e.getMessage(),
+						INVALID_INPUT_PARAMETER, UIN);
 			}
 		}
 	}
 
-	/**
-	 * Validate request.
-	 *
-	 * @param request the request
-	 * @param errors  the errors
-	 */
 	private void validateRequest(VidRequestDTO request, Errors errors) {
-		if (Objects.isNull(request)) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_REQUEST_VALIDATOR, "validateRequest",
-					"\n" + "request is null");
-			errors.rejectValue(REQUEST, MISSING_INPUT_PARAMETER.getErrorCode(),
-					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), REQUEST));
+		if (request == null) {
+			logAndReject(errors, IdRepoSecurityManager.getUser(), "validateRequest", "request is null",
+					MISSING_INPUT_PARAMETER, REQUEST);
 		}
 	}
 
-	/**
-	 * This method will validate the Status of Vid.
-	 *
-	 * @param vidStatus the vid status
-	 * @param errors    the errors
-	 */
-	private void validateStatus(String vidStatus, Errors errors) {
-		if (Objects.isNull(vidStatus)) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_REQUEST_VALIDATOR, "validateStatus",
-					"\n" + "Status is null");
-			errors.rejectValue(REQUEST, MISSING_INPUT_PARAMETER.getErrorCode(),
-					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), STATUS_FIELD));
+	private void validateStatus(String vidStatus, Errors errors, String currentUser) {
+		if (vidStatus == null) {
+			logAndReject(errors, currentUser, "validateStatus", "Status is null",
+					MISSING_INPUT_PARAMETER, STATUS_FIELD);
 		} else if (!allowedStatus.contains(vidStatus)) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_REQUEST_VALIDATOR, "validateStatus",
-					"\n" + "Status is invalid");
-			errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
-					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), STATUS_FIELD));
+			logAndReject(errors, currentUser, "validateStatus", "Status is invalid",
+					INVALID_INPUT_PARAMETER, STATUS_FIELD);
 		}
-
 	}
 
-	/**
-	 * This method will validate the Vid value.
-	 *
-	 * @param vid the vid
-	 */
 	public void validateVid(String vid) {
 		vidValidator.validateId(vid);
 	}
 
+	private void logAndReject(Errors errors, String user, String method, String logMessage,
+							  IdRepoErrorConstants errorCode, String fieldName) {
+		mosipLogger.error(user, getClass().getSimpleName(), method, logMessage);
+		errors.rejectValue(REQUEST, errorCode.getErrorCode(),
+				String.format(errorCode.getErrorMessage(), fieldName));
+	}
 }
