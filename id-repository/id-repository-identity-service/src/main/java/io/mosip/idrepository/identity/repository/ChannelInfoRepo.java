@@ -19,11 +19,11 @@ public interface ChannelInfoRepo extends JpaRepository<ChannelInfo, String> {
     @Modifying
     @Transactional
     @Query(value = """
-        INSERT INTO channel_info (hashed_channel, channel_type, no_of_records, created_by, cr_dtimes)
+        INSERT INTO channel_info (hashed_channel, channel_type, no_of_records, cr_by, cr_dtimes)
         VALUES (:hashedChannel, :channelType, GREATEST(:initial, 0), :createdBy, :createdTime)
         ON CONFLICT (hashed_channel) DO UPDATE
           SET no_of_records = GREATEST(channel_info.no_of_records + :delta, 0),
-              updated_by = :updatedBy,
+              upd_by = :updatedBy,
               upd_dtimes = :updatedTime
         """, nativeQuery = true)
     void upsertAndDelta(@Param("hashedChannel") String hashedChannel,
