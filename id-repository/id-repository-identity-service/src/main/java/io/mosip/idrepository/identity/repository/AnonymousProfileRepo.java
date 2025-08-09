@@ -22,7 +22,7 @@ public interface AnonymousProfileRepo extends JpaRepository<AnonymousProfileEnti
         VALUES (:id, :profile, :createdBy, :createdTime)
         ON CONFLICT (id) DO UPDATE
           SET profile = EXCLUDED.profile,
-              created_by = EXCLUDED.created_by,
+              cr_by = EXCLUDED.cr_by,
               cr_dtimes = EXCLUDED.cr_dtimes
         """, nativeQuery = true)
     void upsertAnonymousProfile(@Param("id") String id,
