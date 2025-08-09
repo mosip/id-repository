@@ -18,7 +18,7 @@ public interface AnonymousProfileRepo extends JpaRepository<AnonymousProfileEnti
     @Modifying
     @Transactional
     @Query(value = """
-        INSERT INTO anonymous_profile (id, profile, created_by, cr_dtimes)
+        INSERT INTO anonymous_profile (id, profile, cr_by, cr_dtimes)
         VALUES (:id, :profile, :createdBy, :createdTime)
         ON CONFLICT (id) DO UPDATE
           SET profile = EXCLUDED.profile,
