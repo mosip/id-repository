@@ -547,8 +547,14 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 
 	private void deleteExistingExtractedBioData(Map<String, String> extractionFormats, String uinHash, UinBiometricDraft bioDraft) {
 		extractionFormats.entrySet()
-				.forEach(extractionFormat -> super.objectStoreHelper.deleteBiometricObject(uinHash,
-						buildExtractionFileName(extractionFormat, bioDraft.getBioFileId())));
+				.forEach(extractionFormat -> {
+                    try {
+                        super.objectStoreHelper.deleteBiometricObject(uinHash,
+                                buildExtractionFileName(extractionFormat, bioDraft.getBioFileId()));
+                    } catch (IdRepoAppException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
 	}
 
 	private byte[] extractAndGetCombinedCbeff(String uinHash, String bioFileId, Map<String, String> extractionFormats)
