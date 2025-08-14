@@ -464,6 +464,8 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	private VidResponseDTO updateVidStatus(String vidStatus, Vid vidObject, String decryptedUin, VidPolicy policy)
 			throws IdRepoAppException {
 		String uin = Arrays.asList(decryptedUin.split(SPLITTER)).get(1);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, UPDATE_VID,"Decrypted UIN: " + decryptedUin);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, UPDATE_VID, "UIN: " + uin);
 		// Get the salted ID Hash before modifiying the vid entity, otherwise result in
 		// onFlushDirty call in the interceptor resulting in inconsistently encrypted
 		// UIN value in VID entity
@@ -473,7 +475,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 			vidObject.setStatusCode(vidStatus);
 			vidObject.setUpdatedBy(IdRepoSecurityManager.getUser());
 			vidObject.setUpdatedDTimes(DateUtils.getUTCCurrentDateTime());
-			vidObject.setUin(decryptedUin);
+			vidObject.setUin(uin);
 			vidRepo.saveAndFlush(vidObject);
 			VidInfoDTO vidInfo = createVidInfo(vidObject, idHashAndAttributes);
 			notify(decryptedUin, vidStatus, Collections.singletonList(vidInfo),
