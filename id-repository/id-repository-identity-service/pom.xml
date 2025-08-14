@@ -5,11 +5,11 @@
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.3.0-SNAPSHOT</version>
+		<version>1.3.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>id-repository-identity-service</artifactId>
-	<version>1.3.0-SNAPSHOT</version>
+	<version>1.3.1-SNAPSHOT</version>
 	<name>identity-service</name>
 	<description>ID-Repository Identity service</description>
 
@@ -17,7 +17,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>21</maven.compiler.source>
 		<maven.compiler.target>21</maven.compiler.target>
-		<kernel.core.version>1.3.0-SNAPSHOT</kernel.core.version>
+		<kernel.core.version>1.2.2-SNAPSHOT</kernel.core.version>
 		<kernel.idvalidator.uin.version>1.3.0-SNAPSHOT</kernel.idvalidator.uin.version>
 		<kernel.cbeffutil.api.version>1.3.0-SNAPSHOT</kernel.cbeffutil.api.version>
 		<kernel.idobjectvalidator.version>1.3.0-SNAPSHOT</kernel.idobjectvalidator.version>
@@ -106,7 +106,7 @@
 		<dependency>
 			<artifactId>kernel-biosdk-provider</artifactId>
 			<groupId>io.mosip.kernel</groupId>
-			<version>1.3.0-SNAPSHOT</version>
+			<version>1.3.1-SNAPSHOT</version>
 		</dependency>
 
 	</dependencies>
