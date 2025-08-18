@@ -1,3 +1,5 @@
+\c mosip_idrepo
+
 --INDEX
 DROP INDEX IF EXISTS idx_uin_uin_hash;
 DROP INDEX IF EXISTS idx_uin_draft_reg_id;
