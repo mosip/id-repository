@@ -31,4 +31,6 @@ CREATE TABLE idrepo.uin_draft(
 	CONSTRAINT unq_uinhsh UNIQUE (uin_hash)
 );
 -- ddl-end --
-
+--index section starts----
+CREATE INDEX IF NOT EXISTS idx_uin_draft_reg_id ON idrepo.uin_draft USING btree(reg_id);
+--index section ends------
