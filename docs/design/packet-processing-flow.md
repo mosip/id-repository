@@ -4,6 +4,7 @@ This document outlines the **end-to-end packet processing flow** highlighting th
 ## Sequence Diagram
 
 ```mermaid
+%%{init: {'themeVariables': { 'activationBkgColor': '#80ffd5', 'activationBorderColor': '#009977' }}}%%
 sequenceDiagram
     participant reg_client as Registration Client
     participant registration_processor as Registration Processor
