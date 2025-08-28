@@ -2,6 +2,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_value_all_valid_smoke:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with positive value
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_01
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -30,6 +31,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_value_withupdatevalues:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with update value
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_02
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -58,6 +60,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_value_withupdatetags:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with update tag
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_03
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -86,6 +89,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_withupdatetagsandhandles:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with update tag and selected handles
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_04
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -114,6 +118,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_withmultipledemohandles:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with multiple demo handles
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_05
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -142,6 +147,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_withdeletehandlefromrecord:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with delete handle from the record
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_06
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -170,6 +176,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_withupdatedselectedhandle:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with update selected handle
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_07
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -198,6 +205,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_withupdatedselectedhandleanddemo:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with update selected handle and demo field
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_08
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -226,6 +234,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_withupdatedselectedhandleandfirstattribute:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with selected handle and first attribute
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_09
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -254,6 +263,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_withremovedtaggedattribute:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with value remove tag attribute
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_10
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -283,6 +293,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_withemptyhandles:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with empty selected handles
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_11
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -311,6 +322,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_withouthandlesattr:
       endPoint: /idrepository/v1/identity/
       description: Update Identity without selected handle attribute
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_12
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -339,6 +351,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_witharandomnonhandleattr:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with random handle attribute
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_13
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -367,6 +380,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParameters_smoke_Post_array_handle_value_withonehandle:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with one selected handle
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_14
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -395,6 +409,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParameters_smoke_Post_array_handle_value_upddatefirstsecondhandle:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with update first and second handle value
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_15
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -423,6 +438,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParameters_smoke_Post_array_handle_value_upddatehandlewithinvaliddemo:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with update handle with invalid demo field
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_16
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -452,6 +468,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParameters_smoke_Post_array_handle_value_withoutselectedhandlesandattri:
       endPoint: /idrepository/v1/identity/
       description: Update Identity without selected handles and attribute
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_17
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -480,6 +497,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_withonedemofield:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with selected handles and one demo field
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_18
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -508,6 +526,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_withalldemofieldsremoved:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with selected handles and all demo field removed
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_19
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -536,6 +555,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_withemptyselectedhandle:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with empty selected handles
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_20
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -564,6 +584,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_withinvaliddhandle:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with invalid selected handles
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_21
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -592,6 +613,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_updateselectedhandleswithinvalid:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with invalid selected handles
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_22
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -620,6 +642,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_updateselectedhandleswithscehmaattrwhichisnothandle:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with scehma attribute which is not in selected handles
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_23
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -648,6 +671,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_removeselectedhandle_updatephone:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with remove selected handles and update phone
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_24
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -676,6 +700,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_withupdatedhandlewhichisnotinschema:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with update selected handles which is not in schema
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_25
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -704,6 +729,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_replaceselectedhandles:
       endPoint: /idrepository/v1/identity/
       description: Update Identity selectedhandles to phone while creating it was email
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_26
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -732,6 +758,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_value_updatewithphoneemail:
       endPoint: /idrepository/v1/identity/
       description: Update Identity selectedhandles to phone & email while creating it was only email
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_27
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -760,6 +787,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_array_handle_update_smoke:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with selectedhandles when add identity is not having selected handles
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_28
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -788,6 +816,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_handle_value_value_all_valid_smoke_withusedphone:
       endPoint: /idrepository/v1/identity/
       description: Update Identity with used phone value
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_29
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -820,6 +849,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_phone_handle_value_withemptyselectedhandle:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing empty selecthandles with selected handle phone value uin
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_30
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -848,6 +878,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_handle_value_withphonevalue:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing phone value without selected handle uin
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_31
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -880,6 +911,7 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_handle_value_removeselectedhandlesandupdateemail:
       endPoint: /idrepository/v1/identity/
       description: Update Identity remove selected handle then pass email value
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_32
       role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle

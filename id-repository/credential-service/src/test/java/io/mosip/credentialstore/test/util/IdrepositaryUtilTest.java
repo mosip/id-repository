@@ -1,13 +1,20 @@
 package io.mosip.credentialstore.test.util;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.credentialstore.constants.ApiName;
+import io.mosip.credentialstore.exception.ApiNotAccessibleException;
+import io.mosip.credentialstore.exception.DataShareException;
+import io.mosip.credentialstore.exception.IdRepoException;
+import io.mosip.credentialstore.exception.SignatureException;
+import io.mosip.credentialstore.util.IdrepositaryUtil;
+import io.mosip.credentialstore.util.RestUtil;
+import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
+import io.mosip.idrepository.core.dto.IdResponseDTO;
+import io.mosip.idrepository.core.dto.ResponseDTO;
+import io.mosip.idrepository.core.util.EnvUtil;
+import io.mosip.kernel.core.exception.ServiceError;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,21 +31,13 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.context.WebApplicationContext;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import io.mosip.credentialstore.exception.ApiNotAccessibleException;
-import io.mosip.credentialstore.exception.DataShareException;
-import io.mosip.credentialstore.exception.IdRepoException;
-import io.mosip.credentialstore.exception.SignatureException;
-import io.mosip.credentialstore.util.IdrepositaryUtil;
-import io.mosip.credentialstore.util.RestUtil;
-import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
-import io.mosip.idrepository.core.dto.IdResponseDTO;
-import io.mosip.idrepository.core.dto.ResponseDTO;
-import io.mosip.idrepository.core.util.EnvUtil;
-import io.mosip.kernel.core.exception.ServiceError;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest @Import(EnvUtil.class)
@@ -70,6 +69,7 @@ public class IdrepositaryUtilTest {
 		Mockito.when(objectMapper.readValue(idRepo, IdResponseDTO.class)).thenReturn(idRepoResponse);
 
 		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(idRepo);
+		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(idRepo);
 	}
 	@Test
 	public void idRepoSuccessTest() throws IOException, ApiNotAccessibleException, SignatureException, DataShareException, IdRepoException {
@@ -129,7 +129,7 @@ public class IdrepositaryUtilTest {
 		credentialServiceRequestDto.setId("12345678");
 		Map<String,String> bioAttributeFormatterMap=new HashMap<>();
 		bioAttributeFormatterMap.put("face", "extractfmr");
-		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
+		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		idrepositaryUtil.getData(credentialServiceRequestDto, bioAttributeFormatterMap);
 	}
 	@SuppressWarnings("unchecked")
@@ -144,7 +144,54 @@ public class IdrepositaryUtilTest {
 		credentialServiceRequestDto.setId("12345678");
 		Map<String,String> bioAttributeFormatterMap=new HashMap<>();
 		bioAttributeFormatterMap.put("face", "extractfmr");
-		Mockito.when(restUtil.getApi(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
+		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		idrepositaryUtil.getData(credentialServiceRequestDto, bioAttributeFormatterMap);
+	}
+	// Get Data By Id
+	@Test
+	public void idRepoHandleSuccessTest() throws IOException, ApiNotAccessibleException, SignatureException, DataShareException, IdRepoException {
+		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
+		Map<String,Object> additionalData=new HashMap<>();
+		additionalData.put("idType", "handle");
+		credentialServiceRequestDto.setAdditionalData(additionalData);
+		credentialServiceRequestDto.setId("111111/01/1@nrcid");
+		Map<String,String> bioAttributeFormatterMap=new HashMap<>();
+		bioAttributeFormatterMap.put("face", "mock");
+		bioAttributeFormatterMap.put("finger", "mock");
+		bioAttributeFormatterMap.put("iris", "mock");
+		IdResponseDTO idRepoResponseResult=idrepositaryUtil.getData(credentialServiceRequestDto, bioAttributeFormatterMap);
+		assertEquals(idRepoResponseResult.getResponse(),idRepoResponse.getResponse());
+
+
+	}
+	@Test(expected = IdRepoException.class)
+	public void idRepoHandleResponseObjectNullTest() throws JsonParseException, JsonMappingException, ApiNotAccessibleException, IdRepoException, IOException  {
+		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
+		Map<String,Object> additionalData=new HashMap<>();
+		credentialServiceRequestDto.setAdditionalData(additionalData);
+		credentialServiceRequestDto.setId("111111/01/1@nrcid");
+		Map<String,String> bioAttributeFormatterMap=new HashMap<>();
+		bioAttributeFormatterMap.put("face", "extractfmr");
+		Mockito.when(objectMapper.readValue(idRepo, IdResponseDTO.class)).thenReturn(null);
+		idrepositaryUtil.getData(credentialServiceRequestDto, bioAttributeFormatterMap);
+
+
+	}
+	@Test(expected = IdRepoException.class)
+	public void idRepoHandleResponseWithErrorTest() throws IOException, ApiNotAccessibleException, SignatureException, DataShareException, IdRepoException {
+		CredentialServiceRequestDto credentialServiceRequestDto=new CredentialServiceRequestDto();
+		Map<String,Object> additionalData=new HashMap<>();
+		credentialServiceRequestDto.setAdditionalData(additionalData);
+		credentialServiceRequestDto.setId("111111/01/1@nrcid");
+		Map<String,String> bioAttributeFormatterMap=new HashMap<>();
+		bioAttributeFormatterMap.put("face", "extractfmr");
+		ServiceError error = new ServiceError();
+		error.setErrorCode("KER-SIG-001");
+		error.setMessage("sign error");
+		List<ServiceError> errors = new ArrayList<ServiceError>();
+		errors.add(error);
+		idRepoResponse.setErrors(errors);
+		idrepositaryUtil.getData(credentialServiceRequestDto, bioAttributeFormatterMap);
+
 	}
 }

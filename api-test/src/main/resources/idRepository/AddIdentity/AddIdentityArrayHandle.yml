@@ -2,6 +2,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with positive value
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_01
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -36,6 +37,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_wth_duplicate_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with those value which already have been created
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_02
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -70,6 +72,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_onlywithtags:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with only tags
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_03
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -108,6 +111,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_withouttags:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with positive values and withouts tags
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_04
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -142,6 +146,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_withoutselectedhandles:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle without selected handles
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_05
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -176,6 +181,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_withtagwithoutselectedhandles:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with tags and without slected handles
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_06
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -210,6 +216,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_withinvalidtag:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with positive value and invalid tag
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_07
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -243,7 +250,8 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_withmultiplevalues:
       endPoint: /idrepository/v1/identity/
-      description: Add identity array handle with multiple positive value
+      description: Add identity array handle with multiple positive values
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_08
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -282,6 +290,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_withmultiplevaluesandwithouttags:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with multiple positive value and without tag
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_09
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -320,6 +329,7 @@ AddIdentity:
    IdRepository_AddIdentity_single_handle_valuee_array_handle_withouttags:
       endPoint: /idrepository/v1/identity/
       description: Add identity single handle with positive value without tag
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_10
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -354,6 +364,7 @@ AddIdentity:
    IdRepository_AddIdentity_single_handle_value_array_handle_value_withemptyselecthandles:
       endPoint: /idrepository/v1/identity/
       description: Add identity single handle with empty select handles
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_12
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -388,6 +399,7 @@ AddIdentity:
    IdRepository_AddIdentity_single_handle_value_array_handle_value_withmultiplehandleswithoutvalue:
       endPoint: /idrepository/v1/identity/
       description: Add identity single handle with multiple handles without value
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_13
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -426,6 +438,7 @@ AddIdentity:
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withfunctionalIds:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with functionalids as selected handles
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_14
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -460,6 +473,7 @@ AddIdentity:
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withfunctionalidsusedfirsttwovalue:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with functionalids using first two value
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_15
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -494,6 +508,7 @@ AddIdentity:
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withfunctionalidsandphonewithouttags:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with functionalids and phone as selected handles without tag
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_16
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -528,6 +543,7 @@ AddIdentity:
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withfunctionalidsusedfirstTwovalueoutoffive:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with functionalids as selected handles using first two value out of five
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_17
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -562,6 +578,7 @@ AddIdentity:
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withonehandle:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with one handles positive value
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_18
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -596,6 +613,7 @@ AddIdentity:
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_removeexceptfirsthandle:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle while remove excepted first selectedHandles
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_19
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -630,6 +648,7 @@ AddIdentity:
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_valid:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with positive value
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_20
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -664,6 +683,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_smoke_withinvaliddemofield_inupdate:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with positive value and invalid demo field
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_21
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -698,6 +718,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_smoke_withoutselectedhandlesandattri:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle without selected handles and attribute
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_22
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -732,6 +753,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_smoke_withonedemofield:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with positive value and without demo field
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_23
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -766,6 +788,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_smoke_withcasesensitivehandles:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with case sensitive selected handles
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_25
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -800,6 +823,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_update_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with positive values
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_26
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -834,6 +858,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_update_valueandtag_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with positive values and tag
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_27
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -868,6 +893,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_update_post_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with positive values
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_28
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -902,6 +928,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_update_post_valuetags_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with positive values
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_29
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -936,6 +963,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_update_valuetags_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with positive values
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_30
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -970,6 +998,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_post_update_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with positive values
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_31
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -1004,6 +1033,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_post_updateselectedhandles_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with positive values
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_32
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -1038,6 +1068,7 @@ AddIdentity:
    IdRepository_AddIdentity_handle_array_updatehandles_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with positive values
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_33
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -1072,6 +1103,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_updateselectedhandles_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with positive values
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_34
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -1106,6 +1138,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_updateselectedhandles_value_Pos_replaceselectedhandles:
       endPoint: /idrepository/v1/identity/
       description: Add identity with only email as selected handle
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_35
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -1140,6 +1173,7 @@ AddIdentity:
    IdRepository_AddIdentity_handle_array_updateselectedhandles_value_Pos_onlywithemail:
       endPoint: /idrepository/v1/identity/
       description: Add identity with only email as selected handle and update with phone and email in update identity
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_36
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -1174,6 +1208,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_updateselectedhandles_value_Pos_withoutselectedhandlesinidentity:
       endPoint: /idrepository/v1/identity/
       description: Add identity without selected handle
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_37
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -1208,6 +1243,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_smoke_Pos_save_withdublicatevalue:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with add value
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_38
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -1242,6 +1278,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_smoke_Pos_withdublicatevalue:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with same value again
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_39
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -1280,6 +1317,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_smoke_Pos_withmultipledublicatevalue:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with multiple dublicate value
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_40
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -1318,6 +1356,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_removevalueaddexistingvalue:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with existing value
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_41
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -1356,6 +1395,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_smoke_Pos_withphonenumber:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with positive value phone number
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_42
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -1390,6 +1430,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_smoke_Pos_withoutselectedhandles:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle without selected handles
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_43
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -1424,6 +1465,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_smoke_Pos_withselectedhandlephone:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with selected handle as phone
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_44
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -1458,6 +1500,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_Pos_withoutselectedhandles:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle without selected handles
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_45
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -1492,6 +1535,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_update_smoke_Pos_withselectedhandlephone:
       endPoint: /idrepository/v1/identity/
       description: Add identity array handle with selected handle as phone
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_46
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -1526,6 +1570,7 @@ AddIdentity:
    IdRepository_AddIdentity_array_handle_value_smoke_Pos_removealltagshandles:
       endPoint: /idrepository/v1/identity/
       description: Add identity with removing all tags with positive value
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_47
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$

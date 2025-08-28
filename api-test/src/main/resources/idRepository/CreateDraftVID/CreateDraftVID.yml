@@ -2,6 +2,7 @@ CreateDraftVID:
   IdRepository_CreateDraftVID_Smoke_Pos:
       endPoint: /idrepository/v1/draft/vid
       description: create a draft VID passing invalid parameter in UIN field
+      uniqueIdentifier: TC_IDRepo_CreateDraftVID_01
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateDraftVID/createDraftVID
@@ -16,6 +17,7 @@ CreateDraftVID:
   IdRepository_CreateDraftVID_invalid_vidtype:
       endPoint: /idrepository/v1/draft/vid
       description: create a draft VID passing invalid vid type
+      uniqueIdentifier: TC_IDRepo_CreateDraftVID_02
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateDraftVID/createDraftVID
@@ -34,6 +36,7 @@ CreateDraftVID:
   IdRepository_CreateDraftVID_blank_vidtype:
       endPoint: /idrepository/v1/draft/vid
       description: create a draft vid passing blank value in vidtype
+      uniqueIdentifier: TC_IDRepo_CreateDraftVID_03
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateDraftVID/createDraftVID
@@ -52,6 +55,7 @@ CreateDraftVID:
   IdRepository_CreateDraftVID_missing_vidtype:
       endPoint: /idrepository/v1/draft/vid
       description: create a draft VID removing vid type field
+      uniqueIdentifier: TC_IDRepo_CreateDraftVID_04
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateDraftVID/createDraftVID
@@ -70,6 +74,7 @@ CreateDraftVID:
   IdRepository_CreateDraftVID_Invalid_UIN:
       endPoint: /idrepository/v1/draft/vid
       description: Create a draft VID passing invalid UIN
+      uniqueIdentifier: TC_IDRepo_CreateDraftVID_05
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateDraftVID/createDraftVID

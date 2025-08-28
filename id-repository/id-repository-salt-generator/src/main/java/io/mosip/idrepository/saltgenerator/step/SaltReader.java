@@ -5,7 +5,7 @@ import static io.mosip.idrepository.saltgenerator.constant.SaltGeneratorConstant
 
 import java.time.LocalDateTime;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,7 +82,7 @@ public class SaltReader implements ItemReader<IdRepoSaltEntitiesComposite> {
 			identityEncryptSalt.setSalt(idEncSalt);
 			identityEncryptSalt.setCreatedBy("System");
 			identityEncryptSalt.setCreateDtimes(currentDateTime);
-			
+
 			String vidEncSalt = CryptoUtil.encodeToPlainBase64(HMACUtils2.generateSalt());
 			
 			VidEncryptSaltEntity vidEncryptSalt = new VidEncryptSaltEntity();

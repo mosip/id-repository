@@ -420,12 +420,15 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			for (BiometricType modality : SUPPORTED_MODALITIES) {
 				List<BIR> birTypesForModality = originalBirs.stream()
 						.filter(bir -> bir.getBdbInfo().getType().get(0).value().equalsIgnoreCase(modality.value()))
+						.filter(bir -> bir.getOthers().keySet().stream()
+								.anyMatch(key -> key.contentEquals("EXCEPTION")))
+						.filter(bir -> bir.getOthers().get("EXCEPTION").contentEquals("false"))
 						.collect(Collectors.toList());
 
 				Optional<Entry<String, String>> extractionFormatForModality = extractionFormats.entrySet().stream()
 						.filter(ent -> ent.getKey().toLowerCase().contains(modality.value().toLowerCase())).findAny();
 
-				if (!extractionFormatForModality.isEmpty()) {
+				if (!extractionFormatForModality.isEmpty()&& !birTypesForModality.isEmpty()) {
 					Entry<String, String> format = extractionFormatForModality.get();
 					CompletableFuture<List<BIR>> extractTemplateFuture = biometricExtractionService.extractTemplate(
 							uinHash, fileName, format.getKey(), format.getValue(), birTypesForModality);

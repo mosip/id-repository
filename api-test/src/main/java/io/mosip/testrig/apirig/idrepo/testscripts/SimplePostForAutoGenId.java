@@ -34,9 +34,10 @@ import io.mosip.testrig.apirig.utils.AuthenticationTestException;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
 import io.mosip.testrig.apirig.utils.OutputValidationUtil;
 import io.mosip.testrig.apirig.utils.ReportUtil;
+import io.mosip.testrig.apirig.utils.SecurityXSSException;
 import io.restassured.response.Response;
 	
-	public class SimplePostForAutoGenId extends AdminTestUtil implements ITest {
+	public class SimplePostForAutoGenId extends IdRepoUtil implements ITest {
 		private static final Logger logger = Logger.getLogger(SimplePostForAutoGenId.class);
 		protected String testCaseName = "";
 		public String idKeyName = null;
@@ -86,7 +87,7 @@ import io.restassured.response.Response;
 		 */
 		@Test(dataProvider = "testcaselist")
 		public void test(TestCaseDTO testCaseDTO)
-				throws AuthenticationTestException, AdminTestException, NoSuchAlgorithmException {
+				throws AuthenticationTestException, AdminTestException, NoSuchAlgorithmException, SecurityXSSException {
 			testCaseName = testCaseDTO.getTestCaseName();
 			testCaseName = IdRepoUtil.isTestCaseValidForExecution(testCaseDTO);
 			if (HealthChecker.signalTerminateExecution) {
@@ -100,14 +101,11 @@ import io.restassured.response.Response;
 				}
 			}
 	
-			testCaseName = isTestCaseValidForExecution(testCaseDTO);
 			String[] templateFields = testCaseDTO.getTemplateFields();
 			String inputJson = "";
 	
 			inputJson = getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate());
-	
-			String outputJson = getJsonFromTemplate(testCaseDTO.getOutput(), testCaseDTO.getOutputTemplate());
-	
+		
 			if (testCaseDTO.getTemplateFields() != null && templateFields.length > 0) {
 				ArrayList<JSONObject> inputtestCases = AdminTestUtil.getInputTestCase(testCaseDTO);
 				ArrayList<JSONObject> outputtestcase = AdminTestUtil.getOutputTestCase(testCaseDTO);

@@ -46,6 +46,9 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.http.ResponseWrapper;
 
+import io.mosip.idrepository.core.builder.AuditRequestBuilder;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+
 @RunWith(SpringRunner.class)
 @WebMvcTest @Import(EnvUtil.class)
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class})
@@ -73,7 +76,12 @@ public class CredentialRequestServiceImplTest {
 	@Mock
 	private AuditHelper auditHelper;
 
+	@Mock
+	private IdRepoSecurityManager securityManager;
 
+	@Mock
+	private AuditRequestBuilder auditBuilder;
+	
 	@Before
 	public void setUp() {
 		Mockito.when(utilities.generateId()).thenReturn("123456");
@@ -116,6 +124,18 @@ public class CredentialRequestServiceImplTest {
 	}
 
 	@Test
+	public void createCredentialIssuanceByRid_withException() throws JsonProcessingException {
+		org.mockito.Mockito.doThrow(new RuntimeException("Unknown Error")).when(credentialDao).save(Mockito.any());
+		CredentialIssueRequest credentialIssueRequestDto=new CredentialIssueRequest();
+		credentialIssueRequestDto.setCredentialType("MOSIP");
+		credentialIssueRequestDto.setId("123");
+		credentialIssueRequestDto.setEncrypt(true);
+		Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenReturn(credentialIssueRequestDto.toString());
+		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto = credentialRequestServiceImpl.createCredentialIssuanceByRid(credentialIssueRequestDto,"123456");
+		assertEquals("unknown exception", credentialIssueResponseDto.getErrors().get(0).getMessage());
+	}
+
+	@Test
 	public void testDataAccessLayerExceptionForCreateCredential() throws JsonProcessingException {
 		org.mockito.Mockito.doThrow(new DataAccessLayerException("", "", new Throwable())).when(credentialDao).save(Mockito.any());
 		CredentialIssueRequest credentialIssueRequestDto=new CredentialIssueRequest();
@@ -126,6 +146,19 @@ public class CredentialRequestServiceImplTest {
 		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto=credentialRequestServiceImpl.createCredentialIssuance(credentialIssueRequestDto);
 		assertNotNull(credentialIssueResponseDto.getErrors().get(0));
 	}
+
+	@Test
+	public void createCredentialIssuance_withException() throws Exception {
+		org.mockito.Mockito.doThrow(new RuntimeException("Unknown error")).when(credentialDao).save(Mockito.any());
+		CredentialIssueRequest credentialIssueRequestDto=new CredentialIssueRequest();
+		credentialIssueRequestDto.setCredentialType("MOSIP");
+		credentialIssueRequestDto.setId("123");
+		credentialIssueRequestDto.setEncrypt(true);
+		Mockito.when(objectMapper.writeValueAsString(Mockito.any())).thenReturn(credentialIssueRequestDto.toString());
+		ResponseWrapper<CredentialIssueResponse> credentialIssueResponseDto = credentialRequestServiceImpl.createCredentialIssuance(credentialIssueRequestDto);
+		assertEquals("IDR-CRG-005", credentialIssueResponseDto.getErrors().get(0).getErrorCode());
+	}
+
 	@Test
 	public void testCancelCredentialIssuanceSuccess() throws IOException {
 		CredentialEntity credentialEntity=new CredentialEntity();

@@ -44,6 +44,8 @@ import java.util.stream.IntStream;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
+import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import io.mosip.idrepository.core.dto.DraftResponseDto;
 import io.mosip.idrepository.core.dto.DraftUinResponseDto;
 import org.hibernate.exception.JDBCConnectionException;
@@ -102,7 +104,6 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.InvalidJsonException;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
-
 /**
  * @author Manoj SP
  *
@@ -113,7 +114,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 
 	private static final Logger idrepoDraftLogger = IdRepoLogger.getLogger(IdRepoDraftServiceImpl.class);
 	private static final String COMMA = ",";
-
 	private static final String DEFAULT_ATTRIBUTE_LIST = "UIN,verifiedAttributes,IDSchemaVersion";
 
 	@Value("${" + MOSIP_KERNEL_IDREPO_JSON_PATH + "}")
@@ -269,15 +269,13 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	private void updateDemographicData(IdRequestDTO request, UinDraft draftToUpdate) throws JSONException, IdRepoAppException, IOException {
 		if (Objects.nonNull(request.getRequest()) && Objects.nonNull(request.getRequest().getIdentity())) {
 			RequestDTO requestDTO = request.getRequest();
-			Configuration configuration = Configuration.builder().options(Option.DEFAULT_PATH_LEAF_TO_NULL).build();
+			Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider()).mappingProvider(new JacksonMappingProvider()).build();
 			DocumentContext inputData = JsonPath.using(configuration).parse(requestDTO.getIdentity());
 			DocumentContext dbData = JsonPath.using(configuration).parse(new String(draftToUpdate.getUinData()));
 			JsonPath uinJsonPath = JsonPath.compile(uinPath.replace(ROOT_PATH, "$"));
-			inputData.set(uinJsonPath, dbData.read(uinJsonPath));
 			super.updateVerifiedAttributes(requestDTO, inputData, dbData);
 			JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(),
 					JSONCompareMode.LENIENT);
-
 			if (comparisonResult.failed()) {
 				super.updateJsonObject(draftToUpdate.getUinHash(), inputData, dbData, comparisonResult, false);
 			}
@@ -460,7 +458,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 		try {
 			Optional<UinDraft> draftOptional = uinDraftRepo.findByRegId(regId);
 			if (draftOptional.isPresent()) {
-				uinDraftRepo.delete(draftOptional.get());
+				uinDraftRepo.deleteByRegId(regId);
 				return constructIdResponse(null, "DISCARDED", null, null);
 			} else {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, UPDATE_DRAFT,

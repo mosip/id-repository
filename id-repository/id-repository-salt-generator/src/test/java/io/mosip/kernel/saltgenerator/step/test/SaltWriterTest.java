@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
@@ -25,6 +24,7 @@ import io.mosip.idrepository.saltgenerator.repository.idmap.VidHashSaltRepositor
 import io.mosip.idrepository.saltgenerator.repository.idrepo.IdentityEncryptSaltRepository;
 import io.mosip.idrepository.saltgenerator.repository.idrepo.IdentityHashSaltRepository;
 import io.mosip.idrepository.saltgenerator.step.SaltWriter;
+import org.springframework.batch.item.Chunk;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SaltWriterTest {
@@ -61,7 +61,7 @@ public class SaltWriterTest {
 		idRepoSaltEntitiesComposite.setVidHashSaltEntity(vidEntity);
 		idRepoSaltEntitiesComposite.setIdentityEncryptSaltEntity(idEncryptEntity);
 		idRepoSaltEntitiesComposite.setVidEncryptSaltEntity(vidEncryptEntity);
-		writer.write(Collections.singletonList(idRepoSaltEntitiesComposite));
+		writer.write(Chunk.of(idRepoSaltEntitiesComposite));
 		ArgumentCaptor<List<IdentityEncryptSaltEntity>> argCapture = ArgumentCaptor.forClass(List.class);
 		verify(identityEncryptSaltRepo).saveAll(argCapture.capture());
 		assertEquals(new IdentityEncryptSaltEntity(), argCapture.getValue().get(0));
@@ -70,12 +70,19 @@ public class SaltWriterTest {
 	@Test
 	public void testWriterRecordExists() throws Exception {
 		identityHashSaltRepo.countByIdIn(Mockito.any());
+		identityEncryptSaltRepo.countByIdIn(Mockito.any());
 		IdRepoSaltEntitiesComposite idRepoSaltEntitiesComposite = new IdRepoSaltEntitiesComposite();
 		IdentityHashSaltEntity entity = new IdentityHashSaltEntity();
 		entity.setId(1l);
+		IdentityEncryptSaltEntity identityEncryptSaltEntity = new IdentityEncryptSaltEntity();
+		idRepoSaltEntitiesComposite.setIdentityEncryptSaltEntity(identityEncryptSaltEntity);
 		idRepoSaltEntitiesComposite.setIdentityHashSaltEntity(entity);
+		VidHashSaltEntity vidHashSaltEntity = new VidHashSaltEntity();
+		idRepoSaltEntitiesComposite.setVidHashSaltEntity(vidHashSaltEntity);
+		VidEncryptSaltEntity vidEncryptSaltEntity = new VidEncryptSaltEntity();
+		idRepoSaltEntitiesComposite.setVidEncryptSaltEntity(vidEncryptSaltEntity);
 		when(identityHashSaltRepo.countByIdIn(Mockito.any())).thenReturn(1l);
-		writer.write(List.of(idRepoSaltEntitiesComposite));
+		writer.write(Chunk.of(idRepoSaltEntitiesComposite));
 	}
 
 }

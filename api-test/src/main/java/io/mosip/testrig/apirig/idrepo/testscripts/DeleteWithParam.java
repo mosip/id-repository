@@ -32,9 +32,10 @@ import io.mosip.testrig.apirig.utils.AuthenticationTestException;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
 import io.mosip.testrig.apirig.utils.OutputValidationUtil;
 import io.mosip.testrig.apirig.utils.ReportUtil;
+import io.mosip.testrig.apirig.utils.SecurityXSSException;
 import io.restassured.response.Response;
 
-public class DeleteWithParam extends AdminTestUtil implements ITest {
+public class DeleteWithParam extends IdRepoUtil implements ITest {
 	private static final Logger logger = Logger.getLogger(DeleteWithParam.class);
 	protected String testCaseName = "";
 	public Response response = null;
@@ -79,10 +80,9 @@ public class DeleteWithParam extends AdminTestUtil implements ITest {
 	 * @throws AdminTestException
 	 */
 	@Test(dataProvider = "testcaselist")
-	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException {
+	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
 		testCaseName = testCaseDTO.getTestCaseName();
 		testCaseName = IdRepoUtil.isTestCaseValidForExecution(testCaseDTO);
-		testCaseName = isTestCaseValidForExecution(testCaseDTO);
 		if (HealthChecker.signalTerminateExecution) {
 			throw new SkipException(
 					GlobalConstants.TARGET_ENV_HEALTH_CHECK_FAILED + HealthChecker.healthCheckFailureMapS);

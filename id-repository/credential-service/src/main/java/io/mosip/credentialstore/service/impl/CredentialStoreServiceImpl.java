@@ -197,7 +197,6 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			encodedData = CryptoUtil.encodeToURLSafeBase64(jsonData.getBytes());
 			if (policyDetailResponseDto.getPolicies() != null && policyDetailResponseDto.getPolicies().getDataSharePolicies().getTypeOfShare()
 					.equalsIgnoreCase(DATASHARE)) {
-
 				dataShare = dataShareUtil.getDataShare(jsonData.getBytes(), policyDetailResponseDto.getPolicyId(),
 						credentialServiceRequestDto.getIssuer(),
 						credentialServiceRequestDto.getRequestId());

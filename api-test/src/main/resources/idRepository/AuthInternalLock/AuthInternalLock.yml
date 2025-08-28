@@ -2,6 +2,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Uin_Demo_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock UIN for the auth type demo
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_01
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -19,12 +20,13 @@ AuthInternalLock:
     "unlockForSeconds": 0
 }'
       output: '{
-      "responsetime": "$IGNORE$"
 }'
 
   IdRepository_AuthInternalLock_Vid_Demo_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock VID for authtype demo
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_02
+      
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -47,6 +49,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Uin_FACE_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock UIN for authtype Bio face
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_03
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -64,12 +67,12 @@ AuthInternalLock:
   "requestTime": "$TIMESTAMP$"
 }'
       output: '{
-      "responsetime": "$IGNORE$"
 }'
 
   IdRepository_AuthInternalLock_Vid_FACE_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock VID for authtype  bio face
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_04
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -92,6 +95,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Uin_IRIS_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock UIN for authtype Bio Iris
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_05
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -114,6 +118,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Vid_IRIS_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock VID for authtype Bio Iris
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_06
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -136,6 +141,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Uin_FINGER_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock UIN for authtype Bio Finger
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_07
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -158,6 +164,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Vid_FINGER_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock UIN for authtype Bio Finger
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_08
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -180,6 +187,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Uin_email_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock UIN for authtype Email
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_09
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -202,6 +210,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Vid_email_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock VID for authtype Email
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_10
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -224,6 +233,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Uin_phone_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock UIN for authtype Phone
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_11
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -246,6 +256,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Vid_phone_Smoke_Pos:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock VID for authtype phone
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_12
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
@@ -268,6 +279,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Uin_Empty_Authtype:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock UIN without passing any auth type
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_13
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
@@ -294,6 +306,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Vid_Empty_Authtype:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock VID passing auth type empty
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_14
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
@@ -320,6 +333,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Uin_Empty_authSubType:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock UIN passing empty value in auth subtype
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_15
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
@@ -346,6 +360,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Vid_Empty_authSubType:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock VID passing empty value in auth subtype
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_16
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
@@ -372,6 +387,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Uin_Empty_locked:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock UIN passing empty value in lock field
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_17
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
@@ -398,6 +414,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Vid_Empty_locked:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Auth lock VID passing empty value in lock field
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_18
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
@@ -424,6 +441,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Uin_Empty_id:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock UIN passing empty value in the ID
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_19
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
@@ -450,6 +468,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Vid_Empty_id:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock VID passing empty value in ID
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_20
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
@@ -476,6 +495,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Uin_Empty_version:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock UIN passing empty version
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_21
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
@@ -502,6 +522,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Vid_Empty_version:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock VID passing empty version
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_22
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
@@ -528,6 +549,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Uin_Empty_requestTime:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock UIN passing empty request time
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_23
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
@@ -554,6 +576,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Vid_Empty_requestTime:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock VID passing empty request time
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_24
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
@@ -580,6 +603,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Uin_Empty_individualId:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock UIN passing empty individaual ID
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_25
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
@@ -606,6 +630,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Vid_Empty_individualId:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock VID passing empty individual ID
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_26
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
@@ -632,6 +657,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Uin_Empty_individualIdType:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock UIN passing empty individual type
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_27
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
@@ -658,6 +684,7 @@ AuthInternalLock:
   IdRepository_AuthInternalLock_Vid_Empty_individualIdType:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock VID passing empty individual ID type
+      uniqueIdentifier: TC_IDRepo_AuthInternalock_28
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/AuthInternalLock/authInternalLock

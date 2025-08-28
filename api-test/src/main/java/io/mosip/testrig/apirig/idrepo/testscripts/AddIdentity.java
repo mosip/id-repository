@@ -29,6 +29,7 @@ import org.testng.internal.TestResult;
 
 import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
+import io.mosip.testrig.apirig.idrepo.utils.IdRepoArrayHandle;
 import io.mosip.testrig.apirig.idrepo.utils.IdRepoConfigManager;
 import io.mosip.testrig.apirig.idrepo.utils.IdRepoUtil;
 import io.mosip.testrig.apirig.testrunner.BaseTestCase;
@@ -43,9 +44,10 @@ import io.mosip.testrig.apirig.utils.KeycloakUserManager;
 import io.mosip.testrig.apirig.utils.OutputValidationUtil;
 import io.mosip.testrig.apirig.utils.ReportUtil;
 import io.mosip.testrig.apirig.utils.RestClient;
+import io.mosip.testrig.apirig.utils.SecurityXSSException;
 import io.restassured.response.Response;
 
-public class AddIdentity extends AdminTestUtil implements ITest {
+public class AddIdentity extends IdRepoUtil implements ITest {
 	private static final Logger logger = Logger.getLogger(AddIdentity.class);
 	protected String testCaseName = "";
 	public Response response = null;
@@ -89,7 +91,7 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 	 * @throws AdminTestException
 	 */
 	@Test(dataProvider = "testcaselist")
-	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException {
+	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
 		testCaseName = testCaseDTO.getTestCaseName();
 		testCaseName = IdRepoUtil.isTestCaseValidForExecution(testCaseDTO);
 		if (HealthChecker.signalTerminateExecution) {
@@ -103,8 +105,6 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 								MediaType.APPLICATION_JSON, COOKIENAME,
 								new KernelAuthentication().getTokenByRole(testCaseDTO.getRole())).asString(),
 						"response.uin");
-
-		testCaseName = isTestCaseValidForExecution(testCaseDTO);
 
 		DateFormat dateFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
 		Calendar cal = Calendar.getInstance();
@@ -144,7 +144,7 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 		
 		JSONObject jsonString = new JSONObject(inputJson);
 		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {
-			inputJson = replaceArrayHandleValues(inputJson,testCaseName);
+			inputJson = IdRepoArrayHandle.replaceArrayHandleValues(inputJson,testCaseName);
 		}
 		if (testCaseName.contains("_withInvalidEmail") || testCaseName.contains("_invalid_Email")) {
 			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "@#$DDFFGG");
@@ -160,7 +160,7 @@ public class AddIdentity extends AdminTestUtil implements ITest {
 		inputJson = inputJson.replace("$RID$", genRid);
 		String phoneNumber = "";
 		String email = testCaseName +"@mosip.net";
-		if (inputJson.contains("$PHONENUMBERFORIDENTITY$")) {
+		if (inputJson.contains("$PHONENUMBERFORIDENTITY$")||inputJson.contains("$EMAILVALUE$")) {
 			if (!phoneSchemaRegex.isEmpty())
 				try {
 					phoneNumber = genStringAsperRegex(phoneSchemaRegex);

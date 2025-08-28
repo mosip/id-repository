@@ -2,7 +2,8 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_DEACTIVATED_all_valid_smoke:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing the status deactivated
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_01
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
       outputTemplate: idRepository/UpdateIdentity/updateIdentityResult
@@ -20,7 +21,8 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_ACTIVATED_all_valid_smoke:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing valid values
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_02
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
       outputTemplate: idRepository/UpdateIdentity/updateIdentityResult
@@ -38,7 +40,8 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Invalid_version:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing invalid version
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_03
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
       outputTemplate: idRepository/error
@@ -62,7 +65,8 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Empty_version:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing empty version
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_04
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
       outputTemplate: idRepository/error
@@ -86,7 +90,8 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Space_version:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing space in version field
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_05
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
       outputTemplate: idRepository/error
@@ -110,7 +115,8 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Invalid_requestTime:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing invalid request time
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_06
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
       outputTemplate: idRepository/error
@@ -134,7 +140,8 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Empty_requestTime:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing empty requesttime
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_07
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
       outputTemplate: idRepository/error
@@ -149,8 +156,7 @@ UpdateIdentity:
       output: '{
    "errors": [
     {
-      "errorCode": "IDR-IDC-001",
-      "message": "$IGNORE$"
+      "errorCode": "IDR-IDC-001"
     }
   ]
 }'
@@ -158,7 +164,8 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_SpaceVal_requestTime:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing space value in request time
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_08
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
       outputTemplate: idRepository/error
@@ -173,8 +180,7 @@ UpdateIdentity:
       output: '{
    "errors": [
     {
-      "errorCode": "IDR-IDC-001",
-      "message": "$IGNORE$"
+      "errorCode": "IDR-IDC-001"
     }
   ]
 }'
@@ -182,7 +188,8 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Past_requestTime:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing past request time
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_09
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
       outputTemplate: idRepository/error
@@ -206,7 +213,8 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Future_requestTime:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing future request time
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_10
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
       outputTemplate: idRepository/error
@@ -230,7 +238,8 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Missing_registrationId:
       endPoint: /idrepository/v1/identity/
       description: Update Identity without adding RID field
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_11
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
       outputTemplate: idRepository/error
@@ -253,7 +262,8 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Missing_version:
       endPoint: /idrepository/v1/identity/
       description: Update Identity removing version field
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_12
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
       outputTemplate: idRepository/error
@@ -276,7 +286,8 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_Missing_requestTime:
       endPoint: /idrepository/v1/identity/
       description: Update Identity without passing request time
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_13
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
       outputTemplate: idRepository/error
@@ -299,7 +310,8 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_invalid_dob:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing invalid DOB
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_14
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
       outputTemplate: idRepository/error
@@ -322,7 +334,8 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_invalid_phonenumber:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing invalid phonenumber
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_15
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentityInvalid
       outputTemplate: idRepository/error
@@ -346,7 +359,8 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_invalid_email:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing invalid email
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_16
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentityInvalid
       outputTemplate: idRepository/error
@@ -372,7 +386,8 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_DEACTIVATED_Full_all_valid_smoke:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing status as deactivated
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_17
+      role: testrig
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentity/updateIdentity
       outputTemplate: idRepository/UpdateIdentity/updateIdentityResult

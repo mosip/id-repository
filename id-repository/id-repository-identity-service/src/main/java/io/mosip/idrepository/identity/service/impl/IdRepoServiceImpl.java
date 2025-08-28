@@ -283,6 +283,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			JsonNode docType = identityObject.get(doc.getCategory());
 			try {
 				if (bioAttributes.contains(doc.getCategory())) {
+					//print doc get category
+					mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, "Document Category: " + doc.getCategory());
 					addBiometricDocuments(uinHash, uinRefId, bioList, doc, docType, isDraft, index);
 					anonymousProfileHelper.setNewCbeff(doc.getValue());
 				} else {
@@ -308,14 +310,15 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	private void addBiometricDocuments(String uinHash, String uinRefId, List<UinBiometric> bioList, DocumentsDTO doc,
 			JsonNode docType, boolean isDraft, int index) throws IdRepoAppException {
 		byte[] data = null;
-		String fileRefId = UUIDUtils
-				.getUUID(UUIDUtils.NAMESPACE_OID,
-						docType.get(FILE_NAME_ATTRIBUTE).asText() + SPLITTER + DateUtils.getUTCCurrentDateTime())
-				.toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
+		String fileRefId = getFileRefId(docType);
 
 		data = CryptoUtil.decodeURLSafeBase64(doc.getValue());
+		//print doc.getvalue
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "addBiometricDocuments", "Document Value: " + doc.getValue());
 		try {
 			cbeffUtil.validateXML(data);
+			//print data
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "addBiometricDocuments", "Data: " + new String(data));
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "addBiometricDocuments", e.getMessage());
 			throw new IdRepoAppUncheckedException(INVALID_INPUT_PARAMETER.getErrorCode(),
@@ -346,10 +349,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 */
 	private void addDemographicDocuments(String uinHash, String uinRefId, List<UinDocument> docList, DocumentsDTO doc,
 			JsonNode docType, boolean isDraft) throws IdRepoAppException {
-		String fileRefId = UUIDUtils
-				.getUUID(UUIDUtils.NAMESPACE_OID,
-						docType.get(FILE_NAME_ATTRIBUTE).asText() + SPLITTER + DateUtils.getUTCCurrentDateTime())
-				.toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
+		String fileRefId = getFileRefId(docType);
 
 		byte[] data = CryptoUtil.decodeURLSafeBase64(doc.getValue());
 		objectStoreHelper.putDemographicObject(uinHash, fileRefId, data);
@@ -989,5 +989,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						"Record successfully saved in db");
 			}
 		}
+	}
+	private String getFileRefId(JsonNode docType) {
+		return UUID.randomUUID().toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
 	}
 }

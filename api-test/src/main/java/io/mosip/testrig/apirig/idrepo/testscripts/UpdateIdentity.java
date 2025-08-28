@@ -31,14 +31,14 @@ import io.mosip.testrig.apirig.idrepo.utils.IdRepoUtil;
 import io.mosip.testrig.apirig.testrunner.BaseTestCase;
 import io.mosip.testrig.apirig.testrunner.HealthChecker;
 import io.mosip.testrig.apirig.utils.AdminTestException;
-import io.mosip.testrig.apirig.utils.AdminTestUtil;
 import io.mosip.testrig.apirig.utils.AuthenticationTestException;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
 import io.mosip.testrig.apirig.utils.OutputValidationUtil;
 import io.mosip.testrig.apirig.utils.ReportUtil;
+import io.mosip.testrig.apirig.utils.SecurityXSSException;
 import io.restassured.response.Response;
 
-public class UpdateIdentity extends AdminTestUtil implements ITest {
+public class UpdateIdentity extends IdRepoUtil implements ITest {
 	private static final Logger logger = Logger.getLogger(UpdateIdentity.class);
 	protected String testCaseName = "";
 	private static String identity;
@@ -89,14 +89,14 @@ public class UpdateIdentity extends AdminTestUtil implements ITest {
 	 * @throws AdminTestException
 	 */
 	@Test(dataProvider = "testcaselist")
-	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException {
+	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
 		testCaseName = testCaseDTO.getTestCaseName();
 		testCaseName = IdRepoUtil.isTestCaseValidForExecution(testCaseDTO);
 		updateIdentity(testCaseDTO);
 
 	}
 
-	public void updateIdentity(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException {
+	public void updateIdentity(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
 
 		testCaseName = testCaseDTO.getTestCaseName();
 		if (HealthChecker.signalTerminateExecution) {
@@ -144,8 +144,6 @@ public class UpdateIdentity extends AdminTestUtil implements ITest {
 
 		String inputJson = getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate());
 
-		JSONObject reqJsonObject = new JSONObject(inputJson);
-
 		
 
 		String phone = getValueFromAuthActuator("json-property", "phone_number");
@@ -163,7 +161,7 @@ public class UpdateIdentity extends AdminTestUtil implements ITest {
 		inputJson = inputJson.replace("$RID$", genRid);
 
 		if ((testCaseName.startsWith("IdRepository_") || testCaseName.startsWith("Auth_"))
-				&& inputJson.contains("dateOfBirth") && (!isElementPresent(new JSONArray(schemaRequiredField), dob))) {
+				&& inputJson.contains("dateOfBirth") && (!isElementPresent(globalRequiredFields, dob))) {
 			JSONObject reqJson = new JSONObject(inputJson);
 			reqJson.getJSONObject("request").getJSONObject("identity").remove("dateOfBirth");
 			inputJson = reqJson.toString();
@@ -173,7 +171,7 @@ public class UpdateIdentity extends AdminTestUtil implements ITest {
 
 		if ((testCaseName.startsWith("IdRepository_") || testCaseName.startsWith("Auth_"))
 				&& inputJson.contains("email")
-				&& (!isElementPresent(new JSONArray(schemaRequiredField), emailResult))) {
+				&& (!isElementPresent(globalRequiredFields, emailResult))) {
 			JSONObject reqJson = new JSONObject(inputJson);
 			reqJson.getJSONObject("request").getJSONObject("identity").remove(emailResult);
 			if (reqJson.getJSONObject("request").getJSONObject("identity").has(result)) {

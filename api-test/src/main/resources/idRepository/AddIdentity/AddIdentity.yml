@@ -2,7 +2,8 @@ AddIdentity:
    IdRepository_AddIdentity_withValidParameters_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity with valid parameters
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_01
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -36,7 +37,8 @@ AddIdentity:
    IdRepository_AddIdentity_ValidParam_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity with valid parameters
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_02
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -70,7 +72,8 @@ AddIdentity:
    IdRepository_AddIdentity_Positive_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity with valid parameters
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_03
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -104,7 +107,8 @@ AddIdentity:
    IdRepository_AddIdentity_Positive_PEXP_smoke:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing valid parameters
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_04
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -139,7 +143,8 @@ AddIdentity:
    IdRepository_AddIdentity_Positive_PDEA_smoke:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing valid parameters
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_05
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -174,7 +179,8 @@ AddIdentity:
    IdRepository_AddIdentity_Positive_TDEA_smoke:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing valid parameters
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_06
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -208,7 +214,8 @@ AddIdentity:
    IdRepository_AddIdentity_Positive_PRE_smoke:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing valid parameters
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_07
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -242,7 +249,8 @@ AddIdentity:
    IdRepository_AddIdentity_Positive_TRE_smoke:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing valid parameters
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_08
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -276,7 +284,8 @@ AddIdentity:
    IdRepository_AddIdentity_withinvalid_UIN:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing invalid UIN
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_09
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -315,7 +324,8 @@ AddIdentity:
    IdRepository_AddIdentity_withInvalidVersion:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing invalid versions
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_10
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -355,7 +365,8 @@ AddIdentity:
    IdRepository_AddIdentity_with_Empty_Version:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing empty version
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_11
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -394,7 +405,8 @@ AddIdentity:
    IdRepository_AddIdentity_with_Spaceval_Version:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing space value in version
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_12
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -433,7 +445,8 @@ AddIdentity:
    IdRepository_AddIdentity_withInvalidDOB:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing invalid DOB
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_13
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -473,7 +486,8 @@ AddIdentity:
    IdRepository_AddIdentity_with_Missing_DOB:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity by removing DOB field
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_14
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -512,7 +526,8 @@ AddIdentity:
    IdRepository_AddIdentity_with_Empty_DOB:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing empty DOB field
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_15
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -551,7 +566,8 @@ AddIdentity:
    IdRepository_AddIdentity_with_Spaceval_DOB:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing space value in DOB
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_16
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -590,7 +606,8 @@ AddIdentity:
    IdRepository_AddIdentity_withInvalidEmail:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing invalid email
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_17
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -629,7 +646,8 @@ AddIdentity:
    IdRepository_AddIdentity_withMissingVersion:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity removing version field
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_18
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -668,7 +686,8 @@ AddIdentity:
    IdRepository_AddIdentity_with_Missing_phone:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity removing phone field
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_19
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -703,7 +722,8 @@ AddIdentity:
    IdRepository_AddIdentity_with_invalid_Email:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing invalid Email
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_20
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -741,7 +761,8 @@ AddIdentity:
    IdRepository_AddIdentity_with_Missing_Email:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity removing Email field
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_21
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -776,7 +797,8 @@ AddIdentity:
    IdRepository_AddIdentity_with_Empty_Email:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing empty email
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_22
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -815,7 +837,8 @@ AddIdentity:
    IdRepository_AddIdentity_with_SpaceVal_Email:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing space value in email
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_23
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -854,7 +877,8 @@ AddIdentity:
    IdRepository_AddIdentity_with_Invalid_BioVal_Neg:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing invalid bio value
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_24
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -893,7 +917,8 @@ AddIdentity:
    IdRepository_AddIdentity_with_Invalid_Past_Timestamp_Neg:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing invalid past timestamp
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_25
+      role: testrig
       checkErrorsOnlyInResponse: true
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -933,7 +958,8 @@ AddIdentity:
    IdRepository_AddIdentity_with_Invalid_Future_Timestamp_Neg:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing invalid future timestamp
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_26
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -972,7 +998,8 @@ AddIdentity:
    IdRepository_AddIdentity_with_Invalid_Timestamp_Neg:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing invalid timestamp
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_27
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -1011,7 +1038,8 @@ AddIdentity:
    IdRepository_AddIdentity_with_Empty_Timestamp_Neg:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing empty timestamp
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_28
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -1049,7 +1077,8 @@ AddIdentity:
    IdRepository_AddIdentity_with_Missing_Timestamp_Neg:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity removing timestamp field
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_29
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -1087,7 +1116,8 @@ AddIdentity:
    IdRepository_AddIdentity_with_Invalid_Spaceval_Timestamp_Neg:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing space value in request time
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_30
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -1126,7 +1156,8 @@ AddIdentity:
    IdRepository_AddIdentity_For_Onetimeusevid_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing onetimeuse VID
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_31
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -1161,7 +1192,8 @@ AddIdentity:
    IdRepository_AddIdentity_For_NewScen_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity passing space value in DOB
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_32
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -1196,7 +1228,8 @@ AddIdentity:
    IdRepository_AddIdentity_For_DeactivateScen_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity for deactivated value
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_33
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -1231,7 +1264,8 @@ AddIdentity:
    IdRepository_AddIdentity_AuthStatus_Validd_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity for valid Auth status
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_34
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -1266,7 +1300,8 @@ AddIdentity:
    IdRepository_AddIdentity_AuthStatus_NegScen_Valid_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity for negative scenario
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_35
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -1301,7 +1336,8 @@ AddIdentity:
    IdRepository_AddIdentity_AuthStatus_Vid_Valid_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity for Auth status VID
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_36
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -1336,7 +1372,8 @@ AddIdentity:
    IdRepository_AddIdentity_AuthStatus_Vid_NegScen_Valid_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity for negative scenario
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_37
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -1371,7 +1408,8 @@ AddIdentity:
    IdRepository_AddIdentity_UpdateCount_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add identity for update count
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_38
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -1406,7 +1444,8 @@ AddIdentity:
    IdRepository_AddIdentity_UpdateCount_Vid_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add identity for update count
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_39
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult
@@ -1440,7 +1479,8 @@ AddIdentity:
    IdRepository_AddIdentity_WITH_biometricReferenceId_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add identity with biometric ref id
-      role: idrepo
+      uniqueIdentifier: TC_IDRepo_AddIdentity_40
+      role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/AddIdentity/addIdentityResult

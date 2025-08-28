@@ -10,7 +10,9 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.FILE_STOR
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
+import io.mosip.kernel.core.logger.spi.Logger;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Component;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
@@ -57,6 +60,9 @@ public class ObjectStoreHelper {
 	private String objectStoreAdapterName;
 	
 	private ObjectStoreAdapter objectStore;
+
+	/** The mosip logger. */
+	private Logger mosipLogger = IdRepoLogger.getLogger(ObjectStoreHelper.class);
 
 	@Autowired
 	public void setObjectStore(ApplicationContext context) {
@@ -113,10 +119,14 @@ public class ObjectStoreHelper {
 			throws IdRepoAppException {
 		try {
 			String objectName = uinHash + SLASH + (isBio ? BIOMETRICS : DEMOGRAPHICS) + SLASH + fileRefId;
-			objectStore.putObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName,
-					new ByteArrayInputStream(securityManager.encrypt(data, refId)));
+			long encryptStartTime = System.currentTimeMillis();
+			InputStream encryptData = new ByteArrayInputStream(securityManager.encrypt(data, refId));
+			long startTime = System.currentTimeMillis();
+			objectStore.putObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName, encryptData);
 		} catch (AmazonS3Exception | FSAdapterException e) {
 			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR, e);
+		} catch (Throwable e) {
+			mosipLogger.error("Exception in connection>>>", e);
 		}
 	}
 

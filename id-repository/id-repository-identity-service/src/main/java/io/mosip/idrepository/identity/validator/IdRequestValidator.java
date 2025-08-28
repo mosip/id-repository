@@ -12,12 +12,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
+
+import io.mosip.kernel.core.http.RequestWrapper;
+import io.mosip.idrepository.core.dto.IdRequestByIdDTO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -145,7 +149,8 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 */
 	@Override
 	public boolean supports(Class<?> clazz) {
-		return clazz.isAssignableFrom(IdRequestDTO.class) || clazz.isAssignableFrom(AuthTypeStatusRequestDto.class);
+		return clazz.isAssignableFrom(IdRequestDTO.class) || clazz.isAssignableFrom(AuthTypeStatusRequestDto.class) || clazz.isAssignableFrom(RequestWrapper.class)
+					|| clazz.isAssignableFrom(IdRequestByIdDTO.class);
 	}
 
 	/*
@@ -236,7 +241,8 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 							String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), ROOT_PATH));
 				} else {
 					validateDocuments(requestMap, errors);
-					requestMap.keySet().parallelStream().filter(key -> !key.contentEquals(ROOT_PATH)).forEach(requestMap::remove);
+					Set<String> keysToRemove =  requestMap.keySet().stream().filter(key -> !key.contentEquals(ROOT_PATH)).collect(Collectors.toSet());
+					keysToRemove.forEach(requestMap::remove);
 					if (!errors.hasErrors()) {
 						String schemaVersion;
 						if (requestMap.get(ROOT_PATH) != null) {

@@ -9,6 +9,8 @@ public enum ApiName {
 
 	/** The idrepogetidbyuin. */
 	IDREPOGETIDBYID,
+
+	IDREPORETRIEVEIDBYID,
 	/** The createdatashare. */
 	CREATEDATASHARE,
 	

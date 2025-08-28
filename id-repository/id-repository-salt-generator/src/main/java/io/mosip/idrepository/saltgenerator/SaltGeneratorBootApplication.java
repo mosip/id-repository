@@ -1,11 +1,15 @@
 package io.mosip.idrepository.saltgenerator;
 
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import io.mosip.idrepository.saltgenerator.logger.SaltGeneratorLogger;
+import io.mosip.idrepository.saltgenerator.service.SaltGenerator;
+import io.mosip.kernel.core.logger.spi.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.actuate.autoconfigure.scheduling.ScheduledTasksEndpointAutoConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
 
 /**
  * The Class SaltGeneratorBootApplication - Salt generator Job is a
@@ -13,10 +17,14 @@ import org.springframework.context.ApplicationContext;
  *
  * @author Manoj SP
  */
-@SpringBootApplication
-@EnableBatchProcessing
-@EnableAutoConfiguration(exclude={ScheduledTasksEndpointAutoConfiguration.class})  
-public class SaltGeneratorBootApplication {
+@ComponentScan(basePackages={"io.mosip.idrepository.saltgenerator.*"})
+@SpringBootApplication(exclude = {BatchAutoConfiguration.class})
+public class SaltGeneratorBootApplication implements CommandLineRunner {
+
+	Logger mosipLogger = SaltGeneratorLogger.getLogger(SaltGeneratorBootApplication.class);
+
+	@Autowired
+	private SaltGenerator saltGenerator;
 
 	/**
 	 * The main method.
@@ -27,6 +35,14 @@ public class SaltGeneratorBootApplication {
 		ApplicationContext applicationContext = SpringApplication.run(SaltGeneratorBootApplication.class,
 				args);
 		SpringApplication.exit(applicationContext);
+	}
+
+	@Override
+	public void run(String... args) throws Exception {
+		mosipLogger.info(" started......");
+		saltGenerator.start();
+		mosipLogger.info("  Completed......");
+
 	}
 
 }

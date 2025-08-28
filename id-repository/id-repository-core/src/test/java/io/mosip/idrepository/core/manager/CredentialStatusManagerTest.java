@@ -2,6 +2,8 @@ package io.mosip.idrepository.core.manager;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.CREDENTIAL_STATUS_UPDATE_TOPIC;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -114,20 +116,52 @@ public class CredentialStatusManagerTest {
 		credentialStatusManager.triggerEventNotifications();
 
 		CredentialStatusManager credentialStatusManagerSpy = Mockito.spy(credentialStatusManager);
-		Mockito.doReturn("1122").when(credentialStatusManagerSpy).decryptId(Mockito.any());
+		Mockito.doReturn("1122").when(credentialStatusManagerSpy).decryptId(any());
 		ReflectionTestUtils.invokeMethod(credentialStatusManagerSpy, "handleDeletedRequests");
 
-		Mockito.doReturn("1122").when(credentialStatusManagerSpy).decryptId(Mockito.any());
+		Mockito.doReturn("1122").when(credentialStatusManagerSpy).decryptId(any());
 		credentialStatusManagerSpy.handleNewOrUpdatedRequests();
 
 		List<CredentialRequestStatus> expiredIssueRequestList = new ArrayList<>();
 		CredentialRequestStatus credentialRequestStatus = new CredentialRequestStatus();
 		expiredIssueRequestList.add(credentialRequestStatus);
-		Mockito.when(statusRepo.findByIdExpiryTimestampBefore(Mockito.any())).thenReturn(expiredIssueRequestList);
+		Mockito.when(statusRepo.findByIdExpiryTimestampBefore(any())).thenReturn(expiredIssueRequestList);
 		credentialStatusManager.triggerEventNotifications();
 
 		Mockito.doThrow(Exception.class).when(credentialStatusManagerSpy);
 		ReflectionTestUtils.invokeMethod(credentialStatusManagerSpy, "handleExpiredRequests");
+	}
+
+	@Test
+	public void handleNewOrUpdatedRequests_NotifyCredentialManagerForNewRequests() throws IdRepoAppException {
+		List<CredentialRequestStatus> deletedIssueRequestList = new ArrayList<CredentialRequestStatus>();
+		CredentialRequestStatus req = new CredentialRequestStatus();
+		req.setIndividualId("12");
+		req.setPartnerId("33");
+		req.setStatus("Success");
+		req.setTokenId("132");
+		req.setRequestId("22");
+		deletedIssueRequestList.add(req);
+		Mockito.when(statusRepo.findByStatus(any(), anyInt()))
+				.thenReturn(deletedIssueRequestList);
+		credentialStatusManager.triggerEventNotifications();
+
+		CredentialStatusManager credentialStatusManagerSpy = Mockito.spy(credentialStatusManager);
+		Mockito.doReturn("1122").when(credentialStatusManagerSpy).decryptId(any());
+		ReflectionTestUtils.invokeMethod(credentialStatusManagerSpy, "handleDeletedRequests");
+
+		Mockito.doReturn("1122").when(credentialStatusManagerSpy).decryptId(any());
+		credentialStatusManagerSpy.handleNewOrUpdatedRequests();
+
+		List<CredentialRequestStatus> expiredIssueRequestList = new ArrayList<>();
+		CredentialRequestStatus credentialRequestStatus = new CredentialRequestStatus();
+		expiredIssueRequestList.add(credentialRequestStatus);
+		Mockito.when(statusRepo.findByIdExpiryTimestampBefore(any())).thenReturn(expiredIssueRequestList);
+		credentialStatusManager.triggerEventNotifications();
+
+		Mockito.doThrow(Exception.class).when(credentialStatusManagerSpy);
+		ReflectionTestUtils.invokeMethod(credentialStatusManagerSpy, "handleExpiredRequests");
+		Mockito.verify(statusRepo, Mockito.times(3)).findByStatus(any(), anyInt());
 	}
 
 	/**
@@ -150,7 +184,7 @@ public class CredentialStatusManagerTest {
 		credentialStatusManager.handleNewOrUpdatedRequests();
 
 		CredentialStatusManager credentialStatusManagerSpy = Mockito.spy(credentialStatusManager);
-		Mockito.doReturn("1122").when(credentialStatusManagerSpy).decryptId(Mockito.any());
+		Mockito.doReturn("1122").when(credentialStatusManagerSpy).decryptId(any());
 		credentialStatusManagerSpy.handleNewOrUpdatedRequests();
 	}
 
@@ -166,12 +200,12 @@ public class CredentialStatusManagerTest {
 
 		credentialRequestStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
 		Optional<CredentialRequestStatus> idWithDummyPartnerOptional = Optional.of(credentialRequestStatus);
-		Mockito.when(statusRepo.findByIndividualIdHashAndPartnerId(Mockito.any(), Mockito.any())).thenReturn(idWithDummyPartnerOptional);
+		Mockito.when(statusRepo.findByIndividualIdHashAndPartnerId(any(), any())).thenReturn(idWithDummyPartnerOptional);
 		credentialStatusManager.deleteDummyPartner(credentialRequestStatus);
 
 		credentialRequestStatus.setStatus(CredentialRequestStatusLifecycle.FAILED.toString());
         idWithDummyPartnerOptional = Optional.of(credentialRequestStatus);
-		Mockito.when(statusRepo.findByIndividualIdHashAndPartnerId(Mockito.any(), Mockito.any())).thenReturn(idWithDummyPartnerOptional);
+		Mockito.when(statusRepo.findByIndividualIdHashAndPartnerId(any(), any())).thenReturn(idWithDummyPartnerOptional);
 		credentialStatusManager.deleteDummyPartner(credentialRequestStatus);
 	}
 
@@ -197,11 +231,11 @@ public class CredentialStatusManagerTest {
 		credentialStatusManager.credentialRequestResponseConsumer(request, response);
 
 		CredentialStatusManager credentialStatusManagerSpy = Mockito.spy(credentialStatusManager);
-		Mockito.doReturn("value1").when(credentialStatusManagerSpy).encryptId(Mockito.any());
+		Mockito.doReturn("value1").when(credentialStatusManagerSpy).encryptId(any());
 		credentialStatusManagerSpy.credentialRequestResponseConsumer(request, response);
 
 		CredentialIssueResponse credResponse = new CredentialIssueResponse();
-		Mockito.when(mapper.convertValue((Object) Mockito.any(), (Class<Object>) Mockito.any())).thenReturn(credResponse);
+		Mockito.when(mapper.convertValue((Object) any(), (Class<Object>) any())).thenReturn(credResponse);
 		credentialStatusManagerSpy.credentialRequestResponseConsumer(request, response);
 
 		additionalData.put("transaction_limit", 3);
@@ -212,7 +246,7 @@ public class CredentialStatusManagerTest {
 
 		CredentialRequestStatus credentialRequestStatus = new CredentialRequestStatus();
 		Optional<CredentialRequestStatus> credStatusOptional = Optional.of(credentialRequestStatus);
-		Mockito.when(statusRepo.findByIndividualIdHashAndPartnerId(Mockito.any(), Mockito.any())).thenReturn(credStatusOptional);
+		Mockito.when(statusRepo.findByIndividualIdHashAndPartnerId(any(), any())).thenReturn(credStatusOptional);
 		credentialStatusManager.credentialRequestResponseConsumer(request, response);
 
 		additionalData.remove("transaction_limit", 3);
@@ -240,7 +274,7 @@ public class CredentialStatusManagerTest {
 		List<CredentialRequestStatus> credStatusList = new ArrayList<>();
 		CredentialRequestStatus credentialRequestStatus = new CredentialRequestStatus();
 		credStatusList.add(credentialRequestStatus);
-		Mockito.when(statusRepo.findByIndividualIdHash(Mockito.any())).thenReturn(credStatusList);
+		Mockito.when(statusRepo.findByIndividualIdHash(any())).thenReturn(credStatusList);
 		credentialStatusManager.idaEventConsumer(eventModel);
 	}
 
@@ -262,7 +296,7 @@ public class CredentialStatusManagerTest {
 				.thenReturn(deletedIssueRequestList);
 
 		CredentialStatusManager credentialStatusManagerSpy = Mockito.spy(credentialStatusManager);
-		Mockito.doReturn("1122").when(credentialStatusManagerSpy).decryptId(Mockito.any());
+		Mockito.doReturn("1122").when(credentialStatusManagerSpy).decryptId(any());
 		ReflectionTestUtils.invokeMethod(credentialStatusManagerSpy, "handleDeletedRequests");
 	}
 

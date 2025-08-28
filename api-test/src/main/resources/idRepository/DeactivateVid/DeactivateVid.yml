@@ -2,6 +2,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_Smoke_Pos:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate VID passing valid UIN
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_01
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -19,6 +20,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_Deactivated_Uin_Smoke_Pos:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate UIN passing deactivated UIN
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_02
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -40,6 +42,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_Onetime_Smoke_Pos:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate onetimeuse VID passing valid UIN
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_03
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -57,6 +60,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_Invalid_ID_Neg:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate VID passing invalid ID
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_04
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -77,6 +81,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_Missing_ID_Neg:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate VID removing ID field
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_05
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -98,6 +103,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_Empty_ID_Neg:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate VID passing empty ID
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_06
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -119,6 +125,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_SpaceVal_ID_Neg:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate VID passing space in ID field
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_07
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -141,6 +148,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_Missing_UIN_Neg:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate VID removing UIN field
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_08
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -162,6 +170,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_Invalid_UIN_Neg:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate VID passing invalid UIN
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_09
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -183,6 +192,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_Empty_UIN_Neg:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate VID passing empty UIN
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_10
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -204,6 +214,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_SpaceVal_UIN_Neg:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate VID passing space in UIN field
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_11
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -225,6 +236,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_Invalid_Timestamp_Neg:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate VID passing invalid timestamp
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_12
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -244,7 +256,8 @@ DeactivateVIDs:
 }'
   IdRepository_DeactivateVIDs_Blank_Timestamp_Neg:
       endPoint: /idrepository/v1/vid/deactivate
-      description: Deactivate VID passing blank value in timestamp 
+      description: Deactivate VID passing blank value in timestamp
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_13
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -266,6 +279,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_Missing_Timestamp_Neg:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate VID removing timestamp field
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_14
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -287,6 +301,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_SpaceVal_Timestamp_Neg:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate VID passing space in timestamp field
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_15
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -308,6 +323,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_Past_Timestamp_Neg:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate VID removing timestamp field
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_16
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -329,6 +345,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_Future_Timestamp_Neg:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate VID passing future timestamp field
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_17
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -350,6 +367,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_Invalid_version_Neg:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate VID passing invalid version
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_18
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -370,6 +388,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_Missing_version_Neg:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate VID removing version field
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_19
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -391,6 +410,7 @@ DeactivateVIDs:
   IdRepository_DeactivateVIDs_Empty_version_Neg:
       endPoint: /idrepository/v1/vid/deactivate
       description: Deactivate VID passing empty version
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_20
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
@@ -411,7 +431,8 @@ DeactivateVIDs:
 
   IdRepository_DeactivateVIDs_SpaceVal_version_Neg:
       endPoint: /idrepository/v1/vid/deactivate
-      description: Deactivate VID ppassing space in version field
+      description: Deactivate VID passing space in version field
+      uniqueIdentifier: TC_IDRepo_DeactivateVID_21
       role: resident
       restMethod: post
       inputTemplate: idRepository/DeactivateVid/deactivateVid
