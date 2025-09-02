@@ -85,8 +85,4 @@ public class CredentialRequestGeneratorConfig extends HibernateDaoConfig {
 				.map(RestServicesConstants::getServiceName).collect(Collectors.toList()));
 	}
 
-	@Bean(name = "credentialObjectMapper")
-	public ObjectMapper credentialObjectMapper() {
-		return new ObjectMapper();
-	}
 }
