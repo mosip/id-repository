@@ -10,6 +10,7 @@ import org.hibernate.type.Type;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.After;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -34,6 +35,12 @@ public class CredentialTransactionInterceptorTest {
 
     @Mock
     private CryptoUtil cryptoUtil;
+
+    @After
+    public void tearDown() {
+        // Ensure ThreadLocal does not leak across tests
+        CryptoContext.clear();
+    }
 
     /**
      * This class tests the onSave method
@@ -137,14 +144,17 @@ public class CredentialTransactionInterceptorTest {
     @Test
     public void onLoad_SkipDecryption() throws Exception {
         CredentialEntity entity = new CredentialEntity();
-        Serializable id = new Serializable() {
-        };
+        Serializable id = new Serializable() {};
         String REQUEST = "request";
         Object[] state = {"a", "b", REQUEST};
         String[] propertyNames = {"a", "b", REQUEST};
         Type[] types = {};
         CryptoContext.setSkipDecryption(true);
-        Assert.assertFalse(credentialTransactionInterceptor.onLoad(entity, id, state, propertyNames, types));
+        try {
+            Assert.assertFalse(credentialTransactionInterceptor.onLoad(entity, id, state, propertyNames, types));
+        } finally {
+            CryptoContext.clear();
+        }
     }
 
 }

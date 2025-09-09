@@ -23,12 +23,8 @@ public class EncryptedCredentialDao {
     private CredentialRepositary<CredentialEntity, String> credentialRepo;
 
     public List<CredentialEntity> getCredentialByStatus(String statusCode, int pageSize) {
-        try{
-            CryptoContext.setSkipDecryption(true);
+        try (CryptoContext ctx = CryptoContext.scope(true)) {
             return credentialRepo.findCredentialByStatusCode(statusCode, pageSize);
-        }
-        finally {
-            CryptoContext.setSkipDecryption(false);
         }
     }
 }
