@@ -1,6 +1,5 @@
 package io.mosip.credential.request.generator.interceptor;
 
-
 import io.mosip.credential.request.generator.context.CryptoContext;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorUncheckedException;
@@ -10,7 +9,6 @@ import org.hibernate.type.Type;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.After;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -35,12 +33,6 @@ public class CredentialTransactionInterceptorTest {
 
     @Mock
     private CryptoUtil cryptoUtil;
-
-    @After
-    public void tearDown() {
-        // Ensure ThreadLocal does not leak across tests
-        CryptoContext.clear();
-    }
 
     /**
      * This class tests the onSave method
@@ -141,6 +133,12 @@ public class CredentialTransactionInterceptorTest {
         credentialTransactionInterceptor.setRestUtil(restUtil);
     }
 
+    /**
+     * This test verifies that the onLoad method skips decryption
+     * when the CryptoContext is set to skip decryption.
+     *
+     * @throws Exception if any error occurs during the test
+     */
     @Test
     public void onLoad_SkipDecryption() throws Exception {
         CredentialEntity entity = new CredentialEntity();
@@ -149,12 +147,8 @@ public class CredentialTransactionInterceptorTest {
         Object[] state = {"a", "b", REQUEST};
         String[] propertyNames = {"a", "b", REQUEST};
         Type[] types = {};
-        CryptoContext.setSkipDecryption(true);
-        try {
+        try (CryptoContext ctx = CryptoContext.skipDecryptionScope(true)) {
             Assert.assertFalse(credentialTransactionInterceptor.onLoad(entity, id, state, propertyNames, types));
-        } finally {
-            CryptoContext.clear();
         }
     }
-
 }
