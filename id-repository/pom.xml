@@ -108,6 +108,7 @@
 		<mockito.version>2.22.0</mockito.version>
 
 		<kernel.logger.logback.version>1.2.1.0-SNAPSHOT</kernel.logger.logback.version>
+        <kernel.auth.adaptor.version>1.2.0.2</kernel.auth.adaptor.version>
 	</properties>
     <dependencies>
     	<!-- JUnit -->
@@ -387,7 +388,7 @@
 				<dependency>
 					<groupId>io.mosip.kernel</groupId>
 					<artifactId>kernel-auth-adapter</artifactId>
-					<version>${project.version}</version>
+					<version>${kernel.auth.adaptor.version}</version>
 				</dependency>
 			</dependencies>
 			<build>
