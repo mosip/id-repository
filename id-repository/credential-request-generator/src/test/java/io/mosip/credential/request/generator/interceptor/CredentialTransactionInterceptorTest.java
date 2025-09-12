@@ -1,6 +1,5 @@
 package io.mosip.credential.request.generator.interceptor;
 
-
 import io.mosip.credential.request.generator.context.CryptoContext;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorUncheckedException;
@@ -134,17 +133,22 @@ public class CredentialTransactionInterceptorTest {
         credentialTransactionInterceptor.setRestUtil(restUtil);
     }
 
+    /**
+     * This test verifies that the onLoad method skips decryption
+     * when the CryptoContext is set to skip decryption.
+     *
+     * @throws Exception if any error occurs during the test
+     */
     @Test
     public void onLoad_SkipDecryption() throws Exception {
         CredentialEntity entity = new CredentialEntity();
-        Serializable id = new Serializable() {
-        };
+        Serializable id = new Serializable() {};
         String REQUEST = "request";
         Object[] state = {"a", "b", REQUEST};
         String[] propertyNames = {"a", "b", REQUEST};
         Type[] types = {};
-        CryptoContext.setSkipDecryption(true);
-        Assert.assertFalse(credentialTransactionInterceptor.onLoad(entity, id, state, propertyNames, types));
+        try (CryptoContext ctx = CryptoContext.skipDecryptionScope(true)) {
+            Assert.assertFalse(credentialTransactionInterceptor.onLoad(entity, id, state, propertyNames, types));
+        }
     }
-
 }
