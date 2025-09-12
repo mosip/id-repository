@@ -1,0 +1,7 @@
+modules:
+  idrepo:
+    enabled: true
+    image:
+      repository: mosipqa/apitest-idrepo
+      tag: 1.2.3.x
+      pullPolicy: Always
