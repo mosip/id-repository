@@ -1185,7 +1185,7 @@ public class IdRepoServiceTest {
 		list.add(map);
 		identityData.put("AB", list);
 		when(idRepoServiceHelper.convertToMap(any())).thenReturn(identityData);
-		Uin result = service.updateIdentity(request, "234");
+		Uin result = service.updateIdentity(request, String.valueOf(123));
 		assertEquals("27841457360002620190730095024", result.getRegId());
 		assertEquals("REGISTERED", result.getStatusCode());
 	}
