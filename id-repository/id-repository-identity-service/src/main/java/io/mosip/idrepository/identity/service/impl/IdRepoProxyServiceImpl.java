@@ -305,8 +305,12 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 			throws IdRepoAppException {
 		try {
 			String uinHash = uinRepo.getUinHashByRid(rid);
+            mosipLogger.info("uinHash outside if" +uinHash);
+            System.out.println("uinHash "+uinHash);
 			if (Objects.isNull(uinHash)) {
 				uinHash = uinHistoryRepo.getUinHashByRid(rid);
+                mosipLogger.info("uinHash inside if" +uinHash);
+                System.out.println("uinHash "+uinHash);
 			}
 			if (Objects.nonNull(uinHash)) {
 				return retrieveIdentityByUinHash(type, uinHash, extractionFormats);
