@@ -1,8 +1,8 @@
-# Id Repository API Test Rig
+# ID Repository API Test Rig
 
 ## Overview
 
-The **Id Repository API Test Rig** is designed for the execution of module-wise automation API tests for the Id repository services. This test rig utilizes **Java REST Assured** and **TestNG** frameworks to automate testing of the Id repository API functionalities. The key focus is to validate the Identity creation, VID creation, Identity updation and related functionalities provided by the Id repository module.
+The **ID Repository API Test Rig** is designed for the execution of module-wise automation API tests for the ID repository services. This test rig utilizes **Java REST Assured** and **TestNG** frameworks to automate testing of the ID repository API functionalities. The key focus is to validate the Identity creation, VID creation, Identity updation and related functionalities provided by the ID repository module.
 
 ---
 
@@ -15,7 +15,7 @@ The **Id Repository API Test Rig** is designed for the execution of module-wise 
 
 ## Coverage
 
-This test rig covers only **external API endpoints** exposed by the Id repository services module.
+This test rig covers only **external API endpoints** exposed by the ID repository services module.
 
 ---
 
@@ -27,7 +27,6 @@ Before running the automation tests, ensure the following software is installed 
 - **Maven 3.9.6** or higher ([installation guide](https://maven.apache.org/install.html))
 - **Lombok** (Refer to [Lombok Project](https://projectlombok.org/))
 - **setting.xml** ([download here](https://github.com/mosip/mosip-functional-tests/blob/master/settings.xml))
-- **apitest-commons** library should be cloned and the JAR should be built. Refer to ([README](https://github.com/mosip/mosip-functional-tests/blob/release-1.3.0/apitest-commons/README.md))
 
 ### For Windows
 
@@ -60,6 +59,13 @@ You can access the test automation code using either of the following methods:
    ```sh
    git clone https://github.com/mosip/id-repository
    ```
+---
+
+## Update the property file
+1. Navigate to the Idrepo.properties file located at:
+    id-repository\api-test\src\main\resources\config\Idrepo.properties
+2. Open the file in your preferred editor
+3. Update the client secret values and other required credentials as per your environment
 
 ---
 
@@ -96,7 +102,7 @@ To execute the tests using Jar, use the following steps:
 
 2. Run the automation test suite JAR file:
    ```
-   java -jar -Dmodules=idrepo -Denv.user=api-internal.<env_name> -Denv.endpoint=<base_env> -Denv.testLevel=smokeAndRegression -jar apitest-idrepo-1.3.0-SNAPSHOT-jar-with-dependencies.jar
+   java -jar -Dmodules=idrepo -Denv.user=api-internal.<env_name> -Denv.endpoint=<base_env> -Denv.testLevel=smokeAndRegression -jar apitest-idrepo-1.2.3.0-jar-with-dependencies.jar
    ```
    
 # Using Eclipse IDE
@@ -131,8 +137,9 @@ To execute the tests using Eclipse IDE, use the following steps:
      - In the **Main** tab, select the project by browsing the location where the `api-test` folder is saved, and select the **Main class** as `io.mosip.testrig.apirig.idrepo.testrunner.MosipTestRunner`.
    - In the **Arguments** tab, add the necessary **VM arguments**:
      - **VM Arguments**:
-       ```
-       -Dmodules=idrepo -Denv.user=api-internal.<env_name> -Denv.endpoint=<base_env> -Denv.testLevel=smokeAndRegression```
+		```
+		-Dmodules=idrepo -Denv.user=api-internal.<env_name> -Denv.endpoint=<base_env> -Denv.testLevel=smokeAndRegression
+		```
 
 ## 5. **Run the Configuration**
 
@@ -146,25 +153,37 @@ To execute the tests using Eclipse IDE, use the following steps:
 ## 6. **View Test Results**
 
    - After the tests are executed, you can view the detailed results in the `api-test\testng-report` directory.
-   - Two reports will gets generated
-       - First report is for pre-requisite testcases
-       - Second report is for core testcases
 
 ---
+
+## Test Report Column Definitions
+This section describes the meaning of each column in the test report:
+- **Total (T)**
+  The total number of test cases considered in the report.
+- **Passed (P)**
+  Indicates the number of test cases that executed successfully with the expected results.
+- **Failed (F)**
+  Indicates the number of test cases that failed due to issues such as output validation mismatches or unexpected errors during execution.
+- **Skipped (S)**
+  Represents test cases that were not executed due to missing prerequisites or data dependencies.
+- **Ignored (I)**
+  Represents test cases that were intentionally not executed due to limitations such as unsupported features, incompatibilities, or undeployed services.
+- **Known Issues (KI)**
+  Indicates test cases that failed but are already acknowledged as known issues for the current release, typically linked with a bug or defect ID.
 
 ## Details of Arguments Used
 
 - **env.user**: Replace `<env_name>` with the appropriate environment name (e.g., `dev`, `qa`, etc.).
 - **env.endpoint**: The environment where the application under test is deployed. Replace `<base_env>` with the correct base URL for the environment (e.g., `https://api-internal.<env_name>.mosip.net`).
 - **env.testLevel**: Set this to `smoke` to run only smoke test cases, or `smokeAndRegression` to run both smoke and regression tests.
-- **jar**: Specify the name of the JAR file to execute. The version will change according to the development code version. For example, the current version may look like `apitest-idrepo-1.3.0-SNAPSHOT-jar-with-dependencies.jar`.
+- **jar**: Specify the name of the JAR file to execute. The version will change according to the development code version. For example, the current version may look like `apitest-idrepo-1.2.3.0-jar-with-dependencies.jar`.
 
 ### Build and Run Info
 
 To run the tests for both **Smoke** and **Regression**:
 
 1. Ensure the correct environment and test level parameters are set.
-2. Execute the tests as shown in the command above to validate Id repository API functionalities.
+2. Execute the tests as shown in the command above to validate ID repository API functionalities.
 
 ---
 
