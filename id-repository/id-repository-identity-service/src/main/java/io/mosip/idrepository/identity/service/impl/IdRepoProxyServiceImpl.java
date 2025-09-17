@@ -305,6 +305,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 			throws IdRepoAppException {
 		try {
 			String uinHash = uinRepo.getUinHashByRid(rid);
+            mosipLogger.info("rid "+ rid);
             mosipLogger.info("uinHash outside if" +uinHash);
             System.out.println("uinHash "+uinHash);
 			if (Objects.isNull(uinHash)) {
