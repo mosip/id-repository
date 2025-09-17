@@ -88,7 +88,7 @@ public class IdrepositaryUtil {
 			idDTORequestWrapper.setRequest(requestByIdDTO);
 			idDTORequestWrapper.setRequesttime(localdatetime);
 			LOGGER.debug(String.format("getIdentity request: %s", requestByIdDTO.toString()));
-
+            System.out.println("requestDto in idutil "+requestByIdDTO.toString());
 			String responseString = restUtil.postApi(ApiName.IDREPORETRIEVEIDBYID, null, "", "",
 					MediaType.APPLICATION_JSON, idDTORequestWrapper, String.class);
 
