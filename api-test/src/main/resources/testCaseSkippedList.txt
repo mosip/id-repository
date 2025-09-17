@@ -1,3 +1,22 @@
 ######JIRA number;testcase 
 #MOSIP-37220------IdRepository_AddIdentity_array_handle_post_update_value_smoke_Pos
-
+MOSIP-41854------IdRepository_GetUpdateCount_Uin_SppaceVal_IndivId
+MOSIP-41854------IdRepository_GetUpdateCount_Uin_StaatusCode_Empty_IndivId
+MOSIP-41854------IdRepository_GetUpdateCount_Uin_Empty_IndivId
+MOSIP-41854------IdRepository_RetrieveVIDByUIN_With_blocked_vid_
+MOSIP-41854------IdRepository_AuthInternalLock_Uin_Empty_id
+MOSIP-41854------IdRepository_AuthInternalLock_Uin_Empty_requestTime
+MOSIP-41854------IdRepository_AuthInternalLock_Uin_Empty_version
+MOSIP-41854------IdRepository_AuthInternalLock_Vid_Empty_id
+MOSIP-41854------IdRepository_AuthInternalLock_Vid_Empty_requestTime
+MOSIP-41854------IdRepository_AuthInternalLock_Vid_Empty_version
+MOSIP-41854------IdRepository_RetrieveAuthTypeStatus_Uin_Invalid_Id_Neg
+MOSIP-41854------IdRepository_RetrieveAuthTypeStatus_Uin_SpaceVal_Id_Neg
+MOSIP-41854------IdRepository_RetrieveAuthTypeStatus_Vid_Invalid_Id_Neg
+MOSIP-41854------IdRepository_RetrieveAuthTypeStatus_Vid_SpaceVal_Id_Neg
+MOSIP-41854------IdRepository_AuthInternalUnlock_Uin_Empty_id
+MOSIP-41854------IdRepository_AuthInternalUnlock_Uin_Empty_requestTime
+MOSIP-41854------IdRepository_AuthInternalUnlock_Uin_Empty_version
+MOSIP-41854------IdRepository_AuthInternalUnlock_Vid_Empty_id
+MOSIP-41854------IdRepository_AuthInternalUnlock_Vid_Empty_requestTime
+MOSIP-41854------IdRepository_AuthInternalUnlock_Vid_Empty_version
