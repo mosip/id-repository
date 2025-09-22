@@ -12,10 +12,12 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +35,9 @@ public class CredentialDaoTest {
 
     @InjectMocks
     private CredentialDao credentialDao;
+
+    @Mock
+    private EncryptedCredentialDao encryptedCredentialDao;
 
     @Before
     public void setUp() {
@@ -86,4 +91,31 @@ public class CredentialDaoTest {
         assertEquals(expectedCredential, result);
     }
 
+    @Test
+    public void testGetCredentials(){
+        List<CredentialEntity> credentialList = new ArrayList<>();
+        CredentialEntity credentialEntity = new CredentialEntity();
+        credentialEntity.setRequestId("1234");
+        credentialEntity.setRequest("test");
+        credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+        credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+        credentialList.add(credentialEntity);
+        Mockito.when(encryptedCredentialDao.getCredentialByStatus(Mockito.anyString(), Mockito.anyInt()))
+                .thenReturn(credentialList);
+        credentialDao.getCredentials("1234");
+    }
+
+    @Test
+    public void testGetCredentialsForReprocess(){
+        List<CredentialEntity> credentialList=new ArrayList<CredentialEntity>();
+        CredentialEntity credentialEntity = new CredentialEntity();
+        credentialEntity.setRequestId("1234");
+        credentialEntity.setRequest("test");
+        credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+        credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
+        credentialList.add(credentialEntity);
+        Page<CredentialEntity> page = new PageImpl<>(credentialList);
+        Mockito.when(credentialRepo.findCredentialByStatusCodes(Mockito.any(),Mockito.any())).thenReturn(page);
+        credentialDao.getCredentialsForReprocess("1234");
+    }
 }

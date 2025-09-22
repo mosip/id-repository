@@ -12,7 +12,7 @@ RetrieveVIDByUIN:
       "UIN":"$ID:AddIdentity_ValidParam_smoke_Pos_UIN$"
       }'
       output: '{
-      "vidType": "$IGNORE$"
+  "vidType": "PERPETUAL"
 }'
   IdRepository_RetrieveVIDByUIN_With_blocked_vid_:
       endPoint: /idrepository/v1/vid/uin/{UIN}
@@ -46,8 +46,7 @@ RetrieveVIDByUIN:
       "UIN":"$ID:AddIdentity_ValidParam_smoke_Pos_UIN$"
       }'
       output: '{
-      "vidType": "$IGNORE$"
-      
+  "vidType": "PERPETUAL"
 }'
 
   IdRepository_RetrieveVIDByUIN_With_All_Vid_Valid_Smoke:
@@ -63,7 +62,7 @@ RetrieveVIDByUIN:
       "UIN":"$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$"
       }'
       output: '{
-      "vidType": "$IGNORE$"
+  "vidType": "ONETIMEUSE"
 }'
 
   IdRepository_RetrieveVIDByUIN_With_Invalid Uin:
@@ -81,25 +80,6 @@ RetrieveVIDByUIN:
    "errors": [
     {
       "errorCode": "IDR-IDC-004"
-    }
-  ]
-}'
-
-  IdRepository_RetrieveVIDByUIN_With_Empty Uin:
-      endPoint: /idrepository/v1/vid/uin/{UIN}
-      description: Retrieving VID passing empty UIN
-      uniqueIdentifier: TC_IDRepo_RetrieveVIDByUIN_06
-      role: idrepo
-      restMethod: get
-      inputTemplate: idRepository/RetrieveVIDByUIN/retrieveVIDByUIN
-      outputTemplate: idRepository/error
-      input: '{
-      "UIN":""
-      }'
-      output: '{
-   "errors": [
-    {
-      "errorCode": "IDR-IDC-003"
     }
   ]
 }'

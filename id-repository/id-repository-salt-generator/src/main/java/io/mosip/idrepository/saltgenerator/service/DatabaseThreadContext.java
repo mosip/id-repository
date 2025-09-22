@@ -15,4 +15,8 @@ public class DatabaseThreadContext {
         return current.get();
     }
 
+    public static void clear(){
+        current.remove();
+    }
+
 }

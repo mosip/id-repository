@@ -79,6 +79,12 @@
 		<class name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
 	</classes>
 	</test>
+	<test name="RetrieveIdentityPost">
+		<parameter name="ymlFile"	value="idRepository/RetrieveIdentityPost/RetrieveIdentityPost.yml" />
+	<classes>
+		<class name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePostForAutoGenId" />
+	</classes>
+	</test>
 	
 	
 	<test name="RetrieveVIDByUIN">
@@ -153,6 +159,7 @@
 	
 	<test name="ExtractBiometrics">
 		<parameter name="ymlFile"	value="idRepository/ExtractBiometrics/ExtractBiometrics.yml" />
+		<parameter name="pathParams" value="registrationId" />
 	<classes>
 		<class name="io.mosip.testrig.apirig.idrepo.testscripts.PutWithPathParam" />
 	</classes>

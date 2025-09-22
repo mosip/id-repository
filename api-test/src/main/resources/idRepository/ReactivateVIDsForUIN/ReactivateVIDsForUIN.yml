@@ -19,13 +19,13 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Deactivated_Uin:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VIDs passing deactivated UIN
+      description: Reactivate VID on passing deactivated UIN
       uniqueIdentifier: TC_IDRepo_ReactivateVID_02
       role: resident
       checkErrorsOnlyInResponse: true
       restMethod: post
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
-      outputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUINResult
+      outputTemplate: idRepository/error
       input: '{
     "UIN": "$ID:AddIdentity_For_DeactivateScen_smoke_Pos_UIN$",
     "requesttime": "$TIMESTAMP$",
@@ -33,7 +33,11 @@ ReactivateVIDs:
     "version": "v1"
 }'  
       output: '{
-    "vidStatus": "ACTIVE"
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
 }'
 
   IdRepository_ReactivateVIDs_Onetime_Smoke_Pos:

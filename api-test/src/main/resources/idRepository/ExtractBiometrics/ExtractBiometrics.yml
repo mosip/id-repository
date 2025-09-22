@@ -13,3 +13,59 @@ ExtractBiometrics:
       output: '{
       "status": "DRAFTED"
 }'
+  IdRepository_ExtractBiometrics_forIris_valid_smoke:
+      endPoint: /idrepository/v1/identity/draft/extractbiometrics/{registrationId}?irisExtractionFormat=mock-1.1
+      description: Extract biometrics with only iris
+      uniqueIdentifier: TC_IDRepo_extractbiometrics_02
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
+      input: '{
+      "registrationId":"$RIDEXT$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'
+  IdRepository_ExtractBiometrics_forFinger_valid_smoke:
+      endPoint: /idrepository/v1/identity/draft/extractbiometrics/{registrationId}?fingerExtractionFormat=mock-1.1
+      description: Extract biometrics with only finger
+      uniqueIdentifier: TC_IDRepo_extractbiometrics_03
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
+      input: '{
+      "registrationId":"$RIDEXT$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'
+  IdRepository_ExtractBiometrics_forFace_valid_smoke:
+      endPoint: /idrepository/v1/identity/draft/extractbiometrics/{registrationId}?faceExtractionFormat=mock-1.1
+      description: Extract biometrics with only face
+      uniqueIdentifier: TC_IDRepo_extractbiometrics_04
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
+      input: '{
+      "registrationId":"$RIDEXT$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'
+  IdRepository_ExtractBiometrics_forFaceIrisFinger_valid_smoke:
+      endPoint: /idrepository/v1/identity/draft/extractbiometrics/{registrationId}?faceExtractionFormat=mock-1.1?fingerExtractionFormat=mock-1.1?irisExtractionFormat=mock-1.1
+      description: Extract biometrics with face ,iris and finger
+      uniqueIdentifier: TC_IDRepo_extractbiometrics_05
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
+      input: '{
+      "registrationId":"$RIDEXT$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'
