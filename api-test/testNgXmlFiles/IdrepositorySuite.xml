@@ -5,11 +5,10 @@
 	<!-- Passing Group as parmeter unsing "testType" Possible Groups are: smoke 
 		regression smokeAndRegression -->
 	<listeners>
-		<listener class-name="io.mosip.testrig.apirig.report.EmailableReport"/>
+		<listener class-name="io.mosip.testrig.apirig.report.EmailableReport" />
 	</listeners>
-	
-	
-	
+
+
 	<test name="AddIdentity">
 		<parameter name="ymlFile"
 			value="idRepository/AddIdentity/AddIdentity.yml" />
@@ -18,14 +17,15 @@
 		</classes>
 	</test>
 	<test name="CreateVID">
-		<parameter name="ymlFile"	value="idRepository/CreateVID/CreateVid.yml" />
-	    <parameter name="idKeyName" value="VID" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePostForAutoGenId" />
-	</classes>
+		<parameter name="ymlFile" value="idRepository/CreateVID/CreateVid.yml" />
+		<parameter name="idKeyName" value="VID" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePostForAutoGenId" />
+		</classes>
 	</test>
-	
-	
+
+
 	<test name="AddIdentityArrayHandle">
 		<parameter name="ymlFile"
 			value="idRepository/AddIdentity/AddIdentityArrayHandle.yml" />
@@ -33,22 +33,22 @@
 			<class name="io.mosip.testrig.apirig.idrepo.testscripts.AddIdentity" />
 		</classes>
 	</test>
-	
-		<test name="UpdateIdentityArrayHandle">
+
+	<test name="UpdateIdentityArrayHandle">
 		<parameter name="ymlFile"
 			value="idRepository/UpdateIdentityArrayHandle/UpdateIdentityArrayHandle.yml" />
 		<classes>
-			<class name="io.mosip.testrig.apirig.idrepo.testscripts.UpdateIdentityForArrayHandles" />
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.UpdateIdentityForArrayHandles" />
 		</classes>
 	</test>
-	
-	
-	
+
 	<test name="UpdateIdentity">
 		<parameter name="ymlFile"
 			value="idRepository/UpdateIdentity/UpdateIdentity.yml" />
 		<classes>
-			<class name="io.mosip.testrig.apirig.idrepo.testscripts.UpdateIdentity" />
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.UpdateIdentity" />
 		</classes>
 	</test>
 	<test name="UpdateVIDStatus">
@@ -56,141 +56,175 @@
 			value="idRepository/UpdateVIDStatus/UpdateVidStatus.yml" />
 		<parameter name="pathParams" value="VID" />
 		<classes>
-			<class name="io.mosip.testrig.apirig.idrepo.testscripts.PatchWithPathParamsAndBody" />
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.PatchWithPathParamsAndBody" />
 		</classes>
 	</test>
 	<test name="DeactivateVIDs">
-		<parameter name="ymlFile"	value="idRepository/DeactivateVid/DeactivateVid.yml" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePostForAutoGenId" />
-	</classes>
+		<parameter name="ymlFile"
+			value="idRepository/DeactivateVid/DeactivateVid.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePostForAutoGenId" />
+		</classes>
 	</test>
-	
-	 <test name="GetUpdateCount">
+
+	<test name="GetUpdateCount">
 		<parameter name="ymlFile"
 			value="idRepository/GetUpdateCount/GetUpdateCount.yml" />
 		<classes>
-			<class name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
 		</classes>
-	</test> 
+	</test>
 	<test name="RetrieveIdentityByRid">
-		<parameter name="ymlFile"	value="idRepository/RetrieveIdentityByRid/RetrieveIdentityByRid.yml" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
-	</classes>
+		<parameter name="ymlFile"
+			value="idRepository/RetrieveIdentityByRid/RetrieveIdentityByRid.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
+		</classes>
 	</test>
 	<test name="RetrieveIdentityPost">
-		<parameter name="ymlFile"	value="idRepository/RetrieveIdentityPost/RetrieveIdentityPost.yml" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePostForAutoGenId" />
-	</classes>
+		<parameter name="ymlFile"
+			value="idRepository/RetrieveIdentityPost/RetrieveIdentityPost.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePostForAutoGenId" />
+		</classes>
 	</test>
-	
-	
+
+
 	<test name="RetrieveVIDByUIN">
-		<parameter name="ymlFile"	value="idRepository/RetrieveVIDByUIN/RetrieveVIDByUIN.yml" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
-	</classes>
+		<parameter name="ymlFile"
+			value="idRepository/RetrieveVIDByUIN/RetrieveVIDByUIN.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
+		</classes>
 	</test>
-	
+
 	<test name="RetrieveIdentityByUin">
-		<parameter name="ymlFile"	value="idRepository/RetrieveIdentityByUin/RetrieveIdentityByUin.yml" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
-	</classes>
+		<parameter name="ymlFile"
+			value="idRepository/RetrieveIdentityByUin/RetrieveIdentityByUin.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
+		</classes>
 	</test>
 	<test name="RetrieveUINByVID">
-		<parameter name="ymlFile"	value="idRepository/RetrieveUINByVID/RetrieveUINByVID.yml" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
-	</classes>
+		<parameter name="ymlFile"
+			value="idRepository/RetrieveUINByVID/RetrieveUINByVID.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
+		</classes>
 	</test>
 	<test name="ReactivateVIDs">
-		<parameter name="ymlFile"	value="idRepository/ReactivateVIDsForUIN/ReactivateVIDsForUIN.yml" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePostForAutoGenId" />
-	</classes>
+		<parameter name="ymlFile"
+			value="idRepository/ReactivateVIDsForUIN/ReactivateVIDsForUIN.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePostForAutoGenId" />
+		</classes>
 	</test>
 	<test name="RegenerateVid">
-		<parameter name="ymlFile"	value="idRepository/RegenerateVid/RegenerateVid.yml" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.PostWithOnlyPathParam" />
-	</classes>
+		<parameter name="ymlFile"
+			value="idRepository/RegenerateVid/RegenerateVid.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.PostWithOnlyPathParam" />
+		</classes>
 	</test>
-	
+
 	<test name="CreateDraft">
-		<parameter name="ymlFile"	value="idRepository/CreateDraft/CreateDraft.yml" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.PostWithOnlyPathParam" />
-	</classes>
-	</test> 
-	
+		<parameter name="ymlFile"
+			value="idRepository/CreateDraft/CreateDraft.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.PostWithOnlyPathParam" />
+		</classes>
+	</test>
+
 	<test name="GetDraft">
-		<parameter name="ymlFile"	value="idRepository/GetDraft/GetDraft.yml" />
+		<parameter name="ymlFile" value="idRepository/GetDraft/GetDraft.yml" />
 		<parameter name="idKeyName" value="UIN" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParamForAutoGenId" />
-	</classes>
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParamForAutoGenId" />
+		</classes>
 	</test>
-	
+
 	<test name="CreateDraftVID">
-		<parameter name="ymlFile"	value="idRepository/CreateDraftVID/CreateDraftVID.yml" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePostForAutoGenId" />
-	</classes>
+		<parameter name="ymlFile"
+			value="idRepository/CreateDraftVID/CreateDraftVID.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePostForAutoGenId" />
+		</classes>
 	</test>
-	
-	
-	 <test name="UpdateDraft">
-		<parameter name="ymlFile"	value="idRepository/UpdateDraft/UpdateDraft.yml" />
-		<parameter name="pathParams"	value="registrationId" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.UpdateDraft" />
-	</classes>
-	</test> 
-	
-	<test name="PublishDraft">
-		<parameter name="ymlFile"	value="idRepository/PublishDraft/PublishDraft.yml" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
-	</classes>
-	</test>
-	
-	<test name="ExtractBiometrics">
-		<parameter name="ymlFile"	value="idRepository/ExtractBiometrics/ExtractBiometrics.yml" />
+
+
+	<test name="UpdateDraft">
+		<parameter name="ymlFile"
+			value="idRepository/UpdateDraft/UpdateDraft.yml" />
 		<parameter name="pathParams" value="registrationId" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.PutWithPathParam" />
-	</classes>
-	</test> 
-	
+		<classes>
+			<class name="io.mosip.testrig.apirig.idrepo.testscripts.UpdateDraft" />
+		</classes>
+	</test>
+
+	<test name="PublishDraft">
+		<parameter name="ymlFile"
+			value="idRepository/PublishDraft/PublishDraft.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
+		</classes>
+	</test>
+
+	<test name="ExtractBiometrics">
+		<parameter name="ymlFile"
+			value="idRepository/ExtractBiometrics/ExtractBiometrics.yml" />
+		<parameter name="pathParams" value="registrationId" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.PutWithPathParam" />
+		</classes>
+	</test>
+
 	<test name="DeleteDraft">
-		<parameter name="ymlFile"	value="idRepository/DeleteDraft/DeleteDraft.yml" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.DeleteWithParam" />
-	</classes>
-	</test> 
-	
+		<parameter name="ymlFile"
+			value="idRepository/DeleteDraft/DeleteDraft.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.DeleteWithParam" />
+		</classes>
+	</test>
+
 	<test name="AuthInternalLock">
-		<parameter name="ymlFile"	value="idRepository/AuthInternalLock/AuthInternalLock.yml" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePost" />
-	</classes>
+		<parameter name="ymlFile"
+			value="idRepository/AuthInternalLock/AuthInternalLock.yml" />
+		<classes>
+			<class name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePost" />
+		</classes>
 	</test>
-	
+
 	<test name="RetrieveAuthTypeStatus">
-		<parameter name="ymlFile"	value="idRepository/RetrieveAuthTypeStatus/RetrieveAuthTypeStatus.yml" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
-	</classes>
-	</test> 
-	
-	<test name="AuthInternalUnlock">
-		<parameter name="ymlFile"	value="idRepository/AuthInternalUnlock/AuthInternalUnlock.yml" />
-	<classes>
-		<class name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePost" />
-	</classes>
+		<parameter name="ymlFile"
+			value="idRepository/RetrieveAuthTypeStatus/RetrieveAuthTypeStatus.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
+		</classes>
 	</test>
-	
+
+	<test name="AuthInternalUnlock">
+		<parameter name="ymlFile"
+			value="idRepository/AuthInternalUnlock/AuthInternalUnlock.yml" />
+		<classes>
+			<class name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePost" />
+		</classes>
+	</test>
+
 </suite>
