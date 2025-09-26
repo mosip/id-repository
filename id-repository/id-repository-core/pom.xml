@@ -14,8 +14,6 @@
 	<description>ID-Repository core</description>
 
 	<properties>
-		<kernel-biosdk-provider.version>1.2.0.4</kernel-biosdk-provider.version>
-		<kernel-websubclient-api.version>1.2.0.2</kernel-websubclient-api.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
@@ -25,6 +23,10 @@
 		<lombok.version>1.18.2</lombok.version>
 		<postgresql.version>42.2.2</postgresql.version>
 		<powermock.version>2.0.0</powermock.version>
+
+        <!-- Mosip -->
+        <kernel-biosdk-provider.version>1.2.0.4</kernel-biosdk-provider.version>
+        <kernel-websubclient-api.version>1.2.0.2</kernel-websubclient-api.version>
 	</properties>
 	<dependencies>
 		<dependency>

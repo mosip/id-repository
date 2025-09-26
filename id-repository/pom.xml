@@ -75,8 +75,7 @@
         <module>id-repository-credentials-feeder</module>
 	</modules>
 
-	<properties>	
-		<id.repository.core.version>${parent.version}</id.repository.core.version>
+	<properties>
 		<!-- maven -->
 		<maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
 		<maven.war.plugin.version>3.1.0</maven.war.plugin.version>
@@ -108,6 +107,8 @@
 		<junit.version>4.12</junit.version>
 		<mockito.version>2.22.0</mockito.version>
 
+        <!-- Mosip -->
+        <id.repository.core.version>${parent.version}</id.repository.core.version>
 		<kernel.logger.logback.version>1.2.0.2</kernel.logger.logback.version>
 	</properties>
     <dependencies>

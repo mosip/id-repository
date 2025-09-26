@@ -16,8 +16,6 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<id.repository.core.version>${parent.version}</id.repository.core.version>
-
 		<!-- maven -->
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
@@ -229,9 +227,12 @@
 		<aspectjweaver.version>1.8.12</aspectjweaver.version>
 		<micrometer.core.version>1.4.2</micrometer.core.version>
 		<micrometer.registry.prometheus.version>1.4.2</micrometer.registry.prometheus.version>
-		<kernel-core.version>1.2.0.2</kernel-core.version>
-		<kernel-logger-logback.version>1.2.0.2</kernel-logger-logback.version>
 		<postgresql.version>42.2.2</postgresql.version>
+
+        <!-- Mosip -->
+        <id.repository.core.version>${parent.version}</id.repository.core.version>
+        <kernel-core.version>1.2.0.2</kernel-core.version>
+        <kernel-logger-logback.version>1.2.0.2</kernel-logger-logback.version>
 		<kernel-websubclient-api.version>1.2.0.2</kernel-websubclient-api.version>
 	</properties>
 	<dependencies>
