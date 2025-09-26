@@ -5,17 +5,17 @@
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.2.2.3</version>
+		<version>1.2.2.4-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>id-repository-core</artifactId>
-	<version>1.2.2.3</version>
+	<version>1.2.2.4-SNAPSHOT</version>
 	<name>idrepo-core</name>
 	<description>ID-Repository core</description>
 
 	<properties>
-		<kernel-biosdk-provider.version>1.2.0.1</kernel-biosdk-provider.version>
-		<kernel-websubclient-api.version>1.2.0.1</kernel-websubclient-api.version>
+		<kernel-biosdk-provider.version>1.2.0.4</kernel-biosdk-provider.version>
+		<kernel-websubclient-api.version>1.2.0.2</kernel-websubclient-api.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>

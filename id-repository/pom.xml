@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.mosip.idrepository</groupId>
 	<artifactId>id-repository-parent</artifactId>
-	<version>1.2.2.3</version>
+	<version>1.2.2.4-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>ID-Repository</name>
@@ -108,7 +108,7 @@
 		<junit.version>4.12</junit.version>
 		<mockito.version>2.22.0</mockito.version>
 
-		<kernel.logger.logback.version>1.2.0.1</kernel.logger.logback.version>
+		<kernel.logger.logback.version>1.2.0.2</kernel.logger.logback.version>
 	</properties>
     <dependencies>
     	<!-- JUnit -->
@@ -377,7 +377,7 @@
 				<dependency>
 					<groupId>io.mosip.kernel</groupId>
 					<artifactId>kernel-auth-adapter</artifactId>
-					<version>1.2.0.1</version>
+					<version>1.2.0.2</version>
 				</dependency>
 			</dependencies>
 			<build>

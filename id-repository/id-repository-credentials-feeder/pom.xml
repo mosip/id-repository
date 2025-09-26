@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.mosip.idrepository</groupId>
 	<artifactId>id-repository-credentials-feeder</artifactId>
-	<version>1.2.2.3</version>
+	<version>1.2.2.4-SNAPSHOT</version>
 	<name>ID-Repository Credentials Feeder</name>
 <parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.2.2.3</version>
+		<version>1.2.2.4-SNAPSHOT</version>
 	</parent>
 
 	<description>Batch Job Application for feeding IDA instances with credentials.</description>
@@ -229,10 +229,10 @@
 		<aspectjweaver.version>1.8.12</aspectjweaver.version>
 		<micrometer.core.version>1.4.2</micrometer.core.version>
 		<micrometer.registry.prometheus.version>1.4.2</micrometer.registry.prometheus.version>
-		<kernel-core.version>1.2.0.1</kernel-core.version>
-		<kernel-logger-logback.version>1.2.0.1</kernel-logger-logback.version>
+		<kernel-core.version>1.2.0.2</kernel-core.version>
+		<kernel-logger-logback.version>1.2.0.2</kernel-logger-logback.version>
 		<postgresql.version>42.2.2</postgresql.version>
-		<kernel-websubclient-api.version>1.2.0.1</kernel-websubclient-api.version>
+		<kernel-websubclient-api.version>1.2.0.2</kernel-websubclient-api.version>
 	</properties>
 	<dependencies>
 		<dependency>
