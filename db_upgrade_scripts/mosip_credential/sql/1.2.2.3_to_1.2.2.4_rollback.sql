@@ -1,3 +1,1 @@
-\c mosip_credential
-
-DROP INDEX IF EXISTS cred_txn_status_code;
+\echo 'Rollback Queries not required for transition from $CURRENT_VERSION to $UPGRADE_VERSION'
