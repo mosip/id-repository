@@ -79,8 +79,8 @@ public class CredentialStatusManager {
 
 	@Value("${mosip.idrepo.credential.request.batch.page.size:50}")
 	private int pageSize;
-	
-	//@Async("credentialStatusManagerJobExecutor")
+
+//	@Async("credentialStatusManagerJobExecutor")
 	public void triggerEventNotifications() {
 		handleDeletedRequests();
 		handleExpiredRequests();
