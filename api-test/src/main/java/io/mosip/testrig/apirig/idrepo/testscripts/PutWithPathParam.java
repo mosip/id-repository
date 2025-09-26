@@ -114,10 +114,9 @@ public class PutWithPathParam extends IdRepoUtil implements ITest {
 		}
 
 		else {
-			String inputJson=getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate());
+			String inputJson = getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate());
 			inputJson = inputStringKeyWordHandeler(inputJson, testCaseName);
-			response = putWithPathParamAndCookie(ApplnURI + testCaseDTO.getEndPoint(),
-					inputJson, COOKIENAME,
+			response = putWithPathParamAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 					testCaseDTO.getRole(), testCaseDTO.getTestCaseName());
 
 			Map<String, List<OutputValidationDto>> ouputValid = OutputValidationUtil.doJsonOutputValidation(
