@@ -1099,8 +1099,6 @@ public class IdRepoServiceTest {
 		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
-		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
-		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
 		proxyService.updateIdentity(request, "234").getResponse().equals(obj2);
 	}
