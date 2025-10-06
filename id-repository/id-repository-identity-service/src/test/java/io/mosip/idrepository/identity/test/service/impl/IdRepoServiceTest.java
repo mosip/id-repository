@@ -1300,6 +1300,10 @@ public class IdRepoServiceTest {
         recordData.setIdentityUpdateCount(CryptoUtil.encodeToURLSafeBase64("{\"fullName\":2}".getBytes()).getBytes());
 		when(identityUpdateTracker.findById(any())).thenReturn(Optional.of(recordData));
 
+		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
+		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
+		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
+
 		Uin result = service.updateIdentity(request, "234");
         assertNull(result.getUinHash());
         assertEquals("1234", result.getUin());
