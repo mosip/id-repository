@@ -1297,7 +1297,7 @@ public class IdRepoServiceTest {
 
 		IdentityUpdateTracker recordData = new IdentityUpdateTracker();
         recordData.setId("id");
-        recordData.setIdentityUpdateCount(CryptoUtil.encodeToURLSafeBase64("{\"fullName\":2}".getBytes()).getBytes());
+        recordData.setIdentityUpdateCount(CryptoUtil.encodeToURLSafeBase64("{\"fullName\":\"2\"}".getBytes()).getBytes());
 		when(identityUpdateTracker.findById(any())).thenReturn(Optional.of(recordData));
 
 		Uin result = service.updateIdentity(request, "234");
