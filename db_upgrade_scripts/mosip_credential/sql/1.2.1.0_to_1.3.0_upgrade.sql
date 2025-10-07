@@ -19,3 +19,9 @@ ALTER TABLE BATCH_JOB_EXECUTION DROP COLUMN JOB_CONFIGURATION_LOCATION;
 
 CREATE INDEX IF NOT EXISTS idx_job_name ON BATCH_JOB_INSTANCE(JOB_NAME);
 CREATE INDEX IF NOT EXISTS idx_job_key ON BATCH_JOB_INSTANCE(JOB_KEY);
+
+-- PERFORMANCE OPTIMIZATION INDEXES
+
+CREATE INDEX IF NOT EXISTS idx_cred_new_status_cr_dtimes_active ON credential.credential_transaction (cr_dtimes) WHERE status_code = 'NEW' AND is_deleted = false;
+CREATE INDEX IF NOT EXISTS idx_cred_status_cr_dtimes_active ON credential.credential_transaction (status_code, cr_dtimes) WHERE is_deleted = false;
+CREATE INDEX IF NOT EXISTS idx_cred_status_upd_dtimes_active ON credential.credential_transaction (status_code, upd_dtimes) WHERE is_deleted = false;

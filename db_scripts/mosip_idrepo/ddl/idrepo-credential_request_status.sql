@@ -37,3 +37,11 @@ CREATE TABLE idrepo.credential_request_status (
 CREATE INDEX IF NOT EXISTS idx_cred_req_NEW_status_cr_dtimes ON idrepo.credential_request_status USING btree(cr_dtimes) WHERE status = 'NEW';
 CREATE INDEX IF NOT EXISTS idx_cred_tran_status ON idrepo.credential_request_status USING  btree(status);
 --index section ends------
+
+-- PERFORMANCE OPTIMIZATION INDEXES
+CREATE INDEX IF NOT EXISTS idx_cred_individual_id_deleted ON idrepo.credential_request_status(individual_id, is_deleted);
+CREATE INDEX IF NOT EXISTS idx_cred_individual_id_hash_deleted ON idrepo.credential_request_status(individual_id_hash, is_deleted);
+CREATE INDEX IF NOT EXISTS idx_cred_hash_partner_deleted ON idrepo.credential_request_status(individual_id_hash, partner_id, is_deleted);
+CREATE INDEX IF NOT EXISTS idx_cred_expiry_ts ON idrepo.credential_request_status(id_expiry_timestamp);
+CREATE INDEX IF NOT EXISTS idx_cred_status_cr_dtimes ON idrepo.credential_request_status(status, cr_dtimes);
+CREATE INDEX idx_crs_hash_not_deleted ON idrepo.credential_request_status (individual_id_hash) WHERE is_deleted = false;
