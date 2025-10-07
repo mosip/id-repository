@@ -197,7 +197,7 @@ public class CredentialStatusManager {
 			statusRepo.saveAndFlush(credStatus);
 
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "credentialRequestResponseConsumer", e);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "credentialRequestResponseConsumer", ExceptionUtils.getStackTrace(e));
 		}
 	}
 
