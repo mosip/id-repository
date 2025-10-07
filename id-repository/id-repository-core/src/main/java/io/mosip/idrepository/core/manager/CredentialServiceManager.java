@@ -217,7 +217,7 @@ public class CredentialServiceManager {
 
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
-					e);
+					ExceptionUtils.getStackTrace(e));
 		}
 	}
 
