@@ -166,9 +166,6 @@ public class CredentialStatusManager {
 			Optional<CredentialRequestStatus> credStatusOptional = statusRepo
 					.findByIndividualIdHashAndPartnerId(idHash, request.getRequest().getIssuer());
 
-			mosipLogger.info("DEBUG--- credentialRequestResponseConsumer issuer: {}, credStatusOptional : {} additionalData : {}",
-					request.getRequest().getIssuer(), credStatusOptional.isPresent(), additionalData);
-
 			CredentialRequestStatus credStatus = credStatusOptional.orElse(null);
 			if (credStatus == null) {
 				credStatus = new CredentialRequestStatus();
@@ -206,8 +203,7 @@ public class CredentialStatusManager {
 			List<CredentialRequestStatus> credStatusList = statusRepo
 					.findByIndividualIdHash((String) event.getEvent().getData().get(ID_HASH));
 			if (!credStatusList.isEmpty()) {
-				mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "idaEventConsumer",
-						credStatusList.get(0).getIndividualIdHash());
+				mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "idaEventConsumer");
 				statusRepo.deleteAll(credStatusList);
 			}
 		} catch (Exception e) {
