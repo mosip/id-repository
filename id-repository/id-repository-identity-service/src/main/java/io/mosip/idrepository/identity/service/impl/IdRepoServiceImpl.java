@@ -12,6 +12,26 @@ import java.util.stream.IntStream;
 
 import jakarta.annotation.Resource;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.InvalidJsonException;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
+import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
+import io.mosip.idrepository.core.constant.CredentialTriggerAction;
+import io.mosip.idrepository.core.constant.IdType;
+import io.mosip.idrepository.core.dto.DocumentsDTO;
+import io.mosip.idrepository.core.dto.IdRequestDTO;
+import io.mosip.idrepository.core.dto.RequestDTO;
+import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.entity.Handle;
 import io.mosip.idrepository.core.repository.HandleRepo;
 import org.apache.commons.lang3.RegExUtils;
@@ -176,7 +196,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	
 	@Value("${mosip.idrepo.identity.uin-status.registered}")
 	private String activeStatus;
-	
+
+	@Value("#{${mosip.idrepo.update-identity.fields-to-replace}}")
+	private List<String> fieldsToReplaceOnUpdate;
+
 	@Autowired
 	private IdentityUpdateTrackerRepo identityUpdateTracker;
 
@@ -247,7 +270,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 		addIdentityHandle(uinEntity, selectedUniqueHandlesMap);
 
-		issueCredential(uinEntity.getUin(), uinHashWithSalt, activeStatus, null, uinEntity.getRegId());
+		issueCredential(uin, uinEntity.getUin(), activeStatus, null, uinEntity.getRegId(), false);
+
 		anonymousProfileHelper.buildAndsaveProfile(false);
 		return uinEntity;
 	}
@@ -421,6 +445,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				DocumentContext dbData = JsonPath.using(configuration).parse(new String(uinObject.getUinData()));
 				anonymousProfileHelper.setOldUinData(dbData.jsonString().getBytes());
 				updateVerifiedAttributes(requestDTO, inputData, dbData);
+				replaceConfiguredFieldsOnUpdate(inputData, dbData);
 				JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(),
 						dbData.jsonString(), JSONCompareMode.LENIENT);
 
@@ -451,8 +476,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					uinObject.getRegId(), uinObject.getStatusCode(), IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), IdRepoSecurityManager.getUser(),
 					DateUtils.getUTCCurrentDateTime(), false, null));
-			issueCredential(uinObject.getUin(), uinHashWithSalt, uinObject.getStatusCode(),
-					DateUtils.getUTCCurrentDateTime(),uinObject.getRegId());
+
+			issueCredential(uin, uinObject.getUin(), uinObject.getStatusCode(),
+					DateUtils.getUTCCurrentDateTime(), uinObject.getRegId(), true);
+
 			anonymousProfileHelper.buildAndsaveProfile(false);
 			return uinObject;
 		} catch (JSONException | InvalidJsonException | IOException e) {
@@ -509,6 +536,18 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		dbData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private void replaceConfiguredFieldsOnUpdate(DocumentContext inputData, DocumentContext dbData) {
+		for(String fieldId : fieldsToReplaceOnUpdate) {
+			List readValue = (List) inputData.read(DOT + fieldId);
+			if (!readValue.isEmpty()) {
+				Object value = readValue.get(0);
+				if (Objects.nonNull(value)) {
+					dbData.put("$", fieldId, value);
+				}
+			}
+		}
+	}
 	/**
 	 * Update identity.
 	 *
@@ -887,17 +926,24 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
-	private void issueCredential(String enryptedUin, String uinHash, String uinStatus, LocalDateTime expiryTimestamp, String requestId) {
+	private void issueCredential(String uin, String encryptedUin, String uinStatus, LocalDateTime expiryTimestamp, String requestId, boolean isUpdate) {
+
+		String uinHash = securityManager.getIdHashWithSaltModuloByPlainIdHash(uin, uinHashSaltRepo::retrieveSaltById);
+
 		List<CredentialRequestStatus> credStatusList = credRequestRepo.findByIndividualIdHash(uinHash);
+		String triggerAction = isUpdate ? CredentialTriggerAction.UPDATE.toString() : CredentialTriggerAction.CREATE.toString();
+
 		if (!credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {
 				credStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
+				credStatus.setTriggerAction(triggerAction);
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
 				credRequestRepo.save(credStatus);
 			});
 		} else if (!credStatusList.isEmpty() && !uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {
+				credStatus.setTriggerAction(triggerAction);
 				credStatus.setStatus(CredentialRequestStatusLifecycle.DELETED.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
@@ -905,11 +951,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			});
 		} else if (credStatusList.isEmpty()) {
 			CredentialRequestStatus credStatus = new CredentialRequestStatus();
-			credStatus.setIndividualId(enryptedUin);
+			credStatus.setIndividualId(encryptedUin);
 			credStatus.setIndividualIdHash(uinHash);
 			credStatus.setPartnerId(dummyPartner.getDummyOLVPartnerId());
-			credStatus.setStatus(uinStatus.contentEquals(activeStatus) ? CredentialRequestStatusLifecycle.NEW.toString()
-					: CredentialRequestStatusLifecycle.DELETED.toString());
+			credStatus.setStatus(uinStatus.contentEquals(activeStatus) ? CredentialRequestStatusLifecycle.NEW.toString() :
+					CredentialRequestStatusLifecycle.DELETED.toString());
+			credStatus.setTriggerAction(triggerAction);
 			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
 			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
 			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
