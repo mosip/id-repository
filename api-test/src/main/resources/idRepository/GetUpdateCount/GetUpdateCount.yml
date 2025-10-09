@@ -93,7 +93,7 @@ GetUpdateCount:
       "idType": "UIN",
        "attribute_list": "fullName"
 }'
-      output: "500"
+      output: "401"
 
    IdRepository_GetUpdateCount_Vid_Valid_Smoke:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
@@ -189,7 +189,7 @@ GetUpdateCount:
       "idType": "VID",
        "attribute_list": "fullName"
 }'
-      output: "500"
+      output: "401"
       
    IdRepository_GetUpdateCount_Uin_Invalid_idType:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
