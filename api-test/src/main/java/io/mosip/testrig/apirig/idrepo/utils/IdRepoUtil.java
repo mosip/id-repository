@@ -2,7 +2,6 @@ package io.mosip.testrig.apirig.idrepo.utils;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -19,7 +18,6 @@ public class IdRepoUtil extends AdminTestUtil {
 
 	private static final Logger logger = Logger.getLogger(IdRepoUtil.class);
 	public static String genRidExt = "23456" + generateRandomNumberString(10);
-	
 	public static List<String> testCasesInRunScope = new ArrayList<>();
 	
 	public static void setLogLevel() {
@@ -97,7 +95,7 @@ public class IdRepoUtil extends AdminTestUtil {
 			logger.info(" Request Json String is :" + jsonString);
 			return jsonString;
 		}
-		
+
 		if (jsonString.contains("$RIDEXT$"))
 			jsonString = replaceKeywordWithValue(jsonString, "$RIDEXT$", genRidExt);
 		return jsonString;

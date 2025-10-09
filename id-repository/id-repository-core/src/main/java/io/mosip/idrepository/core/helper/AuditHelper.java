@@ -1,5 +1,6 @@
 package io.mosip.idrepository.core.helper;
 
+import io.mosip.idrepository.core.exception.RestServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -79,11 +80,14 @@ public class AuditHelper {
 		} catch (IdRepoDataValidationException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), "AuditRequestBuilder", "audit",
 					"Exception : " + ExceptionUtils.getStackTrace(e));
-		} catch (Exception e) {
+		} catch (RestServiceException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), "AuditRequestBuilder", "audit",
+					"Exception : " + ExceptionUtils.getStackTrace(e));
+        }catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), "AuditRequestBuilder", "audit",
 					"Exception : " + ExceptionUtils.getStackTrace(e));
 		}
-	}
+    }
 	
 	/**
 	 * Audit error.
