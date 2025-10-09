@@ -8,7 +8,7 @@
 	<name>apitest-idrepo</name>
 	<description>Parent project of MOSIP Id Repository apitests</description>
 	<url>https://github.com/mosip/id-repository</url>
-	<version>1.2.2.3</version>
+	<version>1.2.2.4-SNAPSHOT</version>
 
 	<licenses>
 		<license>
@@ -71,7 +71,7 @@
 		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
 
 		<git.commit.id.plugin.version>3.0.1</git.commit.id.plugin.version>
-		<fileName>apitest-idrepo-1.2.2.3-jar-with-dependencies</fileName>
+		<fileName>apitest-idrepo-1.2.2.4-SNAPSHOT-jar-with-dependencies</fileName>
 	</properties>
 
 	<dependencies>
