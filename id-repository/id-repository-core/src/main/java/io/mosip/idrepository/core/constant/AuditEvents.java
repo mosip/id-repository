@@ -60,8 +60,10 @@ public enum AuditEvents {
 
 	GET_RID_BY_INDIVIDUALID("IDR-026", "System Event"),
 
-	GET_DRAFT_UIN_REQUEST_RESPONSE("IDR-027", "System Event");
-	
+	GET_DRAFT_UIN_REQUEST_RESPONSE("IDR-027", "System Event"),
+
+	ID_VID_METADATA("IDR-029", "System Event");
+
 
 
 	/** The event id. */
