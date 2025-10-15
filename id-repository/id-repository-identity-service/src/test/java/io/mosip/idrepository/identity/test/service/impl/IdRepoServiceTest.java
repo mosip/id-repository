@@ -2435,7 +2435,7 @@ public class IdRepoServiceTest {
 		wrapper.setResponse(response);
 
 		Mockito.when(restHelper.requestSync(Mockito.any())).thenReturn(wrapper);
-		Mockito.when(securityManager.getSaltKeyForId(uin)).thenReturn(saltId);
+		Mockito.when(securityManager.getSaltKeyForId(Mockito.anyString())).thenReturn(saltId);
 		Mockito.when(uinHashSaltRepo.retrieveSaltById(saltId)).thenReturn(hashSalt);
 		Mockito.when(securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes())).thenReturn("hashedUIN");
 		Mockito.when(uinRepo.findByUinHash(hashedUin)).thenReturn(Optional.of(uinObj));
@@ -2456,7 +2456,7 @@ public class IdRepoServiceTest {
 		String hashedUin = saltId + SPLITTER + "hashedUIN";
 		Uin uinObj = getMockUin();
 
-		Mockito.when(securityManager.getSaltKeyForId(uin)).thenReturn(saltId);
+		Mockito.when(securityManager.getSaltKeyForId(Mockito.anyString())).thenReturn(saltId);
 		Mockito.when(uinHashSaltRepo.retrieveSaltById(saltId)).thenReturn(hashSalt);
 		Mockito.when(securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes())).thenReturn("hashedUIN");
 		Mockito.when(uinRepo.findByUinHash(hashedUin)).thenReturn(Optional.of(uinObj));
@@ -2489,7 +2489,7 @@ public class IdRepoServiceTest {
 		int saltId = 123;
 		String hashSalt = "dummySalt";
 
-		Mockito.when(securityManager.getSaltKeyForId(uin)).thenReturn(saltId);
+		Mockito.when(securityManager.getSaltKeyForId(Mockito.anyString())).thenReturn(saltId);
 		Mockito.when(uinHashSaltRepo.retrieveSaltById(saltId)).thenReturn(hashSalt);
 		Mockito.when(securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes())).thenReturn("hashedUIN");
 		Mockito.when(uinRepo.findByUinHash(Mockito.anyString())).thenReturn(Optional.empty());
@@ -2502,7 +2502,7 @@ public class IdRepoServiceTest {
 		int saltId = 123;
 		String hashSalt = "dummySalt";
 
-		Mockito.when(securityManager.getSaltKeyForId(uin)).thenReturn(saltId);
+		Mockito.when(securityManager.getSaltKeyForId(Mockito.anyString())).thenReturn(saltId);
 		Mockito.when(uinHashSaltRepo.retrieveSaltById(saltId)).thenReturn(hashSalt);
 		Mockito.when(securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes())).thenReturn("hashedUIN");
 		Mockito.when(uinRepo.findByUinHash(Mockito.anyString())).thenThrow(new DataAccessException("DB Error") {});
