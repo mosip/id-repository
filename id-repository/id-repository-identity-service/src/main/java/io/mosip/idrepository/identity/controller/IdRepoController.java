@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.Resource;
 
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.dto.*;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +38,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
+import io.mosip.kernel.core.http.RequestWrapper;
+import io.mosip.kernel.core.util.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
@@ -144,6 +146,12 @@ public class IdRepoController {
 
 	@Value("${mosip.idrepo.rid.get.version}")
 	private String ridVersion;
+
+	@Value("${mosip.idrepo.idvid.metadata.id}")
+	private String idvidMetadataId;
+
+	@Value("${mosip.idrepo.idvid.metadata.version}")
+	private String idvidMetadataVersion;
 
 	/**
 	 * Inits the binder.
@@ -472,6 +480,7 @@ public class IdRepoController {
 		}
 	}
 
+	@Deprecated(since = "1.2.3")
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetRidByIndividualId())")
 	@GetMapping(path = "/rid/{individualId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Get RID by IndividualId Request", description = "Get RID by IndividualId Request", tags = {
@@ -495,6 +504,45 @@ public class IdRepoController {
 		responseWrapper.setResponse(ridDto);
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
 				individualId, individualIdType, "Get RID by IndividualId Request success");
+		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
+	}
+
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostSearchIdVidMetadata())")
+	@PostMapping(path = "/idvid-metadata/search", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "Search IdVid metadata using Individual Id", description = "Search IdVid metadata using Individual Id", tags = {
+			"id-repo-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Request authenticated successfully", content = @Content(schema = @Schema(implementation = IdVidMetadataResponseDTO.class))),
+			@ApiResponse(responseCode = "400", description = "No Records Found", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
+	public ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> searchIdVidMetadata(@RequestBody RequestWrapper<IdVidMetadataRequestDTO> request) throws IdRepoAppException {
+
+		IdVidMetadataRequestDTO metadataRequest = request.getRequest();
+		String individualId = metadataRequest.getIndividualId();
+		String idType = metadataRequest.getIdType();
+
+		if (StringUtils.isBlank(individualId)) {
+			throw new IdRepoAppException(
+					IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
+					String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), "individualId")
+			);
+		}
+		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
+		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
+				individualId, individualIdType, "IdVid metadata search request received");
+
+		IdVidMetadataResponseDTO metadataResponse = idRepoService.getIdVidMetadata(individualId, individualIdType);
+
+		ResponseWrapper<IdVidMetadataResponseDTO> responseWrapper = new ResponseWrapper<>();
+		responseWrapper.setId(idvidMetadataId);
+		responseWrapper.setVersion(idvidMetadataVersion);
+		responseWrapper.setResponse(metadataResponse);
+
+		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
+				individualId, individualIdType, "IdVid metadata search request successful");
+
 		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}
 
