@@ -23,7 +23,7 @@ on:
 
 jobs:
   build-maven-id-repository:
-    uses: mosip/kattu/.github/workflows/maven-build.yml@master-java21
+    uses: Prafulrakhade/kattu/.github/workflows/maven-build.yml@master-java21
     with:
       SERVICE_LOCATION: ./id-repository
       BUILD_ARTIFACT: id-repository
