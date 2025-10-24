@@ -31,6 +31,7 @@
 		<io.micrometer.prometheus.version>1.4.2</io.micrometer.prometheus.version>
 		<springdoc.version>1.5.10</springdoc.version>
 		<mockito.version>3.11.2</mockito.version>
+        <central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -166,8 +167,6 @@
 			<artifactId>biometrics-util</artifactId>
 			<version>${kernel.biometrics.util.version}</version>
 		</dependency>
-	
-		
 		</dependencies>
 	<repositories>
 		<repository>
@@ -175,8 +174,28 @@
 			<url>https://repo.danubetech.com/repository/maven-public/</url>
 		</repository>
 	</repositories>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://central.sonatype.com/api/v1/publisher</url>
+        </repository>
+    </distributionManagement>
 	<build>
 		<plugins>
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>${central.publishing.maven.plugin.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>ossrh</publishingServerId>
+                    <autoPublish>false</autoPublish>
+                </configuration>
+            </plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
@@ -190,6 +209,9 @@
 							<goal>build-info</goal>
 							<goal>repackage</goal>
 						</goals>
+                        <configuration>
+                            <attach>false</attach>
+                        </configuration>
 					</execution>
 				</executions>
 			</plugin>
