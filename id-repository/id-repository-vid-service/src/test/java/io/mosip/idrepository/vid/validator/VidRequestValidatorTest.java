@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.Request;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -110,9 +112,10 @@ public class VidRequestValidatorTest {
 		assertTrue(requestValidator.supports(RequestWrapper.class));
 	}
 
+
 	@Test
 	public void testSupport_Invalid() {
-		assertFalse(requestValidator.supports(IdRequestDTO.class));
+		assertFalse(requestValidator.supports(Request.class));
 	}
 
 	@Test
@@ -166,7 +169,7 @@ public class VidRequestValidatorTest {
 
 	@Test
 	public void testValidateStatus_Invalid_Status() {
-		ReflectionTestUtils.invokeMethod(requestValidator, "validateStatus", "ACTIVAT", errors);
+		ReflectionTestUtils.invokeMethod(requestValidator, "validateStatus", "ACTIVAT", errors,"user");
 		assertTrue(errors.hasErrors());
 		errors.getAllErrors().forEach(error -> {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), error.getCode());
@@ -178,7 +181,7 @@ public class VidRequestValidatorTest {
 
 	@Test
 	public void testValidateStatus_Null_Status() {
-		ReflectionTestUtils.invokeMethod(requestValidator, "validateStatus", null, errors);
+		ReflectionTestUtils.invokeMethod(requestValidator, "validateStatus", null, errors,"user");
 		assertTrue(errors.hasErrors());
 		errors.getAllErrors().forEach(error -> {
 			assertEquals(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(), error.getCode());
@@ -300,18 +303,17 @@ public class VidRequestValidatorTest {
 	}
 	
 	
-	
 	@Test
 	public void testUinValid() {
 		Mockito.when(uinValidator.validateId(Mockito.anyString())).thenReturn(true);
-		ReflectionTestUtils.invokeMethod(requestValidator, "validateUin", "123456", errors);
+		ReflectionTestUtils.invokeMethod(requestValidator, "validateUin", "123456", errors,"user");
 	}
-	
+
 	@Test
 	public void testUinInValid() {
 		Mockito.when(uinValidator.validateId(Mockito.anyString())).thenThrow(new InvalidIDException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
 				String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "UIN")));
-		ReflectionTestUtils.invokeMethod(requestValidator, "validateUin", "123456", errors);
+		ReflectionTestUtils.invokeMethod(requestValidator, "validateUin", "123456", errors,"user");
 		errors.getAllErrors().forEach(error -> {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), error.getCode());
 			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "UIN"),
