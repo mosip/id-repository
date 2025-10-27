@@ -169,7 +169,7 @@ public class VidRequestValidatorTest {
 
 	@Test
 	public void testValidateStatus_Invalid_Status() {
-		ReflectionTestUtils.invokeMethod(requestValidator, "validateStatus", "ACTIVAT", errors,"user");
+		ReflectionTestUtils.invokeMethod(requestValidator, "validateStatus", "ACTIVAT", errors);
 		assertTrue(errors.hasErrors());
 		errors.getAllErrors().forEach(error -> {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), error.getCode());
@@ -181,7 +181,7 @@ public class VidRequestValidatorTest {
 
 	@Test
 	public void testValidateStatus_Null_Status() {
-		ReflectionTestUtils.invokeMethod(requestValidator, "validateStatus", null, errors,"user");
+		ReflectionTestUtils.invokeMethod(requestValidator, "validateStatus", null, errors);
 		assertTrue(errors.hasErrors());
 		errors.getAllErrors().forEach(error -> {
 			assertEquals(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(), error.getCode());
@@ -306,14 +306,14 @@ public class VidRequestValidatorTest {
 	@Test
 	public void testUinValid() {
 		Mockito.when(uinValidator.validateId(Mockito.anyString())).thenReturn(true);
-		ReflectionTestUtils.invokeMethod(requestValidator, "validateUin", "123456", errors,"user");
+		ReflectionTestUtils.invokeMethod(requestValidator, "validateUin", "123456", errors);
 	}
 
 	@Test
 	public void testUinInValid() {
 		Mockito.when(uinValidator.validateId(Mockito.anyString())).thenThrow(new InvalidIDException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
 				String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "UIN")));
-		ReflectionTestUtils.invokeMethod(requestValidator, "validateUin", "123456", errors,"user");
+		ReflectionTestUtils.invokeMethod(requestValidator, "validateUin", "123456", errors);
 		errors.getAllErrors().forEach(error -> {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), error.getCode());
 			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "UIN"),
