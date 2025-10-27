@@ -30,8 +30,8 @@ import io.mosip.kernel.core.idvalidator.spi.VidValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 
 /**
- * Validates VID request types: CREATE, UPDATE, DEACTIVATE, REACTIVATE.
- * Preserves backward compatible behavior & improves VID type lookup performance.
+ * Backward-compatible, optimized validator for VID requests.
+ * Keeps original error codes/messages for test compatibility.
  */
 @Component
 @ConfigurationProperties("mosip.idrepo.vid")
@@ -61,7 +61,6 @@ public class VidRequestValidator extends BaseIdRepoValidator implements Validato
 	@Resource
 	private List<String> allowedStatus;
 
-	/** Cached VID types for performance */
 	private volatile Set<String> cachedVidTypes;
 
 	@PostConstruct
@@ -69,14 +68,13 @@ public class VidRequestValidator extends BaseIdRepoValidator implements Validato
 		cachedVidTypes = policyProvider.getAllVidTypes();
 	}
 
-	/** Manual refresh if policies change */
 	public void refreshVidTypesCache() {
 		cachedVidTypes = policyProvider.getAllVidTypes();
 	}
 
 	@Override
 	public boolean supports(Class<?> clazz) {
-		return RequestWrapper.class.isAssignableFrom(clazz);
+		return clazz.isAssignableFrom(RequestWrapper.class);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -94,16 +92,12 @@ public class VidRequestValidator extends BaseIdRepoValidator implements Validato
 		VidRequestDTO request = requestWrapper.getRequest();
 		String currentUser = IdRepoSecurityManager.getUser();
 
-		if (requestId == null) return;
+		if (Objects.isNull(requestId)) return;
 
 		switch (requestId) {
-
 			case CREATE:
 				validateVidType(request.getVidType(), errors, currentUser);
-
-				// ✅ Backward Compatible: Always validate UIN
-				// ✅ Performance: skip if 'request' field already has validation error
-				if (!errors.hasFieldErrors(REQUEST)) {
+				if (!errors.hasErrors()) {
 					validateUin(request.getUin(), errors, currentUser);
 				}
 				break;
@@ -124,57 +118,58 @@ public class VidRequestValidator extends BaseIdRepoValidator implements Validato
 		}
 	}
 
-	private void validateVidType(String vidType, Errors errors, String currentUser) {
-		if (vidType == null) {
-			logAndReject(errors, currentUser, "validateVidType", "vidType is null",
-					MISSING_INPUT_PARAMETER, VID_TYPE);
-			return;
-		}
-		if (!cachedVidTypes.contains(vidType.toUpperCase())) {
-			logAndReject(errors, currentUser, "validateVidType",
-					"Invalid vidType: " + vidType, INVALID_INPUT_PARAMETER, VID_TYPE);
+	private void validateVidType(String vidType, Errors errors, String user) {
+		if (Objects.isNull(vidType)) {
+			// same error format as old version
+			mosipLogger.error(user, getClass().getSimpleName(), "validateVidType", "vidType is null");
+			errors.rejectValue(REQUEST, MISSING_INPUT_PARAMETER.getErrorCode(),
+					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), VID_TYPE));
+		} else if (!cachedVidTypes.contains(vidType.toUpperCase())) {
+			mosipLogger.error(user, getClass().getSimpleName(), "validateVidType",
+					"vidType is invalid - " + vidType);
+			errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
+					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), VID_TYPE));
 		}
 	}
 
-	private void validateUin(String uin, Errors errors, String currentUser) {
-		if (uin == null) {
-			logAndReject(errors, currentUser, "validateUin", "uin is null",
-					MISSING_INPUT_PARAMETER, UIN);
-			return;
-		}
-		try {
-			uinValidator.validateId(uin);
-		} catch (InvalidIDException e) {
-			logAndReject(errors, currentUser, "validateUin", e.getMessage(),
-					INVALID_INPUT_PARAMETER, UIN);
+	private void validateUin(String uin, Errors errors, String user) {
+		if (Objects.isNull(uin)) {
+			mosipLogger.error(user, getClass().getSimpleName(), "validateUin", "uin is null");
+			errors.rejectValue(REQUEST, MISSING_INPUT_PARAMETER.getErrorCode(),
+					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), UIN));
+		} else {
+			try {
+				uinValidator.validateId(uin);
+			} catch (InvalidIDException e) {
+				mosipLogger.error(user, getClass().getSimpleName(), "validateUin", e.getMessage());
+				errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
+			}
 		}
 	}
 
 	private void validateRequest(VidRequestDTO request, Errors errors) {
-		if (request == null) {
-			logAndReject(errors, IdRepoSecurityManager.getUser(), "validateRequest", "request is null",
-					MISSING_INPUT_PARAMETER, REQUEST);
+		if (Objects.isNull(request)) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), getClass().getSimpleName(),
+					"validateRequest", "request is null");
+			errors.rejectValue(REQUEST, MISSING_INPUT_PARAMETER.getErrorCode(),
+					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), REQUEST));
 		}
 	}
 
-	private void validateStatus(String vidStatus, Errors errors, String currentUser) {
-		if (vidStatus == null) {
-			logAndReject(errors, currentUser, "validateStatus", "Status is null",
-					MISSING_INPUT_PARAMETER, STATUS_FIELD);
+	private void validateStatus(String vidStatus, Errors errors, String user) {
+		if (Objects.isNull(vidStatus)) {
+			mosipLogger.error(user, getClass().getSimpleName(), "validateStatus", "Status is null");
+			errors.rejectValue(REQUEST, MISSING_INPUT_PARAMETER.getErrorCode(),
+					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), STATUS_FIELD));
 		} else if (!allowedStatus.contains(vidStatus)) {
-			logAndReject(errors, currentUser, "validateStatus", "Invalid vidStatus",
-					INVALID_INPUT_PARAMETER, STATUS_FIELD);
+			mosipLogger.error(user, getClass().getSimpleName(), "validateStatus", "Status is invalid");
+			errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
+					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), STATUS_FIELD));
 		}
 	}
 
 	public void validateVid(String vid) {
 		vidValidator.validateId(vid);
-	}
-
-	private void logAndReject(Errors errors, String user, String method, String message,
-							  IdRepoErrorConstants errorCode, String fieldName) {
-		mosipLogger.error(user, getClass().getSimpleName(), method, message);
-		errors.rejectValue(REQUEST, errorCode.getErrorCode(),
-				String.format(errorCode.getErrorMessage(), fieldName));
 	}
 }
