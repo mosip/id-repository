@@ -115,7 +115,7 @@ public class VidRequestValidatorTest {
 
 	@Test
 	public void testSupport_Invalid() {
-		assertFalse(requestValidator.supports(Request.class));
+		assertFalse(requestValidator.supports(IdRequestDTO.class));
 	}
 
 	@Test
