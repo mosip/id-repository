@@ -5,12 +5,14 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_TYPE_PATH;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.vid.service.impl.VidServiceImpl;
+import io.mosip.kernel.core.logger.spi.Logger;
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,52 +41,66 @@ import io.mosip.idrepository.core.util.EnvUtil;
 @RefreshScope
 public class VidPolicyProvider {
 
-	/** The Constant READ_LIST_OPTIONS. */
 	private static final Configuration READ_LIST_OPTIONS = Configuration.defaultConfiguration()
 			.addOptions(Option.SUPPRESS_EXCEPTIONS, Option.ALWAYS_RETURN_LIST);
 
-	/** The mapper. */
+	private static final JsonPath VID_TYPE_PATH_EXPR = JsonPath.compile(VID_TYPE_PATH);
+	private static final JsonPath VID_POLICY_PATH_EXPR = JsonPath.compile(VID_POLICY_PATH);
+
 	@Autowired
 	private ObjectMapper mapper;
 
-	/** The vid policies. */
-	private Map<String, VidPolicy> vidPolicies;
+	private Logger mosipLogger = IdRepoLogger.getLogger(VidPolicyProvider.class);
 
-	/**
-	 * Loads policy details from policy json and validates against the schema provided.
-	 *
-	 * @throws IOException Signals that an I/O exception has occurred.
-	 * @throws ProcessingException schema validation processing exception
-	 */
+
+	// Thread-safe reference for policies
+	private final AtomicReference<Map<String, VidPolicy>> vidPoliciesRef = new AtomicReference<>(Collections.emptyMap());
+
 	@PostConstruct
 	public void loadPolicyDetails() throws IOException, ProcessingException {
+		long start = System.currentTimeMillis();
+
 		JsonNode policyJson = mapper.readValue(new URL(EnvUtil.getVidPolicyFileUrl()), JsonNode.class);
 		JsonNode schema = mapper.readValue(new URL(EnvUtil.getVidPolicySchemaUrl()), JsonNode.class);
-		final JsonSchema jsonSchema = JsonSchemaFactory.byDefault().getJsonSchema(schema);
+
+		// Validate JSON against schema
+		JsonSchema jsonSchema = JsonSchemaFactory.byDefault().getJsonSchema(schema);
 		jsonSchema.validate(policyJson);
-		List<String> vidType = JsonPath.compile(VID_TYPE_PATH).read(policyJson.toString(), READ_LIST_OPTIONS);
-		List<Object> vidPolicy = JsonPath.compile(VID_POLICY_PATH).read(policyJson.toString(), READ_LIST_OPTIONS);
-		vidPolicies = IntStream.range(0, vidType.size()).boxed().collect(Collectors
-				.toMap(i -> vidType.get(i).toUpperCase(), i -> mapper.convertValue(vidPolicy.get(i), VidPolicy.class)));
+
+		// Extract
+		List<String> vidTypes = VID_TYPE_PATH_EXPR.read(policyJson.toString(), READ_LIST_OPTIONS);
+		List<Object> vidPolicies = VID_POLICY_PATH_EXPR.read(policyJson.toString(), READ_LIST_OPTIONS);
+		if (vidTypes.isEmpty() || vidPolicies.isEmpty()) {
+			mosipLogger.error("No VID types or policies found in {} — check JSONPath expressions or policy file content.",
+					EnvUtil.getVidPolicyFileUrl());
+		}
+
+		Map<String, VidPolicy> newMap = IntStream.range(0, Math.min(vidTypes.size(), vidPolicies.size()))
+				.boxed()
+				.collect(Collectors.toMap(
+						i -> vidTypes.get(i).toUpperCase(Locale.ROOT),
+						i -> mapper.convertValue(vidPolicies.get(i), VidPolicy.class)
+				));
+
+		vidPoliciesRef.set(Collections.unmodifiableMap(newMap));
+
+		mosipLogger.info("VID policies loaded: {} entries in {} ms",
+				newMap.size(), (System.currentTimeMillis() - start));
 	}
 
-	/**
-	 * Returns the policy based on the vid type provided.
-	 *
-	 * @param vidType
-	 *            the vid type
-	 * @return the policy
-	 */
 	public VidPolicy getPolicy(String vidType) {
-		return vidPolicies.get(vidType);
+		if (vidType == null) {
+			mosipLogger.warn("Requested VID policy for null vidType.");
+			return null;
+		}
+		VidPolicy policy = vidPoliciesRef.get().get(vidType.toUpperCase(Locale.ROOT));
+		if (policy == null) {
+			mosipLogger.warn("No VID policy found for type '{}'.", vidType);
+		}
+		return policy;
 	}
 
-	/**
-	 * Returns all the vid types available in the vid policy.
-	 *
-	 * @return the all vid types
-	 */
 	public Set<String> getAllVidTypes() {
-		return vidPolicies.keySet();
+		return vidPoliciesRef.get().keySet();
 	}
 }
