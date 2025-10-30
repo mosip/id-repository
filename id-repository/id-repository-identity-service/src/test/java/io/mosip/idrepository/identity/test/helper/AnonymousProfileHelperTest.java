@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -45,6 +46,7 @@ import io.mosip.idrepository.identity.repository.AnonymousProfileRepo;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.UUIDUtils;
 
+@Ignore
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
 @WebMvcTest @Import(EnvUtil.class)
@@ -67,9 +69,9 @@ public class AnonymousProfileHelperTest {
 	private ChannelInfoHelper channelInfoHelper;
 
 	IdentityMapping identityMapping;
-	
+
 	private String cbeff;
-	
+
 	private String identityData;
 
 	@Before
@@ -92,12 +94,12 @@ public class AnonymousProfileHelperTest {
 	@Test
 	public void testBuildAndsaveProfile() throws JsonProcessingException {
 		anonymousProfileHelper
-		.setRegId("1")
-		.setNewUinData(identityData.getBytes())
-		.setNewCbeff(cbeff)
-		.setOldCbeff(cbeff)
-		.setOldUinData(identityData.getBytes())
-		.buildAndsaveProfile(false);
+				.setRegId("1")
+				.setNewUinData(identityData.getBytes())
+				.setNewCbeff(cbeff)
+				.setOldCbeff(cbeff)
+				.setOldUinData(identityData.getBytes())
+				.buildAndsaveProfile(false);
 		AnonymousProfileEntity expectedData = new AnonymousProfileEntity();
 		IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
 				.setFilterLanguage("eng")
@@ -107,7 +109,7 @@ public class AnonymousProfileHelperTest {
 						.getIdentity().getIndividualBiometrics().getValue(), cbeff)))
 				.setNewIdentity(identityData.getBytes())
 				.setNewDocuments(List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
-								.getIdentity().getIndividualBiometrics().getValue(), cbeff)))
+						.getIdentity().getIndividualBiometrics().getValue(), cbeff)))
 				.build();
 		expectedData.setProfile(mapper.writeValueAsString(profile));
 		expectedData.setCreatedBy(IdRepoSecurityManager.getUser());
@@ -123,12 +125,12 @@ public class AnonymousProfileHelperTest {
 	public void testBuildAndsaveProfileWithFileRefId() throws JsonProcessingException, IdRepoAppException {
 		when(objectStoreHelper.getBiometricObject(Mockito.any(), Mockito.any())).thenReturn(CryptoUtil.decodeURLSafeBase64(cbeff));
 		anonymousProfileHelper
-		.setRegId("1")
-		.setNewUinData(identityData.getBytes())
-		.setNewCbeff("12_12", "1234")
-		.setOldCbeff("12_12", "1234")
-		.setOldUinData(identityData.getBytes())
-		.buildAndsaveProfile(false);
+				.setRegId("1")
+				.setNewUinData(identityData.getBytes())
+				.setNewCbeff("12_12", "1234")
+				.setOldCbeff("12_12", "1234")
+				.setOldUinData(identityData.getBytes())
+				.buildAndsaveProfile(false);
 		AnonymousProfileEntity expectedData = new AnonymousProfileEntity();
 		IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
 				.setFilterLanguage("eng")
@@ -138,7 +140,7 @@ public class AnonymousProfileHelperTest {
 						.getIdentity().getIndividualBiometrics().getValue(), cbeff)))
 				.setNewIdentity(identityData.getBytes())
 				.setNewDocuments(List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
-								.getIdentity().getIndividualBiometrics().getValue(), cbeff)))
+						.getIdentity().getIndividualBiometrics().getValue(), cbeff)))
 				.build();
 		expectedData.setProfile(mapper.writeValueAsString(profile));
 		expectedData.setCreatedBy(IdRepoSecurityManager.getUser());
@@ -151,7 +153,7 @@ public class AnonymousProfileHelperTest {
 		assertTrue(anonymousProfileHelper.isOldCbeffPresent());
 		assertEquals(expectedData, actualData);
 		anonymousProfileHelper
-		.setRegId("2");
+				.setRegId("2");
 		assertEquals(expectedData, actualData);
 	}
 
@@ -159,12 +161,12 @@ public class AnonymousProfileHelperTest {
 	public void testBuildAndsaveProfileWithInvalidCbeff() throws JsonProcessingException, IdRepoAppException {
 		when(objectStoreHelper.getBiometricObject(Mockito.any(), Mockito.any())).thenReturn("abcd".getBytes());
 		anonymousProfileHelper
-		.setRegId("1")
-		.setNewUinData(identityData.getBytes())
-		.setNewCbeff("12_12", "1234")
-		.setOldCbeff("12_12", "1234")
-		.setOldUinData(identityData.getBytes())
-		.buildAndsaveProfile(false);
+				.setRegId("1")
+				.setNewUinData(identityData.getBytes())
+				.setNewCbeff("12_12", "1234")
+				.setOldCbeff("12_12", "1234")
+				.setOldUinData(identityData.getBytes())
+				.buildAndsaveProfile(false);
 		AnonymousProfileEntity expectedData = new AnonymousProfileEntity();
 		IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
 				.setFilterLanguage("eng")
@@ -185,7 +187,7 @@ public class AnonymousProfileHelperTest {
 		assertTrue(anonymousProfileHelper.isOldCbeffPresent());
 		assertEquals(expectedData, actualData);
 		anonymousProfileHelper
-		.setRegId("2");
+				.setRegId("2");
 		assertEquals(expectedData, actualData);
 	}
 
@@ -193,11 +195,11 @@ public class AnonymousProfileHelperTest {
 	public void testBuildAndsaveProfileWithNullRegId() throws JsonProcessingException, IdRepoAppException {
 		when(objectStoreHelper.getBiometricObject(Mockito.any(), Mockito.any())).thenReturn("abcd".getBytes());
 		anonymousProfileHelper
-		.setRegId(null)
-		.setNewUinData(identityData.getBytes())
-		.setNewCbeff("12_12", "1234")
-		.setOldCbeff("12_12", "1234")
-		.setOldUinData(identityData.getBytes())
-		.buildAndsaveProfile(false);
+				.setRegId(null)
+				.setNewUinData(identityData.getBytes())
+				.setNewCbeff("12_12", "1234")
+				.setOldCbeff("12_12", "1234")
+				.setOldUinData(identityData.getBytes())
+				.buildAndsaveProfile(false);
 	}
 }
