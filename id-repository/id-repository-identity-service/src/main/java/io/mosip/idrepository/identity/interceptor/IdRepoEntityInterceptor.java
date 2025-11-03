@@ -112,7 +112,8 @@ public class IdRepoEntityInterceptor extends EmptyInterceptor {
 
 		if ((entity instanceof HandleInfo)) {
 			List<String> parts = Arrays.asList(((HandleInfo) entity).getHandle().split(SPLITTER));
-			byte[] encryptedHandleByteWithSalt = securityManager.encryptWithSalt(parts.get(1).getBytes(),
+			byte[] encryptedHandleByteWithSalt = securityManager.encryptWithSalt(
+					CryptoUtil.decodePlainBase64(parts.get(1)),
 					CryptoUtil.decodePlainBase64(parts.get(2)), uinRefId);
 			String encryptedHandleWithSalt = parts.get(0) + SPLITTER + new String(encryptedHandleByteWithSalt);
 			((HandleInfo) entity).setHandle(encryptedHandleWithSalt);
