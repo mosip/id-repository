@@ -24,6 +24,7 @@ ReactivateVIDs:
       role: resident
       checkErrorsOnlyInResponse: true
       restMethod: post
+      additionalDependencies: TC_IDRepo_UpdateIdentity_17
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
       outputTemplate: idRepository/error
       input: '{
@@ -46,6 +47,7 @@ ReactivateVIDs:
       uniqueIdentifier: TC_IDRepo_ReactivateVID_03
       role: resident
       restMethod: post
+      additionalDependencies: TC_IDRepo_DeactivateVID_03,TC_IDRepo_CreateVID_03
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
       outputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUINResult
       input: '{
@@ -64,6 +66,7 @@ ReactivateVIDs:
       uniqueIdentifier: TC_IDRepo_ReactivateVID_04
       role: resident
       restMethod: post
+      additionalDependencies: TC_IDRepo_CreateVID_01,TC_IDRepo_DeactivateVID_03,TC_IDRepo_UpdateVIDStatus_44,TC_IDRepo_UpdateIdentity_01,TC_IDRepo_UpdateIdentity_02
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
       outputTemplate: idRepository/error
       input: '{
@@ -85,6 +88,7 @@ ReactivateVIDs:
       uniqueIdentifier: TC_IDRepo_ReactivateVID_05
       role: resident
       restMethod: post
+      additionalDependencies: TC_IDRepo_CreateVID_01,TC_IDRepo_DeactivateVID_03,TC_IDRepo_UpdateVIDStatus_44,TC_IDRepo_UpdateIdentity_01,TC_IDRepo_UpdateIdentity_02
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
       outputTemplate: idRepository/error
       input: '{
@@ -107,6 +111,7 @@ ReactivateVIDs:
       uniqueIdentifier: TC_IDRepo_ReactivateVID_06
       role: resident
       restMethod: post
+      additionalDependencies: TC_IDRepo_CreateVID_01,TC_IDRepo_DeactivateVID_03,TC_IDRepo_UpdateVIDStatus_44,TC_IDRepo_UpdateIdentity_01,TC_IDRepo_UpdateIdentity_02
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
       outputTemplate: idRepository/error
       input: '{
@@ -129,6 +134,7 @@ ReactivateVIDs:
       uniqueIdentifier: TC_IDRepo_ReactivateVID_07
       role: resident
       restMethod: post
+      additionalDependencies: TC_IDRepo_CreateVID_01,TC_IDRepo_DeactivateVID_03,TC_IDRepo_UpdateVIDStatus_44,TC_IDRepo_UpdateIdentity_01,TC_IDRepo_UpdateIdentity_02
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
       outputTemplate: idRepository/error
       input: '{
@@ -239,6 +245,7 @@ ReactivateVIDs:
       uniqueIdentifier: TC_IDRepo_ReactivateVID_12
       role: resident
       restMethod: post
+      additionalDependencies: TC_IDRepo_CreateVID_01,TC_IDRepo_DeactivateVID_03,TC_IDRepo_UpdateVIDStatus_44,TC_IDRepo_UpdateIdentity_01,TC_IDRepo_UpdateIdentity_02
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
       outputTemplate: idRepository/error
       input: '{
@@ -260,6 +267,7 @@ ReactivateVIDs:
       uniqueIdentifier: TC_IDRepo_ReactivateVID_13
       role: resident
       restMethod: post
+      additionalDependencies: TC_IDRepo_CreateVID_01,TC_IDRepo_DeactivateVID_03,TC_IDRepo_UpdateVIDStatus_44,TC_IDRepo_UpdateIdentity_01,TC_IDRepo_UpdateIdentity_02
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
       outputTemplate: idRepository/error
       input: '{
@@ -282,6 +290,7 @@ ReactivateVIDs:
       uniqueIdentifier: TC_IDRepo_ReactivateVID_14
       role: resident
       restMethod: post
+      additionalDependencies: TC_IDRepo_CreateVID_01,TC_IDRepo_DeactivateVID_03,TC_IDRepo_UpdateVIDStatus_44,TC_IDRepo_UpdateIdentity_01,TC_IDRepo_UpdateIdentity_02
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
       outputTemplate: idRepository/error
       input: '{
@@ -304,6 +313,7 @@ ReactivateVIDs:
       uniqueIdentifier: TC_IDRepo_ReactivateVID_15
       role: resident
       restMethod: post
+      additionalDependencies: TC_IDRepo_CreateVID_01,TC_IDRepo_DeactivateVID_03,TC_IDRepo_UpdateVIDStatus_44,TC_IDRepo_UpdateIdentity_01,TC_IDRepo_UpdateIdentity_02
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
       outputTemplate: idRepository/error
       input: '{
@@ -326,6 +336,7 @@ ReactivateVIDs:
       uniqueIdentifier: TC_IDRepo_ReactivateVID_16
       role: resident
       restMethod: post
+      additionalDependencies: TC_IDRepo_CreateVID_01,TC_IDRepo_DeactivateVID_03,TC_IDRepo_UpdateVIDStatus_44,TC_IDRepo_UpdateIdentity_01,TC_IDRepo_UpdateIdentity_02
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
       outputTemplate: idRepository/error
       input: '{
@@ -348,6 +359,7 @@ ReactivateVIDs:
       uniqueIdentifier: TC_IDRepo_ReactivateVID_17
       role: resident
       restMethod: post
+      additionalDependencies: TC_IDRepo_CreateVID_01,TC_IDRepo_DeactivateVID_03,TC_IDRepo_UpdateVIDStatus_44,TC_IDRepo_UpdateIdentity_01,TC_IDRepo_UpdateIdentity_02
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
       outputTemplate: idRepository/error
       input: '{
@@ -370,6 +382,7 @@ ReactivateVIDs:
       uniqueIdentifier: TC_IDRepo_ReactivateVID_18
       role: resident
       restMethod: post
+      additionalDependencies: TC_IDRepo_CreateVID_01,TC_IDRepo_DeactivateVID_03,TC_IDRepo_UpdateVIDStatus_44,TC_IDRepo_UpdateIdentity_01,TC_IDRepo_UpdateIdentity_02
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
       outputTemplate: idRepository/error
       input: '{
@@ -391,6 +404,7 @@ ReactivateVIDs:
       uniqueIdentifier: TC_IDRepo_ReactivateVID_19
       role: resident
       restMethod: post
+      additionalDependencies: TC_IDRepo_CreateVID_01,TC_IDRepo_DeactivateVID_03,TC_IDRepo_UpdateVIDStatus_44,TC_IDRepo_UpdateIdentity_01,TC_IDRepo_UpdateIdentity_02
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
       outputTemplate: idRepository/error
       input: '{
@@ -413,6 +427,7 @@ ReactivateVIDs:
       uniqueIdentifier: TC_IDRepo_ReactivateVID_20
       role: resident
       restMethod: post
+      additionalDependencies: TC_IDRepo_CreateVID_01,TC_IDRepo_DeactivateVID_03,TC_IDRepo_UpdateVIDStatus_44,TC_IDRepo_UpdateIdentity_01,TC_IDRepo_UpdateIdentity_02
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
       outputTemplate: idRepository/error
       input: '{
@@ -435,6 +450,7 @@ ReactivateVIDs:
       uniqueIdentifier: TC_IDRepo_ReactivateVID_21
       role: resident
       restMethod: post
+      additionalDependencies: TC_IDRepo_CreateVID_01,TC_IDRepo_DeactivateVID_03,TC_IDRepo_UpdateVIDStatus_44,TC_IDRepo_UpdateIdentity_01,TC_IDRepo_UpdateIdentity_02
       inputTemplate: idRepository/ReactivateVIDsForUIN/reactivateVIDsForUIN
       outputTemplate: idRepository/error
       input: '{

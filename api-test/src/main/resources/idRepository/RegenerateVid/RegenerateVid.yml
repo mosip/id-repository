@@ -6,6 +6,7 @@ RegenerateVid:
       role: resident
       checkErrorsOnlyInResponse: true
       restMethod: post
+      additionalDependencies: TC_IDRepo_CreateVID_01
       inputTemplate: idRepository/RegenerateVid/regenerateVid
       outputTemplate: idRepository/RegenerateVid/regenerateVidResult
       input: '{
