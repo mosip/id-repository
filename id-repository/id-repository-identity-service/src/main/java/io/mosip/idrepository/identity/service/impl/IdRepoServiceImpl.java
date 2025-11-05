@@ -1184,7 +1184,9 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			for(HandleDto handleDto : entry.getValue()) {
 				int saltId = securityManager.getSaltKeyForHashOfId(handleDto.getHandle());
 				String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(saltId);
-				String handleToEncrypt = saltId + SPLITTER + handleDto.getHandle() + SPLITTER + encryptSalt;
+
+				String encodedHandleValue = CryptoUtil.encodeToPlainBase64(handleDto.getHandle().getBytes());
+				String handleToEncrypt = saltId + SPLITTER + encodedHandleValue + SPLITTER + encryptSalt;
 
 				Optional<Handle> result = handleRepo.findByHandleHash(handleDto.getHandleHash());
 				if(result.isPresent()) {
