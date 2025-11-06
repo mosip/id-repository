@@ -24,6 +24,7 @@ RetrieveAuthTypeStatus:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: get
+      additionalDependencies: TC_IDRepo_CreateVID_45
       inputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatus
       outputTemplate: idRepository/RetrieveAuthTypeStatus/retrieveAuthTypeStatusResult
       input: '{

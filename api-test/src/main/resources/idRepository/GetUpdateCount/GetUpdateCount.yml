@@ -102,6 +102,7 @@ GetUpdateCount:
       role: resident
       checkErrorsOnlyInResponse: true
       restMethod: get
+      additionalDependencies: TC_IDRepo_AddIdentity_39
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
       outputTemplate: idRepository/GetUpdateCount/GetUpdateCountResult
       input: '{
@@ -182,6 +183,7 @@ GetUpdateCount:
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_10
       role: invalid
       restMethod: get
+      additionalDependencies: TC_IDRepo_AddIdentity_39
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
       outputTemplate: idRepository/error
       input: '{
@@ -260,6 +262,7 @@ GetUpdateCount:
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_14
       role: resident
       restMethod: get
+      additionalDependencies: TC_IDRepo_AddIdentity_39
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
       outputTemplate: idRepository/error
       input: '{
@@ -281,6 +284,7 @@ GetUpdateCount:
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_15
       role: resident
       restMethod: get
+      additionalDependencies: TC_IDRepo_AddIdentity_39
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
       outputTemplate: idRepository/error
       input: '{
@@ -303,6 +307,7 @@ GetUpdateCount:
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_16
       role: resident
       restMethod: get
+      additionalDependencies: TC_IDRepo_AddIdentity_39
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
       outputTemplate: idRepository/error
       input: '{

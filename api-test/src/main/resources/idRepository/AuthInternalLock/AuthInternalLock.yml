@@ -26,10 +26,10 @@ AuthInternalLock:
       endPoint: /idrepository/v1/identity/authtypes/status
       description: Lock VID for authtype demo
       uniqueIdentifier: TC_IDRepo_AuthInternalock_02
-      
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
+      additionalDependencies: TC_IDRepo_AddIdentity_36
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
       input: '{
@@ -76,6 +76,7 @@ AuthInternalLock:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
+      additionalDependencies: TC_IDRepo_AddIdentity_36
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
       input: '{
@@ -122,6 +123,7 @@ AuthInternalLock:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
+      additionalDependencies: TC_IDRepo_AddIdentity_36
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
       input: '{
@@ -168,6 +170,7 @@ AuthInternalLock:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
+      additionalDependencies: TC_IDRepo_AddIdentity_36
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
       input: '{
@@ -214,6 +217,7 @@ AuthInternalLock:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
+      additionalDependencies: TC_IDRepo_AddIdentity_36
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
       input: '{
@@ -260,6 +264,7 @@ AuthInternalLock:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
+      additionalDependencies: TC_IDRepo_AddIdentity_36
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/AuthInternalLock/AuthInternalLockResult
       input: '{
@@ -309,6 +314,7 @@ AuthInternalLock:
       uniqueIdentifier: TC_IDRepo_AuthInternalock_14
       role: idrepo
       restMethod: post
+      additionalDependencies: TC_IDRepo_AddIdentity_36
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/error
       input: '{
@@ -363,6 +369,7 @@ AuthInternalLock:
       uniqueIdentifier: TC_IDRepo_AuthInternalock_16
       role: idrepo
       restMethod: post
+      additionalDependencies: TC_IDRepo_AddIdentity_36
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/error
       input: '{
@@ -417,6 +424,7 @@ AuthInternalLock:
       uniqueIdentifier: TC_IDRepo_AuthInternalock_18
       role: idrepo
       restMethod: post
+      additionalDependencies: TC_IDRepo_AddIdentity_36
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/error
       input: '{
@@ -471,6 +479,7 @@ AuthInternalLock:
       uniqueIdentifier: TC_IDRepo_AuthInternalock_20
       role: idrepo
       restMethod: post
+      additionalDependencies: TC_IDRepo_AddIdentity_36
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/error
       input: '{
@@ -525,6 +534,7 @@ AuthInternalLock:
       uniqueIdentifier: TC_IDRepo_AuthInternalock_22
       role: idrepo
       restMethod: post
+      additionalDependencies: TC_IDRepo_AddIdentity_36
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/error
       input: '{
@@ -579,6 +589,7 @@ AuthInternalLock:
       uniqueIdentifier: TC_IDRepo_AuthInternalock_24
       role: idrepo
       restMethod: post
+      additionalDependencies: TC_IDRepo_AddIdentity_36
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/error
       input: '{
@@ -687,6 +698,7 @@ AuthInternalLock:
       uniqueIdentifier: TC_IDRepo_AuthInternalock_28
       role: idrepo
       restMethod: post
+      additionalDependencies: TC_IDRepo_AddIdentity_36
       inputTemplate: idRepository/AuthInternalLock/authInternalLock
       outputTemplate: idRepository/error
       input: '{
