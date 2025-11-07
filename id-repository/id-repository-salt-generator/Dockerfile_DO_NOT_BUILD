@@ -1,4 +1,4 @@
-FROM openjdk:11
+FROM eclipse-temurin:11-jre
 
 # can be passed during Docker build as build time environment for github branch to pickup configuration from.
 ARG spring_config_label
