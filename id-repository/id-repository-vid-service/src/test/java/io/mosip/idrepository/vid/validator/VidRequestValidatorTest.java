@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.Request;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -109,6 +111,7 @@ public class VidRequestValidatorTest {
 	public void testSupport() {
 		assertTrue(requestValidator.supports(RequestWrapper.class));
 	}
+
 
 	@Test
 	public void testSupport_Invalid() {
@@ -300,13 +303,12 @@ public class VidRequestValidatorTest {
 	}
 	
 	
-	
 	@Test
 	public void testUinValid() {
 		Mockito.when(uinValidator.validateId(Mockito.anyString())).thenReturn(true);
 		ReflectionTestUtils.invokeMethod(requestValidator, "validateUin", "123456", errors);
 	}
-	
+
 	@Test
 	public void testUinInValid() {
 		Mockito.when(uinValidator.validateId(Mockito.anyString())).thenThrow(new InvalidIDException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
