@@ -413,92 +413,150 @@ public class ChannelInfoHelperTest {
     }
     
     @SuppressWarnings("unchecked")
-	@Test
-	public void testUpdatePhoneChannelInfoOldHasNoPhoneNewHasPhoneNewPhoneHasNoRecord() {
-		when(saltRepo.retrieveSaltById(anyInt())).thenReturn("");
-		when(securityManager.hashwithSalt(any(), any())).thenReturn("");
-		when(channelInfoRepo.findById(any())).thenReturn(Optional.of(ChannelInfo.builder()
-						.hashedChannel("NO_PHONE")
-						.noOfRecords(1)
-						.channelType("phone")
-						.createdBy(IdRepoSecurityManager.getUser())
-						.crDTimes(DateUtils.getUTCCurrentDateTime())
-						.build()),
-				Optional.empty());
-		channelInfoHelper.updatePhoneChannelInfo("{}".getBytes(), identityData);
-		ArgumentCaptor<ChannelInfo> captureData = ArgumentCaptor.forClass(ChannelInfo.class);
-		verify(channelInfoRepo, times(2)).save(captureData.capture());
-		ChannelInfo reducedNoPhoneRecord = captureData.getAllValues().get(0);
-		assertEquals("NO_PHONE", reducedNoPhoneRecord.getHashedChannel());
-		assertEquals(0, reducedNoPhoneRecord.getNoOfRecords().intValue());
-		assertEquals("phone", reducedNoPhoneRecord.getChannelType());
-		ChannelInfo newPhoneNewRecord = captureData.getAllValues().get(1);
-		assertEquals("", newPhoneNewRecord.getHashedChannel());
-		assertEquals(1, newPhoneNewRecord.getNoOfRecords().intValue());
-		assertEquals("phone", newPhoneNewRecord.getChannelType());
-	}
+    @Test
+    public void testUpdatePhoneChannelInfoOldHasNoPhoneNewHasPhoneNewPhoneHasNoRecord() {
+        when(saltRepo.retrieveSaltById(anyInt())).thenReturn("");
+        when(securityManager.hashwithSalt(any(), any())).thenReturn("");
 
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testUpdateEmailChannelInfoOldHasNoEmailNewHasEmailNewEmailHasRecord() {
-		when(saltRepo.retrieveSaltById(anyInt())).thenReturn("");
-		when(securityManager.hashwithSalt(any(), any())).thenReturn("");
-		when(channelInfoRepo.findById(any())).thenReturn(Optional.of(ChannelInfo.builder()
-						.hashedChannel("NO_EMAIL")
-						.noOfRecords(1)
-						.channelType("email")
-						.createdBy(IdRepoSecurityManager.getUser())
-						.crDTimes(DateUtils.getUTCCurrentDateTime())
-						.build()),
-				Optional.of(ChannelInfo.builder()
-						.hashedChannel("")
-						.noOfRecords(1)
-						.channelType("email")
-						.createdBy(IdRepoSecurityManager.getUser())
-						.crDTimes(DateUtils.getUTCCurrentDateTime())
-						.build()));
-		channelInfoHelper.updateEmailChannelInfo("{}".getBytes(), identityData);
-		ArgumentCaptor<ChannelInfo> captureData = ArgumentCaptor.forClass(ChannelInfo.class);
-		verify(channelInfoRepo, times(2)).save(captureData.capture());
-		ChannelInfo reducedNoEmailValue = captureData.getAllValues().get(0);
-		assertEquals("NO_EMAIL", reducedNoEmailValue.getHashedChannel());
-		assertEquals(0, reducedNoEmailValue.getNoOfRecords().intValue());
-		assertEquals("email", reducedNoEmailValue.getChannelType());
-		ChannelInfo newEmailNewRecord = captureData.getAllValues().get(1);
-		assertEquals("", newEmailNewRecord.getHashedChannel());
-		assertEquals(2, newEmailNewRecord.getNoOfRecords().intValue());
-		assertEquals("email", newEmailNewRecord.getChannelType());
-	}
+        // Simulate old record with NO_PHONE and no record for the new phone yet
+        when(channelInfoRepo.findById(any())).thenReturn(
+                Optional.of(ChannelInfo.builder()
+                        .hashedChannel("NO_PHONE")
+                        .noOfRecords(1)
+                        .channelType("phone")
+                        .createdBy(IdRepoSecurityManager.getUser())
+                        .crDTimes(DateUtils.getUTCCurrentDateTime())
+                        .build()),
+                Optional.empty() // second call returns empty
+        );
 
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testUpdatePhoneChannelInfoOldHasNoPhoneNewHasPhoneNewPhoneHasRecord() {
-		when(saltRepo.retrieveSaltById(anyInt())).thenReturn("");
-		when(securityManager.hashwithSalt(any(), any())).thenReturn("");
-		when(channelInfoRepo.findById(any())).thenReturn(Optional.of(ChannelInfo.builder()
-						.hashedChannel("NO_PHONE")
-						.noOfRecords(1)
-						.channelType("phone")
-						.createdBy(IdRepoSecurityManager.getUser())
-						.crDTimes(DateUtils.getUTCCurrentDateTime())
-						.build()),
-				Optional.of(ChannelInfo.builder()
-						.hashedChannel("")
-						.noOfRecords(1)
-						.channelType("phone")
-						.createdBy(IdRepoSecurityManager.getUser())
-						.crDTimes(DateUtils.getUTCCurrentDateTime())
-						.build()));
-		channelInfoHelper.updatePhoneChannelInfo("{}".getBytes(), identityData);
-		ArgumentCaptor<ChannelInfo> captureData = ArgumentCaptor.forClass(ChannelInfo.class);
-		verify(channelInfoRepo, times(2)).save(captureData.capture());
-		ChannelInfo reducedNoPhoneRecord = captureData.getAllValues().get(0);
-		assertEquals("NO_PHONE", reducedNoPhoneRecord.getHashedChannel());
-		assertEquals(0, reducedNoPhoneRecord.getNoOfRecords().intValue());
-		assertEquals("phone", reducedNoPhoneRecord.getChannelType());
-		ChannelInfo newPhoneNewRecord = captureData.getAllValues().get(1);
-		assertEquals("", newPhoneNewRecord.getHashedChannel());
-		assertEquals(2, newPhoneNewRecord.getNoOfRecords().intValue());
-		assertEquals("phone", newPhoneNewRecord.getChannelType());
-	}
+        channelInfoHelper.updatePhoneChannelInfo("{}".getBytes(), identityData);
+
+        // Verify decrement of NO_PHONE
+        verify(channelInfoRepo).upsertAndDelta(
+                eq("NO_PHONE"),
+                eq("phone"),
+                eq(1),
+                eq(-1),
+                anyString(),
+                any(LocalDateTime.class),
+                anyString(),
+                any(LocalDateTime.class)
+        );
+
+        // Verify increment of new phone
+        verify(channelInfoRepo).upsertAndDelta(
+                eq(""), // hashed value for new phone
+                eq("phone"),
+                eq(1),
+                eq(1),
+                anyString(),
+                any(LocalDateTime.class),
+                anyString(),
+                any(LocalDateTime.class)
+        );
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testUpdateEmailChannelInfoOldHasNoEmailNewHasEmailNewEmailHasRecord() {
+        when(saltRepo.retrieveSaltById(anyInt())).thenReturn("");
+        when(securityManager.hashwithSalt(any(), any())).thenReturn("");
+
+        // Simulate old record with NO_EMAIL and new email already exists
+        when(channelInfoRepo.findById(any())).thenReturn(
+                Optional.of(ChannelInfo.builder()
+                        .hashedChannel("NO_EMAIL")
+                        .noOfRecords(1)
+                        .channelType("email")
+                        .createdBy(IdRepoSecurityManager.getUser())
+                        .crDTimes(DateUtils.getUTCCurrentDateTime())
+                        .build()),
+                Optional.of(ChannelInfo.builder()
+                        .hashedChannel("")
+                        .noOfRecords(1)
+                        .channelType("email")
+                        .createdBy(IdRepoSecurityManager.getUser())
+                        .crDTimes(DateUtils.getUTCCurrentDateTime())
+                        .build())
+        );
+
+        channelInfoHelper.updateEmailChannelInfo("{}".getBytes(), identityData);
+
+        // Verify decrement of NO_EMAIL
+        verify(channelInfoRepo).upsertAndDelta(
+                eq("NO_EMAIL"),
+                eq("email"),
+                eq(1),
+                eq(-1),
+                anyString(),
+                any(LocalDateTime.class),
+                anyString(),
+                any(LocalDateTime.class)
+        );
+
+        // Verify increment of existing email
+        verify(channelInfoRepo).upsertAndDelta(
+                eq(""),
+                eq("email"),
+                eq(1),
+                eq(1),
+                anyString(),
+                any(LocalDateTime.class),
+                anyString(),
+                any(LocalDateTime.class)
+        );
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testUpdatePhoneChannelInfoOldHasNoPhoneNewHasPhoneNewPhoneHasRecord() {
+        when(saltRepo.retrieveSaltById(anyInt())).thenReturn("");
+        when(securityManager.hashwithSalt(any(), any())).thenReturn("");
+
+        // Simulate old record with NO_PHONE and new phone already exists
+        when(channelInfoRepo.findById(any())).thenReturn(
+                Optional.of(ChannelInfo.builder()
+                        .hashedChannel("NO_PHONE")
+                        .noOfRecords(1)
+                        .channelType("phone")
+                        .createdBy(IdRepoSecurityManager.getUser())
+                        .crDTimes(DateUtils.getUTCCurrentDateTime())
+                        .build()),
+                Optional.of(ChannelInfo.builder()
+                        .hashedChannel("")
+                        .noOfRecords(1)
+                        .channelType("phone")
+                        .createdBy(IdRepoSecurityManager.getUser())
+                        .crDTimes(DateUtils.getUTCCurrentDateTime())
+                        .build())
+        );
+
+        channelInfoHelper.updatePhoneChannelInfo("{}".getBytes(), identityData);
+
+        // Verify decrement of NO_PHONE
+        verify(channelInfoRepo).upsertAndDelta(
+                eq("NO_PHONE"),
+                eq("phone"),
+                eq(1),
+                eq(-1),
+                anyString(),
+                any(LocalDateTime.class),
+                anyString(),
+                any(LocalDateTime.class)
+        );
+
+        // Verify increment of existing phone
+        verify(channelInfoRepo).upsertAndDelta(
+                eq(""),
+                eq("phone"),
+                eq(1),
+                eq(1),
+                anyString(),
+                any(LocalDateTime.class),
+                anyString(),
+                any(LocalDateTime.class)
+        );
+    }
+
 }
