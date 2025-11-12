@@ -3,6 +3,7 @@ package io.mosip.idrepository.vid.service.impl;
 import static io.mosip.idrepository.core.constant.AuditModules.ID_REPO_VID_SERVICE;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.DRAFT_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
+
 import static io.mosip.idrepository.core.constant.IdRepoConstants.UIN_REFID;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_ACTIVE_STATUS;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_EVENT_TOPIC;
@@ -77,7 +78,7 @@ import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.util.UUIDUtils;
 import io.mosip.kernel.core.websub.model.Event;
 import io.mosip.kernel.core.websub.model.EventModel;
@@ -98,6 +99,10 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	private static final String UPDATE_VID = "updateVid";
 	private static final String CREATE_VID = "createVid";
 	private static final String RETRIEVE_UIN_BY_VID = "retrieveUinByVid";
+
+	/** The Constant EXPIRED. */
+	private static final String EXPIRED = "EXPIRED";
+
 
 	private Logger mosipLogger = IdRepoLogger.getLogger(VidServiceImpl.class);
 
@@ -193,7 +198,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 		String uinHash = String.valueOf(saltId) + SPLITTER
 				+ securityManager.hashwithSalt(uin.getBytes(), CryptoUtil.decodePlainBase64(hashSalt));
 
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime();
+		LocalDateTime currentTime = DateUtils2.getUTCCurrentDateTime();
 
 		// Find existing active/specified status VIDs
 		List<Vid> vidDetails = vidRepo.findByUinHashAndStatusCodeAndVidTypeCodeAndExpiryDTimesAfter(uinHash, vidStatus,
@@ -204,11 +209,11 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 
 		// if none or less than allowed instances -> create new
 		if (vidDetails == null || vidDetails.isEmpty() || vidDetails.size() < policy.getAllowedInstances()) {
-			String vidRefId = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils.getUTCCurrentDateTime())
+			String vidRefId = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils2.getUTCCurrentDateTime())
 					.toString();
 			Vid vidEntity = new Vid(vidRefId, generateVid(), uinHash, uinToEncrypt, vidType, currentTime,
 					Objects.nonNull(policy.getValidForInMinutes())
-							? DateUtils.getUTCCurrentDateTime().plusMinutes(policy.getValidForInMinutes())
+							? DateUtils2.getUTCCurrentDateTime().plusMinutes(policy.getValidForInMinutes())
 							: LocalDateTime.MAX.withYear(9999),
 					vidStatus, IdRepoSecurityManager.getUser(), currentTime, null, null, false, null);
 
@@ -232,7 +237,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 
 			vidObject.setStatusCode(policy.getRestoreOnAction());
 			vidObject.setUpdatedBy(IdRepoSecurityManager.getUser());
-			vidObject.setUpdatedDTimes(DateUtils.getUTCCurrentDateTime());
+			vidObject.setUpdatedDTimes(DateUtils2.getUTCCurrentDateTime());
 			vidObject.setUin(uinToEncrypt);
 			vidRepo.saveAndFlush(vidObject);
 
@@ -332,7 +337,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 					+ securityManager.hashwithSalt(uin.getBytes(), CryptoUtil.decodePlainBase64(hashSalt));
 
 			List<Vid> vidList = vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(uinHash,
-					EnvUtil.getVidActiveStatus(), DateUtils.getUTCCurrentDateTime());
+					EnvUtil.getVidActiveStatus(), DateUtils2.getUTCCurrentDateTime());
 
 			if (!vidList.isEmpty()) {
 				// Precompute idHash for each vid once
@@ -396,7 +401,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 
 			vidObject.setStatusCode(vidStatus);
 			vidObject.setUpdatedBy(IdRepoSecurityManager.getUser());
-			vidObject.setUpdatedDTimes(DateUtils.getUTCCurrentDateTime());
+			vidObject.setUpdatedDTimes(DateUtils2.getUTCCurrentDateTime());
 			vidObject.setUin(decryptedUin);
 			vidRepo.saveAndFlush(vidObject);
 			VidInfoDTO vidInfo = createVidInfo(vidObject, idHashAndAttributes);
@@ -473,7 +478,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 				+ securityManager.hashwithSalt(uin.getBytes(), CryptoUtil.decodePlainBase64(hashSalt));
 
 		List<Vid> vidList = vidRepo.findByUinHashAndStatusCodeAndExpiryDTimesAfter(uinHash, vidStatusToRetrieveVIDList,
-				DateUtils.getUTCCurrentDateTime());
+				DateUtils2.getUTCCurrentDateTime());
 
 		if (!vidList.isEmpty()) {
 
@@ -489,7 +494,7 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 				Map<String, String> idHashAndAttributes = vidHashAttributesMap.get(v.getVid());
 				v.setStatusCode(status);
 				v.setUpdatedBy(IdRepoSecurityManager.getUser());
-				v.setUpdatedDTimes(DateUtils.getUTCCurrentDateTime());
+				v.setUpdatedDTimes(DateUtils2.getUTCCurrentDateTime());
 				v.setUin(decryptedUin);
 				vidInfos.add(createVidInfo(v, idHashAndAttributes));
 			}
@@ -526,11 +531,11 @@ public class VidServiceImpl implements VidService<VidRequestDTO, ResponseWrapper
 	}
 
 	private void checkExpiry(LocalDateTime expiryDTimes) throws IdRepoAppException {
-		if (!DateUtils.after(expiryDTimes, DateUtils.getUTCCurrentDateTime())) {
+		if (!DateUtils2.after(expiryDTimes, DateUtils2.getUTCCurrentDateTime())) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_VID_SERVICE, "checkExpiry",
 					"throwing Expired VID");
 			throw new IdRepoAppException(INVALID_VID.getErrorCode(),
-					String.format(INVALID_VID.getErrorMessage(), "EXPIRED"));
+					String.format(INVALID_VID.getErrorMessage(), EXPIRED));
 		}
 	}
 

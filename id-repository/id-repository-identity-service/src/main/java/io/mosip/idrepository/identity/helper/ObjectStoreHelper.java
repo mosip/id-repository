@@ -20,7 +20,6 @@ import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.exception.ExceptionUtils;
 
 @Component
 public class ObjectStoreHelper {
@@ -56,11 +55,11 @@ public class ObjectStoreHelper {
 	@Autowired
 	private IdRepoSecurityManager securityManager;
 
-	public boolean demographicObjectExists(String uinHash, String fileRefId) throws IdRepoAppException {
+	public boolean demographicObjectExists(String uinHash, String fileRefId)  {
 		return exists(uinHash, false, fileRefId);
 	}
 
-	public boolean biometricObjectExists(String uinHash, String fileRefId) throws IdRepoAppException {
+	public boolean biometricObjectExists(String uinHash, String fileRefId)  {
 		return exists(uinHash, true, fileRefId);
 	}
 
@@ -86,27 +85,16 @@ public class ObjectStoreHelper {
 		return getObject(uinHash, true, fileRefId, bioDataRefId);
 	}
 
-	public void deleteBiometricObject(String uinHash, String fileRefId) throws IdRepoAppException {
+	public void deleteBiometricObject(String uinHash, String fileRefId)  {
 		if (this.biometricObjectExists(uinHash, fileRefId)) {
 			String objectName = uinHash + SLASH + BIOMETRICS + SLASH + fileRefId;
-			mosipLogger.info("Deleting biometric object: " + objectName);
-			try {
-				objectStore.deleteObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
-			} catch (ObjectStoreAdapterException e) {
-				throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
-						"Failed to delete object: " + e.getErrorCode(), e);
-			}
+			objectStore.deleteObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
 		}
 	}
 
-	private boolean exists(String uinHash, boolean isBio, String fileRefId) throws IdRepoAppException {
+	private boolean exists(String uinHash, boolean isBio, String fileRefId)  {
 		String objectName = uinHash + SLASH + (isBio ? BIOMETRICS : DEMOGRAPHICS) + SLASH + fileRefId;
-		try {
 			return objectStore.exists(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
-		} catch (ObjectStoreAdapterException e) {
-			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
-					"Failed to check object existence: " + e.getErrorCode(), e);
-		}
 	}
 
 	private void putObject(String uinHash, boolean isBio, String fileRefId, byte[] data, String refId)

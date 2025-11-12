@@ -64,7 +64,7 @@ public class ObjectStoreHelperTest {
 	}
 
 	@Test
-	public void testBiometricObjectExists() throws IdRepoAppException {
+	public void testBiometricObjectExists()  {
 		when(adapter.exists(any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
 		boolean exists = helper.biometricObjectExists("", "");
 		assertTrue(exists);

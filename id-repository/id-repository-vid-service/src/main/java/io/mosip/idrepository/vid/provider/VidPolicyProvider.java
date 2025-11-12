@@ -83,10 +83,8 @@ public class VidPolicyProvider {
 				));
 
 		vidPoliciesRef.set(Collections.unmodifiableMap(newMap));
-
-		mosipLogger.info("VID policies loaded: {} entries in {} ms",
-				newMap.size(), (System.currentTimeMillis() - start));
 	}
+
 
 	public VidPolicy getPolicy(String vidType) {
 		if (vidType == null) {
