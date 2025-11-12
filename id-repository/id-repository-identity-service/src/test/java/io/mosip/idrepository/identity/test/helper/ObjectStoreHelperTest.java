@@ -1,7 +1,6 @@
 package io.mosip.idrepository.identity.test.helper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -11,7 +10,6 @@ import java.io.ByteArrayInputStream;
 
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -34,7 +32,7 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 
-@Ignore
+
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
 @WebMvcTest @Import(EnvUtil.class)
@@ -72,39 +70,57 @@ public class ObjectStoreHelperTest {
 		assertTrue(exists);
 	}
 
-	@Test
-	public void testPutDemographicObject() throws IdRepoAppException {
-		when(securityManager.encrypt(any(), any())).thenReturn("".getBytes());
-		when(adapter.putObject(any(), any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
-		helper.putDemographicObject("hash", "refId", "".getBytes());
-		ArgumentCaptor<String> argCaptor = ArgumentCaptor.forClass(String.class);
-		verify(adapter).putObject(any(), any(), any(), any(), argCaptor.capture(), any());
-		assertEquals("hash/Demographics/refId", argCaptor.getValue());
-	}
+    @Test
+    public void testPutDemographicObject() throws IdRepoAppException {
+        byte[] data = "sampleData".getBytes(); // ✅ non-empty byte array
 
-	@Test
-	public void testPutBiometricObject() throws IdRepoAppException {
-		when(securityManager.encrypt(any(), any())).thenReturn("".getBytes());
-		when(adapter.putObject(any(), any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
-		helper.putBiometricObject("hash", "refId", "".getBytes());
-		ArgumentCaptor<String> argCaptor = ArgumentCaptor.forClass(String.class);
-		verify(adapter).putObject(any(), any(), any(), any(), argCaptor.capture(), any());
-		assertEquals("hash/Biometrics/refId", argCaptor.getValue());
-	}
+        when(securityManager.encrypt(any(), any())).thenReturn("encryptedData".getBytes());
+        when(adapter.putObject(any(), any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
 
-	@Test
-	public void testPutObjectException() throws IdRepoAppException {
-		when(securityManager.encrypt(any(), any())).thenReturn("".getBytes());
-		when(adapter.putObject(any(), any(), any(), any(), any(), any())).thenThrow(new FSAdapterException("",""));
-		try {
-			helper.putDemographicObject("hash", "refId", "".getBytes());
-		} catch (IdRepoAppException e) {
-			assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
-			assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorMessage(), e.getErrorText());
-		}
-	}
+        helper.putDemographicObject("hash", "refId", data);
 
-	@Test
+        ArgumentCaptor<String> argCaptor = ArgumentCaptor.forClass(String.class);
+        verify(adapter).putObject(any(), any(), any(), any(), argCaptor.capture(), any());
+
+        assertEquals("hash/Demographics/refId", argCaptor.getValue());
+    }
+
+    @Test
+    public void testPutBiometricObject() throws IdRepoAppException {
+        // ✅ Non-empty data to avoid "Input data is null or empty"
+        byte[] biometricData = "sampleBiometricData".getBytes();
+
+        // ✅ Mock encryption to simulate encrypted output
+        when(securityManager.encrypt(any(), any())).thenReturn("encryptedBiometricData".getBytes());
+
+        // ✅ Mock successful object store operation
+        when(adapter.putObject(any(), any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
+
+        // ✅ Execute helper call
+        helper.putBiometricObject("hash", "refId", biometricData);
+
+        // ✅ Capture and verify correct object store key
+        ArgumentCaptor<String> argCaptor = ArgumentCaptor.forClass(String.class);
+        verify(adapter).putObject(any(), any(), any(), any(), argCaptor.capture(), any());
+
+        assertEquals("hash/Biometrics/refId", argCaptor.getValue());
+    }
+
+    @Test
+    public void testPutObjectException() throws IdRepoAppException {
+        when(securityManager.encrypt(any(), any())).thenReturn("encrypted".getBytes());
+        when(adapter.putObject(any(), any(), any(), any(), any(), any()))
+                .thenThrow(new FSAdapterException("FS_ERROR", "File storage access error"));
+
+        FSAdapterException thrown = assertThrows(FSAdapterException.class, () -> {
+            helper.putDemographicObject("hash", "refId", "validData".getBytes());
+        });
+
+        assertEquals("FS_ERROR", thrown.getErrorCode());
+        assertEquals("File storage access error", thrown.getErrorText());
+    }
+
+    @Test
 	public void testGetDemographicObject() throws IdRepoAppException {
 		when(adapter.exists(any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
 		when(securityManager.decrypt(any(), any())).thenReturn("abc".getBytes());
@@ -146,20 +162,23 @@ public class ObjectStoreHelperTest {
 		}
 	}
 
-	@Test
-	public void testGetObjectException() throws IdRepoAppException {
-		when(adapter.exists(any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
-		when(securityManager.encrypt(any(), any())).thenReturn("".getBytes());
-		when(adapter.getObject(any(), any(), any(), any(), any())).thenThrow(new FSAdapterException("",""));
-		try {
-			helper.getDemographicObject("hash", "refId");
-		} catch (IdRepoAppException e) {
-			assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
-			assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorMessage(), e.getErrorText());
-		}
-	}
+    @Test
+    public void testGetObjectException() throws IdRepoAppException {
+        when(adapter.exists(any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
+        when(securityManager.encrypt(any(), any())).thenReturn("encrypted".getBytes());
+        when(adapter.getObject(any(), any(), any(), any(), any()))
+                .thenThrow(new FSAdapterException("FS_ERROR", "File storage access error"));
 
-	@Test
+        FSAdapterException thrown = assertThrows(FSAdapterException.class, () -> {
+            helper.getDemographicObject("hash", "refId");
+        });
+
+        assertEquals("FS_ERROR", thrown.getErrorCode());
+        assertEquals("File storage access error", thrown.getErrorText());
+    }
+
+
+    @Test
 	public void testDeleteBiometricObject() throws IdRepoAppException {
 		when(adapter.exists(any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
 		when(adapter.deleteObject(any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
