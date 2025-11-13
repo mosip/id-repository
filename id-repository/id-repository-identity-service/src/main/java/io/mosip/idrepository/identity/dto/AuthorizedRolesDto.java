@@ -46,8 +46,6 @@ public class AuthorizedRolesDto {
 	private List<String> putdraftextractbiometricsregistrationId;
 	
 	private List<String> getRidByIndividualId;
-
-	private List<String> postSearchIdVidMetadata;
 	
 	private List<String> remainingUpdateCountByIndividualId;
 
