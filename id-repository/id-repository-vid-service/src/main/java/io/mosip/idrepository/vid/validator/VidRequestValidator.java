@@ -28,7 +28,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 
 /**
  * This class will validate the Vid Request.
- * 
+ *
  * @author Manoj SP
  * @author Prem Kumar
  *
@@ -83,7 +83,7 @@ public class VidRequestValidator extends BaseIdRepoValidator implements Validato
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.springframework.validation.Validator#supports(java.lang.Class)
 	 */
 	@Override
@@ -93,7 +93,7 @@ public class VidRequestValidator extends BaseIdRepoValidator implements Validato
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.springframework.validation.Validator#validate(java.lang.Object,
 	 * org.springframework.validation.Errors)
 	 */

@@ -1,7 +1,7 @@
 package io.mosip.idrepository.identity.helper;
 
 import java.io.IOException;
-import java.util.Objects;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -17,18 +17,22 @@ import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.idrepository.identity.entity.ChannelInfo;
 import io.mosip.idrepository.identity.repository.ChannelInfoRepo;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 
+/**
+ * ChannelInfoHelper optimized to use atomic DB upsert with delta increment/decrement.
+ * Functional behavior (NO_EMAIL/NO_PHONE handling) preserved.
+ */
 @Component
 @Transactional(propagation = Propagation.REQUIRES_NEW)
 public class ChannelInfoHelper {
 
 	private static final String PHONE = "phone";
-
 	private static final String EMAIL = "email";
+	private static final String NO_EMAIL = "NO_EMAIL";
+	private static final String NO_PHONE = "NO_PHONE";
 
 	@Autowired
 	private ChannelInfoRepo channelInfoRepo;
@@ -41,183 +45,94 @@ public class ChannelInfoHelper {
 
 	@Autowired
 	private ObjectMapper mapper;
-	
-	public void updateEmailChannelInfo(byte[] oldUinData, byte[] newUinData) {
 
-		// addIdentity
-		if (Objects.isNull(oldUinData) && Objects.nonNull(newUinData)) {
-			Optional<String> hashedOldEmailOpt = getHashedEmail(newUinData);
-			if (hashedOldEmailOpt.isPresent()) {
-				String hashedOldEmail = hashedOldEmailOpt.get();
-				Optional<ChannelInfo> oldChannelInfoOpt = channelInfoRepo.findById(hashedOldEmail);
-				if (oldChannelInfoOpt.isPresent()) {
-					// Update count if phone number present
-					updateNoOfRecords(oldChannelInfoOpt.get(), 1);
-				} else {
-					// create record if record not present
-					channelInfoRepo
-							.save(ChannelInfo.builder()
-									.hashedChannel(hashedOldEmail)
-									.noOfRecords(1)
-									.channelType(EMAIL)
-									.createdBy(IdRepoSecurityManager.getUser())
-									.crDTimes(DateUtils.getUTCCurrentDateTime())
-									.build());
-				}
+	// -- Public entry points (called from AnonymousProfileHelper) --
+	public void updateEmailChannelInfo(byte[] oldUinData, byte[] newUinData) {
+		// addIdentity: old==null && new!=null
+		if (oldUinData == null && newUinData != null) {
+			Optional<String> newHashed = getHashedEmail(newUinData);
+			if (newHashed.isPresent()) {
+				// create or increment by +1
+				upsertWithDelta(newHashed.get(), EMAIL, 1, 1);
 			} else {
-				// Update NO_PHONE is email not present
-				updateNoChannel("NO_EMAIL", EMAIL, 1);
+				// increment NO_EMAIL counter
+				upsertWithDelta(NO_EMAIL, EMAIL, 1, 1);
 			}
 		}
 
-		// UpdateIdentity
-		if (Objects.nonNull(oldUinData) && Objects.nonNull(newUinData)) {
-			Optional<String> hashedOldEmailOpt = getHashedEmail(oldUinData);
-			Optional<String> hashedNewEmailOpt = getHashedEmail(newUinData);
-			
-			//Old has no email. new has email.
-			if (!hashedOldEmailOpt.isPresent() && hashedNewEmailOpt.isPresent()) {
-				
-				// update NO_EMAIL if email is updated
-				updateNoChannel("NO_EMAIL", EMAIL, -1);
-				String hashedNewEmail = hashedNewEmailOpt.get();
-				Optional<ChannelInfo> newChannelInfoOpt = channelInfoRepo.findById(hashedNewEmail);
-				if (newChannelInfoOpt.isPresent()) {
-					updateNoOfRecords(newChannelInfoOpt.get(), 1);
-				} else {
-					channelInfoRepo
-							.save(ChannelInfo.builder()
-									.hashedChannel(hashedNewEmail)
-									.noOfRecords(1)
-									.channelType(EMAIL)
-									.createdBy(IdRepoSecurityManager.getUser())
-									.crDTimes(DateUtils.getUTCCurrentDateTime())
-									.build());
-				}
+		// updateIdentity: both present
+		if (oldUinData != null && newUinData != null) {
+			Optional<String> oldHashed = getHashedEmail(oldUinData);
+			Optional<String> newHashed = getHashedEmail(newUinData);
+
+			// Old had no email, new has email -> decrement NO_EMAIL, increment new email
+			if (oldHashed.isEmpty() && newHashed.isPresent()) {
+				upsertWithDelta(NO_EMAIL, EMAIL, 1, -1);
+				upsertWithDelta(newHashed.get(), EMAIL, 1, 1);
 			}
-			if (hashedOldEmailOpt.isPresent() && hashedNewEmailOpt.isPresent()) {
-				String hashedOldEmail = hashedOldEmailOpt.get();
-				String hashedNewEmail = hashedNewEmailOpt.get();
-				
-				if (!StringUtils.equals(hashedOldEmail, hashedNewEmail)) {
-				//old channel info should exist at this stage as it will be created as part of addIdentity flow
-				Optional<ChannelInfo> oldChannelInfoOpt = channelInfoRepo.findById(hashedOldEmail);
-				Optional<ChannelInfo> newChannelInfoOpt = channelInfoRepo.findById(hashedNewEmail);
-				
-				// if email update and new email don't have a record, new record is created
-				newChannelInfoOpt = Optional.of(newChannelInfoOpt.orElseGet(() -> channelInfoRepo
-						.save(ChannelInfo.builder()
-								.hashedChannel(hashedNewEmail)
-								.noOfRecords(0)
-								.channelType(EMAIL)
-								.createdBy(IdRepoSecurityManager.getUser())
-								.crDTimes(DateUtils.getUTCCurrentDateTime())
-								.build())));
-				if (oldChannelInfoOpt.isPresent())
-					updateNoOfRecords(oldChannelInfoOpt.get(), -1);
-				updateNoOfRecords(newChannelInfoOpt.get(), 1);
-				}
+
+			// Old and new both present and different -> decrement old, increment new
+			if (oldHashed.isPresent() && newHashed.isPresent()
+					&& !StringUtils.equals(oldHashed.get(), newHashed.get())) {
+				upsertWithDelta(oldHashed.get(), EMAIL, 0, -1);
+				upsertWithDelta(newHashed.get(), EMAIL, 1, 1);
 			}
 		}
 	}
 
 	public void updatePhoneChannelInfo(byte[] oldUinData, byte[] newUinData) {
-
-		// addIdentity
-		if (Objects.isNull(oldUinData) && Objects.nonNull(newUinData)) {
-			Optional<String> hashedOldPhoneNumberOpt = getHashedPhoneNumber(newUinData);
-			if (hashedOldPhoneNumberOpt.isPresent()) {
-				String hashedOldPhoneNumber = hashedOldPhoneNumberOpt.get();
-				Optional<ChannelInfo> oldChannelInfoOpt = channelInfoRepo.findById(hashedOldPhoneNumber);
-				if (oldChannelInfoOpt.isPresent()) {
-					// Update count if phone number present
-					updateNoOfRecords(oldChannelInfoOpt.get(), 1);
-				} else {
-					// create record if record not present
-					channelInfoRepo.save(ChannelInfo.builder()
-							.hashedChannel(hashedOldPhoneNumber)
-							.noOfRecords(1)
-							.channelType(PHONE)
-							.createdBy(IdRepoSecurityManager.getUser())
-							.crDTimes(DateUtils.getUTCCurrentDateTime())
-							.build());
-				}
+		// addIdentity: old==null && new!=null
+		if (oldUinData == null && newUinData != null) {
+			Optional<String> newHashed = getHashedPhoneNumber(newUinData);
+			if (newHashed.isPresent()) {
+				upsertWithDelta(newHashed.get(), PHONE, 1, 1);
 			} else {
-				// Update NO_PHONE is phone number not present
-				updateNoChannel("NO_PHONE", PHONE, 1);
+				upsertWithDelta(NO_PHONE, PHONE, 1, 1);
 			}
 		}
 
-		// UpdateIdentity
-		if (Objects.nonNull(oldUinData) && Objects.nonNull(newUinData)) {
-			Optional<String> hashedOldPhoneNumberOpt = getHashedPhoneNumber(oldUinData);
-			Optional<String> hashedNewPhoneNumberOpt = getHashedPhoneNumber(newUinData);
-			
-			//Old has no phone. new has phone.
-			if (!hashedOldPhoneNumberOpt.isPresent() && hashedNewPhoneNumberOpt.isPresent()) {
-				updateNoChannel("NO_PHONE", PHONE, -1);
-				String hashedNewPhoneNumber = hashedNewPhoneNumberOpt.get();
-				Optional<ChannelInfo> newChannelInfoOpt = channelInfoRepo.findById(hashedNewPhoneNumber);
-				if (newChannelInfoOpt.isPresent()) {
-					updateNoOfRecords(newChannelInfoOpt.get(), 1);
-				} else {
-					channelInfoRepo
-							.save(ChannelInfo.builder()
-									.hashedChannel(hashedNewPhoneNumber)
-									.channelType(PHONE)
-									.noOfRecords(1)
-									.createdBy(IdRepoSecurityManager.getUser())
-									.crDTimes(DateUtils.getUTCCurrentDateTime())
-									.build());
-				}
+		// updateIdentity
+		if (oldUinData != null && newUinData != null) {
+			Optional<String> oldHashed = getHashedPhoneNumber(oldUinData);
+			Optional<String> newHashed = getHashedPhoneNumber(newUinData);
+
+			if (oldHashed.isEmpty() && newHashed.isPresent()) {
+				upsertWithDelta(NO_PHONE, PHONE, 1, -1);
+				upsertWithDelta(newHashed.get(), PHONE, 1, 1);
 			}
-			if (hashedOldPhoneNumberOpt.isPresent() && hashedNewPhoneNumberOpt.isPresent()) {
-				String hashedOldPhoneNumber = hashedOldPhoneNumberOpt.get();
-				String hashedNewPhoneNumber = hashedNewPhoneNumberOpt.get();
-				
-				if (!StringUtils.equals(hashedOldPhoneNumber, hashedNewPhoneNumber)) {
-				//old channel info should exist at this stage as it will be created as part of addIdentity flow
-				Optional<ChannelInfo> oldChannelInfoOpt = channelInfoRepo.findById(hashedOldPhoneNumber);
-				Optional<ChannelInfo> newChannelInfoOpt = channelInfoRepo.findById(hashedNewPhoneNumber);
-				
-				// if phone number update and new phone dont have a record, new record is created
-				newChannelInfoOpt = Optional.of(newChannelInfoOpt.orElseGet(() -> channelInfoRepo
-						.save(ChannelInfo.builder()
-								.hashedChannel(hashedNewPhoneNumber)
-								.channelType(PHONE)
-								.noOfRecords(0)
-								.createdBy(IdRepoSecurityManager.getUser())
-								.crDTimes(DateUtils.getUTCCurrentDateTime())
-								.build())));
-				if (oldChannelInfoOpt.isPresent())
-					updateNoOfRecords(oldChannelInfoOpt.get(), -1);
-				updateNoOfRecords(newChannelInfoOpt.get(), 1);
-				}
+
+			if (oldHashed.isPresent() && newHashed.isPresent()
+					&& !StringUtils.equals(oldHashed.get(), newHashed.get())) {
+				upsertWithDelta(oldHashed.get(), PHONE, 0, -1);
+				upsertWithDelta(newHashed.get(), PHONE, 1, 1);
 			}
 		}
 	}
 
-	private void updateNoChannel(String channel, String channelType, Integer value) {
-		Optional<ChannelInfo> noChannelOpt = channelInfoRepo.findById(channel);
-		if (noChannelOpt.isPresent())
-			updateNoOfRecords(noChannelOpt.get(), value);
-		else
-			channelInfoRepo
-			.save(ChannelInfo.builder()
-					.hashedChannel(channel)
-					.channelType(channelType)
-					.noOfRecords(1)
-					.createdBy(IdRepoSecurityManager.getUser())
-					.crDTimes(DateUtils.getUTCCurrentDateTime())
-					.build());
+	/**
+	 * Single helper that calls repository upsert with delta.
+	 *
+	 * @param hashedChannel - hashed key (or NO_EMAIL / NO_PHONE)
+	 * @param channelType - "email" or "phone"
+	 * @param initial - value to use when inserting (usually 1 or 0)
+	 * @param delta - change to apply (positive to increment, negative to decrement)
+	 */
+	private void upsertWithDelta(String hashedChannel, String channelType, int initial, int delta) {
+		String user = IdRepoSecurityManager.getUser();
+		LocalDateTime now = DateUtils.getUTCCurrentDateTime();
+		channelInfoRepo.upsertAndDelta(
+				hashedChannel,
+				channelType,
+				initial,
+				delta,
+				user,
+				now,
+				user,
+				now
+		);
 	}
 
-	private void updateNoOfRecords(ChannelInfo channelInfo, Integer value) {
-		channelInfo.setNoOfRecords(channelInfo.getNoOfRecords() + value);
-		channelInfo.setUpdatedBy(IdRepoSecurityManager.getUser());
-		channelInfo.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
-		channelInfoRepo.save(channelInfo);
-	}
+	// ---------------- hashing helpers ----------------
 
 	private Optional<String> getHashedPhoneNumber(byte[] uinData) {
 		try {
@@ -235,7 +150,7 @@ public class ChannelInfoHelper {
 				.get(IdentityIssuanceProfileBuilder.getIdentityMapping().getIdentity().getPhone().getValue())
 				.asText();
 	}
-	
+
 	private Optional<String> getHashedEmail(byte[] uinData) {
 		try {
 			String email = getEmail(uinData);
@@ -253,10 +168,9 @@ public class ChannelInfoHelper {
 				.get(IdentityIssuanceProfileBuilder.getIdentityMapping().getIdentity().getEmail().getValue())
 				.asText();
 	}
-	
+
 	private String emailAsNumber(String email) {
 		String emailAsNumber = email.chars().boxed().map(String::valueOf).collect(Collectors.joining());
-		return emailAsNumber.substring(emailAsNumber.length() - 3, emailAsNumber.length());
+		return emailAsNumber.substring(emailAsNumber.length() - 3);
 	}
-
 }
