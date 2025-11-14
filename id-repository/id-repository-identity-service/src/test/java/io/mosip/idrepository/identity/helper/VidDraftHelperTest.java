@@ -102,7 +102,6 @@ public class VidDraftHelperTest {
         request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(vidUpdationRequest);
 
-        System.out.println("request2= "+request);
         RestRequestDTO restRequest = new RestRequestDTO();
         restRequest.setUri("{vid}");
 

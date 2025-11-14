@@ -206,7 +206,6 @@ public class RestUtilTest {
         contentType.put("0", "1");
         headers.put("Content-Type", "1");
         HttpEntity<Object> requestType = new HttpEntity<Object>(headers);
-        System.out.println("here= "+requestType.getHeaders());
         MediaType mediaType = MediaType.ALL;
         HttpPost post = new HttpPost();
         Mockito.when(environment.getProperty("KEYBASEDTOKENAPI")).thenReturn("1212");
