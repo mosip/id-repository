@@ -9,7 +9,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
@@ -47,7 +47,7 @@ public class CryptoUtil {
             cryptoRequest.setData(data);
             cryptoRequest.setReferenceId(EnvUtil.getCredCryptoRefId());
             requestWrapper.setRequest(cryptoRequest);
-            cryptoRequest.setTimeStamp(DateUtils.getUTCCurrentDateTime());
+            cryptoRequest.setTimeStamp(DateUtils2.getUTCCurrentDateTime());
             requestWrapper.setRequest(cryptoRequest);
             ResponseWrapper<Map<String, String>> restResponse = restUtil.postApi(api, null, null, null,
                     MediaType.APPLICATION_JSON_UTF8, requestWrapper, ResponseWrapper.class);

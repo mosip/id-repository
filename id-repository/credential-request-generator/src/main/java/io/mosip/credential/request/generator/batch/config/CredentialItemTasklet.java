@@ -37,7 +37,7 @@ import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import jakarta.annotation.PostConstruct;
 import io.mosip.credential.request.generator.helper.CredentialIssueRequestHelper;
 
@@ -138,7 +138,7 @@ public class CredentialItemTasklet implements Tasklet {
 
 					}
 					credential.setUpdatedBy(CREDENTIAL_USER);
-					credential.setUpdateDateTime(DateUtils.getUTCCurrentDateTime());
+					credential.setUpdateDateTime(DateUtils2.getUTCCurrentDateTime());
 					if (retryCount != 0) {
 						credential.setRetryCount(retryCount);
 					}

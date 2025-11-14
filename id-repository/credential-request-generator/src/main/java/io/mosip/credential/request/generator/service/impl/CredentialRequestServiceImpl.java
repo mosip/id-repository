@@ -46,7 +46,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.util.StringUtils;
 
 import org.springframework.http.HttpEntity;
@@ -157,7 +157,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
 			credentialIssueResponseWrapper
 					.setResponsetime(localdatetime);
@@ -184,7 +184,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credential.setRequestId(rid);
 			credential.setRequest(mapper.writeValueAsString(credentialIssueRequestDto));
 			credential.setStatusCode(CredentialStatusCode.NEW.name());
-			credential.setCreateDateTime(DateUtils.getUTCCurrentDateTime());
+			credential.setCreateDateTime(DateUtils2.getUTCCurrentDateTime());
 			credential.setCreatedBy(IdRepoSecurityManager.getUser());
 			credential.setStatusComment("Request created");
 			credentialDao.save(credential);
@@ -213,7 +213,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
 
 			credentialIssueResponseWrapper
-					.setResponsetime(DateUtils.getUTCCurrentDateTime());
+					.setResponsetime(DateUtils2.getUTCCurrentDateTime());
 			credentialIssueResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialIssueResponseWrapper.setErrors(errorList);
@@ -290,7 +290,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
 			credentialIssueResponseWrapper
 					.setResponsetime(localdatetime);
@@ -356,7 +356,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credentialIssueStatusResponseWrapper.setId(EnvUtil.getCredReqServiceId());
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
 			credentialIssueStatusResponseWrapper
 					.setResponsetime(localdatetime);
@@ -428,7 +428,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 				pageData = credentialDao.findByStatusCode(statusCode,
 						PageRequest.of(pageNumber, pageSize, Sort.by(Direction.fromString(direction), sortBy)));
 			}else {
-				LocalDateTime effectiveDateTime=DateUtils.parseToLocalDateTime(effectivedtimes);
+				LocalDateTime effectiveDateTime=DateUtils2.parseToLocalDateTime(effectivedtimes);
 				pageData = credentialDao.findByStatusCodeWithEffectiveDtimes(statusCode, effectiveDateTime,
 						PageRequest.of(pageNumber, pageSize, Sort.by(Direction.fromString(direction), sortBy)));
 			}
@@ -494,7 +494,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credentialRequestIdsResponseWrapper.setId(EnvUtil.getCredReqServiceId());
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
 			credentialRequestIdsResponseWrapper.setResponsetime(localdatetime);
 			credentialRequestIdsResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
@@ -565,7 +565,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
 			credentialIssueResponseWrapper.setResponsetime(localdatetime);
 			credentialIssueResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());

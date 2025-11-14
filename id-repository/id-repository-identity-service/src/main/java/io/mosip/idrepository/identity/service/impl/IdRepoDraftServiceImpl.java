@@ -48,7 +48,7 @@ import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import io.mosip.idrepository.core.dto.DraftResponseDto;
 import io.mosip.idrepository.core.dto.DraftUinResponseDto;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import org.hibernate.exception.JDBCConnectionException;
 import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONCompare;
@@ -189,7 +189,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 				newDraft.setRegId(registrationId);
 				newDraft.setStatusCode("DRAFT");
 				newDraft.setCreatedBy(IdRepoSecurityManager.getUser());
-				newDraft.setCreatedDateTime(DateUtils.getUTCCurrentDateTime());
+				newDraft.setCreatedDateTime(DateUtils2.getUTCCurrentDateTime());
 				uinDraftRepo.save(newDraft);
 				return constructIdResponse(null, DRAFTED, null, null);
 			} else {
@@ -242,7 +242,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 					draftToUpdate.setUinDataHash(securityManager.hash(uinData));
 					updateDocuments(request.getRequest(), draftToUpdate);
 					draftToUpdate.setUpdatedBy(IdRepoSecurityManager.getUser());
-					draftToUpdate.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
+					draftToUpdate.setUpdatedDateTime(DateUtils2.getUTCCurrentDateTime());
 					uinDraftRepo.save(draftToUpdate);
 				} else {
 					updateDemographicData(request, draftToUpdate);
@@ -281,7 +281,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 			draftToUpdate.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
 			draftToUpdate.setUinDataHash(securityManager.hash(draftToUpdate.getUinData()));
 			draftToUpdate.setUpdatedBy(IdRepoSecurityManager.getUser());
-			draftToUpdate.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
+			draftToUpdate.setUpdatedDateTime(DateUtils2.getUTCCurrentDateTime());
 		}
 	}
 
@@ -308,7 +308,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 					draftBio.setBiometricFileName(uinBio.getBiometricFileName());
 					draftBio.setBiometricFileHash(uinBio.getBiometricFileHash());
 					draftBio.setUpdatedBy(IdRepoSecurityManager.getUser());
-					draftBio.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
+					draftBio.setUpdatedDateTime(DateUtils2.getUTCCurrentDateTime());
 				}
 				ListIterator<UinBiometric> listIterator = uinObject.getBiometrics().listIterator();
 				while (listIterator.hasNext()) {

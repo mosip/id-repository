@@ -36,7 +36,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 
 @Component
 public class EncryptionUtil {
@@ -74,7 +74,7 @@ public class EncryptionUtil {
 			cryptoWithPinRequestDto.setUserPin(pin);
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 			request.setRequesttime(localdatetime);
 
 			request.setRequest(cryptoWithPinRequestDto);
@@ -135,7 +135,7 @@ public class EncryptionUtil {
 			encryptZkRequestDto.setId(id);
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 			request.setRequesttime(localdatetime);
 
 			request.setRequest(encryptZkRequestDto);
@@ -203,7 +203,7 @@ public class EncryptionUtil {
 					.setPrependThumbprint(EnvUtil.getPrependThumbprintStatus());
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 			request.setRequesttime(localdatetime);
 
 			request.setRequest(cryptomanagerRequestDto);

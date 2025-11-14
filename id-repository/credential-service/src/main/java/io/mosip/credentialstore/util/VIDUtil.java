@@ -12,7 +12,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -104,7 +104,7 @@ public class VIDUtil {
             vidRequestDTORequestWrapper.setVersion(version);
             DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
             LocalDateTime localdatetime = LocalDateTime
-                    .parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+                    .parse(DateUtils2.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
             vidRequestDTORequestWrapper.setRequesttime(localdatetime);
             vidResponseDTOResponseWrapper=restUtil.postApi(ApiName.GENERATE_VID,null,"","", MediaType.APPLICATION_JSON,vidRequestDTORequestWrapper,ResponseWrapper.class);
             vidResponseDTO = mapper.readValue(mapper.writeValueAsString(vidResponseDTOResponseWrapper.getResponse()), VidResponseDTO.class);
