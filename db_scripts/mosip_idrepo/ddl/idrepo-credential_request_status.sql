@@ -20,6 +20,7 @@ CREATE TABLE idrepo.credential_request_status (
 	request_id character varying(64),
 	token_id character varying(128),
 	status character varying(36) NOT NULL,
+	trigger_action character varying(36),
 	id_transaction_limit numeric,
 	id_expiry_timestamp timestamp,
 	cr_by character varying(256) NOT NULL,
