@@ -16,6 +16,3 @@ WITH (
 --Indexes
 CREATE INDEX IF NOT EXISTS idx_job_name ON BATCH_JOB_INSTANCE(JOB_NAME);
 CREATE INDEX IF NOT EXISTS idx_job_key ON BATCH_JOB_INSTANCE(JOB_KEY);
-
---PERFORMANCE OPTIMIZATION INDEXES
-CREATE UNIQUE INDEX batch_job_instance_pkey ON credential.batch_job_instance USING btree (job_instance_id);

@@ -42,8 +42,6 @@ DROP INDEX IF EXISTS idx_job_key;
 
 DROP INDEX IF EXISTS credential.idx_job_exec_instance;
 
-DROP INDEX IF EXISTS credential.batch_job_instance_pkey;
-
 DROP INDEX IF EXISTS credential.batch_step_execution_pkey;
 DROP INDEX IF EXISTS credential.idx_step_exec_jobid_stepname;
 
