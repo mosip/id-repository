@@ -40,7 +40,7 @@ import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 
 
 /**
@@ -157,7 +157,7 @@ public class IdAuthProvider extends CredentialProvider {
 
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 			JSONObject json = new JSONObject();
 			List<String> typeList = new ArrayList<>();
 			typeList.add(EnvUtil.getCredServiceSchema());
@@ -165,7 +165,7 @@ public class IdAuthProvider extends CredentialProvider {
 			json.put(JsonConstants.ID, EnvUtil.getCredServiceFormatId() + credentialId);
 			json.put(JsonConstants.TYPE, typeList);
 			json.put(JsonConstants.ISSUER, EnvUtil.getCredServiceFormatIssuer());
-			json.put(JsonConstants.ISSUANCEDATE, DateUtils.formatToISOString(localdatetime));
+			json.put(JsonConstants.ISSUANCEDATE, DateUtils2.formatToISOString(localdatetime));
 			json.put(JsonConstants.ISSUEDTO, credentialServiceRequestDto.getIssuer());
 			json.put(JsonConstants.CONSENT, "");
 			json.put(JsonConstants.CREDENTIALSUBJECT, formattedMap);

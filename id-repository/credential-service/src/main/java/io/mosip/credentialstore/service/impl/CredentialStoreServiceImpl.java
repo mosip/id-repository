@@ -64,7 +64,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.websub.model.Event;
 import io.mosip.kernel.core.websub.model.EventModel;
 import io.mosip.kernel.core.websub.model.Type;
@@ -324,7 +324,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 			credentialIssueResponseDto.setId(EnvUtil.getCredServiceId());
 			credentialIssueResponseDto
-					.setResponsetime(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()));
+					.setResponsetime(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()));
 			credentialIssueResponseDto.setVersion(EnvUtil.getCredServiceVersion());
 
 			if (!errorList.isEmpty()) {
@@ -374,8 +374,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		EventModel eventModel = new EventModel();
 		DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 		LocalDateTime localdatetime = LocalDateTime
-				.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
-		eventModel.setPublishedOn(DateUtils.toISOString(localdatetime));
+				.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+		eventModel.setPublishedOn(DateUtils2.toISOString(localdatetime));
 		eventModel.setPublisher("CREDENTIAL_SERVICE");
 		eventModel.setTopic(credentialServiceRequestDto.getIssuer() + "/" + IDAEventType.CREDENTIAL_ISSUED);
 		Event event = new Event();
@@ -395,7 +395,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		map.put(JsonConstants.PROTECTIONKEY, credentialServiceRequestDto.getEncryptionKey());
 		credentialServiceRequestDto.setAdditionalData(map);
 		event.setData(credentialServiceRequestDto.getAdditionalData());
-		event.setTimestamp(DateUtils.toISOString(localdatetime));
+		event.setTimestamp(DateUtils2.toISOString(localdatetime));
 
 		String eventId = utilities.generateId();
 		LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),

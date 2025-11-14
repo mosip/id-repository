@@ -31,7 +31,7 @@ import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 @Component
 public class QrCodeProvider extends CredentialProvider {
 
@@ -96,7 +96,7 @@ public class QrCodeProvider extends CredentialProvider {
 			dataProviderResponse = new DataProviderResponse();
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
 			JSONObject json = new JSONObject();
 			List<String> typeList = new ArrayList<>();
@@ -104,7 +104,7 @@ public class QrCodeProvider extends CredentialProvider {
 			json.put(JsonConstants.ID, EnvUtil.getCredServiceFormatId() + credentialId);
 			json.put(JsonConstants.TYPE, typeList);
 			json.put(JsonConstants.ISSUER, EnvUtil.getCredServiceFormatIssuer());
-			json.put(JsonConstants.ISSUANCEDATE, DateUtils.formatToISOString(localdatetime));
+			json.put(JsonConstants.ISSUANCEDATE, DateUtils2.formatToISOString(localdatetime));
 			json.put(JsonConstants.ISSUEDTO, credentialServiceRequestDto.getIssuer());
 			json.put(JsonConstants.CONSENT, "");
 			json.put(JsonConstants.CREDENTIALSUBJECT, formattedMap);

@@ -31,7 +31,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 
 
 /**
@@ -79,7 +79,7 @@ public class DigitalSignatureUtil {
 			request.setMetadata(null);
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 			request.setRequesttime(localdatetime);
 			String responseString = restUtil.postApi(ApiName.KEYMANAGER_JWTSIGN, null, "", "",
 					MediaType.APPLICATION_JSON, request, String.class);
@@ -139,7 +139,7 @@ public class DigitalSignatureUtil {
 			request.setMetadata(null);
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 			request.setRequesttime(localdatetime);
 			String responseString = restUtil.postApi(ApiName.KEYMANAGER_VERCRED_SIGN, null, "", "",
 					MediaType.APPLICATION_JSON, request, String.class);

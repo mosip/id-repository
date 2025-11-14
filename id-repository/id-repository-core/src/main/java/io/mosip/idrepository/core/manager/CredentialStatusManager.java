@@ -35,7 +35,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.retry.WithRetry;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.websub.model.EventModel;
 
@@ -115,7 +115,7 @@ public class CredentialStatusManager {
 	private void handleExpiredRequests() {
 		try {
 			List<CredentialRequestStatus> expiredIssueRequestList = statusRepo
-					.findByIdExpiryTimestampBefore(DateUtils.getUTCCurrentDateTime());
+					.findByIdExpiryTimestampBefore(DateUtils2.getUTCCurrentDateTime());
 			for (CredentialRequestStatus credentialRequestStatus : expiredIssueRequestList) {
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
 				statusRepo.delete(credentialRequestStatus);
@@ -174,10 +174,10 @@ public class CredentialStatusManager {
 				credStatus.setIndividualIdHash(idHash);
 				credStatus.setPartnerId(request.getRequest().getIssuer());
 				credStatus.setIdExpiryTimestamp(Objects.nonNull(additionalData.get("expiry_timestamp"))
-						? DateUtils.parseToLocalDateTime((String) additionalData.get("expiry_timestamp"))
+						? DateUtils2.parseToLocalDateTime((String) additionalData.get("expiry_timestamp"))
 						: null);
 				credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
-				credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
+				credStatus.setCrDTimes(DateUtils2.getUTCCurrentDateTime());
 			}
 
 			if (Objects.nonNull(credResponse))
@@ -190,7 +190,7 @@ public class CredentialStatusManager {
 					? (Integer) additionalData.get(TRANSACTION_LIMIT)
 					: null);
 			credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
-			credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
+			credStatus.setUpdDTimes(DateUtils2.getUTCCurrentDateTime());
 			statusRepo.saveAndFlush(credStatus);
 
 		} catch (Exception e) {
