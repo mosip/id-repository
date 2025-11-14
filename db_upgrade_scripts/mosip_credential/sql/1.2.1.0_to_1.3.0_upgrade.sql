@@ -24,8 +24,6 @@ CREATE INDEX IF NOT EXISTS idx_job_key ON BATCH_JOB_INSTANCE(JOB_KEY);
 
 CREATE INDEX idx_job_exec_instance ON credential.batch_job_execution USING btree (job_instance_id);
 
-CREATE UNIQUE INDEX batch_job_execution_context_pkey ON credential.batch_job_execution_context USING btree (job_execution_id);
-
 CREATE UNIQUE INDEX batch_job_instance_pkey ON credential.batch_job_instance USING btree (job_instance_id);
 
 CREATE UNIQUE INDEX batch_step_execution_pkey ON credential.batch_step_execution USING btree (step_execution_id);
