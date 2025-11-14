@@ -72,4 +72,3 @@ CREATE INDEX IF NOT EXISTS idx_cred_new_status_cr_dtimes_active ON credential.cr
 CREATE INDEX IF NOT EXISTS idx_cred_status_cr_dtimes_active ON credential.credential_transaction (status_code, cr_dtimes) WHERE is_deleted = false;
 CREATE INDEX IF NOT EXISTS idx_cred_status_upd_dtimes_active ON credential.credential_transaction (status_code, upd_dtimes) WHERE is_deleted = false;
 CREATE INDEX idx_credtran_status_crdtimes ON credential.credential_transaction USING btree (status_code, cr_dtimes);
-CREATE UNIQUE INDEX pk_credtrn_id ON credential.credential_transaction USING btree (id);

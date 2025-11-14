@@ -56,7 +56,6 @@ DROP INDEX IF EXISTS credential.idx_cred_new_status_cr_dtimes_active;
 DROP INDEX IF EXISTS credential.idx_cred_status_cr_dtimes_active;
 DROP INDEX IF EXISTS credential.idx_cred_status_upd_dtimes_active;
 DROP INDEX IF EXISTS credential.idx_credtran_status_crdtimes;
-DROP INDEX IF EXISTS credential.pk_credtrn_id;
 
 -- END ROLLBACK FOR PERFORMANCE OPTIMIZATION INDEXES
 
