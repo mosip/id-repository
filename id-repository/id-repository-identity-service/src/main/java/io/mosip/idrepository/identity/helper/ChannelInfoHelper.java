@@ -18,7 +18,7 @@ import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.idrepository.identity.repository.ChannelInfoRepo;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.util.StringUtils;
 
 /**
@@ -119,7 +119,7 @@ public class ChannelInfoHelper {
 	 */
 	private void upsertWithDelta(String hashedChannel, String channelType, int initial, int delta) {
 		String user = IdRepoSecurityManager.getUser();
-		LocalDateTime now = DateUtils.getUTCCurrentDateTime();
+		LocalDateTime now = DateUtils2.getUTCCurrentDateTime();
 		channelInfoRepo.upsertAndDelta(
 				hashedChannel,
 				channelType,

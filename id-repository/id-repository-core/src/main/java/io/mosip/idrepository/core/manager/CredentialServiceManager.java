@@ -46,7 +46,7 @@ import io.mosip.idrepository.core.util.SupplierWithException;
 import io.mosip.idrepository.core.util.TokenIDGenerator;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.websub.model.EventModel;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
@@ -319,7 +319,7 @@ public class CredentialServiceManager {
 		}
 		String transactionId = "";// TODO
 		List<EventModel> eventDtos = vids.stream()
-				.flatMap(vid -> createIdaEventModel(eventType, eventType.equals(IDAEventType.ACTIVATE_ID) ? vid.getExpiryTimestamp() : DateUtils.getUTCCurrentDateTime(),
+				.flatMap(vid -> createIdaEventModel(eventType, eventType.equals(IDAEventType.ACTIVATE_ID) ? vid.getExpiryTimestamp() : DateUtils2.getUTCCurrentDateTime(),
 						vid.getTransactionLimit(), partnerIds, transactionId, vid.getHashAttributes().get(IdRepoConstants.ID_HASH)))
 				.collect(Collectors.toList());
 		sendEventsToIDA(eventDtos, eventType, idaEventModelConsumer);
@@ -426,7 +426,7 @@ public class CredentialServiceManager {
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
 		List<CredentialIssueRequestDto> eventRequestsList = vids.stream().flatMap(vid -> {
 			LocalDateTime expiryTimestamp = status.equals(EnvUtil.getVidActiveStatus()) ? vid.getExpiryTimestamp()
-					: DateUtils.getUTCCurrentDateTime();
+					: DateUtils2.getUTCCurrentDateTime();
 			return partnerIds.stream().map(partnerId -> {
 				String token = tokenIDGenerator.generateTokenID(uin, partnerId);
 				return createCredReqDto(vid.getVid(), partnerId, expiryTimestamp, vid.getTransactionLimit(), token,
@@ -450,7 +450,7 @@ public class CredentialServiceManager {
 		eventRequestsList.forEach(reqDto -> {
 			CredentialIssueRequestWrapperDto requestWrapper = new CredentialIssueRequestWrapperDto();
 			requestWrapper.setRequest(reqDto);
-			requestWrapper.setRequesttime(DateUtils.getUTCCurrentDateTime());
+			requestWrapper.setRequesttime(DateUtils2.getUTCCurrentDateTime());
 			String eventTypeDisplayName = isUpdate ? "Update ID" : "Create ID";
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
 					"notifying Credential Service for event " + eventTypeDisplayName);
@@ -522,7 +522,7 @@ public class CredentialServiceManager {
 		Map<String, Object> data = new HashMap<>();
 		data.putAll(idHashAttributes);
 		data.put(IdRepoConstants.EXPIRY_TIMESTAMP,
-				Optional.ofNullable(expiryTimestamp).map(DateUtils::formatToISOString).orElse(null));
+				Optional.ofNullable(expiryTimestamp).map(DateUtils2::formatToISOString).orElse(null));
 		data.put(IdRepoConstants.TRANSACTION_LIMIT, transactionLimit);
 		data.put(IdRepoConstants.TOKEN, token);
 
@@ -566,7 +566,7 @@ public class CredentialServiceManager {
 	}
 
 	private boolean isExpired(CredentialRequestStatus entity) {
-		return entity.getIdExpiryTimestamp() != null && !DateUtils.getUTCCurrentDateTime().isAfter(entity.getIdExpiryTimestamp());
+		return entity.getIdExpiryTimestamp() != null && !DateUtils2.getUTCCurrentDateTime().isAfter(entity.getIdExpiryTimestamp());
 	}
 
 	/**
@@ -592,7 +592,7 @@ public class CredentialServiceManager {
 		io.mosip.idrepository.core.dto.EventModel<T> eventModel = new io.mosip.idrepository.core.dto.EventModel<>();
 		eventModel.setEvent(event);
 		eventModel.setPublisher(IdRepoConstants.ID_REPO);
-		eventModel.setPublishedOn(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+		eventModel.setPublishedOn(DateUtils2.formatToISOString(DateUtils2.getUTCCurrentDateTime()));
 		eventModel.setTopic(topic);
 		return eventModel;
 	}
@@ -608,7 +608,7 @@ public class CredentialServiceManager {
 		CredentialStatusUpdateEvent credentialStatusUpdateEvent = new CredentialStatusUpdateEvent();
 		credentialStatusUpdateEvent.setStatus(status);
 		credentialStatusUpdateEvent.setRequestId(requestId);
-		credentialStatusUpdateEvent.setTimestamp(DateUtils.formatToISOString(LocalDateTime.now()));
+		credentialStatusUpdateEvent.setTimestamp(DateUtils2.formatToISOString(LocalDateTime.now()));
 		return credentialStatusUpdateEvent;
 	}
 

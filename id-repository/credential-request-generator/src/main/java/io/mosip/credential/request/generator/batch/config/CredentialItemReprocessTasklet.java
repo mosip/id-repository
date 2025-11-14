@@ -41,7 +41,7 @@ import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 
 @Component
 public class CredentialItemReprocessTasklet implements Tasklet {
@@ -150,7 +150,7 @@ public class CredentialItemReprocessTasklet implements Tasklet {
 						credential.setStatusComment(CredentialRequestErrorCodes.RETRY_COUNT_EXCEEDED.getErrorMessage());
 					}
 					credential.setUpdatedBy(CREDENTIAL_USER);
-					credential.setUpdateDateTime(DateUtils.getUTCCurrentDateTime());
+					credential.setUpdateDateTime(DateUtils2.getUTCCurrentDateTime());
 					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_REPROCESS_TASKLET, "batchid = " + batchId,
 							"ended processing item : " + credential.getRequestId());
 				} catch (ApiNotAccessibleException e) {
