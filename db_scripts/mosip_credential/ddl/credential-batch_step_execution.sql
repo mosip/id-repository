@@ -26,3 +26,7 @@ CREATE TABLE credential.batch_step_execution  (
 WITH (
     OIDS = FALSE
 );
+
+--PERFORMANCE OPTIMIZATION INDEXES
+CREATE UNIQUE INDEX batch_step_execution_pkey ON credential.batch_step_execution USING btree (step_execution_id);
+CREATE INDEX idx_step_exec_jobid_stepname ON credential.batch_step_execution USING btree (job_execution_id, step_name);
