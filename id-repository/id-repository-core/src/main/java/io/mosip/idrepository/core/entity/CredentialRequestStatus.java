@@ -43,6 +43,7 @@ public class CredentialRequestStatus {
 	@Column(name = "status")
 	private String status;
 
+	@Column(name = "trigger_action")
 	private String triggerAction;
 
     @Column(name = "id_transaction_limit")
