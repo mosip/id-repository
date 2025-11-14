@@ -26,8 +26,6 @@ CREATE INDEX idx_job_exec_instance ON credential.batch_job_execution USING btree
 
 CREATE INDEX idx_step_exec_jobid_stepname ON credential.batch_step_execution USING btree (job_execution_id, step_name);
 
-CREATE UNIQUE INDEX batch_step_execution_context_pkey ON credential.batch_step_execution_context USING btree (step_execution_id);
-
 CREATE INDEX IF NOT EXISTS idx_cred_new_status_cr_dtimes_active ON credential.credential_transaction (cr_dtimes) WHERE status_code = 'NEW' AND is_deleted = false;
 CREATE INDEX IF NOT EXISTS idx_cred_status_cr_dtimes_active ON credential.credential_transaction (status_code, cr_dtimes) WHERE is_deleted = false;
 CREATE INDEX IF NOT EXISTS idx_cred_status_upd_dtimes_active ON credential.credential_transaction (status_code, upd_dtimes) WHERE is_deleted = false;
