@@ -39,7 +39,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.entity.ChannelInfo;
 import io.mosip.idrepository.identity.helper.ChannelInfoHelper;
 import io.mosip.idrepository.identity.repository.ChannelInfoRepo;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
@@ -172,7 +172,7 @@ public class ChannelInfoHelperTest {
                 .noOfRecords(1)
                 .channelType("email")
                 .createdBy(IdRepoSecurityManager.getUser())
-                .crDTimes(DateUtils.getUTCCurrentDateTime())
+                .crDTimes(DateUtils2.getUTCCurrentDateTime())
                 .build()));
 
         channelInfoHelper.updateEmailChannelInfo(null, identityData);
@@ -201,7 +201,7 @@ public class ChannelInfoHelperTest {
                 .noOfRecords(1)
                 .channelType("phone")
                 .createdBy(IdRepoSecurityManager.getUser())
-                .crDTimes(DateUtils.getUTCCurrentDateTime())
+                .crDTimes(DateUtils2.getUTCCurrentDateTime())
                 .build()));
 
         channelInfoHelper.updatePhoneChannelInfo(null, identityData);
@@ -231,7 +231,7 @@ public class ChannelInfoHelperTest {
                 .noOfRecords(1)
                 .channelType("email")
                 .createdBy(IdRepoSecurityManager.getUser())
-                .crDTimes(DateUtils.getUTCCurrentDateTime())
+                .crDTimes(DateUtils2.getUTCCurrentDateTime())
                 .build()));
 
         channelInfoHelper.updateEmailChannelInfo(null, identityData);
@@ -261,7 +261,7 @@ public class ChannelInfoHelperTest {
                 .noOfRecords(1)
                 .channelType("phone")
                 .createdBy(IdRepoSecurityManager.getUser())
-                .crDTimes(DateUtils.getUTCCurrentDateTime())
+                .crDTimes(DateUtils2.getUTCCurrentDateTime())
                 .build()));
 
         channelInfoHelper.updatePhoneChannelInfo(null, identityData);
@@ -292,7 +292,7 @@ public class ChannelInfoHelperTest {
                         .noOfRecords(1)
                         .channelType("email")
                         .createdBy(IdRepoSecurityManager.getUser())
-                        .crDTimes(DateUtils.getUTCCurrentDateTime())
+                        .crDTimes(DateUtils2.getUTCCurrentDateTime())
                         .build()),
                 Optional.empty() // simulate second call returns empty
         );
@@ -336,7 +336,7 @@ public class ChannelInfoHelperTest {
                         .noOfRecords(1)
                         .channelType("phone")
                         .createdBy(IdRepoSecurityManager.getUser())
-                        .crDTimes(DateUtils.getUTCCurrentDateTime())
+                        .crDTimes(DateUtils2.getUTCCurrentDateTime())
                         .build()),
                 Optional.empty() // second call returns empty
         );
@@ -380,7 +380,7 @@ public class ChannelInfoHelperTest {
                         .noOfRecords(1)
                         .channelType("email")
                         .createdBy(IdRepoSecurityManager.getUser())
-                        .crDTimes(DateUtils.getUTCCurrentDateTime())
+                        .crDTimes(DateUtils2.getUTCCurrentDateTime())
                         .build()),
                 Optional.empty() // second call returns empty
         );
@@ -425,7 +425,7 @@ public class ChannelInfoHelperTest {
                         .noOfRecords(1)
                         .channelType("phone")
                         .createdBy(IdRepoSecurityManager.getUser())
-                        .crDTimes(DateUtils.getUTCCurrentDateTime())
+                        .crDTimes(DateUtils2.getUTCCurrentDateTime())
                         .build()),
                 Optional.empty() // second call returns empty
         );
@@ -470,14 +470,14 @@ public class ChannelInfoHelperTest {
                         .noOfRecords(1)
                         .channelType("email")
                         .createdBy(IdRepoSecurityManager.getUser())
-                        .crDTimes(DateUtils.getUTCCurrentDateTime())
+                        .crDTimes(DateUtils2.getUTCCurrentDateTime())
                         .build()),
                 Optional.of(ChannelInfo.builder()
                         .hashedChannel("")
                         .noOfRecords(1)
                         .channelType("email")
                         .createdBy(IdRepoSecurityManager.getUser())
-                        .crDTimes(DateUtils.getUTCCurrentDateTime())
+                        .crDTimes(DateUtils2.getUTCCurrentDateTime())
                         .build())
         );
 
@@ -521,14 +521,14 @@ public class ChannelInfoHelperTest {
                         .noOfRecords(1)
                         .channelType("phone")
                         .createdBy(IdRepoSecurityManager.getUser())
-                        .crDTimes(DateUtils.getUTCCurrentDateTime())
+                        .crDTimes(DateUtils2.getUTCCurrentDateTime())
                         .build()),
                 Optional.of(ChannelInfo.builder()
                         .hashedChannel("")
                         .noOfRecords(1)
                         .channelType("phone")
                         .createdBy(IdRepoSecurityManager.getUser())
-                        .crDTimes(DateUtils.getUTCCurrentDateTime())
+                        .crDTimes(DateUtils2.getUTCCurrentDateTime())
                         .build())
         );
 

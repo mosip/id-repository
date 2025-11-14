@@ -44,7 +44,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import jakarta.annotation.PostConstruct;
 
 @Component
@@ -189,7 +189,7 @@ public class VerCredProvider extends CredentialProvider {
 
 			dataProviderResponse = new DataProviderResponse();
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
-			LocalDateTime localdatetime = LocalDateTime.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+			LocalDateTime localdatetime = LocalDateTime.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
 			Map<String, Object> verCredJsonObject = new HashMap<>();
 
@@ -206,7 +206,7 @@ public class VerCredProvider extends CredentialProvider {
 			verCredJsonObject.put(JsonConstants.VC_ISSUER, verCredIssuer);
 
 			// vc issuance date
-			verCredJsonObject.put(JsonConstants.VC_ISSUANCE_DATE, DateUtils.formatToISOString(localdatetime));
+			verCredJsonObject.put(JsonConstants.VC_ISSUANCE_DATE, DateUtils2.formatToISOString(localdatetime));
 
 			// vc credentialSubject
 			verCredJsonObject.put(JsonConstants.CREDENTIALSUBJECT, formattedMap);

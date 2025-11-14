@@ -60,7 +60,7 @@ import io.mosip.idrepository.identity.dto.UpdateCountDto;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -398,7 +398,7 @@ public class IdRepoController {
 			Map<String, List<AuthtypeStatus>> authtypestatusmap = new HashMap<>();
 			authtypestatusmap.put("authTypes", authtypeStatusList);
 			authtypeResponseDto.setResponse(authtypestatusmap);
-			authtypeResponseDto.setResponsetime(DateUtils.getUTCCurrentDateTime());
+			authtypeResponseDto.setResponsetime(DateUtils2.getUTCCurrentDateTime());
 
 			auditHelper.audit(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
 					individualId, idType, "auth type status update status : " + true);

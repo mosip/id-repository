@@ -34,7 +34,7 @@ import io.mosip.idrepository.identity.repository.AnonymousProfileRepo;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.retry.WithRetry;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 
 @Component
 @Transactional
@@ -115,7 +115,7 @@ public class AnonymousProfileHelper {
 			anonymousProfileRepo.upsertAnonymousProfile(id,
 					mapper.writeValueAsString(profile),
 					IdRepoSecurityManager.getUser(),
-					DateUtils.getUTCCurrentDateTime()
+					DateUtils2.getUTCCurrentDateTime()
 			);
 
 			// Update channel info (phone/email) - handled by ChannelInfoHelper (atomic ops)

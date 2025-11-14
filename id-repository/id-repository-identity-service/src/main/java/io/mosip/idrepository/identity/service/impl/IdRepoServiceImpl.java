@@ -70,7 +70,7 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.util.UUIDUtils;
 
 /**
@@ -205,7 +205,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 */
 	@Override
 	public Uin addIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
-		String uinRefId = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils.getUTCCurrentDateTime())
+		String uinRefId = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils2.getUTCCurrentDateTime())
 				.toString();
 		ObjectNode identityObject = mapper.convertValue(request.getRequest().getIdentity(), ObjectNode.class);
 		identityObject.putPOJO(VERIFIED_ATTRIBUTES, request.getRequest().getVerifiedAttributes());
@@ -228,22 +228,22 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					false);
 			uinEntity = new Uin(uinRefId, uinToEncrypt, uinHash, identityInfo, securityManager.hash(identityInfo),
 					request.getRequest().getRegistrationId(), activeStatus, IdRepoSecurityManager.getUser(),
-					DateUtils.getUTCCurrentDateTime(), null, null, false, null, bioList, docList);
+					DateUtils2.getUTCCurrentDateTime(), null, null, false, null, bioList, docList);
 			uinEntity = uinRepo.save(uinEntity);
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 					"Record successfully saved in db with documents");
 		} else {
 			uinEntity = new Uin(uinRefId, uinToEncrypt, uinHash, identityInfo, securityManager.hash(identityInfo),
 					request.getRequest().getRegistrationId(), activeStatus, IdRepoSecurityManager.getUser(),
-					DateUtils.getUTCCurrentDateTime(), null, null, false, null, null, null);
+					DateUtils2.getUTCCurrentDateTime(), null, null, false, null, null, null);
 			uinEntity = uinRepo.save(uinEntity);
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 					"Record successfully saved in db without documents");
 		}
 
-		uinHistoryRepo.save(new UinHistory(uinRefId, DateUtils.getUTCCurrentDateTime(), uinEntity.getUin(), uinEntity.getUinHash(),
+		uinHistoryRepo.save(new UinHistory(uinRefId, DateUtils2.getUTCCurrentDateTime(), uinEntity.getUin(), uinEntity.getUinHash(),
 						uinEntity.getUinData(), uinEntity.getUinDataHash(), uinEntity.getRegId(), activeStatus,
-						IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), null, null, false, null));
+						IdRepoSecurityManager.getUser(), DateUtils2.getUTCCurrentDateTime(), null, null, false, null));
 
 		addIdentityHandle(uinEntity, selectedUniqueHandlesMap);
 
@@ -322,12 +322,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 		bioList.add(new UinBiometric(uinRefId, fileRefId, doc.getCategory(), docType.get(FILE_NAME_ATTRIBUTE).asText(),
 				securityManager.hash(data), "", IdRepoSecurityManager.getUser(),
-				DateUtils.getUTCCurrentDateTime(), null, null, false, null));
+				DateUtils2.getUTCCurrentDateTime(), null, null, false, null));
 
 		if (!isDraft)
-			uinBioHRepo.save(new UinBiometricHistory(uinRefId, DateUtils.getUTCCurrentDateTime(), fileRefId, doc.getCategory(),
+			uinBioHRepo.save(new UinBiometricHistory(uinRefId, DateUtils2.getUTCCurrentDateTime(), fileRefId, doc.getCategory(),
 					docType.get(FILE_NAME_ATTRIBUTE).asText(), securityManager.hash(doc.getValue().getBytes()),
-					"", IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(),
+					"", IdRepoSecurityManager.getUser(), DateUtils2.getUTCCurrentDateTime(),
 					null, null, false, null));
 	}
 
@@ -351,13 +351,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		docList.add(new UinDocument(uinRefId, doc.getCategory(), docType.get(TYPE).asText(), fileRefId,
 				docType.get(FILE_NAME_ATTRIBUTE).asText(), docType.get(FILE_FORMAT_ATTRIBUTE).asText(),
 				securityManager.hash(data), "", IdRepoSecurityManager.getUser(),
-				DateUtils.getUTCCurrentDateTime(), null, null, false, null));
+				DateUtils2.getUTCCurrentDateTime(), null, null, false, null));
 
 		if (!isDraft)
-			uinDocHRepo.save(new UinDocumentHistory(uinRefId, DateUtils.getUTCCurrentDateTime(), doc.getCategory(),
+			uinDocHRepo.save(new UinDocumentHistory(uinRefId, DateUtils2.getUTCCurrentDateTime(), doc.getCategory(),
 					docType.get(TYPE).asText(), fileRefId, docType.get(FILE_NAME_ATTRIBUTE).asText(),
 					docType.get(FILE_FORMAT_ATTRIBUTE).asText(), securityManager.hash(data),
-					"", IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(),
+					"", IdRepoSecurityManager.getUser(), DateUtils2.getUTCCurrentDateTime(),
 					null, null, false, null));
 	}
 
@@ -405,7 +405,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					&& !StringUtils.equals(uinObject.getStatusCode(), request.getRequest().getStatus())) {
 				uinObject.setStatusCode(request.getRequest().getStatus());
 				uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
-				uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
+				uinObject.setUpdatedDateTime(DateUtils2.getUTCCurrentDateTime());
 			}
 			if (Objects.nonNull(request.getRequest()) && Objects.nonNull(request.getRequest().getIdentity())) {
 				RequestDTO requestDTO = request.getRequest();
@@ -424,7 +424,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				uinObject.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
 				uinObject.setUinDataHash(securityManager.hash(uinObject.getUinData()));
 				uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
-				uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
+				uinObject.setUpdatedDateTime(DateUtils2.getUTCCurrentDateTime());
 
 				if (Objects.nonNull(requestDTO.getDocuments()) && !requestDTO.getDocuments().isEmpty()) {
 					anonymousProfileHelper
@@ -434,19 +434,19 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 											: null);
 					updateDocuments(uinHashWithSalt, uinObject, requestDTO, false);
 					uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
-					uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
+					uinObject.setUpdatedDateTime(DateUtils2.getUTCCurrentDateTime());
 				}
 			}
 
 			uinObject = uinRepo.save(uinObject);
 			anonymousProfileHelper.setNewUinData(uinObject.getUinData());
-			uinHistoryRepo.save(new UinHistory(uinObject.getUinRefId(), DateUtils.getUTCCurrentDateTime(),
+			uinHistoryRepo.save(new UinHistory(uinObject.getUinRefId(), DateUtils2.getUTCCurrentDateTime(),
 					uinObject.getUin(), uinObject.getUinHash(), uinObject.getUinData(), uinObject.getUinDataHash(),
 					uinObject.getRegId(), uinObject.getStatusCode(), IdRepoSecurityManager.getUser(),
-					DateUtils.getUTCCurrentDateTime(), IdRepoSecurityManager.getUser(),
-					DateUtils.getUTCCurrentDateTime(), false, null));
+					DateUtils2.getUTCCurrentDateTime(), IdRepoSecurityManager.getUser(),
+					DateUtils2.getUTCCurrentDateTime(), false, null));
 			issueCredential(uinObject.getUin(), uinHashWithSalt, uinObject.getStatusCode(),
-					DateUtils.getUTCCurrentDateTime(),uinObject.getRegId());
+					DateUtils2.getUTCCurrentDateTime(),uinObject.getRegId());
 			anonymousProfileHelper.buildAndsaveProfile(false);
 			return uinObject;
 		} catch (JSONException | InvalidJsonException | IOException e) {
@@ -887,14 +887,14 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			credStatusList.forEach(credStatus -> {
 				credStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
-				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
+				credStatus.setUpdDTimes(DateUtils2.getUTCCurrentDateTime());
 				credRequestRepo.save(credStatus);
 			});
 		} else if (!credStatusList.isEmpty() && !uinStatus.contentEquals(activeStatus)) {
 			credStatusList.forEach(credStatus -> {
 				credStatus.setStatus(CredentialRequestStatusLifecycle.DELETED.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
-				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
+				credStatus.setUpdDTimes(DateUtils2.getUTCCurrentDateTime());
 				credRequestRepo.save(credStatus);
 			});
 		} else if (credStatusList.isEmpty()) {
@@ -906,7 +906,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					: CredentialRequestStatusLifecycle.DELETED.toString());
 			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
 			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
-			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
+			credStatus.setCrDTimes(DateUtils2.getUTCCurrentDateTime());
 			if(enableConventionBasedId && (requestId != null)) {
 				credStatus.setRequestId(requestId);
 			} 
@@ -973,11 +973,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				Handle handleEntity = new Handle();
 				handleEntity.setHandleHash(handleDtoEntry.getValue().getHandleHash());
 				handleEntity.setId(UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID,
-						handleDtoEntry.getValue().getHandle() + SPLITTER + DateUtils.getUTCCurrentDateTime()).toString());
+						handleDtoEntry.getValue().getHandle() + SPLITTER + DateUtils2.getUTCCurrentDateTime()).toString());
 				handleEntity.setHandle(handleToEncrypt);
 				handleEntity.setUinHash(uinEntity.getUinHash());
 				handleEntity.setCreatedBy(IdRepoSecurityManager.getUser());
-				handleEntity.setCreatedDateTime(DateUtils.getUTCCurrentDateTime());
+				handleEntity.setCreatedDateTime(DateUtils2.getUTCCurrentDateTime());
 				handleRepo.save(handleEntity);
 				mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY_HANDLE,
 						"Record successfully saved in db");

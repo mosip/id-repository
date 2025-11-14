@@ -71,7 +71,7 @@ import io.mosip.idrepository.vid.provider.VidPolicyProvider;
 import io.mosip.idrepository.vid.repository.VidRepo;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.websub.model.EventModel;
 
 /**
@@ -689,7 +689,7 @@ public class VidServiceImplTest {
 
 	@Test
 	public void testRetrieveUinByVid() throws IdRepoAppException {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
+		LocalDateTime currentTime = DateUtils2.getUTCCurrentDateTime()
 				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_null",
@@ -715,7 +715,7 @@ public class VidServiceImplTest {
 
 	@Test
 	public void testRetrieveUinByVidExpired() {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
+		LocalDateTime currentTime = DateUtils2.getUTCCurrentDateTime()
 				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime();
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_null",
@@ -738,7 +738,7 @@ public class VidServiceImplTest {
 
 	@Test
 	public void testRetrieveUinHashNotMatching() {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
+		LocalDateTime currentTime = DateUtils2.getUTCCurrentDateTime()
 				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime();
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691",
@@ -761,7 +761,7 @@ public class VidServiceImplTest {
 
 	@Test
 	public void testRetrieveUinByVidBlocked() {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
+		LocalDateTime currentTime = DateUtils2.getUTCCurrentDateTime()
 				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_null",
@@ -799,7 +799,7 @@ public class VidServiceImplTest {
 	@Ignore
 	@Test
 	public void testUpdateVidvalid() throws IdRepoAppException {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
+		LocalDateTime currentTime = DateUtils2.getUTCCurrentDateTime()
 				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_3920450236",
@@ -827,7 +827,7 @@ public class VidServiceImplTest {
 	@Ignore
 	@Test
 	public void testUpdateVidvalidREVOKE() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
+		LocalDateTime currentTime = DateUtils2.getUTCCurrentDateTime()
 				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_null",
@@ -888,7 +888,7 @@ public class VidServiceImplTest {
 	@Ignore
 	@Test
 	public void testRegenerate_Valid() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
+		LocalDateTime currentTime = DateUtils2.getUTCCurrentDateTime()
 				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		String vidValue = "2015642902372691";
@@ -945,7 +945,7 @@ public class VidServiceImplTest {
 
 	@Test
 	public void testRegenerateVid_InValidStatus() throws IdRepoAppException {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
+		LocalDateTime currentTime = DateUtils2.getUTCCurrentDateTime()
 				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691",
@@ -988,7 +988,7 @@ public class VidServiceImplTest {
 
 	@Test
 	public void testRegenerate_IdRepoAppUncheckedException() throws Throwable {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
+		LocalDateTime currentTime = DateUtils2.getUTCCurrentDateTime()
 				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691", "461_null",
@@ -1029,7 +1029,7 @@ public class VidServiceImplTest {
 
 	@Test
 	public void testRegenerate_AutoRestoreNotAllowed() throws Throwable {
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
+		LocalDateTime currentTime = DateUtils2.getUTCCurrentDateTime()
 				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		Vid vid = new Vid("18b67aa3-a25a-5cec-94c2-90644bf5b05b", "2015642902372691",
@@ -1277,7 +1277,7 @@ public class VidServiceImplTest {
 	@Test
 	public void updateVid_shouldUpdateVid_WhenExpiryCheckPasses() throws IdRepoAppException, JsonProcessingException {
 
-		LocalDateTime currentTime = DateUtils.getUTCCurrentDateTime()
+		LocalDateTime currentTime = DateUtils2.getUTCCurrentDateTime()
 				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone()))
 				.toLocalDateTime().plusDays(1);
 		VidRequestDTO request = new VidRequestDTO();

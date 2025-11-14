@@ -41,7 +41,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.util.HMACUtils2;
 import lombok.NoArgsConstructor;
 
@@ -168,11 +168,11 @@ public class IdRepoSecurityManager {
 		try {
 			RequestWrapper<ObjectNode> baseRequest = new RequestWrapper<>();
 			baseRequest.setId(STRING);
-			baseRequest.setRequesttime(DateUtils.getUTCCurrentDateTime());
+			baseRequest.setRequesttime(DateUtils2.getUTCCurrentDateTime());
 			baseRequest.setVersion(EnvUtil.getAppVersion());
 			ObjectNode request = new ObjectNode(mapper.getNodeFactory());
 			request.put(APPLICATIONID, EnvUtil.getAppId());
-			request.put(TIME_STAMP, DateUtils.formatDate(new Date(), EnvUtil.getDateTimePattern()));
+			request.put(TIME_STAMP, DateUtils2.formatDate(new Date(), EnvUtil.getDateTimePattern()));
 			request.put(DATA, CryptoUtil.encodeToURLSafeBase64(dataToEncrypt));
 			request.put(REFERENCE_ID, refId);
 			request.put(PREPEND_THUMBPRINT, EnvUtil.getPrependThumbprintStatus());
@@ -198,11 +198,11 @@ public class IdRepoSecurityManager {
 		try {
 			RequestWrapper<ObjectNode> baseRequest = new RequestWrapper<>();
 			baseRequest.setId(STRING);
-			baseRequest.setRequesttime(DateUtils.getUTCCurrentDateTime());
+			baseRequest.setRequesttime(DateUtils2.getUTCCurrentDateTime());
 			baseRequest.setVersion(EnvUtil.getAppVersion());
 			ObjectNode request = new ObjectNode(mapper.getNodeFactory());
 			request.put(APPLICATIONID, EnvUtil.getAppId());
-			request.put(TIME_STAMP, DateUtils.formatDate(new Date(), EnvUtil.getDateTimePattern()));
+			request.put(TIME_STAMP, DateUtils2.formatDate(new Date(), EnvUtil.getDateTimePattern()));
 			request.put(DATA, CryptoUtil.encodeToURLSafeBase64(dataToEncrypt));
 			request.put("salt", CryptoUtil.encodeToURLSafeBase64(saltToEncrypt));
 			request.put(REFERENCE_ID, refId);
@@ -228,12 +228,12 @@ public class IdRepoSecurityManager {
 		try {
 			RequestWrapper<ObjectNode> baseRequest = new RequestWrapper<>();
 			baseRequest.setId(STRING);
-			baseRequest.setRequesttime(DateUtils.getUTCCurrentDateTime());
+			baseRequest.setRequesttime(DateUtils2.getUTCCurrentDateTime());
 			baseRequest.setVersion(EnvUtil.getAppVersion());
 			ObjectNode request = new ObjectNode(mapper.getNodeFactory());
 			request.put(APPLICATIONID, EnvUtil.getAppId());
 			request.put(REFERENCE_ID, refId);
-			request.put(TIME_STAMP, DateUtils.formatDate(new Date(), EnvUtil.getDateTimePattern()));
+			request.put(TIME_STAMP, DateUtils2.formatDate(new Date(), EnvUtil.getDateTimePattern()));
 			request.put(DATA, new String(dataToDecrypt));
 			request.put(PREPEND_THUMBPRINT, EnvUtil.getPrependThumbprintStatus());
 			baseRequest.setRequest(request);
@@ -258,12 +258,12 @@ public class IdRepoSecurityManager {
 		try {
 			RequestWrapper<ObjectNode> baseRequest = new RequestWrapper<>();
 			baseRequest.setId(STRING);
-			baseRequest.setRequesttime(DateUtils.getUTCCurrentDateTime());
+			baseRequest.setRequesttime(DateUtils2.getUTCCurrentDateTime());
 			baseRequest.setVersion(EnvUtil.getAppVersion());
 			ObjectNode request = new ObjectNode(mapper.getNodeFactory());
 			request.put(APPLICATIONID, EnvUtil.getAppId());
 			request.put(REFERENCE_ID, refId);
-			request.put(TIME_STAMP, DateUtils.formatDate(new Date(), EnvUtil.getDateTimePattern()));
+			request.put(TIME_STAMP, DateUtils2.formatDate(new Date(), EnvUtil.getDateTimePattern()));
 			request.put(DATA, CryptoUtil.encodeToURLSafeBase64(dataToDecrypt));
 			request.put("salt", CryptoUtil.encodeToURLSafeBase64(saltToDecrypt));
 			request.put(PREPEND_THUMBPRINT, EnvUtil.getPrependThumbprintStatus());

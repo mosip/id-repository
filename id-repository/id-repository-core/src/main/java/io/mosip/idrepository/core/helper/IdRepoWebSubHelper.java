@@ -40,7 +40,7 @@ import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.TokenIDGenerator;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.websub.model.Event;
 import io.mosip.kernel.core.websub.model.EventModel;
 import io.mosip.kernel.core.websub.model.Type;
@@ -175,7 +175,7 @@ public class IdRepoWebSubHelper {
 			String transactionId, String partner, String idHash, Map<String, String> dataMap) {
 		EventModel model = new EventModel();
 		model.setPublisher(ID_REPO);
-		String dateTime = DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime());
+		String dateTime = DateUtils2.formatToISOString(DateUtils2.getUTCCurrentDateTime());
 		model.setPublishedOn(dateTime);
 		Event event = new Event();
 		event.setTimestamp(dateTime);
@@ -192,10 +192,10 @@ public class IdRepoWebSubHelper {
 		}
 		data.put(ID_HASH, idHash);
 		if (eventType.equals(IDAEventType.DEACTIVATE_ID)) {
-			data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+			data.put(EXPIRY_TIMESTAMP, DateUtils2.formatToISOString(DateUtils2.getUTCCurrentDateTime()));
 		} else {
 			if (expiryTimestamp != null) {
-				data.put(EXPIRY_TIMESTAMP, DateUtils.formatToISOString(expiryTimestamp));
+				data.put(EXPIRY_TIMESTAMP, DateUtils2.formatToISOString(expiryTimestamp));
 			}
 		}
 		if(transactionLimit != null) {

@@ -17,7 +17,7 @@ import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -305,7 +305,7 @@ public class IdRepoDraftController {
 		ResponseWrapper<DraftResponseDto> responseWrapper = new ResponseWrapper<>();
 		responseWrapper.setId(environment.getProperty(IdRepoConstants.GET_DRAFT_UIN_ID));
 		responseWrapper.setVersion(environment.getProperty(IdRepoConstants.GET_DRAFT_UIN_VERSION));
-		responseWrapper.setResponsetime(DateUtils.getUTCCurrentDateTime());
+		responseWrapper.setResponsetime(DateUtils2.getUTCCurrentDateTime());
 		try {
 			if (!validator.validateUin(uin)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, GET_DRAFT_UIN, "Invalid uin");
