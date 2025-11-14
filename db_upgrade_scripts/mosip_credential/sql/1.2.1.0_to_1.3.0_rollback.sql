@@ -40,7 +40,6 @@ DROP INDEX IF EXISTS idx_job_key;
 
 -- ROLLBACK FOR PERFORMANCE OPTIMIZATION INDEXES
 
-DROP INDEX IF EXISTS credential.batch_job_execution_pkey;
 DROP INDEX IF EXISTS credential.idx_job_exec_instance;
 
 DROP INDEX IF EXISTS credential.batch_job_execution_context_pkey;
