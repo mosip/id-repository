@@ -20,8 +20,15 @@ ALTER TABLE BATCH_JOB_EXECUTION DROP COLUMN JOB_CONFIGURATION_LOCATION;
 CREATE INDEX IF NOT EXISTS idx_job_name ON BATCH_JOB_INSTANCE(JOB_NAME);
 CREATE INDEX IF NOT EXISTS idx_job_key ON BATCH_JOB_INSTANCE(JOB_KEY);
 
--- PERFORMANCE OPTIMIZATION INDEXES
+-- UPGRADE FOR PERFORMANCE OPTIMIZATION INDEXES
+
+CREATE INDEX idx_job_exec_instance ON credential.batch_job_execution USING btree (job_instance_id);
+
+CREATE INDEX idx_step_exec_jobid_stepname ON credential.batch_step_execution USING btree (job_execution_id, step_name);
 
 CREATE INDEX IF NOT EXISTS idx_cred_new_status_cr_dtimes_active ON credential.credential_transaction (cr_dtimes) WHERE status_code = 'NEW' AND is_deleted = false;
 CREATE INDEX IF NOT EXISTS idx_cred_status_cr_dtimes_active ON credential.credential_transaction (status_code, cr_dtimes) WHERE is_deleted = false;
 CREATE INDEX IF NOT EXISTS idx_cred_status_upd_dtimes_active ON credential.credential_transaction (status_code, upd_dtimes) WHERE is_deleted = false;
+CREATE INDEX idx_credtran_status_crdtimes ON credential.credential_transaction USING btree (status_code, cr_dtimes);
+
+-- END UPGRADE FOR PERFORMANCE OPTIMIZATION INDEXES

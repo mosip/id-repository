@@ -37,3 +37,17 @@ ALTER TABLE BATCH_JOB_EXECUTION ADD COLUMN JOB_CONFIGURATION_LOCATION VARCHAR(25
 -- Drop the indices if they were created
 DROP INDEX IF EXISTS idx_job_name;
 DROP INDEX IF EXISTS idx_job_key;
+
+-- ROLLBACK FOR PERFORMANCE OPTIMIZATION INDEXES
+
+DROP INDEX IF EXISTS credential.idx_job_exec_instance;
+
+DROP INDEX IF EXISTS credential.idx_step_exec_jobid_stepname;
+
+DROP INDEX IF EXISTS credential.idx_cred_new_status_cr_dtimes_active;
+DROP INDEX IF EXISTS credential.idx_cred_status_cr_dtimes_active;
+DROP INDEX IF EXISTS credential.idx_cred_status_upd_dtimes_active;
+DROP INDEX IF EXISTS credential.idx_credtran_status_crdtimes;
+
+-- END ROLLBACK FOR PERFORMANCE OPTIMIZATION INDEXES
+
