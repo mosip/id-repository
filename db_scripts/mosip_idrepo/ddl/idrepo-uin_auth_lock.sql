@@ -62,3 +62,7 @@ COMMENT ON COLUMN idrepo.uin_auth_lock.is_deleted IS 'IS_Deleted : Flag to mark 
 -- ddl-end --
 COMMENT ON COLUMN idrepo.uin_auth_lock.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
 -- ddl-end --
+
+-- PERFORMANCE OPTIMIZATION INDEXES
+CREATE INDEX idx_uin_auth_lock_hash_type_crdtimes ON idrepo.uin_auth_lock (uin_hash, auth_type_code, cr_dtimes);
+CREATE INDEX idx_uin_auth_lock_covering ON idrepo.uin_auth_lock (uin_hash, auth_type_code, cr_dtimes, status_code, unlock_expiry_datetime);
