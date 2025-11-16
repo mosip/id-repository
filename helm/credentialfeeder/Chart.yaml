@@ -2,7 +2,7 @@ apiVersion: v2
 name: credentialfeeder
 description: A Helm chart to generate keys
 type: application
-version: 1.3.0-beta.1-develop
+version: 1.3.0-develop
 dependencies:
   - name: common
     repository: https://charts.bitnami.com/bitnami
