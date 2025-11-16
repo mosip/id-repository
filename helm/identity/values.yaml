@@ -47,7 +47,7 @@ service:
 image:
   registry: docker.io
   repository: mosipid/id-repository-identity-service
-  tag: 1.3.0-beta.1
+  tag: 1.3.x
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
@@ -113,8 +113,8 @@ resources:
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   limits:
-    cpu: '1'
-    memory: 4000Mi
+    cpu: 2000m
+    memory: 10000Mi
   requests:
     cpu: 700m
     memory: 2000Mi
