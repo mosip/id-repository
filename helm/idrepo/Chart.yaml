@@ -14,22 +14,22 @@ maintainers:
 dependencies:
 - name: idrepo-saltgen
   alias: saltgen
-  version: 0.0.1-develop
+  version: 1.3.0-develop
   repository: https://mosip.github.io/mosip-helm
   condition: saltgen.enabled
 - name: identity
-  version: 0.0.1-develop
+  version: 1.3.0-develop
   repository: https://mosip.github.io/mosip-helm
   condition: identity.enabled
 - name: credential
   repository: https://mosip.github.io/mosip-helm
-  version: 0.0.1-develop
+  version: 1.3.0-develop
   condition: credential.enabled
 - name: vid
-  version: 0.0.1-develop
+  version: 1.3.0-develop
   repository: https://mosip.github.io/mosip-helm
   condition: vid.enabled
 - name: credentialrequest
   repository: https://mosip.github.io/mosip-helm
-  version: 0.0.1-develop
+  version: 1.3.0-develop
   condition: credentialrequest.enabled
