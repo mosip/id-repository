@@ -526,13 +526,8 @@ public class IdRepoController {
 	public ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> searchIdVidMetadata(@RequestBody RequestWrapper<IdVidMetadataRequestDTO> request) throws IdRepoAppException {
 
 		IdVidMetadataRequestDTO metadataRequest = request.getRequest();
-        if (Objects.isNull(metadataRequest)) {
-            throw new IdRepoAppException(MISSING_INPUT_PARAMETER.getErrorCode(),
-                    String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), "request"));
-        }
 		String individualId = metadataRequest.getIndividualId();
 		String idType = metadataRequest.getIdType();
-        try {
             if (StringUtils.isBlank(individualId)) {
                 throw new IdRepoAppException(
                         IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
@@ -554,12 +549,6 @@ public class IdRepoController {
                     individualId, individualIdType, "IdVid metadata search request successful");
 
             return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
-        }catch (IdRepoAppException e) {
-            	auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
-                    					individualId, IdType.UIN, e);
-                mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "searchIdVidMetadata", e.getMessage());
-                throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
-        }
 	}
 
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getRemainingUpdateCountByIndividualId())")
