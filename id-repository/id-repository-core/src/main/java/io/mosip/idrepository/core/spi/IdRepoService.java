@@ -81,7 +81,7 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 *
 	 * @param individualId the identifier of the individual whose metadata is to be fetched.
 	 * @param idType The type of ID that you're passing in.
-	 * @return an {@code IdVidMetaDataResponseDTO} containing rid, createdOn, and updatedOn
+	 * @return an {@code IdVidMetadataResponseDTO} containing rid, createdOn, and updatedOn
 	 * @throws IdRepoAppException if there is an error during retrieval
 	 */
 
