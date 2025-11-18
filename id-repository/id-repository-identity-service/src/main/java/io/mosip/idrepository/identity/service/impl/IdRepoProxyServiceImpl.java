@@ -41,6 +41,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
+import io.mosip.idrepository.core.constant.EventType;
+import io.mosip.idrepository.core.constant.IDAEventType;
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
+import io.mosip.idrepository.core.constant.IdType;
+import io.mosip.idrepository.core.constant.RestServicesConstants;
+import io.mosip.idrepository.core.dto.DocumentsDTO;
+import io.mosip.idrepository.core.dto.IdRequestDTO;
+import io.mosip.idrepository.core.dto.IdResponseDTO;
+import io.mosip.idrepository.core.dto.ResponseDTO;
+import io.mosip.idrepository.core.dto.RestRequestDTO;
+import io.mosip.idrepository.core.dto.IdVidMetadataResponseDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
@@ -548,6 +559,44 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	}
 
 	/**
+	 * Retrieves the id vid metadata information for a given individual
+	 * based on the provided ID and its type.
+	 *
+	 * @param individualId the identifier of the individual whose metadata is to be fetched.
+	 * @param idType The type of ID that you're passing in.
+	 * @return an {@code IdVidMetaDataResponseDTO} containing rid, createdOn, and updatedOn
+	 * @throws IdRepoAppException if there is an error during retrieval
+	 */
+	public IdVidMetadataResponseDTO getIdVidMetadata(String individualId, IdType idType) throws IdRepoAppException {
+		try {
+			switch (idType) {
+				case VID:
+					individualId = getUinByVid(individualId);
+				case UIN:
+					String uinHash = retrieveUinHash(individualId);
+					Optional<Uin> uin = uinRepo.findByUinHash(uinHash);
+					if (uin.isPresent()) {
+						return getIdVidMetadataResponseDTO(uin.get());
+					}
+					break;
+				case ID:
+					Optional<Uin> uinOptional = uinRepo.findByRegId(individualId);
+					if (uinOptional.isPresent()) {
+						return getIdVidMetadataResponseDTO(uinOptional.get());
+					}
+					break;
+			}
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getIdVidMetadata",
+					"NO_RECORD_FOUND");
+			throw new IdRepoAppException(NO_RECORD_FOUND);
+		} catch (DataAccessException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
+					"getIdVidMetadata", "DATABASE_ERROR");
+			throw new IdRepoAppException(DATABASE_ACCESS_ERROR);
+		}
+	}
+
+	/**
 	 * It takes a VID as input and returns the corresponding UIN
 	 *
 	 * @param vid Virtual ID
@@ -752,4 +801,17 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			throw new IdRepoAppException(errorCode, errorMsg, e);
 		}
 	}
+
+	private IdVidMetadataResponseDTO getIdVidMetadataResponseDTO(Uin uin) {
+		IdVidMetadataResponseDTO metadataResponseDTO = new IdVidMetadataResponseDTO();
+		metadataResponseDTO.setRid(uin.getRegId());
+		if (uin.getUpdatedDateTime() != null) {
+			metadataResponseDTO.setUpdatedOn(DateUtils.formatToISOString(uin.getUpdatedDateTime()));
+		}
+		if (uin.getCreatedDateTime() != null) {
+			metadataResponseDTO.setCreatedOn(DateUtils.formatToISOString(uin.getCreatedDateTime()));
+		}
+		return metadataResponseDTO;
+	}
+
 }
