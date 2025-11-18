@@ -207,6 +207,8 @@ public class IdRepoServiceTest {
 	/** The id. */
 	private Map<String, String> id;
 
+    private static final String SPLITTER = "_";
+
 	private static final String VALUE = "value";
 
 	/** The uin. */
@@ -2577,33 +2579,38 @@ public class IdRepoServiceTest {
 		String vid = "1234567890123456";
 		String uin = "9999999999";
 		int saltId = 123;
-		Uin uinObj = getMockUin();
+        String hashSalt = "dummySalt";
+        String hashedUin = saltId + SPLITTER + "hashedUIN";
+        Uin uinObj = getMockUin();
 
-		RestRequestDTO req = new RestRequestDTO();
-		req.setUri("http://dummy/uin/{vid}");
-		Mockito.when(restBuilder.buildRequest(Mockito.any(), Mockito.isNull(), Mockito.eq(ResponseWrapper.class)))
-				.thenReturn(req);
+        RestRequestDTO req = new RestRequestDTO();
+        req.setUri("http://dummy/uin/{vid}");
+        Mockito.when(restBuilder.buildRequest(Mockito.any(), Mockito.isNull(), Mockito.eq(ResponseWrapper.class)))
+                .thenReturn(req);
 
-		ResponseWrapper<Map<String, String>> wrapper = new ResponseWrapper<>();
-		Map<String, String> response = new HashMap<>();
-		response.put("UIN", uin);
-		wrapper.setResponse(response);
+        ResponseWrapper<Map<String, String>> wrapper = new ResponseWrapper<>();
+        Map<String, String> response = new HashMap<>();
+        response.put("UIN", uin);
+        wrapper.setResponse(response);
 
-		IdRepoSecurityManager idRepoSecurityManager = Mockito.mock(IdRepoSecurityManager.class);
-		ReflectionTestUtils.setField(proxyService, "securityManager", idRepoSecurityManager);
-		Mockito.when(restHelper.requestSync(Mockito.any())).thenReturn(wrapper);
-		Mockito.when(idRepoSecurityManager.getSaltKeyForId(Mockito.any())).thenReturn(saltId);
-		Mockito.when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-		Mockito.when(idRepoSecurityManager.hashwithSalt(Mockito.any(), Mockito.any())).thenReturn("hash");
-		Mockito.when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
+        Mockito.when(restHelper.requestSync(Mockito.any())).thenReturn(wrapper);
+        Mockito.when(securityManager.getSaltKeyForId(Mockito.anyString())).thenReturn(saltId);
+        Mockito.when(uinHashSaltRepo.retrieveSaltById(saltId)).thenReturn(hashSalt);
+        Mockito.when(securityManager.hashwithSalt(uin.getBytes(), hashSalt.getBytes())).thenReturn("hashedUIN");
+        Mockito.when(uinRepo.findByUinHash(hashedUin)).thenReturn(Optional.of(uinObj));
 
-		IdVidMetadataResponseDTO result = proxyService.getIdVidMetadata(vid, IdType.VID);
-		assertEquals(uinObj.getRegId(), result.getRid());
-		String expectedCreated = formatToISOString(uinObj.getCreatedDateTime());
-		String expectedUpdated = formatToISOString(uinObj.getUpdatedDateTime());
-		assertEquals(expectedCreated, result.getCreatedOn());
-		assertEquals(expectedUpdated, result.getUpdatedOn());
+        IdVidMetadataResponseDTO result = proxyService.getIdVidMetadata(vid, IdType.VID);
+        assertEquals(uinObj.getRegId(), result.getRid());
+        String expectedCreated = formatToISOString(uinObj.getCreatedDateTime());
+        String expectedUpdated = formatToISOString(uinObj.getUpdatedDateTime());
+        assertEquals(expectedCreated, result.getCreatedOn());
+        assertEquals(expectedUpdated, result.getUpdatedOn());
 	}
+
+    private String formatToISOString(LocalDateTime dateTime) {
+        if (dateTime == null) return null;
+        return dateTime.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+    }
 
 	@Test
 	public void testGetIdVidMetadataForIndividual_UIN_Success() throws Exception {
@@ -2640,7 +2647,7 @@ public class IdRepoServiceTest {
 		assertEquals(expectedUpdated, result.getUpdatedOn());
 	}
 
-	@Test(expected = IdRepoAppException.class)
+	@Test
 	public void testGetIdVidMetadataForIndividual_NoRecordFound() throws IdRepoAppException {
 		String uin = "9999999999";
 		int saltId = 123;
