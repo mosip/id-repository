@@ -560,10 +560,6 @@ public class IdRepoController {
                 mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "searchIdVidMetadata", e.getMessage());
                 throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
         }
-        finally {
-                auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
-                        individualId, IdType.UIN, "IdVid metadata search request received");
-            }
 	}
 
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getRemainingUpdateCountByIndividualId())")
