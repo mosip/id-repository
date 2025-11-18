@@ -526,30 +526,44 @@ public class IdRepoController {
 	public ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> searchIdVidMetadata(@RequestBody RequestWrapper<IdVidMetadataRequestDTO> request) throws IdRepoAppException {
 
 		IdVidMetadataRequestDTO metadataRequest = request.getRequest();
+        if (Objects.isNull(metadataRequest)) {
+            throw new IdRepoAppException(MISSING_INPUT_PARAMETER.getErrorCode(),
+                    String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), "request"));
+        }
 		String individualId = metadataRequest.getIndividualId();
 		String idType = metadataRequest.getIdType();
+        try {
+            if (StringUtils.isBlank(individualId)) {
+                throw new IdRepoAppException(
+                        IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
+                        String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), "individualId")
+                );
+            }
+            IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
+            auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
+                    individualId, individualIdType, "IdVid metadata search request received");
 
-		if (StringUtils.isBlank(individualId)) {
-			throw new IdRepoAppException(
-					IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
-					String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), "individualId")
-			);
-		}
-		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
-		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
-				individualId, individualIdType, "IdVid metadata search request received");
+            IdVidMetadataResponseDTO metadataResponse = idRepoService.getIdVidMetadata(individualId, individualIdType);
 
-		IdVidMetadataResponseDTO metadataResponse = idRepoService.getIdVidMetadata(individualId, individualIdType);
+            ResponseWrapper<IdVidMetadataResponseDTO> responseWrapper = new ResponseWrapper<>();
+            responseWrapper.setId(idvidMetadataId);
+            responseWrapper.setVersion(idvidMetadataVersion);
+            responseWrapper.setResponse(metadataResponse);
 
-		ResponseWrapper<IdVidMetadataResponseDTO> responseWrapper = new ResponseWrapper<>();
-		responseWrapper.setId(idvidMetadataId);
-		responseWrapper.setVersion(idvidMetadataVersion);
-		responseWrapper.setResponse(metadataResponse);
+            auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
+                    individualId, individualIdType, "IdVid metadata search request successful");
 
-		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
-				individualId, individualIdType, "IdVid metadata search request successful");
-
-		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
+            return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
+        }catch (IdRepoAppException e) {
+            	auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
+                    					individualId, IdType.UIN, e);
+                mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, "searchIdVidMetadata", e.getMessage());
+                throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+        }
+        finally {
+                auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
+                        individualId, IdType.UIN, "IdVid metadata search request received");
+            }
 	}
 
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getRemainingUpdateCountByIndividualId())")
