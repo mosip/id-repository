@@ -2605,7 +2605,6 @@ public class IdRepoServiceTest {
         assertEquals(expectedUpdated, result.getUpdatedOn());
 	}
 
-
 	@Test
 	public void testGetIdVidMetadataForIndividual_UIN_Success() throws Exception {
 		String uin = "9999999999";
