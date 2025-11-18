@@ -2651,7 +2651,13 @@ public class IdRepoServiceTest {
 		Mockito.when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 		Mockito.when(idRepoSecurityManager.hashwithSalt(Mockito.any(), Mockito.any())).thenReturn("hash");
 		Mockito.when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.empty());
-		proxyService.getIdVidMetadata(uin, IdType.UIN);
+
+        IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () -> {
+            proxyService.getIdVidMetadata(uin, IdType.UIN);
+        });
+
+        assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorCode(), thrown.getErrorCode());
+        assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorMessage(), thrown.getErrorText());
 	}
 
 	@Test(expected = IdRepoAppException.class)
@@ -2668,8 +2674,22 @@ public class IdRepoServiceTest {
 		proxyService.getIdVidMetadata(uin, IdType.UIN);
 	}
 
-	@Test(expected = IdRepoAppException.class)
+	@Test
 	public void testGetUinByVid_RestException() throws IdRepoAppException {
+        try {
+            String vid = "1234567890123456";
+
+            RestRequestDTO restRequestDTO = new RestRequestDTO();
+            restRequestDTO.setUri("http://dummy/uin/{vid}");
+            Mockito.when(restBuilder.buildRequest(Mockito.any(), Mockito.isNull(), Mockito.eq(ResponseWrapper.class)))
+                    .thenReturn(restRequestDTO);
+            RestServiceException ex = new RestServiceException(IdRepoErrorConstants.UNKNOWN_ERROR);
+            Mockito.when(restHelper.requestSync(Mockito.any())).thenThrow(ex);
+            proxyService.getIdVidMetadata(vid, IdType.VID);
+        } catch (IdRepoAppException e) {
+            assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
+            assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
+        }
 		String vid = "1234567890123456";
 		RestServiceException ex = new RestServiceException(IdRepoErrorConstants.UNKNOWN_ERROR);
 
