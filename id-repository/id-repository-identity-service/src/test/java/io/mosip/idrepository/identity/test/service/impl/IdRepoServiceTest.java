@@ -2661,7 +2661,7 @@ public class IdRepoServiceTest {
         assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorMessage(), thrown.getErrorText());
 	}
 
-	@Test(expected = IdRepoAppException.class)
+	@Test
 	public void testGetIdVidMetadataForIndividual_DatabaseException() throws IdRepoAppException {
 		String uin = "9999999999";
 		int saltId = 123;
@@ -2672,12 +2672,15 @@ public class IdRepoServiceTest {
 		Mockito.when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 		Mockito.when(idRepoSecurityManager.hashwithSalt(Mockito.any(), Mockito.any())).thenReturn("hash");
 		Mockito.when(uinRepo.findByUinHash(Mockito.any())).thenThrow(new DataAccessException("DB Error") {});
-		proxyService.getIdVidMetadata(uin, IdType.UIN);
+        IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () -> {
+            proxyService.getIdVidMetadata(uin, IdType.UIN);
+        });
+        assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), thrown.getErrorCode());
+        assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorMessage(), thrown.getErrorText());
 	}
 
 	@Test
 	public void testGetUinByVid_RestException() throws IdRepoAppException {
-        try {
             String vid = "1234567890123456";
 
             RestRequestDTO restRequestDTO = new RestRequestDTO();
@@ -2686,11 +2689,12 @@ public class IdRepoServiceTest {
                     .thenReturn(restRequestDTO);
             RestServiceException ex = new RestServiceException(IdRepoErrorConstants.UNKNOWN_ERROR);
             Mockito.when(restHelper.requestSync(Mockito.any())).thenThrow(ex);
+            IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () -> {
             proxyService.getIdVidMetadata(vid, IdType.VID);
-        } catch (IdRepoAppException e) {
-            assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
-            assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
-        }
+            });
+
+            assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), thrown.getErrorCode());
+            assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), thrown.getErrorText());
 	}
 
 	private Uin getMockUin() {
