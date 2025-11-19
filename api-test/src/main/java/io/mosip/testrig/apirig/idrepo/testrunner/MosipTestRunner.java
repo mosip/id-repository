@@ -97,8 +97,6 @@ public class MosipTestRunner {
 			
 			// Generate device certificates to be consumed by Mock-MDS
 			PartnerRegistration.deleteCertificates();
-			AdminTestUtil.createAndPublishPolicy();
-			AdminTestUtil.createEditAndPublishPolicy();
 			PartnerRegistration.deviceGeneration();
 
 			BiometricDataProvider.generateBiometricTestData("Registration");
@@ -141,8 +139,8 @@ public class MosipTestRunner {
 		if (!runType.equalsIgnoreCase("JAR")) {
 			AuthTestsUtil.removeOldMosipTempTestResource();
 		}
-		BaseTestCase.currentModule = "idrepo";
-		BaseTestCase.certsForModule = "idrepo";
+		BaseTestCase.currentModule = BaseTestCase.runContext + GlobalConstants.IDREPO;
+		BaseTestCase.certsForModule = BaseTestCase.runContext + GlobalConstants.IDREPO;
 		IdRepoUtil.dbCleanUp();
 
 		AdminTestUtil.copyIdrepoTestResource();

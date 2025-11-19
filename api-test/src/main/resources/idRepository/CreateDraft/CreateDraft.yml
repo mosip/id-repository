@@ -60,7 +60,7 @@ CreateDraft:
       output: '{
    "errors": [
     {
-      "errorCode": "IDR-IDC-012"
+      "errorCode": "IDR-IDC-002"
     }
   ]
 }'

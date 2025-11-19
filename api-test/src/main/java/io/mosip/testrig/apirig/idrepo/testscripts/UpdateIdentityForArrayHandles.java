@@ -121,7 +121,7 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 		JSONArray dobArray = new JSONArray(getValueFromAuthActuator("json-property", "dob"));
 		String dob = dobArray.getString(0);
 		String phoneNumber = "";
-		String email = testCaseName +"@mosip.net";
+		String email = testCaseName + "_" + BaseTestCase.runContext + "@mosip.net";
 		
 		
 		if (inputJson.contains("$PHONENUMBERFORIDENTITY$")) {
