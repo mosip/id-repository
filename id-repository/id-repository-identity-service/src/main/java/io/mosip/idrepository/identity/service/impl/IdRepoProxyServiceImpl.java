@@ -806,10 +806,10 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		IdVidMetadataResponseDTO metadataResponseDTO = new IdVidMetadataResponseDTO();
 		metadataResponseDTO.setRid(uin.getRegId());
 		if (uin.getUpdatedDateTime() != null) {
-			metadataResponseDTO.setUpdatedOn(DateUtils.formatToISOString(uin.getUpdatedDateTime()));
+			metadataResponseDTO.setUpdatedOn(DateUtils2.formatToISOString(uin.getUpdatedDateTime()));
 		}
 		if (uin.getCreatedDateTime() != null) {
-			metadataResponseDTO.setCreatedOn(DateUtils.formatToISOString(uin.getCreatedDateTime()));
+			metadataResponseDTO.setCreatedOn(DateUtils2.formatToISOString(uin.getCreatedDateTime()));
 		}
 		return metadataResponseDTO;
 	}
