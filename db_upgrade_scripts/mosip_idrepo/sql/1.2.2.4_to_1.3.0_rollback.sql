@@ -1,4 +1,6 @@
---INDEX 
+\c mosip_idrepo
+
+--INDEX
 DROP INDEX IF EXISTS idx_uin_uin_hash ON idrepo.uin;
 DROP INDEX IF EXISTS idx_uin_draft_reg_id ON idrepo.uin_draft;
 DROP INDEX IF EXISTS idx_uin_h_reg_id ON idrepo.uin_h;
