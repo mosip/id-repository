@@ -1,5 +1,3 @@
--- Below script required to upgrade from 1.3.0-B1 to 1.3.0
-
 \c mosip_credential
 
 -- ------------------------------------------------------------------------------------------
@@ -41,6 +39,8 @@ ALTER TABLE BATCH_JOB_EXECUTION ADD COLUMN JOB_CONFIGURATION_LOCATION VARCHAR(25
 -- Drop the indices if they were created
 DROP INDEX IF EXISTS idx_job_name;
 DROP INDEX IF EXISTS idx_job_key;
+
+-- Below script required to rollback from 1.3.0-beta.1 to 1.3.0.
 
 -- ROLLBACK FOR PERFORMANCE OPTIMIZATION INDEXES
 

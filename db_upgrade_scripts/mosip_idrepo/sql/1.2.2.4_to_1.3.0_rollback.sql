@@ -1,5 +1,3 @@
--- Below script required to upgrade from 1.3.0-B1 to 1.3.0
-
 \c mosip_idrepo
 
 --INDEX
@@ -10,6 +8,8 @@ DROP INDEX IF EXISTS idx_handle_handle_hash ON idrepo.handle;
 DROP INDEX IF EXISTS idx_handle_uin_hash ON idrepo.handle;
 DROP INDEX IF EXISTS idx_cred_req_NEW_status_cr_dtimes ON idrepo.credential_request_status;
 DROP INDEX IF EXISTS idx_cred_tran_status ON idrepo.credential_request_status;
+
+-- Below script required to rollback from 1.3.0-beta.1 to 1.3.0.
 
 -- ROLLBACK FOR PERFORMANCE OPTIMIZATION INDEXES
 
