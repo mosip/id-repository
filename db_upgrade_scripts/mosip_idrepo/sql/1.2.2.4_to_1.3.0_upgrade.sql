@@ -1,3 +1,5 @@
+\c mosip_idrepo
+
 --INDEX
 CREATE INDEX IF NOT EXISTS idx_uin_uin_hash ON idrepo.uin USING btree(uin_hash);
 CREATE INDEX IF NOT EXISTS idx_uin_draft_reg_id ON idrepo.uin_draft USING btree(reg_id);
@@ -6,6 +8,8 @@ CREATE INDEX IF NOT EXISTS idx_handle_handle_hash ON idrepo.handle USING btree(h
 CREATE INDEX IF NOT EXISTS idx_handle_uin_hash ON idrepo.handle USING btree(uin_hash);
 CREATE INDEX IF NOT EXISTS idx_cred_req_NEW_status_cr_dtimes ON idrepo.credential_request_status USING btree(cr_dtimes) WHERE status = 'NEW';
 CREATE INDEX IF NOT EXISTS idx_cred_tran_status ON idrepo.credential_request_status USING  btree(status);
+
+-- Below script required to upgraded from 1.3.0-beta.1 to 1.3.0
 
 -- UPGRADE FOR PERFORMANCE OPTIMIZATION INDEXES
 
