@@ -53,5 +53,8 @@ DROP INDEX IF EXISTS credential.idx_cred_status_cr_dtimes_active;
 DROP INDEX IF EXISTS credential.idx_cred_status_upd_dtimes_active;
 DROP INDEX IF EXISTS credential.idx_credtran_status_crdtimes;
 
+ALTER TABLE credential_transaction RESET (autovacuum_vacuum_scale_factor, autovacuum_vacuum_threshold, autovacuum_analyze_scale_factor, autovacuum_analyze_threshold);
+ALTER TABLE batch_job_execution RESET (autovacuum_vacuum_scale_factor, autovacuum_vacuum_threshold, autovacuum_analyze_scale_factor, autovacuum_analyze_threshold);
+
 -- END ROLLBACK FOR PERFORMANCE OPTIMIZATION INDEXES
 

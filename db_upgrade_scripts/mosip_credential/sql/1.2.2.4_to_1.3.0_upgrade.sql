@@ -35,4 +35,7 @@ CREATE INDEX IF NOT EXISTS idx_cred_status_cr_dtimes_active ON credential.creden
 CREATE INDEX IF NOT EXISTS idx_cred_status_upd_dtimes_active ON credential.credential_transaction (status_code, upd_dtimes) WHERE is_deleted = false;
 CREATE INDEX idx_credtran_status_crdtimes ON credential.credential_transaction USING btree (status_code, cr_dtimes);
 
+ALTER TABLE credential_transaction SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 500, autovacuum_analyze_scale_factor = 0.03, autovacuum_analyze_threshold = 500);
+ALTER TABLE batch_job_execution SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 1000, autovacuum_analyze_scale_factor = 0.03, autovacuum_analyze_threshold = 500);
+
 -- END UPGRADE FOR PERFORMANCE OPTIMIZATION INDEXES
