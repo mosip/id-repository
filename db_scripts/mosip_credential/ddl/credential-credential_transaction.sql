@@ -75,3 +75,5 @@ CREATE INDEX idx_credtran_status_crdtimes ON credential.credential_transaction U
 
 --index section starts----
 CREATE INDEX IF NOT EXISTS cred_txn_status_code ON credential.credential_transaction USING btree (status_code);
+
+ALTER TABLE credential_transaction SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 500, autovacuum_analyze_scale_factor = 0.03, autovacuum_analyze_threshold = 500);

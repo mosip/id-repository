@@ -48,3 +48,6 @@ CREATE INDEX IF NOT EXISTS idx_cred_status_cr_dtimes ON idrepo.credential_reques
 CREATE INDEX idx_crs_hash_not_deleted ON idrepo.credential_request_status (individual_id_hash) WHERE is_deleted = false;
 
 CREATE INDEX IF NOT EXISTS cred_tran_indidhash ON idrepo.credential_request_status USING btree (individual_id_hash);
+ALTER TABLE credential_request_status SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 1000, autovacuum_analyze_scale_factor = 0.03, autovacuum_analyze_threshold = 1000);
+
+-- END PERFORMANCE OPTIMIZATION INDEXES
