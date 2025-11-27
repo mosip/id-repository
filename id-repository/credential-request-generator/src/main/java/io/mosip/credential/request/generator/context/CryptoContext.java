@@ -19,4 +19,7 @@ public class CryptoContext {
     public static boolean isSkipDecryption() {
         return skipDecryption.get();
     }
+    public static void clearSkipDecryption() {
+        skipDecryption.remove();
+    }
 }
