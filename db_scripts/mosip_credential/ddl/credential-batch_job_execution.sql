@@ -18,5 +18,6 @@ WITH (
     OIDS = FALSE
 );
 
--- PERFORMANCE OPTIMIZATION INDEXES
+-- autovacuum tuning section starts --
 ALTER TABLE batch_job_execution SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 1000, autovacuum_analyze_scale_factor = 0.03, autovacuum_analyze_threshold = 500);
+-- autovacuum tuning section ends --
