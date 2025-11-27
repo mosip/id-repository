@@ -78,3 +78,4 @@ CREATE INDEX IF NOT EXISTS cred_txn_status_code ON credential.credential_transac
 
 -- autovacuum tuning section starts --
 ALTER TABLE credential_transaction SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 500, autovacuum_analyze_scale_factor = 0.03, autovacuum_analyze_threshold = 500);
+-- autovacuum tuning section ends --
