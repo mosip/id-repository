@@ -316,6 +316,7 @@ public class IdRepoController {
 																@ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
 			String type = validator.validateType(request.getRequest().getType());
+			mosipLogger.error("=========Received type: {}", type);
 			Map<String, String> extractionFormats = new HashMap<>();
 			if(Objects.nonNull(request.getRequest().getFingerExtractionFormat())) {
 				extractionFormats.put(FINGER_EXTRACTION_FORMAT, request.getRequest().getFingerExtractionFormat());
