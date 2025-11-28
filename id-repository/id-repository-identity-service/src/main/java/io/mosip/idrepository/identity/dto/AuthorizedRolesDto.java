@@ -54,4 +54,6 @@ public class AuthorizedRolesDto {
 	private List<String> getdraftUIN;
 
 	private List<String> gethandleuin;
+
+	private List<String> postidvididv2;
 }
