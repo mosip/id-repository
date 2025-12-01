@@ -53,7 +53,7 @@ public class VidPolicyProviderTest {
 	private VidPolicyProvider policyProvider;
 
 	@Before
-	public void setup() throws IOException {
+	public void setup() {
 	}
 
 	@SuppressWarnings("unchecked")

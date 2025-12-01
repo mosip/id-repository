@@ -173,30 +173,21 @@ public class IdRepoWebSubHelperTest {
 
 	@Test
 	public void testSendEventToIDA_nonDummyPartner() {
-		// Prepare model
 		EventModel model = new EventModel();
 		model.setTopic("partner123//someTopic");
 
-		// Mock dummyCheck
 		Mockito.when(dummyCheck.isDummyOLVPartner("partner123")).thenReturn(false);
 		ReflectionTestUtils.setField(idRepoWebSubHelper, "dummyCheck", dummyCheck);
 
-		// Spy IdRepoWebSubHelper to verify internal method calls
 		IdRepoWebSubHelper spyHelper = Mockito.spy(idRepoWebSubHelper);
 
-		// Inject spy to replace main instance
 		ReflectionTestUtils.setField(spyHelper, "publisher", publisher);
 
-		// Invoke method
 		spyHelper.sendEventToIDA(model, null);
 
-		// verify partner check
 		Mockito.verify(dummyCheck).isDummyOLVPartner("partner123");
 
-		// verify topic registration
 		Mockito.verify(spyHelper).tryRegisteringTopic("partner123//someTopic");
-
-		// verify publish event
 		Mockito.verify(spyHelper).publishEvent(model);
 	}
 
@@ -227,14 +218,10 @@ public class IdRepoWebSubHelperTest {
 		ReflectionTestUtils.setField(idRepoWebSubHelper, "dummyCheck", dummyCheck);
 
 		IdRepoWebSubHelper spyHelper = Mockito.spy(idRepoWebSubHelper);
-
-		// Force exception
 		Mockito.doThrow(new RuntimeException("Already registered"))
 				.when(spyHelper).tryRegisteringTopic("partnerABC//sample");
 
 		spyHelper.sendEventToIDA(model, null);
-
-		// publishEvent must still be called
 		Mockito.verify(spyHelper).publishEvent(model);
 	}
 

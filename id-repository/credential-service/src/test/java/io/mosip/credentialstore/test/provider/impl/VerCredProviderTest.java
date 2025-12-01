@@ -101,14 +101,12 @@ public class VerCredProviderTest {
 		ReflectionTestUtils.setField(verCredProvider, "proofPurpose", "test");
 		ReflectionTestUtils.setField(verCredProvider, "verificationMethod", "test");
 		ReflectionTestUtils.setField(env, "dateTimePattern", "yyyy-MM-ddHH:mm:ss");
-
 		ReflectionTestUtils.setField(verCredProvider, "vcContextJsonld", vcContextJsonld);
 		ReflectionTestUtils.setField(verCredProvider, "confDocumentLoader", new ConfigurableDocumentLoader());
 		ReflectionTestUtils.setField(verCredProvider, "verCredTypes", List.of("TestType"));
 		ReflectionTestUtils.setField(verCredProvider, "proofType", "Ed25519Signature2018");
 		ReflectionTestUtils.setField(verCredProvider, "proofPurpose", "assertionMethod");
 		ReflectionTestUtils.setField(verCredProvider, "verificationMethod", "did:example:123#key-1");
-
 	}
 
 	@Test
