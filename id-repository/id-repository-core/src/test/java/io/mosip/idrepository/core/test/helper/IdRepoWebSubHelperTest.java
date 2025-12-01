@@ -1,13 +1,13 @@
 package io.mosip.idrepository.core.test.helper;
 
 import static org.junit.Assert.assertEquals;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
+import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -32,6 +32,8 @@ import io.mosip.kernel.websub.api.exception.WebSubClientException;
 import io.mosip.kernel.websub.api.model.SubscriptionChangeRequest;
 import io.mosip.kernel.websub.api.model.SubscriptionChangeResponse;
 import io.mosip.kernel.websub.api.model.UnsubscriptionRequest;
+import java.util.function.Consumer;
+import io.mosip.kernel.core.logger.spi.Logger;
 
 /**
  * 
@@ -55,7 +57,13 @@ public class IdRepoWebSubHelperTest {
 	private PublisherClient<String, Object, HttpHeaders> publisher;
 
 	@Mock
+	private DummyPartnerCheckUtil dummyCheck;
+
+	@Mock
 	protected SubscriptionClient<SubscriptionChangeRequest, UnsubscriptionRequest, SubscriptionChangeResponse> subscribe;
+
+	@Mock
+	private Logger mosipLogger;
 
 	@Test
 	public void testTryRegisterCache() {
@@ -161,6 +169,73 @@ public class IdRepoWebSubHelperTest {
 	@Test
 	public void subscribeForVidEventTest() {
 		idRepoWebSubHelper.subscribeForVidEvent();
+	}
+
+	@Test
+	public void testSendEventToIDA_nonDummyPartner() {
+		// Prepare model
+		EventModel model = new EventModel();
+		model.setTopic("partner123//someTopic");
+
+		// Mock dummyCheck
+		Mockito.when(dummyCheck.isDummyOLVPartner("partner123")).thenReturn(false);
+		ReflectionTestUtils.setField(idRepoWebSubHelper, "dummyCheck", dummyCheck);
+
+		// Spy IdRepoWebSubHelper to verify internal method calls
+		IdRepoWebSubHelper spyHelper = Mockito.spy(idRepoWebSubHelper);
+
+		// Inject spy to replace main instance
+		ReflectionTestUtils.setField(spyHelper, "publisher", publisher);
+
+		// Invoke method
+		spyHelper.sendEventToIDA(model, null);
+
+		// verify partner check
+		Mockito.verify(dummyCheck).isDummyOLVPartner("partner123");
+
+		// verify topic registration
+		Mockito.verify(spyHelper).tryRegisteringTopic("partner123//someTopic");
+
+		// verify publish event
+		Mockito.verify(spyHelper).publishEvent(model);
+	}
+
+	@Test
+	public void testSendEventToIDA_consumerCalled() {
+		EventModel model = new EventModel();
+		model.setTopic("partner123//topic");
+
+		Consumer<EventModel> consumer = Mockito.mock(Consumer.class);
+
+		Mockito.when(dummyCheck.isDummyOLVPartner("partner123")).thenReturn(false);
+		ReflectionTestUtils.setField(idRepoWebSubHelper, "dummyCheck", dummyCheck);
+
+		IdRepoWebSubHelper spyHelper = Mockito.spy(idRepoWebSubHelper);
+		ReflectionTestUtils.setField(spyHelper, "publisher", publisher);
+
+		spyHelper.sendEventToIDA(model, consumer);
+
+		Mockito.verify(consumer, Mockito.times(1)).accept(model);
+	}
+
+	@Test
+	public void testSendEventToIDA_registrationExceptionIgnored() {
+		EventModel model = new EventModel();
+		model.setTopic("partnerABC//sample");
+
+		Mockito.when(dummyCheck.isDummyOLVPartner("partnerABC")).thenReturn(false);
+		ReflectionTestUtils.setField(idRepoWebSubHelper, "dummyCheck", dummyCheck);
+
+		IdRepoWebSubHelper spyHelper = Mockito.spy(idRepoWebSubHelper);
+
+		// Force exception
+		Mockito.doThrow(new RuntimeException("Already registered"))
+				.when(spyHelper).tryRegisteringTopic("partnerABC//sample");
+
+		spyHelper.sendEventToIDA(model, null);
+
+		// publishEvent must still be called
+		Mockito.verify(spyHelper).publishEvent(model);
 	}
 
 }

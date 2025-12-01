@@ -2,6 +2,7 @@ package io.mosip.idrepository.vid.test.provider;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -52,7 +53,7 @@ public class VidPolicyProviderTest {
 	private VidPolicyProvider policyProvider;
 
 	@Before
-	public void setup() {
+	public void setup() throws IOException {
 	}
 
 	@SuppressWarnings("unchecked")
@@ -74,5 +75,10 @@ public class VidPolicyProviderTest {
 		assertFalse(policyProvider.getPolicy("Temporary".toUpperCase()).getAutoRestoreAllowed());
 		assertTrue(policyProvider.getAllVidTypes()
 				.containsAll(Lists.newArrayList("Perpetual".toUpperCase(), "Temporary".toUpperCase())));
+	}
+
+	@Test
+	public void testGetPolicy_NullVidType() {
+		assertNull(policyProvider.getPolicy(null));
 	}
 }
