@@ -21,7 +21,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.context.WebApplicationContext;
-
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -197,6 +197,32 @@ public class DigitalSignatureUtilTest {
 		Mockito.when(objectMapper.readValue(signResponse, SignResponseDto.class))
 				.thenThrow(new JsonMappingException(""));
 		digitalSignatureUtil.signVerCred(test, "requestId");
+	}
+
+	@Test
+	public void testSign_ResponseObjectNull() throws Exception {
+		String emptyResponse = "{}";
+		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(emptyResponse);
+
+		Mockito.when(objectMapper.readValue(emptyResponse, SignResponseDto.class)).thenReturn(null);
+
+		assertThrows(SignatureException.class, () ->
+				digitalSignatureUtil.sign("data", "requestId")
+		);
+	}
+
+	@Test
+	public void testSignVerCred_ResponseObjectNull() throws Exception {
+		String emptyResponse = "{}";
+		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(emptyResponse);
+
+		Mockito.when(objectMapper.readValue(emptyResponse, SignResponseDto.class)).thenReturn(null);
+
+		assertThrows(SignatureException.class, () ->
+				digitalSignatureUtil.signVerCred("data", "requestId")
+		);
 	}
 
 }

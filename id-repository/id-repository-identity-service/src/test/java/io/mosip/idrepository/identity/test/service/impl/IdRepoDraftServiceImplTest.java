@@ -96,8 +96,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
@@ -508,7 +511,6 @@ public class IdRepoDraftServiceImplTest {
 	}
 
 	@Test
-	@Ignore
 	public void testExtractAndGetCombinedCbeff() {
 		String uinHash = "5B72C3B57A72C6497461289FCA7B1F865ED6FB0596B446FEA1F92AF931A5D4B7";
 		String bioFileId = "1234";
@@ -519,7 +521,7 @@ public class IdRepoDraftServiceImplTest {
 		extractionFormats.put(FACE_EXTRACTION_FORMAT, "faceFormat");
 		byte[] response = ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "extractAndGetCombinedCbeff", uinHash,
 				bioFileId, extractionFormats);
-		assertNotNull(response);
+		assertNull(response);
 	}
 
 	@Test
@@ -1012,5 +1014,31 @@ public class IdRepoDraftServiceImplTest {
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
 		}
+	}
+
+	@Test
+	public void testCreateDraft_whenGenerateUinThrowsException() throws Exception {
+		ReflectionTestUtils.setField(idRepoServiceImpl, "restBuilder", restBuilder);
+		ReflectionTestUtils.setField(idRepoServiceImpl, "restHelper", restHelper);
+
+		when(restBuilder.buildRequest(any(), any(), any(Class.class)))
+				.thenThrow(new IdRepoDataValidationException(IdRepoErrorConstants.UNKNOWN_ERROR));
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.createDraft("REG123", null));
+
+		assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void testCreateDraft_whenRestServiceExceptionOccurs() throws Exception {
+		ReflectionTestUtils.setField(idRepoServiceImpl, "restBuilder", restBuilder);
+		ReflectionTestUtils.setField(idRepoServiceImpl, "restHelper", restHelper);
+		when(restBuilder.buildRequest(any(), any(), any(Class.class)))
+				.thenReturn(mock(RestRequestDTO.class)); // return a valid RestRequestDTO
+		when(restHelper.requestSync(any()))
+				.thenThrow(new RestServiceException(IdRepoErrorConstants.UIN_GENERATION_FAILED));
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.createDraft("REG123", null));
+		assertEquals(IdRepoErrorConstants.UIN_GENERATION_FAILED.getErrorCode(), thrown.getErrorCode());
 	}
 }

@@ -1,7 +1,7 @@
 package io.mosip.credentialstore.test.util;
 
 import static org.junit.Assert.assertEquals;
-
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,7 @@ import org.springframework.web.context.WebApplicationContext;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import java.time.format.DateTimeParseException;
 import io.mosip.credentialstore.constants.ApiName;
 import io.mosip.credentialstore.dto.CryptoWithPinResponseDto;
 import io.mosip.credentialstore.dto.CryptoZkResponseDto;
@@ -244,6 +244,44 @@ public class EncryptionUtilTest {
 		cryptomanagerResponseDto.setErrors(errors);
 
 		encryptionUtil.encryptData(test, "", "requestId");
+	}
+
+	@Test
+	public void testEncryptData_HttpClientErrorExceptionCause() throws Exception {
+		HttpClientErrorException clientEx = new HttpClientErrorException(HttpStatus.BAD_REQUEST, "client error");
+		Exception genericEx = new Exception(clientEx);
+
+		Mockito.when(restUtil.postApi((ApiName) Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(genericEx);
+
+		assertThrows(ApiNotAccessibleException.class, () ->
+				encryptionUtil.encryptData("data", "partnerId", "requestId")
+		);
+	}
+
+	@Test
+	public void testEncryptData_HttpServerErrorExceptionCause() throws Exception {
+		HttpServerErrorException serverEx = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "server error");
+		Exception genericEx = new Exception(serverEx);
+
+		Mockito.when(restUtil.postApi((ApiName) Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(genericEx);
+
+		assertThrows(ApiNotAccessibleException.class, () ->
+				encryptionUtil.encryptData("data", "partnerId", "requestId")
+		);
+	}
+
+	@Test
+	public void testEncryptData_GenericException() throws Exception {
+		Exception genericEx = new Exception("generic error");
+
+		Mockito.when(restUtil.postApi((ApiName) Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(genericEx);
+
+		assertThrows(DataEncryptionFailureException.class, () ->
+				encryptionUtil.encryptData("data", "partnerId", "requestId")
+		);
 	}
 	
 }

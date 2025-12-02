@@ -3,7 +3,6 @@ package io.mosip.credential.request.generator.dao;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.repositary.CredentialRepositary;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -15,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -27,7 +27,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-@Ignore    // TODO ignored temporarily because it is causing build failure on GitHub.
 public class CredentialDaoTest {
 
     @Mock
@@ -100,13 +99,12 @@ public class CredentialDaoTest {
         credentialEntity.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
         credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
         credentialList.add(credentialEntity);
-        Mockito.when(encryptedCredentialDao.getCredentialByStatus(Mockito.anyString(), Mockito.anyInt()))
-                .thenReturn(credentialList);
         credentialDao.getCredentials("1234");
     }
 
     @Test
     public void testGetCredentialsForReprocess(){
+        ReflectionTestUtils.setField(credentialDao, "reprocessStatusCodes", "ACTIVE,INACTIVE,REGENERATED");
         List<CredentialEntity> credentialList=new ArrayList<CredentialEntity>();
         CredentialEntity credentialEntity = new CredentialEntity();
         credentialEntity.setRequestId("1234");
@@ -115,7 +113,6 @@ public class CredentialDaoTest {
         credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
         credentialList.add(credentialEntity);
         Page<CredentialEntity> page = new PageImpl<>(credentialList);
-        Mockito.when(credentialRepo.findCredentialByStatusCodes(Mockito.any(),Mockito.any())).thenReturn(page);
         credentialDao.getCredentialsForReprocess("1234");
     }
 }
