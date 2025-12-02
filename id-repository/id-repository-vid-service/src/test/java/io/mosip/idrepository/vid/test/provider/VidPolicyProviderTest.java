@@ -2,7 +2,6 @@ package io.mosip.idrepository.vid.test.provider;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
