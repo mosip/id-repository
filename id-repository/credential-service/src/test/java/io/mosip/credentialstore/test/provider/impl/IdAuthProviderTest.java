@@ -228,7 +228,7 @@ public class IdAuthProviderTest {
 	}
 
 	@Test(expected = Exception.class)
-	public void tGetFormattedCredentialData_ShouldThrow_GenericException()
+	public void testGetFormattedCredentialData_ShouldThrowGenericException()
 			throws CredentialFormatterException, DataEncryptionFailureException, ApiNotAccessibleException {
 		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
 		Map<String, Object> additionalData = new HashMap<>();
