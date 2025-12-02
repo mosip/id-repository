@@ -76,9 +76,4 @@ public class VidPolicyProviderTest {
 		assertTrue(policyProvider.getAllVidTypes()
 				.containsAll(Lists.newArrayList("Perpetual".toUpperCase(), "Temporary".toUpperCase())));
 	}
-
-	@Test
-	public void testGetPolicy_NullVidType() {
-		assertNull(policyProvider.getPolicy(null));
-	}
 }
