@@ -22,6 +22,7 @@ DROP INDEX IF EXISTS idrepo.idx_cred_hash_partner_deleted;
 DROP INDEX IF EXISTS idrepo.idx_cred_expiry_ts;
 DROP INDEX IF EXISTS idrepo.idx_cred_status_cr_dtimes;
 DROP INDEX IF EXISTS idrepo.idx_crs_hash_not_deleted;
+DROP INDEX IF EXISTS idx_uin_status;
 
 ALTER TABLE credential_request_status RESET (autovacuum_vacuum_scale_factor, autovacuum_vacuum_threshold, autovacuum_analyze_scale_factor, autovacuum_analyze_threshold);
 ALTER TABLE channel_info RESET (autovacuum_vacuum_scale_factor, autovacuum_vacuum_threshold, autovacuum_analyze_scale_factor, autovacuum_analyze_threshold);
