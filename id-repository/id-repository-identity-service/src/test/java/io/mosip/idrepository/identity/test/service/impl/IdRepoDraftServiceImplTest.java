@@ -1017,7 +1017,7 @@ public class IdRepoDraftServiceImplTest {
 	}
 
 	@Test
-	public void testCreateDraft_whenGenerateUinThrowsException() throws Exception {
+	public void testCreateDraftWhenGenerateUinThrowsException() throws Exception {
 		ReflectionTestUtils.setField(idRepoServiceImpl, "restBuilder", restBuilder);
 		ReflectionTestUtils.setField(idRepoServiceImpl, "restHelper", restHelper);
 
@@ -1030,7 +1030,7 @@ public class IdRepoDraftServiceImplTest {
 	}
 
 	@Test
-	public void testCreateDraft_whenRestServiceExceptionOccurs() throws Exception {
+	public void testCreateDraftWhenRestServiceExceptionOccurs() throws Exception {
 		ReflectionTestUtils.setField(idRepoServiceImpl, "restBuilder", restBuilder);
 		ReflectionTestUtils.setField(idRepoServiceImpl, "restHelper", restHelper);
 		when(restBuilder.buildRequest(any(), any(), any(Class.class)))

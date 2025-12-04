@@ -76,7 +76,7 @@ public class UtilitiesTest {
 	}
 
 	@Test(expected = VerCredException.class)
-	public void testGetVCContextJson_JsonLdError() {
+	public void testGetVCContextJsonJsonLdError() {
 		when(restTemplate.getForObject(Mockito.anyString(), Mockito.eq(String.class)))
 				.thenReturn("invalid json");
 		utilities.getVCContextJson("dummyURL", "dummyURI");

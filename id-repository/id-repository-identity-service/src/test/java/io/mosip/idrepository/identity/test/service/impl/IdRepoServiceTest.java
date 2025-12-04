@@ -2711,7 +2711,7 @@ public class IdRepoServiceTest {
 	}
 
 	@Test
-	public void testAddIdentityWithBiometricDocuments_Activated() throws Exception {
+	public void testAddIdentityWithBiometricDocumentsActivated() throws Exception {
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
 		when(connection.putObject(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any())).thenReturn(true);
@@ -2750,7 +2750,7 @@ public class IdRepoServiceTest {
 	}
 
 	@Test
-	public void testUpdateIdentity_ReplacesConfiguredFieldsSuccessfully() throws IdRepoAppException, IOException {
+	public void testUpdateIdentityReplacesConfiguredFieldsSuccessfully() throws IdRepoAppException, IOException {
 		ReflectionTestUtils.setField(service, "fieldsToReplaceOnUpdate",
 				Arrays.asList("identity.firstName"));
 		Object obj = mapper.readValue(
@@ -2795,7 +2795,7 @@ public class IdRepoServiceTest {
 	}
 
 	@Test
-	public void testUpdateIdentity_ShouldTriggerUpdateJsonObject_WhenUnconfiguredFieldsDiffer() throws Exception {
+	public void testUpdateIdentityShouldTriggerUpdateJsonObjectWhenUnconfiguredFieldsDiffer() throws Exception {
 
 		ReflectionTestUtils.setField(service, "bioAttributes",
 				Lists.newArrayList("individualBiometrics", "parentOrGuardianBio"));

@@ -142,7 +142,7 @@ public class VIDUtilTest {
     }
 
     @Test
-    public void testGetVIDData_HttpClientErrorException() throws Exception {
+    public void testGetVIDDataShouldThrowHttpClientErrorException() throws Exception {
         HttpClientErrorException clientException = new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Client error");
         Exception wrappedException = new Exception(clientException);
 
@@ -155,7 +155,7 @@ public class VIDUtilTest {
     }
 
     @Test
-    public void testGetVIDData_HttpServerErrorException() throws Exception {
+    public void testGetVIDDataShouldThrowHttpServerErrorException() throws Exception {
         HttpServerErrorException serverException = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error");
         Exception wrappedException = new Exception(serverException);
 
@@ -168,7 +168,7 @@ public class VIDUtilTest {
     }
 
     @Test
-    public void testGetVIDData_GenericException() throws Exception {
+    public void testGetVIDDataShouldThrowGenericException() throws Exception {
         Exception genericException = new Exception("Unknown exception");
 
         Mockito.when(restUtil.getApi(Mockito.any(), Mockito.anyList(), Mockito.any(), Mockito.any(), Mockito.any()))
@@ -180,7 +180,7 @@ public class VIDUtilTest {
     }
 
     @Test
-    public void testGenerateVID_GenericException() throws Exception {
+    public void testGenerateVIDShouldThrowGenericException() throws Exception {
         Exception genericException = new Exception("Unknown exception");
 
         Mockito.when(restUtil.postApi((ApiName) Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
@@ -192,7 +192,7 @@ public class VIDUtilTest {
     }
 
     @Test
-    public void testGetVIDData_HttpClientErrorCause() throws Exception {
+    public void testGetVIDDataShouldThrowHttpClientErrorCause() throws Exception {
         HttpClientErrorException clientEx = new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Client error");
         Exception wrappedEx = new Exception(clientEx);  // wrap to set cause
 
@@ -205,7 +205,7 @@ public class VIDUtilTest {
     }
 
     @Test
-    public void testGetVIDData_HttpServerErrorCause() throws Exception {
+    public void testGetVIDDataShouldThrowHttpServerErrorCause() throws Exception {
         HttpServerErrorException serverEx = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error");
         Exception wrappedEx = new Exception(serverEx);
 
@@ -218,7 +218,7 @@ public class VIDUtilTest {
     }
 
     @Test
-    public void testGenerateVID_HttpClientErrorCause() throws Exception {
+    public void testGenerateVIDShouldThrowHttpClientErrorCause() throws Exception {
         HttpClientErrorException clientEx = new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Client error");
         Exception wrappedEx = new Exception(clientEx);
 
@@ -231,7 +231,7 @@ public class VIDUtilTest {
     }
 
     @Test
-    public void testGenerateVID_HttpServerErrorCause() throws Exception {
+    public void testGenerateVIDShouldThrowHttpServerErrorCause() throws Exception {
         HttpServerErrorException serverEx = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error");
         Exception wrappedEx = new Exception(serverEx);
 

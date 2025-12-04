@@ -106,7 +106,7 @@ public class AuditHelperTest {
 	}
 
 	@Test
-	public void testAudit_withGenericException() throws IdRepoDataValidationException {
+	public void testAuditShouldThrowGenericException() throws IdRepoDataValidationException {
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenThrow(new RuntimeException());
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",

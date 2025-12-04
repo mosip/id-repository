@@ -56,7 +56,7 @@ public class WebsubUtilTest {
 	}
 
 	@Test
-	public void testRegisterTopic_WebSubClientException() throws WebSubClientException {
+	public void testRegisterTopicShouldThrowWebSubClientException() throws WebSubClientException {
 		String topic = "topic123";
 		String requestId = "req002";
 		ReflectionTestUtils.setField(webSubUtil, "partnerhuburl", "http://dummy-url");

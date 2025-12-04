@@ -200,7 +200,7 @@ public class DigitalSignatureUtilTest {
 	}
 
 	@Test
-	public void testSign_ResponseObjectNull() throws Exception {
+	public void testSignResponseObjectNull() throws Exception {
 		String emptyResponse = "{}";
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(emptyResponse);
@@ -213,7 +213,7 @@ public class DigitalSignatureUtilTest {
 	}
 
 	@Test
-	public void testSignVerCred_ResponseObjectNull() throws Exception {
+	public void testSignVerCredResponseObjectNull() throws Exception {
 		String emptyResponse = "{}";
 		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(emptyResponse);

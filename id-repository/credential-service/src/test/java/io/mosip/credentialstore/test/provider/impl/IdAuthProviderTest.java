@@ -228,7 +228,7 @@ public class IdAuthProviderTest {
 	}
 
 	@Test(expected = Exception.class)
-	public void testGetFormattedCredentialData_ShouldThrowGenericException()
+	public void testGetFormattedCredentialDataShouldThrowGenericException()
 			throws CredentialFormatterException, DataEncryptionFailureException, ApiNotAccessibleException {
 		CredentialServiceRequestDto credentialServiceRequestDto = new CredentialServiceRequestDto();
 		Map<String, Object> additionalData = new HashMap<>();
@@ -263,7 +263,7 @@ public class IdAuthProviderTest {
 	}
 
 	@Test
-	public void testFormatCredentialData_WithoutEncryptionError() throws Exception {
+	public void testFormatCredentialDataWithoutEncryptionError() throws Exception {
 		sharableAttributes = new HashMap<>();
 		AllowedKycDto kyc1 = new AllowedKycDto();
 		kyc1.setAttributeName("fullName");

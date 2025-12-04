@@ -247,7 +247,7 @@ public class EncryptionUtilTest {
 	}
 
 	@Test
-	public void testEncryptData_HttpClientErrorExceptionCause() throws Exception {
+	public void testEncryptDataShouldThrowHttpClientErrorExceptionCause() throws Exception {
 		HttpClientErrorException clientEx = new HttpClientErrorException(HttpStatus.BAD_REQUEST, "client error");
 		Exception genericEx = new Exception(clientEx);
 
@@ -260,7 +260,7 @@ public class EncryptionUtilTest {
 	}
 
 	@Test
-	public void testEncryptData_HttpServerErrorExceptionCause() throws Exception {
+	public void testEncryptDataShouldThrowHttpServerErrorExceptionCause() throws Exception {
 		HttpServerErrorException serverEx = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "server error");
 		Exception genericEx = new Exception(serverEx);
 
@@ -273,7 +273,7 @@ public class EncryptionUtilTest {
 	}
 
 	@Test
-	public void testEncryptData_GenericException() throws Exception {
+	public void testEncryptDataShouldThrowGenericException() throws Exception {
 		Exception genericEx = new Exception("generic error");
 
 		Mockito.when(restUtil.postApi((ApiName) Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),

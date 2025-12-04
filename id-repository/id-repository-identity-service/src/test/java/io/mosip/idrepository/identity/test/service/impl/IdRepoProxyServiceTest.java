@@ -280,7 +280,7 @@ public class IdRepoProxyServiceTest {
 	}
 
 	@Test
-	public void testRetrieveIdentity_HandleType() throws IdRepoAppException, IOException {
+	public void testRetrieveIdentityHandleType() throws IdRepoAppException, IOException {
 
 		Uin uinObj = new Uin();
 		uinObj.setUin("1234");
@@ -314,7 +314,7 @@ public class IdRepoProxyServiceTest {
 	}
 
 	@Test
-	public void testRetrieveIdentity_HandleType_DataAccessException() throws IdRepoAppException {
+	public void testRetrieveIdentityHandleTypeShouldThrowDataAccessException() throws IdRepoAppException {
 		String id = "handleId";
 		String type = "BIO";
 		Map<String, String> extractionFormats = new HashMap<>();
@@ -334,7 +334,7 @@ public class IdRepoProxyServiceTest {
 	}
 
 	@Test
-	public void testRetrieveIdentity_HandleType_IdRepoAppException() throws IdRepoAppException {
+	public void testRetrieveIdentityHandleTypeShouldThrowIdRepoAppException() throws IdRepoAppException {
 		String id = "handleId";
 		String type = "BIO";
 		Map<String, String> extractionFormats = new HashMap<>();

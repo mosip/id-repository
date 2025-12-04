@@ -81,7 +81,7 @@ public class CredentialIssueRequestHelperTest {
 
 
     @Test(expected = IllegalArgumentException.class)
-    public void testGetCredentialIssueRequestDto_InvalidBase64() throws JsonProcessingException {
+    public void testGetCredentialIssueRequestDtoInvalidBase64() throws JsonProcessingException {
         String invalidBase64 = "invalidBase64String[!@#";
         when(credentialEntity.getRequest()).thenReturn(invalidBase64);
         credentialIssueRequestHelper.getCredentialIssueRequestDto(credentialEntity);

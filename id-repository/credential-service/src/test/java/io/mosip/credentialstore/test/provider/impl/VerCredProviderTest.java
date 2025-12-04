@@ -144,7 +144,7 @@ public class VerCredProviderTest {
 	}
 
 	@Test
-	public void testBestTwoFingerBranch_ExceptionThrown() throws ApiNotAccessibleException, SignatureException {
+	public void testBestTwoFingerBranchExceptionThrown() throws ApiNotAccessibleException, SignatureException {
 
 		Mockito.when(vcContextJsonld.get("context")).thenReturn("dummy");
 		Mockito.when(utilities.generateId()).thenReturn("CRED-001");
@@ -174,7 +174,7 @@ public class VerCredProviderTest {
 	}
 
 	@Test
-	public void testNonStringValueBranch_ThrowsFormatterException() throws Exception {
+	public void testNonStringValueBranchThrowsFormatterException() throws Exception {
 
 		Mockito.when(vcContextJsonld.get("context")).thenReturn("dummy");
 		Mockito.when(utilities.generateId()).thenReturn("CRED-001");
