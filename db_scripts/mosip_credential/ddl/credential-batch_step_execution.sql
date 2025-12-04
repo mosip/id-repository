@@ -28,4 +28,4 @@ WITH (
 );
 
 --PERFORMANCE OPTIMIZATION INDEXES
-CREATE INDEX IF NOT EXISTS idx_step_exec_jobid_stepname ON credential.batch_step_execution USING btree (job_execution_id, step_name);
+CREATE INDEX idx_step_exec_jobid_stepname ON credential.batch_step_execution USING btree (job_execution_id, step_name);

@@ -78,4 +78,3 @@ COMMENT ON COLUMN idrepo.uin.is_deleted IS 'IS_Deleted : Flag to mark whether th
 -- ddl-end --
 COMMENT ON COLUMN idrepo.uin.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
 -- ddl-end --
-
