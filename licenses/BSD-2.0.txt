@@ -1,6 +1,6 @@
 BSD 2-Clause "Simplified" License
 
-Copyright © 2025 <COPYRIGHT HOLDER>
+Copyright © 1997-present PostgreSQL Global Development Group
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
