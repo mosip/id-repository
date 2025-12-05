@@ -65,7 +65,6 @@ public class CredentialIssueRequestHelperTest {
         expected.setEncrypt(true);
         expected.setEncryptionKey("testKey");
         expected.setSharableAttributes(Collections.singletonList("testAttributes"));
-        expected.setAdditionalData(Map.of("AB", 233));
 
         CredentialServiceRequestDto actual = credentialIssueRequestHelper.getCredentialServiceRequestDto(credentialIssueRequestDto, requestId);
         assertEquals(expected.getId(), actual.getId());

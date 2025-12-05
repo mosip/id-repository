@@ -287,8 +287,6 @@ public class IdRepoProxyServiceTest {
 		uinObj.setUinRefId("1234");
 		uinObj.setStatusCode(ACTIVATED);
 		List<UinBiometric> uinBiometricList = new ArrayList<>();
-		UinBiometric uinBiometric = new UinBiometric();
-		uinBiometric.setBioFileId("ABC");
 		uinObj.setBiometrics(uinBiometricList);
 		Object obj2 = mapper.readValue(
 				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}}"
@@ -304,8 +302,6 @@ public class IdRepoProxyServiceTest {
 		handle.setUinHash("hashedUin");
 		when(handleRepo.findByHandleHash(handleHash)).thenReturn(handle);
 
-		Uin uin = new Uin();
-		uin.setUin("12345");
 		when(service.retrieveIdentity(anyString(), any(), any(), any())).thenReturn(uinObj);
 		IdResponseDTO result = proxyService.retrieveIdentity(id, IdType.HANDLE, type, extractionFormats);
 		assertNotNull(result);
