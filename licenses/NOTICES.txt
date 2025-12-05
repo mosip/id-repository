@@ -1,0 +1,219 @@
+================================================================================
+COPYRIGHT NOTICES
+================================================================================
+
+This software incorporates components from the projects listed below. The
+original copyright notices have been preserved in accordance with the terms
+of their respective licenses:
+
+
+─────────────────────────────────────────────────────────────────────────────
+APACHE LICENSE 2.0 COMPONENTS
+─────────────────────────────────────────────────────────────────────────────
+
+Spring Framework & Spring Boot
+  Copyright © 2002-2024 Pivotal Software, Inc.
+  Copyright © 2012-2024 VMware, Inc. or its affiliates.
+  Licensed under the Apache License, Version 2.0
+  
+  Apache License 2.0 Summary: You may reproduce and distribute copies, create
+  derivative works, and use the software for any purpose. You must give
+  appropriate credit, provide a copy of the license, and indicate if changes
+  were made. You must retain copyright, patent, trademark, and attribution
+  notices.
+
+Jackson Libraries (FasterXML)
+  Copyright © 2007-2024 Tatu Saloranta and other Jackson contributors
+  Licensed under the Apache License, Version 2.0
+
+Apache Maven Plugins
+  Copyright © 2001-2024 The Apache Software Foundation
+  Licensed under the Apache License, Version 2.0
+  This product includes software developed at The Apache Software Foundation
+  (https://www.apache.org/)
+
+Apache Commons Lang3
+  Copyright © 2001-2025 The Apache Software Foundation
+  Licensed under the Apache License, Version 2.0
+  This product includes software developed at The Apache Software Foundation
+  (https://www.apache.org/)
+
+Apache POI
+  Copyright © 2003-2024 The Apache Software Foundation
+  Licensed under the Apache License, Version 2.0
+
+Apache Log4j
+  Copyright © 1999-2024 The Apache Software Foundation
+  Licensed under the Apache License, Version 2.0
+
+SpringDoc OpenAPI
+  Copyright © 2019-2023 springdoc.org
+  Copyright © 2019-2023 the original author or authors
+  Licensed under the Apache License, Version 2.0
+
+Google Gson
+  Copyright © 2008-2024 Google Inc.
+  Licensed under the Apache License, Version 2.0
+
+JSON Simple
+  Copyright © 2006 Yidong Fang
+  Licensed under the Apache License, Version 2.0
+
+Git Commit ID Maven Plugin
+  Copyright © 2010-2024 Konrad Malawski and contributors
+  Licensed under the Apache License, Version 2.0
+
+ModelMapper
+  Copyright © 2011-2024 ModelMapper contributors
+  Licensed under the Apache License, Version 2.0
+
+Powermock
+  Copyright © 2007-2024 Powermock contributors
+  Licensed under the Apache License, Version 2.0
+
+Sonatype Central Publishing Maven Plugin
+  Copyright © 2022-present Sonatype, Inc.
+  Licensed under the Apache License, Version 2.0
+
+Hibernate Validator
+  Copyright © 2009-2024 Red Hat, Inc. and individual contributors
+  Licensed under the Apache License, Version 2.0
+
+Micrometer Application Metrics
+  Copyright © 2017-2024 VMware, Inc.
+  Licensed under the Apache License, Version 2.0
+
+Project Reactor
+  Copyright © 2013-2024 VMware, Inc. or its affiliates.
+  Licensed under the Apache License, Version 2.0
+
+
+─────────────────────────────────────────────────────────────────────────────
+MIT LICENSE COMPONENTS
+─────────────────────────────────────────────────────────────────────────────
+
+SLF4J (Simple Logging Facade for Java)
+  Copyright © 2004-2024 QOS.ch
+  Licensed under the MIT License
+  
+  MIT License Summary: Permission is hereby granted, free of charge, to any
+  person obtaining a copy of this software and associated documentation files,
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software. The copyright notice and permission
+  notice shall be included in all copies or substantial portions.
+
+Mockito
+  Copyright © 2007-2024 Mockito contributors
+  Licensed under the MIT License
+
+Bouncy Castle Cryptography APIs
+  Copyright © 2000-2024 The Legion of The Bouncy Castle Inc.
+  Licensed under the MIT License
+  (https://www.bouncycastle.org/licence.html)
+
+Project Lombok
+  Copyright © 2009-2021 The Project Lombok Authors
+  Licensed under the MIT License
+
+
+─────────────────────────────────────────────────────────────────────────────
+BSD LICENSE COMPONENTS
+─────────────────────────────────────────────────────────────────────────────
+
+PostgreSQL JDBC Driver
+  Copyright © 1997-present PostgreSQL Global Development Group
+  Licensed under the BSD 2-Clause License
+  
+  BSD 2-Clause License Summary: Redistribution and use in source and binary
+  forms, with or without modification, are permitted provided that copyright
+  notice, conditions, and disclaimer are retained in all redistributions.
+
+
+─────────────────────────────────────────────────────────────────────────────
+ECLIPSE PUBLIC LICENSE COMPONENTS
+─────────────────────────────────────────────────────────────────────────────
+
+JUnit (JUnit Jupiter, JUnit Vintage Engine)
+  Copyright © 2015-2025 the original author or authors
+  Copyright © Eclipse Foundation, Inc.
+  Licensed under the Eclipse Public License 2.0
+  
+  EPL 2.0 Summary: You may use, reproduce, and distribute the software. You
+  must include copyright notices and make source code available when
+  distributing. The license provides patent grants from contributors.
+
+JaCoCo Java Code Coverage Library
+  Copyright © 2009, 2024 Mountainminds GmbH & Co. KG and Contributors
+  Licensed under the Eclipse Public License 2.0
+
+H2 Database Engine
+  Copyright © 2004-2019 H2 Group
+  Copyright © Thomas Mueller and contributors
+  Licensed under the Mozilla Public License 2.0 OR Eclipse Public License 1.0
+  (dual-licensed - you may choose either license)
+  
+  Note: H2 is dual-licensed. Under EPL-1.0 when used with EPL projects, or
+  MPL-2.0 for general use.
+
+
+─────────────────────────────────────────────────────────────────────────────
+GNU LESSER GENERAL PUBLIC LICENSE COMPONENTS
+─────────────────────────────────────────────────────────────────────────────
+
+SonarQube Maven Plugin (sonar-maven-plugin)
+  Copyright © 2011-2025 SonarSource SA
+  Licensed under the GNU Lesser General Public License v3.0
+  
+  LGPL-3.0 Summary: You may use, modify, and distribute the software. If you
+  distribute modified versions, you must make source code available under LGPL.
+  When used as a library, you may link with proprietary software. You must
+  preserve copyright notices and provide license information.
+
+
+─────────────────────────────────────────────────────────────────────────────
+MOZILLA PUBLIC LICENSE COMPONENT (Internal Project)
+─────────────────────────────────────────────────────────────────────────────
+
+MOSIP ID Repository
+  Copyright © 2018-2025 MOSIP
+  Licensed under the Mozilla Public License 2.0
+  
+  MPL 2.0 Summary: You may use, modify, and distribute the software. Source
+  code changes must be made available under MPL 2.0. Larger works may combine
+  MPL code with code under other licenses. Patent grants are provided.
+
+
+================================================================================
+FULL LICENSE TEXTS
+================================================================================
+
+Complete license texts are available at:
+
+• Apache License 2.0: https://www.apache.org/licenses/LICENSE-2.0.txt
+• MIT License: https://opensource.org/licenses/MIT
+• BSD 2-Clause License: https://opensource.org/licenses/BSD-2-Clause
+• Eclipse Public License 2.0: https://www.eclipse.org/legal/epl-2.0/
+• Eclipse Public License 1.0: https://www.eclipse.org/legal/epl-v10.html
+• Mozilla Public License 2.0: https://www.mozilla.org/en-US/MPL/2.0/
+• GNU LGPL 3.0: https://www.gnu.org/licenses/lgpl-3.0.html
+
+For specific versions and detailed information about each component, please
+refer to the package information in the main THIRD-PARTY-NOTICES section above.
+
+================================================================================
+SPDX LICENSE IDENTIFIERS
+================================================================================
+
+The licenses used in this project correspond to the following SPDX identifiers:
+• Apache-2.0
+• MIT
+• BSD-2-Clause
+• EPL-2.0
+• EPL-1.0
+• MPL-2.0
+• LGPL-3.0-only
+
+For more information about SPDX license identifiers, visit: https://spdx.org/licenses/
+
+================================================================================
