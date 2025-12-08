@@ -52,7 +52,7 @@ public class UtilitiesTest {
 		File credentialJson = new File(classLoader.getResource("CredentialType.json").getFile());
 		InputStream is = new FileInputStream(credentialJson);
 		credentialTypeJson = IOUtils.toString(is, "UTF-8");
-		when(restTemplate.getForObject(Mockito.anyString(), Mockito.any())).thenReturn(credentialTypeJson);
+		Mockito.when(restTemplate.getForObject(Mockito.anyString(), Mockito.any())).thenReturn(credentialTypeJson);
 	}
 
 	@Test

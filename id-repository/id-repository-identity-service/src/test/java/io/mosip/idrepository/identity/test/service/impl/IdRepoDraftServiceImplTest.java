@@ -253,7 +253,7 @@ public class IdRepoDraftServiceImplTest {
 		ReflectionTestUtils.setField(idRepoServiceImpl, "mapper", mapper);
 		when(uinHistoryRepo.existsByRegId(Mockito.any())).thenReturn(false);
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
-		when(securityManager.getSaltKeyForId(anyString())).thenReturn(1234);
+		when(securityManager.getSaltKeyForId(Mockito.anyString())).thenReturn(1234);
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("12345");
 		when(securityManager.hashwithSalt(Mockito.any(), Mockito.any()))
 				.thenReturn("5B72C3B57A72C6497461289FCA7B1F865ED6FB0596B446FEA1F92AF931A5D4B7");
