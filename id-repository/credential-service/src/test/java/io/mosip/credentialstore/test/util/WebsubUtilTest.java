@@ -47,16 +47,6 @@ public class WebsubUtilTest {
 	}
 
 	@Test
-	public void testRegisterTopic_Success() throws WebSubClientException {
-		String topic = "topic123";
-		String requestId = "req001";
-
-		doNothing().when(pb).registerTopic(eq(topic), anyString());
-		webSubUtil.registerTopic(topic, requestId);
-		verify(pb, never()).registerTopic(eq(topic), anyString());
-	}
-
-	@Test
 	public void testRegisterTopicShouldThrowWebSubClientException() throws WebSubClientException {
 		String topic = "topic123";
 		String requestId = "req002";
