@@ -798,14 +798,14 @@ public class IdRepoControllerTest {
 	}
 
 	@Test
-	public void testGetAuthTypeStatus_emptyId_throwsException() {
+	public void testGetAuthTypeStatusWithEmptyIdShouldThrowException() {
 		IdRepoAppException ex = assertThrows(IdRepoAppException.class,
 				() -> controller.getAuthTypeStatus("  ", "UIN"));
 		assertEquals("IDR-IDC-002", ex.getErrorCode());
 	}
 
 	@Test
-	public void testGetAuthTypeStatus_invalidIdType_throwsException() throws Exception {
+	public void testGetAuthTypeStatusWithInvalidIdTypeShouldThrowException() throws Exception {
 		when(validator.validateIdType("UIN")).thenThrow(new IdRepoAppException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER));
 		IdRepoAppException ex = assertThrows(IdRepoAppException.class,
 				() -> controller.getAuthTypeStatus("12345", "UIN"));
@@ -813,7 +813,7 @@ public class IdRepoControllerTest {
 	}
 
 	@Test
-	public void testGetAuthTypeStatus_validFlow_returnsResponse() throws Exception {
+	public void testGetAuthTypeStatusWithValidFlowReturnsResponse() throws Exception {
 		when(validator.validateIdType("UIN")).thenReturn(IdType.UIN);
 		when(authTypeStatusService.fetchAuthTypeStatus(anyString(), any())).thenReturn(List.of(new AuthtypeStatus()));
 
@@ -826,7 +826,7 @@ public class IdRepoControllerTest {
 	}
 
 	@Test
-	public void testGetAuthTypeStatus_fetchAuthTypeStatusThrowsException() throws Exception {
+	public void testGetAuthTypeStatusFetchAuthTypeStatusShouldThrowException() throws Exception {
 		when(validator.validateIdType("UIN")).thenReturn(IdType.UIN);
 		when(authTypeStatusService.fetchAuthTypeStatus(anyString(), any())).thenThrow(new RuntimeException("Service error"));
 
@@ -836,7 +836,7 @@ public class IdRepoControllerTest {
 	}
 
 	@Test
-	public void testUpdateAuthtypeStatus_validatorThrowsException() throws IdRepoAppException {
+	public void testUpdateAuthtypeStatusValidatorShouldThrowException() throws IdRepoAppException {
 		AuthTypeStatusRequestDto request = new AuthTypeStatusRequestDto();
 		request.setId("123");
 		request.setVersion("1");
@@ -855,7 +855,7 @@ public class IdRepoControllerTest {
 
 
 	@Test
-	public void testUpdateAuthtypeStatus_serviceThrowsException() throws IdRepoAppException {
+	public void testUpdateAuthtypeStatusShouldThrowServiceThrowsException() throws IdRepoAppException {
 		AuthTypeStatusRequestDto request = new AuthTypeStatusRequestDto();
 		request.setId("123");
 		request.setVersion("1");
@@ -875,7 +875,7 @@ public class IdRepoControllerTest {
 	}
 
 	@Test
-	public void testUpdateAuthtypeStatus_normalFlow() throws IdRepoAppException {
+	public void testUpdateAuthtypeStatusNormalFlow() throws IdRepoAppException {
 		AuthTypeStatusRequestDto request = new AuthTypeStatusRequestDto();
 		request.setId("123");
 		request.setVersion("1");

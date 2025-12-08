@@ -2576,7 +2576,7 @@ public class IdRepoServiceTest {
 	}
 
 	@Test
-	public void testAddIdentityWithBiometricDocuments_Activated() throws Exception {
+	public void testAddIdentityWithBiometricDocumentsActivated() throws Exception {
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
 		when(connection.putObject(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
 				Mockito.any())).thenReturn(true);
@@ -2615,7 +2615,7 @@ public class IdRepoServiceTest {
 	}
 
 	@Test
-	public void testUpdateIdentity_ReplacesConfiguredFieldsSuccessfully() throws IdRepoAppException, IOException {
+	public void testUpdateIdentityReplacesConfiguredFieldsSuccessfully() throws IdRepoAppException, IOException {
 		ReflectionTestUtils.setField(service, "fieldsToReplaceOnUpdate",
 				Arrays.asList("identity.firstName"));
 		Object obj = mapper.readValue(
@@ -2660,7 +2660,7 @@ public class IdRepoServiceTest {
 	}
 
 	@Test
-	public void testUpdateIdentity_ShouldTriggerUpdateJsonObject_WhenUnconfiguredFieldsDiffer() throws Exception {
+	public void testUpdateIdentityShouldTriggerUpdateJsonObjectWhenUnconfiguredFieldsDiffer() throws Exception {
 
 		ReflectionTestUtils.setField(service, "bioAttributes",
 				Lists.newArrayList("individualBiometrics", "parentOrGuardianBio"));
@@ -2725,4 +2725,29 @@ public class IdRepoServiceTest {
 		verify(identityUpdateTracker, atLeastOnce()).save(any());
 	}
 
+	@Test
+	public void testGetRemainingUpdateCountByAttributesFromConfig() throws IdRepoAppException {
+
+		when(identityUpdateTracker.findById(any())).thenReturn(Optional.empty());
+		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+
+		Map<String, Integer> policy = Map.of("fullName", 2, "address", 3);
+		ReflectionTestUtils.setField(IdentityUpdateTrackerPolicyProvider.class,"updateCount",policy);
+
+		List<String> attributes = List.of("fullName", "age", "address");
+
+		Map<String, Integer> response =
+				service.getRemainingUpdateCountByIndividualId("1234", IdType.UIN, attributes);
+
+		Map<String, Integer> expected = Map.of("fullName", 2,"address", 3);
+		assertEquals(expected, response);
+	}
+
+	@Test
+	public void testGetRidByIndividualIdShouldReturnNull() throws IdRepoAppException {
+
+		String result = service.getRidByIndividualId("1234567890", IdType.UIN);
+		assertNull(result);
+	}
 }

@@ -2,7 +2,9 @@ package io.mosip.idrepository.identity.test.service.impl;
 
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 import static org.junit.Assert.assertEquals;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.any;
@@ -278,7 +280,7 @@ public class IdRepoProxyServiceTest {
 	}
 
 	@Test
-	public void testRetrieveIdentity_HandleType() throws IdRepoAppException, IOException {
+	public void testRetrieveIdentityHandleType() throws IdRepoAppException, IOException {
 
 		Uin uinObj = new Uin();
 		uinObj.setUin("1234");
@@ -312,7 +314,7 @@ public class IdRepoProxyServiceTest {
 	}
 
 	@Test
-	public void testRetrieveIdentity_HandleType_DataAccessException() throws IdRepoAppException {
+	public void testRetrieveIdentityHandleTypeShouldThrowDataAccessException() throws IdRepoAppException {
 		String id = "handleId";
 		String type = "BIO";
 		Map<String, String> extractionFormats = new HashMap<>();
@@ -332,7 +334,7 @@ public class IdRepoProxyServiceTest {
 	}
 
 	@Test
-	public void testRetrieveIdentity_HandleType_IdRepoAppException() throws IdRepoAppException {
+	public void testRetrieveIdentityHandleTypeShouldThrowIdRepoAppException() throws IdRepoAppException {
 		String id = "handleId";
 		String type = "BIO";
 		Map<String, String> extractionFormats = new HashMap<>();

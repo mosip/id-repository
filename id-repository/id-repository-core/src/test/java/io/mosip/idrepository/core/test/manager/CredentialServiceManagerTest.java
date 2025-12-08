@@ -655,7 +655,7 @@ public class CredentialServiceManagerTest {
 	}
 
 	@Test
-	public void notifyUinCredential_ShouldLogError_WhenRestServiceExceptionOccurs() throws IdRepoDataValidationException, RestServiceException {
+	public void notifyUinCredentialShouldHandleRestServiceException() throws IdRepoDataValidationException, RestServiceException {
 		Logger logger = mock(Logger.class);
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("{uin}");

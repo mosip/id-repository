@@ -172,7 +172,7 @@ public class IdRepoWebSubHelperTest {
 	}
 
 	@Test
-	public void testSendEventToIDA_nonDummyPartner() {
+	public void testSendEventToIDAWithNonDummyPartner() {
 		EventModel model = new EventModel();
 		model.setTopic("partner123//someTopic");
 
@@ -192,7 +192,7 @@ public class IdRepoWebSubHelperTest {
 	}
 
 	@Test
-	public void testSendEventToIDA_consumerCalled() {
+	public void testSendEventToIDAWhenConsumerCalled() {
 		EventModel model = new EventModel();
 		model.setTopic("partner123//topic");
 
@@ -210,7 +210,7 @@ public class IdRepoWebSubHelperTest {
 	}
 
 	@Test
-	public void testSendEventToIDA_registrationExceptionIgnored() {
+	public void testSendEventToIDARegistrationExceptionIgnored() {
 		EventModel model = new EventModel();
 		model.setTopic("partnerABC//sample");
 
