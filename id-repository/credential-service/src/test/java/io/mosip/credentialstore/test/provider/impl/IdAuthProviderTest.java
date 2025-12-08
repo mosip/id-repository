@@ -262,7 +262,7 @@ public class IdAuthProviderTest {
 	}
 
 	@Test
-	public void testFormatCredentialDataWithoutEncryptionError() throws Exception {
+	public void testFormatCredentialData_WithoutEncryptionError() throws Exception {
 		sharableAttributes = new HashMap<>();
 		AllowedKycDto kyc1 = new AllowedKycDto();
 		kyc1.setAttributeName("fullName");
