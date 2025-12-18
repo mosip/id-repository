@@ -17,8 +17,7 @@ The module provides a comprehensive set of REST APIs to interact with these serv
 
 ## Services
 
-The ID Repository contains the following services and modules:
-
+The ID Repository contains the following services. For detailed code setup instructions for each service, please refer to their individual README files:
 1. **[Credential Service](id-repository/credential-service/README.md)** - Service for handling credentials.
 2. **[Identity Service](id-repository/id-repository-identity-service/README.md)** - Service for identity management.
 3. **[VID Service](id-repository/id-repository-vid-service/README.md)** - Service for Virtual ID management.
