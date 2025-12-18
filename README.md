@@ -136,6 +136,46 @@ Access the services at `http://localhost:<port>` using the port mappings for eac
 
 To deploy ID Repository services on a Kubernetes cluster, refer to the [Sandbox Deployment Guide](https://docs.mosip.io/1.2.0/deploymentnew/v3-installation).
 
+### Pre-requisites
+
+* Set KUBECONFIG variable to point to existing K8 cluster kubeconfig file:
+    ```text
+    export KUBECONFIG=~/.kube/<k8s-cluster.config>
+    ```
+
+### Install
+
+```text
+cd deploy
+./install.sh
+```
+
+### Delete
+
+```text
+cd deploy
+./delete.sh
+```
+
+### Restart
+
+```text
+cd deploy
+./restart.sh
+```
+
+## Configuration
+
+Refer to the [configuration guide](docs/configuration.md).
+
+## APIs
+
+API documentation is available [here](https://mosip.github.io/documentation/).
+
+## Testing
+
+Automated functional tests are available in the [Functional Tests repo](https://github.com/mosip/mosip-functional-tests).
+
 ## Contribution & Community
 
 • To learn how you can contribute code to this application, [click here](https://docs.mosip.io/1.2.0/community/code-contributions).
