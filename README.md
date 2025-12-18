@@ -42,31 +42,40 @@ See [DB guide](db_scripts/README.md) for database setup and migration details.
 The project requires:
 - **JDK:** 21.0.3
 - **Maven:** 3.9.6
+- **kernel-auth-adapter.jar** needs to be added to the build path to run the services
+- **Biometric SDK:** To run the Identity Service, a Biometric SDK implementation jar or [Mock SDK](https://github.com/mosip/mosip-mock-services/tree/master/mock-sdk) needs to be added to the build path
+
+#### For Kubernetes Deployment
+
+* Set KUBECONFIG variable to point to existing K8 cluster kubeconfig file:
+    ```text
+    export KUBECONFIG=~/.kube/<k8s-cluster.config>
+    ```
 
 ### Local Setup (for Development or Contribution)
 
 1. **Make sure the config server is running.** For detailed instructions on setting up and running the config server, refer to the [MOSIP Config Server Setup Guide](https://docs.mosip.io/1.2.0/modules/module-configuration).
 
-   **Note:** Refer to the MOSIP Config Server Setup Guide for setup, and ensure the properties mentioned in the configuration section are taken care of. Replace the properties with your own configurations (e.g., DB credentials, IAM credentials, URL). Additionally, `kernel-auth-adapter.jar` needs to be added to the build path to run the services.
+   **Note:** Refer to the MOSIP Config Server Setup Guide for setup, and ensure the properties mentioned in the configuration section are taken care of. Replace the properties with your own configurations (e.g., DB credentials, IAM credentials, URL).
 
 2. **Clone the repository:**
-```text
+
+   ```text
    git clone https://github.com/mosip/id-repository.git
    cd id-repository
-```
+   ```
 
 3. **Build the project:**
-```text
+
+   ```text
    mvn clean install -Dmaven.javadoc.skip=true -Dgpg.skip=true
-```
+   ```
 
 4. **Start the application:**
     - Click the Run button in your IDE, or
     - Run via command: `java -jar target/<specific-service>:<version>.jar`
 
 5. **Verify Swagger is accessible at:** `http://localhost:<port>/v1/<service>/swagger-ui/index.html`
-
-   **Note:** To run the identity service, a Biometric SDK implementation jar or [Mock SDK](https://github.com/mosip/mosip-mock-services/tree/master/mock-sdk) needs to be added to the build path.
 
 ### Local Setup with Docker (Easy Setup for Demos)
 
@@ -75,6 +84,7 @@ The project requires:
 Recommended for users who want a quick, ready-to-use setup — testers, students, and external users.
 
 Pull the latest pre-built images from Docker Hub using the following commands:
+
 ```text
 docker pull mosipid/id-repository-identity-service:<version>
 docker pull mosipid/id-repository-vid-service:<version>
@@ -88,21 +98,24 @@ docker pull mosipid/id-repository-salt-generator:<version>
 Recommended for contributors or developers who want to modify or build the services from source.
 
 1. **Clone and build the project:**
-```text
+
+   ```text
    git clone https://github.com/mosip/id-repository.git
    cd id-repository
    mvn clean install -Dmaven.javadoc.skip=true -Dgpg.skip=true
-```
+   ```
 
 2. **Navigate to each service directory and build the Docker image:**
-```text
+
+   ```text
    cd id-repository/<service-directory>
    docker build -t <service-name> .
-```
+   ```
 
 #### Running the Services
 
 Start each service using Docker:
+
 ```text
 docker run -d -p <port>:<port> --name <service-name> <service-name>
 ```
@@ -110,6 +123,7 @@ docker run -d -p <port>:<port> --name <service-name> <service-name>
 #### Verify Installation
 
 Check that all containers are running:
+
 ```text
 docker ps
 ```
@@ -124,11 +138,11 @@ To deploy ID Repository services on a Kubernetes cluster, refer to the [Sandbox 
 
 ## Contribution & Community
 
-- To learn how you can contribute code to this application, [click here](https://docs.mosip.io/1.2.0/community/code-contributions).
+• To learn how you can contribute code to this application, [click here](https://docs.mosip.io/1.2.0/community/code-contributions).
 
-- If you have questions or encounter issues, visit the [MOSIP Community](https://community.mosip.io/) for support.
+• If you have questions or encounter issues, visit the [MOSIP Community](https://community.mosip.io/) for support.
 
-- For any GitHub issues: [Report here](https://github.com/mosip/id-repository/issues)
+• For any GitHub issues: [Report here](https://github.com/mosip/id-repository/issues)
 
 ## License
 
