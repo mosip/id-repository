@@ -73,7 +73,19 @@ The project requires:
 
 4. **Start the application:**
     - Click the Run button in your IDE, or
-    - Run via command: `java -jar target/<specific-service>:<version>.jar`
+    - Run via command:
+
+   ```text
+   java -Dspring.profiles.active=<profile> \
+        -Dspring.cloud.config.uri=<config-url> \
+        -Dspring.cloud.config.label=<config-label> \
+        -jar <jar-name>.jar
+   ```
+
+   **Example:**
+    - _profile_: `env` (extension used on configuration property files)
+    - _config-label_: `master` (git branch of config repo)
+    - _config-url_: `http://localhost:51000` (URL of the config server)
 
 5. **Verify Swagger is accessible at:** `http://localhost:<port>/v1/<service>/swagger-ui/index.html`
 
