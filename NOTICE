@@ -1,0 +1,77 @@
+MOSIP ID Repository
+Copyright (c) 2022
+Modular Open Source Identity Platform (MOSIP)
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+This project also includes third-party software components licensed under
+various open-source licenses. Attribution for these components is provided
+below. Full license texts are available in the LICENSES/ directory or from
+the corresponding upstream sources.
+
+---
+
+Third-party attributions:
+
+• Spring Boot & Spring Security  
+  Licensed under the Apache License 2.0.
+
+• SpringDoc OpenAPI  
+  Licensed under the Apache License 2.0.
+
+• Apache Maven Plugins  
+  Licensed under the Apache License 2.0.  
+  Includes: maven-jar-plugin, maven-surefire-plugin, maven-gpg-plugin,
+  maven-javadoc-plugin, maven-source-plugin, maven-compiler-plugin,
+  maven-war-plugin, maven-resources-plugin, maven-shade-plugin,
+  maven-antrun-plugin.
+
+• PostgreSQL JDBC Driver  
+  Licensed under the BSD-2-Clause License.
+
+• Jackson Libraries  
+  Licensed under the Apache License 2.0.
+
+• SLF4J API & Bridges  
+  Licensed under the MIT License.
+
+• H2 Database  
+  Licensed under the Eclipse Public License 1.0.
+
+• JSON Simple  
+  Licensed under the Apache License 2.0.
+
+• Git Commit ID Maven Plugin  
+  Licensed under the Apache License 2.0.
+
+• JUnit (JUnit4, JUnit5, Vintage)  
+  Licensed under the Eclipse Public License 1.0 / 2.0.
+
+• ModelMapper  
+  Licensed under the Apache License 2.0.
+
+• Log4j API  
+  Licensed under the Apache License 2.0.
+
+• Powermock  
+  Licensed under the Apache License 2.0.
+
+• Mockito (Core, Inline)  
+  Licensed under the MIT License.
+
+• Bouncy Castle (bcprov-jdk18on)  
+  Licensed under the MIT License.
+
+• Apache POI  
+  Licensed under the Apache License 2.0.
+
+• Google Gson  
+  Licensed under the Apache License 2.0.
+
+---
+
+All other included third-party components are licensed under permissive,
+compatible open-source licenses. Their license texts are available in the
+LICENSES/ directory.
+
