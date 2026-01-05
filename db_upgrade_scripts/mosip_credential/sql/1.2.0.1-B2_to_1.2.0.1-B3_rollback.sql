@@ -7,7 +7,7 @@
 -- Modified Date        Modified By         Comments / Remarks
 -- -------------------------------------------------------------------------------------------------
 
-\c mosip_credential sysadmin
+\c mosip_credential postgres
 
 ALTER TABLE credential.credential_transaction ALTER COLUMN id type character varying(36);
 
