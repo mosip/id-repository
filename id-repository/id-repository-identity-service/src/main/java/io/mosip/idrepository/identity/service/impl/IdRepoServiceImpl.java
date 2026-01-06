@@ -20,6 +20,7 @@ import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.IdVidMetadataResponseDTO;
 import io.mosip.idrepository.core.dto.RequestDTO;
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.entity.Handle;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
@@ -829,7 +830,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	@Override
 	public IdVidMetadataResponseDTO getIdVidMetadata(String individualId, IdType idType) throws IdRepoAppException {
-		return null;
+		throw new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(),
+				"getIdVidMetadata not implemented in IdRepoServiceImpl");
 	}
 
 	/**
