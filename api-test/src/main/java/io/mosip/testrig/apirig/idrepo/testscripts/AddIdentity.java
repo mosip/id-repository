@@ -37,6 +37,7 @@ import io.mosip.testrig.apirig.testrunner.HealthChecker;
 import io.mosip.testrig.apirig.testrunner.JsonPrecondtion;
 import io.mosip.testrig.apirig.utils.AdminTestException;
 import io.mosip.testrig.apirig.utils.AdminTestUtil;
+import io.mosip.testrig.apirig.id.IdGenerator;
 import io.mosip.testrig.apirig.utils.AuthenticationTestException;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
 import io.mosip.testrig.apirig.utils.KernelAuthentication;
@@ -99,12 +100,21 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 					GlobalConstants.TARGET_ENV_HEALTH_CHECK_FAILED + HealthChecker.healthCheckFailureMapS);
 		}
 		testCaseDTO.setInputTemplate(AdminTestUtil.modifySchemaGenerateHbs(testCaseDTO.isRegenerateHbs()));
-		String uin = JsonPrecondtion
-				.getValueFromJson(
-						RestClient.getRequestWithCookie(ApplnURI + "/v1/idgenerator/uin", MediaType.APPLICATION_JSON,
-								MediaType.APPLICATION_JSON, COOKIENAME,
-								new KernelAuthentication().getTokenByRole(testCaseDTO.getRole())).asString(),
-						"response.uin");
+		String jsonInput = testCaseDTO.getInput();
+
+		String inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
+		String uin;
+		if(inputJson.contains("$INVALID_UIN$")) {
+			uin = IdGenerator.generateInvalidUin();
+		} else if (inputJson.contains("$VALID_UIN_NOTIN_DB$")) {
+			uin = IdGenerator.generateValidUin();
+		} else {
+			uin = JsonPrecondtion.getValueFromJson(
+					RestClient.getRequestWithCookie(ApplnURI + "/v1/idgenerator/uin", MediaType.APPLICATION_JSON,
+							MediaType.APPLICATION_JSON, COOKIENAME,
+							new KernelAuthentication().getTokenByRole(testCaseDTO.getRole())).asString(),
+					"response.uin");
+		}
 
 		DateFormat dateFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
 		Calendar cal = Calendar.getInstance();
@@ -131,10 +141,7 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 					attrmap);
 		}
 
-		String jsonInput = testCaseDTO.getInput();
 
-		String inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
-		
 		
 		//For_Array-Handle Related Cases
 		if (inputJson.contains("$FUNCTIONALID$")) {
