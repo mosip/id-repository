@@ -1511,7 +1511,7 @@ AddIdentity:
       output: '{
   "status":"ACTIVATED"
 }'
-   IdRepository_AddIdentity_with_InvalidUIN:
+   IdRepository_AddIdentity_with_InvalidUIN_Neg:
       endPoint: /idrepository/v1/identity/
       description: Creating UIN in Add Identity with invalid UIN parameters
       uniqueIdentifier: TC_IDRepo_AddIdentity_41
