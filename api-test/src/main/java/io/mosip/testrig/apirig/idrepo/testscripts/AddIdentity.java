@@ -37,7 +37,6 @@ import io.mosip.testrig.apirig.testrunner.HealthChecker;
 import io.mosip.testrig.apirig.testrunner.JsonPrecondtion;
 import io.mosip.testrig.apirig.utils.AdminTestException;
 import io.mosip.testrig.apirig.utils.AdminTestUtil;
-import io.mosip.testrig.apirig.id.IdGenerator;
 import io.mosip.testrig.apirig.utils.AuthenticationTestException;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
 import io.mosip.testrig.apirig.utils.KernelAuthentication;
@@ -103,12 +102,8 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 		String jsonInput = testCaseDTO.getInput();
 
 		String inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
-		String uin;
-		if(inputJson.contains("$INVALID_UIN$")) {
-			uin = IdGenerator.generateInvalidUin();
-		} else if (inputJson.contains("$VALID_UIN_NOTIN_DB$")) {
-			uin = IdGenerator.generateValidUin();
-		} else {
+		String uin = null;
+		if (inputJson.contains("$UIN$")) {
 			uin = JsonPrecondtion.getValueFromJson(
 					RestClient.getRequestWithCookie(ApplnURI + "/v1/idgenerator/uin", MediaType.APPLICATION_JSON,
 							MediaType.APPLICATION_JSON, COOKIENAME,
@@ -126,6 +121,9 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 			KeycloakUserManager.removeVidUser();
 			Map<String, List<String>> attrmap = new HashMap<>();
 			List<String> list = new ArrayList<>();
+			if (uin == null) {
+		        throw new IllegalStateException("UIN not initialized");
+		    }
 			list.add(uin);
 			attrmap.put("individual_id", list);
 			list = new ArrayList<>();
@@ -163,7 +161,9 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "  ");
 		}
 
-		inputJson = inputJson.replace("$UIN$", uin);
+		if (uin != null) {
+			inputJson = inputJson.replace("$UIN$", uin);
+		}
 		inputJson = inputJson.replace("$RID$", genRid);
 		String phoneNumber = "";
 		String email = testCaseName + "_" + BaseTestCase.runContext + "@mosip.net";
