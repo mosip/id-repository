@@ -72,7 +72,7 @@ import io.mosip.kernel.websub.api.exception.WebSubClientException;
 
 /**
  * The Class CredentialStoreServiceImpl.
- * 
+ *
  * @author Sowmya
  */
 @Component
@@ -128,7 +128,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	/** The env. */
 	@Autowired
 	private EnvUtil env;
-	
+
 	@Autowired
 	private ObjectMapper objectMapper;
 
@@ -145,10 +145,10 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 	@Autowired
 	EncryptionUtil encryptionUtil;
-	
+
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see io.mosip.credentialstore.service.CredentialStoreService#
 	 * createCredentialIssuance(io.mosip.credentialstore.dto.
 	 * CredentialServiceRequestDto)
@@ -186,7 +186,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 					credentialServiceRequestDto);
 			DataProviderResponse dataProviderResponse = credentialProvider
 					.getFormattedCredentialData(
-					credentialServiceRequestDto, shrableAttributesMap);
+							credentialServiceRequestDto, shrableAttributesMap);
 			credentialServiceResponse = new CredentialServiceResponse();
 			DataShare dataShare = null;
 			String jsonData=null;
@@ -353,7 +353,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 				// will use the sharable attributes in the request
 				LOGGER.debug(
 						"Auth partner may not have a data-share policy. Returning a dummy policy. "
-						+ "Will use sharable attributes in the request");
+								+ "Will use sharable attributes in the request");
 				return createDummyPolicyResponse();
 			} else {
 				throw e;
@@ -368,7 +368,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 	@SuppressWarnings("unchecked")
 	private EventModel getEventModel(DataShare dataShare, CredentialServiceRequestDto credentialServiceRequestDto,
-			String credentialData, String signature) throws IOException, ApiNotAccessibleException, SignatureException {
+									 String credentialData, String signature) throws IOException, ApiNotAccessibleException, SignatureException {
 		Map<String, Object> map = credentialServiceRequestDto.getAdditionalData();
 
 		EventModel eventModel = new EventModel();
@@ -413,7 +413,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 	}
 
 	private Map<String, String> getFormatters(PartnerCredentialTypePolicyDto policyResponseDto, String partnerId,
-			String requestId)
+											  String requestId)
 			throws ApiNotAccessibleException, PartnerException {
 		Map<String, String> formatterMap = new HashMap<>();
 		PolicyAttributesDto policies = policyResponseDto.getPolicies();
@@ -424,10 +424,10 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 						.getPartnerExtractorFormat(policyResponseDto.getPolicyId(),
 								partnerId, requestId);
 				if (partnerExtractorResponse != null) {
-				List<PartnerExtractor> partnerExtractorList = partnerExtractorResponse.getExtractors();
+					List<PartnerExtractor> partnerExtractorList = partnerExtractorResponse.getExtractors();
 					sharableAttributeList.forEach(dto -> {
 						if (dto.getGroup() != null && dto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)
-							&& dto.getFormat().equalsIgnoreCase(CredentialConstants.EXTRACTION)) {
+								&& dto.getFormat().equalsIgnoreCase(CredentialConstants.EXTRACTION)) {
 							partnerExtractorList.forEach(partnerExtractorDto -> {
 								if (partnerExtractorDto.getAttributeName().equalsIgnoreCase(dto.getAttributeName())) {
 									if(partnerExtractorDto.getBiometric().contains(CredentialConstants.FACE)){
@@ -436,7 +436,9 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 										formatterMap.put(CredentialConstants.IRIS, getFormat(partnerExtractorDto));
 									} else if (partnerExtractorDto.getBiometric().contains(CredentialConstants.FINGER)) {
 										formatterMap.put(CredentialConstants.FINGER, getFormat(partnerExtractorDto));
-					               }
+									}else if (partnerExtractorDto.getBiometric().contains(CredentialConstants.VOICE)) {
+										formatterMap.put(CredentialConstants.VOICE, getFormat(partnerExtractorDto));
+									}
 								}
 							});
 						}

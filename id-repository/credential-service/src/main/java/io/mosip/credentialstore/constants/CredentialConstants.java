@@ -2,25 +2,26 @@ package io.mosip.credentialstore.constants;
 
 /**
  * The Class CredentialConstants.
- * 
+ *
  * @author Sowmya
  */
 public class CredentialConstants {
 
 	/** The Constant ACTIVE_STATUS. */
 	public static final String ACTIVE_STATUS = "active";
-	
+
 	public static final String FACE = "face";
-	
-	
+
+
 	public static final String FINGER = "finger";
-	
-	
+
+
 	public static final String IRIS = "iris";
-	
-	
+
+	public static final String VOICE = "Voice";
+
 	public  static final String INDIVIDUAL_BIOMETRICS = "individualBiometrics";
-	
+
 	public static final String CREDENTIAL_ISSUED = "credentialIssued";
 
 	public static final String CBEFF = "CBEFF";
@@ -46,22 +47,22 @@ public class CredentialConstants {
 	public static final String BF_SUB_TYPE ="subType";
 
 	public static final String BF_RANK = "rank";
-	
+
 
 	public static final String MASKING_ATTRIBUTES = "maskingAttributes";
-	
+
 	public static final String FORMATTING_ATTRIBUTES = "formatingAttributes";
-	
+
 	public static final String NAME = "name";
-	
+
 	public static final String POSTALCODE = "postalCode";
-	
+
 	public static final String LANGUAGE = "eng";
-	
+
 	public static final String FORMAT = "format";
-	
+
 	public static final String FULLADDRESS = "fullAddress";
-	
+
 	/** The Constant DATETIME_PATTERN. */
 	public static final String DATETIME_PATTERN = "mosip.credential.service.datetime.pattern";
 

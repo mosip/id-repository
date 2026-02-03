@@ -14,4 +14,5 @@ public class IdRequestByIdDTO {
 	private String fingerExtractionFormat;
 	private String irisExtractionFormat;
 	private String faceExtractionFormat;
+	private String voiceExtractionFormat;
 }

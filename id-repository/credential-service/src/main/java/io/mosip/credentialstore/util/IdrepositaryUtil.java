@@ -36,7 +36,7 @@ public class IdrepositaryUtil {
 
 	@Autowired
 	private ObjectMapper mapper;
-	
+
 	@Value("${mosip.credential.service.fetch-identity.type:all}")
 	private String identityType;
 
@@ -58,6 +58,7 @@ public class IdrepositaryUtil {
 			String fingerExtractionFormat = bioAttributeFormatterMap.get(CredentialConstants.FINGER);
 			String faceExtractionFormat = bioAttributeFormatterMap.get(CredentialConstants.FACE);
 			String irisExtractionFormat = bioAttributeFormatterMap.get(CredentialConstants.IRIS);
+			String voiceExtractionFormat = bioAttributeFormatterMap.get(CredentialConstants.VOICE);
 			IdRequestByIdDTO requestByIdDTO = new IdRequestByIdDTO();
 
 			requestByIdDTO.setId(credentialServiceRequestDto.getId());
@@ -74,6 +75,9 @@ public class IdrepositaryUtil {
 			}
 			if (StringUtils.isNotEmpty(irisExtractionFormat)) {
 				requestByIdDTO.setIrisExtractionFormat(irisExtractionFormat);
+			}
+			if (StringUtils.isNotEmpty(voiceExtractionFormat)) {
+				requestByIdDTO.setVoiceExtractionFormat(voiceExtractionFormat);
 			}
 
 			LOGGER.debug(String.format("getIdentity request: %s", requestByIdDTO.toString()));

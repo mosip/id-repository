@@ -3,6 +3,7 @@ package io.mosip.idrepository.identity.controller;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FACE_EXTRACTION_FORMAT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FINGER_EXTRACTION_FORMAT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.IRIS_EXTRACTION_FORMAT;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.VOICE_EXTRACTION_FORMAT;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATA_VALIDATION_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_REQUEST;
@@ -235,7 +236,8 @@ public class IdRepoController {
 														  @RequestParam(name = ID_TYPE, required = false) @Nullable String idType,
 														  @RequestParam(name = FINGER_EXTRACTION_FORMAT, required = false) @Nullable String fingerExtractionFormat,
 														  @RequestParam(name = IRIS_EXTRACTION_FORMAT, required = false) @Nullable String irisExtractionFormat,
-														  @RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat)
+														  @RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat,
+														  @RequestParam(name = VOICE_EXTRACTION_FORMAT, required = false) @Nullable String voiceExtractionFormat)
 			throws IdRepoAppException {
 		try {
 			type = validator.validateType(type);
@@ -248,6 +250,9 @@ public class IdRepoController {
 			}
 			if(Objects.nonNull(faceExtractionFormat)) {
 				extractionFormats.put(FACE_EXTRACTION_FORMAT, faceExtractionFormat);
+			}
+			if(Objects.nonNull(voiceExtractionFormat)) {
+				extractionFormats.put(VOICE_EXTRACTION_FORMAT, voiceExtractionFormat);
 			}
 			extractionFormats.remove(null);
 			validator.validateTypeAndExtractionFormats(type, extractionFormats);
@@ -274,7 +279,7 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<IdResponseDTO> retrieveIdentityById(@Validated @RequestBody IdRequestByIdDTO requestById,
-														   @ApiIgnore Errors errors) throws IdRepoAppException {
+															  @ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
 			String type = validator.validateType(requestById.getType());
 			Map<String, String> extractionFormats = new HashMap<>();
@@ -286,6 +291,9 @@ public class IdRepoController {
 			}
 			if(Objects.nonNull(requestById.getFaceExtractionFormat())) {
 				extractionFormats.put(FACE_EXTRACTION_FORMAT, requestById.getFaceExtractionFormat());
+			}
+			if(Objects.nonNull(requestById.getVoiceExtractionFormat())) {
+				extractionFormats.put(VOICE_EXTRACTION_FORMAT, requestById.getVoiceExtractionFormat());
 			}
 			extractionFormats.remove(null);
 			validator.validateTypeAndExtractionFormats(type, extractionFormats);
