@@ -1,0 +1,4159 @@
+openapi: 3.0.1
+info:
+  title: Id Repository Identity Service
+  description: |
+    This API specification defines the endpoints for the Identity Repository (IdRepo) Service.
+
+    It allows clients to:
+    - Add or update identity data
+    - Retrieve identity details
+    - Manage draft records
+    - Handle event callbacks for credential status updates
+    - Perform authentication type status operations
+
+  license:
+    name: Mosip
+    url: https://docs.mosip.io/platform/license
+  version: '1.0'
+servers:
+  - url: https://api-internal.{env}.mosip.net/idrepository/v1/identity
+    description: Id Repository Identity Service
+tags:
+  - name: id-repo-controller
+    description: Id Repo Controller
+  - name: id-repo-draft-controller
+    description: Id Repo Draft Controller
+  - name: websub-event-callback-controller
+    description: Websub Event Callback Controller
+paths:
+  /:
+    post:
+      summary: Add a new identity to the Id Repository
+      description: >
+        Accepts identity creation requests with unique identifiers, demographic attributes, and optional documents.
+        This endpoint validates the UIN, applies policy checks, and saves a new identity into the repository.
+      operationId: addIdentity
+      tags:
+        - id-repo-controller
+      requestBody:
+        description: Add identity request payload
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Identity creation request
+              required:
+                - id
+                - version
+                - requesttime
+                - request
+              properties:
+                id:
+                  type: string
+                  description: Unique request ID
+                  example: mosip.id.create
+                version:
+                  type: string
+                  description: API version
+                  example: "v1"
+                requesttime:
+                  type: string
+                  format: date-time
+                  description: Current date and time when the request is sent
+                  example: "2025-07-02T07:05:23.108Z"
+                metadata:
+                  type: object
+                  description: Optional metadata
+                  example: {}
+                request:
+                  type: object
+                  description: Request body containing identity details
+                  required:
+                    - status
+                    - identity
+                  properties:
+                    status:
+                      type: string
+                      description: Status of the identity
+                      example: ACTIVE
+                    identity:
+                      type: object
+                      description: Complete identity structure
+                      properties:
+                        gender:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              language:
+                                type: string
+                                example: "eng"
+                              value:
+                                type: string
+                                example: "MLE"
+                        city:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              language:
+                                type: string
+                                example: "eng"
+                              value:
+                                type: string
+                                example: "TEST_CITYeng"
+                        postalCode:
+                          type: string
+                          example: "14022"
+                        dateOfBirth:
+                          type: string
+                          example: "1992/04/15"
+                        fullName:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              language:
+                                type: string
+                                example: "eng"
+                              value:
+                                type: string
+                                example: "TEST_FIRSTNAMEeng"
+                        proofOfIdentity:
+                          type: object
+                          properties:
+                            format:
+                              type: string
+                              example: "txt"
+                            type:
+                              type: string
+                              example: "DOC001"
+                            value:
+                              type: string
+                              example: "fileReferenceID"
+                        individualBiometrics:
+                          type: object
+                          properties:
+                            format:
+                              type: string
+                              example: "cbeff"
+                            version:
+                              type: number
+                              example: 1
+                            value:
+                              type: string
+                              example: "fileReferenceID"
+                        IDSchemaVersion:
+                          type: number
+                          example: 0.1
+                        province:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              language:
+                                type: string
+                                example: "eng"
+                              value:
+                                type: string
+                                example: "TEST_PROVINCEeng"
+                        zone:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              language:
+                                type: string
+                                example: "eng"
+                              value:
+                                type: string
+                                example: "TEST_ZONEeng"
+                        phone:
+                          type: string
+                          example: "7936066950"
+                        addressLine1:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              language:
+                                type: string
+                                example: "eng"
+                              value:
+                                type: string
+                                example: "TEST_ADDRESSLINE1eng"
+                        UIN:
+                          type: string
+                          example: "9136803549"
+                        region:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              language:
+                                type: string
+                                example: "eng"
+                              value:
+                                type: string
+                                example: "TEST_REGIONeng"
+                        email:
+                          type: string
+                          format: email
+                          example: "Resident_AddIdentity_Positive_PDEA_smoke@mosip.net"
+                    documents:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          category:
+                            type: string
+                            example: "PHOTO"
+                          value:
+                            type: string
+                            example: "base64EncodedString"
+                    registrationId:
+                      type: string
+                      example: "333123456789"
+                    uin:
+                      type: string
+                      example: "3333987654321"
+                    verifiedAttributes:
+                      type: array
+                      items:
+                        type: string
+                      example:
+                        - "fullName"
+                        - "gender"
+                        - "dob"
+            examples:
+              example-1:
+                value:
+                  id: mosip.id.create
+                  version: "v1"
+                  requesttime: "2025-07-02T07:05:23.108Z"
+                  metadata: {}
+                  request:
+                    status: ACTIVE
+                    identity:
+                      gender:
+                        - language: eng
+                          value: MLE
+                      city:
+                        - language: eng
+                          value: TEST_CITYeng
+                      postalCode: "14022"
+                      dateOfBirth: "1992/04/15"
+                      fullName:
+                        - language: eng
+                          value: TEST_FIRSTNAMEeng
+                      proofOfIdentity:
+                        format: txt
+                        type: DOC001
+                        value: fileReferenceID
+                      individualBiometrics:
+                        format: cbeff
+                        version: 1
+                        value: fileReferenceID
+                      IDSchemaVersion: 0.1
+                      province:
+                        - language: eng
+                          value: TEST_PROVINCEeng
+                      zone:
+                        - language: eng
+                          value: TEST_ZONEeng
+                      phone: "7936066950"
+                      addressLine1:
+                        - language: eng
+                          value: TEST_ADDRESSLINE1eng
+                      UIN: "9136803549"
+                      region:
+                        - language: eng
+                          value: TEST_REGIONeng
+                      email: "Resident_AddIdentity_Positive_PDEA_smoke@mosip.net"
+                    documents:
+                      - category: individualBiometrics
+                        value: base64EncodedString
+                    registrationId: "666666123456789"
+                    uin: "9876543211"
+                    verifiedAttributes:
+                      - fullName
+                      - gender
+                      - dob
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Unique response ID
+                  version:
+                    type: string
+                    description: API version
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time at which response was generated
+                  metadata:
+                    type: object
+                    description: Optional metadata
+                  response:
+                    type: object
+                    description: Response object containing identity details
+                    properties:
+                      status:
+                        type: string
+                        description: Status of the add identity operation
+                      identity:
+                        type: object
+                        description: Echoed back identity object
+                      documents:
+                        type: array
+                        description: List of documents linked with identity
+                        items:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                              description: Type/category of the document
+                            value:
+                              type: string
+                              description: Base64-encoded document or reference
+                      registrationId:
+                        type: string
+                        description: Registration ID linked to identity
+                      uin:
+                        type: string
+                        description: Unique Identity Number
+                      verifiedAttributes:
+                        type: array
+                        description: List of verified attributes
+                        items:
+                          type: string
+                  errors:
+                    type: array
+                    description: Any errors encountered
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          description: Code representing the type of error
+                        message:
+                          type: string
+                          description: Human-readable error message
+              examples:
+                example-1:
+                  value:
+                    id: mosip.id.create
+                    version: "v1"
+                    responsetime: "2025-07-02T07:05:23.108Z"
+                    metadata: {}
+                    response:
+                      status: ACTIVATED
+                      identity: {}
+                      documents:
+                        - category: individualBiometrics
+                          value: base64EncodedString
+                      registrationId: "888123456789"
+                      uin: "8765432155"
+                      verifiedAttributes:
+                        - fullName
+                        - dob
+                    errors: []
+        '204':
+          description: No Content
+
+        '401':
+          description: Unauthorized
+
+        '403':
+          description: Forbidden
+    patch:
+      tags:
+        - id-repo-controller
+      summary: Update an existing identity
+      description: |
+        Updates an existing identity record in the Id Repository based on the provided UIN and registration ID.
+        This operation allows modifications to demographic attributes, linked documents, and status fields.
+      operationId: updateIdentity
+      requestBody:
+        required: true
+        description: Update Identity request payload
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Update Identity request
+              required:
+                - id
+                - version
+                - requesttime
+                - request
+              properties:
+                id:
+                  type: string
+                  description: Unique request identifier
+                  example: mosip.id.update
+                version:
+                  type: string
+                  description: API version
+                  example: "v1"
+                requesttime:
+                  type: string
+                  format: date-time
+                  description: Time of the request
+                  example: "2025-07-02T09:30:00.000Z"
+                metadata:
+                  type: object
+                  description: Optional metadata
+                  example: {}
+                request:
+                  type: object
+                  description: Contains identity updates
+                  required:
+                    - status
+                    - identity
+                    - registrationId
+                    - uin
+                  properties:
+                    status:
+                      type: string
+                      description: New status for the identity
+                      example: ACTIVATED
+                    registrationId:
+                      type: string
+                      description: Unique registration identifier
+                      example: "666611223344"
+                    uin:
+                      type: string
+                      description: Unique Identification Number
+                      example: "5566778899"
+                    verifiedAttributes:
+                      type: array
+                      description: List of attributes verified
+                      items:
+                        type: string
+                      example: ["fullName", "gender"]
+                    identity:
+                      type: object
+                      description: Identity data to be updated
+                      properties:
+                        fullName:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              language:
+                                type: string
+                                example: "eng"
+                              value:
+                                type: string
+                                example: "Updated Firstname"
+                        gender:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              language:
+                                type: string
+                                example: "eng"
+                              value:
+                                type: string
+                                example: "MLE"
+                        city:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              language:
+                                type: string
+                                example: "eng"
+                              value:
+                                type: string
+                                example: "Updated City"
+                        phone:
+                          type: string
+                          example: "9123456789"
+                        email:
+                          type: string
+                          format: email
+                          example: "updated.email@mosip.net"
+                        addressLine1:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              language:
+                                type: string
+                                example: "eng"
+                              value:
+                                type: string
+                                example: "Updated Address Line 1"
+                        dateOfBirth:
+                          type: string
+                          example: "1990/01/01"
+                        postalCode:
+                          type: string
+                          example: "500001"
+                    documents:
+                      type: array
+                      description: Updated documents
+                      items:
+                        type: object
+                        properties:
+                          category:
+                            type: string
+                            example: "individualBiometrics"
+                          value:
+                            type: string
+                            example: "newBase64EncodedPhotoData"
+            examples:
+              example-1:
+                value:
+                  id: mosip.id.update
+                  version: "v1"
+                  requesttime: "2025-07-02T09:30:00.000Z"
+                  metadata: {}
+                  request:
+                    status: ACTIVATED
+                    registrationId: "66611223344"
+                    uin: "5566778899"
+                    verifiedAttributes:
+                      - fullName
+                      - gender
+                    identity:
+                      fullName:
+                        - language: eng
+                          value: Updated Firstname
+                      gender:
+                        - language: eng
+                          value: MLE
+                      city:
+                        - language: eng
+                          value: Updated City
+                      phone: "9123456789"
+                      email: "updated.email@mosip.net"
+                      addressLine1:
+                        - language: eng
+                          value: Updated Address Line 1
+                      dateOfBirth: "1990/01/01"
+                      postalCode: "500001"
+                    documents:
+                      - category: individualBiometrics
+                        value: newBase64EncodedPhotoData
+
+      responses:
+        '200':
+          description: Identity successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Unique response ID
+                  version:
+                    type: string
+                    description: API version
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time at which response was generated
+                  metadata:
+                    type: object
+                    description: Optional metadata
+                  response:
+                    type: object
+                    description: Response payload for identity update
+                    properties:
+                      status:
+                        type: string
+                        description: Status of the identity after update
+                      identity:
+                        type: object
+                        description: Echoed back identity
+                      documents:
+                        type: array
+                        description: Updated documents
+                        items:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                              description: Document type
+                            value:
+                              type: string
+                              description: Document reference or base64
+                      registrationId:
+                        type: string
+                        description: Registration ID
+                      uin:
+                        type: string
+                        description: Unique Identity Number
+                      verifiedAttributes:
+                        type: array
+                        description: List of updated/verified attributes
+                        items:
+                          type: string
+                        example:
+                  errors:
+                    type: array
+                    description: Any errors encountered
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          description: Error code
+                          example: "string"
+                        message:
+                          type: string
+                          description: Error message
+                          example: "string"
+              examples:
+                example-1:
+                  value:
+                    id: mosip.id.update
+                    version: "v1"
+                    responsetime: "2025-07-02T07:05:23.108Z"
+                    metadata: {}
+                    response:
+                      status: ACTIVATED
+                      identity: {}
+                      documents:
+                        - category: individualBiometrics
+                          value: base64EncodedString
+                      registrationId: "777123456789"
+                      uin: "9876543211"
+                      verifiedAttributes:
+                        - fullName
+                        - dob
+                    errors: []
+
+        '204':
+          description: No Content
+
+        '401':
+          description: Unauthorized
+
+        '403':
+          description: Forbidden
+
+  /{individualId}/update-counts:
+    get:
+      tags:
+        - id-repo-controller
+      summary: Get Remaining Update Count by Individual ID
+      description: >
+        Retrieves how many times each identity attribute (e.g., name, gender, address) can still be updated
+        for a given individual ID. This limit is based on policy constraints defined in the system.
+      operationId: getRemainingUpdateCountByIndividualId
+      parameters:
+        - name: individualId
+          in: path
+          required: true
+          description: Unique identifier for the individual (UIN, RID, or VID)
+          schema:
+            type: string
+            example: "123456789012"
+        - name: idType
+          in: query
+          required: false
+          description: Type of individual ID (UIN, VID, or RID)
+          schema:
+            type: string
+            example: "UIN"
+        - name: attribute_list
+          in: query
+          required: false
+          description: List of attributes to query update count for
+          schema:
+            type: array
+            items:
+              type: string
+            example: ["fullName"]
+      responses:
+        '200':
+          description: Remaining update counts successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    nullable: true
+                    description: Unique response ID
+                    example: mosip.id.update
+                  version:
+                    type: string
+                    nullable: true
+                    description: API version
+                    example: "v1"
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time at which the response was generated
+                    example: "2025-07-02T10:00:36.866Z"
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata
+                    example: null
+                  response:
+                    type: object
+                    description: Response object containing remaining update counts
+                    properties:
+                      attributes:
+                        type: array
+                        description: List of attributes and how many updates are left
+                        items:
+                          type: object
+                          properties:
+                            attributeName:
+                              type: string
+                              example: "fullName"
+                            noOfUpdatesLeft:
+                              type: integer
+                              example: 5
+                  errors:
+                    type: array
+                    description: List of error details (if any)
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          example: "string"
+                        message:
+                          type: string
+                          example: "string"
+              examples:
+                example-1:
+                  value:
+                    id: mosip.id.update
+                    version: "v1"
+                    responsetime: "2025-07-02T10:00:36.866Z"
+                    metadata: null
+                    response:
+                      attributes:
+                        - attributeName: "fullName"
+                          noOfUpdatesLeft: 5
+                    errors: []
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /authtypes/status:
+    post:
+      tags:
+        - id-repo-controller
+      summary: Update authentication type status for an individual
+      description: >
+        This endpoint is used by internal services to lock or unlock specific authentication types
+        (such as biometrics or OTP) for a given individual ID (UIN, VID, or RID).
+
+        It supports bulk status updates (lock/unlock) and defines a duration for unlock if needed.
+      operationId: updateAuthtypeStatus
+      requestBody:
+        required: true
+        content:
+          application/json;charset=UTF-8:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: Unique request identifier
+                  example: "mosip.idrepo.authtype.status.update"
+                version:
+                  type: string
+                  description: API version
+                  example: "1.0"
+                requestTime:
+                  type: string
+                  format: date-time
+                  description: Time when the request was made
+                  example: "2025-07-03T10:00:00Z"
+                consentObtained:
+                  type: boolean
+                  description: Flag indicating if consent was obtained
+                  example: true
+                individualId:
+                  type: string
+                  description: Unique identifier for the individual (UIN, VID, or RID)
+                  example: "4631203960"
+                individualIdType:
+                  type: string
+                  description: Type of individual ID
+                  example: "UIN"
+                request:
+                  type: array
+                  description: List of authentication type status update requests
+                  items:
+                    type: object
+                    properties:
+                      authType:
+                        type: string
+                        description: Type of authentication (e.g., bio, otp)
+                        example: "bio"
+                      authSubType:
+                        type: string
+                        description: Subtype of authentication (e.g., FINGER, FACE)
+                        example: "FACE"
+                      locked:
+                        type: boolean
+                        description: Lock status (true for locked, false for unlocked)
+                        example: true
+                      unlockForSeconds:
+                        type: number
+                        description: Unlock duration in seconds; 0 for no temporary unlock
+                        example: 3600
+                      requestId:
+                        type: string
+                        description: Unique request ID for tracking
+                        example: "req-123"
+                      metadata:
+                        type: object
+                        description: Additional metadata for the request
+                        additionalProperties: {}
+                        example:
+                          additionalProp1: {}
+                          additionalProp2: {}
+                          additionalProp3: {}
+            examples:
+              example-1:
+                value:
+                  id: "mosip.idrepo.authtype.status.update"
+                  version: "1.0"
+                  requestTime: "2025-07-03T10:00:00Z"
+                  consentObtained: true
+                  individualId: "4631203960"
+                  individualIdType: "UIN"
+                  request:
+                    - authType: "bio"
+                      authSubType: "FACE"
+                      locked: true
+                      unlockForSeconds: 3600
+                      requestId: "req-123"
+                      metadata:
+                        additionalProp1: {}
+                        additionalProp2: {}
+                        additionalProp3: {}
+      responses:
+        '200':
+          description: Request processed successfully
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    nullable: true
+                    example: "mosip.idrepo.authtype.status.update.response"
+                  version:
+                    type: string
+                    nullable: true
+                    example: "1.0"
+                  responsetime:
+                    type: string
+                    format: date-time
+                    example: "2025-07-03T05:25:20.142Z"
+                  metadata:
+                    type: object
+                    nullable: true
+                    example:
+                      requestId: "abc-123"
+                  response:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: "Success"
+                      identity:
+                        type: object
+                        nullable: true
+                        example:
+                          fullName:
+                            - language: "eng"
+                              value: "Madhu_eng"
+                            - language: "fra"
+                              value: "Madhu_fra"
+                      documents:
+                        type: array
+                        nullable: true
+                        items:
+                          type: object
+                          properties:
+                            documentType:
+                              type: string
+                            documentId:
+                              type: string
+                        example:
+                          - documentType: "Proof of Address"
+                            documentId: "ADDR123456"
+                      verifiedAttributes:
+                        type: array
+                        nullable: true
+                        items:
+                          type: string
+                        example:
+                          - "fullName"
+                          - "dob"
+                  errors:
+                    type: array
+                    nullable: true
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                        message:
+                          type: string
+                    example:
+                      - errorCode: "ERR-001"
+                        message: "Sample error message"
+              examples:
+                example-1:
+                  value:
+                    id: "mosip.idrepo.authtype.status.update.response"
+                    version: "1.0"
+                    responsetime: "2025-07-03T05:25:20.142Z"
+                    metadata:
+                      requestId: "abc-123"
+                    response:
+                      status: "Success"
+                      identity:
+                        fullName:
+                          - language: "eng"
+                            value: "Madhu_eng"
+                          - language: "fra"
+                            value: "Madhu_fra"
+                      documents:
+                        - documentType: "Proof of Address"
+                          documentId: "ADDR123456"
+                      verifiedAttributes:
+                        - "fullName"
+                        - "dob"
+                    errors:
+                      - errorCode: "ERR-001"
+                        message: "Sample error message"
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /authtypes/status/{ID}:
+    get:
+      tags:
+        - id-repo-controller
+      summary: Get authentication type lock/unlock status
+      description: >
+        Retrieves the current authentication type status for the given individual ID (UIN, VID, or RID).
+        The system identifies the ID type automatically based on its format and returns the status of 
+        all configured authentication types (e.g., fingerprint, iris, face, OTP).
+      operationId: getAuthTypeStatus
+      parameters:
+        - name: ID
+          in: path
+          required: true
+          description: Unique identifier for the individual (UIN, VID, or RID)
+          schema:
+            type: string
+            example: "4631203960"
+      responses:
+        '200':
+          description: Request authenticated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    nullable: true
+                    example: "mosip.idrepo.authtype.status.fetch.response"
+                  version:
+                    type: string
+                    nullable: true
+                    example: "1.0"
+                  responsetime:
+                    type: string
+                    format: date-time
+                    example: "2025-07-03T05:32:00.452Z"
+                  metadata:
+                    type: object
+                    nullable: true
+                    example:
+                      requestId: "abc-456"
+                  response:
+                    type: object
+                    properties:
+                      authTypes:
+                        type: array
+                        description: List of authentication types and their lock/unlock status
+                        items:
+                          type: object
+                          properties:
+                            authType:
+                              type: string
+                              example: "otp"
+                            authSubType:
+                              type: string
+                              example: "email"
+                            locked:
+                              type: boolean
+                              example: false
+                            unlockForSeconds:
+                              type: number
+                              nullable: true
+                              example: 3600
+                            requestId:
+                              type: string
+                              nullable: true
+                              example: "req-789"
+                            metadata:
+                              type: object
+                              nullable: true
+                              example:
+                                channel: "SMS"
+                                remarks: "Temporary unlock granted"
+                  errors:
+                    type: array
+                    description: List of error details (if any)
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          example: "string"
+                        message:
+                          type: string
+                          example: "string"
+                    example: []
+              examples:
+                example-1:
+                  summary: Example
+                  value:
+                    id: "mosip.idrepo.authtype.status.fetch.response"
+                    version: "1.0"
+                    responsetime: "2025-07-03T05:32:00.452Z"
+                    metadata:
+                      requestId: "abc-456"
+                    response:
+                      authTypes:
+                        - authType: "otp"
+                          authSubType: "email"
+                          locked: false
+                          unlockForSeconds: 3600
+                          requestId: "req-789"
+                          metadata:
+                            channel: "SMS"
+                            remarks: "Temporary unlock granted"
+                        - authType: "bio"
+                          authSubType: "FACE"
+                          locked: true
+                          unlockForSeconds: 0
+                          requestId: "req-456"
+                          metadata:
+                            channel: "Portal"
+                            remarks: "Permanently locked by admin"
+                    errors: []
+        '400':
+          description: No Records Found
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /authtypes/status/individualIdType/{IDType}/individualId/{ID}:
+    get:
+      tags:
+        - id-repo-controller
+      summary: Get authentication type status using ID and ID Type
+      description: Retrieves authentication type lock/unlock status for the specified individual ID and explicit ID type.
+      operationId: getAuthTypeStatus_1
+      deprecated: true
+      parameters:
+        - name: IDType
+          in: path
+          required: true
+          description: Type of individual ID (UIN, VID, RID)
+          schema:
+            type: string
+            example: "UIN"
+        - name: ID
+          in: path
+          required: true
+          description: Unique individual ID
+          schema:
+            type: string
+            example: "4631203960"
+      responses:
+        '200':
+          description: Request authenticated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    nullable: true
+                    example: "mosip.idrepo.authtype.status.fetch.response"
+                  version:
+                    type: string
+                    nullable: true
+                    example: "1.0"
+                  responsetime:
+                    type: string
+                    format: date-time
+                    example: "2025-07-03T05:38:28.298Z"
+                  metadata:
+                    type: object
+                    nullable: true
+                    example:
+                      requestId: "abc-123"
+                  response:
+                    type: object
+                    properties:
+                      authTypes:
+                        type: array
+                        description: List of authentication types and their lock/unlock status
+                        items:
+                          type: object
+                          properties:
+                            authType:
+                              type: string
+                              example: "otp"
+                            authSubType:
+                              type: string
+                              example: "email"
+                            locked:
+                              type: boolean
+                              example: false
+                            unlockForSeconds:
+                              type: number
+                              nullable: true
+                              example: 3600
+                            requestId:
+                              type: string
+                              nullable: true
+                              example: "req-123"
+                            metadata:
+                              type: object
+                              nullable: true
+                              example:
+                                channel: "SMS"
+                                remarks: "Temporary unlock granted"
+                  errors:
+                    type: array
+                    description: List of error details (if any)
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          example: "string"
+                        message:
+                          type: string
+                          example: "string"
+                    example: []
+              examples:
+                example-1:
+                  summary: Example with sample values for locked/unlocked auth types
+                  value:
+                    id: "mosip.idrepo.authtype.status.fetch.response"
+                    version: "1.0"
+                    responsetime: "2025-07-03T05:38:28.298Z"
+                    metadata:
+                      requestId: "abc-123"
+                    response:
+                      authTypes:
+                        - authType: "otp"
+                          authSubType: "email"
+                          locked: false
+                          unlockForSeconds: 3600
+                          requestId: "req-123"
+                          metadata:
+                            channel: "SMS"
+                            remarks: "Temporary unlock granted"
+                        - authType: "bio"
+                          authSubType: "FACE"
+                          locked: true
+                          unlockForSeconds: 0
+                          requestId: "req-456"
+                          metadata:
+                            channel: "Portal"
+                            remarks: "Locked permanently by admin"
+                    errors: []
+        '400':
+          description: No Records Found
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /rid/{individualId}:
+    get:
+      deprecated: true
+      tags:
+        - id-repo-controller
+      summary: Retrieve RID using identity ID (UIN/VID)
+      description: >
+        Returns the Registration ID (RID) associated with the given identity ID (UIN or VID).
+        This endpoint is used to map a valid UIN/VID to its corresponding registration reference.
+      operationId: getRidByIndividualId
+      parameters:
+        - name: individualId
+          in: path
+          required: true
+          description: Unique identity identifier (UIN or VID)
+          schema:
+            type: string
+        - name: idType
+          in: query
+          required: false
+          description: Type of ID provided (UIN or VID)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Request authenticated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Unique response identifier
+                  version:
+                    type: string
+                    description: API version
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time when the response was generated
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata
+                  response:
+                    type: object
+                    properties:
+                      rid:
+                        type: string
+                        description: Registration ID associated with the provided identity
+                  errors:
+                    type: array
+                    description: List of errors, if any
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+              examples:
+                example-1:
+                  value:
+                    id: "mosip.idrepo.rid.get"
+                    version: "1.0"
+                    responsetime: "2025-07-02T10:57:49.337Z"
+                    metadata: null
+                    response:
+                      rid: "92485555551"
+                    errors: []
+        '400':
+          description: No Records Found
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /idvid/{id}:
+    get:
+      tags:
+        - id-repo-controller
+      summary: Retrieve full identity by Id with optional biometric formats
+      description: >
+        Retrieves the complete identity record for the specified ID (UIN, VID, or RID), 
+        including optional extraction of biometric formats such as fingerprint, iris, and face.
+        
+        While functional, it is recommended to use the `POST /idvid/` endpoint instead, which accepts a structured request payload.
+      operationId: retrieveIdentity
+      deprecated: true
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identity ID (UIN/VID/RID)
+          schema:
+            type: string
+        - name: type
+          in: query
+          required: false
+          description: Optional type parameter
+          schema:
+            type: string
+        - name: idType
+          in: query
+          required: false
+          description: Identity type (UIN/VID/RID)
+          schema:
+            type: string
+        - name: fingerExtractionFormat
+          in: query
+          required: false
+          description: Desired fingerprint format
+          schema:
+            type: string
+        - name: irisExtractionFormat
+          in: query
+          required: false
+          description: Desired iris format
+          schema:
+            type: string
+        - name: faceExtractionFormat
+          in: query
+          required: false
+          description: Desired face format
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Unique response identifier
+                  version:
+                    type: string
+                    description: API version
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time when the response was generated
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata
+                  response:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Current identity status
+                      identity:
+                        type: object
+                        description: Identity details
+                        additionalProperties: true
+                      documents:
+                        type: array
+                        description: List of associated documents
+                        items:
+                          type: object
+                      registrationId:
+                        type: string
+                        nullable: true
+                        description: Associated registration ID
+                      uin:
+                        type: string
+                        nullable: true
+                        description: Unique Identification Number (if available)
+                      biometricReferenceId:
+                        type: string
+                        nullable: true
+                        description: Reference ID for biometrics
+                      verifiedAttributes:
+                        type: array
+                        nullable: true
+                        description: List of verified attribute names
+                        items:
+                          type: string
+                  errors:
+                    type: array
+                    description: List of errors if any
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+              examples:
+                example-1:
+                  value:
+                    id: "mosip.id.read"
+                    version: "v1"
+                    responsetime: "2025-07-02T11:15:52.530Z"
+                    metadata: null
+                    response:
+                      status: "ACTIVATED"
+                      identity:
+                        gender:
+                          - language: "eng"
+                            value: "MLE"
+                        city:
+                          - language: "eng"
+                            value: "TEST_CITYeng"
+                        postalCode: "14022"
+                        dateOfBirth: "1992/04/15"
+                        fullName:
+                          - language: "eng"
+                            value: "TEST_FIRSTNAMEeng"
+                        proofOfIdentity:
+                          format: "txt"
+                          type: "DOC001"
+                          value: "fileReferenceID"
+                        individualBiometrics:
+                          format: "cbeff"
+                          version: 1
+                          value: "fileReferenceID"
+                        IDSchemaVersion: 0.1
+                        province:
+                          - language: "eng"
+        '204':
+          description: No Content
+
+        '401':
+          description: Unauthorized
+
+        '403':
+          description: Forbidden
+
+  /idvid/:
+    post:
+      tags:
+        - id-repo-controller
+      summary: Retrieve full identity by UIN, VID, or RID using structured request
+      description: >
+        Retrieves the complete identity profile for a given individual by accepting a structured JSON request.
+        This endpoint is the preferred way to retrieve an identity using a UIN (Unique Identity Number),
+        VID (Virtual ID), or RID (Registration ID), along with optional metadata for biometric extraction.
+      operationId: retrieveIdentityById
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: Unique identifier for the request
+                version:
+                  type: string
+                  description: API version
+                requesttime:
+                  type: string
+                  format: date-time
+                  description: Timestamp of the request
+                metadata:
+                  type: object
+                  description: Optional metadata
+                request:
+                  type: object
+                  description: Input parameters for identity lookup
+                  properties:
+                    id:
+                      type: string
+                      description: The individual ID (UIN, VID, or RID)
+                    type:
+                      type: string
+                      description: Type of request (e.g., "bio")
+                    idType:
+                      type: string
+                      description: Type of the provided ID (UIN, VID, or RID)
+                    fingerExtractionFormat:
+                      type: string
+                      description: Fingerprint format if biometric extraction is needed
+                    irisExtractionFormat:
+                      type: string
+                      description: Iris format if biometric extraction is needed
+                    faceExtractionFormat:
+                      type: string
+                      description: Face format if biometric extraction is needed
+            examples:
+              success:
+                value:
+                  id: "mosip.id.read"
+                  version: "v1"
+                  requesttime: "2025-07-02T12:00:36.443Z"
+                  metadata: {}
+                  request:
+                    id: "2618472935"
+                    type: "bio"
+                    idType: "UIN"
+                    fingerExtractionFormat: "mock-1.1"
+                    irisExtractionFormat: "mock-1.1"
+                    faceExtractionFormat: "mock-1.1"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Identity retrieval response structure
+                properties:
+                  id:
+                    type: string
+                    description: Unique ID of the response message
+                  version:
+                    type: string
+                    description: Version of the API
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Timestamp of the response
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata
+                  response:
+                    type: object
+                    description: Identity and related data
+                    properties:
+                      status:
+                        type: string
+                        description: Current status of the identity
+                      identity:
+                        type: object
+                        description: Demographic and identity information
+                      documents:
+                        type: array
+                        description: List of attached documents
+                        items:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                              description: Category of the document
+                            value:
+                              type: string
+                              description: Base64 encoded content
+                      registrationId:
+                        type: string
+                        nullable: true
+                        description: Associated registration ID
+                      uin:
+                        type: string
+                        nullable: true
+                        description: Unique Identity Number
+                      biometricReferenceId:
+                        type: string
+                        nullable: true
+                        description: Reference ID for biometrics
+                      verifiedAttributes:
+                        type: object
+                        nullable: true
+                        description: List of verified attributes
+                  errors:
+                    type: array
+                    description: List of error messages, if any
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          description: Error code indicating the type of error
+                        message:
+                          type: string
+                          description: Detailed error message
+              examples:
+                success:
+                  value:
+                    id: "mosip.id.read"
+                    version: "v1"
+                    responsetime: "2025-07-02T12:00:36.443Z"
+                    metadata: null
+                    response:
+                      status: "ACTIVATED"
+                      identity:
+                        fullName:
+                          - language: "eng"
+                            value: "TEST_FIRSTNAMEeng"
+                        gender:
+                          - language: "eng"
+                            value: "MLE"
+                        dateOfBirth: "1992/04/15"
+                        UIN: "4069734153"
+                        email: "Resident_AddIdentity_Positive_PDEA_smoke@mosip.net"
+                        phone: "7936066950"
+                        city:
+                          - language: "eng"
+                            value: "TEST_CITYeng"
+                        province:
+                          - language: "eng"
+                            value: "TEST_PROVINCEeng"
+                        region:
+                          - language: "eng"
+                            value: "TEST_REGIONeng"
+                        zone:
+                          - language: "eng"
+                            value: "TEST_ZONEeng"
+                        addressLine1:
+                          - language: "eng"
+                            value: "TEST_ADDRESSLINE1eng"
+                        proofOfIdentity:
+                          format: "txt"
+                          type: "DOC001"
+                          value: "fileReferenceID"
+                        individualBiometrics:
+                          format: "cbeff"
+                          version: 1
+                          value: "fileReferenceID"
+                        IDSchemaVersion: 0.1
+                      documents:
+                        - category: "individualBiometrics"
+                          value: "VmFsdTFRMk5XVGpkd01HbGpiVzFoYzJWeUxXUnZZV3hoZEdsdmJpOXlhVzVu"
+                      registrationId: null
+                      uin: null
+                      biometricReferenceId: null
+                      verifiedAttributes: null
+                    errors: []
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /idvid/v2:
+    post:
+      tags:
+        - id-repo-controller
+      summary: Retrieve full identity by UIN, VID, or RID using structured request
+      description: >
+        Retrieves the complete identity profile for a given individual by accepting a structured JSON request.
+        This endpoint is the preferred way to retrieve an identity using a UIN,
+        VID, or RID (Registration ID), along with optional metadata for biometric extraction.
+      operationId: retrieveIdentityByIdV2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                request:
+                  type: object
+                  description: Input parameters for identity lookup
+                  properties:
+                    id:
+                      type: string
+                      description: The individual ID (UIN, VID, or RID)
+                    type:
+                      type: string
+                      description: Type of request (e.g., "bio" , "demo", "all")
+                    idType:
+                      type: string
+                      description: Type of the provided ID (UIN, VID, or ID)
+                    fingerExtractionFormat:
+                      type: string
+                      description: Fingerprint format if biometric extraction is needed
+                    irisExtractionFormat:
+                      type: string
+                      description: Iris format if biometric extraction is needed
+                    faceExtractionFormat:
+                      type: string
+                      description: Face format if biometric extraction is needed
+            examples:
+              success:
+                value:
+                  request:
+                    id: "2618472935"
+                    type: "bio"
+                    idType: "UIN"
+                    fingerExtractionFormat: "mock-1.1"
+                    irisExtractionFormat: "mock-1.1"
+                    faceExtractionFormat: "mock-1.1"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Identity retrieval response structure
+                properties:
+                  id:
+                    type: string
+                    description: Unique ID of the response message
+                  version:
+                    type: string
+                    description: Version of the API
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Timestamp of the response
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata
+                  response:
+                    type: object
+                    description: Identity and related data
+                    properties:
+                      status:
+                        type: string
+                        description: Current status of the identity
+                      identity:
+                        type: object
+                        description: Demographic and identity information
+                      documents:
+                        type: array
+                        description: List of attached documents
+                        items:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                              description: Category of the document
+                            value:
+                              type: string
+                              description: Base64 encoded content
+                      registrationId:
+                        type: string
+                        nullable: true
+                        description: Associated registration ID
+                      uin:
+                        type: string
+                        nullable: true
+                        description: Unique Identity Number
+                      biometricReferenceId:
+                        type: string
+                        nullable: true
+                        description: Reference ID for biometrics
+                      verifiedAttributes:
+                        type: object
+                        nullable: true
+                        description: List of verified attributes
+                  errors:
+                    type: array
+                    description: List of error messages, if any
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          description: Error code indicating the type of error
+                        message:
+                          type: string
+                          description: Detailed error message
+              examples:
+                success:
+                  value:
+                    id: "mosip.id.read"
+                    version: "v1"
+                    responsetime: "2025-07-02T12:00:36.443Z"
+                    metadata: null
+                    response:
+                      status: "ACTIVATED"
+                      identity:
+                        fullName:
+                          - language: "eng"
+                            value: "TEST_FIRSTNAMEeng"
+                        gender:
+                          - language: "eng"
+                            value: "MLE"
+                        dateOfBirth: "1992/04/15"
+                        UIN: "4069734153"
+                        email: "Resident_AddIdentity_Positive_PDEA_smoke@mosip.net"
+                        phone: "7936066950"
+                        city:
+                          - language: "eng"
+                            value: "TEST_CITYeng"
+                        province:
+                          - language: "eng"
+                            value: "TEST_PROVINCEeng"
+                        region:
+                          - language: "eng"
+                            value: "TEST_REGIONeng"
+                        zone:
+                          - language: "eng"
+                            value: "TEST_ZONEeng"
+                        addressLine1:
+                          - language: "eng"
+                            value: "TEST_ADDRESSLINE1eng"
+                        proofOfIdentity:
+                          format: "txt"
+                          type: "DOC001"
+                          value: "fileReferenceID"
+                        individualBiometrics:
+                          format: "cbeff"
+                          version: 1
+                          value: "fileReferenceID"
+                        IDSchemaVersion: 0.1
+                      documents:
+                        - category: "individualBiometrics"
+                          value: "VmFsdTFRMk5XVGpkd01HbGpiVzFoYzJWeUxXUnZZV3hoZEdsdmJpOXlhVzVu"
+                      registrationId: null
+                      uin: null
+                      biometricReferenceId: null
+                      verifiedAttributes: null
+                    errors: []
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /idvid-metadata/search:
+    post:
+      tags:
+        - id-repo-controller
+      summary: Search IdVid metadata using Individual Id
+      description: >
+        Retrieves metadata associated with a given individual ID such as UIN, VID.
+        This endpoint is commonly used by services that need to query an IdVid metadata.
+      operationId: searchIdVidMetadata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: Unique request ID
+                  example: "mosip.idrepo.idvid.metadata"
+                version:
+                  type: string
+                  description: API version
+                  example: "1.0"
+                requesttime:
+                  type: string
+                  format: date-time
+                  description: Time of request
+                  example: "2025-07-03T05:46:05.182Z"
+                metadata:
+                  type: object
+                  description: Optional metadata
+                  example: {}
+                request:
+                  type: object
+                  description: Search request data
+                  properties:
+                    individualId:
+                      type: string
+                      description: Individual ID (UIN or VID)
+                      example: "123456789012"
+                    idType:
+                      type: string
+                      description: Type of individual ID (UIN, VID)
+                      example: "UIN"
+            examples:
+              example-1:
+                value:
+                  id: "mosip.idrepo.idvid.metadata"
+                  version: "1.0"
+                  requesttime: "2025-07-03T05:46:05.182Z"
+                  metadata: {}
+                  request:
+                    individualId: "123456789012"
+                    idType: "UIN"
+      responses:
+        '200':
+          description: Request authenticated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "mosip.idrepo.idvid.metadata"
+                  version:
+                    type: string
+                    example: "1.0"
+                  requesttime:
+                    type: string
+                    format: date-time
+                    example: "2025-07-03T05:46:05.182Z"
+                  metadata:
+                    type: object
+                    example: {}
+                  response:
+                    type: object
+                    properties:
+                      rid:
+                        type: string
+                        example: "555123456789"
+                      createdOn:
+                        type: string
+                        format: date-time
+                        example: "2025-07-01T10:00:00Z"
+                      updatedOn:
+                        type: string
+                        format: date-time
+                        example: "2025-07-02T10:00:00Z"
+              examples:
+                example-1:
+                  value:
+                    id: "mosip.idrepo.idvid.metadata"
+                    version: "1.0"
+                    requesttime: "2025-07-03T05:46:05.182Z"
+                    metadata: {}
+                    response:
+                      rid: "6666123456789"
+                      createdOn: "2025-07-01T10:00:00Z"
+                      updatedOn: "2025-07-02T10:00:00Z"
+        '400':
+          description: No Records Found
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+
+  /v2:
+    post:
+      tags:
+        - id-repo-controller
+      summary: Create a new identity and return verification metadata (v2)
+      description: >
+        Creates a new identity record in the ID Repository using the enhanced V2 schema.
+        This version returns a list of verification metadata objects along with the identity creation response.
+      operationId: addIdentityV2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: Unique request ID
+                version:
+                  type: string
+                  description: API version
+                requesttime:
+                  type: string
+                  format: date-time
+                  description: Time of the request
+                metadata:
+                  type: object
+                  description: Optional metadata
+                request:
+                  type: object
+                  description: Input payload to create identity
+                  required:
+                    - status
+                    - identity
+                    - registrationId
+                  properties:
+                    status:
+                      type: string
+                      description: Status of the identity (e.g., "ACTIVATED")
+                    identity:
+                      type: object
+                      description: Identity demographic and biometric attributes
+                    documents:
+                      type: array
+                      description: List of supporting documents
+                      items:
+                        type: object
+                        properties:
+                          category:
+                            type: string
+                            description: Document category
+                          value:
+                            type: string
+                            description: Base64 encoded document content
+                    registrationId:
+                      type: string
+                      description: Registration ID associated with the identity
+                    uin:
+                      type: string
+                      description: Unique Identity Number
+                    verifiedAttributes:
+                      type: array
+                      description: List of verification metadata for claims
+                      items:
+                        type: object
+                        properties:
+                          trustFramework:
+                            type: string
+                            description: Framework used for verification
+                          verificationProcess:
+                            type: string
+                            description: Verification method or process
+                          claims:
+                            type: array
+                            items:
+                              type: string
+                            description: Verified claim names
+                          metadata:
+                            type: object
+                            description: Additional verification metadata
+                            additionalProperties: true
+            examples:
+              success:
+                value:
+                  id: "mosip.identity.create.v2"
+                  version: "v2"
+                  requesttime: "2025-07-02T13:17:04.521Z"
+                  metadata: {}
+                  request:
+                    status: "ACTIVATED"
+                    identity: {}
+                    documents:
+                      - category: "POI"
+                        value: "VmFsdTFRMk5XVGpkd01HbGpiVzFoYzJWeU=="
+                    registrationId: "6666123456789"
+                    uin: "1234567890"
+                    verifiedAttributes:
+                      - trustFramework: "MOSIP_CORE"
+                        verificationProcess: "MANUAL_VERIFICATION"
+                        claims:
+                          - "name"
+                          - "dob"
+                        metadata:
+                          verifiedBy: "Officer-123"
+                          verificationTime: "2025-07-02T13:00:00.000Z"
+      responses:
+        '200':
+          description: OK - Identity successfully created and metadata returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Response ID
+                  version:
+                    type: string
+                    description: API version
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time when response was generated
+                  metadata:
+                    type: object
+                    description: Optional response metadata
+                  response:
+                    type: object
+                    description: Created identity details with verification metadata
+                    properties:
+                      status:
+                        type: string
+                        description: Status of identity creation
+                      identity:
+                        type: object
+                        description: Identity data returned after creation
+                      documents:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                            value:
+                              type: string
+                      registrationId:
+                        type: string
+                        description: Registration ID associated
+                      uin:
+                        type: string
+                        description: Unique Identity Number
+                      verifiedAttributes:
+                        type: array
+                        description: List of verified attributes metadata
+                        items:
+                          type: object
+                          properties:
+                            trustFramework:
+                              type: string
+                            verificationProcess:
+                              type: string
+                            claims:
+                              type: array
+                              items:
+                                type: string
+                            metadata:
+                              type: object
+                              additionalProperties: true
+                  errors:
+                    type: array
+                    description: Any error messages during the process
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+              examples:
+                success:
+                  value:
+                    id: "mosip.identity.create.v2"
+                    version: "v2"
+                    responsetime: "2025-07-02T13:17:04.522Z"
+                    metadata: {}
+                    response:
+                      status: "ACTIVATED"
+                      identity: {}
+                      documents:
+                        - category: "POI"
+                          value: "VmFsdTFRMk5XVGpkd01HbGpiVzFoYzJWeU=="
+                      registrationId: "7777123456789"
+                      uin: "1234567890"
+                      verifiedAttributes:
+                        - trustFramework: "MOSIP_CORE"
+                          verificationProcess: "MANUAL_VERIFICATION"
+                          claims:
+                            - "name"
+                            - "dob"
+                          metadata:
+                            verifiedBy: "Officer-123"
+                            verificationTime: "2025-07-02T13:00:00.000Z"
+                    errors: []
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+    patch:
+      tags:
+        - id-repo-controller
+      summary: Update existing identity and return verification metadata (v2)
+      description: >
+        Updates an existing identity record in the ID Repository using the enhanced V2 schema.  
+        This version supports modification of identity data while also returning a list of verification metadata
+        objects associated with the update process.
+      operationId: updateIdentityV2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: Unique request ID
+                version:
+                  type: string
+                  description: API version
+                requesttime:
+                  type: string
+                  format: date-time
+                  description: Time of the request
+                metadata:
+                  type: object
+                  description: Optional metadata
+                request:
+                  type: object
+                  description: Identity update request payload
+                  properties:
+                    status:
+                      type: string
+                      description: Status of the identity
+                    identity:
+                      type: object
+                      description: Identity demographic and biometric attributes
+                    documents:
+                      type: array
+                      description: List of supporting documents
+                      items:
+                        type: object
+                        properties:
+                          category:
+                            type: string
+                            description: Document category
+                          value:
+                            type: string
+                            description: Base64 encoded document content
+                    registrationId:
+                      type: string
+                      description: Registration ID associated with the identity
+                    uin:
+                      type: string
+                      description: Unique Identity Number
+                    verifiedAttributes:
+                      type: array
+                      description: List of verification metadata for claims
+                      items:
+                        type: object
+                        properties:
+                          trustFramework:
+                            type: string
+                            description: Framework used for verification
+                          verificationProcess:
+                            type: string
+                            description: Verification method or process
+                          claims:
+                            type: array
+                            items:
+                              type: string
+                            description: Verified claim names
+                          metadata:
+                            type: object
+                            description: Additional verification metadata
+                            additionalProperties: true
+            examples:
+              success:
+                value:
+                  id: "mosip.identity.update.v2"
+                  version: "v2"
+                  requesttime: "2025-07-02T13:28:40.422Z"
+                  metadata: {}
+                  request:
+                    status: "UPDATED"
+                    identity: {}
+                    documents:
+                      - category: "POI"
+                        value: "VmFsdWUxMjM="
+                    registrationId: "6666987654321"
+                    uin: "1234567890"
+                    verifiedAttributes:
+                      - trustFramework: "MOSIP_CORE"
+                        verificationProcess: "OCR_VERIFICATION"
+                        claims:
+                          - "name"
+                          - "gender"
+                        metadata:
+                          verifiedBy: "Verifier-001"
+                          verificationTime: "2025-07-02T12:30:00.000Z"
+      responses:
+        '200':
+          description: OK - Identity updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Response ID
+                  version:
+                    type: string
+                    description: API version
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time when response was generated
+                  metadata:
+                    type: object
+                    description: Optional metadata
+                  response:
+                    type: object
+                    description: Identity update result with verification metadata
+                    properties:
+                      status:
+                        type: string
+                        description: Status after update
+                      identity:
+                        type: object
+                        description: Updated identity attributes
+                      documents:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                            value:
+                              type: string
+                      registrationId:
+                        type: string
+                      uin:
+                        type: string
+                      verifiedAttributes:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            trustFramework:
+                              type: string
+                            verificationProcess:
+                              type: string
+                            claims:
+                              type: array
+                              items:
+                                type: string
+                            metadata:
+                              type: object
+                              additionalProperties: true
+                  errors:
+                    type: array
+                    description: List of errors encountered during update
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+              examples:
+                success:
+                  value:
+                    id: "mosip.identity.update.v2"
+                    version: "v2"
+                    responsetime: "2025-07-02T13:28:40.423Z"
+                    metadata: {}
+                    response:
+                      status: "UPDATED"
+                      identity: {}
+                      documents:
+                        - category: "POI"
+                          value: "VmFsdWUxMjM="
+                      registrationId: "6666987654321"
+                      uin: "1234567890"
+                      verifiedAttributes:
+                        - trustFramework: "MOSIP_CORE"
+                          verificationProcess: "OCR_VERIFICATION"
+                          claims:
+                            - "name"
+                            - "gender"
+                          metadata:
+                            verifiedBy: "Verifier-001"
+                            verificationTime: "2025-07-02T12:30:00.000Z"
+                    errors: []
+        '204':
+          description: No Content - No update was applied
+        '401':
+          description: Unauthorized - Authentication required
+        '403':
+          description: Forbidden - Access denied
+
+  /draft/{registrationId}:
+    get:
+      tags:
+        - id-repo-draft-controller
+      summary: Retrieve a draft identity by registration Id
+      description: >
+        Fetches the draft identity record associated with the specified registration Id.
+        Optional query parameters can be used to specify desired biometric extraction formats for fingerprint, iris, and face.
+      operationId: getDraft
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          description: Unique registration ID associated with the draft record
+          schema:
+            type: string
+            example: "278436029937326"
+        - name: fingerExtractionFormat
+          in: query
+          required: false
+          description: Desired format for fingerprint extraction
+          schema:
+            type: string
+            example: mock-1.1
+        - name: irisExtractionFormat
+          in: query
+          required: false
+          description: Desired format for iris extraction
+          schema:
+            type: string
+            example: mock-1.1
+        - name: faceExtractionFormat
+          in: query
+          required: false
+          description: Desired format for face extraction
+          schema:
+            type: string
+            example: mock-1.1
+      responses:
+        '200':
+          description: Draft identity successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    nullable: true
+                    description: Unique response identifier (may be null for GET)
+                  version:
+                    type: string
+                    nullable: true
+                    description: API version (may be null for GET)
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time when the response was generated
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata associated with the response
+                  response:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Status of the draft record (e.g., DRAFT)
+                      identity:
+                        type: object
+                        properties:
+                          UIN:
+                            type: string
+                            description: Unique Identity Number
+                        description: Basic identity details
+                      documents:
+                        type: array
+                        description: List of supporting documents
+                        items:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                              description: Document category (e.g., POI, POA)
+                            value:
+                              type: string
+                              description: Base64-encoded document content
+                      registrationId:
+                        type: string
+                        description: Registration ID associated with the draft
+                      uin:
+                        type: string
+                        description: UIN linked with the draft (if available)
+                      biometricReferenceId:
+                        type: string
+                        description: Biometric reference identifier
+                      verifiedAttributes:
+                        type: array
+                        items:
+                          type: string
+                        description: List of verified attributes
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+              examples:
+                example-1:
+                  value:
+                    id: null
+                    version: null
+                    responsetime: "2025-07-02T13:48:59.599Z"
+                    metadata: {}
+                    response:
+                      status: "DRAFT"
+                      identity:
+                        UIN: "2479165295"
+                      documents:
+                        - category: "POI"
+                          value: "Base64EncodedPOIImageString=="
+                        - category: "POA"
+                          value: "Base64EncodedPOAImageString=="
+                      registrationId: "278475360299373"
+                      uin: "2479165295"
+                      biometricReferenceId: "bio-ref-2479165295"
+                      verifiedAttributes:
+                        - "name"
+                        - "dob"
+                        - "gender"
+                    errors: []
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+    head:
+      tags:
+        - id-repo-draft-controller
+      summary: Check if a draft exists for registration Id
+      description: >
+        Checks whether a draft identity exists for the given registration Id.
+        Returns HTTP 200 if a draft exists, or 204 if not found.
+      operationId: hasDraft
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          description: Unique registration ID to check for draft existence
+          schema:
+            type: string
+            example: "278436029937326"
+      responses:
+        '200':
+          description: OK
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
+  /draft/create/{registrationId}:
+    post:
+      tags:
+        - id-repo-draft-controller
+      summary: Create a new draft identity by registration ID
+      description: >
+        Creates a draft identity entry for the provided registration ID. This is typically used during the registration process
+        to persist an incomplete or temporary identity record before it is finalized or published.
+      operationId: createDraft
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          description: Registration ID used to identify the draft record
+          example: "27847536016526"
+          schema:
+            type: string
+        - name: UIN
+          in: query
+          required: false
+          description: Unique Identity Number (UIN) associated with the draft, if applicable
+          schema:
+            type: string
+            example: "123456789012"
+      responses:
+        '200':
+          description: Draft identity successfully created or updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    nullable: true
+                    description: Unique response identifier; may be null if not provided in request
+                  version:
+                    type: string
+                    nullable: true
+                    description: API version; may be null if not provided in request
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time when the response was generated
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata (e.g., VID)
+                  response:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Current status of the draft identity (e.g., DRAFTED)
+                      identity:
+                        type: object
+                        description: Draft identity details
+                        properties:
+                          name:
+                            type: string
+                            description: Full name of the individual
+                          dob:
+                            type: string
+                            format: date
+                            description: Date of birth (YYYY-MM-DD)
+                          gender:
+                            type: string
+                            description: Gender code (e.g., M/F/O)
+                          phone:
+                            type: string
+                            description: Mobile phone number
+                          email:
+                            type: string
+                            format: email
+                            description: Email address
+                      documents:
+                        type: array
+                        description: List of associated documents
+                        items:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                              description: Document category (e.g., POI, POA)
+                            value:
+                              type: string
+                              description: Base64-encoded document content
+                      registrationId:
+                        type: string
+                        description: Registration ID used for draft creation
+                      uin:
+                        type: string
+                        description: Unique Identity Number (if available)
+                      biometricReferenceId:
+                        type: string
+                        description: Reference ID used for biometric data linkage
+                      verifiedAttributes:
+                        type: array
+                        description: List of attributes verified during draft creation
+                        items:
+                          type: string
+                  errors:
+                    type: array
+                    description: List of errors, if any
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+              examples:
+                example-1:
+                  value:
+                    id: null
+                    version: null
+                    responsetime: "2025-07-02T14:00:35.891Z"
+                    metadata:
+                      vid: "1234567890123456"
+                    response:
+                      status: "DRAFTED"
+                      identity:
+                        name: "John Doe"
+                        dob: "1990-01-01"
+                        gender: "M"
+                        phone: "9876543210"
+                        email: "john.doe@example.com"
+                      documents:
+                        - category: "POI"
+                          value: "Base64EncodedPOIImageString=="
+                        - category: "POA"
+                          value: "Base64EncodedPOAImageString=="
+                      registrationId: "REG1234567890"
+                      uin: "123456789012"
+                      biometricReferenceId: "bio-ref-9876543210"
+                      verifiedAttributes:
+                        - "name"
+                        - "dob"
+                        - "gender"
+                    errors: []
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /draft/update/{registrationId}:
+    patch:
+      tags:
+        - id-repo-draft-controller
+      summary: Update an existing draft identity by registration ID
+      description: >
+        Updates an existing draft identity record. The registration ID identifies the draft,
+        and the request body contains updated identity details.
+      operationId: updateDraft
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          description: Registration ID used to uniquely identify the draft record to be updated.
+          schema:
+            type: string
+            example: "2784732022091216526"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  nullable: true
+                  description: Unique request identifier (nullable)
+                  example: null
+                version:
+                  type: string
+                  nullable: true
+                  description: API version (nullable)
+                  example: null
+                requesttime:
+                  type: string
+                  format: date-time
+                  description: Time at which the request was sent
+                  example: "2023-12-01T09:55:29.331Z"
+                metadata:
+                  type: object
+                  nullable: true
+                  description: Optional metadata
+                  example: {}
+                request:
+                  type: object
+                  required:
+                    - status
+                    - identity
+                    - registrationId
+                  properties:
+                    status:
+                      type: string
+                      description: Status of the draft (e.g., ACTIVATED)
+                      example: ACTIVATED
+                    identity:
+                      type: object
+                      properties:
+                        UIN:
+                          type: string
+                          description: Unique Identity Number
+                          example: "6231201539"
+                        IDSchemaVersion:
+                          type: number
+                          description: Version of the identity schema
+                          example: 0.1
+                        fullName:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              language:
+                                type: string
+                                description: Language code
+                                example: "eng"
+                              value:
+                                type: string
+                                description: Full name
+                                example: "Jane Smith"
+                    registrationId:
+                      type: string
+                      description: Registration ID used for the draft
+                      example: "278472091216526"
+                    uin:
+                      type: string
+                      description: UIN associated with the draft
+                      example: "6231201539"
+            examples:
+              example-1:
+                value:
+                  id: null
+                  version: null
+                  requesttime: "2023-12-01T09:55:29.331Z"
+                  metadata: {}
+                  request:
+                    status: "ACTIVATED"
+                    identity:
+                      UIN: "6231201539"
+                      IDSchemaVersion: 0.1
+                      fullName:
+                        - language: "eng"
+                          value: "Jane Smith"
+                    registrationId: "27847591216526"
+                    uin: "6231201539"
+      responses:
+        '200':
+          description: Draft identity updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    nullable: true
+                    description: Unique response identifier (nullable)
+                  version:
+                    type: string
+                    nullable: true
+                    description: API version (nullable)
+                    example: null
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time when the response was generated
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata
+                  response:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Current status after update (e.g., DRAFTED)
+                      identity:
+                        type: object
+                        description: Updated identity object
+                        properties:
+                          name:
+                            type: string
+                          dob:
+                            type: string
+                            format: date
+                          gender:
+                            type: string
+                          phone:
+                            type: string
+                          email:
+                            type: string
+                      documents:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                            value:
+                              type: string
+                      registrationId:
+                        type: string
+                      uin:
+                        type: string
+                        example: "6231201539"
+                      biometricReferenceId:
+                        type: string
+                      verifiedAttributes:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "name"
+                          - "dob"
+                          - "gender"
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          example: "IDR-VAL-001"
+                        message:
+                          type: string
+                          example: "Validation failed"
+              examples:
+                example-1:
+                  value:
+                    id: null
+                    version: null
+                    responsetime: "2025-07-02T14:28:22.240Z"
+                    metadata:
+                      source: "id-repo-draft-service"
+                    response:
+                      status: "DRAFTED"
+                      identity:
+                        name: "Jane Smith"
+                        dob: "1992-04-15"
+                        gender: "F"
+                        phone: "9876543210"
+                        email: "jane.smith@example.com"
+                      documents:
+                        - category: "POI"
+                          value: "Base64EncodedPOIImage=="
+                        - category: "POA"
+                          value: "Base64EncodedPOAImage=="
+                      registrationId: "2784753602993732022091216526"
+                      uin: "6231201539"
+                      biometricReferenceId: "bio-ref-6231201539"
+                      verifiedAttributes:
+                        - "name"
+                        - "dob"
+                        - "gender"
+                    errors: []
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /draft/uin/{UIN}:
+    get:
+      tags:
+        - id-repo-draft-controller
+      summary: Retrieve draft registration metadata using UIN
+      description: >
+        Retrieves the draft identity metadata for the individual with the specified UIN.
+        This endpoint helps determine whether a UIN has any associated draft identities pending publication.
+      operationId: getDraftUIN
+      parameters:
+        - name: UIN
+          in: path
+          required: true
+          description: Unique Identity Number (UIN) of the individual
+          schema:
+            type: string
+            example: "6466363111"
+      responses:
+        '200':
+          description: Draft metadata retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Unique response identifier
+                  version:
+                    type: string
+                    description: API version
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time when the response was generated
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata
+                  response:
+                    type: object
+                    properties:
+                      drafts:
+                        type: array
+                        description: List of draft records associated with the UIN
+                        items:
+                          type: object
+                          properties:
+                            rid:
+                              type: string
+                              description: Registration ID of the draft
+                            createdDTimes:
+                              type: string
+                              format: date-time
+                              description: Timestamp when the draft was created
+                            attributes:
+                              type: array
+                              description: List of verified or changed attributes
+                              items:
+                                type: string
+                  errors:
+                    type: array
+                    description: List of errors, if any
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+              examples:
+                example-1:
+                  value:
+                    id: "mosip.identity.get.drafts"
+                    version: "1.0"
+                    responsetime: "2025-07-02T16:11:35.227Z"
+                    metadata: null
+                    response:
+                      drafts:
+                        - rid: "444436663212456"
+                          createdDTimes: "2025-07-02T16:10:56.608698"
+                          attributes: []
+                    errors: []
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /draft/publish/{registrationId}:
+    get:
+      tags:
+        - id-repo-draft-controller
+      summary: Finalize and publish the draft identity for registration ID
+      description: >
+        Finalizes and publishes the identity associated with the draft for the provided registration ID.
+        After publishing, the draft is promoted to a permanent identity record in the system.
+      operationId: publishDraft
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          description: Unique registration ID used to identify the draft to be published
+          schema:
+            type: string
+            example: "16666666234567890"
+      responses:
+        '200':
+          description: Identity draft successfully published
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Unique response identifier
+                  version:
+                    type: string
+                    description: API version
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time when the response was generated
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata
+                  response:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Final status of the identity (e.g., DRAFTED)
+                      identity:
+                        type: object
+                        description: Finalized identity details
+                        properties:
+                          name:
+                            type: string
+                          dob:
+                            type: string
+                            format: date
+                          gender:
+                            type: string
+                          phone:
+                            type: string
+                          email:
+                            type: string
+                      documents:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                            value:
+                              type: string
+                      registrationId:
+                        type: string
+                      uin:
+                        type: string
+                      biometricReferenceId:
+                        type: string
+                      verifiedAttributes:
+                        type: array
+                        items:
+                          type: string
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                        message:
+                          type: string
+              examples:
+                example-1:
+                  value:
+                    id: "mosip.idrepo.draft.publish"
+                    version: "1.0"
+                    responsetime: "2025-07-02T16:35:35.829Z"
+                    metadata: {}
+                    response:
+                      status: "DRAFTED"
+                      identity:
+                        name: "Ravi Kumar"
+                        dob: "1985-08-10"
+                        gender: "M"
+                        phone: "9876543210"
+                        email: "ravi.kumar@example.com"
+                      documents:
+                        - category: "POI"
+                          value: "Base64EncodedPOIImage=="
+                        - category: "POA"
+                          value: "Base64EncodedPOAImage=="
+                      registrationId: "REG1234567890"
+                      uin: "123456789012"
+                      biometricReferenceId: "bio-ref-123456789012"
+                      verifiedAttributes:
+                        - "name"
+                        - "dob"
+                        - "gender"
+                    errors: []
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+
+  /draft/extractbiometrics/{registrationId}:
+    put:
+      tags:
+        - id-repo-draft-controller
+      summary: Extract biometrics for a draft identity using specified formats
+      description: >
+        Extracts biometric data (finger, iris, face) from the draft identity for the given registration ID using the specified image formats.
+      operationId: extractBiometrics
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          description: Registration ID for which biometrics should be extracted
+          schema:
+            type: string
+            example: "2784753091216526"
+        - name: fingerExtractionFormat
+          in: query
+          required: false
+          description: Desired image format for fingerprint extraction (e.g., mock-1.1, ISO)
+          schema:
+            type: string
+            example: "mock-1.1"
+        - name: irisExtractionFormat
+          in: query
+          required: false
+          description: Desired image format for iris extraction
+          schema:
+            type: string
+            example: "mock-1.1"
+        - name: faceExtractionFormat
+          in: query
+          required: false
+          description: Desired image format for face extraction
+          schema:
+            type: string
+            example: "mock-1.1"
+      responses:
+        '200':
+          description: Biometrics extracted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    nullable: true
+                    description: Unique response identifier; may be null if not set
+                  version:
+                    type: string
+                    nullable: true
+                    description: API version; may be null if not set
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time when the response was generated
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata
+                  response:
+                    type: object
+                    description: Response containing extracted biometric data
+                    properties:
+                      status:
+                        type: string
+                        description: Current status of the draft (e.g., DRAFTED)
+                      identity:
+                        type: object
+                        description: Basic identity information
+                        properties:
+                          name:
+                            type: string
+                          dob:
+                            type: string
+                            format: date
+                          gender:
+                            type: string
+                          phone:
+                            type: string
+                          email:
+                            type: string
+                      documents:
+                        type: array
+                        description: List of associated documents
+                        items:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                            value:
+                              type: string
+                      registrationId:
+                        type: string
+                      uin:
+                        type: string
+                      biometricReferenceId:
+                        type: string
+                      verifiedAttributes:
+                        type: array
+                        items:
+                          type: string
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+              examples:
+                example-1:
+                  value:
+                    id: "mosip.idrepo.draft.extract-biometrics"
+                    version: "1.0"
+                    responsetime: "2025-07-02T16:19:42.794Z"
+                    metadata: {}
+                    response:
+                      status: "DRAFTED"
+                      identity:
+                        name: "Ravi Kumar"
+                        dob: "1985-06-25"
+                        gender: "M"
+                        phone: "9876543210"
+                        email: "ravi.kumar@example.com"
+                      documents:
+                        - category: "POI"
+                          value: "Base64EncodedPOIImageString=="
+                        - category: "POA"
+                          value: "Base64EncodedPOAImageString=="
+                      registrationId: "2784753602993732022091216526"
+                      uin: "123456789012"
+                      biometricReferenceId: "bio-ref-123456789012"
+                      verifiedAttributes:
+                        - "name"
+                        - "dob"
+                        - "gender"
+                    errors: []
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /draft/discard/{registrationId}:
+    delete:
+      tags:
+        - id-repo-draft-controller
+      summary: Discard draft identity for registration ID
+      description: >
+        Deletes the draft identity associated with the specified registration ID.
+        This operation is used to abandon the registration flow and clean up unneeded drafts.
+      operationId: discardDraft
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          description: Registration ID of the draft to be discarded
+          schema:
+            type: string
+            example: "27847531216526"
+      responses:
+        '200':
+          description: Draft identity discarded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    nullable: true
+                    description: Unique response identifier; may be null if not set
+                  version:
+                    type: string
+                    nullable: true
+                    description: API version; may be null if not set
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time when the response was generated
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata
+                  response:
+                    type: object
+                    description: Response containing the result of discard operation
+                    properties:
+                      status:
+                        type: string
+                        description: Current status of the draft (e.g., DISCARDED)
+                      identity:
+                        type: object
+                        description: Identity data at the time of discard
+                        properties:
+                          name:
+                            type: string
+                          dob:
+                            type: string
+                            format: date
+                          gender:
+                            type: string
+                          phone:
+                            type: string
+                          email:
+                            type: string
+                      documents:
+                        type: array
+                        description: Documents associated with the draft
+                        items:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                            value:
+                              type: string
+                      registrationId:
+                        type: string
+                        description: Registration ID that was discarded
+                      uin:
+                        type: string
+                        description: UIN linked with the draft (if any)
+                      biometricReferenceId:
+                        type: string
+                        description: Biometric reference ID
+                      verifiedAttributes:
+                        type: array
+                        items:
+                          type: string
+                        description: List of verified attributes
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                        message:
+                          type: string
+              examples:
+                example-1:
+                  value:
+                    id: "mosip.idrepo.draft.discard"
+                    version: "1.0"
+                    responsetime: "2025-07-02T16:26:38.104Z"
+                    metadata: {}
+                    response:
+                      status: "DISCARDED"
+                      identity:
+                        name: "Rahul Verma"
+                        dob: "1991-05-20"
+                        gender: "M"
+                        phone: "9876543210"
+                        email: "rahul.verma@example.com"
+                      documents:
+                        - category: "POI"
+                          value: "Base64EncodedPOIImageString=="
+                        - category: "POA"
+                          value: "Base64EncodedPOAImageString=="
+                      registrationId: "2784753602993732022091216526"
+                      uin: "123456789012"
+                      biometricReferenceId: "bio-ref-123456789012"
+                      verifiedAttributes:
+                        - "name"
+                        - "dob"
+                        - "gender"
+                    errors: []
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /callback/remove_id_status:
+    post:
+      tags:
+        - websub-event-callback-controller
+      summary: Handle WebSub event to remove ID status
+      description: >
+        Handles incoming WebSub events that trigger **identity status removal** in the Id Repository.
+      operationId: handleRemoveIdStatusEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                publisher:
+                  type: string
+                  example: "https://example.org/publisher"
+                topic:
+                  type: string
+                  example: "remove-id-status"
+                publishedOn:
+                  type: string
+                  format: date-time
+                  example: "2025-07-03T10:30:00Z"
+                event:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: "event-789"
+                    transactionId:
+                      type: string
+                      example: "777777999"
+                    type:
+                      type: object
+                      properties:
+                        namespace:
+                          type: string
+                          example: "mosip.id.status"
+                        name:
+                          type: string
+                          example: "REMOVE_ID_STATUS"
+                    timestamp:
+                      type: string
+                      format: date-time
+                      example: "2025-07-03T10:30:00Z"
+                    dataShareUri:
+                      type: string
+                      example: "https://example.org/data/id/status/remove"
+                    data:
+                      type: object
+                      additionalProperties: true
+                      example:
+                        additionalProp1: {}
+                        additionalProp2: {}
+                        additionalProp3: {}
+            examples:
+              example-1:
+                summary: Sample Remove ID Status Event
+                value:
+                  publisher: "https://example.org/publisher"
+                  topic: "remove-id-status"
+                  publishedOn: "2025-07-03T10:30:00Z"
+                  event:
+                    id: "event-789"
+                    transactionId: "66666444999"
+                    type:
+                      namespace: "mosip.id.status"
+                      name: "REMOVE_ID_STATUS"
+                    timestamp: "2025-07-03T10:30:00Z"
+                    dataShareUri: "https://example.org/data/id/status/remove"
+                    data:
+                      additionalProp1: {}
+                      additionalProp2: {}
+                      additionalProp3: {}
+      responses:
+        '200':
+          description: Request authenticated successfully
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+
+  /callback/vid_credential_status_update:
+    post:
+      tags:
+        - websub-event-callback-controller
+      summary: Handle WebSub event for VID credential status update
+      description: >
+        Handles incoming WebSub credential status update events related to **VID**.
+      operationId: handleVidEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                publisher:
+                  type: string
+                  example: "https://example.org/publisher"
+                topic:
+                  type: string
+                  example: "vid-credential-status-update"
+                publishedOn:
+                  type: string
+                  format: date-time
+                  example: "2025-07-03T10:30:00Z"
+                event:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: "event-123"
+                    transactionId:
+                      type: string
+                      example: "66666456"
+                    type:
+                      type: object
+                      properties:
+                        namespace:
+                          type: string
+                          example: "mosip.vid.status"
+                        name:
+                          type: string
+                          example: "VID_CREDENTIAL_STATUS_UPDATE"
+                    timestamp:
+                      type: string
+                      format: date-time
+                      example: "2025-07-03T10:30:00Z"
+                    dataShareUri:
+                      type: string
+                      example: "https://example.org/data/vid/status/update"
+                    data:
+                      type: object
+                      additionalProperties: true
+                      example:
+                        additionalProp1: {}
+                        additionalProp2: {}
+                        additionalProp3: {}
+            examples:
+              example-1:
+                summary: Sample VID Credential Status Update Event
+                value:
+                  publisher: "https://example.org/publisher"
+                  topic: "vid-credential-status-update"
+                  publishedOn: "2025-07-03T10:30:00Z"
+                  event:
+                    id: "event-123"
+                    transactionId: "7777555456"
+                    type:
+                      namespace: "mosip.vid.status"
+                      name: "VID_CREDENTIAL_STATUS_UPDATE"
+                    timestamp: "2025-07-03T10:30:00Z"
+                    dataShareUri: "https://example.org/data/vid/status/update"
+                    data:
+                      additionalProp1: {}
+                      additionalProp2: {}
+                      additionalProp3: {}
+      responses:
+        '200':
+          description: Request authenticated successfully
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+
+components:
+  schemas:
+    IdRepoAppException:
+      type: object
+      properties:
+        cause:
+          type: object
+          properties:
+            stackTrace:
+              type: array
+              items:
+                type: object
+                properties:
+                  classLoaderName:
+                    type: string
+                  moduleName:
+                    type: string
+                  moduleVersion:
+                    type: string
+                  methodName:
+                    type: string
+                  fileName:
+                    type: string
+                  lineNumber:
+                    type: integer
+                    format: int32
+                  className:
+                    type: string
+                  nativeMethod:
+                    type: boolean
+            message:
+              type: string
+            suppressed:
+              type: array
+              items:
+                type: object
+                properties:
+                  stackTrace:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        classLoaderName:
+                          type: string
+                        moduleName:
+                          type: string
+                        moduleVersion:
+                          type: string
+                        methodName:
+                          type: string
+                        fileName:
+                          type: string
+                        lineNumber:
+                          type: integer
+                          format: int32
+                        className:
+                          type: string
+                        nativeMethod:
+                          type: boolean
+                  message:
+                    type: string
+                  localizedMessage:
+                    type: string
+            localizedMessage:
+              type: string
+        stackTrace:
+          type: array
+          items:
+            type: object
+            properties:
+              classLoaderName:
+                type: string
+              moduleName:
+                type: string
+              moduleVersion:
+                type: string
+              methodName:
+                type: string
+              fileName:
+                type: string
+              lineNumber:
+                type: integer
+                format: int32
+              className:
+                type: string
+              nativeMethod:
+                type: boolean
+        operation:
+          type: string
+        message:
+          type: string
+        codes:
+          type: array
+          items:
+            type: string
+        errorText:
+          type: string
+        errorTexts:
+          type: array
+          items:
+            type: string
+        errorCode:
+          type: string
+        suppressed:
+          type: array
+          items:
+            type: object
+            properties:
+              stackTrace:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    classLoaderName:
+                      type: string
+                    moduleName:
+                      type: string
+                    moduleVersion:
+                      type: string
+                    methodName:
+                      type: string
+                    fileName:
+                      type: string
+                    lineNumber:
+                      type: integer
+                      format: int32
+                    className:
+                      type: string
+                    nativeMethod:
+                      type: boolean
+              message:
+                type: string
+              localizedMessage:
+                type: string
+        localizedMessage:
+          type: string
+    DocumentsDTO:
+      type: object
+      properties:
+        category:
+          type: string
+        value:
+          type: string
+    IdRequestDTOListVerificationMetadata:
+      type: object
+      properties:
+        status:
+          type: string
+        identity:
+          type: object
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentsDTO'
+        registrationId:
+          type: string
+        uin:
+          type: string
+        biometricReferenceId:
+          type: string
+          deprecated: true
+        verifiedAttributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/VerificationMetadata'
+    RequestWrapperIdRequestDTOListVerificationMetadata:
+      required:
+        - request
+      type: object
+      properties:
+        id:
+          type: string
+        version:
+          type: string
+        requesttime:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+        request:
+          $ref: '#/components/schemas/IdRequestDTOListVerificationMetadata'
+    VerificationMetadata:
+      type: object
+      properties:
+        trustFramework:
+          type: string
+        verificationProcess:
+          type: string
+        claims:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+          additionalProperties:
+            type: object
+    IdResponseDTOListVerificationMetadata:
+      required:
+        - response
+      type: object
+      properties:
+        id:
+          type: string
+        version:
+          type: string
+        responsetime:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+        response:
+          $ref: '#/components/schemas/ResponseDTOListVerificationMetadata'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceError'
+    ResponseDTOListVerificationMetadata:
+      type: object
+      properties:
+        status:
+          type: string
+        identity:
+          type: object
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentsDTO'
+        registrationId:
+          type: string
+        uin:
+          type: string
+        biometricReferenceId:
+          type: string
+          deprecated: true
+        verifiedAttributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/VerificationMetadata'
+    ServiceError:
+      type: object
+      properties:
+        errorCode:
+          type: string
+        message:
+          type: string
+    IdResponseDTOObject:
+      required:
+        - response
+      type: object
+      properties:
+        id:
+          type: string
+        version:
+          type: string
+        responsetime:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+        response:
+          $ref: '#/components/schemas/ResponseDTOObject'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceError'
+    ResponseDTOObject:
+      type: object
+      properties:
+        status:
+          type: string
+        identity:
+          type: object
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentsDTO'
+        registrationId:
+          type: string
+        uin:
+          type: string
+        biometricReferenceId:
+          type: string
+          deprecated: true
+        verifiedAttributes:
+          type: object
+    IdRequestByIdDTO:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        idType:
+          type: string
+        fingerExtractionFormat:
+          type: string
+        irisExtractionFormat:
+          type: string
+        faceExtractionFormat:
+          type: string
+    RequestWrapperIdRequestByIdDTO:
+      required:
+        - request
+      type: object
+      properties:
+        id:
+          type: string
+        version:
+          type: string
+        requesttime:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+        request:
+          $ref: '#/components/schemas/IdRequestByIdDTO'
+    IdVidMetadataRequestDTO:
+      type: object
+      properties:
+        individualId:
+          type: string
+        idType:
+          type: string
+    RequestWrapperIdVidMetadataRequestDTO:
+      required:
+        - request
+      type: object
+      properties:
+        id:
+          type: string
+        version:
+          type: string
+        requesttime:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+        request:
+          $ref: '#/components/schemas/IdVidMetadataRequestDTO'
+    IdVidMetadataResponseDTO:
+      type: object
+      properties:
+        rid:
+          type: string
+        createdOn:
+          type: string
+        updatedOn:
+          type: string
+    IdRequestDTOObject:
+      type: object
+      properties:
+        status:
+          type: string
+        identity:
+          type: object
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentsDTO'
+        registrationId:
+          type: string
+        uin:
+          type: string
+        biometricReferenceId:
+          type: string
+          deprecated: true
+        verifiedAttributes:
+          type: object
+    RequestWrapperIdRequestDTOObject:
+      required:
+        - request
+      type: object
+      properties:
+        id:
+          type: string
+        version:
+          type: string
+        requesttime:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+        request:
+          $ref: '#/components/schemas/IdRequestDTOObject'
+    DraftResponseDto:
+      type: object
+      properties:
+        drafts:
+          type: array
+          items:
+            $ref: '#/components/schemas/DraftUinResponseDto'
+    DraftUinResponseDto:
+      type: object
+      properties:
+        rid:
+          type: string
+        createdDTimes:
+          type: string
+        attributes:
+          type: array
+          items:
+            type: string
+    ResponseWrapperDraftResponseDto:
+      required:
+        - response
+      type: object
+      properties:
+        id:
+          type: string
+        version:
+          type: string
+        responsetime:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+        response:
+          $ref: '#/components/schemas/DraftResponseDto'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceError'
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+        transactionId:
+          type: string
+        type:
+          $ref: '#/components/schemas/Type'
+        timestamp:
+          type: string
+        dataShareUri:
+          type: string
+        data:
+          type: object
+          additionalProperties:
+            type: object
+    EventModel:
+      type: object
+      properties:
+        publisher:
+          type: string
+        topic:
+          type: string
+        publishedOn:
+          type: string
+        event:
+          $ref: '#/components/schemas/Event'
+    Type:
+      type: object
+      properties:
+        namespace:
+          type: string
+        name:
+          type: string
+    AuthTypeStatusRequestDto:
+      type: object
+      properties:
+        id:
+          type: string
+        version:
+          type: string
+        requestTime:
+          type: string
+        consentObtained:
+          type: boolean
+        individualId:
+          type: string
+        individualIdType:
+          type: string
+        request:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthtypeStatus'
+    AuthtypeStatus:
+      type: object
+      properties:
+        authType:
+          type: string
+        authSubType:
+          type: string
+        locked:
+          type: boolean
+        unlockForSeconds:
+          type: integer
+          format: int64
+        requestId:
+          type: string
+        metadata:
+          type: object
+          additionalProperties:
+            type: object
+    IdRequestDTOListString:
+      type: object
+      properties:
+        status:
+          type: string
+        identity:
+          type: object
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentsDTO'
+        registrationId:
+          type: string
+        uin:
+          type: string
+        biometricReferenceId:
+          type: string
+          deprecated: true
+        verifiedAttributes:
+          type: array
+          items:
+            type: string
+    RequestWrapperIdRequestDTOListString:
+      required:
+        - request
+      type: object
+      properties:
+        id:
+          type: string
+        version:
+          type: string
+        requesttime:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+        request:
+          $ref: '#/components/schemas/IdRequestDTOListString'
+    IdResponseDTOListString:
+      required:
+        - response
+      type: object
+      properties:
+        id:
+          type: string
+        version:
+          type: string
+        responsetime:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+        response:
+          $ref: '#/components/schemas/ResponseDTOListString'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceError'
+    ResponseDTOListString:
+      type: object
+      properties:
+        status:
+          type: string
+        identity:
+          type: object
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentsDTO'
+        registrationId:
+          type: string
+        uin:
+          type: string
+        biometricReferenceId:
+          type: string
+          deprecated: true
+        verifiedAttributes:
+          type: array
+          items:
+            type: string
