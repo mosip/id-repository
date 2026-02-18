@@ -678,6 +678,8 @@ public class IdRepoControllerTest {
 		dto.setIdType(null);
 
 		RequestWrapper<IdVidMetadataRequestDTO> request = new RequestWrapper<>();
+		request.setId(idvidMetadataId);
+		request.setVersion(idvidMetadataVersion);
 		request.setRequest(dto);
 
 		String createdOn = "2025-06-18T12:08:04.536Z";
@@ -706,6 +708,8 @@ public class IdRepoControllerTest {
 		dto.setIdType(null);
 
 		RequestWrapper<IdVidMetadataRequestDTO> request = new RequestWrapper<>();
+		request.setId(idvidMetadataId);
+		request.setVersion(idvidMetadataVersion);
 		request.setRequest(dto);
 
 		String createdOn = "2025-06-18T12:08:04.536Z";
@@ -734,6 +738,8 @@ public class IdRepoControllerTest {
 		dto.setIdType(null);
 
 		RequestWrapper<IdVidMetadataRequestDTO> request = new RequestWrapper<>();
+		request.setId(idvidMetadataId);
+		request.setVersion(idvidMetadataVersion);
 		request.setRequest(dto);
 
 		String createdOn = "2025-06-18T12:08:04.536Z";
@@ -764,6 +770,8 @@ public class IdRepoControllerTest {
 		dto.setIdType(idTypeValue);
 
 		RequestWrapper<IdVidMetadataRequestDTO> request = new RequestWrapper<>();
+		request.setId(idvidMetadataId);
+		request.setVersion(idvidMetadataVersion);
 		request.setRequest(dto);
 
 		String createdOn = "2025-06-18T12:08:04.536Z";
@@ -793,6 +801,8 @@ public class IdRepoControllerTest {
 		dto.setIdType(idTypeValue);
 
 		RequestWrapper<IdVidMetadataRequestDTO> request = new RequestWrapper<>();
+		request.setId(idvidMetadataId);
+		request.setVersion(idvidMetadataVersion);
 		request.setRequest(dto);
 
 		String createdOn = "2025-06-18T12:08:04.536Z";
@@ -823,6 +833,8 @@ public class IdRepoControllerTest {
 		dto.setIdType(idTypeValue);
 
 		RequestWrapper<IdVidMetadataRequestDTO> request = new RequestWrapper<>();
+		request.setId(idvidMetadataId);
+		request.setVersion(idvidMetadataVersion);
 		request.setRequest(dto);
 
 		String createdOn = "2025-06-18T12:08:04.536Z";

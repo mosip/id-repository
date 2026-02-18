@@ -519,6 +519,22 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
 	public ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> searchIdVidMetadata(@RequestBody RequestWrapper<IdVidMetadataRequestDTO> request) throws IdRepoAppException {
 
+		// Validate wrapper ID
+		if (StringUtils.isBlank(request.getId()) || !StringUtils.equals(request.getId(), idvidMetadataId)) {
+			throw new IdRepoAppException(
+					IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+					"id"
+			);
+		}
+
+		// Validate wrapper version
+		if (StringUtils.isBlank(request.getVersion()) || !StringUtils.equals(request.getVersion(), idvidMetadataVersion)) {
+			throw new IdRepoAppException(
+					IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+					"version"
+			);
+		}
+
 		IdVidMetadataRequestDTO metadataRequest = request.getRequest();
 		String individualId = metadataRequest.getIndividualId();
 		String idType = metadataRequest.getIdType();
