@@ -99,12 +99,17 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 					GlobalConstants.TARGET_ENV_HEALTH_CHECK_FAILED + HealthChecker.healthCheckFailureMapS);
 		}
 		testCaseDTO.setInputTemplate(AdminTestUtil.modifySchemaGenerateHbs(testCaseDTO.isRegenerateHbs()));
-		String uin = JsonPrecondtion
-				.getValueFromJson(
-						RestClient.getRequestWithCookie(ApplnURI + "/v1/idgenerator/uin", MediaType.APPLICATION_JSON,
-								MediaType.APPLICATION_JSON, COOKIENAME,
-								new KernelAuthentication().getTokenByRole(testCaseDTO.getRole())).asString(),
-						"response.uin");
+		String jsonInput = testCaseDTO.getInput();
+
+		String inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
+		String uin = null;
+		if (inputJson.contains("$UIN$")) {
+			uin = JsonPrecondtion.getValueFromJson(
+					RestClient.getRequestWithCookie(ApplnURI + "/v1/idgenerator/uin", MediaType.APPLICATION_JSON,
+							MediaType.APPLICATION_JSON, COOKIENAME,
+							new KernelAuthentication().getTokenByRole(testCaseDTO.getRole())).asString(),
+					"response.uin");
+		}
 
 		DateFormat dateFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
 		Calendar cal = Calendar.getInstance();
@@ -116,6 +121,9 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 			KeycloakUserManager.removeVidUser();
 			Map<String, List<String>> attrmap = new HashMap<>();
 			List<String> list = new ArrayList<>();
+			if (uin == null) {
+		        throw new IllegalStateException("UIN not initialized");
+		    }
 			list.add(uin);
 			attrmap.put("individual_id", list);
 			list = new ArrayList<>();
@@ -131,10 +139,7 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 					attrmap);
 		}
 
-		String jsonInput = testCaseDTO.getInput();
 
-		String inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
-		
 		
 		//For_Array-Handle Related Cases
 		if (inputJson.contains("$FUNCTIONALID$")) {
@@ -156,7 +161,9 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "  ");
 		}
 
-		inputJson = inputJson.replace("$UIN$", uin);
+		if (uin != null) {
+			inputJson = inputJson.replace("$UIN$", uin);
+		}
 		inputJson = inputJson.replace("$RID$", genRid);
 		String phoneNumber = "";
 		String email = testCaseName + "_" + BaseTestCase.runContext + "@mosip.net";
