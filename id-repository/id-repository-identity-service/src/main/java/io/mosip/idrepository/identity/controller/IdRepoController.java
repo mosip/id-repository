@@ -624,16 +624,17 @@ public class IdRepoController {
 
 	// Helper method to validate blank fields and throw the appropriate exception
 	private void validateParameter(String param, String expectedValue, String paramName) throws IdRepoAppException {
-		if (StringUtils.isBlank(param)) {
+		if (org.apache.commons.lang.StringUtils.isBlank(param)) {
 			throw new IdRepoAppException(
 					IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
-					paramName
+					String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), paramName)
 			);
 		}
-		if (!StringUtils.equals(param, expectedValue)) {
+
+		if (!org.apache.commons.lang.StringUtils.equals(param, expectedValue)) {
 			throw new IdRepoAppException(
 					IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
-					paramName
+					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), paramName)
 			);
 		}
 	}
