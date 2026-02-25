@@ -519,6 +519,10 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
 	public ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> searchIdVidMetadata(@RequestBody RequestWrapper<IdVidMetadataRequestDTO> request) throws IdRepoAppException {
 
+		// Validate wrapper ID and version
+		validateParameter(request.getId(), idvidMetadataId, "id");
+		validateParameter(request.getVersion(), idvidMetadataVersion, "version");
+
 		IdVidMetadataRequestDTO metadataRequest = request.getRequest();
 		String individualId = metadataRequest.getIndividualId();
 		String idType = metadataRequest.getIdType();
@@ -616,5 +620,22 @@ public class IdRepoController {
 		if (validator.validateVid(id))
 			return IdType.VID;
 		return IdType.ID;
+	}
+
+	// Helper method to validate blank fields and throw the appropriate exception
+	private void validateParameter(String param, String expectedValue, String paramName) throws IdRepoAppException {
+		if (org.apache.commons.lang.StringUtils.isBlank(param)) {
+			throw new IdRepoAppException(
+					IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
+					String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), paramName)
+			);
+		}
+
+		if (!org.apache.commons.lang.StringUtils.equals(param, expectedValue)) {
+			throw new IdRepoAppException(
+					IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), paramName)
+			);
+		}
 	}
 }
