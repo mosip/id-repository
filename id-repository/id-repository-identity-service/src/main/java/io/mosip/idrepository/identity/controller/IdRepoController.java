@@ -147,10 +147,10 @@ public class IdRepoController {
 	@Value("${mosip.idrepo.rid.get.version}")
 	private String ridVersion;
 
-	@Value("${mosip.idrepo.idvid.metadata.id}")
+	@Value("${mosip.idrepo.idvid.metadata.id:1.0}")
 	private String idvidMetadataId;
 
-	@Value("${mosip.idrepo.idvid.metadata.version}")
+	@Value("${mosip.idrepo.idvid.metadata.version:mosip.idrepo.idvid.metadata}")
 	private String idvidMetadataVersion;
 
 	/**
@@ -564,21 +564,10 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
 	public ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> searchIdVidMetadata(@RequestBody RequestWrapper<IdVidMetadataRequestDTO> request) throws IdRepoAppException {
 
-		// Validate wrapper ID
-		if (StringUtils.isBlank(request.getId()) || !StringUtils.equals(request.getId(), idvidMetadataId)) {
-			throw new IdRepoAppException(
-					IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
-					"id"
-			);
-		}
+		// Validate wrapper ID and version
+		validateParameter(request.getId(), idvidMetadataId, "id");
+		validateParameter(request.getVersion(), idvidMetadataVersion, "version");
 
-		// Validate wrapper version
-		if (StringUtils.isBlank(request.getVersion()) || !StringUtils.equals(request.getVersion(), idvidMetadataVersion)) {
-			throw new IdRepoAppException(
-					IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
-					"version"
-			);
-		}
 		IdVidMetadataRequestDTO metadataRequest = request.getRequest();
 		String individualId = metadataRequest.getIndividualId();
 		String idType = metadataRequest.getIdType();
@@ -674,5 +663,21 @@ public class IdRepoController {
 		if (validator.validateVid(id))
 			return IdType.VID;
 		return IdType.ID;
+	}
+
+	// Helper method to validate blank fields and throw the appropriate exception
+	private void validateParameter(String param, String expectedValue, String paramName) throws IdRepoAppException {
+		if (StringUtils.isBlank(param)) {
+			throw new IdRepoAppException(
+					IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
+					paramName
+			);
+		}
+		if (!StringUtils.equals(param, expectedValue)) {
+			throw new IdRepoAppException(
+					IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+					paramName
+			);
+		}
 	}
 }
