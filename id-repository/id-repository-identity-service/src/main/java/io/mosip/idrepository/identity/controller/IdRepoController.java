@@ -670,13 +670,14 @@ public class IdRepoController {
 		if (StringUtils.isBlank(param)) {
 			throw new IdRepoAppException(
 					IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
-					paramName
+					String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), paramName)
 			);
 		}
+
 		if (!StringUtils.equals(param, expectedValue)) {
 			throw new IdRepoAppException(
 					IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
-					paramName
+					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), paramName)
 			);
 		}
 	}
