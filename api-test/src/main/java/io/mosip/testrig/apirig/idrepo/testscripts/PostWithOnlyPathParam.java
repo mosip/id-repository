@@ -104,6 +104,7 @@ public class PostWithOnlyPathParam extends IdRepoUtil implements ITest {
 				response = postWithOnlyPathParamAndCookie(ApplnURI + testCaseDTO.getEndPoint(),
 						getJsonFromTemplate(inputtestCases.get(i).toString(), testCaseDTO.getInputTemplate()),
 						COOKIENAME, testCaseDTO.getRole(), testCaseDTO.getTestCaseName());
+				Reporter.log(AdminTestUtil.validateResponse(response, getJsonFromTemplate(inputtestCases.get(i).toString(), testCaseDTO.getInputTemplate()), testCaseDTO));
 
 				Map<String, List<OutputValidationDto>> ouputValid = OutputValidationUtil.doJsonOutputValidation(
 						response.asString(),
@@ -122,6 +123,7 @@ public class PostWithOnlyPathParam extends IdRepoUtil implements ITest {
 			response = postWithOnlyPathParamAndCookie(ApplnURI + testCaseDTO.getEndPoint(),
 					inputJson, COOKIENAME,
 					testCaseDTO.getRole(), testCaseDTO.getTestCaseName(), sendEsignetToken);
+			Reporter.log(AdminTestUtil.validateResponse(response, inputJson, testCaseDTO));
 
 			Map<String, List<OutputValidationDto>> ouputValid = null;
 			if (testCaseName.contains("_StatusCode")) {
@@ -136,7 +138,7 @@ public class PostWithOnlyPathParam extends IdRepoUtil implements ITest {
 						getJsonFromTemplate(testCaseDTO.getOutput(), testCaseDTO.getOutputTemplate()), testCaseDTO,
 						response.getStatusCode());
 			}
-
+			
 			Reporter.log(ReportUtil.getOutputValidationReport(ouputValid));
 
 			if (!OutputValidationUtil.publishOutputResult(ouputValid))

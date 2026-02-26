@@ -31,6 +31,7 @@ import io.mosip.testrig.apirig.idrepo.utils.IdRepoUtil;
 import io.mosip.testrig.apirig.testrunner.BaseTestCase;
 import io.mosip.testrig.apirig.testrunner.HealthChecker;
 import io.mosip.testrig.apirig.utils.AdminTestException;
+import io.mosip.testrig.apirig.utils.AdminTestUtil;
 import io.mosip.testrig.apirig.utils.AuthenticationTestException;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
 import io.mosip.testrig.apirig.utils.OutputValidationUtil;
@@ -186,6 +187,7 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 
 		Response response = patchWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 				testCaseDTO.getRole(), testCaseDTO.getTestCaseName());
+		Reporter.log(AdminTestUtil.validateResponse(response,inputJson,testCaseDTO));
 
 		Map<String, List<OutputValidationDto>> ouputValid = OutputValidationUtil.doJsonOutputValidation(
 				response.asString(), getJsonFromTemplate(testCaseDTO.getOutput(), testCaseDTO.getOutputTemplate()),
@@ -197,6 +199,7 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 			Response otpResponse = null;
 			otpResponse = postRequestWithAuthHeaderAndSignature(ApplnURI + sendOtpEndPoint,
 					getJsonFromTemplate(otpReqJson.toString(), sendOtpReqTemplate), testCaseDTO.getTestCaseName());
+			Reporter.log(AdminTestUtil.validateResponse(otpResponse, inputJson, testCaseDTO));
 
 			JSONObject sendOtpRespJson = new JSONObject(sendOtpResp);
 			sendOtpResTemplate = sendOtpRespJson.getString("sendOtpResTemplate");

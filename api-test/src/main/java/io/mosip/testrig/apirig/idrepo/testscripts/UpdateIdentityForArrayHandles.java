@@ -165,6 +165,7 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 
 		Response response = patchWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 				testCaseDTO.getRole(), testCaseDTO.getTestCaseName());
+		Reporter.log(AdminTestUtil.validateResponse(response, inputJson, testCaseDTO));
 
 		Map<String, List<OutputValidationDto>> ouputValid = OutputValidationUtil.doJsonOutputValidation(
 				response.asString(), getJsonFromTemplate(testCaseDTO.getOutput(), testCaseDTO.getOutputTemplate()),

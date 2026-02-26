@@ -115,6 +115,7 @@ public class SimplePost extends IdRepoUtil implements ITest {
 				response = postWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(),
 						getJsonFromTemplate(inputtestCases.get(i).toString(), testCaseDTO.getInputTemplate()),
 						COOKIENAME, testCaseDTO.getRole(), testCaseDTO.getTestCaseName());
+				Reporter.log(AdminTestUtil.validateResponse(response, inputJson, testCaseDTO));
 
 				Map<String, List<OutputValidationDto>> ouputValid = OutputValidationUtil.doJsonOutputValidation(
 						response.asString(),
@@ -130,6 +131,7 @@ public class SimplePost extends IdRepoUtil implements ITest {
 		else {
 			response = postWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, auditLogCheck, COOKIENAME,
 					testCaseDTO.getRole(), testCaseDTO.getTestCaseName(), sendEsignetToken);
+			Reporter.log(AdminTestUtil.validateResponse(response, inputJson, testCaseDTO));
 			Map<String, List<OutputValidationDto>> ouputValid = null;
 			if (testCaseName.contains("_StatusCode")) {
 
@@ -143,7 +145,7 @@ public class SimplePost extends IdRepoUtil implements ITest {
 						getJsonFromTemplate(testCaseDTO.getOutput(), testCaseDTO.getOutputTemplate()), testCaseDTO,
 						response.getStatusCode());
 			}
-
+			
 			Reporter.log(ReportUtil.getOutputValidationReport(ouputValid));
 
 			if (!OutputValidationUtil.publishOutputResult(ouputValid)) {
