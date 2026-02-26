@@ -134,9 +134,7 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 			String picture = properties.getProperty("picturevalue");
 			list.add(picture);
 			attrmap.put("picture", list);
-			KeycloakUserManager.createVidUsers(IdRepoConfigManager.getproperty("new_Resident_User"),
-					IdRepoConfigManager.getproperty("new_Resident_Password"), IdRepoConfigManager.getproperty("new_Resident_Role"),
-					attrmap);
+			KeycloakUserManager.createVidUsers(IdRepoConfigManager.getproperty("new_Resident_User"), attrmap);
 		}
 
 

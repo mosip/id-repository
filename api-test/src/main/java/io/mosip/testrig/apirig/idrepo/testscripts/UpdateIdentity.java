@@ -1,6 +1,5 @@
 package io.mosip.testrig.apirig.idrepo.testscripts;
 
-import java.lang.reflect.Field;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -21,8 +20,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.internal.BaseTestMethod;
-import org.testng.internal.TestResult;
 
 import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
@@ -199,7 +196,7 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 			Response otpResponse = null;
 			otpResponse = postRequestWithAuthHeaderAndSignature(ApplnURI + sendOtpEndPoint,
 					getJsonFromTemplate(otpReqJson.toString(), sendOtpReqTemplate), testCaseDTO.getTestCaseName());
-			Reporter.log(AdminTestUtil.validateResponse(otpResponse, inputJson, testCaseDTO));
+			Reporter.log(AdminTestUtil.validateResponse(otpResponse, getJsonFromTemplate(otpReqJson.toString(), sendOtpReqTemplate), testCaseDTO));
 
 			JSONObject sendOtpRespJson = new JSONObject(sendOtpResp);
 			sendOtpResTemplate = sendOtpRespJson.getString("sendOtpResTemplate");

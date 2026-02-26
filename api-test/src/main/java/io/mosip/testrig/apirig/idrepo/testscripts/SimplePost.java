@@ -1,6 +1,5 @@
 package io.mosip.testrig.apirig.idrepo.testscripts;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,8 +17,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.internal.BaseTestMethod;
-import org.testng.internal.TestResult;
 
 import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
@@ -115,7 +112,7 @@ public class SimplePost extends IdRepoUtil implements ITest {
 				response = postWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(),
 						getJsonFromTemplate(inputtestCases.get(i).toString(), testCaseDTO.getInputTemplate()),
 						COOKIENAME, testCaseDTO.getRole(), testCaseDTO.getTestCaseName());
-				Reporter.log(AdminTestUtil.validateResponse(response, inputJson, testCaseDTO));
+				Reporter.log(AdminTestUtil.validateResponse(response, getJsonFromTemplate(inputtestCases.get(i).toString(), testCaseDTO.getInputTemplate()), testCaseDTO));
 
 				Map<String, List<OutputValidationDto>> ouputValid = OutputValidationUtil.doJsonOutputValidation(
 						response.asString(),
