@@ -28,7 +28,7 @@ public class CredentialDao {
 	@Value("${credential.batch.page.size:100}")
 	private int pageSize;
 
-	@Value("${credential.request.reprocess.statuscodes}")
+	@Value("${credential.request.reprocess.statuscodes:FAILED,RETRY}")
 	private String reprocessStatusCodes;
 
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialDao.class);
