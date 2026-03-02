@@ -147,10 +147,10 @@ public class IdRepoController {
 	@Value("${mosip.idrepo.rid.get.version}")
 	private String ridVersion;
 
-	@Value("${mosip.idrepo.idvid.metadata.id:1.0}")
+	@Value("${mosip.idrepo.idvid.metadata.id}")
 	private String idvidMetadataId;
 
-	@Value("${mosip.idrepo.idvid.metadata.version:mosip.idrepo.idvid.metadata}")
+	@Value("${mosip.idrepo.idvid.metadata.version}")
 	private String idvidMetadataVersion;
 
 	/**
