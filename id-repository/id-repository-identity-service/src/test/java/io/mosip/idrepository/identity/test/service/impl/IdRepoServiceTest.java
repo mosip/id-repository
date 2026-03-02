@@ -2742,7 +2742,7 @@ public class IdRepoServiceTest {
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
 
 		Map<String, HandleDto> handles = new HashMap<>();
-		HandleDto handleDto = mock(HandleDto.class);
+		HandleDto handleDto = new HandleDto("PQR", "Demo");
 		handles.put("AB", handleDto);
 
 		when(idRepoServiceHelper.getSelectedHandles(request.getRequest())).thenReturn(handles);
