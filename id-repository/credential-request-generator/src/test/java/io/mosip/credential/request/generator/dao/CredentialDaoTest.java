@@ -38,11 +38,6 @@ public class CredentialDaoTest {
     @Mock
     private EncryptedCredentialDao encryptedCredentialDao;
 
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-    }
-
     @Test
     public void testUpdate() {
         String batchId = "batch123";
