@@ -116,7 +116,7 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
-			
+
 		</dependencies>
 	</dependencyManagement>
 
@@ -193,7 +193,7 @@
 					<skipTests>false</skipTests>
 					<skip>false</skip>
 					<argLine>
-						${argLine} 
+						${argLine}
 						--add-opens java.base/java.lang=ALL-UNNAMED
 						--add-opens java.base/sun.reflect.annotation=ALL-UNNAMED
 						--add-opens java.base/sun.security.jca=ALL-UNNAMED
