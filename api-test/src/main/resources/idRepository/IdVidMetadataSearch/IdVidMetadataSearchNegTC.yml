@@ -10,7 +10,7 @@ IdVidMetadataSearchNegTC:
     input: '{
       "id": "mosip.idrepo.idvid.metadata",
       "version": "1.0",
-      "requestTime": "$TIMESTAMP$",
+      "requesttime": "$TIMESTAMP$",
       "individualId": "$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
 	  "idType": "UIN"
 }'
@@ -32,7 +32,7 @@ IdVidMetadataSearchNegTC:
     input: '{
       "id": "mosip.idrepo.idvid.metadata",
       "version": "1.0",
-      "requestTime": "$TIMESTAMP$",
+      "requesttime": "$TIMESTAMP$",
       "individualId": "invalid",
 	  "idType": "UIN"
 }'
@@ -54,7 +54,7 @@ IdVidMetadataSearchNegTC:
     input: '{
       "id": "mosip.idrepo.idvid.metadata",
       "version": "1.0",
-      "requestTime": "$TIMESTAMP$",
+      "requesttime": "$TIMESTAMP$",
       "individualId": "",
 	  "idType": "UIN"
 }'
@@ -76,7 +76,7 @@ IdVidMetadataSearchNegTC:
     input: '{
       "id": "mosip.idrepo.idvid.metadata",
       "version": "1.0",
-      "requestTime": "$TIMESTAMP$",
+      "requesttime": "$TIMESTAMP$",
       "individualId": "-89765",
 	  "idType": "UIN"
 }'
@@ -98,7 +98,7 @@ IdVidMetadataSearchNegTC:
     input: '{
       "id": "mosip.idrepo.idvid.metadata",
       "version": "1.0",
-      "requestTime": "$TIMESTAMP$",
+      "requesttime": "$TIMESTAMP$",
       "individualId": "@%2345567",
 	  "idType": "UIN"
 }'
@@ -120,7 +120,7 @@ IdVidMetadataSearchNegTC:
     input: '{
       "id": "mosip.idrepo.idvid.metadata",
       "version": "1.0",
-      "requestTime": "$TIMESTAMP$",
+      "requesttime": "$TIMESTAMP$",
       "individualId": "1023456789378",
 	  "idType": "UIN"
 }'
@@ -142,7 +142,7 @@ IdVidMetadataSearchNegTC:
     input: '{
       "id": "mosip.idrepo.idvid.metadata",
       "version": "1.0",
-      "requestTime": "$TIMESTAMP$",
+      "requesttime": "$TIMESTAMP$",
       "individualId": " ",
 	  "idType": "UIN"
 }'
@@ -164,7 +164,7 @@ IdVidMetadataSearchNegTC:
     input: '{
       "id": "mosip.idrepo.idvid.metadata",
       "version": "1.0",
-      "requestTime": "$TIMESTAMP$",
+      "requesttime": "$TIMESTAMP$",
       "individualId": "$ID:CreateVID_withValidParameters_For_VidType_Smoke_Temporary_sid_VID$",
 	  "idType": "UIN"
 }'
@@ -186,7 +186,7 @@ IdVidMetadataSearchNegTC:
     input: '{
       "id": "mosip.idrepo.idvid.metadata",
       "version": "1.0",
-      "requestTime": "$TIMESTAMP$",
+      "requesttime": "$TIMESTAMP$",
       "individualId": "$ID:CreateVID_withValidParameters_For_VidType_Smoke_Temporary_sid_VID$",
 	  "idType": "invalid"
 }'
@@ -208,7 +208,7 @@ IdVidMetadataSearchNegTC:
     input: '{
       "id": "mosip.idrepo.idvid.metadata",
       "version": "1.0",
-      "requestTime": "$TIMESTAMP$",
+      "requesttime": "$TIMESTAMP$",
       "individualId": "$REMOVE$",
 	  "idType": "UIN"
 }'

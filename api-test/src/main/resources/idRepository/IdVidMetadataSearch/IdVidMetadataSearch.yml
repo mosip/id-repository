@@ -11,7 +11,7 @@ IdVidMetadataSearch:
     input: '{
       "id": "mosip.idrepo.idvid.metadata",
       "version": "1.0",
-      "requestTime": "$TIMESTAMP$",
+      "requesttime": "$TIMESTAMP$",
       "individualId": "$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
 	  "idType": "UIN"
 }'
@@ -29,7 +29,7 @@ IdVidMetadataSearch:
     input: '{
       "id": "mosip.idrepo.idvid.metadata",
       "version": "1.0",
-      "requestTime": "$TIMESTAMP$",
+      "requesttime": "$TIMESTAMP$",
       "individualId": "$ID:CreateVID_withValidParameters_For_VidType_Smoke_Temporary_sid_VID$",
 	  "idType": "VID"
 }'
@@ -47,13 +47,13 @@ IdVidMetadataSearch:
     input: '{
       "id": "mosip.idrepo.idvid.metadata",
       "version": "1.0",
-      "requestTime": "$TIMESTAMP$",
+      "requesttime": "$TIMESTAMP$",
       "individualId": "$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$",
 	  "idType": "$REMOVE$"
 }'
     output: '{
 }'
-  IdRepository_IdVidMetadataSearch_With_Required_Details:
+  IdRepository_IdVidMetadataSearch_With_RID_As_IndividualId:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
     uniqueIdentifier: TC_IdVidMetadataSearch_04
     description: Validate that IdVid metadata is successfully retrieved when valid IndividualId (RID) and idType are provided in the request      
@@ -65,7 +65,7 @@ IdVidMetadataSearch:
     input: '{
       "id": "mosip.idrepo.idvid.metadata",
       "version": "1.0",
-      "requestTime": "$TIMESTAMP$",
+      "requesttime": "$TIMESTAMP$",
       "individualId": "$ID:AddIdentity_withValidParameters_smoke_Pos_RID$",
 	  "idType": "ID"
 }'
