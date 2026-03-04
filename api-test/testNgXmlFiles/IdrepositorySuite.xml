@@ -128,6 +128,22 @@
 				name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePostForAutoGenId" />
 		</classes>
 	</test>
+	<test name="IdVidMetadataSearch">
+		<parameter name="ymlFile"
+			value="idRepository/IdVidMetadataSearch/IdVidMetadataSearch.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePost" />
+		</classes>
+	</test>
+	<test name="IdVidMetadataSearchNegTC">
+		<parameter name="ymlFile"
+			value="idRepository/IdVidMetadataSearch/IdVidMetadataSearchNegTC.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePost" />
+		</classes>
+	</test>
 	<test name="RegenerateVid">
 		<parameter name="ymlFile"
 			value="idRepository/RegenerateVid/RegenerateVid.yml" />
