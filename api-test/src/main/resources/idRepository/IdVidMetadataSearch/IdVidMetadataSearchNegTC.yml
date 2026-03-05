@@ -109,7 +109,7 @@ IdVidMetadataSearchNegTC:
         }
     ]
 }'
-  IdRepository_IdVidMetadataSearchNegTC_With_With_InvalidLength_IndividualId_Neg:
+  IdRepository_IdVidMetadataSearchNegTC_With_InvalidLength_IndividualId_Neg:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
     uniqueIdentifier: TC_IdVidMetadataSearchNegTC_06
     description: Validate that the IdVid metadata search API returns an error when IndividualId exceeds the valid length     
