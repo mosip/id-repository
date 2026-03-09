@@ -816,7 +816,7 @@ public class IdRepoControllerTest {
 
 	@Test
 	public void testSearchIdVidMetadata_ValidVID() throws Exception {
-		String individualId = "VID4567890";
+		String individualId = "77764567890";
 		IdVidMetadataRequestDTO dto = new IdVidMetadataRequestDTO();
 		dto.setIndividualId(individualId);
 		dto.setIdType(null);
