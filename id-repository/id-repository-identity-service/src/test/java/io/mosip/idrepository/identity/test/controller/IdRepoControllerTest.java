@@ -683,7 +683,7 @@ public class IdRepoControllerTest {
 		String createdOn = "2025-06-18T12:08:04.536Z";
 		String updatedOn = "2025-06-18T12:08:04.536Z";
 
-		IdVidMetadataResponseDTO expected = new IdVidMetadataResponseDTO("RID001", createdOn, updatedOn);
+		IdVidMetadataResponseDTO expected = new IdVidMetadataResponseDTO("13193131101197320260225020521", createdOn, updatedOn);
 
 		when(validator.validateUin(individualId)).thenReturn(true);
 		when(idRepoService.getIdVidMetadata(individualId, IdType.UIN)).thenReturn(expected);
@@ -693,7 +693,7 @@ public class IdRepoControllerTest {
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals(idvidMetadataId, response.getBody().getId());
 		assertEquals(idvidMetadataVersion, response.getBody().getVersion());
-		assertEquals("RID001", response.getBody().getResponse().getRid());
+		assertEquals("13193131101197320260225020521", response.getBody().getResponse().getRid());
 		assertEquals(createdOn, response.getBody().getResponse().getCreatedOn());
 		assertEquals(updatedOn, response.getBody().getResponse().getUpdatedOn());
 	}
@@ -769,7 +769,7 @@ public class IdRepoControllerTest {
 		String createdOn = "2025-06-18T12:08:04.536Z";
 		String updatedOn = "2025-06-18T12:08:04.536Z";
 
-		IdVidMetadataResponseDTO expected = new IdVidMetadataResponseDTO("RID004", createdOn, updatedOn);
+		IdVidMetadataResponseDTO expected = new IdVidMetadataResponseDTO("13193131101197320260225020521", createdOn, updatedOn);
 		when(validator.validateIdType(idTypeValue)).thenReturn(IdType.UIN);
 		when(idRepoService.getIdVidMetadata(individualId, IdType.UIN)).thenReturn(expected);
 
@@ -778,7 +778,7 @@ public class IdRepoControllerTest {
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals(idvidMetadataId, response.getBody().getId());
 		assertEquals(idvidMetadataVersion, response.getBody().getVersion());
-		assertEquals("RID004", response.getBody().getResponse().getRid());
+		assertEquals("13193131101197320260225020521", response.getBody().getResponse().getRid());
 		assertEquals(createdOn, response.getBody().getResponse().getCreatedOn());
 		assertEquals(updatedOn, response.getBody().getResponse().getUpdatedOn());
 	}
