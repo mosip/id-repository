@@ -529,6 +529,13 @@ public class IdRepoController {
 					String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), "individualId")
 			);
 		}
+		// Check if individualId is a valid integer
+		if (individualId.matches(".*[a-zA-Z].*")) {
+			throw new IdRepoAppException(
+					INVALID_INPUT_PARAMETER.getErrorCode(),
+					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "individualId")
+			);
+		}
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
 				individualId, individualIdType, "IdVid metadata search request received");
