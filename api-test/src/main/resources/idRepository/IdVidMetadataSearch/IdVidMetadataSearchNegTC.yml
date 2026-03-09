@@ -127,7 +127,7 @@ IdVidMetadataSearchNegTC:
     output: '{
       "errors": [
         {
-           "errorCode": "IDR-IDC-003"
+           "errorCode": "IDR-IDC-007"
         }
     ]
 }'
