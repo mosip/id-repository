@@ -257,14 +257,29 @@ public class IdRepoDraftController {
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true))),
 	})
 	public ResponseEntity<IdResponseDTO> extractBiometrics(@PathVariable String registrationId,
-			@RequestParam(name = FINGER_EXTRACTION_FORMAT, required = false) @Nullable String fingerExtractionFormat,
-			@RequestParam(name = IRIS_EXTRACTION_FORMAT, required = false) @Nullable String irisExtractionFormat,
-			@RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat) throws IdRepoAppException {
+														   @RequestParam(name = FINGER_EXTRACTION_FORMAT, required = false) @Nullable String fingerExtractionFormat,
+														   @RequestParam(name = IRIS_EXTRACTION_FORMAT, required = false) @Nullable String irisExtractionFormat,
+														   @RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat) throws IdRepoAppException {
+
+		long startTime = System.currentTimeMillis();
+		mosipLogger.info("START - extractBiometrics API called for registrationId: " + registrationId + " at: " + startTime + " ms");
+
 		try {
-			return new ResponseEntity<>(draftService.extractBiometrics(registrationId,
-					buildExtractionFormatMap(fingerExtractionFormat, irisExtractionFormat, faceExtractionFormat)),
+			ResponseEntity<IdResponseDTO> response = new ResponseEntity<>(
+					draftService.extractBiometrics(registrationId,
+							buildExtractionFormatMap(fingerExtractionFormat, irisExtractionFormat, faceExtractionFormat)),
 					HttpStatus.OK);
+
+			long endTime = System.currentTimeMillis();
+			mosipLogger.info("END - extractBiometrics API completed for registrationId: " + registrationId + " at: " + endTime + " ms");
+			mosipLogger.info("TOTAL TIME - extractBiometrics took: " + (endTime - startTime) + " ms for registrationId: " + registrationId);
+
+			return response;
 		} catch (IdRepoAppException e) {
+			long endTime = System.currentTimeMillis();
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "extractBiometrics",
+					"ERROR - extractBiometrics failed for registrationId: " + registrationId + " | Total time before failure: " + (endTime - startTime) + " ms | Error: " + e.getMessage());
+
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.EXTRACT_BIOMETRICS_DRAFT_REQUEST_RESPONSE, registrationId,
 					IdType.ID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "extractBiometrics", e.getMessage());
