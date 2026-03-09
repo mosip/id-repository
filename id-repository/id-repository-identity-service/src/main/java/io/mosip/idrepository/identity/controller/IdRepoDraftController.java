@@ -262,8 +262,7 @@ public class IdRepoDraftController {
 														   @RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat) throws IdRepoAppException {
 
 		long startTime = System.currentTimeMillis();
-		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "extractBiometrics",
-				"START - extractBiometrics API called for registrationId: " + registrationId + " at: " + startTime + " ms");
+		mosipLogger.info("START - extractBiometrics API called for registrationId: " + registrationId + " at: " + startTime + " ms");
 
 		try {
 			ResponseEntity<IdResponseDTO> response = new ResponseEntity<>(
@@ -272,10 +271,8 @@ public class IdRepoDraftController {
 					HttpStatus.OK);
 
 			long endTime = System.currentTimeMillis();
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "extractBiometrics",
-					"END - extractBiometrics API completed for registrationId: " + registrationId + " at: " + endTime + " ms");
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "extractBiometrics",
-					"TOTAL TIME - extractBiometrics took: " + (endTime - startTime) + " ms for registrationId: " + registrationId);
+			mosipLogger.info("END - extractBiometrics API completed for registrationId: " + registrationId + " at: " + endTime + " ms");
+			mosipLogger.info("TOTAL TIME - extractBiometrics took: " + (endTime - startTime) + " ms for registrationId: " + registrationId);
 
 			return response;
 		} catch (IdRepoAppException e) {
