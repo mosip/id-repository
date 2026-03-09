@@ -530,7 +530,7 @@ public class IdRepoController {
 			);
 		}
 		// Check if individualId is a valid integer
-		if (individualId.matches(".*[a-zA-Z].*")) {
+		if (!individualId.matches("^[0-9]+$")) {
 			throw new IdRepoAppException(
 					INVALID_INPUT_PARAMETER.getErrorCode(),
 					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "individualId")
