@@ -153,8 +153,10 @@ public class IdRepoController {
 	@Value("${mosip.idrepo.idvid.metadata.version}")
 	private String idvidMetadataVersion;
 
-	@Value("${mosip.idvid.validation.regex:^(?=.*\\d)[a-zA-Z0-9]+$}")
+	@Value("${mosip.individualId.validation.regex:^(?=.*\\d)[a-zA-Z0-9]+$}")
 	private String individualIdRegex;
+
+	private static Pattern ALPHANUMERIC_WITH_DIGIT;
 
 	/**
 	 * Inits the binder.
@@ -165,6 +167,7 @@ public class IdRepoController {
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
 		binder.addValidators(validator);
+		ALPHANUMERIC_WITH_DIGIT = Pattern.compile(individualIdRegex);
 	}
 
 	/**
@@ -576,8 +579,8 @@ public class IdRepoController {
 					String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), "individualId")
 			);
 		}
-        Pattern ALPHANUMERIC_WITH_DIGIT = Pattern.compile(individualIdRegex);
-		// Check if individualId is a valid integer
+
+		// Validate individualId format using the regex pattern initialized in InitBinder
 		if (!ALPHANUMERIC_WITH_DIGIT.matcher(individualId).matches()) {
 			throw new IdRepoAppException(
 					IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
