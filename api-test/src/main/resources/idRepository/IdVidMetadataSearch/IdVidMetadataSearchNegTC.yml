@@ -39,7 +39,7 @@ IdVidMetadataSearchNegTC:
     output: '{
       "errors": [
         {
-           "errorCode": "IDR-IDC-003"
+           "errorCode": "IDR-IDC-002"
         }
     ]
 }'
@@ -83,7 +83,7 @@ IdVidMetadataSearchNegTC:
     output: '{
       "errors": [
         {
-           "errorCode": "IDR-IDC-003"
+           "errorCode": "IDR-IDC-002"
         }
     ]
 }'
@@ -105,7 +105,7 @@ IdVidMetadataSearchNegTC:
     output: '{
       "errors": [
         {
-           "errorCode": "IDR-IDC-003"
+           "errorCode": "IDR-IDC-002"
         }
     ]
 }'
