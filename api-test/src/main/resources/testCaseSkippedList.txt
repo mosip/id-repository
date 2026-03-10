@@ -1,5 +1,2 @@
 ######JIRA number;testcase 
 #MOSIP-37220------IdRepository_AddIdentity_array_handle_post_update_value_smoke_Pos
-MOSIP-44544------IdRepository_IdVidMetadataSearchNegTC_With_Invalid_IndividualId_Neg
-MOSIP-44544------IdRepository_IdVidMetadataSearchNegTC_With_Negative_IndividualId_Neg
-MOSIP-44544------IdRepository_IdVidMetadataSearchNegTC_With_SpecialCharacter_IndividualId_Neg
