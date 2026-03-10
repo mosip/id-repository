@@ -438,7 +438,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						.mappingProvider(new JacksonMappingProvider()).build();
 				DocumentContext inputData = JsonPath.using(configuration).parse(requestDTO.getIdentity());
 				DocumentContext dbData = JsonPath.using(configuration).parse(new String(uinObject.getUinData()));
-				anonymousProfileHelper.setOldUinData(dbData.jsonString().getBytes());
+				anonymousProfileHelper.setOldUinData(uinObject.getUinData()); // reuse existing bytes - no copy needed
 				updateVerifiedAttributes(requestDTO, inputData, dbData);
 				replaceConfiguredFieldsOnUpdate(inputData, dbData);
 				JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(),
@@ -447,7 +447,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				if (comparisonResult.failed()) {
 					updateJsonObject(uinHash, inputData, dbData, comparisonResult, true);
 				}
-				uinObject.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
+				uinObject.setUinData(convertToBytes(dbData.json())); // eliminates intermediate String->bytes->Map->bytes conversions
 				uinObject.setUinDataHash(securityManager.hash(uinObject.getUinData()));
 				uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
 				uinObject.setUpdatedDateTime(DateUtils2.getUTCCurrentDateTime());
@@ -576,8 +576,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
 		if (comparisonResult.failed()) {
-			// Code should never reach here
-			updateJsonObject(uinHash, inputData, dbData, comparisonResult, true);
+			// Should never reach here - log and bail instead of recursing to prevent unbounded stack growth
+			mosipLogger.warn(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateJsonObject",
+					"Comparison still failing after all update passes for uinHash: " + uinHash
+							+ " - remaining diff: " + comparisonResult.getMessage());
 		}
 		identityUpdateTracker.save(new IdentityUpdateTracker(updateCountTracker.getKey(), CryptoUtil
 				.encodeToURLSafeBase64(mapper.writeValueAsString(updateCountTrackerMap).getBytes()).getBytes()));

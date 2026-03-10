@@ -443,6 +443,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				}
 			}
 
+			originalBirs.clear(); // release parsed BIR list before blocking on futures - reduces live set during wait
 			CompletableFuture.allOf(extractionFutures.toArray(new CompletableFuture<?>[extractionFutures.size()]))
 					.join();
 			for (CompletableFuture<List<BIR>> future : extractionFutures) {

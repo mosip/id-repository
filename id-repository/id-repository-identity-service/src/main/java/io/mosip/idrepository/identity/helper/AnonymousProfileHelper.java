@@ -124,6 +124,12 @@ public class AnonymousProfileHelper {
 		} catch (Exception e) {
 			mosipLogger.warn(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "buildAndsaveProfile",
 					ExceptionUtils.getStackTrace(e));
+		} finally {
+			// Release only the large byte arrays after async processing completes.
+			// oldCbeff/newCbeff are retained so callers can still query isOldCbeffPresent/isNewCbeffPresent.
+			// resetData() (full reset) is triggered by setRegId() on the next request.
+			this.oldUinData = null;
+			this.newUinData = null;
 		}
 	}
 
