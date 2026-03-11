@@ -18,6 +18,9 @@ import java.util.stream.Collectors;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
+import io.mosip.kernel.core.idvalidator.spi.RidValidator;
+import io.mosip.kernel.core.idvalidator.spi.UinValidator;
+import io.mosip.kernel.core.idvalidator.spi.VidValidator;
 import jakarta.annotation.Nullable;
 import jakarta.annotation.Resource;
 
@@ -140,6 +143,15 @@ public class IdRepoController {
 
 	@Autowired
 	private AuthtypeStatusService authTypeStatusService;
+
+	@Autowired
+	private UinValidator<String> uinValidator;
+
+	@Autowired
+	private VidValidator<String> vidValidator;
+
+	@Autowired
+	private RidValidator<String> ridValidator;
 
 	@Value("${mosip.idrepo.rid.get.id}")
 	private String ridId;
@@ -576,7 +588,26 @@ public class IdRepoController {
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
 
 		try {
-			validator.validateIdvId(individualId, individualIdType);
+			switch (individualIdType) {
+
+				case UIN:
+					uinValidator.validateId(individualId);
+					break;
+
+				case VID:
+					vidValidator.validateId(individualId);
+					break;
+
+				case ID:
+					ridValidator.validateId(individualId);
+					break;
+
+				default:
+					throw new IdRepoAppException(
+							IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+							String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "individualId")
+					);
+			}
 		} catch (InvalidIDException e) {
 			throw new IdRepoAppException(e.getErrorCode(), e.getMessage());
 		}
