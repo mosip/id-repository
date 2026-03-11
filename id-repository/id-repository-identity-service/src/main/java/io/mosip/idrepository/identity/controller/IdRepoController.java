@@ -681,31 +681,7 @@ public class IdRepoController {
 		return IdType.ID;
 	}
 
-	public boolean validateVid(String individualId) {
-		try {
-			return vidValidator.validateId(individualId);
-		} catch (InvalidIDException e) {
-			return false;
-		}
-	}
-
-	public boolean validateUin(String individualId) {
-		try {
-			return uinValidator.validateId(individualId);
-		} catch (InvalidIDException e) {
-			return false;
-		}
-	}
-
-	public boolean validateRid(String individualId) {
-		try {
-			return ridValidator.validateId(individualId);
-		} catch (InvalidIDException e) {
-			return false;
-		}
-	}
-
-	private boolean validateUinOrVidOrRid(String individualId) {
-		return validateUin(individualId) || validateVid(individualId) || validateRid(individualId);
+	private boolean validateUinOrVidOrRid(String individualId) throws IdRepoAppException {
+		return validator.validateUin(individualId) || validator.validateVid(individualId) || validator.validateRid(individualId);
 	}
 }
