@@ -573,7 +573,6 @@ public class IdRepoController {
 					String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), "individualId")
 			);
 		}
-
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
 
 		try {
