@@ -57,6 +57,21 @@
 			<version>${kernel.cbeffutil.api.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idvalidator-rid</artifactId>
+			<version>${kernel.core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idvalidator-vid</artifactId>
+			<version>${kernel.core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idvalidator-uin</artifactId>
+			<version>${kernel.core.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>io.mosip.idrepository</groupId>
 			<artifactId>id-repository-core</artifactId>
 			<version>${id.repository.core.version}</version>
