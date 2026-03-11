@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.idrepository.core.dto.*;
@@ -98,7 +97,6 @@ public class IdRepoControllerTest {
 
 	private static final String idvidMetadataId = "mosip.idrepo.idvid.metadata";
 	private static final String idvidMetadataVersion = "1.0";
-	private static final String individualIdRegex = "^(?=.*\\d)[a-zA-Z0-9]+$";
 
 	@Before
 	public void before() {
@@ -112,9 +110,6 @@ public class IdRepoControllerTest {
 		ReflectionTestUtils.setField(validator, "allowedTypes", Lists.newArrayList("bio", "demo", "all"));
 		ReflectionTestUtils.setField(controller, "idvidMetadataId", idvidMetadataId);
 		ReflectionTestUtils.setField(controller, "idvidMetadataVersion", idvidMetadataVersion);
-		Pattern pattern = Pattern.compile(individualIdRegex);
-		ReflectionTestUtils.setField(controller, "individualIdRegex", individualIdRegex);
-		ReflectionTestUtils.setField(controller, "ALPHANUMERIC_WITH_DIGIT", pattern);
 	}
 
 	@Test
