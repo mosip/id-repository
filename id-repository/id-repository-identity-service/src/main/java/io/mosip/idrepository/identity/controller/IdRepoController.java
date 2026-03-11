@@ -166,7 +166,6 @@ public class IdRepoController {
 	 */
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
-
 		binder.addValidators(validator);
 		ALPHANUMERIC_WITH_DIGIT = Pattern.compile(individualIdRegex);
 	}
