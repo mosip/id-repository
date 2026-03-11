@@ -587,29 +587,11 @@ public class IdRepoController {
 		}
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
 
-		try {
-			switch (individualIdType) {
-
-				case UIN:
-					uinValidator.validateId(individualId);
-					break;
-
-				case VID:
-					vidValidator.validateId(individualId);
-					break;
-
-				case ID:
-					ridValidator.validateId(individualId);
-					break;
-
-				default:
-					throw new IdRepoAppException(
-							IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
-							String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "individualId")
-					);
-			}
-		} catch (InvalidIDException e) {
-			throw new IdRepoAppException(e.getErrorCode(), e.getMessage());
+		if (!validateUinOrVidOrRid(individualId)) {
+			throw new IdRepoAppException(
+					IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "individualId")
+			);
 		}
 
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
@@ -697,5 +679,33 @@ public class IdRepoController {
 		if (validator.validateVid(id))
 			return IdType.VID;
 		return IdType.ID;
+	}
+
+	public boolean validateVid(String individualId) {
+		try {
+			return vidValidator.validateId(individualId);
+		} catch (InvalidIDException e) {
+			return false;
+		}
+	}
+
+	public boolean validateUin(String individualId) {
+		try {
+			return uinValidator.validateId(individualId);
+		} catch (InvalidIDException e) {
+			return false;
+		}
+	}
+
+	public boolean validateRid(String individualId) {
+		try {
+			return ridValidator.validateId(individualId);
+		} catch (InvalidIDException e) {
+			return false;
+		}
+	}
+
+	private boolean validateUinOrVidOrRid(String individualId) {
+		return validateUin(individualId) || validateVid(individualId) || validateRid(individualId);
 	}
 }
