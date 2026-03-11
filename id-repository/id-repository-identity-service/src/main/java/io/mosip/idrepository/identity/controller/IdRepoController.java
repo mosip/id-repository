@@ -71,6 +71,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import springfox.documentation.annotations.ApiIgnore;
 import org.apache.commons.lang.StringUtils;
+import java.util.regex.Pattern;
 
 /**
  * The Class IdRepoController - Controller class for Identity service. These
@@ -152,6 +153,11 @@ public class IdRepoController {
 	@Value("${mosip.idrepo.idvid.metadata.version}")
 	private String idvidMetadataVersion;
 
+	@Value("${mosip.individualId.validation.regex:^(?=.*\\d)[a-zA-Z0-9]+$}")
+	private String individualIdRegex;
+
+	private static Pattern ALPHANUMERIC_WITH_DIGIT;
+
 	/**
 	 * Inits the binder.
 	 *
@@ -160,7 +166,9 @@ public class IdRepoController {
 	 */
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
+
 		binder.addValidators(validator);
+		ALPHANUMERIC_WITH_DIGIT = Pattern.compile(individualIdRegex);
 	}
 
 	/**
@@ -572,6 +580,13 @@ public class IdRepoController {
                         String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), "individualId")
                 );
             }
+			// Validate individualId format using the regex pattern initialized in InitBinder
+			if (!ALPHANUMERIC_WITH_DIGIT.matcher(individualId).matches()) {
+				throw new IdRepoAppException(
+						IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "individualId")
+				);
+			}
             IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
             auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
                     individualId, individualIdType, "IdVid metadata search request received");

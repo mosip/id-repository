@@ -58,6 +58,7 @@ import io.mosip.idrepository.identity.dto.RidDto;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
+import java.util.regex.Pattern;
 
 /**
  * The Class IdRepoControllerTest.
@@ -96,6 +97,7 @@ public class IdRepoControllerTest {
 
 	private static final String idvidMetadataId = "mosip.idrepo.idvid.metadata";
 	private static final String idvidMetadataVersion = "1.0";
+	private static final String individualIdRegex = "^(?=.*\\d)[a-zA-Z0-9]+$";
 
 	@Before
 	public void before() {
@@ -109,6 +111,9 @@ public class IdRepoControllerTest {
 		ReflectionTestUtils.setField(validator, "allowedTypes", Lists.newArrayList("bio", "demo", "all"));
 		ReflectionTestUtils.setField(controller, "idvidMetadataId", idvidMetadataId);
 		ReflectionTestUtils.setField(controller, "idvidMetadataVersion", idvidMetadataVersion);
+		Pattern pattern = Pattern.compile(individualIdRegex);
+		ReflectionTestUtils.setField(controller, "individualIdRegex", individualIdRegex);
+		ReflectionTestUtils.setField(controller, "ALPHANUMERIC_WITH_DIGIT", pattern);
 	}
 
 	@Test
