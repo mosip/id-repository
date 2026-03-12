@@ -108,7 +108,6 @@ public class IdRepoControllerTest {
 
 	private static final String idvidMetadataId = "mosip.idrepo.idvid.metadata";
 	private static final String idvidMetadataVersion = "1.0";
-	private static final String individualIdRegex = "^(?=.*\\d)[a-zA-Z0-9]+$";
 
 	@Before
 	public void before() {
