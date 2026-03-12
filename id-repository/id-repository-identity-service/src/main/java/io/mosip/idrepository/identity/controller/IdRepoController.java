@@ -38,9 +38,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import io.mosip.kernel.core.http.RequestWrapper;
-import io.mosip.kernel.core.idvalidator.spi.RidValidator;
-import io.mosip.kernel.core.idvalidator.spi.UinValidator;
-import io.mosip.kernel.core.idvalidator.spi.VidValidator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
@@ -142,15 +139,6 @@ public class IdRepoController {
 
 	@Autowired
 	private AuthtypeStatusService authTypeStatusService;
-
-	@Autowired
-	private UinValidator<String> uinValidator;
-
-	@Autowired
-	private VidValidator<String> vidValidator;
-
-	@Autowired
-	private RidValidator<String> ridValidator;
 
 	@Value("${mosip.idrepo.rid.get.id}")
 	private String ridId;

@@ -18,9 +18,6 @@ import java.util.Map;
 
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.idrepository.core.dto.*;
-import io.mosip.kernel.core.idvalidator.spi.RidValidator;
-import io.mosip.kernel.core.idvalidator.spi.UinValidator;
-import io.mosip.kernel.core.idvalidator.spi.VidValidator;
 import org.assertj.core.util.Maps;
 import org.junit.Before;
 import org.junit.Test;
@@ -90,15 +87,6 @@ public class IdRepoControllerTest {
 
 	@Mock
 	private AuthtypeStatusService authTypeStatusService;
-
-	@Mock
-	private UinValidator<String> uinValidator;
-
-	@Mock
-	private VidValidator<String> vidValidator;
-
-	@Mock
-	private RidValidator<String> ridValidator;
 
 	@InjectMocks
 	IdRepoController controller;
