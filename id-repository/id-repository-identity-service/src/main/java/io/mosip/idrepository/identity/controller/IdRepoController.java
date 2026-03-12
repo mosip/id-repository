@@ -574,7 +574,7 @@ public class IdRepoController {
             }
             IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
 
-			if (!validateUinOrVidOrRid(individualId)) {
+			if (!validateUinOrVidOrRid(idType, individualId)) {
 				throw new IdRepoAppException(
 						IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
 						String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "individualId")
@@ -668,7 +668,29 @@ public class IdRepoController {
 		return IdType.ID;
 	}
 
-	private boolean validateUinOrVidOrRid(String individualId) throws IdRepoAppException {
-		return validator.validateUin(individualId) || validator.validateVid(individualId) || validator.validateRid(individualId);
+	private boolean validateUinOrVidOrRid(String idType, String individualId) throws IdRepoAppException {
+
+		if (StringUtils.isEmpty(idType))
+			return validator.validateUin(individualId) || validator.validateVid(individualId) || validator.validateRid(individualId);
+
+		try {
+			IdType expectedIdType = IdType.valueOf(idType);
+			switch (expectedIdType) {
+				case UIN:
+					return validator.validateUin(individualId);
+				case VID:
+					return validator.validateVid(individualId);
+				case ID:
+					return validator.validateRid(individualId);
+			}
+		} catch (IllegalArgumentException e) {
+			// Handle invalid idType (e.g., "demo")
+			throw new IdRepoAppException(
+					IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "idType")
+			);
+		}
+
+		return false;
 	}
 }
