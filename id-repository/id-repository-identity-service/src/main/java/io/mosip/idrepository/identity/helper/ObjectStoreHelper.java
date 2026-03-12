@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BoundedInputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -42,6 +43,9 @@ public class ObjectStoreHelper {
 
 	@Value("${" + OBJECT_STORE_ADAPTER_NAME + "}")
 	private String objectStoreAdapterName;
+
+	@Value("${mosip.idrepo.objectstore.max-object-size-bytes:10485760}")
+	private long maxObjectSizeBytes = 10 * 1024 * 1024L; // 10 MB; also configurable via property
 
 	private ObjectStoreAdapter objectStore;
 
@@ -123,8 +127,17 @@ public class ObjectStoreHelper {
 		if (rawStream == null) {
 			throw new IdRepoAppException(FILE_NOT_FOUND);
 		}
-		try (InputStream s3Stream = new BufferedInputStream(rawStream)) {
-			return securityManager.decrypt(IOUtils.toByteArray(s3Stream), refId);
+		// BoundedInputStream limits read to maxObjectSizeBytes+1 so we can detect oversized objects
+		// without reading the entire stream, preventing unbounded heap allocation.
+		try (InputStream s3Stream = new BoundedInputStream(new BufferedInputStream(rawStream), maxObjectSizeBytes + 1)) {
+			byte[] encryptedData = IOUtils.toByteArray(s3Stream);
+			if (encryptedData.length > maxObjectSizeBytes) {
+				throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
+						"Object size exceeds allowed limit (" + maxObjectSizeBytes + " bytes): " + objectName);
+			}
+			byte[] decryptedData = securityManager.decrypt(encryptedData, refId);
+			encryptedData = null; // release encrypted copy; decryptedData is the only live reference now
+			return decryptedData;
 		} catch (IOException | ObjectStoreAdapterException e) {
 			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
 					"Failed to retrieve object: " + e.getMessage(), e);

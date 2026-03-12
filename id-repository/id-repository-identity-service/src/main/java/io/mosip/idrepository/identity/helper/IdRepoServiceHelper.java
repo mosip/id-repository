@@ -55,9 +55,22 @@ public class IdRepoServiceHelper {
 
     private static final String REQUEST = "request";
 
-    /** The schema map. */
-    private static Map<String, String> schemaMap = new HashMap<>();
-    private static Map<String, List<String>> supportedHandlesInSchema = new HashMap<>();
+    /** The schema map. Max size prevents unbounded heap growth from many schema versions. */
+    private static final int MAX_SCHEMA_CACHE_SIZE = 100;
+    private static final Map<String, String> schemaMap = Collections.synchronizedMap(
+            new LinkedHashMap<String, String>(16, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, String> eldest) {
+                    return size() > MAX_SCHEMA_CACHE_SIZE;
+                }
+            });
+    private static final Map<String, List<String>> supportedHandlesInSchema = Collections.synchronizedMap(
+            new LinkedHashMap<String, List<String>>(16, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, List<String>> eldest) {
+                    return size() > MAX_SCHEMA_CACHE_SIZE;
+                }
+            });
 
     @Autowired
     private ObjectMapper mapper;
@@ -136,9 +149,10 @@ public class IdRepoServiceHelper {
                 restRequest = restBuilder.buildRequest(RestServicesConstants.SYNCDATA_SERVICE, null, ResponseWrapper.class);
                 restRequest.setUri(restRequest.getUri().concat("?schemaVersion=" + schemaVersion));
                 ResponseWrapper<Map<String, String>> response = restHelper.requestSync(restRequest);
-                schemaMap.put(schemaVersion, response.getResponse().get("schemaJson"));
-                supportedHandlesInSchema.put(schemaVersion, getSupportedHandles(response.getResponse().get("schemaJson")));
-                return getSchema(schemaVersion);
+                String schema = response.getResponse().get("schemaJson");
+                schemaMap.put(schemaVersion, schema);
+                supportedHandlesInSchema.put(schemaVersion, getSupportedHandles(schema));
+                return schema; // return directly - no recursive call needed
             }
         } catch (IdRepoDataValidationException | RestServiceException e) {
             mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER, "getSchema", "\n" + e.getMessage());
