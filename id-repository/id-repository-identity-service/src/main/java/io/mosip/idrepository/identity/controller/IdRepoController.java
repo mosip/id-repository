@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.kernel.core.http.RequestWrapper;
-import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import io.mosip.kernel.core.idvalidator.spi.RidValidator;
 import io.mosip.kernel.core.idvalidator.spi.UinValidator;
 import io.mosip.kernel.core.idvalidator.spi.VidValidator;
