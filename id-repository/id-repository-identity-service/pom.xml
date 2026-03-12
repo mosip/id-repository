@@ -27,6 +27,7 @@
         <kernel.cbeffutil.api.version>1.2.0.4</kernel.cbeffutil.api.version>
         <kernel.idobjectvalidator.version>1.2.0.2</kernel.idobjectvalidator.version>
         <kernel-idvalidator-vid.version>1.2.0.2</kernel-idvalidator-vid.version>
+        <kernel-idvalidator-rid.version>1.2.0.2</kernel-idvalidator-rid.version>
         <kernel.khazana.version>1.2.0.2</kernel.khazana.version>
 	</properties>
 
@@ -76,6 +77,11 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-vid</artifactId>
 			<version>${kernel-idvalidator-vid.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idvalidator-rid</artifactId>
+			<version>${kernel-idvalidator-rid.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.commons</groupId>
