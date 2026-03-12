@@ -38,6 +38,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import io.mosip.kernel.core.http.RequestWrapper;
+import io.mosip.kernel.core.idvalidator.spi.RidValidator;
+import io.mosip.kernel.core.idvalidator.spi.UinValidator;
+import io.mosip.kernel.core.idvalidator.spi.VidValidator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
@@ -71,7 +74,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import springfox.documentation.annotations.ApiIgnore;
 import org.apache.commons.lang.StringUtils;
-import java.util.regex.Pattern;
 
 /**
  * The Class IdRepoController - Controller class for Identity service. These
@@ -141,6 +143,15 @@ public class IdRepoController {
 	@Autowired
 	private AuthtypeStatusService authTypeStatusService;
 
+	@Autowired
+	private UinValidator<String> uinValidator;
+
+	@Autowired
+	private VidValidator<String> vidValidator;
+
+	@Autowired
+	private RidValidator<String> ridValidator;
+
 	@Value("${mosip.idrepo.rid.get.id}")
 	private String ridId;
 
@@ -153,11 +164,6 @@ public class IdRepoController {
 	@Value("${mosip.idrepo.idvid.metadata.version}")
 	private String idvidMetadataVersion;
 
-	@Value("${mosip.individualId.validation.regex:^(?=.*\\d)[a-zA-Z0-9]+$}")
-	private String individualIdRegex;
-
-	private static Pattern ALPHANUMERIC_WITH_DIGIT;
-
 	/**
 	 * Inits the binder.
 	 *
@@ -167,7 +173,6 @@ public class IdRepoController {
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
 		binder.addValidators(validator);
-		ALPHANUMERIC_WITH_DIGIT = Pattern.compile(individualIdRegex);
 	}
 
 	/**
@@ -579,14 +584,15 @@ public class IdRepoController {
                         String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), "individualId")
                 );
             }
-			// Validate individualId format using the regex pattern initialized in InitBinder
-			if (!ALPHANUMERIC_WITH_DIGIT.matcher(individualId).matches()) {
+            IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
+
+			if (!validateUinOrVidOrRid(individualId)) {
 				throw new IdRepoAppException(
 						IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
 						String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "individualId")
 				);
 			}
-            IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
+
             auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
                     individualId, individualIdType, "IdVid metadata search request received");
 
@@ -672,5 +678,9 @@ public class IdRepoController {
 		if (validator.validateVid(id))
 			return IdType.VID;
 		return IdType.ID;
+	}
+
+	private boolean validateUinOrVidOrRid(String individualId) throws IdRepoAppException {
+		return validator.validateUin(individualId) || validator.validateVid(individualId) || validator.validateRid(individualId);
 	}
 }
