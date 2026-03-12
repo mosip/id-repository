@@ -78,6 +78,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 							"RETURNING EXISTING EXTRACTED BIOMETRICS FOR FORMAT: " + extractionType +" : "+ extractionFormat);
 					byte[] xmlBytes = objectStoreHelper.getBiometricObject(uinHash, extractionFileName);
 					List<BIR> existingBirs = cbeffUtil.getBIRDataFromXML(xmlBytes);
+					xmlBytes = null; // release large byte array before returning; BIR objects are much smaller
 					return CompletableFuture.completedFuture(existingBirs);
 				}
 			} catch (ObjectStoreAdapterException e) {
