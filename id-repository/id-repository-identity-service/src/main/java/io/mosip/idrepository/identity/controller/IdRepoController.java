@@ -19,7 +19,6 @@ import io.mosip.idrepository.identity.validator.IndividualIdValidator;
 import jakarta.annotation.Nullable;
 import jakarta.annotation.Resource;
 
-import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -579,7 +578,6 @@ public class IdRepoController {
 			String individualId = metadataRequest.getIndividualId();
 			String idType = metadataRequest.getIdType();
             IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
-
             auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
                     individualId, individualIdType, "IdVid metadata search request received");
 
@@ -665,31 +663,5 @@ public class IdRepoController {
 		if (validator.validateVid(id))
 			return IdType.VID;
 		return IdType.ID;
-	}
-
-	private boolean validateUinOrVidOrRid(String idType, String individualId) throws IdRepoAppException {
-
-		if (StringUtils.isEmpty(idType))
-			return validator.validateUin(individualId) || validator.validateVid(individualId) || validator.validateRid(individualId);
-
-		try {
-			IdType expectedIdType = IdType.valueOf(idType);
-			switch (expectedIdType) {
-				case UIN:
-					return validator.validateUin(individualId);
-				case VID:
-					return validator.validateVid(individualId);
-				case ID:
-					return validator.validateRid(individualId);
-			}
-		} catch (IllegalArgumentException e) {
-			// Handle invalid idType (e.g., "demo")
-			throw new IdRepoAppException(
-					IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
-					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "idType")
-			);
-		}
-
-		return false;
 	}
 }
