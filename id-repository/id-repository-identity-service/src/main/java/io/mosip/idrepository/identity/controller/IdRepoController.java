@@ -163,6 +163,11 @@ public class IdRepoController {
 		binder.addValidators(validator);
 	}
 
+	@InitBinder("idVidMetadataResponseDTO")
+	private void initIdVidMetadataResponseBinder(WebDataBinder binder) {
+		binder.setValidator(validator);
+	}
+
 	/**
 	 * This service will create a new ID record in ID repository and store
 	 * corresponding demographic and bio-metric documents.
