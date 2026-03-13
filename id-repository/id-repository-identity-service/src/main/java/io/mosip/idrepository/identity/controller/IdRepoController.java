@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import io.mosip.idrepository.identity.validator.IndividualIdValidator;
 import jakarta.annotation.Nullable;
 import jakarta.annotation.Resource;
 
@@ -130,6 +131,10 @@ public class IdRepoController {
 	@Autowired
 	private IdRequestValidator validator;
 
+	/** The IndividualIdValidator. */
+	@Autowired
+	private IndividualIdValidator individualIdValidator;
+
 	/** The mapper. */
 	@Autowired
 	private ObjectMapper mapper;
@@ -163,9 +168,9 @@ public class IdRepoController {
 		binder.addValidators(validator);
 	}
 
-	@InitBinder("idVidMetadataResponseDTO")
-	private void initIdVidMetadataResponseBinder(WebDataBinder binder) {
-		binder.setValidator(validator);
+	@InitBinder("idVidMetadataRequestWrapper")
+	private void initIdVidMetadataRequestWrapperBinder(WebDataBinder binder) {
+		binder.setValidator(individualIdValidator);
 	}
 
 	/**
@@ -566,24 +571,13 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
-	public ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> searchIdVidMetadata(@Validated @RequestBody RequestWrapper<IdVidMetadataRequestDTO> request,
+	public ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> searchIdVidMetadata(@Validated @RequestBody IdVidMetadataRequestWrapper idVidMetadataRequestWrapper,
 																						 @ApiIgnore Errors errors) throws IdRepoAppException {
 
-		IdVidMetadataRequestDTO metadataRequest = request.getRequest();
-		String individualId = metadataRequest.getIndividualId();
-		String idType = metadataRequest.getIdType();
-            if (StringUtils.isBlank(individualId)) {
-                throw new IdRepoAppException(
-                        IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
-                        String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), "individualId")
-                );
-            }
-
-			// If validation errors exist, throw exception
-			if (errors.hasErrors()) {
-				throw new IdRepoAppException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
-						String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "individualId"));
-			}
+			DataValidationUtil.validate(errors);
+			IdVidMetadataRequestDTO metadataRequest = idVidMetadataRequestWrapper.getRequest();
+			String individualId = metadataRequest.getIndividualId();
+			String idType = metadataRequest.getIdType();
             IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
 
             auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
