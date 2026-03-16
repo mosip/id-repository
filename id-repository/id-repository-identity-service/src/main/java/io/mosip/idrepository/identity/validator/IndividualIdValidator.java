@@ -37,7 +37,6 @@ public class IndividualIdValidator extends BaseIdRepoValidator implements Valida
     public boolean supports(Class<?> clazz) {
         System.out.println("supports individual Id validator called for: " + clazz.getName());
         return IdVidMetadataRequestDTO.class.isAssignableFrom(clazz)
-        || RequestWrapper.class.isAssignableFrom(clazz) // ← if you validate the whole wrapper
         || IdVidMetadataRequestWrapper.class.isAssignableFrom(clazz);
     }
 
@@ -81,19 +80,25 @@ public class IndividualIdValidator extends BaseIdRepoValidator implements Valida
                         String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), individualId));
 
         }
-        try {
-            IdType expectedIdType = IdType.valueOf(idType);
-            switch (expectedIdType) {
-                case UIN:
-                    valid = validator.validateUin(individualId);
-                case VID:
-                    valid = validator.validateVid(individualId);
-                case ID:
-                    valid =  validator.validateRid(individualId);
+        else
+        {
+            try {
+                IdType expectedIdType = IdType.valueOf(idType);
+                switch (expectedIdType) {
+                    case UIN:
+                        valid = validator.validateUin(individualId);
+                        break;
+                    case VID:
+                        valid = validator.validateVid(individualId);
+                        break;
+                    case ID:
+                        valid = validator.validateRid(individualId);
+                        break;
+                }
+            } catch (IllegalArgumentException | IdRepoAppException e) {
+                // Handle invalid idType (e.g., "demo")
+                valid = false;
             }
-        } catch (IllegalArgumentException | IdRepoAppException e) {
-            // Handle invalid idType (e.g., "demo")
-            valid = false;
         }
 
         if (!valid) {
