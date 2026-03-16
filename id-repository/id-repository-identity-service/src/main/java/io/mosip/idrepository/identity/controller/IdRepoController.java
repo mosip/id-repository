@@ -574,6 +574,7 @@ public class IdRepoController {
 																						 @ApiIgnore Errors errors) throws IdRepoAppException {
 
 			DataValidationUtil.validate(errors);
+			System.out.println("error in searchIdVidMetadata: " + errors);
 			IdVidMetadataRequestDTO metadataRequest = idVidMetadataRequestWrapper.getRequest();
 			String individualId = metadataRequest.getIndividualId();
 			String idType = metadataRequest.getIdType();
