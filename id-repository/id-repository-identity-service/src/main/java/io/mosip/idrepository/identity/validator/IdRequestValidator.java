@@ -156,6 +156,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 */
 	@Override
 	public boolean supports(Class<?> clazz) {
+		System.out.println("supports Id Request validator called for: " + clazz.getName());
 		return clazz.isAssignableFrom(IdRequestDTO.class) || clazz.isAssignableFrom(AuthTypeStatusRequestDto.class) || clazz.isAssignableFrom(RequestWrapper.class)
 					|| clazz.isAssignableFrom(IdRequestByIdDTO.class);
 	}
@@ -169,6 +170,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	@Override
 	public void validate(@Nonnull Object target, Errors errors) {
 		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateIDRequest");
+		System.out.println("inside global validator");
 		if (target instanceof IdRequestDTO) {
 			IdRequestDTO request = (IdRequestDTO) target;
 

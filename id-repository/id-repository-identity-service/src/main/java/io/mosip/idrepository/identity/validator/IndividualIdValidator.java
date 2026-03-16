@@ -35,6 +35,7 @@ public class IndividualIdValidator extends BaseIdRepoValidator implements Valida
      */
     @Override
     public boolean supports(Class<?> clazz) {
+        System.out.println("supports individual Id validator called for: " + clazz.getName());
         return IdVidMetadataRequestDTO.class.isAssignableFrom(clazz)
         || RequestWrapper.class.isAssignableFrom(clazz) // ← if you validate the whole wrapper
         || IdVidMetadataRequestWrapper.class.isAssignableFrom(clazz);
@@ -47,6 +48,7 @@ public class IndividualIdValidator extends BaseIdRepoValidator implements Valida
     @Override
     public void validate(Object target, Errors errors) {
         mosipLogger.error(IdRepoSecurityManager.getUser(), INDIVIDUAL_ID_VALIDATOR, "validateIndividualID", "NULL RID");
+        System.out.println("inside individual validator");
         if (target instanceof IdVidMetadataRequestWrapper) {
 
             IdVidMetadataRequestDTO metadataRequest = ((IdVidMetadataRequestWrapper) target).getRequest();
