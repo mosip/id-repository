@@ -59,7 +59,7 @@ public class IndividualIdValidator extends BaseIdRepoValidator implements Valida
                 try {
                     validateUinOrVidOrRid(individualId, idType, errors);
                 } catch (IdRepoAppException e) {
-                    errors.rejectValue(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+                    errors.rejectValue("request.individualId", IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
                             String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), individualId));
                 }
             }
@@ -74,11 +74,6 @@ public class IndividualIdValidator extends BaseIdRepoValidator implements Valida
             valid = validator.validateUin(individualId)
                     || validator.validateVid(individualId)
                     || validator.validateRid(individualId);
-
-            if(!valid)
-                errors.rejectValue(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
-                        String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), individualId));
-
         }
         else
         {
@@ -103,14 +98,14 @@ public class IndividualIdValidator extends BaseIdRepoValidator implements Valida
         }
 
         if (!valid) {
-            errors.rejectValue(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+            errors.rejectValue("request.individualId", IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
                 String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), individualId));
         }
     }
 
     private void validateIndividualId(String individualId, Errors errors) {
         if (Objects.isNull(individualId)) {
-            errors.rejectValue(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
+            errors.rejectValue("request.individualId", IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
                     String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), individualId));
         }
     }
