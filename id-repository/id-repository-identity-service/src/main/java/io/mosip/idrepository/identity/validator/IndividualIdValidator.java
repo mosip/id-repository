@@ -2,12 +2,12 @@ package io.mosip.idrepository.identity.validator;
 
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.IdVidMetadataRequestDTO;
-import io.mosip.idrepository.core.dto.IdVidMetadataRequestWrapper;
+import io.mosip.idrepository.core.dto.*;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.validator.BaseIdRepoValidator;
+import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -35,7 +35,9 @@ public class IndividualIdValidator extends BaseIdRepoValidator implements Valida
      */
     @Override
     public boolean supports(Class<?> clazz) {
-        return clazz.isAssignableFrom(IdVidMetadataRequestDTO.class);
+        return IdVidMetadataRequestDTO.class.isAssignableFrom(clazz)
+        || RequestWrapper.class.isAssignableFrom(clazz) // ← if you validate the whole wrapper
+        || IdVidMetadataRequestWrapper.class.isAssignableFrom(clazz);
     }
 
     /**

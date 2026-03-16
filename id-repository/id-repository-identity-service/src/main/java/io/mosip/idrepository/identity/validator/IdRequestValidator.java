@@ -168,6 +168,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 */
 	@Override
 	public void validate(@Nonnull Object target, Errors errors) {
+		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateIDRequest");
 		if (target instanceof IdRequestDTO) {
 			IdRequestDTO request = (IdRequestDTO) target;
 
