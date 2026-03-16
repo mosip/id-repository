@@ -60,7 +60,7 @@ public class IndividualIdValidator extends BaseIdRepoValidator implements Valida
                     validateUinOrVidOrRid(individualId, idType, errors);
                 } catch (IdRepoAppException e) {
                     errors.rejectValue("request.individualId", IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
-                            String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), individualId));
+                            String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "individualId"));
                 }
             }
         }
@@ -99,14 +99,14 @@ public class IndividualIdValidator extends BaseIdRepoValidator implements Valida
 
         if (!valid) {
             errors.rejectValue("request.individualId", IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
-                String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), individualId));
+                String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "individualId"));
         }
     }
 
     private void validateIndividualId(String individualId, Errors errors) {
         if (Objects.isNull(individualId)) {
             errors.rejectValue("request.individualId", IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
-                    String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), individualId));
+                    String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), "individualId"));
         }
     }
 }
