@@ -162,7 +162,7 @@ public class IdRepoController {
 	 * @param binder
 	 *            the binder
 	 */
-	@InitBinder
+	@InitBinder("idRequestDTO")
 	public void initBinder(WebDataBinder binder) {
 		binder.addValidators(validator);
 	}
@@ -193,20 +193,20 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
-	public ResponseEntity<IdResponseDTO> addIdentity(@Validated @RequestBody IdRequestDTO request,
+	public ResponseEntity<IdResponseDTO> addIdentity(@Validated @RequestBody IdRequestDTO idRequestDTO,
 			@ApiIgnore Errors errors) throws IdRepoAppException {
-		String regId = Optional.ofNullable(request.getRequest()).map(req -> String.valueOf(req.getRegistrationId()))
+		String regId = Optional.ofNullable(idRequestDTO.getRequest()).map(req -> String.valueOf(req.getRegistrationId()))
 				.orElse("null");
 		try {
-			String uin = getUin(request.getRequest());
-			validator.validateId(request.getId(), CREATE);
+			String uin = getUin(idRequestDTO.getRequest());
+			validator.validateId(idRequestDTO.getId(), CREATE);
 			DataValidationUtil.validate(errors);
 			if (!validator.validateUin(uin)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, "Invalid uin");
 				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
 			}
-			return new ResponseEntity<>(idRepoService.addIdentity(request, uin), HttpStatus.OK);
+			return new ResponseEntity<>(idRepoService.addIdentity(idRequestDTO, uin), HttpStatus.OK);
 		} catch (IdRepoDataValidationException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE,
 					regId, IdType.ID, e);
@@ -289,32 +289,32 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
-	public ResponseEntity<IdResponseDTO> retrieveIdentityById(@Validated @RequestBody IdRequestByIdDTO requestById,
+	public ResponseEntity<IdResponseDTO> retrieveIdentityById(@Validated @RequestBody IdRequestByIdDTO idRequestByIdDTO,
 														   @ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
-			String type = validator.validateType(requestById.getType());
+			String type = validator.validateType(idRequestByIdDTO.getType());
 			Map<String, String> extractionFormats = new HashMap<>();
-			if(Objects.nonNull(requestById.getFingerExtractionFormat())) {
-				extractionFormats.put(FINGER_EXTRACTION_FORMAT, requestById.getFingerExtractionFormat());
+			if(Objects.nonNull(idRequestByIdDTO.getFingerExtractionFormat())) {
+				extractionFormats.put(FINGER_EXTRACTION_FORMAT, idRequestByIdDTO.getFingerExtractionFormat());
 			}
-			if(Objects.nonNull(requestById.getIrisExtractionFormat())) {
-				extractionFormats.put(IRIS_EXTRACTION_FORMAT, requestById.getIrisExtractionFormat());
+			if(Objects.nonNull(idRequestByIdDTO.getIrisExtractionFormat())) {
+				extractionFormats.put(IRIS_EXTRACTION_FORMAT, idRequestByIdDTO.getIrisExtractionFormat());
 			}
-			if(Objects.nonNull(requestById.getFaceExtractionFormat())) {
-				extractionFormats.put(FACE_EXTRACTION_FORMAT, requestById.getFaceExtractionFormat());
+			if(Objects.nonNull(idRequestByIdDTO.getFaceExtractionFormat())) {
+				extractionFormats.put(FACE_EXTRACTION_FORMAT, idRequestByIdDTO.getFaceExtractionFormat());
 			}
 			extractionFormats.remove(null);
 			validator.validateTypeAndExtractionFormats(type, extractionFormats);
-			return new ResponseEntity<>(idRepoService.retrieveIdentity(requestById.getId(),
-					Objects.isNull(requestById.getIdType()) ? getIdType(requestById.getId()) : validator.validateIdType(requestById.getIdType()), type, extractionFormats),
+			return new ResponseEntity<>(idRepoService.retrieveIdentity(idRequestByIdDTO.getId(),
+					Objects.isNull(idRequestByIdDTO.getIdType()) ? getIdType(idRequestByIdDTO.getId()) : validator.validateIdType(idRequestByIdDTO.getIdType()), type, extractionFormats),
 					HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE,
-					AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, requestById.getId(), IdType.UIN, e);
+					AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, idRequestByIdDTO.getId(), IdType.UIN, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
-			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, requestById.getId(),
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, idRequestByIdDTO.getId(),
 					IdType.UIN, "Retrieve Identity requested");
 		}
 	}
@@ -378,20 +378,20 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			})
-	public ResponseEntity<IdResponseDTO> updateIdentity(@Validated @RequestBody IdRequestDTO request,
+	public ResponseEntity<IdResponseDTO> updateIdentity(@Validated @RequestBody IdRequestDTO idRequestDTO,
 			@ApiIgnore Errors errors) throws IdRepoAppException {
-		String regId = Optional.ofNullable(request.getRequest()).map(req -> String.valueOf(req.getRegistrationId()))
+		String regId = Optional.ofNullable(idRequestDTO.getRequest()).map(req -> String.valueOf(req.getRegistrationId()))
 				.orElse("null");
 		try {
-			String uin = getUin(request.getRequest());
-			validator.validateId(request.getId(), UPDATE);
+			String uin = getUin(idRequestDTO.getRequest());
+			validator.validateId(idRequestDTO.getId(), UPDATE);
 			DataValidationUtil.validate(errors);
 			if (!validator.validateUin(uin)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, "Invalid uin");
 				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
 			}
-			return new ResponseEntity<>(idRepoService.updateIdentity(request, uin), HttpStatus.OK);
+			return new ResponseEntity<>(idRepoService.updateIdentity(idRequestDTO, uin), HttpStatus.OK);
 		} catch (IdRepoDataValidationException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_IDENTITY_REQUEST_RESPONSE,
 					regId, IdType.ID, e);

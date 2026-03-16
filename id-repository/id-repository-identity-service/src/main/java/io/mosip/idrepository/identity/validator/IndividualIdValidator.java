@@ -5,7 +5,10 @@ import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.IdVidMetadataRequestDTO;
 import io.mosip.idrepository.core.dto.IdVidMetadataRequestWrapper;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
+import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.validator.BaseIdRepoValidator;
+import io.mosip.kernel.core.logger.spi.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -16,9 +19,16 @@ import java.util.Objects;
 @Component
 public class IndividualIdValidator extends BaseIdRepoValidator implements Validator {
 
+    /** The Constant ID_REQUEST_VALIDATOR. */
+    private static final String INDIVIDUAL_ID_VALIDATOR = "IndividualIdValidator";
+
     /** The validator. */
     @Autowired
     private IdRequestValidator validator;
+
+    /** The mosip logger. */
+    Logger mosipLogger = IdRepoLogger.getLogger(IndividualIdValidator.class);
+
     /**
      * @param clazz
      * @return
@@ -34,6 +44,7 @@ public class IndividualIdValidator extends BaseIdRepoValidator implements Valida
      */
     @Override
     public void validate(Object target, Errors errors) {
+        mosipLogger.error(IdRepoSecurityManager.getUser(), INDIVIDUAL_ID_VALIDATOR, "validateIndividualID", "NULL RID");
         if (target instanceof IdVidMetadataRequestWrapper) {
 
             IdVidMetadataRequestDTO metadataRequest = ((IdVidMetadataRequestWrapper) target).getRequest();
