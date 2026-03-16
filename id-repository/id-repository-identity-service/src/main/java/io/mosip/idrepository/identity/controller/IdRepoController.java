@@ -169,7 +169,8 @@ public class IdRepoController {
 
 	@InitBinder
 	public void initIdVidMetadataRequestWrapperBinder(WebDataBinder binder) {
-		binder.setValidator(individualIdValidator);
+
+		binder.addValidators(individualIdValidator);
 	}
 
 	/**
