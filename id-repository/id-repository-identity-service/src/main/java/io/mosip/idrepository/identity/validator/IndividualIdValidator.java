@@ -25,7 +25,7 @@ public class IndividualIdValidator extends BaseIdRepoValidator implements Valida
      */
     @Override
     public boolean supports(Class<?> clazz) {
-        return IdVidMetadataRequestWrapper.class.isAssignableFrom(clazz);
+        return clazz.isAssignableFrom(IdVidMetadataRequestDTO.class);
     }
 
     /**
