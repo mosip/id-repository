@@ -96,14 +96,15 @@ public class IndividualIdValidator extends BaseIdRepoValidator implements Valida
                         break;
                 }
             } catch (IllegalArgumentException | IdRepoAppException e) {
+                e.printStackTrace();
                 // Handle invalid idType (e.g., "demo")
                 valid = false;
             }
         }
 
         if (!valid) {
-            errors.rejectValue(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
-                String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), individualId));
+            errors.rejectValue(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+                String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), individualId));
         }
     }
 
