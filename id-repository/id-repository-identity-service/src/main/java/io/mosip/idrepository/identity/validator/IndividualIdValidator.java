@@ -35,9 +35,6 @@ public class IndividualIdValidator extends BaseIdRepoValidator implements Valida
     @Autowired
     private IdRequestValidator validator;
 
-    /** The MOSIP logger used for logging validation errors. */
-    Logger mosipLogger = IdRepoLogger.getLogger(IndividualIdValidator.class);
-
     /**
      * Checks if this validator supports the given class type.
      *
