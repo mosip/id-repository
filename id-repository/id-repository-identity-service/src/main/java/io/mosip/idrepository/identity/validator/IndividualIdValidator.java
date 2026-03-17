@@ -105,6 +105,7 @@ public class IndividualIdValidator extends BaseIdRepoValidator implements Valida
 
     private void validateIndividualId(String individualId, Errors errors) {
         if (Objects.isNull(individualId)) {
+            System.out.println("checking individualId null:" + individualId);
             errors.rejectValue("request.individualId", IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorCode(),
                     String.format(IdRepoErrorConstants.MISSING_INPUT_PARAMETER.getErrorMessage(), "individualId"));
         }
