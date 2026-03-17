@@ -162,7 +162,7 @@ public class IdRepoController {
 	 * @param binder
 	 *            the binder
 	 */
-	@InitBinder
+	@InitBinder("idRequestDTO")
 	public void initBinder(WebDataBinder binder) {
 		binder.addValidators(validator);
 	}
