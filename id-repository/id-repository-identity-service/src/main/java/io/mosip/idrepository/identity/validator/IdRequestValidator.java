@@ -409,7 +409,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 		try {
 			return ridValidator.validateId(rid);
 		} catch (InvalidIDException e) {
-			e.printStackTrace();
+			System.out.println ("validate rid error: "+ e.getLocalizedMessage());
 			return false;
 		}
 	}
