@@ -153,8 +153,9 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 */
 	@Override
 	public boolean supports(Class<?> clazz) {
-		return clazz.isAssignableFrom(IdRequestDTO.class) || clazz.isAssignableFrom(AuthTypeStatusRequestDto.class) || clazz.isAssignableFrom(RequestWrapper.class)
-					|| clazz.isAssignableFrom(IdRequestByIdDTO.class);
+		return IdRequestDTO.class.isAssignableFrom(clazz)
+				|| AuthTypeStatusRequestDto.class.isAssignableFrom(clazz)
+				|| IdRequestByIdDTO.class.isAssignableFrom(clazz);
 	}
 
 	/*
