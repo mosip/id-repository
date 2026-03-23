@@ -620,5 +620,4 @@ public class IdRepoController {
 			return IdType.VID;
 		return IdType.ID;
 	}
-
 }
