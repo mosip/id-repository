@@ -307,7 +307,7 @@ public class IdRepoController {
 			extractionFormats.remove(null);
 			validator.validateTypeAndExtractionFormats(type, extractionFormats);
 			return new ResponseEntity<>(idRepoService.retrieveIdentity(idRequestByIdDTO.getId(),
-					Objects.isNull(idRequestByIdDTO.getIdType()) ? getIdType(idRequestByIdDTO.getId()) : validator.validateIdType(requestById.getIdType()), type, extractionFormats),
+					Objects.isNull(idRequestByIdDTO.getIdType()) ? getIdType(idRequestByIdDTO.getId()) : validator.validateIdType(idRequestByIdDTO.getIdType()), type, extractionFormats),
 					HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE,
@@ -315,7 +315,7 @@ public class IdRepoController {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
-			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, requestById.getId(),
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, idRequestByIdDTO.getId(),
 					IdType.UIN, "Retrieve Identity requested");
 		}
 	}
