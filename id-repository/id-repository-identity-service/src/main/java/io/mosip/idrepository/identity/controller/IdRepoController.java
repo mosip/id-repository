@@ -18,7 +18,6 @@ import io.mosip.idrepository.identity.validator.IndividualIdValidator;
 import javax.annotation.Nullable;
 import javax.annotation.Resource;
 
-import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.dto.*;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -622,29 +621,4 @@ public class IdRepoController {
 		return IdType.ID;
 	}
 
-	private boolean validateUinOrVidOrRid(String idType, String individualId) throws IdRepoAppException {
-
-		if (StringUtils.isEmpty(idType))
-			return validator.validateUin(individualId) || validator.validateVid(individualId) || validator.validateRid(individualId);
-
-		try {
-			IdType expectedIdType = IdType.valueOf(idType);
-			switch (expectedIdType) {
-				case UIN:
-					return validator.validateUin(individualId);
-				case VID:
-					return validator.validateVid(individualId);
-				case ID:
-					return validator.validateRid(individualId);
-			}
-		} catch (IllegalArgumentException e) {
-			// Handle invalid idType (e.g., "demo")
-			throw new IdRepoAppException(
-					IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
-					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "idType")
-			);
-		}
-
-		return false;
-	}
 }
