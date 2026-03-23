@@ -4,7 +4,6 @@ import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.*;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
-import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.validator.BaseIdRepoValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,7 +116,6 @@ public class IndividualIdValidator extends BaseIdRepoValidator implements Valida
             try {
                 // Validate based on the specific ID type provided.
                 IdType expectedIdType = IdType.valueOf(idType);
-                System.out.println("idType: "+ expectedIdType);
                 switch (expectedIdType) {
                     case UIN:
                         valid = validator.validateUin(individualId);
@@ -127,7 +125,6 @@ public class IndividualIdValidator extends BaseIdRepoValidator implements Valida
                         break;
                     case ID:
                         valid = validator.validateRid(individualId);
-                        System.out.println("valid for RID: "+ valid);
                         break;
                 }
             } catch (IllegalArgumentException | IdRepoAppException e) {
