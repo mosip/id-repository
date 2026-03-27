@@ -1,17 +1,23 @@
 package io.mosip.credentialstore.test.provider.impl;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.credentialstore.dto.BestFingerDto;
+import io.mosip.credentialstore.exception.ApiNotAccessibleException;
+import io.mosip.credentialstore.exception.SignatureException;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.ContextConfiguration;
@@ -95,6 +101,12 @@ public class VerCredProviderTest {
 		ReflectionTestUtils.setField(verCredProvider, "proofPurpose", "test");
 		ReflectionTestUtils.setField(verCredProvider, "verificationMethod", "test");
 		ReflectionTestUtils.setField(env, "dateTimePattern", "yyyy-MM-ddHH:mm:ss");
+		ReflectionTestUtils.setField(verCredProvider, "vcContextJsonld", vcContextJsonld);
+		ReflectionTestUtils.setField(verCredProvider, "confDocumentLoader", new ConfigurableDocumentLoader());
+		ReflectionTestUtils.setField(verCredProvider, "verCredTypes", List.of("TestType"));
+		ReflectionTestUtils.setField(verCredProvider, "proofType", "Ed25519Signature2018");
+		ReflectionTestUtils.setField(verCredProvider, "proofPurpose", "assertionMethod");
+		ReflectionTestUtils.setField(verCredProvider, "verificationMethod", "did:example:123#key-1");
 	}
 
 	@Test
@@ -132,4 +144,57 @@ public class VerCredProviderTest {
 		assertNotNull(response);
 	}
 
+	@Test
+	public void testBestTwoFingerBranchExceptionThrown() throws ApiNotAccessibleException, SignatureException {
+
+		Mockito.when(vcContextJsonld.get("context")).thenReturn("dummy");
+		Mockito.when(utilities.generateId()).thenReturn("CRED-001");
+		Mockito.when(digitalSignatureUtil.signVerCred(Mockito.any(), Mockito.any()))
+				.thenReturn("signed-jws-value");
+		AllowedKycDto dto = new AllowedKycDto();
+		dto.setAttributeName("bestFinger");
+		dto.setFormat("bestTwoFingers");
+
+		BestFingerDto bf1 = Mockito.mock(BestFingerDto.class);
+		bf1.setSubType("L1");
+		bf1.setRank(1);
+
+		List<BestFingerDto> list = List.of(bf1);
+
+		Map<AllowedKycDto, Object> sharable = new HashMap<>();
+		sharable.put(dto, list);
+
+		CredentialServiceRequestDto req = new CredentialServiceRequestDto();
+		req.setId("123");
+		req.setRequestId("REQ1");
+		req.setEncryptionKey("pin");
+		CredentialFormatterException ex = assertThrows(
+				CredentialFormatterException.class,
+				() -> verCredProvider.getFormattedCredentialData(req, sharable)
+		);
+	}
+
+	@Test
+	public void testNonStringValueBranchThrowsFormatterException() throws Exception {
+
+		Mockito.when(vcContextJsonld.get("context")).thenReturn("dummy");
+		Mockito.when(utilities.generateId()).thenReturn("CRED-001");
+		Mockito.when(digitalSignatureUtil.signVerCred(Mockito.any(), Mockito.any()))
+				.thenReturn("signed-jws-value");
+		AllowedKycDto dto = new AllowedKycDto();
+		dto.setAttributeName("age");
+
+		Map<AllowedKycDto, Object> sharable = new HashMap<>();
+		sharable.put(dto, 25);
+
+		CredentialServiceRequestDto req = new CredentialServiceRequestDto();
+		req.setId("001");
+		req.setRequestId("REQ2");
+		req.setEncryptionKey("pin");
+		CredentialFormatterException ex = assertThrows(
+				CredentialFormatterException.class,
+				() -> verCredProvider.getFormattedCredentialData(req, sharable)
+		);
+		assertTrue(ex.getMessage().contains("IDR-CRS-006"));
+	}
 }

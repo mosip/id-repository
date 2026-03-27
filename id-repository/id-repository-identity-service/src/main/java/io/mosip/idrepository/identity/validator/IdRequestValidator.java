@@ -16,12 +16,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import io.mosip.kernel.core.idvalidator.spi.RidValidator;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
-
-import io.mosip.kernel.core.http.RequestWrapper;
-import io.mosip.idrepository.core.dto.IdRequestByIdDTO;
 
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.idrepository.core.dto.IdRequestByIdDTO;
@@ -136,6 +134,9 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	private VidValidator<String> vidValidator;
 
 	@Autowired
+	private RidValidator<String> ridValidator;
+
+	@Autowired
 	private IdRepoServiceHelper idRepoServiceHelper;
 
 
@@ -152,8 +153,9 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 */
 	@Override
 	public boolean supports(Class<?> clazz) {
-		return clazz.isAssignableFrom(IdRequestDTO.class) || clazz.isAssignableFrom(AuthTypeStatusRequestDto.class) || clazz.isAssignableFrom(RequestWrapper.class)
-					|| clazz.isAssignableFrom(IdRequestByIdDTO.class);
+		return IdRequestDTO.class.isAssignableFrom(clazz)
+				|| AuthTypeStatusRequestDto.class.isAssignableFrom(clazz)
+				|| IdRequestByIdDTO.class.isAssignableFrom(clazz);
 	}
 
 	/*
@@ -394,6 +396,21 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	public boolean validateVid(String vid) {
 		try {
 			return vidValidator.validateId(vid);
+		} catch (InvalidIDException e) {
+			return false;
+		}
+	}
+
+	/**
+	 * Validate rid.
+	 *
+	 * @param rid the rid
+	 * @return true, if successful
+	 */
+
+	public boolean validateRid(String rid) {
+		try {
+			return ridValidator.validateId(rid);
 		} catch (InvalidIDException e) {
 			return false;
 		}

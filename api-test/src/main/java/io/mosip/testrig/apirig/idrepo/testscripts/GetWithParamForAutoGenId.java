@@ -82,7 +82,6 @@ public class GetWithParamForAutoGenId extends IdRepoUtil implements ITest {
 	 * @param testcaseName
 	 * @throws AuthenticationTestException
 	 * @throws AdminTestException
-	 * @throws SecurityXSSException 
 	 */
 	@Test(dataProvider = "testcaselist")
 	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {

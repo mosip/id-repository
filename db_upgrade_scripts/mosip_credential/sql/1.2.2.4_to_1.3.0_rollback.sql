@@ -1,3 +1,5 @@
+\c mosip_credential
+
 -- ------------------------------------------------------------------------------------------
 -- Rollback script for Migrating Spring batch version back from 5.0 as part of Java 21 Migration.
 -- ------------------------------------------------------------------------------------------
@@ -38,6 +40,8 @@ ALTER TABLE BATCH_JOB_EXECUTION ADD COLUMN JOB_CONFIGURATION_LOCATION VARCHAR(25
 DROP INDEX IF EXISTS idx_job_name;
 DROP INDEX IF EXISTS idx_job_key;
 
+-- Below script required to rollback from 1.3.0-beta.1 to 1.3.0.
+
 -- ROLLBACK FOR PERFORMANCE OPTIMIZATION INDEXES
 
 DROP INDEX IF EXISTS credential.idx_job_exec_instance;
@@ -48,6 +52,9 @@ DROP INDEX IF EXISTS credential.idx_cred_new_status_cr_dtimes_active;
 DROP INDEX IF EXISTS credential.idx_cred_status_cr_dtimes_active;
 DROP INDEX IF EXISTS credential.idx_cred_status_upd_dtimes_active;
 DROP INDEX IF EXISTS credential.idx_credtran_status_crdtimes;
+
+ALTER TABLE credential_transaction RESET (autovacuum_vacuum_scale_factor, autovacuum_vacuum_threshold, autovacuum_analyze_scale_factor, autovacuum_analyze_threshold);
+ALTER TABLE batch_job_execution RESET (autovacuum_vacuum_scale_factor, autovacuum_vacuum_threshold, autovacuum_analyze_scale_factor, autovacuum_analyze_threshold);
 
 -- END ROLLBACK FOR PERFORMANCE OPTIMIZATION INDEXES
 

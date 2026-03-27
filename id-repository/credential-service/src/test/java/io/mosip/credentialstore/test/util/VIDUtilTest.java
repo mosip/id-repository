@@ -2,6 +2,7 @@ package io.mosip.credentialstore.test.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.credentialstore.constants.ApiName;
+import io.mosip.credentialstore.exception.ApiNotAccessibleException;
 import io.mosip.credentialstore.exception.IdRepoException;
 import io.mosip.credentialstore.util.RestUtil;
 import io.mosip.credentialstore.util.VIDUtil;
@@ -21,6 +22,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDateTime;
@@ -139,4 +141,105 @@ public class VIDUtilTest {
         vidUtil.getVIDData("4554888654", "PERPETUAL","4452541213124");
     }
 
+    @Test
+    public void testGetVIDDataShouldThrowHttpClientErrorException() throws Exception {
+        HttpClientErrorException clientException = new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Client error");
+        Exception wrappedException = new Exception(clientException);
+
+        Mockito.when(restUtil.getApi(Mockito.any(), Mockito.anyList(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenThrow(wrappedException);
+
+        assertThrows(ApiNotAccessibleException.class, () -> {
+            vidUtil.getVIDData("uin123", "PERPETUAL", "123");
+        });
+    }
+
+    @Test
+    public void testGetVIDDataShouldThrowHttpServerErrorException() throws Exception {
+        HttpServerErrorException serverException = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error");
+        Exception wrappedException = new Exception(serverException);
+
+        Mockito.when(restUtil.getApi(Mockito.any(), Mockito.anyList(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenThrow(wrappedException);
+
+        assertThrows(ApiNotAccessibleException.class, () -> {
+            vidUtil.getVIDData("uin123", "PERPETUAL", "123");
+        });
+    }
+
+    @Test
+    public void testGetVIDDataShouldThrowGenericException() throws Exception {
+        Exception genericException = new Exception("Unknown exception");
+
+        Mockito.when(restUtil.getApi(Mockito.any(), Mockito.anyList(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenThrow(genericException);
+
+        assertThrows(IdRepoException.class, () -> {
+            vidUtil.getVIDData("uin123", "PERPETUAL", "123");
+        });
+    }
+
+    @Test
+    public void testGenerateVIDShouldThrowGenericException() throws Exception {
+        Exception genericException = new Exception("Unknown exception");
+
+        Mockito.when(restUtil.postApi((ApiName) Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenThrow(genericException);
+
+        assertThrows(IdRepoException.class, () -> {
+            vidUtil.generateVID("uin123", "PERPETUAL");
+        });
+    }
+
+    @Test
+    public void testGetVIDDataShouldThrowHttpClientErrorCause() throws Exception {
+        HttpClientErrorException clientEx = new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Client error");
+        Exception wrappedEx = new Exception(clientEx);  // wrap to set cause
+
+        Mockito.when(restUtil.getApi(Mockito.any(), Mockito.anyList(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenThrow(wrappedEx);
+
+        assertThrows(ApiNotAccessibleException.class, () ->
+                vidUtil.getVIDData("uin123", "PERPETUAL", "123")
+        );
+    }
+
+    @Test
+    public void testGetVIDDataShouldThrowHttpServerErrorCause() throws Exception {
+        HttpServerErrorException serverEx = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error");
+        Exception wrappedEx = new Exception(serverEx);
+
+        Mockito.when(restUtil.getApi(Mockito.any(), Mockito.anyList(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenThrow(wrappedEx);
+
+        assertThrows(ApiNotAccessibleException.class, () ->
+                vidUtil.getVIDData("uin123", "PERPETUAL", "123")
+        );
+    }
+
+    @Test
+    public void testGenerateVIDShouldThrowHttpClientErrorCause() throws Exception {
+        HttpClientErrorException clientEx = new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Client error");
+        Exception wrappedEx = new Exception(clientEx);
+
+        Mockito.when(restUtil.postApi((ApiName) Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenThrow(wrappedEx);
+
+        assertThrows(ApiNotAccessibleException.class, () ->
+                vidUtil.generateVID("uin123", "PERPETUAL")
+        );
+    }
+
+    @Test
+    public void testGenerateVIDShouldThrowHttpServerErrorCause() throws Exception {
+        HttpServerErrorException serverEx = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error");
+        Exception wrappedEx = new Exception(serverEx);
+
+        Mockito.when(restUtil.postApi((ApiName) Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenThrow(wrappedEx);
+
+        assertThrows(ApiNotAccessibleException.class, () ->
+                vidUtil.generateVID("uin123", "PERPETUAL")
+        );
+    }
 }

@@ -3,6 +3,7 @@ name: identity
 description: A Helm chart for MOSIP IDRepo Identity Service
 type: application
 version: 1.3.1-develop
+
 appVersion: ""
 dependencies:
   - name: common

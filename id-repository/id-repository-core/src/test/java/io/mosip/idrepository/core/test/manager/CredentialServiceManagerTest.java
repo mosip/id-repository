@@ -26,6 +26,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
@@ -653,4 +654,26 @@ public class CredentialServiceManagerTest {
 		assertEquals(token, result.getAdditionalData().get(IdRepoConstants.TOKEN));
 	}
 
+	@Test
+	public void notifyUinCredentialShouldHandleRestServiceException() throws IdRepoDataValidationException, RestServiceException {
+		Logger logger = mock(Logger.class);
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("{uin}");
+		when(restBuilder.buildRequest(any(), any(), any())).thenReturn(restReq);
+
+		when(restHelper.requestSync(any()))
+				.thenThrow(new RestServiceException(IdRepoErrorConstants.NO_RECORD_FOUND));
+
+		EventModel eventModel = new EventModel();
+		when(websubHelper.createEventModel(any(), any(), any(), any(), any(), any()))
+				.thenReturn(new AsyncResult<>(eventModel));
+
+		LocalDateTime expiryTimestamp = LocalDateTime.now();
+		IntFunction<String> saltRetreivalFunction = a -> "Test";
+		List<String> partnerIds = new ArrayList<>();
+		partnerIds.add("12");
+		credentialServiceManager.notifyUinCredential("123", expiryTimestamp, "ACTIVATED", true, "12",
+				saltRetreivalFunction, null, null, partnerIds, "123465");
+		verify(logger, never()).error(eq("Error retrieving vids for uin"), any(RestServiceException.class));
+	}
 }

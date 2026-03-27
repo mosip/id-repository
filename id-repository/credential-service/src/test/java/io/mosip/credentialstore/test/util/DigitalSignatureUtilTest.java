@@ -1,6 +1,7 @@
 package io.mosip.credentialstore.test.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -197,6 +198,32 @@ public class DigitalSignatureUtilTest {
 		Mockito.when(objectMapper.readValue(signResponse, SignResponseDto.class))
 				.thenThrow(new JsonMappingException(""));
 		digitalSignatureUtil.signVerCred(test, "requestId");
+	}
+
+	@Test
+	public void testSignResponseObjectNull() throws Exception {
+		String emptyResponse = "{}";
+		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(emptyResponse);
+
+		Mockito.when(objectMapper.readValue(emptyResponse, SignResponseDto.class)).thenReturn(null);
+
+		assertThrows(SignatureException.class, () ->
+				digitalSignatureUtil.sign("data", "requestId")
+		);
+	}
+
+	@Test
+	public void testSignVerCredResponseObjectNull() throws Exception {
+		String emptyResponse = "{}";
+		Mockito.when(restUtil.postApi(Mockito.any(ApiName.class), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(emptyResponse);
+
+		Mockito.when(objectMapper.readValue(emptyResponse, SignResponseDto.class)).thenReturn(null);
+
+		assertThrows(SignatureException.class, () ->
+				digitalSignatureUtil.signVerCred("data", "requestId")
+		);
 	}
 
 }

@@ -119,11 +119,11 @@ public class ObjectStoreHelper {
 	private byte[] getObject(String uinHash, boolean isBio, String fileRefId, String refId)
 			throws IdRepoAppException {
 		String objectName = uinHash + SLASH + (isBio ? BIOMETRICS : DEMOGRAPHICS) + SLASH + fileRefId;
-		try (InputStream s3Stream = new BufferedInputStream(
-				objectStore.getObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName))) {
-			if (s3Stream == null) {
-				throw new IdRepoAppException(FILE_NOT_FOUND);
-			}
+		InputStream rawStream = objectStore.getObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
+		if (rawStream == null) {
+			throw new IdRepoAppException(FILE_NOT_FOUND);
+		}
+		try (InputStream s3Stream = new BufferedInputStream(rawStream)) {
 			return securityManager.decrypt(IOUtils.toByteArray(s3Stream), refId);
 		} catch (IOException | ObjectStoreAdapterException e) {
 			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),

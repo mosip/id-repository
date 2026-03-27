@@ -76,7 +76,6 @@ public class PutWithPathParam extends IdRepoUtil implements ITest {
 	 * @param testcaseName
 	 * @throws AuthenticationTestException
 	 * @throws AdminTestException
-	 * @throws SecurityXSSException 
 	 */
 	@Test(dataProvider = "testcaselist")
 	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
@@ -115,7 +114,7 @@ public class PutWithPathParam extends IdRepoUtil implements ITest {
 		}
 
 		else {
-			String inputJson=getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate());
+			String inputJson = getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate());
 			inputJson = inputStringKeyWordHandeler(inputJson, testCaseName);
 			response = putWithPathParamAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 					testCaseDTO.getRole(), testCaseDTO.getTestCaseName());
