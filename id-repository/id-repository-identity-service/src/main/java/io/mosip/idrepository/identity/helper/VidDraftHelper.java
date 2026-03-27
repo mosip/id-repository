@@ -8,6 +8,8 @@ import java.util.Objects;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
@@ -41,6 +43,7 @@ public class VidDraftHelper {
 	@Autowired
 	private RestHelper restHelper;
 
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public String generateDraftVid(String uin) throws IdRepoAppException {
 		try {
 			if (EnvUtil.getIsDraftVidTypePresent()) {

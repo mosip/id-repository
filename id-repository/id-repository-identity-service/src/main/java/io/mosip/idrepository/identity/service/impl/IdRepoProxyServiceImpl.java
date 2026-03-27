@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import jakarta.annotation.Resource;
@@ -146,6 +149,10 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	@Value("${id-repo-ida-event-type-name:ida}")
 	private String idaEventTypeName;
+
+	/** Total seconds to wait for all modality extractions to complete. */
+	@Value("${mosip.idrepo.bio.extraction.timeout-seconds:30}")
+	private long extractionTimeoutSeconds;
 
 	/*
 	 * (non-Javadoc)
@@ -444,10 +451,28 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			}
 
 			originalBirs.clear(); // release parsed BIR list before blocking on futures - reduces live set during wait
-			CompletableFuture.allOf(extractionFutures.toArray(new CompletableFuture<?>[extractionFutures.size()]))
-					.join();
+
+			// Wait for all modality extractions with a hard deadline.
+			// Previously .join() was used with no timeout, blocking indefinitely.
+			// Now .get(timeout) bounds the wait to mosip.idrepo.bio.extraction.timeout-seconds.
+			try {
+				CompletableFuture.allOf(extractionFutures.toArray(new CompletableFuture<?>[0]))
+						.get(extractionTimeoutSeconds, TimeUnit.SECONDS);
+			} catch (TimeoutException e) {
+				extractionFutures.forEach(f -> f.cancel(true));
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
+						"Biometric extraction timed out after " + extractionTimeoutSeconds + "s");
+				throw new IdRepoAppUncheckedException(BIO_EXTRACTION_ERROR, e);
+			} catch (ExecutionException e) {
+				Throwable cause = e.getCause();
+				if (cause instanceof IdRepoAppUncheckedException)
+					throw (IdRepoAppUncheckedException) cause;
+				throw new IdRepoAppUncheckedException(BIO_EXTRACTION_ERROR, cause);
+			}
+			// All futures completed normally; getNow() retrieves without a second blocking call
+			// (replaces the previous redundant future.get() loop after the join).
 			for (CompletableFuture<List<BIR>> future : extractionFutures) {
-				finalBirs.addAll(future.get());
+				finalBirs.addAll(future.getNow(Collections.emptyList()));
 			}
 
 			return cbeffUtil.createXML(finalBirs);
