@@ -363,6 +363,7 @@ public class IdRepoServiceTest {
 			Uin uinObj = new Uin();
 			uinObj.setUin("1234");
 			uinObj.setUinRefId("1234");
+			uinObj.setUinData("".getBytes());
 			RequestDTO req = mapper.readValue(
 					"{\"identity\":{\"proofOfDateOfBirth\":{\"format\":\"pdf\",\"type\":\"passport\",\"value\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"proofOfDateOfBirth\",\"value\":\"dGVzdA\"}]}"
 							.getBytes(),
@@ -373,9 +374,12 @@ public class IdRepoServiceTest {
 			when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(false);
 			when(uinRepo.existsByRegId(Mockito.any())).thenReturn(false);
 			when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
+			when(uinRepo.save(Mockito.any())).thenReturn(uinObj);
 			when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-			when(uinDocHRepo.save(Mockito.any())).thenThrow(new DataAccessResourceFailureException(null));
+			IdRepoSecurityManager securityManagerMock1 = mock(IdRepoSecurityManager.class);
+			ReflectionTestUtils.setField(service, "securityManager", securityManagerMock1);
+			when(uinDocHRepo.saveAll(Mockito.any())).thenThrow(new DataAccessResourceFailureException(null));
 			proxyService.addIdentity(request, "1234");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
@@ -391,6 +395,7 @@ public class IdRepoServiceTest {
 			Uin uinObj = new Uin();
 			uinObj.setUin("1234");
 			uinObj.setUinRefId("1234");
+			uinObj.setUinData("".getBytes());
 			RequestDTO req = mapper.readValue(
 					"{\"identity\":{\"proofOfDateOfBirth\":{\"format\":\"pdf\",\"type\":\"passport\",\"value\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"proofOfDateOfBirth\",\"value\":\"dGVzdA\"}]}"
 							.getBytes(),
@@ -400,9 +405,12 @@ public class IdRepoServiceTest {
 			when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(false);
 			when(uinRepo.existsByRegId(Mockito.any())).thenReturn(false);
 			when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
+			when(uinRepo.save(Mockito.any())).thenReturn(uinObj);
 			when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-			when(uinDocHRepo.save(Mockito.any())).thenThrow(new JDBCConnectionException(null, null));
+			IdRepoSecurityManager securityManagerMock2 = mock(IdRepoSecurityManager.class);
+			ReflectionTestUtils.setField(service, "securityManager", securityManagerMock2);
+			when(uinDocHRepo.saveAll(Mockito.any())).thenThrow(new JDBCConnectionException(null, null));
 			proxyService.addIdentity(request, "1234");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());

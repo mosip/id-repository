@@ -132,9 +132,12 @@ public class IdRepoDataSourceConfig {
 		config.setAutoCommit(false);
 		config.setMaximumPoolSize(env.getProperty("mosip.idrepo.db.pool.maximum-pool-size", Integer.class, 30));
 		config.setMinimumIdle(env.getProperty("mosip.idrepo.db.pool.minimum-idle", Integer.class, 10));
-		config.setConnectionTimeout(env.getProperty("mosip.idrepo.db.pool.connection-timeout", Long.class, 5000L));
+		config.setConnectionTimeout(env.getProperty("mosip.idrepo.db.pool.connection-timeout", Long.class, 30000L));
 		config.setIdleTimeout(env.getProperty("mosip.idrepo.db.pool.idle-timeout", Long.class, 300000L));
 		config.setMaxLifetime(env.getProperty("mosip.idrepo.db.pool.max-lifetime", Long.class, 600000L));
+		// Log a stack trace if a connection is held longer than this threshold.
+		// Helps identify which code path is holding connections during S3/REST I/O.
+		config.setLeakDetectionThreshold(env.getProperty("mosip.idrepo.db.pool.leak-detection-threshold", Long.class, 20000L));
 		return new HikariDataSource(config);
 	}
 

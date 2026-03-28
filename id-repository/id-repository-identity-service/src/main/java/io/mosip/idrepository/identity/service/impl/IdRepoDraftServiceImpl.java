@@ -99,6 +99,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
@@ -396,6 +397,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	}
 
 	@Override
+	// Cannot use NOT_SUPPORTED here: draft.getUinData() and draft.getDocuments()
+	// are lazy fields — they require an open Hibernate session to load.
 	public IdResponseDTO getDraft(String regId, Map<String, String> extractionFormats) throws IdRepoAppException {
 		try {
 			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
@@ -429,7 +432,18 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>Runs without an ambient transaction. The initial DB read
+	 * ({@code findByRegId}) uses Spring Data JPA's own short read-only
+	 * transaction which commits immediately — releasing the DB connection
+	 * back to the pool before any S3/biometric-extraction I/O begins.
+	 * No DB writes are performed in this method so no write transaction
+	 * is needed.
+	 */
 	@Override
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public IdResponseDTO extractBiometrics(String registrationId, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
 		if (extractionFormats.isEmpty()) {
