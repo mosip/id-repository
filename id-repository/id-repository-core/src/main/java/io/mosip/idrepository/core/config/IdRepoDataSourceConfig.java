@@ -13,7 +13,6 @@ import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -23,6 +22,8 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
@@ -99,18 +100,33 @@ public class IdRepoDataSourceConfig {
 	}
 
 	/**
-	 * Builds the data source.
+	 * Builds a pooled HikariCP data source.
+	 *
+	 * <p>Pool sizing is controlled by:
+	 * <ul>
+	 *   <li>{@code mosip.idrepo.db.pool.maximum-pool-size} (default 10)</li>
+	 *   <li>{@code mosip.idrepo.db.pool.minimum-idle} (default 2)</li>
+	 *   <li>{@code mosip.idrepo.db.pool.connection-timeout} (default 5000 ms)</li>
+	 *   <li>{@code mosip.idrepo.db.pool.idle-timeout} (default 300000 ms)</li>
+	 *   <li>{@code mosip.idrepo.db.pool.max-lifetime} (default 600000 ms)</li>
+	 * </ul>
 	 *
 	 * @param dataSourceValues the data source values
 	 * @return the data source
 	 */
 	private DataSource buildDataSource(Map<String, String> dataSourceValues) {
-		DriverManagerDataSource dataSource = new DriverManagerDataSource(dataSourceValues.get("url"));
-		dataSource.setUsername(dataSourceValues.get("username"));
-		dataSource.setPassword(dataSourceValues.get("password"));
-		dataSource.setDriverClassName(dataSourceValues.get("driverClassName"));
-		dataSource.setSchema("idrepo");
-		return dataSource;
+		HikariConfig config = new HikariConfig();
+		config.setJdbcUrl(dataSourceValues.get("url"));
+		config.setUsername(dataSourceValues.get("username"));
+		config.setPassword(dataSourceValues.get("password"));
+		config.setDriverClassName(dataSourceValues.get("driverClassName"));
+		config.setSchema("idrepo");
+		config.setMaximumPoolSize(env.getProperty("mosip.idrepo.db.pool.maximum-pool-size", Integer.class, 30));
+		config.setMinimumIdle(env.getProperty("mosip.idrepo.db.pool.minimum-idle", Integer.class, 10));
+		config.setConnectionTimeout(env.getProperty("mosip.idrepo.db.pool.connection-timeout", Long.class, 5000L));
+		config.setIdleTimeout(env.getProperty("mosip.idrepo.db.pool.idle-timeout", Long.class, 300000L));
+		config.setMaxLifetime(env.getProperty("mosip.idrepo.db.pool.max-lifetime", Long.class, 600000L));
+		return new HikariDataSource(config);
 	}
 
 	/**
