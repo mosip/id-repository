@@ -2,6 +2,7 @@ package io.mosip.idrepository.identity.repository;
 
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -55,18 +56,8 @@ public interface UinDraftRepo extends JpaRepository<UinDraft, String> {
 	 * @param regId the registration id
 	 * @return the uin draft
 	 */
+	@EntityGraph(attributePaths = {"biometrics"})
 	Optional<UinDraft> findByRegId(String regId);
-
-	/**
-	 * Find by RegId with biometrics and documents eagerly loaded in a single query.
-	 * Use this in place of {@link #findByRegId} whenever the collections will be
-	 * accessed, to avoid lazy-load N+1 SELECT statements.
-	 *
-	 * @param regId the registration id
-	 * @return the uin draft with collections initialised
-	 */
-	@Query("SELECT u FROM UinDraft u LEFT JOIN FETCH u.biometrics LEFT JOIN FETCH u.documents WHERE u.regId = :regId")
-	Optional<UinDraft> findByRegIdWithCollections(@Param("regId") String regId);
 
 	/**
 	 * Delete by RegId.

@@ -272,7 +272,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	@Override
 	public IdResponseDTO updateDraft(String registrationId, IdRequestDTO request) throws IdRepoAppException {
 		try {
-			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegIdWithCollections(registrationId);
+			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(registrationId);
 			if (uinDraft.isEmpty()) {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 						UPDATE_DRAFT, "RID NOT FOUND IN DB | regId=" + registrationId);
@@ -314,7 +314,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	public IdResponseDTO publishDraft(String regId) throws IdRepoAppException {
 		anonymousProfileHelper.setRegId(regId);
 		try {
-			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegIdWithCollections(regId);
+			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
 			if (uinDraft.isEmpty()) {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 						PUBLISH_DRAFT, DRAFT_RECORD_NOT_FOUND + " | regId=" + regId);
@@ -398,7 +398,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	@Override
 	public IdResponseDTO getDraft(String regId, Map<String, String> extractionFormats) throws IdRepoAppException {
 		try {
-			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegIdWithCollections(regId);
+			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
 			if (uinDraft.isEmpty()) {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 						GET_DRAFT, DRAFT_RECORD_NOT_FOUND + " | regId=" + regId);
@@ -436,7 +436,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 			return constructIdResponse(null, DRAFTED, null, null);
 		}
 		try {
-			Optional<UinDraft> draftOpt = uinDraftRepo.findByRegIdWithCollections(registrationId);
+			Optional<UinDraft> draftOpt = uinDraftRepo.findByRegId(registrationId);
 			if (draftOpt.isEmpty()) {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 						GET_DRAFT, DRAFT_RECORD_NOT_FOUND + " | regId=" + registrationId);
