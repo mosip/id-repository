@@ -2,6 +2,7 @@ package io.mosip.idrepository.identity.repository;
 
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -41,6 +42,7 @@ public interface UinRepo extends JpaRepository<Uin, String> {
 	 * @param regId the reg id
 	 * @return the UIN entity if found
 	 */
+	@EntityGraph(attributePaths = {"biometrics"})
 	Optional<Uin> findByRegId(String regId);
 
 	/**
@@ -58,6 +60,7 @@ public interface UinRepo extends JpaRepository<Uin, String> {
 	 * @param uinHash the uin hash
 	 * @return the uin
 	 */
+	@EntityGraph(attributePaths = {"biometrics"})
 	Optional<Uin> findByUinHash(String uinHash);
 	
 	

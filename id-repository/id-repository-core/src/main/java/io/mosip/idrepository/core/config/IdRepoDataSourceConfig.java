@@ -96,6 +96,14 @@ public class IdRepoDataSourceConfig {
 		jpaProperties.put("hibernate.implicit_naming_strategy", SpringImplicitNamingStrategy.class.getName());
 		jpaProperties.put("hibernate.physical_naming_strategy", org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl.class.getName());
 		jpaProperties.put("hibernate.session_factory.interceptor", interceptor);
+		// Batch INSERT/UPDATE: sends up to 25 statements per round-trip instead of 1
+		jpaProperties.put("hibernate.jdbc.batch_size", "25");
+		jpaProperties.put("hibernate.order_inserts", "true");
+		jpaProperties.put("hibernate.order_updates", "true");
+		// Fetch 50 rows per round-trip when streaming result sets (default is 1 in many drivers)
+		jpaProperties.put("hibernate.jdbc.fetch_size", "50");
+		// Skip BEGIN on read-only transactions — avoids round-trip overhead when HikariCP manages autocommit
+		jpaProperties.put("hibernate.connection.provider_disables_autocommit", "true");
 		return jpaProperties;
 	}
 
@@ -121,6 +129,7 @@ public class IdRepoDataSourceConfig {
 		config.setPassword(dataSourceValues.get("password"));
 		config.setDriverClassName(dataSourceValues.get("driverClassName"));
 		config.setSchema("idrepo");
+		config.setAutoCommit(false);
 		config.setMaximumPoolSize(env.getProperty("mosip.idrepo.db.pool.maximum-pool-size", Integer.class, 30));
 		config.setMinimumIdle(env.getProperty("mosip.idrepo.db.pool.minimum-idle", Integer.class, 10));
 		config.setConnectionTimeout(env.getProperty("mosip.idrepo.db.pool.connection-timeout", Long.class, 5000L));

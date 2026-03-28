@@ -97,7 +97,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	@Value("${mosip.idrepo.executor.max-pool-size:#{T(io.mosip.idrepository.core.util.EnvUtil).getActiveAsyncThreadCount()}}")
 	private int executorMaxPoolSize;
 
-	@Value("${mosip.idrepo.executor.queue-capacity:500}")
+	@Value("${mosip.idrepo.executor.queue-capacity:100}")
 	private int executorQueueCapacity;
 
 	@Value("${mosip.idrepo.executor.await-termination-seconds:30}")
@@ -110,7 +110,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	@Value("${mosip.idrepo.websub-executor.max-pool-size:#{T(io.mosip.idrepository.core.util.EnvUtil).getActiveAsyncThreadCount()}}")
 	private int webSubMaxPoolSize;
 
-	@Value("${mosip.idrepo.websub-executor.queue-capacity:500}")
+	@Value("${mosip.idrepo.websub-executor.queue-capacity:100}")
 	private int webSubQueueCapacity;
 
 	@Value("${mosip.idrepo.websub-executor.await-termination-seconds:30}")
@@ -123,7 +123,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	@Value("${mosip.idrepo.cred-status-executor.max-pool-size:#{T(io.mosip.idrepository.core.util.EnvUtil).getActiveAsyncThreadCount()}}")
 	private int credStatusMaxPoolSize;
 
-	@Value("${mosip.idrepo.cred-status-executor.queue-capacity:500}")
+	@Value("${mosip.idrepo.cred-status-executor.queue-capacity:100}")
 	private int credStatusQueueCapacity;
 
 	@Value("${mosip.idrepo.cred-status-executor.await-termination-seconds:60}")
@@ -136,20 +136,20 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	@Value("${mosip.idrepo.anon-profile-executor.max-pool-size:#{T(io.mosip.idrepository.core.util.EnvUtil).getActiveAsyncThreadCount()}}")
 	private int anonProfileMaxPoolSize;
 
-	@Value("${mosip.idrepo.anon-profile-executor.queue-capacity:500}")
+	@Value("${mosip.idrepo.anon-profile-executor.queue-capacity:100}")
 	private int anonProfileQueueCapacity;
 
 	@Value("${mosip.idrepo.anon-profile-executor.await-termination-seconds:30}")
 	private int anonProfileAwaitTerminationSeconds;
 
 	// Security-context-propagating pool  (used by @Async("withSecurityContext"))
-	@Value("${mosip.idrepo.extract.template.core-pool-size:50}")
+	@Value("${mosip.idrepo.extract.template.core-pool-size:20}")
 	private int secCtxCorePoolSize;
 
-	@Value("${mosip.idrepo.extract.template.max-pool-size:100}")
+	@Value("${mosip.idrepo.extract.template.max-pool-size:50}")
 	private int secCtxMaxPoolSize;
 
-	@Value("${mosip.idrepo.extract.template.queue-capacity:1000}")
+	@Value("${mosip.idrepo.extract.template.queue-capacity:100}")
 	private int secCtxQueueCapacity;
 
 	@Value("${mosip.idrepo.extract.template.await-termination-seconds:60}")
