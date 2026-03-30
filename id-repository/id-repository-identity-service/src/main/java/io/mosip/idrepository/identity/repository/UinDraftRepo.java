@@ -56,7 +56,7 @@ public interface UinDraftRepo extends JpaRepository<UinDraft, String> {
 	 * @param regId the registration id
 	 * @return the uin draft
 	 */
-	@EntityGraph(attributePaths = {"biometrics", "documents", "uinData"})
+	@EntityGraph(attributePaths = {"biometrics"})
 	Optional<UinDraft> findByRegId(String regId);
 
 	/**
