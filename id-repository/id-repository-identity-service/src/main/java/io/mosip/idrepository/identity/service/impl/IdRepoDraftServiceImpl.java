@@ -274,7 +274,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	// NOT_SUPPORTED: releases DB connection before S3 uploads.
 	// uinData, biometrics, and documents are all eager-loaded via @EntityGraph
 	// on findByRegId(), so they remain accessible after the entity detaches.
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
+	//@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public IdResponseDTO updateDraft(String registrationId, IdRequestDTO request) throws IdRepoAppException {
 		try {
 			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(registrationId);
