@@ -404,104 +404,35 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	// Cannot use NOT_SUPPORTED here: draft.getUinData() and draft.getDocuments()
 	// are lazy fields — they require an open Hibernate session to load.
 	public IdResponseDTO getDraft(String regId, Map<String, String> extractionFormats) throws IdRepoAppException {
-		long overallStart = System.currentTimeMillis();
-		idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-				GET_DRAFT, "START - getDraft for regId: " + regId + " | extractionFormats: " + extractionFormats);
-
 		try {
-			// Step 1: Fetch draft from database
-			long dbStart = System.currentTimeMillis();
-			Optional<UinDraft> uinDraftOpt = uinDraftRepo.findByRegId(regId);
-			long dbEnd = System.currentTimeMillis();
-
-			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-					GET_DRAFT, "DB fetch (findByRegId) took " + (dbEnd - dbStart) + " ms");
-
-			if (uinDraftOpt.isEmpty()) {
+			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
+			if (uinDraft.isEmpty()) {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 						GET_DRAFT, DRAFT_RECORD_NOT_FOUND + " | regId=" + regId);
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
 
-			UinDraft draft = uinDraftOpt.get();
+			UinDraft draft = uinDraft.get();
 			String uinHash = draft.getUinHash().split(SPLITTER)[1];
-
 			List<DocumentsDTO> documents = new ArrayList<>();
 
-			// Step 2: Process Biometrics (This is usually the slowest part)
-			long bioStart = System.currentTimeMillis();
-			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-					GET_DRAFT, "Starting biometric processing | Count: " + draft.getBiometrics().size());
-
 			for (UinBiometricDraft bioDraft : draft.getBiometrics()) {
-				long singleBioStart = System.currentTimeMillis();
-
 				byte[] cbeff = extractAndGetCombinedCbeff(uinHash, bioDraft.getBioFileId(), extractionFormats);
-
-				long extractEnd = System.currentTimeMillis();
-
-				// Base64 encoding
-				long base64Start = System.currentTimeMillis();
-				String base64Cbeff = CryptoUtil.encodeToURLSafeBase64(cbeff);
-				long base64End = System.currentTimeMillis();
-
-				documents.add(new DocumentsDTO(bioDraft.getBiometricFileType(), base64Cbeff));
-
-				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
-						"Biometric " + bioDraft.getBiometricFileType() +
-								" | Extraction + Base64 took " + (extractEnd - singleBioStart) + " ms" +
-								" (Extraction: " + (extractEnd - singleBioStart - (base64End - base64Start)) + " ms" +
-								", Base64: " + (base64End - base64Start) + " ms)");
+				documents.add(new DocumentsDTO(bioDraft.getBiometricFileType(),
+						CryptoUtil.encodeToURLSafeBase64(cbeff)));
 			}
-
-			long bioEnd = System.currentTimeMillis();
-			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-					GET_DRAFT, "Total Biometrics processing took " + (bioEnd - bioStart) + " ms");
-
-			// Step 3: Process Documents (Demographics)
-			long docStart = System.currentTimeMillis();
-			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-					GET_DRAFT, "Starting document processing | Count: " + draft.getDocuments().size());
-
 			for (UinDocumentDraft docDraft : draft.getDocuments()) {
-				long singleDocStart = System.currentTimeMillis();
-
 				byte[] docBytes = objectStoreHelper.getDemographicObject(uinHash, docDraft.getDocId());
-
-				String base64Doc = CryptoUtil.encodeToURLSafeBase64(docBytes);
-				documents.add(new DocumentsDTO(docDraft.getDoccatCode(), base64Doc));
-
-				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, GET_DRAFT,
-						"Document " + docDraft.getDoccatCode() +
-								" fetched + encoded in " + (System.currentTimeMillis() - singleDocStart) + " ms");
+				documents.add(new DocumentsDTO(docDraft.getDoccatCode(),
+						CryptoUtil.encodeToURLSafeBase64(docBytes)));
 			}
 
-			long docEnd = System.currentTimeMillis();
-			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-					GET_DRAFT, "Total Documents processing took " + (docEnd - docStart) + " ms");
-
-			// Step 4: Construct final response
-			long constructStart = System.currentTimeMillis();
-			IdResponseDTO response = constructIdResponse(draft.getUinData(), draft.getStatusCode(), documents, null);
-			long constructEnd = System.currentTimeMillis();
-
-			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-					GET_DRAFT, "Response construction took " + (constructEnd - constructStart) + " ms");
-
-			long overallEnd = System.currentTimeMillis();
-			idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-					GET_DRAFT, "END - Total getDraft took " + (overallEnd - overallStart) + " ms for regId: " + regId);
-
-			return response;
+			return constructIdResponse(draft.getUinData(), draft.getStatusCode(), documents, null);
 
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-					GET_DRAFT, "Database error | " + e.getMessage());
+					GET_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
-		} catch (Exception e) {
-			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-					GET_DRAFT, "Unexpected error in getDraft: " + e.getMessage());
-			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);   // or appropriate error
 		}
 	}
 

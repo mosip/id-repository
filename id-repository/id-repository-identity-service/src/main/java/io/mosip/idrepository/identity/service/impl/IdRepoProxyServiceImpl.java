@@ -418,139 +418,73 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	protected byte[] getBiometricsForRequestedFormats(String uinHash, String fileName,
 													  Map<String, String> extractionFormats, byte[] originalData) throws IdRepoAppException {
-
-		long overallStart = System.currentTimeMillis();
-		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats",
-				"START - Biometric extraction for fileName: " + fileName + " | formats: " + extractionFormats);
-
 		try {
-			// Step 1: Parse original CBEFF XML
-			long parseStart = System.currentTimeMillis();
 			List<BIR> originalBirs = cbeffUtil.getBIRDataFromXML(originalData);
-			long parseEnd = System.currentTimeMillis();
-
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats",
-					"CBEFF Parsing took " + (parseEnd - parseStart) + " ms | BIR count: " + originalBirs.size());
-
 			List<BIR> finalBirs = new ArrayList<>();
+
 			List<CompletableFuture<List<BIR>>> extractionFutures = new ArrayList<>();
 
-			// Step 2: Process each modality
 			for (BiometricType modality : SUPPORTED_MODALITIES) {
-				long modalityStart = System.currentTimeMillis();
-
-				// Filter BIRs for this modality
 				List<BIR> birTypesForModality = originalBirs.stream()
 						.filter(bir -> {
 							List<BiometricType> types = bir.getBdbInfo().getType();
 							return !types.isEmpty() && types.get(0).value().equalsIgnoreCase(modality.value());
-						})
-						.filter(bir -> {
+						})						.filter(bir -> {
 							Map<String, String> others = bir.getOthers();
 							return others == null || "false".equalsIgnoreCase(others.get("EXCEPTION"));
 						})
 						.collect(Collectors.toList());
-
-				long filterEnd = System.currentTimeMillis();
-
 				Optional<Entry<String, String>> extractionFormatForModality = extractionFormats.entrySet().stream()
-						.filter(ent -> ent.getKey().toLowerCase().contains(modality.value().toLowerCase()))
-						.findAny();
+						.filter(ent -> ent.getKey().toLowerCase().contains(modality.value().toLowerCase())).findAny();
 
-				if (!extractionFormatForModality.isEmpty() && !birTypesForModality.isEmpty()) {
+				if (!extractionFormatForModality.isEmpty()&& !birTypesForModality.isEmpty()) {
 					Entry<String, String> format = extractionFormatForModality.get();
-
-					long extractStart = System.currentTimeMillis();
 					CompletableFuture<List<BIR>> extractTemplateFuture = biometricExtractionService.extractTemplate(
 							uinHash, fileName, format.getKey(), format.getValue(), birTypesForModality);
 					extractionFutures.add(extractTemplateFuture);
 
-					mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats",
-							"Started async extraction for modality: " + modality.name() +
-									" | format: " + format.getValue() + " | BIRs: " + birTypesForModality.size());
 				} else {
-					mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats",
-							"GETTING NON-EXTRACTED FORMAT for Modality: " + modality.name() +
-									" | BIRs added directly: " + birTypesForModality.size());
-
+					mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
+							"GETTING NON EXTRACTED FORMAT for Modality: " + modality.name());
 					finalBirs.addAll(birTypesForModality);
 				}
-
-				long modalityEnd = System.currentTimeMillis();
-				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats",
-						"Modality " + modality.name() + " processing (filtering) took " + (modalityEnd - modalityStart) + " ms");
 			}
 
-			// Release memory early
-			originalBirs.clear();
+			originalBirs.clear(); // release parsed BIR list before blocking on futures - reduces live set during wait
 
-			// Step 3: Wait for all extractions
-			if (!extractionFutures.isEmpty()) {
-				long waitStart = System.currentTimeMillis();
-				mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats",
-						"Waiting for " + extractionFutures.size() + " extraction futures...");
-
-				try {
-					CompletableFuture.allOf(extractionFutures.toArray(new CompletableFuture<?>[0]))
-							.get(extractionTimeoutSeconds, TimeUnit.SECONDS);
-
-					long waitEnd = System.currentTimeMillis();
-					mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats",
-							"All extractions completed in " + (waitEnd - waitStart) + " ms");
-				} catch (TimeoutException e) {
-					extractionFutures.forEach(f -> f.cancel(true));
-					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats",
-							"Biometric extraction TIMED OUT after " + extractionTimeoutSeconds + "s for file: " + fileName);
-					throw new IdRepoAppUncheckedException(BIO_EXTRACTION_ERROR, e);
-				} catch (ExecutionException e) {
-					Throwable cause = e.getCause();
-					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats",
-							"ExecutionException during extraction | cause: " + cause.getMessage());
-					if (cause instanceof IdRepoAppUncheckedException) {
-						throw (IdRepoAppUncheckedException) cause;
-					}
-					throw new IdRepoAppUncheckedException(BIO_EXTRACTION_ERROR, cause);
-				}
+			// Wait for all modality extractions with a hard deadline.
+			// Previously .join() was used with no timeout, blocking indefinitely.
+			// Now .get(timeout) bounds the wait to mosip.idrepo.bio.extraction.timeout-seconds.
+			try {
+				CompletableFuture.allOf(extractionFutures.toArray(new CompletableFuture<?>[0]))
+						.get(extractionTimeoutSeconds, TimeUnit.SECONDS);
+			} catch (TimeoutException e) {
+				extractionFutures.forEach(f -> f.cancel(true));
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
+						"Biometric extraction timed out after " + extractionTimeoutSeconds + "s");
+				throw new IdRepoAppUncheckedException(BIO_EXTRACTION_ERROR, e);
+			} catch (ExecutionException e) {
+				Throwable cause = e.getCause();
+				if (cause instanceof IdRepoAppUncheckedException)
+					throw (IdRepoAppUncheckedException) cause;
+				throw new IdRepoAppUncheckedException(BIO_EXTRACTION_ERROR, cause);
 			}
-
-			// Step 4: Collect results from futures
-			long collectStart = System.currentTimeMillis();
+			// All futures completed normally; getNow() retrieves without a second blocking call
+			// (replaces the previous redundant future.get() loop after the join).
 			for (CompletableFuture<List<BIR>> future : extractionFutures) {
-				List<BIR> extracted = future.getNow(Collections.emptyList());
-				finalBirs.addAll(extracted);
+				finalBirs.addAll(future.getNow(Collections.emptyList()));
 			}
-			long collectEnd = System.currentTimeMillis();
 
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats",
-					"Collected results from futures in " + (collectEnd - collectStart) + " ms | Total final BIRs: " + finalBirs.size());
-
-			// Step 5: Create final CBEFF XML
-			long createXmlStart = System.currentTimeMillis();
-			byte[] finalCbeff = cbeffUtil.createXML(finalBirs);
-			long createXmlEnd = System.currentTimeMillis();
-
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats",
-					"Final CBEFF XML creation took " + (createXmlEnd - createXmlStart) + " ms");
-
-			long overallEnd = System.currentTimeMillis();
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats",
-					"END - Total time for getBiometricsForRequestedFormats: " + (overallEnd - overallStart) +
-							" ms | fileName: " + fileName);
-
-			return finalCbeff;
-
+			return cbeffUtil.createXML(finalBirs);
 		} catch (IdRepoAppUncheckedException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats",
-					"Unchecked exception | " + e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} catch (InterruptedException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats",
-					"Thread interrupted during extraction");
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
 			Thread.currentThread().interrupt();
 			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "getBiometricsForRequestedFormats",
-					"Unexpected error: " + e.getMessage());
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
 			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
 		}
 	}
