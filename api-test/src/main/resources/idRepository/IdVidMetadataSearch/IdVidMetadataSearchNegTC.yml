@@ -24,7 +24,7 @@ IdVidMetadataSearchNegTC:
   IdRepository_IdVidMetadataSearchNegTC_With_Invalid_IndividualId_Neg:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
     uniqueIdentifier: TC_IdVidMetadataSearchNegTC_02    
-    description: Validate that the IdVid metadata search API returns an error when an invalid IndividualId is provided     
+    description: Validate that the IdVid metadata search API returns an error when an Invalid IndividualId is provided     
     role: idrepo
     restMethod: post
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
