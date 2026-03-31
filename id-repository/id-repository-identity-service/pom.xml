@@ -22,6 +22,7 @@
 		<kernel.cbeffutil.api.version>1.2.1-SNAPSHOT</kernel.cbeffutil.api.version>
 		<kernel.idobjectvalidator.version>1.2.1-SNAPSHOT</kernel.idobjectvalidator.version>
 		<kernel-idvalidator-vid.version>1.2.1-SNAPSHOT</kernel-idvalidator-vid.version>
+		<kernel-idvalidator-rid.version>1.2.1-SNAPSHOT</kernel-idvalidator-rid.version>
 		<kernel.khazana.version>1.2.1-SNAPSHOT</kernel.khazana.version>
 		<kernel.auth.adapter.version>1.2.1-SNAPSHOT</kernel.auth.adapter.version>
 		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
@@ -56,6 +57,11 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-cbeffutil-api</artifactId>
 			<version>${kernel.cbeffutil.api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idvalidator-rid</artifactId>
+			<version>${kernel-idvalidator-rid.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.idrepository</groupId>
