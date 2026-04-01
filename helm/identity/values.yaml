@@ -133,8 +133,6 @@ additionalResources:
     -XX:ReservedCodeCacheSize=150m -XX:InitialCodeCacheSize=37m
     -XX:+UseCodeCacheFlushing -XX:+ExitOnOutOfMemoryError
     -Djava.security.egd=file:/dev/urandom
-    -Dcom.amazonaws.sdk.disableEc2Metadata=true
-    -Daws.sdk.disableCertChecking=false -Dhttp.keepAlive=true
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
 ## Clamav container already runs as 'mosip' user, so we may not need to enable this
 containerSecurityContext:
