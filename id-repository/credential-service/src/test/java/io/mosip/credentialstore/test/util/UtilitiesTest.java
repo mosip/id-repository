@@ -1,12 +1,13 @@
 package io.mosip.credentialstore.test.util;
 
 import static org.junit.Assert.assertNotNull;
-
+import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import io.mosip.credentialstore.exception.VerCredException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,5 +76,10 @@ public class UtilitiesTest {
 		assertNotNull(response);
 	}
 
-
+	@Test(expected = VerCredException.class)
+	public void testGetVCContextJsonJsonLdError() {
+		when(restTemplate.getForObject(Mockito.anyString(), Mockito.eq(String.class)))
+				.thenReturn("invalid json");
+		utilities.getVCContextJson("dummyURL", "dummyURI");
+	}
 }

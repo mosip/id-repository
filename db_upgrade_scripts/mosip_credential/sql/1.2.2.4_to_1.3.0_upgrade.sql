@@ -1,3 +1,5 @@
+\c mosip_credential
+
 -- ------------------------------------------------------------------------------------------
 -- Upgrade script for Migrating Spring batch version to 5.0 as part of Java 21 Migration.
 -- References: 
@@ -20,6 +22,8 @@ ALTER TABLE BATCH_JOB_EXECUTION DROP COLUMN JOB_CONFIGURATION_LOCATION;
 CREATE INDEX IF NOT EXISTS idx_job_name ON BATCH_JOB_INSTANCE(JOB_NAME);
 CREATE INDEX IF NOT EXISTS idx_job_key ON BATCH_JOB_INSTANCE(JOB_KEY);
 
+-- Below script required to upgraded from 1.3.0-beta.1 to 1.3.0
+
 -- UPGRADE FOR PERFORMANCE OPTIMIZATION INDEXES
 
 CREATE INDEX idx_job_exec_instance ON credential.batch_job_execution USING btree (job_instance_id);
@@ -30,5 +34,8 @@ CREATE INDEX IF NOT EXISTS idx_cred_new_status_cr_dtimes_active ON credential.cr
 CREATE INDEX IF NOT EXISTS idx_cred_status_cr_dtimes_active ON credential.credential_transaction (status_code, cr_dtimes) WHERE is_deleted = false;
 CREATE INDEX IF NOT EXISTS idx_cred_status_upd_dtimes_active ON credential.credential_transaction (status_code, upd_dtimes) WHERE is_deleted = false;
 CREATE INDEX idx_credtran_status_crdtimes ON credential.credential_transaction USING btree (status_code, cr_dtimes);
+
+ALTER TABLE credential_transaction SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 500, autovacuum_analyze_scale_factor = 0.03, autovacuum_analyze_threshold = 500);
+ALTER TABLE batch_job_execution SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 1000, autovacuum_analyze_scale_factor = 0.03, autovacuum_analyze_threshold = 500);
 
 -- END UPGRADE FOR PERFORMANCE OPTIMIZATION INDEXES

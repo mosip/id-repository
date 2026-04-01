@@ -27,6 +27,7 @@ import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
 import io.mosip.idrepository.core.constant.CredentialTriggerAction;
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
@@ -861,6 +862,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		return null;
 	}
 
+	@Override
+	public IdVidMetadataResponseDTO getIdVidMetadata(String individualId, IdType idType) throws IdRepoAppException {
+		throw new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(),
+				"getIdVidMetadata not implemented in IdRepoServiceImpl");
+	}
+
 	/**
 	 * This function is used to get the maximum allowed update count of an attribute
 	 * for the given individual id
@@ -1015,7 +1022,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			for (Entry<String, HandleDto> handleDtoEntry : handles.entrySet()) {
 				int saltId = securityManager.getSaltKeyForHashOfId(handleDtoEntry.getValue().getHandle());
 				String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(saltId);
-				String handleToEncrypt = saltId + SPLITTER + handleDtoEntry.getValue().getHandle() + SPLITTER + encryptSalt;
+				String encodedHandleValue = CryptoUtil.encodeToPlainBase64(handleDtoEntry.getValue().getHandle().getBytes());
+				String handleToEncrypt = saltId + SPLITTER + encodedHandleValue + SPLITTER + encryptSalt;
 
 				Handle handleEntity = new Handle();
 				handleEntity.setHandleHash(handleDtoEntry.getValue().getHandleHash());

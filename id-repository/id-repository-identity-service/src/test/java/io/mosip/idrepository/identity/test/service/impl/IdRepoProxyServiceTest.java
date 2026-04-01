@@ -1,6 +1,10 @@
 package io.mosip.idrepository.identity.test.service.impl;
 
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.any;
@@ -11,11 +15,19 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.List;
+import java.util.HashMap;
+import java.util.ArrayList;
 
+import io.mosip.idrepository.core.constant.IdType;
+import io.mosip.idrepository.core.entity.Handle;
+import io.mosip.idrepository.core.repository.HandleRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 
 import io.mosip.idrepository.core.util.EnvUtil;
+import io.mosip.idrepository.identity.entity.UinBiometric;
+import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import io.mosip.idrepository.identity.repository.UinDraftRepo;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +41,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -104,6 +117,12 @@ public class IdRepoProxyServiceTest {
 
 	@Mock
 	IdRepoSecurityManager securityManager;
+
+	@Mock
+	HandleRepo handleRepo;
+
+	@Mock
+	IdRepoServiceHelper idRepoServiceHelper;
 
 	@Mock
 	private RestHelper restHelper;
@@ -259,4 +278,75 @@ public class IdRepoProxyServiceTest {
 		assertEquals("hashwithsalt", eventModel.getEvent().getData().get("id_hash"));
 		assertEquals("27841457360002620190730095024", eventModel.getEvent().getData().get("registration_id"));
 	}
+
+	@Test
+	public void testRetrieveIdentityHandleType() throws IdRepoAppException, IOException {
+
+		Uin uinObj = new Uin();
+		uinObj.setUin("1234");
+		uinObj.setUinRefId("1234");
+		uinObj.setStatusCode(ACTIVATED);
+		List<UinBiometric> uinBiometricList = new ArrayList<>();
+		uinObj.setBiometrics(uinBiometricList);
+		Object obj2 = mapper.readValue(
+				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}}"
+						.getBytes(), Object.class);
+		uinObj.setUinData(mapper.writeValueAsBytes(obj2));
+		String id = "handleId";
+		String type = "BIO";
+		Map<String, String> extractionFormats = new HashMap<>();
+		String handleHash = "hashedHandle";
+
+		when(idRepoServiceHelper.getHandleHash(id)).thenReturn(handleHash);
+		Handle handle = new Handle();
+		handle.setUinHash("hashedUin");
+		when(handleRepo.findByHandleHash(handleHash)).thenReturn(handle);
+
+		when(service.retrieveIdentity(anyString(), any(), any(), any())).thenReturn(uinObj);
+		IdResponseDTO result = proxyService.retrieveIdentity(id, IdType.HANDLE, type, extractionFormats);
+		assertNotNull(result);
+		verify(handleRepo).findByHandleHash(handleHash);
+		verify(service).retrieveIdentity("hashedUin", IdType.UIN, type, null);
+	}
+
+	@Test
+	public void testRetrieveIdentityHandleTypeShouldThrowDataAccessException() throws IdRepoAppException {
+		String id = "handleId";
+		String type = "BIO";
+		Map<String, String> extractionFormats = new HashMap<>();
+		String handleHash = "hashedHandle";
+
+		when(idRepoServiceHelper.getHandleHash(id)).thenReturn(handleHash);
+		Handle handle = new Handle();
+		handle.setUinHash("hashedUin");
+		when(handleRepo.findByHandleHash(handleHash)).thenReturn(handle);
+		when(service.retrieveIdentity(anyString(), any(), any(), any()))
+				.thenThrow(new DataAccessException("Database error") {});
+		IdRepoAppException thrownException = assertThrows(IdRepoAppException.class, () -> {
+			proxyService.retrieveIdentity(id, IdType.HANDLE, type, extractionFormats);
+		});
+		assertEquals("IDR-IDC-006", thrownException.getErrorCode());
+		assertTrue(thrownException.getMessage().contains("Database error"));
+	}
+
+	@Test
+	public void testRetrieveIdentityHandleTypeShouldThrowIdRepoAppException() throws IdRepoAppException {
+		String id = "handleId";
+		String type = "BIO";
+		Map<String, String> extractionFormats = new HashMap<>();
+		String handleHash = "hashedHandle";
+
+		when(idRepoServiceHelper.getHandleHash(id)).thenReturn(handleHash);
+		Handle handle = new Handle();
+		handle.setUinHash("hashedUin");
+		when(handleRepo.findByHandleHash(handleHash)).thenReturn(handle);
+
+		when(service.retrieveIdentity(anyString(), any(), any(), any()))
+				.thenThrow(new IdRepoAppException(BIO_EXTRACTION_ERROR));
+		IdRepoAppException thrownException = assertThrows(IdRepoAppException.class, () -> {
+			proxyService.retrieveIdentity(id, IdType.HANDLE, type, extractionFormats);
+		});
+		assertEquals("Failed to extract template from bio extractor service", thrownException.getErrorText());
+	}
+
 }

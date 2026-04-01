@@ -5,7 +5,6 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.testng.SkipException;
 
-import io.mosip.testrig.apirig.dbaccess.DBManager;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
 import io.mosip.testrig.apirig.utils.AdminTestUtil;
 import io.mosip.testrig.apirig.utils.ConfigManager;
@@ -40,7 +39,7 @@ public class IdRepoUtil extends AdminTestUtil {
 		String dob = dobArray.getString(0);
 		JSONArray emailArray = new JSONArray(getValueFromAuthActuator("json-property", "emailId"));
 		String email = emailArray.getString(0);
-		JSONArray phoneArray = new JSONArray(getValueFromAuthActuator("json-property", "phone_number"));
+//		JSONArray phoneArray = new JSONArray(getValueFromAuthActuator("json-property", "phone_number"));
 
 		if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("DOB")
 				&& (!isElementPresent(globalRequiredFields, dob))) {
@@ -66,22 +65,6 @@ public class IdRepoUtil extends AdminTestUtil {
 		return testCaseName;
 	}
 	
-	public static void dbCleanUp() {
-		DBManager.executeDBQueries(IdRepoConfigManager.getKMDbUrl(), IdRepoConfigManager.getKMDbUser(),
-				IdRepoConfigManager.getKMDbPass(), IdRepoConfigManager.getKMDbSchema(),
-				getGlobalResourcePath() + "/" + "config/keyManagerCertDataDeleteQueries.txt");
-		DBManager.executeDBQueries(IdRepoConfigManager.getIdaDbUrl(), IdRepoConfigManager.getIdaDbUser(),
-				IdRepoConfigManager.getPMSDbPass(), IdRepoConfigManager.getIdaDbSchema(),
-				getGlobalResourcePath() + "/" + "config/idaCertDataDeleteQueries.txt");
-		DBManager.executeDBQueries(IdRepoConfigManager.getMASTERDbUrl(), IdRepoConfigManager.getMasterDbUser(),
-				IdRepoConfigManager.getMasterDbPass(), IdRepoConfigManager.getMasterDbSchema(),
-				getGlobalResourcePath() + "/" + "config/masterDataCertDataDeleteQueries.txt");
-
-		DBManager.executeDBQueries(IdRepoConfigManager.getIdRepoDbUrl(), IdRepoConfigManager.getIdRepoDbUser(),
-				IdRepoConfigManager.getPMSDbPass(), "idrepo",
-				getGlobalResourcePath() + "/" + "config/idrepoCertDataDeleteQueries.txt");
-	}
-	
 	public static String inputStringKeyWordHandeler(String jsonString, String testCaseName) {
 		if (jsonString == null) {
 			logger.info(" Request Json String is :" + jsonString);
@@ -90,7 +73,9 @@ public class IdRepoUtil extends AdminTestUtil {
 		
 		if (jsonString.contains("$RIDEXT$"))
 			jsonString = replaceKeywordWithValue(jsonString, "$RIDEXT$", genRidExt);
+		
 		return jsonString;
 	}
+
 	
 }

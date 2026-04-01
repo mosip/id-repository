@@ -96,8 +96,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
@@ -1013,4 +1016,31 @@ public class IdRepoDraftServiceImplTest {
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
 		}
 	}
+
+	@Test
+	public void testCreateDraftWhenGenerateUinThrowsException() throws Exception {
+		ReflectionTestUtils.setField(idRepoServiceImpl, "restBuilder", restBuilder);
+		ReflectionTestUtils.setField(idRepoServiceImpl, "restHelper", restHelper);
+
+		when(restBuilder.buildRequest(any(), any(), any(Class.class)))
+				.thenThrow(new IdRepoDataValidationException(IdRepoErrorConstants.UNKNOWN_ERROR));
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.createDraft("REG123", null));
+
+		assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void testCreateDraftWhenRestServiceExceptionOccurs() throws Exception {
+		ReflectionTestUtils.setField(idRepoServiceImpl, "restBuilder", restBuilder);
+		ReflectionTestUtils.setField(idRepoServiceImpl, "restHelper", restHelper);
+		when(restBuilder.buildRequest(any(), any(), any(Class.class)))
+				.thenReturn(mock(RestRequestDTO.class)); // return a valid RestRequestDTO
+		when(restHelper.requestSync(any()))
+				.thenThrow(new RestServiceException(IdRepoErrorConstants.UIN_GENERATION_FAILED));
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.createDraft("REG123", null));
+		assertEquals(IdRepoErrorConstants.UIN_GENERATION_FAILED.getErrorCode(), thrown.getErrorCode());
+	}
+
 }

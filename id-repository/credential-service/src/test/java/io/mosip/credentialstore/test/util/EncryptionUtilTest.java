@@ -1,8 +1,10 @@
 package io.mosip.credentialstore.test.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -245,5 +247,43 @@ public class EncryptionUtilTest {
 
 		encryptionUtil.encryptData(test, "", "requestId");
 	}
-	
+
+	@Test
+	public void testEncryptDataShouldThrowHttpClientErrorExceptionCause() throws Exception {
+		HttpClientErrorException clientEx = new HttpClientErrorException(HttpStatus.BAD_REQUEST, "client error");
+		Exception genericEx = new Exception(clientEx);
+
+		Mockito.when(restUtil.postApi((ApiName) Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(genericEx);
+
+		assertThrows(ApiNotAccessibleException.class, () ->
+				encryptionUtil.encryptData("data", "partnerId", "requestId")
+		);
+	}
+
+	@Test
+	public void testEncryptDataShouldThrowHttpServerErrorExceptionCause() throws Exception {
+		HttpServerErrorException serverEx = new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "server error");
+		Exception genericEx = new Exception(serverEx);
+
+		Mockito.when(restUtil.postApi((ApiName) Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(genericEx);
+
+		assertThrows(ApiNotAccessibleException.class, () ->
+				encryptionUtil.encryptData("data", "partnerId", "requestId")
+		);
+	}
+
+	@Test
+	public void testEncryptDataShouldThrowGenericException() throws Exception {
+		Exception genericEx = new Exception("generic error");
+
+		Mockito.when(restUtil.postApi((ApiName) Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(genericEx);
+
+		assertThrows(DataEncryptionFailureException.class, () ->
+				encryptionUtil.encryptData("data", "partnerId", "requestId")
+		);
+	}
+
 }
