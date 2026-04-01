@@ -116,21 +116,21 @@ resources:
     cpu: 2000m
     memory: 5000Mi
   requests:
-    cpu: 1000m
-    memory: 3000Mi
+    cpu: 2000m
+    memory: 5000Mi
 additionalResources:
   ## Specify any JAVA_OPTS string here. These typically will be specified in conjunction with above resources
   ## Example: java_opts: "-Xms500M -Xmx500M"
   javaOpts: >-
     -XX:+UseZGC -XX:+ZGenerational -XX:+ZUncommit
     -XX:ZUncommitDelay=30 -XX:+ZProactive -XX:ZCollectionInterval=10
-    -Xms3800m -Xmx3800m -XX:SoftMaxHeapSize=3400m
+    -Xms3000m -Xmx3000m -XX:SoftMaxHeapSize=2500m
     -Djdk.virtualThreadScheduler.parallelism=4
     -Djdk.virtualThreadScheduler.maxPoolSize=64
     -Djava.util.concurrent.ForkJoinPool.common.parallelism=2
     -XX:ActiveProcessorCount=2 -XX:+UseContainerSupport
-    -XX:MaxMetaspaceSize=320m -XX:MetaspaceSize=150m
-    -XX:ReservedCodeCacheSize=256m -XX:InitialCodeCacheSize=64m
+    -XX:MaxMetaspaceSize=400m -XX:MetaspaceSize=100m
+    -XX:ReservedCodeCacheSize=150m -XX:InitialCodeCacheSize=37m
     -XX:+UseCodeCacheFlushing -XX:+ExitOnOutOfMemoryError
     -Djava.security.egd=file:/dev/urandom
     -Dcom.amazonaws.sdk.disableEc2Metadata=true
