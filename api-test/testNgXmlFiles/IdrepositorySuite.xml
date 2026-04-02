@@ -33,6 +33,14 @@
 			<class name="io.mosip.testrig.apirig.idrepo.testscripts.AddIdentity" />
 		</classes>
 	</test>
+	<test name="IdVidMetadataSearch">
+		<parameter name="ymlFile"
+			value="idRepository/IdVidMetadataSearch/IdVidMetadataSearch.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePost" />
+		</classes>
+	</test>
 
 	<test name="UpdateIdentityArrayHandle">
 		<parameter name="ymlFile"
@@ -126,14 +134,6 @@
 		<classes>
 			<class
 				name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePostForAutoGenId" />
-		</classes>
-	</test>
-	<test name="IdVidMetadataSearch">
-		<parameter name="ymlFile"
-			value="idRepository/IdVidMetadataSearch/IdVidMetadataSearch.yml" />
-		<classes>
-			<class
-				name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePost" />
 		</classes>
 	</test>
 	<test name="RegenerateVid">
