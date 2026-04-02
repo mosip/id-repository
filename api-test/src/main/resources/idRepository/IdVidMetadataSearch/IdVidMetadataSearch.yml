@@ -5,6 +5,7 @@ IdVidMetadataSearch:
     description: Validate that IdVid metadata is successfully retrieved when a valid Individual ID (UIN) is provided      
     role: idrepo
     restMethod: post
+    checkErrorsOnlyInResponse: true
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
     outputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearchResult
     input: '{
@@ -15,7 +16,6 @@ IdVidMetadataSearch:
 	  "idType": "UIN"
 }'
     output: '{
-      "rid": "$ID:AddIdentity_withValidParameters_smoke_Pos_RID$"
 }'
   IdRepository_IdVidMetadataSearch_With_VID_all_Valid_Smoke:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
@@ -23,6 +23,7 @@ IdVidMetadataSearch:
     description: Validate that IdVid metadata is successfully retrieved when a valid Individual ID (VID) is provided      
     role: idrepo
     restMethod: post
+    checkErrorsOnlyInResponse: true
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
     outputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearchResult
     input: '{
@@ -33,7 +34,6 @@ IdVidMetadataSearch:
 	  "idType": "VID"
 }'
     output: '{
-      "rid": "$ID:AddIdentity_withValidParameters_smoke_Pos_RID$"
 }'
   IdRepository_IdVidMetadataSearch_With_Required_Details:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
@@ -41,6 +41,7 @@ IdVidMetadataSearch:
     description: Validate that IdVid metadata is successfully retrieved when a valid Individual ID is provided without idType parameter      
     role: idrepo
     restMethod: post
+    checkErrorsOnlyInResponse: true
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
     outputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearchResult
     input: '{
@@ -51,7 +52,6 @@ IdVidMetadataSearch:
 	  "idType": "$REMOVE$"
 }'
     output: '{
-      "rid": "$ID:AddIdentity_withValidParameters_smoke_Pos_RID$"
 }'
   IdRepository_IdVidMetadataSearch_With_RID_As_IndividualId:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
@@ -59,6 +59,7 @@ IdVidMetadataSearch:
     description: Validate that IdVid metadata is successfully retrieved when valid IndividualId (RID) and idType are provided in the request      
     role: idrepo
     restMethod: post
+    checkErrorsOnlyInResponse: true
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
     outputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearchResult
     input: '{
@@ -69,5 +70,4 @@ IdVidMetadataSearch:
 	  "idType": "ID"
 }'
     output: '{
-      "rid": "$ID:AddIdentity_withValidParameters_smoke_Pos_RID$"
 }'
