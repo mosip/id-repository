@@ -1,1 +1,5 @@
-\echo 'Rollback Queries not required for transition from $CURRENT_VERSION to $UPGRADE_VERSION'
+\c mosip_idmap
+
+-- Drop the indices if they were created
+DROP INDEX IF EXISTS idx_vid_vid;
+DROP INDEX IF EXISTS idx_vid_uinhash_status_vidtype;
