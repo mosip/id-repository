@@ -8,6 +8,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -146,6 +150,10 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 	@Autowired
 	EncryptionUtil encryptionUtil;
+
+	@Autowired
+	@Qualifier("credentialServiceExecutor")
+	private Executor credentialServiceExecutor = ForkJoinPool.commonPool();
 	
 	/*
 	 * (non-Javadoc)
@@ -195,20 +203,38 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			String encodedData = null;
 			jsonData = JsonUtil.objectMapperObjectToJson(dataProviderResponse.getJSON());
 			encodedData = CryptoUtil.encodeToURLSafeBase64(jsonData.getBytes());
+
+			// Start signing in parallel — sign uses encodedData which is already available,
+			// so it can run concurrently with the encryption/datashare operation below.
+			final String encodedDataForSign = encodedData;
+			final String requestIdForSign = credentialServiceRequestDto.getRequestId();
+			CompletableFuture<String> signatureFuture = CompletableFuture.supplyAsync(() -> {
+				try {
+					return digitalSignatureUtil.sign(encodedDataForSign, requestIdForSign);
+				} catch (ApiNotAccessibleException | SignatureException e) {
+					throw new CompletionException(e);
+				}
+			}, credentialServiceExecutor);
+
 			if (policyDetailResponseDto.getPolicies() != null && policyDetailResponseDto.getPolicies().getDataSharePolicies().getTypeOfShare()
 					.equalsIgnoreCase(DATASHARE)) {
 				dataShare = dataShareUtil.getDataShare(jsonData.getBytes(), policyDetailResponseDto.getPolicyId(),
 						credentialServiceRequestDto.getIssuer(),
 						credentialServiceRequestDto.getRequestId());
 				credentialServiceResponse.setDataShareUrl(dataShare.getUrl());
-
 			} else {
-
 				jsonData = encryptionUtil.encryptData(encodedData, credentialServiceRequestDto.getIssuer(),
 						credentialServiceRequestDto.getRequestId());
-
 			}
-			signature = digitalSignatureUtil.sign(encodedData, credentialServiceRequestDto.getRequestId());
+
+			try {
+				signature = signatureFuture.join();
+			} catch (CompletionException e) {
+				Throwable cause = e.getCause();
+				if (cause instanceof ApiNotAccessibleException) throw (ApiNotAccessibleException) cause;
+				if (cause instanceof SignatureException) throw (SignatureException) cause;
+				throw new SignatureException(cause);
+			}
 			EventModel eventModel = getEventModel(dataShare, credentialServiceRequestDto,
 					jsonData, signature);
 			String topic = credentialServiceRequestDto.getIssuer() + "/" + IDAEventType.CREDENTIAL_ISSUED;

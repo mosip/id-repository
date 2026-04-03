@@ -20,6 +20,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -43,6 +44,8 @@ public class IdrepositaryUtil {
 	private static final Logger LOGGER = IdRepoLogger.getLogger(IdrepositaryUtil.class);
 
 
+	@Cacheable(cacheNames = "IDREPO_DATA",
+			key = "{ #credentialServiceRequestDto.id, #credentialServiceRequestDto.additionalData?.get('idType'), #bioAttributeFormatterMap }")
 	public IdResponseDTO getData(CredentialServiceRequestDto credentialServiceRequestDto,
 								 Map<String, String> bioAttributeFormatterMap)
 			throws ApiNotAccessibleException, IdRepoException, JsonParseException, JsonMappingException, IOException {
