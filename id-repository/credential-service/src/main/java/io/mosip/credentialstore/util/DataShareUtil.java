@@ -64,9 +64,10 @@ public class DataShareUtil {
 	public DataShare getDataShare(byte[] data, String policyId, String partnerId, String requestId)
 			throws ApiNotAccessibleException, IOException, DataShareException {
 		long fileLengthInBytes=0;
+		long perfStart = System.currentTimeMillis();
 		try {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-		
+
 					"creating data share entry");
 			LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 			map.add("name", CREDENTIALFILE);
@@ -98,8 +99,10 @@ public class DataShareUtil {
 			dataShareUrl = new URL(protocol, internalDomainName, env.getProperty(ApiName.CREATEDATASHARE.name()));
 			url = dataShareUrl.toString();
 			url = url.replaceAll("[\\[\\]]", "");
+			long httpStart = System.currentTimeMillis();
 			String responseString = restUtil.postApi(url, pathsegments, "", "",
 					MediaType.MULTIPART_FORM_DATA, requestEntity, String.class);
+			LOGGER.info("PERF-DataShareUtil_getDataShare_httpCall: {}ms", System.currentTimeMillis() - httpStart);
 
 		DataShareResponseDto responseObject = mapper.readValue(responseString, DataShareResponseDto.class);
 
@@ -124,6 +127,7 @@ public class DataShareUtil {
 
 				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 						"data share created");
+			LOGGER.info("PERF-DataShareUtil_getDataShare_total: {}ms", System.currentTimeMillis() - perfStart);
 			return responseObject.getDataShare();
 
 			}

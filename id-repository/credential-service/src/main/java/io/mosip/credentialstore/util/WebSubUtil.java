@@ -38,12 +38,14 @@ public class WebSubUtil {
 			IOException.class }, maxAttemptsExpression = "${mosip.credential.service.retry.maxAttempts}", backoff = @Backoff(delayExpression = "${mosip.credential.service.retry.maxDelay}"))
 	public void publishSuccess(String topic, EventModel eventModel) throws WebSubClientException, IOException {
 		String requestId=eventModel.getEvent().getTransactionId();
+		long perfStart = System.currentTimeMillis();
         HttpHeaders httpHeaders=new HttpHeaders();
 		pb.publishUpdate(topic, eventModel, MediaType.APPLICATION_JSON_UTF8_VALUE, httpHeaders, partnerhuburl);
+		LOGGER.info("PERF-WebSubUtil_publishSuccess_total: {}ms", System.currentTimeMillis() - perfStart);
 		LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 				requestId,
 				"Publish the update successfully");
-		
+
 	}
 
 	@Cacheable(value = "topics", key = "{#topic}")

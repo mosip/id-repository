@@ -125,6 +125,7 @@ public class EncryptionUtil {
 			throws DataEncryptionFailureException, ApiNotAccessibleException {
 		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 				"started encrypting data using ZK encryption");
+		long perfStart = System.currentTimeMillis();
 
 		EncryptZkResponseDto encryptedData = null;
 		try {
@@ -140,8 +141,10 @@ public class EncryptionUtil {
 
 			request.setRequest(encryptZkRequestDto);
 		
+			long httpStart = System.currentTimeMillis();
 			String response= restUtil.postApi(ApiName.KEYMANAGER_ENCRYPT_ZK, null, "", "",
 					MediaType.APPLICATION_JSON, request, String.class);
+			LOGGER.info("PERF-EncryptionUtil_encryptDataWithZK_httpCall: {}ms", System.currentTimeMillis() - httpStart);
 
 			CryptoZkResponseDto responseObject= mapper.readValue(response,
 					CryptoZkResponseDto.class);
@@ -160,6 +163,7 @@ public class EncryptionUtil {
 			}
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ended encrypting data using ZK encryption");
+			LOGGER.info("PERF-EncryptionUtil_encryptDataWithZK_total: {}ms", System.currentTimeMillis() - perfStart);
 		} catch (IOException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ZK encryption error with error message" + ExceptionUtils.getStackTrace(e));
@@ -188,7 +192,7 @@ public class EncryptionUtil {
 			throws DataEncryptionFailureException, ApiNotAccessibleException {
 		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 				"started encrypting data using partner certificate");
-	
+		long perfStart = System.currentTimeMillis();
 
 		String encryptedPacket = null;
 		try {
@@ -208,8 +212,10 @@ public class EncryptionUtil {
 
 			request.setRequest(cryptomanagerRequestDto);
 			cryptomanagerRequestDto.setTimeStamp(localdatetime);
+			long httpStart = System.currentTimeMillis();
 			String response = restUtil.postApi(ApiName.CRYPTOMANAGER_ENCRYPT, null, "", "", MediaType.APPLICATION_JSON,
 					request, String.class);
+			LOGGER.info("PERF-EncryptionUtil_encryptData_httpCall: {}ms", System.currentTimeMillis() - httpStart);
 
 			CryptomanagerResponseDto responseObject = mapper.readValue(response, CryptomanagerResponseDto.class);
 
@@ -227,6 +233,7 @@ public class EncryptionUtil {
 			}
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ended encrypting data using partner certificate");
+			LOGGER.info("PERF-EncryptionUtil_encryptData_total: {}ms", System.currentTimeMillis() - perfStart);
 		} catch (IOException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Credential Data Encryption error with error message" + ExceptionUtils.getStackTrace(e));

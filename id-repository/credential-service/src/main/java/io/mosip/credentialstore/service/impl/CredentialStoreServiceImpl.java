@@ -172,30 +172,49 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		CredentialServiceResponseDto credentialIssueResponseDto = new CredentialServiceResponseDto();
 		CredentialServiceResponse credentialServiceResponse = null;
 		CredentialProvider credentialProvider;
+		long totalStart = System.currentTimeMillis();
 
 		try {
 			boolean containsSharableAttributes = Optional.ofNullable(credentialServiceRequestDto.getSharableAttributes()).filter(list -> !list.isEmpty()).isPresent();
+
+			long t0 = System.currentTimeMillis();
 			PartnerCredentialTypePolicyDto policyDetailResponseDto = getPolicy(credentialServiceRequestDto, containsSharableAttributes);
+			LOGGER.info("PERF-CredentialStoreServiceImpl_createCredentialIssuance_getPolicy: {}ms",
+					System.currentTimeMillis() - t0);
 
 			if (credentialServiceRequestDto.getAdditionalData() == null) {
 				Map<String, Object> additionalData = new HashMap<>();
 				credentialServiceRequestDto.setAdditionalData(additionalData);
 			}
 
+			long t1 = System.currentTimeMillis();
 			Map<String, String> bioAttributeFormatterMap = getFormatters(policyDetailResponseDto,
 					credentialServiceRequestDto.getIssuer(), credentialServiceRequestDto.getRequestId());
+			LOGGER.info("PERF-CredentialStoreServiceImpl_createCredentialIssuance_getFormatters: {}ms",
+					System.currentTimeMillis() - t1);
+
+			long t2 = System.currentTimeMillis();
 			IdResponseDTO idResponseDto = idrepositaryUtil.getData(credentialServiceRequestDto,
 					bioAttributeFormatterMap);
-
+			LOGGER.info("PERF-CredentialStoreServiceImpl_createCredentialIssuance_getData: {}ms",
+					System.currentTimeMillis() - t2);
 
 			credentialProvider = getProvider(credentialServiceRequestDto.getCredentialType());
 
+			long t3 = System.currentTimeMillis();
 			Map<AllowedKycDto, Object> shrableAttributesMap = credentialProvider.prepareSharableAttributes(
 					idResponseDto, policyDetailResponseDto,
 					credentialServiceRequestDto);
+			LOGGER.info("PERF-CredentialStoreServiceImpl_createCredentialIssuance_prepareSharableAttributes: {}ms",
+					System.currentTimeMillis() - t3);
+
+			long t4 = System.currentTimeMillis();
 			DataProviderResponse dataProviderResponse = credentialProvider
 					.getFormattedCredentialData(
 					credentialServiceRequestDto, shrableAttributesMap);
+			LOGGER.info("PERF-CredentialStoreServiceImpl_createCredentialIssuance_getFormattedCredentialData: {}ms",
+					System.currentTimeMillis() - t4);
+
 			credentialServiceResponse = new CredentialServiceResponse();
 			DataShare dataShare = null;
 			String jsonData=null;
@@ -208,6 +227,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			// so it can run concurrently with the encryption/datashare operation below.
 			final String encodedDataForSign = encodedData;
 			final String requestIdForSign = credentialServiceRequestDto.getRequestId();
+			long t5sign = System.currentTimeMillis();
 			CompletableFuture<String> signatureFuture = CompletableFuture.supplyAsync(() -> {
 				try {
 					return digitalSignatureUtil.sign(encodedDataForSign, requestIdForSign);
@@ -216,30 +236,42 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 				}
 			}, credentialServiceExecutor);
 
+			long t5 = System.currentTimeMillis();
 			if (policyDetailResponseDto.getPolicies() != null && policyDetailResponseDto.getPolicies().getDataSharePolicies().getTypeOfShare()
 					.equalsIgnoreCase(DATASHARE)) {
 				dataShare = dataShareUtil.getDataShare(jsonData.getBytes(), policyDetailResponseDto.getPolicyId(),
 						credentialServiceRequestDto.getIssuer(),
 						credentialServiceRequestDto.getRequestId());
 				credentialServiceResponse.setDataShareUrl(dataShare.getUrl());
+				LOGGER.info("PERF-CredentialStoreServiceImpl_createCredentialIssuance_dataShare: {}ms",
+						System.currentTimeMillis() - t5);
 			} else {
 				jsonData = encryptionUtil.encryptData(encodedData, credentialServiceRequestDto.getIssuer(),
 						credentialServiceRequestDto.getRequestId());
+				LOGGER.info("PERF-CredentialStoreServiceImpl_createCredentialIssuance_encrypt: {}ms",
+						System.currentTimeMillis() - t5);
 			}
 
 			try {
 				signature = signatureFuture.join();
+				LOGGER.info("PERF-CredentialStoreServiceImpl_createCredentialIssuance_sign_total: {}ms",
+						System.currentTimeMillis() - t5sign);
 			} catch (CompletionException e) {
 				Throwable cause = e.getCause();
 				if (cause instanceof ApiNotAccessibleException) throw (ApiNotAccessibleException) cause;
 				if (cause instanceof SignatureException) throw (SignatureException) cause;
 				throw new SignatureException(cause);
 			}
+
+			long t6 = System.currentTimeMillis();
 			EventModel eventModel = getEventModel(dataShare, credentialServiceRequestDto,
 					jsonData, signature);
 			String topic = credentialServiceRequestDto.getIssuer() + "/" + IDAEventType.CREDENTIAL_ISSUED;
 			webSubUtil.registerTopic(topic, credentialServiceRequestDto.getRequestId());
 			webSubUtil.publishSuccess(topic, eventModel);
+			LOGGER.info("PERF-CredentialStoreServiceImpl_createCredentialIssuance_webSub: {}ms",
+					System.currentTimeMillis() - t6);
+
 			credentialServiceResponse.setSignature(signature);
 			credentialServiceResponse.setStatus("ISSUED");
 			credentialServiceResponse.setCredentialId(dataProviderResponse.getCredentialId());
@@ -347,6 +379,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 					ExceptionUtils.getStackTrace(e));
 
 		} finally {
+			LOGGER.info("PERF-CredentialStoreServiceImpl_createCredentialIssuance_total: {}ms",
+					System.currentTimeMillis() - totalStart);
 
 			credentialIssueResponseDto.setId(EnvUtil.getCredServiceId());
 			credentialIssueResponseDto

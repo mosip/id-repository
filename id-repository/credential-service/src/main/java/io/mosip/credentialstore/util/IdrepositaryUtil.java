@@ -50,6 +50,7 @@ public class IdrepositaryUtil {
 								 Map<String, String> bioAttributeFormatterMap)
 			throws ApiNotAccessibleException, IdRepoException, JsonParseException, JsonMappingException, IOException {
 		String requestId=credentialServiceRequestDto.getRequestId();
+		long perfStart = System.currentTimeMillis();
 		try {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					requestId, "Id repository get data entry");
@@ -81,8 +82,10 @@ public class IdrepositaryUtil {
 
 			LOGGER.debug(String.format("getIdentity request: %s", requestByIdDTO.toString()));
 
+			long httpStart = System.currentTimeMillis();
 			String responseString = restUtil.postApi(ApiName.IDREPORETRIEVEIDBYID, null, "", "",
 					MediaType.APPLICATION_JSON, requestByIdDTO, String.class);
+			LOGGER.info("PERF-IdrepositaryUtil_getData_httpCall: {}ms", System.currentTimeMillis() - httpStart);
 
 			IdResponseDTO responseObject = mapper.readValue(responseString, IdResponseDTO.class);
 			if (responseObject == null) {
@@ -98,6 +101,7 @@ public class IdrepositaryUtil {
 			} else {
 				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 						"Id repository get data exit");
+				LOGGER.info("PERF-IdrepositaryUtil_getData_total: {}ms", System.currentTimeMillis() - perfStart);
 				return responseObject;
 			}
 		} catch (Exception e) {
