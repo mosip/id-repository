@@ -60,18 +60,16 @@ public class EncryptionUtil {
 	@Value("${credential.service.application.id:PARTNER}")
 	private String applicationId;
 
-	// Cache formatter - creating DateTimeFormatter is not free
-	private static final DateTimeFormatter DATE_FORMATTER =
-			DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
-
 	/**
 	 * Reusable method to build RequestWrapper (reduces object creation boilerplate)
 	 */
 	private <T> RequestWrapper<T> createRequestWrapper(T requestBody) {
 		RequestWrapper<T> request = new RequestWrapper<>();
+		String pattern = EnvUtil.getDateTimePattern();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
 		LocalDateTime now = LocalDateTime.parse(
-				DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()),
-				DATE_FORMATTER);
+				DateUtils2.getUTCCurrentDateTimeString(pattern),
+				formatter);
 
 		request.setRequesttime(now);
 		request.setRequest(requestBody);
@@ -157,7 +155,8 @@ public class EncryptionUtil {
 			cryptoReq.setPrependThumbprint(EnvUtil.getPrependThumbprintStatus());
 
 			LocalDateTime now = LocalDateTime.parse(
-					DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), DATE_FORMATTER);
+					DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()),
+					DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern()));
 			cryptoReq.setTimeStamp(now);
 
 			RequestWrapper<CryptomanagerRequestDto> request = createRequestWrapper(cryptoReq);
