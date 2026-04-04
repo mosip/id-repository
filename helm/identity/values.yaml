@@ -113,18 +113,18 @@ resources:
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   limits:
-    cpu: 2000m
-    memory: 5000Mi
+    cpu: 1500m
+    memory: 6000Mi
   requests:
-    cpu: 2000m
-    memory: 5000Mi
+    cpu: 1500m
+    memory: 6000Mi
 additionalResources:
   ## Specify any JAVA_OPTS string here. These typically will be specified in conjunction with above resources
   ## Example: java_opts: "-Xms500M -Xmx500M"
   javaOpts: >-
     -XX:+UseZGC -XX:+ZGenerational -XX:+ZUncommit
     -XX:ZUncommitDelay=30 -XX:+ZProactive -XX:ZCollectionInterval=10
-    -Xms3000m -Xmx3000m -XX:SoftMaxHeapSize=2500m
+    -Xms3800m -Xmx3800m -XX:SoftMaxHeapSize=2500m
     -Djdk.virtualThreadScheduler.parallelism=4
     -Djdk.virtualThreadScheduler.maxPoolSize=64
     -Djava.util.concurrent.ForkJoinPool.common.parallelism=2

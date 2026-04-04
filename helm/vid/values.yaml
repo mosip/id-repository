@@ -115,16 +115,16 @@ resources:
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   limits:
     cpu: 600m
-    memory: 3000Mi
+    memory: 5001Mi
   requests:
     cpu: 600m
-    memory: 3000Mi
+    memory: 5001Mi
 additionalResources:
   ## Specify any JAVA_OPTS string here. These typically will be specified in conjunction with above resources
   ## Example: java_opts: "-Xms500M -Xmx500M"
   javaOpts: >-
     -XX:+UseZGC -XX:+ZGenerational -XX:+ZUncommit -XX:+ZProactive
-    -XX:ZUncommitDelay=60 -XX:SoftMaxHeapSize=1500m -Xms1800m -Xmx1800m
+    -XX:ZUncommitDelay=60 -XX:SoftMaxHeapSize=1500m -Xms2250m -Xmx2250m
     -XX:+UseContainerSupport -XX:MaxMetaspaceSize=240m
     -XX:MetaspaceSize=60m
     -XX:ReservedCodeCacheSize=90m -XX:InitialCodeCacheSize=22m
