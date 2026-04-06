@@ -75,6 +75,8 @@ VOLUME /home/logs
 
 COPY ./target/credential-request-generator-*.jar credential-request-generator.jar
 
+ADD configure_start.sh configure_start.sh
+
 # change permissions of file inside working dir
 RUN chown -R ${container_user}:${container_user} /home/${container_user}
 
