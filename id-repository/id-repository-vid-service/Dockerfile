@@ -53,6 +53,8 @@ ARG container_user_uid=1002
 # can be passed during Docker build as build time environment for github branch to pickup configuration from.
 ARG container_user_gid=1001
 
+ADD configure_start.sh configure_start.sh
+
 # install packages and create user
 RUN apk -q update \
 && apk add -q unzip \
@@ -72,8 +74,6 @@ RUN mkdir -p ${loader_path}
 ENV loader_path_env=${loader_path}
 
 COPY ./target/id-repository-vid-service-*.jar id-repository-vid-service.jar
-
-ADD configure_start.sh configure_start.sh
 
 # change permissions of file inside working dir
 RUN chown -R ${container_user}:${container_user} /home/${container_user}
