@@ -78,9 +78,9 @@ COPY ./target/credential-service-*.jar credential-service.jar
 COPY configure_start.sh configure_start.sh
 
 # change permissions of file inside working dir
-RUN chown -R ${container_user}:${container_user_group} /home/${container_user} && \
-chmod +x configure_start.sh && \
-ls -la configure_start.sh
+RUN sed -i 's/\r$//' ${work_dir}/configure_start.sh \
+    && chmod +x ${work_dir}/configure_start.sh \
+    && chown -R ${container_user}:${container_user} ${work_dir} \
 
 # select container user for all tasks
 USER ${container_user_uid}:${container_user_gid}
