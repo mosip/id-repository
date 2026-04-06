@@ -35,6 +35,7 @@ import io.mosip.idrepository.identity.entity.UinDocumentDraft;
 import io.mosip.idrepository.identity.entity.UinDraft;
 import io.mosip.idrepository.identity.helper.AnonymousProfileHelper;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
+import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import io.mosip.idrepository.identity.helper.VidDraftHelper;
 import io.mosip.idrepository.identity.repository.IdentityUpdateTrackerRepo;
 import io.mosip.idrepository.identity.repository.UinBiometricHistoryRepo;
@@ -133,6 +134,9 @@ public class IdRepoDraftServiceImplTest {
 	@Mock
 	private VidDraftHelper vidDraftHelper;
 
+	@Mock
+	private IdRepoServiceHelper idRepoServiceHelper;
+
 	@InjectMocks
 	IdRepoServiceImpl service;
 
@@ -222,9 +226,7 @@ public class IdRepoDraftServiceImplTest {
 		ReflectionTestUtils.setField(idRepoServiceImpl, "uinPath", uinPath);
 		ReflectionTestUtils.setField(idRepoServiceImpl, "mapper", mapper);
 		ReflectionTestUtils.setField(idRepoServiceImpl, "securityManager", securityManager);
-		ReflectionTestUtils.setField(idRepoServiceImpl, "restBuilder", restBuilder);
-		ReflectionTestUtils.setField(idRepoServiceImpl, "restHelper", restHelper);
-		ReflectionTestUtils.setField(restBuilder, "env", env);
+		ReflectionTestUtils.setField(idRepoServiceImpl, "idRepoServiceHelper", idRepoServiceHelper);
 		ReflectionTestUtils.setField(idRepoServiceImpl, "proxyService", proxyService);
 		ReflectionTestUtils.setField(idRepoServiceImpl, "anonymousProfileHelper", anonymousProfileHelper);
 		ReflectionTestUtils.setField(idRepoServiceImpl, "validator", validator);
@@ -305,9 +307,7 @@ public class IdRepoDraftServiceImplTest {
 		response.setResponse(res);
 		String identityData = IOUtils.toString(
 				this.getClass().getClassLoader().getResourceAsStream("identity-data.json"), StandardCharsets.UTF_8);
-		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any(Class.class)))
-				.thenReturn(new RestRequestDTO());
-		when(restHelper.requestSync(Mockito.any())).thenReturn(response);
+		when(idRepoServiceHelper.generateUin()).thenReturn("274390482564");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("12345");
 		when(securityManager.hashwithSalt(Mockito.any(), Mockito.any()))
 				.thenReturn("5B72C3B57A72C6497461289FCA7B1F865ED6FB0596B446FEA1F92AF931A5D4B7");
@@ -353,9 +353,10 @@ public class IdRepoDraftServiceImplTest {
 
 	@Test
 	public void testGenerateUin()
-			throws IdRepoDataValidationException, JsonMappingException, RestServiceException, JsonProcessingException {
-		ReflectionTestUtils.setField(idRepoServiceImpl, "restBuilder", restBuilder);
-		ReflectionTestUtils.setField(idRepoServiceImpl, "restHelper", restHelper);
+			throws IdRepoDataValidationException, JsonMappingException, RestServiceException, JsonProcessingException, IdRepoAppException {
+		IdRepoServiceHelper helper = new IdRepoServiceHelper();
+		ReflectionTestUtils.setField(helper, "restBuilder", restBuilder);
+		ReflectionTestUtils.setField(helper, "restHelper", restHelper);
 		ResponseWrapper<Map<String, String>> response = new ResponseWrapper<Map<String, String>>();
 		ReflectionTestUtils.setField(restBuilder, "env", env);
 		Map<String, String> res = new HashMap<String, String>();
@@ -364,7 +365,7 @@ public class IdRepoDraftServiceImplTest {
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any(Class.class)))
 				.thenReturn(new RestRequestDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(response);
-		String uin = ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "generateUin");
+		String uin = helper.generateUin();
 		assertSame(uin, "274390482564");
 	}
 
@@ -871,8 +872,9 @@ public class IdRepoDraftServiceImplTest {
 	public void testGenerateUinwithRestServiceException()
 			throws IdRepoDataValidationException, JsonMappingException, RestServiceException, JsonProcessingException {
 		try {
-			ReflectionTestUtils.setField(idRepoServiceImpl, "restBuilder", restBuilder);
-			ReflectionTestUtils.setField(idRepoServiceImpl, "restHelper", restHelper);
+			IdRepoServiceHelper helper = new IdRepoServiceHelper();
+			ReflectionTestUtils.setField(helper, "restBuilder", restBuilder);
+			ReflectionTestUtils.setField(helper, "restHelper", restHelper);
 			ResponseWrapper<Map<String, String>> response = new ResponseWrapper<Map<String, String>>();
 			ReflectionTestUtils.setField(restBuilder, "env", env);
 			Map<String, String> res = new HashMap<String, String>();
@@ -881,7 +883,7 @@ public class IdRepoDraftServiceImplTest {
 			when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any(Class.class)))
 					.thenThrow(IdRepoDataValidationException.class);
 			when(restHelper.requestSync(Mockito.any())).thenReturn(response);
-			String uin = ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "generateUin");
+			helper.generateUin();
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
 		}
@@ -892,8 +894,9 @@ public class IdRepoDraftServiceImplTest {
 	public void testGenerateUinwithIdRepoDataValidationException()
 			throws IdRepoDataValidationException, JsonMappingException, RestServiceException, JsonProcessingException {
 		try {
-			ReflectionTestUtils.setField(idRepoServiceImpl, "restBuilder", restBuilder);
-			ReflectionTestUtils.setField(idRepoServiceImpl, "restHelper", restHelper);
+			IdRepoServiceHelper helper = new IdRepoServiceHelper();
+			ReflectionTestUtils.setField(helper, "restBuilder", restBuilder);
+			ReflectionTestUtils.setField(helper, "restHelper", restHelper);
 			ResponseWrapper<Map<String, String>> response = new ResponseWrapper<Map<String, String>>();
 			ReflectionTestUtils.setField(restBuilder, "env", env);
 			Map<String, String> res = new HashMap<String, String>();
@@ -902,8 +905,7 @@ public class IdRepoDraftServiceImplTest {
 			when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any(Class.class)))
 					.thenReturn(new RestRequestDTO());
 			when(restHelper.requestSync(Mockito.any())).thenThrow(RestServiceException.class);
-			String uin = ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "generateUin");
-			assertSame(uin, "274390482564");
+			helper.generateUin();
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.UIN_GENERATION_FAILED.getErrorCode(), e.getErrorCode());
 		}
@@ -1020,11 +1022,8 @@ public class IdRepoDraftServiceImplTest {
 
 	@Test
 	public void testCreateDraftWhenGenerateUinThrowsException() throws Exception {
-		ReflectionTestUtils.setField(idRepoServiceImpl, "restBuilder", restBuilder);
-		ReflectionTestUtils.setField(idRepoServiceImpl, "restHelper", restHelper);
-
-		when(restBuilder.buildRequest(any(), any(), any(Class.class)))
-				.thenThrow(new IdRepoDataValidationException(IdRepoErrorConstants.UNKNOWN_ERROR));
+		when(idRepoServiceHelper.generateUin())
+				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
 		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
 				idRepoServiceImpl.createDraft("REG123", null));
 
@@ -1033,12 +1032,8 @@ public class IdRepoDraftServiceImplTest {
 
 	@Test
 	public void testCreateDraftWhenRestServiceExceptionOccurs() throws Exception {
-		ReflectionTestUtils.setField(idRepoServiceImpl, "restBuilder", restBuilder);
-		ReflectionTestUtils.setField(idRepoServiceImpl, "restHelper", restHelper);
-		when(restBuilder.buildRequest(any(), any(), any(Class.class)))
-				.thenReturn(mock(RestRequestDTO.class)); // return a valid RestRequestDTO
-		when(restHelper.requestSync(any()))
-				.thenThrow(new RestServiceException(IdRepoErrorConstants.UIN_GENERATION_FAILED));
+		when(idRepoServiceHelper.generateUin())
+				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UIN_GENERATION_FAILED));
 		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
 				idRepoServiceImpl.createDraft("REG123", null));
 		assertEquals(IdRepoErrorConstants.UIN_GENERATION_FAILED.getErrorCode(), thrown.getErrorCode());
