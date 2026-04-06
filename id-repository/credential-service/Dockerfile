@@ -57,7 +57,7 @@ ARG container_user_gid=1001
 RUN apk -q update \
 && apk add -q unzip \
 && addgroup -g ${container_user_gid} ${container_user_group} \
-&& adduser -s /bin/sh -u ${container_user_uid} -G ${container_user_group} -h /home/${container_user} --disabled-password ${container_user} /
+&& adduser -s /bin/sh -u ${container_user_uid} -G ${container_user_group} -h /home/${container_user} --disabled-password ${container_user} \
 && chmod +x configure_start.sh
 
 # set working directory for the user
