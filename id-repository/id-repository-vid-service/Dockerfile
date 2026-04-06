@@ -72,7 +72,7 @@ ENV loader_path_env=${loader_path}
 
 COPY ./target/id-repository-vid-service-*.jar id-repository-vid-service.jar
 
-COPY configure_start.sh configure_start.sh
+COPY configure_start.sh ${work_dir}/configure_start.sh
 
 # change permissions of file inside working dir
 RUN sed -i 's/\r$//' ${work_dir}/configure_start.sh \
