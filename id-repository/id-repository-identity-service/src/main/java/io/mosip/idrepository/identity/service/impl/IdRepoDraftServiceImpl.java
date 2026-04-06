@@ -154,7 +154,7 @@ import org.springframework.validation.Errors;
  * @author Manoj SP (original)
  */
 @Service
-@Transactional(rollbackFor = { IdRepoAppException.class, IdRepoAppUncheckedException.class })
+//@Transactional(rollbackFor = { IdRepoAppException.class, IdRepoAppUncheckedException.class })
 public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 		implements IdRepoDraftService<IdRequestDTO, IdResponseDTO> {
 
