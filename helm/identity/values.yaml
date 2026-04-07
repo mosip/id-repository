@@ -124,13 +124,13 @@ additionalResources:
   javaOpts: >-
     -XX:+UseZGC -XX:+ZGenerational -XX:+ZUncommit
     -XX:ZUncommitDelay=30 -XX:+ZProactive -XX:ZCollectionInterval=10
-    -Xms2300m -Xmx4000m -XX:SoftMaxHeapSize=3500m
+    -Xms380m -Xmx3800m -XX:SoftMaxHeapSize=3400m
     -Djdk.virtualThreadScheduler.parallelism=4
     -Djdk.virtualThreadScheduler.maxPoolSize=64
     -Djava.util.concurrent.ForkJoinPool.common.parallelism=2
     -XX:ActiveProcessorCount=2 -XX:+UseContainerSupport
-    -XX:MaxMetaspaceSize=480m -XX:MetaspaceSize=120m
-    -XX:ReservedCodeCacheSize=180m -XX:InitialCodeCacheSize=45m
+    -XX:MaxMetaspaceSize=320m -XX:MetaspaceSize=150m
+    -XX:ReservedCodeCacheSize=256m -XX:InitialCodeCacheSize=64m
     -XX:+UseCodeCacheFlushing -XX:+ExitOnOutOfMemoryError
     -Djava.security.egd=file:/dev/urandom
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
