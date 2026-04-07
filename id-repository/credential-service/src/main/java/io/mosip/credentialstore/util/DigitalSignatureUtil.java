@@ -64,7 +64,6 @@ public class DigitalSignatureUtil {
 	@Retryable(value = { SignatureException.class,
 			ApiNotAccessibleException.class }, maxAttemptsExpression = "${mosip.credential.service.retry.maxAttempts}", backoff = @Backoff(delayExpression = "${mosip.credential.service.retry.maxDelay}"))
 	public String sign(String data, String requestId) throws ApiNotAccessibleException, SignatureException {
-		long perfStart = System.currentTimeMillis();
 		try {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Digital signature entry");
@@ -82,10 +81,8 @@ public class DigitalSignatureUtil {
 			LocalDateTime localdatetime = LocalDateTime
 					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 			request.setRequesttime(localdatetime);
-			long httpStart = System.currentTimeMillis();
 			String responseString = restUtil.postApi(ApiName.KEYMANAGER_JWTSIGN, null, "", "",
 					MediaType.APPLICATION_JSON, request, String.class);
-			LOGGER.info("PERF-DigitalSignatureUtil_sign_httpCall: {}ms", System.currentTimeMillis() - httpStart);
 
 			SignResponseDto responseObject = mapper.readValue(responseString, SignResponseDto.class);
 			if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
@@ -101,7 +98,6 @@ public class DigitalSignatureUtil {
 					"Signed data successfully");
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Digital signature exit");
-			LOGGER.info("PERF-DigitalSignatureUtil_sign_total: {}ms", System.currentTimeMillis() - perfStart);
 			return signedData;
 		} catch (IOException e) {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,

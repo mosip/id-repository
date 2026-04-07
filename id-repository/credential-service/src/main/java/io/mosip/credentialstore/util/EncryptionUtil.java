@@ -40,8 +40,8 @@ import io.mosip.kernel.core.util.DateUtils2;
 
 @Component
 public class EncryptionUtil {
-
-	private static final Logger LOGGER = IdRepoLogger.getLogger(EncryptionUtil.class);
+	
+	private static final Logger LOGGER = IdRepoLogger.getLogger(EncryptionUtil.class); 
 
 	/** The Constant IO_EXCEPTION. */
 	private static final String IO_EXCEPTION = "Exception while reading packet inputStream";
@@ -145,6 +145,7 @@ public class EncryptionUtil {
 			throws DataEncryptionFailureException, ApiNotAccessibleException {
 		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 				"started encrypting data using partner certificate");
+	
 
 		try {
 

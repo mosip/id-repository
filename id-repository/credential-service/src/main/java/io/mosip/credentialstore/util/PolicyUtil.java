@@ -63,21 +63,18 @@ public class PolicyUtil {
 	public PartnerCredentialTypePolicyDto getPolicyDetail(String credentialType, String subscriberId, String requestId)
 			throws PolicyException, ApiNotAccessibleException {
 
-		long perfStart = System.currentTimeMillis();
 		try {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					requestId,
 					"started fetching the policy data");
 			String policyMapKey = credentialType + " " + subscriberId;
             PartnerCredentialTypePolicyDto policyResponseDto = null;
-
+			
 			if (policyMap.get(policyMapKey) == null) {
 			Map<String, String> pathsegments = new HashMap<>();
 			pathsegments.put("partnerId", subscriberId);
 			pathsegments.put("credentialType", credentialType);
-			long httpStart = System.currentTimeMillis();
 			String responseString = restUtil.getApi(ApiName.PARTNER_POLICY, pathsegments, String.class);
-			LOGGER.info("PERF-PolicyUtil_getPolicyDetail_httpCall: {}ms", System.currentTimeMillis() - httpStart);
 
 			PolicyManagerResponseDto responseObject = mapper.readValue(responseString,
 					PolicyManagerResponseDto.class);
@@ -97,7 +94,6 @@ public class PolicyUtil {
 					"Fetched policy details successfully");
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ended fetching the policy data");
-			LOGGER.info("PERF-PolicyUtil_getPolicyDetail_total: {}ms", System.currentTimeMillis() - perfStart);
 			return policyResponseDto;
 
 		} catch (IOException e) {
@@ -127,7 +123,6 @@ public class PolicyUtil {
 			throws ApiNotAccessibleException, PartnerException {
 		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 				"started fetching the partner extraction policy data");
-		long perfStart = System.currentTimeMillis();
 		PartnerExtractorResponse partnerExtractorResponse = null;
 		try {
 			String extractorKey = policyId + " " + subscriberId;
@@ -136,9 +131,7 @@ public class PolicyUtil {
 
 			pathsegments.put("partnerId", subscriberId);
 			pathsegments.put("policyId", policyId);
-			long httpStart = System.currentTimeMillis();
 			String responseString = restUtil.getApi(ApiName.PARTNER_EXTRACTION_POLICY, pathsegments, String.class);
-			LOGGER.info("PERF-PolicyUtil_getPartnerExtractorFormat_httpCall: {}ms", System.currentTimeMillis() - httpStart);
 			mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 			PartnerExtractorResponseDto responseObject = mapper.readValue(responseString,
 					PartnerExtractorResponseDto.class);
@@ -167,7 +160,6 @@ public class PolicyUtil {
 
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ended fetching the policy data");
-			LOGGER.info("PERF-PolicyUtil_getPartnerExtractorFormat_total: {}ms", System.currentTimeMillis() - perfStart);
 			return partnerExtractorResponse;
 		} catch (Exception e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,

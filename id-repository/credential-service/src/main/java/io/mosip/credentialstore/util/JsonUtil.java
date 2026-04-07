@@ -35,10 +35,10 @@ import io.mosip.credentialstore.exception.InstantanceCreationException;
  */
 public class JsonUtil {
 
-	/** The constant for language field in multi-language demographic attributes. */
+	/** The Constant LANGUAGE. */
 	private static final String LANGUAGE = "language";
 
-	/** The constant for value field in multi-language demographic attributes. */
+	/** The Constant VALUE. */
 	private static final String VALUE = "value";
 
 	/**
@@ -73,8 +73,9 @@ public class JsonUtil {
 	 * Private constructor to prevent instantiation of this utility class.
 	 */
 	private JsonUtil() {
-		// Utility class - no instantiation
+
 	}
+
 
 	/**
 	 * Retrieves a nested JSONObject from a parent JSONObject using the given key.
@@ -121,6 +122,7 @@ public class JsonUtil {
 		JSONArray jsonArray = new JSONArray();
 		jsonArray.addAll((ArrayList<?>) value);
 		return jsonArray;
+
 	}
 
 	/**
@@ -176,11 +178,10 @@ public class JsonUtil {
 		return (T) OBJECT_MAPPER.readValue(jsonString, clazz);
 	}
 
+
+
 	/**
-	 * Maps a JSONArray containing multi-language demographic fields into an array of Java objects.
-	 *
-	 * <p>This method is specifically designed for MOSIP's demographic structure where fields like
-	 * name, address, etc., are represented as arrays of objects with "language" and "value" fields.
+	 * Map json node to java object.
 	 *
 	 * <p><strong>Usage Example:</strong>
 	 * <pre>{@code
@@ -229,6 +230,7 @@ public class JsonUtil {
 		}
 
 		return javaObject;
+
 	}
 
 	/**
