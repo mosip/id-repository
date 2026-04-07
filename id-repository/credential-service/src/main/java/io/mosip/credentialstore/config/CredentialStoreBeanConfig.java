@@ -37,7 +37,6 @@ import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 @Configuration
 @EnableRetry
 @EnableAsync
-@PropertySource("classpath:bootstrap.properties")
 public class CredentialStoreBeanConfig {
 
 	// --- Thread Pool ---

@@ -53,7 +53,7 @@ public class CredentialItemReprocessTasklet implements Tasklet {
 	@Value("${credential.batch.thread.count:10}")
 	private int threadCount;
 
-	@Value("${credential.tasklet.idrepo.alive.time:60L}")
+	@Value("${credential.tasklet.idrepo.alive.time:60}")
 	private long keepAliveTime;
 
 	@Lazy
