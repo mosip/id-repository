@@ -147,7 +147,6 @@ public class IdAuthProvider extends CredentialProvider {
 		 final String individualId = credentialServiceRequestDto.getId();
 
 		 // Submit both ZK encryption tasks in parallel — they are independent of each other.
-		 long zkStart = System.currentTimeMillis();
 		 CompletableFuture<EncryptZkResponseDto> demoFuture = demoZkDataAttributes.isEmpty()
 				 ? CompletableFuture.completedFuture(null)
 				 : CompletableFuture.supplyAsync(() -> {
@@ -170,8 +169,6 @@ public class IdAuthProvider extends CredentialProvider {
 
 		 try {
 			 CompletableFuture.allOf(demoFuture, bioFuture).join();
-			 LOGGER.info("PERF-IdAuthProvider_getFormattedCredentialData_zkEncrypt_parallel: {}ms",
-					 System.currentTimeMillis() - zkStart);
 			 if (!demoZkDataAttributes.isEmpty()) {
 				 EncryptZkResponseDto demoEncryptZkResponseDto = demoFuture.join();
 				 addToFormatter(demoEncryptZkResponseDto, formattedMap);

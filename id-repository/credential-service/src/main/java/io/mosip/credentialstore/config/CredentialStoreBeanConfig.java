@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.support.SimpleCacheManager;
@@ -38,6 +39,26 @@ import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 @EnableAsync
 @PropertySource("classpath:bootstrap.properties")
 public class CredentialStoreBeanConfig {
+
+	// --- Thread Pool ---
+	@Value("${credential.service.executor.core-pool-size:10}")
+	private int executorCorePoolSize;
+
+	@Value("${credential.service.executor.max-pool-size:20}")
+	private int executorMaxPoolSize;
+
+	@Value("${credential.service.executor.queue-capacity:200}")
+	private int executorQueueCapacity;
+
+	@Value("${credential.service.executor.thread-name-prefix:cred-async-}")
+	private String executorThreadNamePrefix;
+
+	// --- Caffeine Cache (IDREPO_DATA) ---
+	@Value("${credential.cache.idrepo.expire-after-write-minutes:5}")
+	private long idrepoCacheExpireMinutes;
+
+	@Value("${credential.cache.idrepo.maximum-size:500}")
+	private long idrepoCacheMaxSize;
 
 	@Bean
 	public DummyPartnerCheckUtil dummyPartnerCheckUtil() {
@@ -119,10 +140,10 @@ public class CredentialStoreBeanConfig {
 	@Bean("credentialServiceExecutor")
 	public Executor credentialServiceExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(10);
-		executor.setMaxPoolSize(20);
-		executor.setQueueCapacity(200);
-		executor.setThreadNamePrefix("cred-async-");
+		executor.setCorePoolSize(executorCorePoolSize);
+		executor.setMaxPoolSize(executorMaxPoolSize);
+		executor.setQueueCapacity(executorQueueCapacity);
+		executor.setThreadNamePrefix(executorThreadNamePrefix);
 		executor.initialize();
 		return executor;
 	}
@@ -136,8 +157,8 @@ public class CredentialStoreBeanConfig {
 				new ConcurrentMapCache("topics"),
 				new CaffeineCache("IDREPO_DATA",
 						Caffeine.newBuilder()
-								.expireAfterWrite(5, TimeUnit.MINUTES)
-								.maximumSize(500)
+								.expireAfterWrite(idrepoCacheExpireMinutes, TimeUnit.MINUTES)
+								.maximumSize(idrepoCacheMaxSize)
 								.build())));
 		return cacheManager;
 	}

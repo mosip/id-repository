@@ -53,6 +53,9 @@ public class CredentialItemReprocessTasklet implements Tasklet {
 	@Value("${credential.batch.thread.count:10}")
 	private int threadCount;
 
+	@Value("${credential.tasklet.idrepo.alive.time:60L}")
+	private long keepAliveTime;
+
 	@Lazy
 	@Autowired
 	private ObjectMapper mapper;
@@ -88,7 +91,7 @@ public class CredentialItemReprocessTasklet implements Tasklet {
 	public void init() {
 		ioThreadPool = new ThreadPoolExecutor(
 				threadCount, threadCount,
-				60L, TimeUnit.SECONDS,
+				keepAliveTime, TimeUnit.SECONDS,
 				new LinkedBlockingQueue<>(),
 				new ThreadPoolExecutor.CallerRunsPolicy()
 		);

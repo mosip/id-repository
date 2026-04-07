@@ -233,8 +233,6 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 			try {
 				signature = signatureFuture.join();
-				LOGGER.info("PERF-CredentialStoreServiceImpl_createCredentialIssuance_sign_total: {}ms",
-						System.currentTimeMillis() - t5sign);
 			} catch (CompletionException e) {
 				Throwable cause = e.getCause();
 				if (cause instanceof ApiNotAccessibleException) throw (ApiNotAccessibleException) cause;
