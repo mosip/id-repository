@@ -25,6 +25,7 @@
     <kernel-idvalidator-rid.version>1.3.0</kernel-idvalidator-rid.version>
 		<kernel.khazana.version>1.3.1-SNAPSHOT</kernel.khazana.version>
     <central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
+		<maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
 	</properties>
 
 	<dependencies>
@@ -134,7 +135,16 @@
                 <artifactId>central-publishing-maven-plugin</artifactId>
                 <version>${central.publishing.maven.plugin.version}</version>
                 <extensions>true</extensions>
-                <configuration>
+				<executions>
+					<execution>
+						<id>default-publish</id>
+						<phase>none</phase>
+						<goals>
+							<goal>publish</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
                     <publishingServerId>ossrh</publishingServerId>
                     <autoPublish>false</autoPublish>
                 </configuration>
@@ -166,6 +176,25 @@
 						<arg>-parameters</arg>
 					</compilerArgs>
 				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>${maven.deploy.plugin.version}</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+				<executions>
+					<execution>
+						<id>default-deploy</id>
+						<phase>none</phase>
+						<goals>
+							<goal>deploy</goal>
+						</goals>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
