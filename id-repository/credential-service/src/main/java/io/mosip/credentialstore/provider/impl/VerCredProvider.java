@@ -57,7 +57,7 @@ public class VerCredProvider extends CredentialProvider {
 
 	@Autowired
 	private DigitalSignatureUtil digitalSignatureUtil;
-	
+
 	/** The utilities. */
 	@Autowired
 	Utilities utilities;
@@ -67,7 +67,7 @@ public class VerCredProvider extends CredentialProvider {
 
 	@Value("${config.server.file.storage.uri:}")
 	private String configServerFileStorageURL;
-	
+
 	@Value("#{${mosip.credential.service.vercred.context.url.map}}")
 	private Map<String, String> vcContextUrlMap;
 
@@ -96,11 +96,15 @@ public class VerCredProvider extends CredentialProvider {
 
 	private JSONObject vcContextJsonld = null;
 
+	// Reuse canonicalizer instance (it's thread-safe after initialization)
+	private static final ThreadLocal<URDNA2015Canonicalizer> canonicalizer =
+			ThreadLocal.withInitial(URDNA2015Canonicalizer::new);
+
 	@PostConstruct
 	private void init() {
 		if(Objects.isNull(vcContextUrlMap)){
-			LOGGER.warn(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), "VerCred", 
-				"Warning - Verifiable Credential Context URL Map not configured, VC generation may fail.");
+			LOGGER.warn(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), "VerCred",
+					"Warning - Verifiable Credential Context URL Map not configured, VC generation may fail.");
 			confDocumentLoader = new ConfigurableDocumentLoader();
 			confDocumentLoader.setEnableHttps(true);
 			confDocumentLoader.setEnableHttp(true);
@@ -113,7 +117,7 @@ public class VerCredProvider extends CredentialProvider {
 				try {
 					jsonDocumentCacheMap.put(new URI(contextUrl), jsonDocument);
 				} catch (URISyntaxException e) {
-					LOGGER.warn(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), "VerCred", 
+					LOGGER.warn(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), "VerCred",
 							"Warning - Verifiable Credential URI not able to add to cacheMap.");
 				}
 			});
@@ -121,23 +125,22 @@ public class VerCredProvider extends CredentialProvider {
 			confDocumentLoader.setEnableHttps(false);
 			confDocumentLoader.setEnableHttp(false);
 			confDocumentLoader.setEnableFile(false);
-			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), "VerCred", 
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), "VerCred",
 					"Added cache for the list of configured URL Map: " + jsonDocumentCacheMap.keySet().toString());
 		}
 		vcContextJsonld = utilities.getVCContext(configServerFileStorageURL, vcContextUri);
 	}
-	
+
 	@Override
 	public DataProviderResponse getFormattedCredentialData(
 			CredentialServiceRequestDto credentialServiceRequestDto, Map<AllowedKycDto, Object> sharableAttributeMap)
 			throws CredentialFormatterException {
 		String requestId = credentialServiceRequestDto.getRequestId();
-		DataProviderResponse dataProviderResponse = null;
 		try {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Formatting credential data");
 			String pin = credentialServiceRequestDto.getEncryptionKey();
-			
+
 			Map<String, Object> formattedMap = new HashMap<>();
 			List<String> protectedAttributes = new ArrayList<>();
 			formattedMap.put(JsonConstants.ID, verCredIdUrl + credentialServiceRequestDto.getId());
@@ -187,7 +190,6 @@ public class VerCredProvider extends CredentialProvider {
 
 			String credentialId = utilities.generateId();
 
-			dataProviderResponse = new DataProviderResponse();
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
@@ -218,33 +220,31 @@ public class VerCredProvider extends CredentialProvider {
 			// vc proof
 			Date created = Date.from(localdatetime.atZone(ZoneId.systemDefault()).toInstant());
 			LdProof vcLdProof = LdProof.builder()
-										.defaultContexts(false)
-										.defaultTypes(false)
-										.type(proofType)
-										.created(created)
-										.proofPurpose(proofPurpose)
-										.verificationMethod(new URI(verificationMethod))
-										.build();
-										
-			URDNA2015Canonicalizer canonicalizer =	new URDNA2015Canonicalizer();
-			byte[] vcSignBytes = canonicalizer.canonicalize(vcLdProof, vcJsonLdObject);			
+					.defaultContexts(false)
+					.defaultTypes(false)
+					.type(proofType)
+					.created(created)
+					.proofPurpose(proofPurpose)
+					.verificationMethod(new URI(verificationMethod))
+					.build();
+
+			byte[] vcSignBytes = canonicalizer.get().canonicalize(vcLdProof, vcJsonLdObject);
 			String vcEncodedData = CryptoUtil.encodeToURLSafeBase64(vcSignBytes);
 
 			String jws = digitalSignatureUtil.signVerCred(vcEncodedData, credentialServiceRequestDto.getRequestId());
 
 			LdProof ldProofWithJWS = LdProof.builder()
-                .base(vcLdProof)
-                .defaultContexts(false)
-				.jws(jws)
-				.build();
-			
+					.base(vcLdProof)
+					.defaultContexts(false)
+					.jws(jws)
+					.build();
+
 			ldProofWithJWS.addToJsonLDObject(vcJsonLdObject);
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"Verifiable Credential Generation completed for the provided data.");
+			DataProviderResponse dataProviderResponse = new DataProviderResponse();
 			dataProviderResponse.setJSON(new JSONObject(vcJsonLdObject.toMap()));
-
 			dataProviderResponse.setCredentialId(credentialId);
-
 			dataProviderResponse.setIssuanceDate(localdatetime);
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"end formatting credential data");
@@ -267,6 +267,4 @@ public class VerCredProvider extends CredentialProvider {
 			throw new CredentialFormatterException(e);
 		}
 	}
-	
-
 }

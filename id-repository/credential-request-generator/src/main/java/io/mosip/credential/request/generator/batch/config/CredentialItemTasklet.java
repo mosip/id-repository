@@ -1,10 +1,14 @@
 package io.mosip.credential.request.generator.batch.config;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -74,11 +78,16 @@ public class CredentialItemTasklet implements Tasklet {
 	 */
 	private static final String CREDENTIAL_ITEM_TASKLET = "CredentialItemTasklet";
 	
-	ForkJoinPool forkJoinPool;
+	ExecutorService ioThreadPool;
 
 	@PostConstruct
 	public void init() {
-		forkJoinPool = new ForkJoinPool(threadCount);
+		ioThreadPool = new ThreadPoolExecutor(
+				threadCount, threadCount,
+				60L, TimeUnit.SECONDS,
+				new LinkedBlockingQueue<>(),
+				new ThreadPoolExecutor.CallerRunsPolicy()
+		);
 	}
 
 	@Override
@@ -88,14 +97,14 @@ public class CredentialItemTasklet implements Tasklet {
 				"Inside CredentialItemTasklet.execute() method");
 		List<CredentialEntity> credentialEntities = credentialDao.getCredentials(batchId);
 
-		try {
-			forkJoinPool.submit(() -> credentialEntities.parallelStream().forEach(credential -> {
+		List<CompletableFuture<Void>> futures = new ArrayList<>();
+		for (CredentialEntity credential : credentialEntities) {
+			CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
 				TrimExceptionMessage trimMessage = new TrimExceptionMessage();
 				int retryCount = 0;
 				try {
 					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 							"started processing item : " + credential.getRequestId());
-					//Decrypting data outside for performance improvement
 					long decryptStartTime = System.currentTimeMillis();
 					CredentialIssueRequestDto credentialIssueRequestDto = credentialIssueRequestHelper.getCredentialIssueRequestDto(credential);
 					LOGGER.debug(IdRepoSecurityManager.getUser(), "Perform " + CREDENTIAL_ITEM_TASKLET,
@@ -128,14 +137,13 @@ public class CredentialItemTasklet implements Tasklet {
 						retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
 
 					} else {
-						CredentialServiceResponse credentialServiceResponse=responseObject.getResponse();
+						CredentialServiceResponse credentialServiceResponse = responseObject.getResponse();
 						credential.setCredentialId(credentialServiceResponse.getCredentialId());
 						credential.setDataShareUrl(credentialServiceResponse.getDataShareUrl());
 						credential.setIssuanceDate(credentialServiceResponse.getIssuanceDate());
 						credential.setStatusCode(credentialServiceResponse.getStatus());
 						credential.setSignature(credentialServiceResponse.getSignature());
 						credential.setStatusComment("credentials issued to partner");
-
 					}
 					credential.setUpdatedBy(CREDENTIAL_USER);
 					credential.setUpdateDateTime(DateUtils2.getUTCCurrentDateTime());
@@ -145,45 +153,40 @@ public class CredentialItemTasklet implements Tasklet {
 					LOGGER.info(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 							"ended processing item : " + credential.getRequestId());
 				} catch (ApiNotAccessibleException e) {
-
 					LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 							ExceptionUtils.getStackTrace(e));
 					credential.setStatusCode("FAILED");
 					credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
-					retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
+					credential.setRetryCount(credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1);
 				} catch (IOException e) {
-
 					LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 							ExceptionUtils.getStackTrace(e));
 					credential.setStatusCode("FAILED");
 					credential.setStatusComment(trimMessage.trimExceptionMessage(e.getMessage()));
-					retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
+					credential.setRetryCount(credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1);
 				} catch (Exception e) {
 					String errorMessage;
 					if (e.getCause() instanceof HttpClientErrorException) {
-						HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
-						errorMessage = httpClientException.getResponseBodyAsString();
+						errorMessage = ((HttpClientErrorException) e.getCause()).getResponseBodyAsString();
 					} else if (e.getCause() instanceof HttpServerErrorException) {
-						HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
-						errorMessage = httpServerException.getResponseBodyAsString();
+						errorMessage = ((HttpServerErrorException) e.getCause()).getResponseBodyAsString();
 					} else {
 						errorMessage = e.getMessage();
 					}
-
 					LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 							ExceptionUtils.getStackTrace(e));
 					credential.setStatusCode("FAILED");
 					credential.setStatusComment(trimMessage.trimExceptionMessage(errorMessage));
-					retryCount = credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1;
+					credential.setRetryCount(credential.getRetryCount() != null ? credential.getRetryCount() + 1 : 1);
 				}
-			})).get();
-		} catch (InterruptedException e) {
+			}, ioThreadPool);
+			futures.add(future);
+		}
+		try {
+			CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+		} catch (Exception e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
 					ExceptionUtils.getStackTrace(e));
-			throw e;
-		} catch (ExecutionException e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_ITEM_TASKLET, "batchid = " + batchId,
-						ExceptionUtils.getStackTrace(e));
 		}
 		if (!CollectionUtils.isEmpty(credentialEntities))
 			credentialDao.update(batchId, credentialEntities);

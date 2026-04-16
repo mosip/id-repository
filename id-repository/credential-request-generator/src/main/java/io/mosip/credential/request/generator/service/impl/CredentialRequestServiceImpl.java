@@ -51,7 +51,6 @@ import io.mosip.kernel.core.util.StringUtils;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import io.mosip.credential.request.generator.constants.ApiName;
 import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.idrepository.core.builder.AuditRequestBuilder;
@@ -70,7 +69,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 
 	@Autowired
 	private CredentialDao credentialDao;
-	
+
 	/** The Constant USER. */
 	private static final String PRINT_USER = "service-account-mosip-print-client";
 
@@ -167,7 +166,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			} else {
 				credentialIssueResponseWrapper.setResponse(credentialIssueResponse);
 			}
-			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID,"create credential request requested");
+			auditHelper.auditAsync(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID,"create credential request requested");
 		}
 		return credentialIssueResponseWrapper;
 	}
@@ -220,7 +219,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			} else {
 				credentialIssueResponseWrapper.setResponse(credentialIssueResponse);
 			}
-			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID,"create credential request requested");
+			auditHelper.auditAsync(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID,"create credential request requested");
 		}
 		return credentialIssueResponseWrapper;
 	}
@@ -300,7 +299,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			} else {
 				credentialIssueResponseWrapper.setResponse(credentialIssueResponse);
 			}
-			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CANCEL_CREDENTIAL_REQUEST, requestId, IdType.ID,"Cancel the request");
+			auditHelper.auditAsync(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CANCEL_CREDENTIAL_REQUEST, requestId, IdType.ID,"Cancel the request");
 		}
 		return credentialIssueResponseWrapper;
 	}
@@ -400,16 +399,15 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			}
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ended updating  credential status");
-			audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,"update the request");
+			//audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,"update the request");
+			auditHelper.auditAsync(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,"update the request");
 		}catch (DataAccessLayerException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, UPDATE_STATUS_CREDENTIAL,
 					ExceptionUtils.getStackTrace(e));
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,e);
 
 			throw new CredentialRequestGeneratorException();
-
 		}
-
 	}
 
 	@Override
@@ -574,7 +572,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			} else {
 				credentialIssueResponseWrapper.setResponse(credentialIssueResponse);
 			}
-			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.RETRY_CREDENTIAL_REQUEST,
+			auditHelper.auditAsync(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.RETRY_CREDENTIAL_REQUEST,
 					requestId, IdType.ID, "retrigger the request");
 		}
 		return credentialIssueResponseWrapper;

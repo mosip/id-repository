@@ -60,126 +60,83 @@ public class EncryptionUtil {
 	@Value("${credential.service.application.id:PARTNER}")
 	private String applicationId;
 
+	/**
+	 * Reusable method to build RequestWrapper (reduces object creation boilerplate)
+	 */
+	private <T> RequestWrapper<T> createRequestWrapper(T requestBody) {
+		RequestWrapper<T> request = new RequestWrapper<>();
+		String pattern = EnvUtil.getDateTimePattern();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+		LocalDateTime now = LocalDateTime.parse(
+				DateUtils2.getUTCCurrentDateTimeString(pattern),
+				formatter);
+
+		request.setRequesttime(now);
+		request.setRequest(requestBody);
+		return request;
+	}
+
 	public String encryptDataWithPin(String attributeName, String data, String pin, String requestId)
 			throws DataEncryptionFailureException, ApiNotAccessibleException {
 		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 				"started encrypting data using pin");
 
-		String encryptedData = null;
 		try {
-		
-			CryptoWithPinRequestDto cryptoWithPinRequestDto = new CryptoWithPinRequestDto();
-			RequestWrapper<CryptoWithPinRequestDto> request = new RequestWrapper<>();
-			cryptoWithPinRequestDto.setData(data);
-			cryptoWithPinRequestDto.setUserPin(pin);
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
-			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
-			request.setRequesttime(localdatetime);
+			CryptoWithPinRequestDto cryptoReq = new CryptoWithPinRequestDto();
+			cryptoReq.setData(data);
+			cryptoReq.setUserPin(pin);
 
-			request.setRequest(cryptoWithPinRequestDto);
-		
-			String response= restUtil.postApi(ApiName.KEYMANAGER_ENCRYPT_PIN, null, "", "",
+			RequestWrapper<CryptoWithPinRequestDto> request = createRequestWrapper(cryptoReq);
+
+			String responseStr = restUtil.postApi(ApiName.KEYMANAGER_ENCRYPT_PIN, null, "", "",
 					MediaType.APPLICATION_JSON, request, String.class);
 
-			CryptoWithPinResponseDto responseObject= mapper.readValue(response,
-					CryptoWithPinResponseDto.class);
+			CryptoWithPinResponseDto response = mapper.readValue(responseStr, CryptoWithPinResponseDto.class);
 
-			if (responseObject != null) {
-				if (responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
-					ServiceError error = responseObject.getErrors().get(0);
-					LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-							"encrypted failed for attribute  " + attributeName);
-					throw new DataEncryptionFailureException(error.getMessage());
-				} else if (responseObject.getResponse() != null) {
-					encryptedData = responseObject.getResponse().getData();
-					LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-							"Pin Based Encryption done successfully");
-				}
+			if (hasErrors(response.getErrors())) {
+				ServiceError error = response.getErrors().get(0);
+				throw new DataEncryptionFailureException(error.getMessage());
 			}
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"ended encrypting data using pin");
-		} catch (IOException e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"encrypted failed for attribute  " + attributeName + ExceptionUtils.getStackTrace(e));
-			throw new DataEncryptionFailureException(IO_EXCEPTION, e);
+
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Pin-based encryption successful");
+			return response.getResponse().getData();
 		} catch (Exception e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"encrypted failed for attribute  " + attributeName + ExceptionUtils.getStackTrace(e));
-			if (e instanceof HttpClientErrorException) {
-				HttpClientErrorException httpClientException = (HttpClientErrorException) e;
-				throw new ApiNotAccessibleException(httpClientException.getResponseBodyAsString());
-			} else if (e instanceof HttpServerErrorException) {
-				HttpServerErrorException httpServerException = (HttpServerErrorException) e;
-				throw new ApiNotAccessibleException(httpServerException.getResponseBodyAsString());
-			} else {
-				throw new DataEncryptionFailureException(e);
-			}
-
+			handleEncryptionException(e, "pin", attributeName, requestId);
+			throw new DataEncryptionFailureException(e); // fallback
 		}
-		return encryptedData;
-    	
-    }
+	}
 
 	public EncryptZkResponseDto encryptDataWithZK(String id, List<ZkDataAttribute> zkDataAttributes, String requestId)
 			throws DataEncryptionFailureException, ApiNotAccessibleException {
 		LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 				"started encrypting data using ZK encryption");
 
-		EncryptZkResponseDto encryptedData = null;
 		try {
-		
-			EncryptZkRequestDto encryptZkRequestDto = new EncryptZkRequestDto();
-			RequestWrapper<EncryptZkRequestDto> request = new RequestWrapper<>();
-			encryptZkRequestDto.setZkDataAttributes(zkDataAttributes);
-			encryptZkRequestDto.setId(id);
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
-			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
-			request.setRequesttime(localdatetime);
 
-			request.setRequest(encryptZkRequestDto);
-		
-			String response= restUtil.postApi(ApiName.KEYMANAGER_ENCRYPT_ZK, null, "", "",
+			EncryptZkRequestDto zkReq = new EncryptZkRequestDto();
+			zkReq.setId(id);
+			zkReq.setZkDataAttributes(zkDataAttributes);
+
+			RequestWrapper<EncryptZkRequestDto> request = createRequestWrapper(zkReq);
+
+			String responseStr = restUtil.postApi(ApiName.KEYMANAGER_ENCRYPT_ZK, null, "", "",
 					MediaType.APPLICATION_JSON, request, String.class);
 
-			CryptoZkResponseDto responseObject= mapper.readValue(response,
-					CryptoZkResponseDto.class);
+			CryptoZkResponseDto response = mapper.readValue(responseStr, CryptoZkResponseDto.class);
 
-			if (responseObject != null) {
-				if (responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
-					LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-							"ZK encryption failed");
-					ServiceError error = responseObject.getErrors().get(0);
-					throw new DataEncryptionFailureException(error.getMessage());
-				} else if (responseObject.getResponse() != null) {
-					encryptedData = responseObject.getResponse();
-					LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-							"ZK Encryption done successfully");
-				}
-			}
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"ended encrypting data using ZK encryption");
-		} catch (IOException e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"ZK encryption error with error message" + ExceptionUtils.getStackTrace(e));
-			throw new DataEncryptionFailureException(IO_EXCEPTION, e);
-		}  catch (Exception e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"ZK encryption error with error message" + ExceptionUtils.getStackTrace(e));
-			if (e.getCause() instanceof HttpClientErrorException) {
-				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
-				throw new ApiNotAccessibleException(httpClientException.getResponseBodyAsString());
-			} else if (e.getCause() instanceof HttpServerErrorException) {
-				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
-				throw new ApiNotAccessibleException(httpServerException.getResponseBodyAsString());
-			} else {
-				throw new DataEncryptionFailureException(e);
+			if (hasErrors(response.getErrors())) {
+				throw new DataEncryptionFailureException(response.getErrors().get(0).getMessage());
 			}
 
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"ZK encryption successful");
+			return response.getResponse();
+
+		} catch (Exception e) {
+			handleEncryptionException(e, "ZK", null, requestId);
+			throw new DataEncryptionFailureException(e);
 		}
-		return encryptedData;
-		
 	}
 
 	@Retryable(value = { DataEncryptionFailureException.class,
@@ -190,69 +147,90 @@ public class EncryptionUtil {
 				"started encrypting data using partner certificate");
 	
 
-		String encryptedPacket = null;
 		try {
 
+			CryptomanagerRequestDto cryptoReq = new CryptomanagerRequestDto();
+			cryptoReq.setApplicationId(applicationId);
+			cryptoReq.setData(dataToBeEncrypted);
+			cryptoReq.setReferenceId(partnerId);
+			cryptoReq.setPrependThumbprint(EnvUtil.getPrependThumbprintStatus());
 
-			CryptomanagerRequestDto cryptomanagerRequestDto = new CryptomanagerRequestDto();
-			RequestWrapper<CryptomanagerRequestDto> request = new RequestWrapper<>();
-			cryptomanagerRequestDto.setApplicationId(applicationId);
-			cryptomanagerRequestDto.setData(dataToBeEncrypted);
-			cryptomanagerRequestDto.setReferenceId(partnerId);
-			cryptomanagerRequestDto
-					.setPrependThumbprint(EnvUtil.getPrependThumbprintStatus());
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
-			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
-			request.setRequesttime(localdatetime);
+			LocalDateTime now = LocalDateTime.parse(
+					DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()),
+					DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern()));
+			cryptoReq.setTimeStamp(now);
 
-			request.setRequest(cryptomanagerRequestDto);
-			cryptomanagerRequestDto.setTimeStamp(localdatetime);
-			String response = restUtil.postApi(ApiName.CRYPTOMANAGER_ENCRYPT, null, "", "", MediaType.APPLICATION_JSON,
-					request, String.class);
+			RequestWrapper<CryptomanagerRequestDto> request = createRequestWrapper(cryptoReq);
 
-			CryptomanagerResponseDto responseObject = mapper.readValue(response, CryptomanagerResponseDto.class);
+			String responseStr = restUtil.postApi(ApiName.CRYPTOMANAGER_ENCRYPT, null, "", "",
+					MediaType.APPLICATION_JSON, request, String.class);
 
-			if (responseObject != null) {
-				if (responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
-					LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-							"credential encryption failed");
-					ServiceError error = responseObject.getErrors().get(0);
-					throw new DataEncryptionFailureException(error.getMessage());
-				} else if (responseObject.getResponse() != null) {
-					encryptedPacket = responseObject.getResponse().getData();
-					LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-							"Credential Data Encryption done successfully");
-				}
+			CryptomanagerResponseDto response = mapper.readValue(responseStr, CryptomanagerResponseDto.class);
+
+			if (hasErrors(response.getErrors())) {
+				throw new DataEncryptionFailureException(response.getErrors().get(0).getMessage());
 			}
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"ended encrypting data using partner certificate");
-		} catch (IOException e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"Credential Data Encryption error with error message" + ExceptionUtils.getStackTrace(e));
-			throw new DataEncryptionFailureException(IO_EXCEPTION, e);
-		} catch (DateTimeParseException e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"Credential Data Encryption error with error message" + ExceptionUtils.getStackTrace(e));
-			throw new DataEncryptionFailureException(DATE_TIME_EXCEPTION);
+
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Partner encryption successful");
+			return response.getResponse().getData();
+
 		} catch (Exception e) {
-			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"Credential Data Encryption error with error message" + ExceptionUtils.getStackTrace(e));
-			if (e.getCause() instanceof HttpClientErrorException) {
-				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
-				throw new ApiNotAccessibleException(httpClientException.getResponseBodyAsString());
-			} else if (e.getCause() instanceof HttpServerErrorException) {
-				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
-				throw new ApiNotAccessibleException(httpServerException.getResponseBodyAsString());
-			} else {
-				throw new DataEncryptionFailureException(e.getMessage());
-			}
-
+			handleEncryptionException(e, "partner", null, requestId);
+			return null;
 		}
-		return encryptedPacket;
-
 	}
 
+	private boolean hasErrors(List<ServiceError> errors) {
+		return errors != null && !errors.isEmpty();
+	}
 
+	private void handleEncryptionException(Exception e, String encryptionType,
+										   String attributeName, String requestId)
+			throws DataEncryptionFailureException, ApiNotAccessibleException {
 
+		String logMessage = encryptionType + " encryption failed";
+
+		if (attributeName != null) {
+			logMessage += " for attribute " + attributeName;
+		}
+
+		LOGGER.error(IdRepoSecurityManager.getUser(),
+				LoggerFileConstant.REQUEST_ID.toString(),
+				requestId,
+				logMessage + " -> " + ExceptionUtils.getStackTrace(e));
+
+		// Specific handling as per your original code
+		if (e instanceof IOException) {
+			throw new DataEncryptionFailureException(IO_EXCEPTION, e);
+		}
+
+		if (e instanceof DateTimeParseException) {
+			throw new DataEncryptionFailureException(DATE_TIME_EXCEPTION, e);  // added cause
+		}
+
+		// HTTP related exceptions
+		Throwable rootCause = e.getCause() != null ? e.getCause() : e;
+
+		if (rootCause instanceof HttpClientErrorException) {
+			HttpClientErrorException hce = (HttpClientErrorException) rootCause;
+			throw new ApiNotAccessibleException(hce.getResponseBodyAsString());
+		}
+
+		if (rootCause instanceof HttpServerErrorException) {
+			HttpServerErrorException hse = (HttpServerErrorException) rootCause;
+			throw new ApiNotAccessibleException(hse.getResponseBodyAsString());
+		}
+
+		// Fallback
+		throw new DataEncryptionFailureException(e.getMessage(), e);
+	}
+
+	private String getHttpErrorBody(Exception e) {
+		if (e instanceof HttpClientErrorException) return ((HttpClientErrorException) e).getResponseBodyAsString();
+		if (e.getCause() instanceof HttpClientErrorException)
+			return ((HttpClientErrorException) e.getCause()).getResponseBodyAsString();
+		// similar for server exception...
+		return e.getMessage();
+	}
 }

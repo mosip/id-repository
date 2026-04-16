@@ -52,8 +52,6 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 
-import io.mosip.idrepository.core.builder.RestRequestBuilder;
-import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.DraftResponseDto;
 import io.mosip.idrepository.core.dto.DraftUinResponseDto;
@@ -61,12 +59,9 @@ import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.RequestDTO;
 import io.mosip.idrepository.core.dto.ResponseDTO;
-import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
-import io.mosip.idrepository.core.exception.RestServiceException;
-import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.IdRepoDraftService;
@@ -77,12 +72,12 @@ import io.mosip.idrepository.identity.entity.UinBiometricDraft;
 import io.mosip.idrepository.identity.entity.UinDocument;
 import io.mosip.idrepository.identity.entity.UinDocumentDraft;
 import io.mosip.idrepository.identity.entity.UinDraft;
+import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import io.mosip.idrepository.identity.helper.VidDraftHelper;
 import io.mosip.idrepository.identity.repository.UinBiometricRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentRepo;
 import io.mosip.idrepository.identity.repository.UinDraftRepo;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
-import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.StringUtils;
@@ -163,10 +158,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	private static final String COMMA = ",";
 	private static final String DEFAULT_ATTRIBUTE_LIST = "UIN,verifiedAttributes,IDSchemaVersion";
 
-	// ------------------------------------------------------------------ //
-	//  Injected configuration                                              //
-	// ------------------------------------------------------------------ //
-
 	@Value("${" + MOSIP_KERNEL_IDREPO_JSON_PATH + "}")
 	private String uinPath;
 
@@ -176,21 +167,11 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	@Value("${mosip.idrepo.create-identity.enable-force-merge:false}")
 	private boolean isForceMergeEnabled;
 
-	// ------------------------------------------------------------------ //
-	//  Injected dependencies                                               //
-	// ------------------------------------------------------------------ //
-
 	@Autowired
 	private UinDraftRepo uinDraftRepo;
 
 	@Autowired
 	private IdRequestValidator validator;
-
-	@Autowired
-	private RestRequestBuilder restBuilder;
-
-	@Autowired
-	private RestHelper restHelper;
 
 	@Autowired
 	private UinBiometricRepo uinBiometricRepo;
@@ -205,11 +186,10 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	private VidDraftHelper vidDraftHelper;
 
 	@Autowired
-	private Environment environment;
+	private IdRepoServiceHelper idRepoServiceHelper;
 
-	// ================================================================== //
-	//  Public API                                                          //
-	// ================================================================== //
+	@Autowired
+	private Environment environment;
 
 	@Override
 	public IdResponseDTO createDraft(String registrationId, String uin) throws IdRepoAppException {
@@ -246,7 +226,10 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 			} else {
 				// Brand-new identity — generate a UIN.
 				newDraft = new UinDraft();
-				uin = generateUin();
+				// Delegated to IdRepoServiceHelper so the HTTP call runs with
+				// Propagation.NOT_SUPPORTED, suspending the transaction and
+				// releasing the DB connection for the duration of the REST call.
+				uin = idRepoServiceHelper.generateUin();
 				newDraft.setUin(super.getUinToEncrypt(uin));
 				newDraft.setUinHash(super.getUinHash(uin));
 				byte[] uinData = convertToBytes(generateIdentityObject(uin));
@@ -498,11 +481,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 		}
 		return draftResponseDto;
 	}
-
-	// ================================================================== //
-	//  Private — draft construction                                        //
-	// ================================================================== //
-
 	/**
 	 * Wraps a UIN value in the nested identity object structure expected by the
 	 * schema (e.g. {@code {"identity": {"UIN": "..."}}} ).
@@ -517,29 +495,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 		return uin;
 	}
 
-	/**
-	 * Calls the UIN generator service and returns a new UIN string.
-	 */
-	private String generateUin() throws IdRepoAppException {
-		try {
-			RestRequestDTO restRequest = restBuilder.buildRequest(
-					RestServicesConstants.UIN_GENERATOR_SERVICE, null, ResponseWrapper.class);
-			ResponseWrapper<Map<String, String>> response = restHelper.requestSync(restRequest);
-			return response.getResponse().get("uin");
-		} catch (IdRepoDataValidationException e) {
-			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-					GENERATE_UIN, e.getMessage());
-			throw new IdRepoAppException(UNKNOWN_ERROR, e);
-		} catch (RestServiceException e) {
-			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-					GENERATE_UIN, e.getMessage());
-			throw new IdRepoAppException(UIN_GENERATION_FAILED, e);
-		}
-	}
-
-	// ================================================================== //
-	//  Private — update helpers                                            //
-	// ================================================================== //
 
 	private void updateDemographicData(IdRequestDTO request, UinDraft draftToUpdate)
 			throws JSONException, IdRepoAppException, IOException {
@@ -663,10 +618,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 		draftToUpdate.getBiometrics().forEach(b -> b.setRegId(regId));
 		draftToUpdate.getDocuments().forEach(d -> d.setRegId(regId));
 	}
-
-	// ================================================================== //
-	//  Private — publish helpers                                           //
-	// ================================================================== //
 
 	/**
 	 * Builds an {@link IdRequestDTO} from the stored draft data.
@@ -819,10 +770,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	private String getModalityForFormat(String formatQueryParam) {
 		return formatQueryParam.replace(EXTRACTION_FORMAT_QUERY_PARAM_SUFFIX, "");
 	}
-
-	// ================================================================== //
-	//  Private — response construction                                    //
-	// ================================================================== //
 
 	/**
 	 * Builds the {@link IdResponseDTO} returned to callers.

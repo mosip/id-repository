@@ -7,10 +7,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -78,6 +83,10 @@ public class IdAuthProvider extends CredentialProvider {
 	@Autowired
 	EncryptionUtil encryptionUtil;
 
+	@Autowired
+	@Qualifier("credentialServiceExecutor")
+	private Executor credentialServiceExecutor = ForkJoinPool.commonPool();
+
 	private static final Logger LOGGER = IdRepoLogger.getLogger(IdAuthProvider.class);
 
 	@Lazy
@@ -135,20 +144,49 @@ public class IdAuthProvider extends CredentialProvider {
 		}
 
 		 Map<String,Object> additionalData=credentialServiceRequestDto.getAdditionalData();
-		 if(!demoZkDataAttributes.isEmpty()) {
-				EncryptZkResponseDto demoEncryptZkResponseDto = encryptionUtil
-						.encryptDataWithZK(credentialServiceRequestDto.getId(), demoZkDataAttributes, requestId);
-			 addToFormatter(demoEncryptZkResponseDto,formattedMap);
-			 additionalData.put(DEMO_ENCRYPTED_RANDOM_KEY, demoEncryptZkResponseDto.getEncryptedRandomKey());
-			 additionalData.put(DEMO_ENCRYPTED_RANDOM_INDEX, demoEncryptZkResponseDto.getRankomKeyIndex());
+		 final String individualId = credentialServiceRequestDto.getId();
+
+		 // Submit both ZK encryption tasks in parallel — they are independent of each other.
+		 CompletableFuture<EncryptZkResponseDto> demoFuture = demoZkDataAttributes.isEmpty()
+				 ? CompletableFuture.completedFuture(null)
+				 : CompletableFuture.supplyAsync(() -> {
+					 try {
+						 return encryptionUtil.encryptDataWithZK(individualId, demoZkDataAttributes, requestId);
+					 } catch (DataEncryptionFailureException | ApiNotAccessibleException e) {
+						 throw new CompletionException(e);
+					 }
+				 }, credentialServiceExecutor);
+
+		 CompletableFuture<EncryptZkResponseDto> bioFuture = bioZkDataAttributes.isEmpty()
+				 ? CompletableFuture.completedFuture(null)
+				 : CompletableFuture.supplyAsync(() -> {
+					 try {
+						 return encryptionUtil.encryptDataWithZK(individualId, bioZkDataAttributes, requestId);
+					 } catch (DataEncryptionFailureException | ApiNotAccessibleException e) {
+						 throw new CompletionException(e);
+					 }
+				 }, credentialServiceExecutor);
+
+		 try {
+			 CompletableFuture.allOf(demoFuture, bioFuture).join();
+			 if (!demoZkDataAttributes.isEmpty()) {
+				 EncryptZkResponseDto demoEncryptZkResponseDto = demoFuture.join();
+				 addToFormatter(demoEncryptZkResponseDto, formattedMap);
+				 additionalData.put(DEMO_ENCRYPTED_RANDOM_KEY, demoEncryptZkResponseDto.getEncryptedRandomKey());
+				 additionalData.put(DEMO_ENCRYPTED_RANDOM_INDEX, demoEncryptZkResponseDto.getRankomKeyIndex());
+			 }
+			 if (!bioZkDataAttributes.isEmpty()) {
+				 EncryptZkResponseDto bioEncryptZkResponseDto = bioFuture.join();
+				 addToFormatter(bioEncryptZkResponseDto, formattedMap);
+				 additionalData.put(BIO_ENCRYPTED_RANDOM_KEY, bioEncryptZkResponseDto.getEncryptedRandomKey());
+				 additionalData.put(BIO_ENCRYPTED_RANDOM_INDEX, bioEncryptZkResponseDto.getRankomKeyIndex());
+			 }
+		 } catch (CompletionException e) {
+			 Throwable cause = e.getCause();
+			 if (cause instanceof DataEncryptionFailureException) throw (DataEncryptionFailureException) cause;
+			 if (cause instanceof ApiNotAccessibleException) throw (ApiNotAccessibleException) cause;
+			 throw new RuntimeException(cause);
 		 }
-			if (!bioZkDataAttributes.isEmpty()) {
-				EncryptZkResponseDto bioEncryptZkResponseDto = encryptionUtil
-						.encryptDataWithZK(credentialServiceRequestDto.getId(), bioZkDataAttributes, requestId);
-			 addToFormatter(bioEncryptZkResponseDto,formattedMap);
-			 additionalData.put(BIO_ENCRYPTED_RANDOM_KEY, bioEncryptZkResponseDto.getEncryptedRandomKey());
-			 additionalData.put(BIO_ENCRYPTED_RANDOM_INDEX, bioEncryptZkResponseDto.getRankomKeyIndex());
-		 }  
 
 			String credentialId = utilities.generateId();
 

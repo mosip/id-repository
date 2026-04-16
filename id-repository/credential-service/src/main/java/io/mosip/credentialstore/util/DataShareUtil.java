@@ -1,6 +1,7 @@
 package io.mosip.credentialstore.util;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +42,10 @@ public class DataShareUtil {
 
 	@Autowired
 	private ObjectMapper mapper;
-	
-	
+
+	@Autowired
+	private EnvUtil env;
+
 	private static final Logger LOGGER = IdRepoLogger.getLogger(DataShareUtil.class);
 
 	private static final String CREDENTIALFILE = "credentialfile";
@@ -50,102 +53,128 @@ public class DataShareUtil {
 	/** The Constant PROTOCOL. */
 	public static final String PROTOCOL = "https";
 
-	@Value("${mosip.data.share.protocol}")
+	@Value("${mosip.data.share.protocol:https}")
 	private String httpProtocol;
 
 	@Value("${mosip.data.share.internal.domain.name}")
 	private String internalDomainName;
 
-	@Autowired
-	private EnvUtil env;
+	// Cached base URL for DataShare (major performance win)
+	private volatile URL dataShareBaseUrl;
 
-	@Retryable(value = { DataShareException.class,
-			ApiNotAccessibleException.class }, maxAttemptsExpression = "${mosip.credential.service.retry.maxAttempts}", backoff = @Backoff(delayExpression = "${mosip.credential.service.retry.maxDelay}"))
-	public DataShare getDataShare(byte[] data, String policyId, String partnerId, String requestId)
-			throws ApiNotAccessibleException, IOException, DataShareException {
-		long fileLengthInBytes=0;
-		try {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-		
-					"creating data share entry");
-			LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
-			map.add("name", CREDENTIALFILE);
-			map.add("filename", CREDENTIALFILE);
-
-			ByteArrayResource contentsAsResource = new ByteArrayResource(data) {
-				@Override
-				public String getFilename() {
-					return CREDENTIALFILE;
+	/**
+	 * Lazily initializes and caches the base DataShare URL.
+	 * Avoids creating URL object on every request.
+	 */
+	private URL getDataShareBaseUrl() throws MalformedURLException {
+		if (dataShareBaseUrl == null) {
+			synchronized (this) {
+				if (dataShareBaseUrl == null) {
+					String protocol = (httpProtocol != null && !httpProtocol.isEmpty()) ? httpProtocol : "https";
+					String path = env.getProperty(ApiName.CREATEDATASHARE.name());
+					dataShareBaseUrl = new URL(protocol, internalDomainName, path);
 				}
-			};
-			map.add("file", contentsAsResource);
-			fileLengthInBytes = contentsAsResource.contentLength();
-		List<String> pathsegments = new ArrayList<>();
-		pathsegments.add(policyId == null? partnerId : policyId);
-		pathsegments.add(partnerId);
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-		HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<LinkedMultiValueMap<String, Object>>(
-				map, headers);
-			URL dataShareUrl = null;
-			String protocol = PROTOCOL;
-			String url = null;
-
-			if (httpProtocol != null && !httpProtocol.isEmpty()) {
-				protocol = httpProtocol;
 			}
-
-			dataShareUrl = new URL(protocol, internalDomainName, env.getProperty(ApiName.CREATEDATASHARE.name()));
-			url = dataShareUrl.toString();
-			url = url.replaceAll("[\\[\\]]", "");
-			String responseString = restUtil.postApi(url, pathsegments, "", "",
-					MediaType.MULTIPART_FORM_DATA, requestEntity, String.class);
-
-		DataShareResponseDto responseObject = mapper.readValue(responseString, DataShareResponseDto.class);
-
-		if (responseObject == null) {
-				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-						"File size" + " " + fileLengthInBytes);
-				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-						CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorMessage());
-
-			throw new DataShareException();
 		}
-		if (responseObject != null && responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
-
-			ErrorDTO error = responseObject.getErrors().get(0);
-				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-						"File size" + " " + fileLengthInBytes);
-				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					error.getMessage());
-			throw new DataShareException();
-
-		} else {
-
-				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-						"data share created");
-			return responseObject.getDataShare();
-
-			}
-		} catch (Exception e) {
-			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"File size" + " " + fileLengthInBytes);
-			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					ExceptionUtils.getStackTrace(e));
-			if (e.getCause() instanceof HttpClientErrorException) {
-				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
-				throw new io.mosip.credentialstore.exception.ApiNotAccessibleException(httpClientException.getResponseBodyAsString());
-			} else if (e.getCause() instanceof HttpServerErrorException) {
-				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
-				throw new ApiNotAccessibleException(httpServerException.getResponseBodyAsString());
-			} else {
-				throw new DataShareException(e);
-			}
-
-		}
-
-
+		return dataShareBaseUrl;
 	}
 
+	/**
+	 * Creates a reusable HttpHeaders for multipart requests.
+	 */
+	private HttpHeaders createMultipartHeaders() {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+		return headers;
+	}
 
+	@Retryable(value = {DataShareException.class, ApiNotAccessibleException.class},
+			maxAttemptsExpression = "${mosip.credential.service.retry.maxAttempts}",
+			backoff = @Backoff(delayExpression = "${mosip.credential.service.retry.maxDelay}"))
+	public DataShare getDataShare(byte[] data, String policyId, String partnerId, String requestId)
+			throws ApiNotAccessibleException, DataShareException {
+
+		long fileSizeInBytes = data != null ? data.length : 0;
+
+		try {
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Creating data share entry. Size: {} bytes", fileSizeInBytes);
+
+			// Build multipart request
+			LinkedMultiValueMap<String, Object> multipartMap = buildMultipartMap(data);
+
+			HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity =
+					new HttpEntity<>(multipartMap, createMultipartHeaders());
+
+			// Build URL with path segments
+			List<String> pathSegments = new ArrayList<>(2);
+			pathSegments.add(policyId != null ? policyId : partnerId);
+			pathSegments.add(partnerId);
+
+			String fullUrl = buildDataShareUrl();
+
+			// Make the call
+			String responseString = restUtil.postApi(fullUrl, pathSegments, "", "",
+					MediaType.MULTIPART_FORM_DATA, requestEntity, String.class);
+
+			// Parse response
+			DataShareResponseDto responseObject = mapper.readValue(responseString, DataShareResponseDto.class);
+
+			if (responseObject == null || hasErrors(responseObject)) {
+				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						"DataShare failed. File size: {} bytes", fileSizeInBytes);
+				throw new DataShareException(CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorMessage());
+			}
+
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"Data share created successfully");
+			return responseObject.getDataShare();
+
+		} catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"DataShare failed for size: {} bytes", fileSizeInBytes, e);
+
+			if (e.getCause() instanceof HttpClientErrorException hce) {
+				throw new ApiNotAccessibleException(hce.getResponseBodyAsString());
+			} else if (e.getCause() instanceof HttpServerErrorException hse) {
+				throw new ApiNotAccessibleException(hse.getResponseBodyAsString());
+			}
+
+			throw new DataShareException(e);
+		}
+	}
+
+	/**
+	 * Builds the multipart map with file content.
+	 */
+	private LinkedMultiValueMap<String, Object> buildMultipartMap(byte[] data) {
+		LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+		map.add("name", CREDENTIALFILE);
+		map.add("filename", CREDENTIALFILE);
+
+		ByteArrayResource resource = new ByteArrayResource(data) {
+			@Override
+			public String getFilename() {
+				return CREDENTIALFILE;
+			}
+		};
+		map.add("file", resource);
+		return map;
+	}
+
+	/**
+	 * Builds the full DataShare URL using cached base URL.
+	 */
+	private String buildDataShareUrl() throws MalformedURLException {
+		URL baseUrl = getDataShareBaseUrl();
+		String urlStr = baseUrl.toString();
+		return urlStr.replaceAll("[\\[\\]]", "");   // Remove any unwanted brackets
+	}
+
+	/**
+	 * Checks if the response contains errors.
+	 */
+	private boolean hasErrors(DataShareResponseDto response) {
+		return response.getErrors() != null && !response.getErrors().isEmpty();
+	}
 }
