@@ -44,6 +44,10 @@ import io.mosip.kernel.core.logger.spi.Logger;
  *   <li><b>Defensive object-store reads</b> – the store is checked for an
  *       existing result before extraction; on read failure the code falls through
  *       to (re-)extraction rather than propagating a store error to the caller.</li>
+ *   <li><b>Object-store write failures are propagated</b> – {@code persistToObjectStore}
+ *       throws {@link IdRepoAppException} on failure so that callers like
+ *       {@code extractBiometricsDraft} cannot mark a packet as PROCESSED when
+ *       no data was actually written to the object store.</li>
  *   <li><b>Safe byte-array lifecycle</b> – the raw XML byte array fetched from the
  *       store is nulled immediately after deserialisation so that the GC can reclaim
  *       it before the caller processes the BIR list.</li>
@@ -176,7 +180,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 
 		try {
 			List<BIR> extracted = runExtractionWithTimeout(extractionType, extractionFormat, birsForModality);
-			persistToObjectStore(uinHash, extractionFileName, extracted);
+			persistToObjectStore(uinHash, extractionFileName, extracted); // throws on write failure
 			future.complete(extracted);
 			return future;
 		} catch (IdRepoAppException e) {
@@ -304,15 +308,18 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	/**
 	 * Persists the extracted BIRs to the object store as a CBEFF XML blob.
 	 *
-	 * <p>Persistence failures are logged but not propagated — the extracted BIRs
-	 * are still returned to the caller.  A subsequent request will simply
-	 * re-extract and attempt to persist again.
+	 * <p>Persistence failures are propagated as {@link IdRepoAppException} so that
+	 * callers such as {@code extractBiometricsDraft} (where the write is the only
+	 * durable output) can fail the request rather than marking a packet as
+	 * PROCESSED with no biometric data in the object store.
 	 *
-	 * @param uinHash            object-store bucket key
-	 * @param extractionFileName derived file name for this extraction result
+	 * @param uinHash             object-store bucket key
+	 * @param extractionFileName  derived file name for this extraction result
 	 * @param extractedBiometrics BIRs to persist
+	 * @throws IdRepoAppException if serialisation or the object-store write fails
 	 */
-	private void persistToObjectStore(String uinHash, String extractionFileName, List<BIR> extractedBiometrics) {
+	private void persistToObjectStore(String uinHash, String extractionFileName, List<BIR> extractedBiometrics)
+			throws IdRepoAppException {
 		if (extractedBiometrics == null || extractedBiometrics.isEmpty()) {
 			mosipLogger.warn(IdRepoSecurityManager.getUser(),
 					this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
@@ -327,12 +334,18 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 					this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
 					"Persisted extraction result | file=" + extractionFileName
 							+ " | birCount=" + extractedBiometrics.size());
-		} catch (Exception e) {
-			// Soft failure: caller already has the extracted BIRs.
+		} catch (IdRepoAppException e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(),
 					this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
-					"Failed to persist extraction result (non-fatal) | file=" + extractionFileName
+					"Failed to persist extraction result | file=" + extractionFileName
 							+ " | error=" + e.getMessage());
+			throw e;
+		} catch (Exception e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(),
+					this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
+					"Failed to persist extraction result | file=" + extractionFileName
+							+ " | error=" + e.getMessage());
+			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
 		}
 	}
 }
