@@ -131,9 +131,10 @@ import org.springframework.validation.Errors;
  *   <li><b>Correct method label in {@code discardDraft} error log</b> — the
  *       original logged {@code UPDATE_DRAFT} when the draft was not found inside
  *       {@code discardDraft} (copy-paste bug). Now logs {@code DISCARD_DRAFT}.</li>
- *   <li><b>Object-store delete failures are logged, not silently swallowed</b> —
- *       {@code deleteExistingExtractedBioData} now catches and logs per-file
- *       failures so that partial failures are visible in the audit log.</li>
+ *   <li><b>Object-store delete failures abort extraction</b> —
+ *       {@code deleteExistingExtractedBioData} propagates failures as
+ *       {@link io.mosip.idrepository.core.exception.IdRepoAppException} so that
+ *       extraction does not proceed in an unknown object-store state.</li>
  *   <li><b>Biometric extraction errors are not misclassified as DB errors</b> —
  *       {@code extractBiometricsDraft} previously caught bare {@code Exception},
  *       which meant {@code DataAccessException} would surface as
@@ -715,8 +716,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 							GET_DRAFT, "DB error during bio extraction | fileId=" + bioDraft.getBioFileId()
 									+ " | error=" + e.getMessage());
 					throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
-				} catch (IdRepoAppException e) {
-					throw e;
 				}
 			}
 		} catch (IdRepoAppException e) {
@@ -731,24 +730,24 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	/**
 	 * Deletes previously stored extraction results for a given biometric draft entry.
 	 *
-	 * <p>Per-file failures are logged individually rather than silently swallowed,
-	 * so that partial failures are visible in the audit log without aborting the
-	 * deletion of subsequent files.
+	 * <p>Failures are propagated as {@link IdRepoAppException} so that the caller
+	 * ({@code extractBiometricsDraft}) aborts extraction rather than overwriting
+	 * object-store data in an unknown state.
 	 */
 	private void deleteExistingExtractedBioData(
 			Map<String, String> extractionFormats,
 			String uinHash,
-			UinBiometricDraft bioDraft) {
+			UinBiometricDraft bioDraft) throws IdRepoAppException {
 		for (Entry<String, String> extractionFormat : extractionFormats.entrySet()) {
 			String targetFile = buildExtractionFileName(extractionFormat, bioDraft.getBioFileId());
 			try {
 				super.objectStoreHelper.deleteBiometricObject(uinHash, targetFile);
 			} catch (Exception e) {
-				idrepoDraftLogger.warn(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 						"deleteExistingExtractedBioData",
-						"Failed to delete extraction file (non-fatal) | file=" + targetFile
+						"Failed to delete extraction file | file=" + targetFile
 								+ " | error=" + e.getMessage());
-				// Continue — a stale file is preferable to aborting the entire extraction.
+				throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
 			}
 		}
 	}
