@@ -86,11 +86,12 @@ public class ObjectStoreHelper {
 		return getObject(uinHash, true, fileRefId, bioDataRefId);
 	}
 
-	public void deleteBiometricObject(String uinHash, String fileRefId)  {
-		if (this.biometricObjectExists(uinHash, fileRefId)) {
-			String objectName = uinHash + SLASH + BIOMETRICS + SLASH + fileRefId;
-			objectStore.deleteObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
-		}
+	public void deleteBiometricObject(String uinHash, String fileRefId) {
+		// No pre-flight exists() check — S3 DeleteObject is idempotent (returns 204 for
+		// non-existent keys), so a headObject round-trip is unnecessary and its
+		// NoSuchKeyException causes a misleading ERROR log in S3Adapter.
+		String objectName = uinHash + SLASH + BIOMETRICS + SLASH + fileRefId;
+		objectStore.deleteObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
 	}
 
 	private boolean exists(String uinHash, boolean isBio, String fileRefId) {
