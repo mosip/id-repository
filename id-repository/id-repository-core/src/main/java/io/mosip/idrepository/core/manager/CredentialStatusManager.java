@@ -126,24 +126,82 @@ public class CredentialStatusManager {
 	}
 
 	public void handleNewOrUpdatedRequests() {
+		System.out.println("==== handleNewOrUpdatedRequests START ====");
+
 		try {
 			String activeStatus = EnvUtil.getUinActiveStatus();
-			List<CredentialRequestStatus> newIssueRequestList = statusRepo
-					.findByStatus(CredentialRequestStatusLifecycle.NEW.toString(), pageSize);
-			for (CredentialRequestStatus credentialRequestStatus : newIssueRequestList) {
-				cancelIssuedRequest(credentialRequestStatus.getRequestId());
-				String idvId = decryptId(credentialRequestStatus.getIndividualId());
-				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), activeStatus,
-						Objects.equals(CredentialTriggerAction.UPDATE.toString(), credentialRequestStatus.getTriggerAction()), null,
-						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer,
-						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()),credentialRequestStatus.getRequestId());
-				deleteDummyPartner(credentialRequestStatus);
-			}
-		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleNewOrUpdatedRequests", ExceptionUtils.getStackTrace(e));
-		}
-	}
+			System.out.println("Active Status: " + activeStatus);
+			System.out.println("Page Size: " + pageSize);
 
+			List<CredentialRequestStatus> newIssueRequestList =
+					statusRepo.findByStatus(CredentialRequestStatusLifecycle.NEW.toString(), pageSize);
+
+			System.out.println("Fetched records count: " + newIssueRequestList.size());
+
+			for (CredentialRequestStatus credentialRequestStatus : newIssueRequestList) {
+
+				System.out.println("---- Processing Record ----");
+				System.out.println("RequestId: " + credentialRequestStatus.getRequestId());
+				System.out.println("IndividualId (encrypted): " + credentialRequestStatus.getIndividualId());
+				System.out.println("PartnerId: " + credentialRequestStatus.getPartnerId());
+				System.out.println("Status: " + credentialRequestStatus.getStatus());
+				System.out.println("TriggerAction: " + credentialRequestStatus.getTriggerAction());
+				System.out.println("ExpiryTimestamp: " + credentialRequestStatus.getIdExpiryTimestamp());
+
+				// Cancel old request if exists
+				System.out.println("Calling cancelIssuedRequest...");
+				cancelIssuedRequest(credentialRequestStatus.getRequestId());
+
+				// Decrypt ID
+				String idvId = decryptId(credentialRequestStatus.getIndividualId());
+				System.out.println("Decrypted IndividualId: " + idvId);
+
+				boolean isUpdate = Objects.equals(
+						CredentialTriggerAction.UPDATE.toString(),
+						credentialRequestStatus.getTriggerAction());
+
+				System.out.println("Is Update Flow: " + isUpdate);
+
+				System.out.println("Calling notifyUinCredential...");
+
+				credManager.notifyUinCredential(
+						idvId,
+						credentialRequestStatus.getIdExpiryTimestamp(),
+						activeStatus,
+						isUpdate,
+						null,
+						uinHashSaltRepo::retrieveSaltById,
+						this::credentialRequestResponseConsumer,
+						this::idaEventConsumer,
+						List.of(credentialRequestStatus.getPartnerId()),
+						credentialRequestStatus.getRequestId()
+				);
+
+				System.out.println("notifyUinCredential call completed");
+
+				// Delete dummy partner
+				System.out.println("Calling deleteDummyPartner...");
+				deleteDummyPartner(credentialRequestStatus);
+
+				System.out.println("Record processed successfully");
+			}
+
+		} catch (Exception e) {
+			System.out.println("Exception occurred in handleNewOrUpdatedRequests");
+			System.out.println("Exception Message: " + e.getMessage());
+			e.printStackTrace();
+
+			mosipLogger.error(
+					IdRepoSecurityManager.getUser(),
+					this.getClass().getSimpleName(),
+					"handleNewOrUpdatedRequests",
+					ExceptionUtils.getStackTrace(e)
+			);
+		}
+
+		System.out.println("==== handleNewOrUpdatedRequests END ====");
+	}
+	
 	@WithRetry
 	public void deleteDummyPartner(CredentialRequestStatus credentialRequestStatus) {
 		Optional<CredentialRequestStatus> idWithDummyPartnerOptional = statusRepo.findByIndividualIdHashAndPartnerId(

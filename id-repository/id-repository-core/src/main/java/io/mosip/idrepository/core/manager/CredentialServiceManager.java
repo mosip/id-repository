@@ -182,43 +182,120 @@ public class CredentialServiceManager {
 	 * @param requestId 
 	 */
 	public void notifyUinCredential(String uin, LocalDateTime expiryTimestamp, String status, boolean isUpdate,
-			String txnId, IntFunction<String> saltRetreivalFunction,
-			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,
-			Consumer<EventModel> idaEventModelConsumer, List<String> partnerIds, String requestId) {
+	                                String txnId, IntFunction<String> saltRetreivalFunction,
+	                                BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,
+	                                Consumer<EventModel> idaEventModelConsumer, List<String> partnerIds, String requestId) {
+
+		System.out.println("==== notifyUinCredential START ====");
+
 		try {
+			System.out.println("uin: " + uin);
+			System.out.println("expiryTimestamp: " + expiryTimestamp);
+			System.out.println("status: " + status);
+			System.out.println("isUpdate: " + isUpdate);
+			System.out.println("txnId: " + txnId);
+			System.out.println("requestId: " + requestId);
+			System.out.println("Initial partnerIds: " + partnerIds);
+
 			List<VidInfoDTO> vidInfoDtos = null;
+
 			if (isUpdate && !vidSupportDisabled) {
-				RestRequestDTO restRequest = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_VIDS_BY_UIN, null,
-						VidsInfosDTO.class);
-				restRequest.setUri(restRequest.getUri().replace("{uin}", uin));
+				System.out.println("Fetching VIDs for UIN...");
+
+				RestRequestDTO restRequest = restBuilder.buildRequest(
+						RestServicesConstants.RETRIEVE_VIDS_BY_UIN, null, VidsInfosDTO.class);
+
+				String finalUri = restRequest.getUri().replace("{uin}", uin);
+				restRequest.setUri(finalUri);
+
+				System.out.println("VID Fetch URI: " + finalUri);
+
 				try {
 					VidsInfosDTO response = restHelper.requestSync(restRequest);
 					vidInfoDtos = response.getResponse();
+
+					System.out.println("VIDs fetched successfully. Count: "
+							+ (vidInfoDtos != null ? vidInfoDtos.size() : 0));
+
 				} catch (RestServiceException e) {
-					mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "notifyUinCredential",
+					System.out.println("Error while fetching VIDs: " + e.getMessage());
+
+					mosipLogger.error(IdRepoSecurityManager.getUser(),
+							this.getClass().getCanonicalName(),
+							"notifyUinCredential",
 							"Error retrieving vids for uin " + e.getMessage(), e);
 				}
-			}
-			
-			if (partnerIds.isEmpty() || (partnerIds.size() == 1 && dummyCheck.isDummyOLVPartner(partnerIds.get(0)))) {
-				partnerIds = partnerServiceManager.getOLVPartnerIds();
+			} else {
+				System.out.println("Skipping VID fetch. isUpdate=" + isUpdate + ", vidSupportDisabled=" + vidSupportDisabled);
 			}
 
-			if ((status != null && isUpdate) && (!ACTIVATED.equals(status) || expiryTimestamp != null)) {
-				// Event to be sent to IDA for deactivation/blocked uin state
-				sendUINEventToIDA(uin, expiryTimestamp, status, vidInfoDtos, partnerIds, txnId,
-						id -> securityManager.getIdHashWithSaltModuloByPlainIdHash(id, saltRetreivalFunction), idaEventModelConsumer);
+			// Partner handling
+			if (partnerIds.isEmpty() ||
+					(partnerIds.size() == 1 && dummyCheck.isDummyOLVPartner(partnerIds.get(0)))) {
+
+				System.out.println("PartnerIds empty or dummy. Fetching real OLV partners...");
+				partnerIds = partnerServiceManager.getOLVPartnerIds();
+				System.out.println("Fetched PartnerIds: " + partnerIds);
 			} else {
-				// For create uin, or update uin with null expiry (active status), send event to
-				// credential service.
-				sendUinEventsToCredService(uin, expiryTimestamp, isUpdate, vidInfoDtos, getHandles(uin, saltRetreivalFunction), partnerIds,
-						saltRetreivalFunction, credentialRequestResponseConsumer,requestId);
+				System.out.println("Using provided PartnerIds: " + partnerIds);
+			}
+
+			boolean conditionForIDA = (status != null && isUpdate)
+					&& (!ACTIVATED.equals(status) || expiryTimestamp != null);
+
+			System.out.println("Condition for IDA event: " + conditionForIDA);
+
+			if (conditionForIDA) {
+				System.out.println("Calling sendUINEventToIDA...");
+
+				sendUINEventToIDA(
+						uin,
+						expiryTimestamp,
+						status,
+						vidInfoDtos,
+						partnerIds,
+						txnId,
+						id -> securityManager.getIdHashWithSaltModuloByPlainIdHash(id, saltRetreivalFunction),
+						idaEventModelConsumer
+				);
+
+				System.out.println("sendUINEventToIDA completed");
+
+			} else {
+				System.out.println("Calling sendUinEventsToCredService...");
+
+				List<HandleInfoDTO> handles = getHandles(uin, saltRetreivalFunction);
+				System.out.println("Handles generated: " + handles);
+
+				sendUinEventsToCredService(
+						uin,
+						expiryTimestamp,
+						isUpdate,
+						vidInfoDtos,
+						handles,
+						partnerIds,
+						saltRetreivalFunction,
+						credentialRequestResponseConsumer,
+						requestId
+				);
+
+				System.out.println("sendUinEventsToCredService completed");
 			}
 
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
-					ExceptionUtils.getStackTrace(e));
+			System.out.println("Exception in notifyUinCredential");
+			System.out.println("Message: " + e.getMessage());
+			e.printStackTrace();
+
+			mosipLogger.error(
+					IdRepoSecurityManager.getUser(),
+					this.getClass().getCanonicalName(),
+					NOTIFY,
+					ExceptionUtils.getStackTrace(e)
+			);
 		}
+
+		System.out.println("==== notifyUinCredential END ====");
 	}
 
 	/**
@@ -359,50 +436,148 @@ public class CredentialServiceManager {
 				 credentialRequestResponseConsumer,null);
 		
 	}
-	
+
 	public void sendUinEventsToCredService(String uin, LocalDateTime expiryTimestamp, boolean isUpdate,
-			List<VidInfoDTO> vidInfoDtos, List<HandleInfoDTO> handleList, List<String> partnerIds, IntFunction<String> saltRetreivalFunction,
-			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,String requestId) {
+	                                       List<VidInfoDTO> vidInfoDtos, List<HandleInfoDTO> handleList, List<String> partnerIds,
+	                                       IntFunction<String> saltRetreivalFunction,
+	                                       BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer,
+	                                       String requestId) {
+
+		System.out.println("==== sendUinEventsToCredService START ====");
+
+		System.out.println("uin: " + uin);
+		System.out.println("expiryTimestamp: " + expiryTimestamp);
+		System.out.println("isUpdate: " + isUpdate);
+		System.out.println("requestId: " + requestId);
+		System.out.println("partnerIds: " + partnerIds);
+		System.out.println("vidInfoDtos count: " + (vidInfoDtos != null ? vidInfoDtos.size() : "null"));
+		System.out.println("handleList count: " + (handleList != null ? handleList.size() : "null"));
+
 		List<CredentialIssueRequestDto> eventRequestsList = new ArrayList<>();
 
-		if(!disableUINBasedCredentialRequest) {
-			eventRequestsList.addAll(partnerIds.stream().map(partnerId -> {
+		// UIN आधारित credential request
+		if (!disableUINBasedCredentialRequest) {
+			System.out.println("Processing UIN-based credential requests...");
+
+			List<CredentialIssueRequestDto> uinRequests = partnerIds.stream().map(partnerId -> {
+
+				System.out.println("Processing partnerId (UIN): " + partnerId);
+
 				String token = tokenIDGenerator.generateTokenID(uin, partnerId);
-				return createCredReqDto(uin, partnerId, expiryTimestamp, null, token,
-						securityManager.getIdHashAndAttributesWithSaltModuloByPlainIdHash(uin, saltRetreivalFunction), requestId);
-			}).collect(Collectors.toList()));
+				System.out.println("Generated token: " + token);
+
+				Map<? extends String, ?> hashAttributes = securityManager
+						.getIdHashAndAttributesWithSaltModuloByPlainIdHash(uin, saltRetreivalFunction);
+
+				System.out.println("Hash attributes generated for UIN");
+
+				return createCredReqDto(
+						uin,
+						partnerId,
+						expiryTimestamp,
+						null,
+						token,
+						hashAttributes,
+						requestId
+				);
+
+			}).collect(Collectors.toList());
+
+			eventRequestsList.addAll(uinRequests);
+			System.out.println("UIN request count added: " + uinRequests.size());
+		} else {
+			System.out.println("UIN-based credential request is disabled");
 		}
 
+		// VID आधारित credential request
 		if (vidInfoDtos != null) {
+			System.out.println("Processing VID-based credential requests...");
+
 			List<CredentialIssueRequestDto> vidRequests = vidInfoDtos.stream().flatMap(vidInfoDTO -> {
-				LocalDateTime vidExpiryTime = Objects.isNull(expiryTimestamp) ? vidInfoDTO.getExpiryTimestamp() : expiryTimestamp;
+
+				System.out.println("VID: " + vidInfoDTO.getVid());
+				System.out.println("VID Expiry: " + vidInfoDTO.getExpiryTimestamp());
+				System.out.println("VID TransactionLimit: " + vidInfoDTO.getTransactionLimit());
+
+				LocalDateTime vidExpiryTime = Objects.isNull(expiryTimestamp)
+						? vidInfoDTO.getExpiryTimestamp()
+						: expiryTimestamp;
+
 				return partnerIds.stream().map(partnerId -> {
+
+					System.out.println("Processing partnerId (VID): " + partnerId);
+
 					String token = tokenIDGenerator.generateTokenID(uin, partnerId);
-					return createCredReqDto(vidInfoDTO.getVid(), partnerId, vidExpiryTime, vidInfoDTO.getTransactionLimit(),
-							token, vidInfoDTO.getHashAttributes());
+					System.out.println("Generated token for VID: " + token);
+
+					return createCredReqDto(
+							vidInfoDTO.getVid(),
+							partnerId,
+							vidExpiryTime,
+							vidInfoDTO.getTransactionLimit(),
+							token,
+							vidInfoDTO.getHashAttributes()
+					);
 				});
+
 			}).collect(Collectors.toList());
+
 			eventRequestsList.addAll(vidRequests);
+			System.out.println("VID request count added: " + vidRequests.size());
+		} else {
+			System.out.println("No VID data available");
 		}
 
-		if(handleList != null && !handleList.isEmpty()) {
-			mosipLogger.debug(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "sendUinEventsToCredService",
-					"Number of handles identified >> " + handleList.size());
+		// Handle आधारित credential request
+		if (handleList != null && !handleList.isEmpty()) {
+			System.out.println("Processing HANDLE-based credential requests...");
+			System.out.println("Handle count: " + handleList.size());
+
 			List<CredentialIssueRequestDto> handleRequests = handleList.stream().flatMap(handleInfoDTO -> {
+
+				System.out.println("Handle: " + handleInfoDTO.getHandle());
+
 				return partnerIds.stream().map(partnerId -> {
+
+					System.out.println("Processing partnerId (HANDLE): " + partnerId);
+
 					String token = tokenIDGenerator.generateTokenID(uin, partnerId);
-					//Given requestId and the handle value is hashed together to generate a unique requestId for handle credential.
-					//Credential issuance status check systems should generate the handle requestId in the same way to get latest issuance status.
+					System.out.println("Generated token for HANDLE: " + token);
+
 					String handleRequestId = requestId.concat(handleInfoDTO.getHandle());
-					return createCredReqDto(handleInfoDTO.getHandle(), partnerId, null, null,
-							token, handleInfoDTO.getAdditionalData(),
-							securityManager.hash(handleRequestId.getBytes(StandardCharsets.UTF_8)));
+					System.out.println("Generated handleRequestId: " + handleRequestId);
+
+					String hashedHandleRequestId = securityManager.hash(
+							handleRequestId.getBytes(StandardCharsets.UTF_8));
+
+					System.out.println("Hashed handleRequestId: " + hashedHandleRequestId);
+
+					return createCredReqDto(
+							handleInfoDTO.getHandle(),
+							partnerId,
+							null,
+							null,
+							token,
+							handleInfoDTO.getAdditionalData(),
+							hashedHandleRequestId
+					);
 				});
+
 			}).collect(Collectors.toList());
+
 			eventRequestsList.addAll(handleRequests);
+			System.out.println("Handle request count added: " + handleRequests.size());
+		} else {
+			System.out.println("No handle data available");
 		}
 
+		System.out.println("Total eventRequestsList size: " + eventRequestsList.size());
+
+		System.out.println("Calling sendRequestToCredService...");
 		sendRequestToCredService(eventRequestsList, isUpdate, credentialRequestResponseConsumer);
+		System.out.println("sendRequestToCredService completed");
+
+		System.out.println("==== sendUinEventsToCredService END ====");
 	}
 
 	/**

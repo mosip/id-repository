@@ -1002,6 +1002,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				System.out.println("credStatus whole object: " + credStatus);
 				credRequestRepo.save(credStatus);
 			});
+//			Branch: EXISTING + ACTIVE
+//					--- Updating existing record ---
+//					Before Update Status: REQUESTED
+//			After Update Status: NEW
+//					==== issueCredential END ====
 
 		} else if (!credStatusList.isEmpty() && !uinStatus.contentEquals(activeStatus)) {
 
