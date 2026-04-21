@@ -45,7 +45,7 @@ import io.mosip.kernel.core.websub.model.EventModel;
  */
 @Transactional
 public class CredentialStatusManager {
-	
+
 	private static final String TRANSACTION_LIMIT = "transaction_limit";
 
 	private static final String ID_HASH = "id_hash";
@@ -75,20 +75,20 @@ public class CredentialStatusManager {
 
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
-	
+
 	@Value("${" + CREDENTIAL_STATUS_UPDATE_TOPIC + "}")
 	private String credentailStatusUpdateTopic;
-	
+
 	@Autowired
 	private DummyPartnerCheckUtil dummyPartner;
 
 	@Value("${mosip.idrepo.credential.request.batch.page.size:50}")
 	private int pageSize;
-    
+
 	@Autowired
 	private AuditHelper auditHelper;
-	
-//	@Async("credentialStatusManagerJobExecutor")
+
+	//	@Async("credentialStatusManagerJobExecutor")
 	public void triggerEventNotifications() {
 		handleDeletedRequests();
 		handleExpiredRequests();
@@ -126,82 +126,24 @@ public class CredentialStatusManager {
 	}
 
 	public void handleNewOrUpdatedRequests() {
-		System.out.println("==== handleNewOrUpdatedRequests START ====");
-
 		try {
 			String activeStatus = EnvUtil.getUinActiveStatus();
-			System.out.println("Active Status: " + activeStatus);
-			System.out.println("Page Size: " + pageSize);
-
-			List<CredentialRequestStatus> newIssueRequestList =
-					statusRepo.findByStatus(CredentialRequestStatusLifecycle.NEW.toString(), pageSize);
-
-			System.out.println("Fetched records count: " + newIssueRequestList.size());
-
+			List<CredentialRequestStatus> newIssueRequestList = statusRepo
+					.findByStatus(CredentialRequestStatusLifecycle.NEW.toString(), pageSize);
 			for (CredentialRequestStatus credentialRequestStatus : newIssueRequestList) {
-
-				System.out.println("---- Processing Record ----");
-				System.out.println("RequestId: " + credentialRequestStatus.getRequestId());
-				System.out.println("IndividualId (encrypted): " + credentialRequestStatus.getIndividualId());
-				System.out.println("PartnerId: " + credentialRequestStatus.getPartnerId());
-				System.out.println("Status: " + credentialRequestStatus.getStatus());
-				System.out.println("TriggerAction: " + credentialRequestStatus.getTriggerAction());
-				System.out.println("ExpiryTimestamp: " + credentialRequestStatus.getIdExpiryTimestamp());
-
-				// Cancel old request if exists
-				System.out.println("Calling cancelIssuedRequest...");
 				cancelIssuedRequest(credentialRequestStatus.getRequestId());
-
-				// Decrypt ID
 				String idvId = decryptId(credentialRequestStatus.getIndividualId());
-				System.out.println("Decrypted IndividualId: " + idvId);
-
-				boolean isUpdate = Objects.equals(
-						CredentialTriggerAction.UPDATE.toString(),
-						credentialRequestStatus.getTriggerAction());
-
-				System.out.println("Is Update Flow: " + isUpdate);
-
-				System.out.println("Calling notifyUinCredential...");
-
-				credManager.notifyUinCredential(
-						idvId,
-						credentialRequestStatus.getIdExpiryTimestamp(),
-						activeStatus,
-						isUpdate,
-						null,
-						uinHashSaltRepo::retrieveSaltById,
-						this::credentialRequestResponseConsumer,
-						this::idaEventConsumer,
-						List.of(credentialRequestStatus.getPartnerId()),
-						credentialRequestStatus.getRequestId()
-				);
-
-				System.out.println("notifyUinCredential call completed");
-
-				// Delete dummy partner
-				System.out.println("Calling deleteDummyPartner...");
+				credManager.notifyUinCredential(idvId, credentialRequestStatus.getIdExpiryTimestamp(), activeStatus,
+						Objects.equals(CredentialTriggerAction.UPDATE.toString(), credentialRequestStatus.getTriggerAction()), null,
+						uinHashSaltRepo::retrieveSaltById, this::credentialRequestResponseConsumer,
+						this::idaEventConsumer, List.of(credentialRequestStatus.getPartnerId()),credentialRequestStatus.getRequestId());
 				deleteDummyPartner(credentialRequestStatus);
-
-				System.out.println("Record processed successfully");
 			}
-
 		} catch (Exception e) {
-			System.out.println("Exception occurred in handleNewOrUpdatedRequests");
-			System.out.println("Exception Message: " + e.getMessage());
-			e.printStackTrace();
-
-			mosipLogger.error(
-					IdRepoSecurityManager.getUser(),
-					this.getClass().getSimpleName(),
-					"handleNewOrUpdatedRequests",
-					ExceptionUtils.getStackTrace(e)
-			);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "handleNewOrUpdatedRequests", ExceptionUtils.getStackTrace(e));
 		}
-
-		System.out.println("==== handleNewOrUpdatedRequests END ====");
 	}
-	
+
 	@WithRetry
 	public void deleteDummyPartner(CredentialRequestStatus credentialRequestStatus) {
 		Optional<CredentialRequestStatus> idWithDummyPartnerOptional = statusRepo.findByIndividualIdHashAndPartnerId(
@@ -285,7 +227,7 @@ public class CredentialStatusManager {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param requestId
 	 * @throws IdRepoDataValidationException
 	 */
