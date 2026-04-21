@@ -89,6 +89,9 @@ public class ObjectStoreHelper {
 	public void deleteBiometricObject(String uinHash, String fileRefId)  {
 		if (this.biometricObjectExists(uinHash, fileRefId)) {
 			String objectName = uinHash + SLASH + BIOMETRICS + SLASH + fileRefId;
+			System.out.println("Deleting object: " + objectName);
+			System.out.println("Object store account: " + objectStoreAccountName);
+			System.out.println("Object store bucket: " + objectStoreBucketName);
 			objectStore.deleteObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
 		}
 	}

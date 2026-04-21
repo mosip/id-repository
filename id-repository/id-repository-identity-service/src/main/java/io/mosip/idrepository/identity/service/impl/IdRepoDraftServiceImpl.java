@@ -706,6 +706,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 			throws IdRepoAppException {
 		try {
 			String uinHash = draft.getUinHash().split("_")[1];
+			System.out.println("UIN HASH IN EXTRACT BIOMETRICS DRAFT: " + uinHash);
 			for (UinBiometricDraft bioDraft : draft.getBiometrics()) {
 				try {
 					deleteExistingExtractedBioData(extractionFormats, uinHash, bioDraft);
@@ -742,8 +743,11 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 		for (Entry<String, String> extractionFormat : extractionFormats.entrySet()) {
 			String targetFile = buildExtractionFileName(extractionFormat, bioDraft.getBioFileId());
 			try {
+				System.out.println("DELETING EXISTING EXTRACTED BIO DATA | file=" + targetFile);
+				System.out.println("uinHash in deleteExistingExtractedBioData: " + uinHash);
 				super.objectStoreHelper.deleteBiometricObject(uinHash, targetFile);
 			} catch (Exception e) {
+				System.out.println("Failed to delete existing extracted bio data | file=" + targetFile);
 				idrepoDraftLogger.warn(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 						"deleteExistingExtractedBioData",
 						"Failed to delete extraction file (non-fatal) | file=" + targetFile
@@ -755,6 +759,10 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 
 	private byte[] extractAndGetCombinedCbeff(String uinHash, String bioFileId,
 											  Map<String, String> extractionFormats) throws IdRepoAppException {
+		System.out.println("EXTRACTING AND GETTING COMBINED CBEFF | bioFileId=" + bioFileId);
+		System.out.println("extractionFormats in extractAndGetCombinedCbeff: " + extractionFormats);
+		System.out.println("uinHash in extractAndGetCombinedCbeff: " + uinHash);
+		
 		return proxyService.getBiometricsForRequestedFormats(uinHash, bioFileId, extractionFormats,
 				super.objectStoreHelper.getBiometricObject(uinHash, bioFileId));
 	}
