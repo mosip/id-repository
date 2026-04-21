@@ -999,7 +999,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				credStatus.setUpdDTimes(DateUtils2.getUTCCurrentDateTime());
 
 				System.out.println("After Update Status: " + credStatus.getStatus());
-
+				System.out.println("credStatus whole object: " + credStatus);
 				credRequestRepo.save(credStatus);
 			});
 
