@@ -956,47 +956,121 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
-	private void issueCredential(String uin, String encryptedUin, String uinStatus, LocalDateTime expiryTimestamp, String requestId, boolean isUpdate) {
+	private void issueCredential(String uin, String encryptedUin, String uinStatus,
+	                             LocalDateTime expiryTimestamp, String requestId, boolean isUpdate) {
 
-		String uinHash = securityManager.getIdHashWithSaltModuloByPlainIdHash(uin, uinHashSaltRepo::retrieveSaltById);
+		System.out.println("==== issueCredential START ====");
 
-		List<CredentialRequestStatus> credStatusList = credRequestRepo.findByIndividualIdHash(uinHash);
-		String triggerAction = isUpdate ? CredentialTriggerAction.UPDATE.toString() : CredentialTriggerAction.CREATE.toString();
+		System.out.println("Input uin: " + uin);
+		System.out.println("Input encryptedUin: " + encryptedUin);
+		System.out.println("Input uinStatus: " + uinStatus);
+		System.out.println("Input expiryTimestamp: " + expiryTimestamp);
+		System.out.println("Input requestId: " + requestId);
+		System.out.println("Input isUpdate: " + isUpdate);
+
+		String uinHash = securityManager.getIdHashWithSaltModuloByPlainIdHash(
+				uin, uinHashSaltRepo::retrieveSaltById);
+
+		System.out.println("Generated uinHash: " + uinHash);
+
+		List<CredentialRequestStatus> credStatusList =
+				credRequestRepo.findByIndividualIdHash(uinHash);
+
+		System.out.println("credStatusList size: " + credStatusList.size());
+
+		String triggerAction = isUpdate ?
+				CredentialTriggerAction.UPDATE.toString() :
+				CredentialTriggerAction.CREATE.toString();
+
+		System.out.println("triggerAction: " + triggerAction);
+		System.out.println("activeStatus: " + activeStatus);
 
 		if (!credStatusList.isEmpty() && uinStatus.contentEquals(activeStatus)) {
+
+			System.out.println("Branch: EXISTING + ACTIVE");
+
 			credStatusList.forEach(credStatus -> {
+				System.out.println("--- Updating existing record ---");
+				System.out.println("Before Update Status: " + credStatus.getStatus());
+
 				credStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setTriggerAction(triggerAction);
 				credStatus.setUpdDTimes(DateUtils2.getUTCCurrentDateTime());
+
+				System.out.println("After Update Status: " + credStatus.getStatus());
+
 				credRequestRepo.save(credStatus);
 			});
+
 		} else if (!credStatusList.isEmpty() && !uinStatus.contentEquals(activeStatus)) {
+
+			System.out.println("Branch: EXISTING + NOT ACTIVE");
+
 			credStatusList.forEach(credStatus -> {
+				System.out.println("--- Marking record as DELETED ---");
+				System.out.println("Before Update Status: " + credStatus.getStatus());
+
 				credStatus.setTriggerAction(triggerAction);
 				credStatus.setStatus(CredentialRequestStatusLifecycle.DELETED.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setUpdDTimes(DateUtils2.getUTCCurrentDateTime());
+
+				System.out.println("After Update Status: " + credStatus.getStatus());
+
 				credRequestRepo.save(credStatus);
 			});
+
 		} else if (credStatusList.isEmpty()) {
+
+			System.out.println("Branch: NEW RECORD CREATION");
+
 			CredentialRequestStatus credStatus = new CredentialRequestStatus();
+
 			credStatus.setIndividualId(encryptedUin);
 			credStatus.setIndividualIdHash(uinHash);
-			credStatus.setPartnerId(dummyPartner.getDummyOLVPartnerId());
-			credStatus.setStatus(uinStatus.contentEquals(activeStatus) ? CredentialRequestStatusLifecycle.NEW.toString() :
-					CredentialRequestStatusLifecycle.DELETED.toString());
-			credStatus.setTriggerAction(triggerAction);
-			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
-			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
-			credStatus.setCrDTimes(DateUtils2.getUTCCurrentDateTime());
-			if(enableConventionBasedId && (requestId != null)) {
-				credStatus.setRequestId(requestId);
-			} 
-			credRequestRepo.save(credStatus);
-		}
-	}
 
+			String partnerId = dummyPartner.getDummyOLVPartnerId();
+			System.out.println("partnerId: " + partnerId);
+
+			credStatus.setPartnerId(partnerId);
+
+			String status = uinStatus.contentEquals(activeStatus) ?
+					CredentialRequestStatusLifecycle.NEW.toString() :
+					CredentialRequestStatusLifecycle.DELETED.toString();
+
+			System.out.println("Initial status: " + status);
+
+			credStatus.setStatus(status);
+			credStatus.setTriggerAction(triggerAction);
+
+			if (uinStatus.contentEquals(activeStatus)) {
+				System.out.println("Setting expiryTimestamp: null (ACTIVE)");
+				credStatus.setIdExpiryTimestamp(null);
+			} else {
+				System.out.println("Setting expiryTimestamp: " + expiryTimestamp);
+				credStatus.setIdExpiryTimestamp(expiryTimestamp);
+			}
+
+			String createdBy = IdRepoSecurityManager.getUser();
+			System.out.println("createdBy: " + createdBy);
+
+			credStatus.setCreatedBy(createdBy);
+			credStatus.setCrDTimes(DateUtils2.getUTCCurrentDateTime());
+
+			if (enableConventionBasedId && (requestId != null)) {
+				System.out.println("Setting requestId: " + requestId);
+				credStatus.setRequestId(requestId);
+			} else {
+				System.out.println("Skipping requestId assignment");
+			}
+
+			credRequestRepo.save(credStatus);
+			System.out.println("New record saved successfully");
+		}
+
+		System.out.println("==== issueCredential END ====");
+	}
 	/**
 	 * Convert to object.
 	 *
