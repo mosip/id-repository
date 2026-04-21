@@ -738,6 +738,9 @@ public class CredentialServiceManager {
 			);
 
 			System.out.println("REST request built successfully");
+			System.out.println("Request URI: " + restRequest.getUri());
+			System.out.println("Request Method: " + restRequest.getRequestBody());
+			System.out.println("whole request: " + restRequest);
 
 			System.out.println("Calling Credential Service API...");
 
