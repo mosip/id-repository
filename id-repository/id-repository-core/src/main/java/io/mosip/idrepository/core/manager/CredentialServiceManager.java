@@ -49,6 +49,8 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.websub.model.EventModel;
 
+import javax.validation.Valid;
+
 import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
 import static io.mosip.idrepository.core.security.IdRepoSecurityManager.ID_TYPE;
 
@@ -616,18 +618,69 @@ public class CredentialServiceManager {
 	 * @param credentialRequestResponseConsumer the credential response consumer
 	 */
 	public void sendRequestToCredService(List<CredentialIssueRequestDto> eventRequestsList, boolean isUpdate,
-			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
+	                                     BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
+
+		System.out.println("==== sendRequestToCredService START ====");
+
+		System.out.println("isUpdate: " + isUpdate);
+		System.out.println("Total requests received: " + (eventRequestsList != null ? eventRequestsList.size() : "null"));
+
 		eventRequestsList.forEach(reqDto -> {
-			CredentialIssueRequestWrapperDto requestWrapper = new CredentialIssueRequestWrapperDto();
-			requestWrapper.setRequest(reqDto);
-			requestWrapper.setRequesttime(DateUtils2.getUTCCurrentDateTime());
-			String eventTypeDisplayName = isUpdate ? "Update ID" : "Create ID";
-			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
-					"notifying Credential Service for event " + eventTypeDisplayName);
-			sendRequestToCredService(reqDto.getIssuer(), requestWrapper, credentialRequestResponseConsumer);
-			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
-					"notified Credential Service for event " + eventTypeDisplayName);
+
+			try {
+				System.out.println("---- Processing Request ----");
+
+				System.out.println("Issuer: " + reqDto.getIssuer());
+				System.out.println("ID (UIN/VID/Handle): " + reqDto.getId());
+//				System.out.println("Expiry: " + reqDto.getAdditionalData().
+				System.out.println("additional data: " + reqDto.getAdditionalData());
+//				System.out.println("Token (if available): " + reqDto.getToken());
+
+				CredentialIssueRequestWrapperDto requestWrapper = new CredentialIssueRequestWrapperDto();
+				requestWrapper.setRequest(reqDto);
+
+				LocalDateTime requestTime = DateUtils2.getUTCCurrentDateTime();
+				requestWrapper.setRequesttime(requestTime);
+
+				System.out.println("RequestTime set: " + requestTime);
+
+				String eventTypeDisplayName = isUpdate ? "Update ID" : "Create ID";
+				System.out.println("Event Type: " + eventTypeDisplayName);
+
+				mosipLogger.info(
+						IdRepoSecurityManager.getUser(),
+						this.getClass().getCanonicalName(),
+						NOTIFY,
+						"notifying Credential Service for event " + eventTypeDisplayName
+				);
+
+				System.out.println("Calling downstream sendRequestToCredService...");
+
+				sendRequestToCredService(
+						reqDto.getIssuer(),
+						requestWrapper,
+						credentialRequestResponseConsumer
+				);
+
+				System.out.println("Downstream call completed for Issuer: " + reqDto.getIssuer());
+
+				mosipLogger.info(
+						IdRepoSecurityManager.getUser(),
+						this.getClass().getCanonicalName(),
+						NOTIFY,
+						"notified Credential Service for event " + eventTypeDisplayName
+				);
+
+				System.out.println("Request processed successfully");
+
+			} catch (Exception ex) {
+				System.out.println("Exception while processing request for issuer: " + reqDto.getIssuer());
+				System.out.println("Error Message: " + ex.getMessage());
+				ex.printStackTrace();
+			}
 		});
+
+		System.out.println("==== sendRequestToCredService END ====");
 	}
 
 	/**
@@ -636,35 +689,110 @@ public class CredentialServiceManager {
 	 * @param requestWrapper                    the request wrapper
 	 * @param credentialRequestResponseConsumer the credential response consumer
 	 */
-	private void sendRequestToCredService(String partnerId, CredentialIssueRequestWrapperDto requestWrapper,
-			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
-		Map<String, Object> response = Map.of();
-		try {
+	private void sendRequestToCredService(String partnerId,
+	                                      CredentialIssueRequestWrapperDto requestWrapper,
+	                                      BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
 
-			RestServicesConstants restServicesConstants = requestWrapper.getRequest().getRequestId() != null
-					&& !requestWrapper.getRequest().getRequestId().isEmpty()
+		System.out.println("==== sendRequestToCredService (FINAL CALL) START ====");
+
+		Map<String, Object> response = Map.of();
+
+		try {
+			System.out.println("PartnerId: " + partnerId);
+
+			if (requestWrapper != null && requestWrapper.getRequest() != null) {
+				System.out.println("RequestId: " + requestWrapper.getRequest().getRequestId());
+				System.out.println("UIN/VID/Handle: " + requestWrapper.getRequest().getId());
+				System.out.println("Issuer: " + requestWrapper.getRequest().getIssuer());
+//				System.out.println("ExpiryTimestamp: " + requestWrapper.getRequest().getExpiryTimestamp());
+//				System.out.println("TransactionLimit: " + requestWrapper.getRequest().getTransactionLimit());
+//				System.out.println("Token: " + requestWrapper.getRequest().getToken());
+			} else {
+				System.out.println("WARNING: requestWrapper or request is NULL");
+			}
+
+			boolean hasRequestId = requestWrapper.getRequest().getRequestId() != null
+					&& !requestWrapper.getRequest().getRequestId().isEmpty();
+
+			System.out.println("Has RequestId: " + hasRequestId);
+
+			RestServicesConstants restServicesConstants = hasRequestId
 					? RestServicesConstants.CREDENTIAL_REQUEST_SERVICE_V2
 					: RestServicesConstants.CREDENTIAL_REQUEST_SERVICE;
-			Map<String, String> pathParam = requestWrapper.getRequest().getRequestId() != null
-					&& !requestWrapper.getRequest().getRequestId().isEmpty()
+
+			System.out.println("Selected API: " + restServicesConstants);
+
+			Map<String, String> pathParam = hasRequestId
 					? Map.of(RID, requestWrapper.getRequest().getRequestId())
 					: Map.of();
-			response = restHelper
-					.requestSync(restBuilder.buildRequest(restServicesConstants, pathParam, requestWrapper, Map.class));
+
+			System.out.println("Path Params: " + pathParam);
+
+			System.out.println("Building REST request...");
+
+			@Valid RestRequestDTO restRequest = restBuilder.buildRequest(
+					restServicesConstants,
+					pathParam,
+					requestWrapper,
+					Map.class
+			);
+
+			System.out.println("REST request built successfully");
+
+			System.out.println("Calling Credential Service API...");
+
+			response = restHelper.requestSync(restRequest);
+
+			System.out.println("Response received from Credential Service");
+			System.out.println("Response: " + response);
+
 			mosipLogger.debug("Errors in response of Credential Request: {}" + response);
 
-
 		} catch (RestServiceException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_REQUEST_TO_CRED_SERVICE,
-					e.getResponseBodyAsString().orElseGet(() -> ExceptionUtils.getStackTrace(e)));
+			System.out.println("RestServiceException occurred!");
+			System.out.println("Error Response: " +
+					e.getResponseBodyAsString().orElse("No response body"));
+
+			e.printStackTrace();
+
+			mosipLogger.error(
+					IdRepoSecurityManager.getUser(),
+					this.getClass().getCanonicalName(),
+					SEND_REQUEST_TO_CRED_SERVICE,
+					e.getResponseBodyAsString().orElseGet(() -> ExceptionUtils.getStackTrace(e))
+			);
+
 		} catch (IdRepoDataValidationException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_REQUEST_TO_CRED_SERVICE,
-					ExceptionUtils.getStackTrace(e));
+			System.out.println("IdRepoDataValidationException occurred!");
+			System.out.println("Message: " + e.getMessage());
+
+			e.printStackTrace();
+
+			mosipLogger.error(
+					IdRepoSecurityManager.getUser(),
+					this.getClass().getCanonicalName(),
+					SEND_REQUEST_TO_CRED_SERVICE,
+					ExceptionUtils.getStackTrace(e)
+			);
+
+		} catch (Exception e) {
+			System.out.println("Unexpected Exception occurred!");
+			System.out.println("Message: " + e.getMessage());
+
+			e.printStackTrace();
 		} finally {
+			System.out.println("Entering finally block...");
+
 			if (credentialRequestResponseConsumer != null) {
+				System.out.println("Calling credentialRequestResponseConsumer...");
 				credentialRequestResponseConsumer.accept(requestWrapper, response);
+				System.out.println("Consumer executed successfully");
+			} else {
+				System.out.println("credentialRequestResponseConsumer is NULL");
 			}
 		}
+
+		System.out.println("==== sendRequestToCredService (FINAL CALL) END ====");
 	}
 
 	/**
