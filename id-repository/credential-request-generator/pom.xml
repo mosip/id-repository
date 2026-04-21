@@ -238,7 +238,7 @@
 				</executions>
 				<configuration>
                     <publishingServerId>ossrh</publishingServerId>
-                    <autoPublish>false</autoPublish> <!-- do NOT auto publish after staging -->
+                    <autoPublish>false</autoPublish>
                 </configuration>
             </plugin>
 			<plugin>
