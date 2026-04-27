@@ -280,6 +280,12 @@
 			<scope>runtime</scope>
 			<version>1.4.200</version>
 		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>${lombok.version}</version>
+			<optional>true</optional>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>

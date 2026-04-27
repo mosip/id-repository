@@ -25,10 +25,8 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 	private io.mosip.credential.request.generator.util.CryptoUtil cryptoUtil;
 
 	private transient RestUtil restUtil;
-	
-	private static final long serialVersionUID = 1L;
 
-	private io.mosip.credential.request.generator.util.CryptoUtil cryptoUtil;
+	private static final long serialVersionUID = 1L;
 	
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialTransactionInterceptor.class);
 
