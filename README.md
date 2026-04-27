@@ -5,7 +5,7 @@
 # ID Repository
 
 ## Overview
-This repository contains source code and design documents for MOSIP [ID Repository](https://docs.mosip.io/1.2.0/modules/id-repository) which is the server-side module to manage ID lifecycle.  The modules exposes API endpoints.  
+This repository contains source code and design documents for MOSIP [ID Repository](https://docs.mosip.io/1.2.0/modules/id-repository) which is the server-side module to manage ID lifecycle. The modules exposes API endpoints.  
 
 ## Database
 See [DB guide](db_scripts/README.md)
@@ -26,7 +26,6 @@ The project requires JDK 1.11.
     $ cd <service folder>
     $ docker build -f Dockerfile
     ```
-
 1. As a developer, to run a service jar individually:
     ```
     `java -Dspring.profiles.active=<profile> -Dspring.cloud.config.uri=<config-url> -Dspring.cloud.config.label=<config-label> -jar <jar-name>.jar`
@@ -57,4 +56,3 @@ API documentation is available [here](https://mosip.github.io/documentation/).
 
 ## License
 This project is licensed under the terms of [Mozilla Public License 2.0](https://github.com/mosip/mosip-platform/blob/master/LICENSE)
-

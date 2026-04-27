@@ -54,9 +54,11 @@ public enum IdRepoErrorConstants {
 	/** The update count limit for attributes exceeded. */
 	UPDATE_COUNT_LIMIT_EXCEEDED("IDR-IDC-013", "Update count limit for the attributes exceeded:- %s"),
 
-
 	/** The record exists. */
 	HANDLE_RECORD_EXISTS("IDR-IDC-014", "%s : Handle record already exists in DB"),
+	DUPLICATE_VERIFIED_ATTRIBUTES("IDR-IDC-015", "Duplicate verified attributes - %s"),
+
+	MISSING_VERIFIED_ATTRIBUTE_FIELDS("IDR-IDC-016", "Missing verifiedAttribute fields - %s"),
 
 	// Identity Service
 	
@@ -130,7 +132,7 @@ public enum IdRepoErrorConstants {
 	private final String errorMessage;
 
 	/**
-	 * Constructor for {@link }.
+	 * Constructor for {@link IdAuthenticationErrorConstants}.
 	 *
 	 * @param errorCode    - id-usage error codes which follows
 	 *                     "<product>-<component>-<number>" pattern

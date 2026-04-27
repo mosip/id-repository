@@ -9,7 +9,6 @@ import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.stereotype.Component;
 
 @Component

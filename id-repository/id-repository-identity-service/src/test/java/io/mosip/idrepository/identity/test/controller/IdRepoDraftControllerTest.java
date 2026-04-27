@@ -12,6 +12,7 @@ import io.mosip.idrepository.core.spi.IdRepoDraftService;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.controller.IdRepoDraftController;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
+import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import org.junit.Before;
 import org.junit.Test;
@@ -103,9 +104,9 @@ public class IdRepoDraftControllerTest {
 	public void testUpdateDraft() throws IdRepoAppException {
 		IdResponseDTO responseDTO = new IdResponseDTO();
 		when(draftService.updateDraft(any(), any())).thenReturn(responseDTO);
-		IdRequestDTO idRequest = new IdRequestDTO();
-		RequestDTO request = new RequestDTO();
-		idRequest.setRequest(request);
+		RequestWrapper<IdRequestDTO> idRequest = new RequestWrapper<>();
+		IdRequestDTO<Object> req = new IdRequestDTO<>();
+		idRequest.setRequest(req);
 		ResponseEntity<IdResponseDTO> createDraftResponse = controller.updateDraft("", idRequest, errors);
 		assertEquals(HttpStatus.OK, createDraftResponse.getStatusCode());
 		assertEquals(responseDTO, createDraftResponse.getBody());
@@ -116,9 +117,9 @@ public class IdRepoDraftControllerTest {
 		when(draftService.updateDraft(any(), any()))
 				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
 		try {
-			IdRequestDTO idRequest = new IdRequestDTO();
-			RequestDTO request = new RequestDTO();
-			idRequest.setRequest(request);
+			RequestWrapper<IdRequestDTO> idRequest = new RequestWrapper<>();
+			IdRequestDTO<Object> req = new IdRequestDTO<>();
+			idRequest.setRequest(req);
 			controller.updateDraft("", idRequest, errors);
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());

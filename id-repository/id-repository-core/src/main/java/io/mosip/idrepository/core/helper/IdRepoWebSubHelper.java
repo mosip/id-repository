@@ -3,6 +3,9 @@ package io.mosip.idrepository.core.helper;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.EXPIRY_TIMESTAMP;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ID_HASH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ID_REPO;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.REMOVE_ID_STATUS_EVENT_CALLBACK_URL;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.REMOVE_ID_STATUS_EVENT_SECRET;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.REMOVE_ID_STATUS_EVENT_TOPIC;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.TRANSACTION_LIMIT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_EVENT_CALLBACK_URL;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VID_EVENT_SECRET;
@@ -79,6 +82,15 @@ public class IdRepoWebSubHelper {
 
 	@Value("${" + VID_EVENT_CALLBACK_URL + "}")
 	private String vidEventUrl;
+
+	@Value("${" + REMOVE_ID_STATUS_EVENT_TOPIC + "}")
+	private String removeIdStatusEventTopic;
+
+	@Value("${" + REMOVE_ID_STATUS_EVENT_SECRET + "}")
+	private String removeIdStatusEventSecret;
+
+	@Value("${" + REMOVE_ID_STATUS_EVENT_CALLBACK_URL + "}")
+	private String removeIdStatusEventCallbackUrl;
 
 	/** The ida event type namespace. */
 	@Value("${id-repo-ida-event-type-namespace:mosip}")
@@ -247,6 +259,23 @@ public class IdRepoWebSubHelper {
 		} catch (Exception e) {
 			mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), "subscribeForVidEvent",
 					"Error subscribing topic: " + vidEventTopic + "\n" + e.getMessage());
+		}
+	}
+
+	public void subscribeForRemoveIdStatusEvent() {
+		try {
+			SubscriptionChangeRequest subscriptionRequest = new SubscriptionChangeRequest();
+			subscriptionRequest.setCallbackURL(removeIdStatusEventCallbackUrl);
+			subscriptionRequest.setHubURL(hubURL);
+			subscriptionRequest.setSecret(removeIdStatusEventSecret);
+			subscriptionRequest.setTopic(removeIdStatusEventTopic);
+			subscribe.subscribe(subscriptionRequest);
+			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(),
+					"subscribeForRemoveIdStatusEvent", "subscribed event topic: " + removeIdStatusEventTopic);
+		} catch (Exception e) {
+			mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(),
+					"subscribeForRemoveIdStatusEvent",
+					"Error subscribing topic: " + removeIdStatusEventTopic + "\n" + e.getMessage());
 		}
 	}
 

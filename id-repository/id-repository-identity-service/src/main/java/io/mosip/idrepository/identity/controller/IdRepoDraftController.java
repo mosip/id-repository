@@ -15,6 +15,7 @@ import io.mosip.idrepository.core.spi.IdRepoDraftService;
 import io.mosip.idrepository.core.util.DataValidationUtil;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.exception.ServiceError;
+import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
@@ -125,13 +126,13 @@ public class IdRepoDraftController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
-	public ResponseEntity<IdResponseDTO> updateDraft(@PathVariable String registrationId, @RequestBody IdRequestDTO request,
-			@ApiIgnore Errors errors) throws IdRepoAppException {
+	public ResponseEntity<IdResponseDTO> updateDraft(@PathVariable String registrationId, @RequestBody RequestWrapper<IdRequestDTO> request,
+													 @ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
 			request.getRequest().setRegistrationId(registrationId);
 			validator.validateRequest(request.getRequest(), errors, "update");
 			DataValidationUtil.validate(errors);
-			return new ResponseEntity<>(draftService.updateDraft(registrationId, request), HttpStatus.OK);
+			return new ResponseEntity<>(draftService.updateDraft(registrationId, request.getRequest()), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_DRAFT_REQUEST_RESPONSE,
 					registrationId, IdType.ID, e);

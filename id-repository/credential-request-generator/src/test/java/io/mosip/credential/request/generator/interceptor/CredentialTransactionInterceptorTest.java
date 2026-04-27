@@ -6,8 +6,6 @@ import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorUncheckedException;
 import io.mosip.credential.request.generator.util.CryptoUtil;
 import io.mosip.credential.request.generator.util.RestUtil;
-import io.mosip.kernel.core.exception.ServiceError;
-import io.mosip.kernel.core.http.ResponseWrapper;
 import org.hibernate.type.Type;
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,7 +20,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.io.Serializable;
-import java.util.*;
 
 @WebMvcTest
 @ContextConfiguration(classes = {TestContext.class, WebApplicationContext.class})
@@ -40,16 +37,18 @@ public class CredentialTransactionInterceptorTest {
 
     /**
      * This class tests the onSave method
+     *
      * @throws Exception
      */
     @Test
     public void onSaveTest() throws Exception {
         CredentialEntity entity = new CredentialEntity();
         entity.setRequest("request");
-        Serializable id = new Serializable() {};
+        Serializable id = new Serializable() {
+        };
         String REQUEST = "request";
         Object[] state = {"a", "b", REQUEST};
-        String[] propertyNames ={"a","b",REQUEST};
+        String[] propertyNames = {"a", "b", REQUEST};
         Type[] types = {};
         Mockito.when(cryptoUtil.encryptData(Mockito.anyString())).thenReturn("encrypted-secret");
         Assert.assertFalse(credentialTransactionInterceptor.onSave(entity, id, state, propertyNames, types));
@@ -57,55 +56,11 @@ public class CredentialTransactionInterceptorTest {
 
     /**
      * This class tests the onLoad method
+     *
      * @throws Exception
      */
     @Test
     public void onLoadTest() throws Exception {
-        CredentialEntity entity = new CredentialEntity();
-        Serializable id = new Serializable() {};
-        String REQUEST = "request";
-        Object[] state = {"a", "b", REQUEST};
-        String[] propertyNames ={"a","b",REQUEST};
-        Type[] types = {};
-        Mockito.when(cryptoUtil.decryptData(Mockito.any())).thenReturn("decrypted-data");
-        Assert.assertFalse(credentialTransactionInterceptor.onLoad(entity, id, state, propertyNames, types));
-    }
-
-    /**
-     * This class tests the onLoad method
-     * @throws Exception
-     */
-    @Test
-    public void onLoadTest2() throws Exception {
-        Object entity = new Object();
-        Serializable id = new Serializable() {};
-        String REQUEST = "request";
-        Object[] state = {"a", "b", REQUEST};
-        String[] propertyNames ={"a","b",REQUEST};
-        Type[] types = {};
-        Assert.assertFalse(credentialTransactionInterceptor.onLoad(entity, id, state, propertyNames, types));
-    }
-
-    /**
-     * This class tests the onLoad method
-     * @throws Exception
-     */
-    @Test
-    public void onLoadExceptionTest() throws Exception {
-        CredentialEntity entity = new CredentialEntity();
-        Serializable id = new Serializable() {};
-        String REQUEST = "request";
-        Object[] state = {"a", "b", REQUEST};
-        String[] propertyNames ={"a","b",REQUEST};
-        Type[] types = {};
-
-        Mockito.when(cryptoUtil.decryptData(Mockito.any()))
-                .thenThrow(new RuntimeException("Simulated internal failure"));
-        Assert.assertFalse(credentialTransactionInterceptor.onLoad(entity, id, state, propertyNames, types));
-    }
-
-    @Test
-    public void onLoad_SkipDecryption() throws Exception {
         CredentialEntity entity = new CredentialEntity();
         Serializable id = new Serializable() {
         };
@@ -113,31 +68,88 @@ public class CredentialTransactionInterceptorTest {
         Object[] state = {"a", "b", REQUEST};
         String[] propertyNames = {"a", "b", REQUEST};
         Type[] types = {};
-        CryptoContext.setSkipDecryption(true);
+        Mockito.when(cryptoUtil.decryptData(Mockito.any())).thenReturn("decrypted-data");
         Assert.assertFalse(credentialTransactionInterceptor.onLoad(entity, id, state, propertyNames, types));
+    }
+
+    /**
+     * This class tests the onLoad method
+     *
+     * @throws Exception
+     */
+    @Test
+    public void onLoadTest2() throws Exception {
+        Object entity = new Object();
+        Serializable id = new Serializable() {
+        };
+        String REQUEST = "request";
+        Object[] state = {"a", "b", REQUEST};
+        String[] propertyNames = {"a", "b", REQUEST};
+        Type[] types = {};
+
+        Assert.assertFalse(credentialTransactionInterceptor.onLoad(entity, id, state, propertyNames, types));
+    }
+
+    /**
+     * This class tests the onLoad method
+     *
+     * @throws Exception
+     */
+    @Test
+    public void onLoadExceptionTest() throws Exception {
+        CredentialEntity entity = new CredentialEntity();
+        Serializable id = new Serializable() {
+        };
+        String REQUEST = "request";
+        Object[] state = {"a", "b", REQUEST};
+        String[] propertyNames = {"a", "b", REQUEST};
+        Type[] types = {};
+        Mockito.when(cryptoUtil.decryptData(Mockito.any()))
+                .thenThrow(new CredentialRequestGeneratorUncheckedException("Simulated internal failure"));
+        Assert.assertFalse(credentialTransactionInterceptor.onLoad(entity, id, state, propertyNames, types));
+
     }
 
     /**
      * This class tests the onFlushDirty method
      */
     @Test
-    public void onFlushDirtyTest(){
+    public void onFlushDirtyTest() {
         Object entity = new Object();
-        Serializable id = new Serializable() {};
+        Serializable id = new Serializable() {
+        };
         Object[] currentState = {};
         Object[] previousState = {};
-        String[] propertyNames ={};
+        String[] propertyNames = {};
         Type[] types = {};
-        Assert.assertFalse( credentialTransactionInterceptor.onFlushDirty(entity, id, currentState, propertyNames, propertyNames, types));
+        Assert.assertFalse(credentialTransactionInterceptor.onFlushDirty(entity, id, currentState, propertyNames, propertyNames, types));
     }
 
     /**
      * This class tests the setRestUtil method
      */
     @Test
-    public void setRestUtilTest(){
+    public void setRestUtilTest() {
         RestUtil restUtil = new RestUtil();
         credentialTransactionInterceptor.setRestUtil(restUtil);
     }
 
+    /**
+     * This test verifies that the onLoad method skips decryption
+     * when the CryptoContext is set to skip decryption.
+     *
+     * @throws Exception if any error occurs during the test
+     */
+    @Test
+    public void onLoad_SkipDecryption() throws Exception {
+        CredentialEntity entity = new CredentialEntity();
+        Serializable id = new Serializable() {};
+        String REQUEST = "request";
+        Object[] state = {"a", "b", REQUEST};
+        String[] propertyNames = {"a", "b", REQUEST};
+        Type[] types = {};
+        try (CryptoContext ctx = CryptoContext.skipDecryptionScope(true)) {
+            Assert.assertFalse(credentialTransactionInterceptor.onLoad(entity, id, state, propertyNames, types));
+        }
+    }
 }

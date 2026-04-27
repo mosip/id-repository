@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class IdVidMetadataRequestDTO {
+
     private String individualId;
     private String idType;
 }

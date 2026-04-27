@@ -1,11 +1,14 @@
 package io.mosip.credentialstore.dto;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import lombok.Data;
 
 
 @Data
-public class PartnerCredentialTypePolicyDto {
+public class PartnerCredentialTypePolicyDto implements Serializable{
+	
+	private static final long serialVersionUID = 1L;
 	
 	private String partnerId;
 

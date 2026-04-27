@@ -57,6 +57,7 @@ public class SubscribeEvent implements ApplicationListener<ApplicationReadyEvent
 		} else
 			return SubscriptionMessage.ALREADY_SUBSCRIBED;
 	}
+	
 
 	private void initSubsriptions() {
 		LOGGER.info(IdRepoSecurityManager.getUser(), SUBSCIRBEEVENT, ONAPPLICATIONEVENT,

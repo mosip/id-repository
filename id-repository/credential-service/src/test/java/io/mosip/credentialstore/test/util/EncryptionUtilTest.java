@@ -71,8 +71,6 @@ public class EncryptionUtilTest {
 	
 	private CryptomanagerResponseDto cryptomanagerResponseDto;
 
-
-	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() throws Exception {
 		 test = "testdata";
@@ -123,6 +121,7 @@ public class EncryptionUtilTest {
 		assertEquals(test, encryptedData);
 
 	}
+
 	@Test(expected = DataEncryptionFailureException.class)
 	public void encryptionWithPinFailureTest() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException, SignatureException, DataEncryptionFailureException {
 		ServiceError error = new ServiceError();
@@ -134,6 +133,7 @@ public class EncryptionUtilTest {
 		Mockito.when(objectMapper.readValue(cryptoResponse, CryptoWithPinResponseDto.class)).thenReturn(cryptoWithPinResponseDto);
 		encryptionUtil.encryptDataWithPin("attributename", test, "test123", "requestId");
 	}
+
 	@Test(expected = DataEncryptionFailureException.class)
 	public void testEncryptionIOException() throws JsonParseException, JsonMappingException, IOException,
 			ApiNotAccessibleException, SignatureException, DataEncryptionFailureException {
@@ -141,7 +141,7 @@ public class EncryptionUtilTest {
 		Mockito.when(objectMapper.readValue(cryptoResponse, CryptoWithPinResponseDto.class)).thenThrow(new JsonMappingException(""));
 		encryptionUtil.encryptDataWithPin("attributename", test, "test123", "requestId");
 	}
-	@SuppressWarnings("unchecked")
+
 	@Test(expected = ApiNotAccessibleException.class)
 	public void testHttpClientException() throws Exception {
 		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(HttpStatus.BAD_REQUEST,
@@ -151,7 +151,7 @@ public class EncryptionUtilTest {
 				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(httpClientErrorException);
 		encryptionUtil.encryptDataWithPin("attributename", test, "test123", "requestId");
 	}
-	@SuppressWarnings("unchecked")
+
 	@Test(expected = ApiNotAccessibleException.class)
 	public void testHttpServerException() throws Exception {
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(HttpStatus.BAD_REQUEST,
@@ -170,6 +170,7 @@ public class EncryptionUtilTest {
 		assertEquals(zkDataAttributeList, encryptZkResponseDto.getZkDataAttributes());
 
 	}
+
 	@Test(expected = DataEncryptionFailureException.class)
 	public void encryptionWithZkFailureTest() throws JsonParseException, JsonMappingException, IOException, DataEncryptionFailureException, ApiNotAccessibleException  {
 		ServiceError error = new ServiceError();
@@ -181,13 +182,14 @@ public class EncryptionUtilTest {
 		Mockito.when(objectMapper.readValue(cryptoResponse, CryptoZkResponseDto.class)).thenReturn(cryptoZkResponseDto);
 		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList, "requestId");
 	}
+
 	@Test(expected = DataEncryptionFailureException.class)
 	public void encryptionWithZktestIOException() throws JsonParseException, JsonMappingException, IOException, ApiNotAccessibleException, SignatureException, DataEncryptionFailureException {
 
-		Mockito.when(objectMapper.readValue(cryptoResponse, CryptoWithPinResponseDto.class)).thenThrow(new JsonMappingException(""));
+		Mockito.when(objectMapper.readValue(cryptoResponse, CryptoZkResponseDto.class)).thenThrow(new JsonMappingException(""));
 		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList, "requestId");
 	}
-	@SuppressWarnings("unchecked")
+
 	@Test(expected = ApiNotAccessibleException.class)
 	public void encryptionWithZktestHttpClientException() throws Exception {
 	
@@ -198,7 +200,7 @@ public class EncryptionUtilTest {
 				Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(e);
 		encryptionUtil.encryptDataWithZK("12345678", zkDataAttributeList, "requestId");
 	}
-	@SuppressWarnings("unchecked")
+
 	@Test(expected = ApiNotAccessibleException.class)
 	public void encryptionWithZktestHttpServerException() throws Exception {
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(HttpStatus.BAD_REQUEST,
@@ -217,8 +219,6 @@ public class EncryptionUtilTest {
 		assertEquals(test, encryptedData);
 
 	}
-
-
 
 	@Test(expected = DataEncryptionFailureException.class)
 	public void testIOException() throws JsonParseException, JsonMappingException, IOException,

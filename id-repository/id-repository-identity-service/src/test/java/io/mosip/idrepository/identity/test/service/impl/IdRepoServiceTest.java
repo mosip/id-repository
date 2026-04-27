@@ -1,11 +1,10 @@
 package io.mosip.idrepository.identity.test.service.impl;
 
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
-import static io.mosip.kernel.core.util.DateUtils.formatToISOString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -16,17 +15,15 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.HashMap;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
+import io.mosip.idrepository.core.dto.*;
+import io.mosip.kernel.core.http.RequestWrapper;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -62,13 +59,6 @@ import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.AuthTypeStatusEventDTO;
-import io.mosip.idrepository.core.dto.IdRequestDTO;
-import io.mosip.idrepository.core.dto.IdResponseDTO;
-import io.mosip.idrepository.core.dto.RequestDTO;
-import io.mosip.idrepository.core.dto.ResponseDTO;
-import io.mosip.idrepository.core.dto.RestRequestDTO;
-import io.mosip.idrepository.core.dto.IdVidMetadataResponseDTO;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
@@ -77,17 +67,20 @@ import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.repository.CredentialRequestStatusRepo;
+import io.mosip.idrepository.core.repository.HandleRepo;
 import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.BiometricExtractionService;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.EnvUtil;
+import io.mosip.idrepository.identity.dto.HandleDto;
 import io.mosip.idrepository.identity.entity.IdentityUpdateTracker;
 import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.entity.UinBiometric;
 import io.mosip.idrepository.identity.entity.UinDocument;
 import io.mosip.idrepository.identity.helper.AnonymousProfileHelper;
+import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 import io.mosip.idrepository.identity.provider.IdentityUpdateTrackerPolicyProvider;
 import io.mosip.idrepository.identity.repository.IdentityUpdateTrackerRepo;
@@ -173,9 +166,6 @@ public class IdRepoServiceTest {
 	private UinRepo uinRepo;
 
 	@Mock
-	private IdRepoServiceHelper idRepoServiceHelper;
-
-	@Mock
 	private UinDraftRepo uinDraftRepo;
 
 	/** The uin history repo. */
@@ -209,6 +199,12 @@ public class IdRepoServiceTest {
 	@Mock
 	private IdentityUpdateTrackerRepo identityUpdateTracker;
 
+	@Mock
+	private IdRepoServiceHelper idRepoServiceHelper;
+
+	@Mock
+	private HandleRepo handleRepo;
+
 	/** The id. */
 	private Map<String, String> id;
 
@@ -216,7 +212,7 @@ public class IdRepoServiceTest {
 	Uin uin = new Uin();
 
 	/** The request. */
-	IdRequestDTO request = new IdRequestDTO();
+	RequestWrapper<IdRequestDTO<Object>> request = new RequestWrapper<>();
 
 	public Map<String, String> getId() {
 		return id;
@@ -228,7 +224,7 @@ public class IdRepoServiceTest {
 
 	/**
 	 * Setup.
-	 *
+	 * 
 	 * @throws IOException
 	 * @throws FileNotFoundException
 	 * @throws IdRepoDataValidationException
@@ -258,7 +254,9 @@ public class IdRepoServiceTest {
 				Lists.newArrayList("selectedHandles"));
 		ReflectionTestUtils.setField(service, "bioAttributes",
 				Lists.newArrayList("individualBiometrics", "parentOrGuardianBiometrics"));
-		RequestDTO req = new RequestDTO();
+		ReflectionTestUtils.setField(service, "fieldsToReplaceOnUpdate",
+				Lists.newArrayList("selectedHandles"));
+		IdRequestDTO<Object> req = new IdRequestDTO<>();
 		req.setRegistrationId("registrationId");
 		request.setRequest(req);
 		uin.setUin("1234");
@@ -292,7 +290,7 @@ public class IdRepoServiceTest {
 				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
 						.getBytes(),
 				ObjectNode.class);
-		RequestDTO req = new RequestDTO();
+		IdRequestDTO<Object> req = new IdRequestDTO<>();
 		req.setIdentity(obj);
 		req.setRegistrationId("27841457360002620190730095024");
 		request.setRequest(req);
@@ -308,48 +306,51 @@ public class IdRepoServiceTest {
 		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
 
-		IdResponseDTO addIdentity = proxyService.addIdentity(request, "1234");
+		IdResponseDTO<Object> addIdentity = proxyService.addIdentity(request.getRequest(), "1234");
 		assertEquals(ACTIVATED, addIdentity.getResponse().getStatus());
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testAddIdentityWithVerifiedAttributes()
+	public void testAddIdentity_WithVerifiedAttributes_thenPass()
 			throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
 		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
+
+		ObjectNode obj = mapper.readValue(
+				"{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}"
+						.getBytes(),
+				ObjectNode.class);
+		IdRequestDTO<Object> req = new IdRequestDTO<>();
+		req.setIdentity(obj);
+		req.setRegistrationId("27841457360002620190730095024");
+		req.setVerifiedAttributes(List.of("a", "firstName"));
+		request.setRequest(req);
 		Uin uinObj = new Uin();
 		uinObj.setUin("1234");
 		uinObj.setUinRefId("1234");
 		uinObj.setStatusCode(ACTIVATED);
-		ObjectNode obj = mapper.readValue(
-				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
-						.getBytes(),
-				ObjectNode.class);
-		RequestDTO req = new RequestDTO();
-		req.setIdentity(obj);
-		req.setRegistrationId("27841457360002620190730095024");
-		req.setVerifiedAttributes(List.of("a", "b"));
-		request.setRequest(req);
 		uinObj.setUinData(
-				"{\"identity\":\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
+				"{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}"
 						.getBytes());
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(false);
 		when(uinRepo.existsByRegId(Mockito.any())).thenReturn(false);
-		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
+		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.empty());
 		ArgumentCaptor<Uin> captureArg = ArgumentCaptor.forClass(Uin.class);
-		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg	");
+		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 		when(uinRepo.save(Mockito.any())).thenReturn(uinObj);
 		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
 
-		service.addIdentity(request, "1234");
+		service.addIdentity(request.getRequest(), "1234");
 		verify(uinRepo).save(captureArg.capture());
 		Uin uinValue = captureArg.getValue();
-		List<String> verifiedAttributes = (List<String>) mapper.readValue(uinValue.getUinData(), Map.class)
+		List<Map<String, Object>> verifiedAttributes = (List<Map<String, Object>>) mapper.readValue(uinValue.getUinData(), Map.class)
 				.get("verifiedAttributes");
-		assertEquals(List.of("a", "b"), verifiedAttributes);
+		assertTrue(verifiedAttributes != null && verifiedAttributes.size() == 1);
+		List<String> claims = (List<String>) verifiedAttributes.get(0).get("claims");
+		assertTrue(claims != null && claims.size() == 1 && claims.contains("firstName"));
 	}
 
 	@Test
@@ -359,10 +360,10 @@ public class IdRepoServiceTest {
 			Uin uinObj = new Uin();
 			uinObj.setUin("1234");
 			uinObj.setUinRefId("1234");
-			RequestDTO req = mapper.readValue(
+			IdRequestDTO<Object> req = mapper.readValue(
 					"{\"identity\":{\"proofOfDateOfBirth\":{\"format\":\"pdf\",\"type\":\"passport\",\"value\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"proofOfDateOfBirth\",\"value\":\"dGVzdA\"}]}"
 							.getBytes(),
-					RequestDTO.class);
+					IdRequestDTO.class);
 			req.setRegistrationId("27841457360002620190730095024");
 			request.setRequest(req);
 			when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
@@ -372,7 +373,12 @@ public class IdRepoServiceTest {
 			when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 			when(uinDocHRepo.save(Mockito.any())).thenThrow(new DataAccessResourceFailureException(null));
-			proxyService.addIdentity(request, "1234");
+
+			IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
+			ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
+			when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
+
+			proxyService.addIdentity(request.getRequest(), "1234");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorMessage(), e.getErrorText());
@@ -387,10 +393,10 @@ public class IdRepoServiceTest {
 			Uin uinObj = new Uin();
 			uinObj.setUin("1234");
 			uinObj.setUinRefId("1234");
-			RequestDTO req = mapper.readValue(
+			IdRequestDTO<Object> req = mapper.readValue(
 					"{\"identity\":{\"proofOfDateOfBirth\":{\"format\":\"pdf\",\"type\":\"passport\",\"value\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"proofOfDateOfBirth\",\"value\":\"dGVzdA\"}]}"
 							.getBytes(),
-					RequestDTO.class);
+					IdRequestDTO.class);
 			req.setRegistrationId("27841457360002620190730095024");
 			request.setRequest(req);
 			when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(false);
@@ -399,7 +405,7 @@ public class IdRepoServiceTest {
 			when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 			when(uinDocHRepo.save(Mockito.any())).thenThrow(new JDBCConnectionException(null, null));
-			proxyService.addIdentity(request, "1234");
+			proxyService.addIdentity(request.getRequest(), "1234");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorMessage(), e.getErrorText());
@@ -419,11 +425,11 @@ public class IdRepoServiceTest {
 			uinObj.setUinHash("3A6EB0790F39AC87C94F3856B2DD2C5D110E6811602261A9A923D3BB23ADC8B7");
 			uinObj.setUinRefId("1234");
 			uinObj.setUinData("".getBytes());
-			RequestDTO req = mapper
+			IdRequestDTO req = mapper
 					.readValue(("{\"identity\":{\"individualBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\""
 							+ IdRepoConstants.FILE_NAME_ATTRIBUTE
 							+ "\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"individualBiometrics\",\"value\":\"dGVzdA\"}]}")
-							.getBytes(), RequestDTO.class);
+							.getBytes(), IdRequestDTO.class);
 			req.setRegistrationId("27841457360002620190730095024");
 			request.setRequest(req);
 			when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
@@ -432,11 +438,12 @@ public class IdRepoServiceTest {
 			when(uinRepo.save(Mockito.any())).thenReturn(uinObj);
 			when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+
 			IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 			ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 			when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
 
-			proxyService.addIdentity(request, "1234");
+			proxyService.addIdentity(request.getRequest(), "1234");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorMessage(), e.getErrorText());
@@ -455,11 +462,11 @@ public class IdRepoServiceTest {
 		uinObj.setUin("1234");
 		uinObj.setUinRefId("1234");
 		uinObj.setStatusCode(ACTIVATED);
-		RequestDTO req = mapper
+		IdRequestDTO req = mapper
 				.readValue(("{\"identity\":{\"individualBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\""
 						+ IdRepoConstants.FILE_NAME_ATTRIBUTE
 						+ "\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"individualBiometrics\",\"value\":\"dGVzdA\"}]}")
-						.getBytes(), RequestDTO.class);
+						.getBytes(), IdRequestDTO.class);
 		req.setRegistrationId("27841457360002620190730095024");
 		request.setRequest(req);
 		uinObj.setUinData("".getBytes());
@@ -469,11 +476,12 @@ public class IdRepoServiceTest {
 		when(uinRepo.save(Mockito.any())).thenReturn(uinObj);
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+
 		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
 
-		IdResponseDTO addIdentity = proxyService.addIdentity(request, "1234");
+		IdResponseDTO<Object> addIdentity = proxyService.addIdentity(request.getRequest(), "1234");
 		assertEquals(ACTIVATED, addIdentity.getResponse().getStatus());
 	}
 
@@ -489,11 +497,11 @@ public class IdRepoServiceTest {
 		uinObj.setUin("1234");
 		uinObj.setUinRefId("1234");
 		uinObj.setStatusCode(ACTIVATED);
-		RequestDTO req = mapper
+		IdRequestDTO req = mapper
 				.readValue(("{\"identity\":{\"individualBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\""
 						+ IdRepoConstants.FILE_NAME_ATTRIBUTE
 						+ "\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"individualBiometrics\",\"value\":\"dGVzdA\"}]}")
-						.getBytes(), RequestDTO.class);
+						.getBytes(), IdRequestDTO.class);
 		req.setRegistrationId("27841457360002620190730095024");
 		request.setRequest(req);
 		uinObj.setUinData("".getBytes());
@@ -509,7 +517,7 @@ public class IdRepoServiceTest {
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
 
 		try {
-			proxyService.addIdentity(request, "1234");
+			proxyService.addIdentity(request.getRequest(), "1234");
 		} catch (IdRepoAppException e) {
 			assertEquals(INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
 			assertEquals(String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "documents/" + 0 + "/value"),
@@ -531,11 +539,11 @@ public class IdRepoServiceTest {
 		uinObj.setUin("1234");
 		uinObj.setUinRefId("1234");
 		uinObj.setStatusCode(ACTIVATED);
-		RequestDTO req = mapper
+		IdRequestDTO req = mapper
 				.readValue(("{\"identity\":{\"individualBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\""
 						+ IdRepoConstants.FILE_NAME_ATTRIBUTE
 						+ "\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"individualBiometrics\",\"value\":\"dGVzdA\"}]}")
-						.getBytes(), RequestDTO.class);
+						.getBytes(), IdRequestDTO.class);
 		req.setRegistrationId("27841457360002620190730095024");
 		request.setRequest(req);
 		uinObj.setUinData("".getBytes());
@@ -551,7 +559,7 @@ public class IdRepoServiceTest {
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
 
 		try {
-			proxyService.addIdentity(request, "1234");
+			proxyService.addIdentity(request.getRequest(), "1234");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.FILE_NOT_FOUND.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.FILE_NOT_FOUND.getErrorMessage(), e.getErrorText());
@@ -569,7 +577,7 @@ public class IdRepoServiceTest {
 					"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
 							.getBytes(),
 					ObjectNode.class);
-			RequestDTO req = new RequestDTO();
+			IdRequestDTO req = new IdRequestDTO();
 			req.setRegistrationId("27841457360002620190730095024");
 			req.setIdentity(obj);
 			request.setRequest(req);
@@ -578,7 +586,12 @@ public class IdRepoServiceTest {
 			when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
 			when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-			proxyService.addIdentity(request, "1234");
+
+			IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
+			ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
+			when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
+
+			proxyService.addIdentity(request.getRequest(), "1234");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.RECORD_EXISTS.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.RECORD_EXISTS.getErrorMessage(), e.getErrorText());
@@ -596,7 +609,7 @@ public class IdRepoServiceTest {
 					"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
 							.getBytes(),
 					ObjectNode.class);
-			RequestDTO req = new RequestDTO();
+			IdRequestDTO req = new IdRequestDTO();
 			req.setRegistrationId("27841457360002620190730095024");
 			req.setIdentity(obj);
 			request.setRequest(req);
@@ -605,7 +618,12 @@ public class IdRepoServiceTest {
 			when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 			when(uinRepo.save(Mockito.any())).thenThrow(new RecoverableDataAccessException(null));
-			proxyService.addIdentity(request, "1234");
+
+			IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
+			ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
+			when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
+
+			proxyService.addIdentity(request.getRequest(), "1234");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorMessage(), e.getErrorText());
@@ -629,14 +647,14 @@ public class IdRepoServiceTest {
 			when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 			when(uinRepo.save(Mockito.any())).thenThrow(new DataAccessResourceFailureException(null));
-			RequestDTO request2 = new RequestDTO();
+			IdRequestDTO request2 = new IdRequestDTO();
 			request2.setIdentity(mapper.readValue(
 					"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
 							.getBytes(),
 					Object.class));
 			request2.setRegistrationId("27841457360002620190730095024");
 			request.setRequest(request2);
-			proxyService.addIdentity(request, "1234");
+			proxyService.addIdentity(request.getRequest(), "1234");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorMessage(), e.getErrorText());
@@ -662,7 +680,7 @@ public class IdRepoServiceTest {
 		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-		IdResponseDTO retrieveIdentityByUin = proxyService.retrieveIdentity("1234", IdType.UIN, null, null);
+		IdResponseDTO<Object> retrieveIdentityByUin = proxyService.retrieveIdentity("1234", IdType.UIN, null, null);
 		assertEquals(identity, mapper.writeValueAsString(retrieveIdentityByUin.getResponse().getIdentity()));
 	}
 
@@ -728,7 +746,7 @@ public class IdRepoServiceTest {
 		when(uinRepo.existsByRegId(Mockito.any())).thenReturn(true);
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-		IdResponseDTO retrieveIdentityByUin = proxyService.retrieveIdentity("1234", IdType.UIN, "bio", null);
+		IdResponseDTO<Object> retrieveIdentityByUin = proxyService.retrieveIdentity("1234", IdType.UIN, "bio", null);
 		assertEquals(identityWithDoc, mapper.writeValueAsString(retrieveIdentityByUin.getResponse().getIdentity()));
 	}
 
@@ -878,7 +896,7 @@ public class IdRepoServiceTest {
 		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
-		IdResponseDTO retrieveIdentityByUin = proxyService.retrieveIdentity("1234", IdType.UIN, "demo", null);
+		IdResponseDTO<Object> retrieveIdentityByUin = proxyService.retrieveIdentity("1234", IdType.UIN, "demo", null);
 		assertEquals(identityWithDoc, mapper.writeValueAsString(retrieveIdentityByUin.getResponse().getIdentity()));
 	}
 
@@ -1029,7 +1047,7 @@ public class IdRepoServiceTest {
 		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-		IdResponseDTO retrieveIdentityByUin = proxyService.retrieveIdentity("1234", IdType.UIN, "all", null);
+		IdResponseDTO<Object> retrieveIdentityByUin = proxyService.retrieveIdentity("1234", IdType.UIN, "all", null);
 		assertEquals(identity, mapper.writeValueAsString(retrieveIdentityByUin.getResponse().getIdentity()));
 	}
 
@@ -1068,20 +1086,39 @@ public class IdRepoServiceTest {
 	}
 
 	@Test
-	public void testUpdateIdentity() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
+	public void updateIdentity_withValidDetail_thenPass() throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
+		ReflectionTestUtils.setField(service, "trimWhitespaces", true);
 		Object obj = mapper.readValue(
-				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
+				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"    Manoj       \",\"label\":\"string\"}],\"selectedHandles\":[\"    email     \",\"       dateOfBirth   \"],\"email\":\"   ritik8989@gmail.com     \",\"dateOfBirth\":\"  2000/01/01    \",\"individualBiometrics\":{\"format\":\"cbeff\",\"value\":\"      fileReferenceID   \"}}}"
 						.getBytes(),
 				Object.class);
-		RequestDTO req = new RequestDTO();
+		IdRequestDTO req = new IdRequestDTO();
 		req.setStatus("REGISTERED");
 		req.setRegistrationId("27841457360002620190730095024");
 		req.setIdentity(obj);
 		request.setRequest(req);
+		Map<String, Object> identityData = new HashMap<String, Object>();
+		identityData.put("email", "   ritik8989@gmail.com     ");
+		identityData.put("dateOfBirth", "  2000/01/01    ");
+		Map<String, Object> firstNameMap = new HashMap<String, Object>();
+		firstNameMap.put("language", "AR");
+		firstNameMap.put("value", "    Manoj       ");
+		firstNameMap.put("label", "string");
+		identityData.put("firstName", List.of(firstNameMap));
+		List<String> handlesList = new ArrayList<String>();
+		handlesList.add("    email     ");
+		handlesList.add("       dateOfBirth   ");
+		identityData.put("selectedHandles", handlesList);
+		Map<String, Object> individualBioMap = new HashMap<String, Object>();
+		individualBioMap.put("format", "cbeff");
+		individualBioMap.put("value", "      fileReferenceID   ");
+		identityData.put("individualBiometrics", individualBioMap);
+		when(idRepoServiceHelper.convertToMap(any())).thenReturn(identityData);
 		Uin uinObj = new Uin();
 		uinObj.setUin("1234");
 		uinObj.setUinRefId("1234");
 		uinObj.setStatusCode("REGISTERED");
+		uinObj.setUinHash("375848393846348345");
 		Object obj2 = mapper.readValue(
 				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}}"
 						.getBytes(),
@@ -1099,13 +1136,72 @@ public class IdRepoServiceTest {
 		restReq.setUri("http://localhost/v1/vid/{uin}");
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
 		when(identityUpdateTracker.findById(any())).thenReturn(Optional.empty());
+		Map<String, List<HandleDto>> inputHandlesMap = new HashMap<>();
+		List<HandleDto> inputEmail = new ArrayList<>();
+		inputEmail.add(new HandleDto("ritik8989@gmail.com@email", "341_AAFB5CBEB3878A4BA9"));
+		inputHandlesMap.put("email", inputEmail);
+		List<HandleDto> inputDob = new ArrayList<>();
+		inputDob.add(new HandleDto("2000/01/01@dateOfBirth", "341_AAFB5CBEB38ert4r59"));
+		inputHandlesMap.put("dateOfBirth", inputDob);
+		Map<String, List<HandleDto>> existingHandlesMap = new HashMap<>();
+		List<HandleDto> existsPhone = new ArrayList<>();
+		existsPhone.add(new HandleDto("8987989789@phone", "341_AAFB5CBEB3878A4we3"));
+		existingHandlesMap.put("phone", existsPhone);
+		List<HandleDto> existsEmail = new ArrayList<>();
+		existsEmail.add(new HandleDto("ritik8989@gmail.com@email", "341_AAFB5CBEB3878A4BA9"));
+		existingHandlesMap.put("email", existsEmail);
+		when(idRepoServiceHelper.getSelectedHandles(any(), nullable(Map.class))).thenReturn(existingHandlesMap).thenReturn(inputHandlesMap);
+		//when(handleRepo.findUinHashByHandleHashes(Mockito.any())).thenReturn(null).thenReturn(Collections.singletonList("375848393846348345"));
+		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
+		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
 		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
-		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
-		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
-		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
-		proxyService.updateIdentity(request, "234").getResponse().equals(obj2);
+		proxyService.updateIdentity(request.getRequest(), "234").getResponse().equals(obj2);
+	}
+
+	@Ignore
+	@Test
+	public void updateIdentity_withDuplicateHandle_thenFail()
+			throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
+		try {
+			Object obj = mapper.readValue(
+					"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}],\"selectedHandles\":[\"email\"],\"email\":\"ritik8989@gmail.com\"}}"
+							.getBytes(),
+					Object.class);
+			IdRequestDTO req = new IdRequestDTO();
+			req.setStatus("ACTIVATED");
+			req.setRegistrationId("27841457360002620190730095024");
+			req.setIdentity(obj);
+			request.setRequest(req);
+			Uin uinObj = new Uin();
+			uinObj.setUin("1234");
+			uinObj.setUinRefId("1234");
+			uinObj.setStatusCode("ACTIVATED");
+			uinObj.setUinHash("375848393846348345");
+			Object obj2 = mapper.readValue(
+					"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}}"
+							.getBytes(),
+					Object.class);
+			uinObj.setUinData(mapper.writeValueAsBytes(obj2));
+			when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
+			when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
+			when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
+			when(uinRepo.save(Mockito.any())).thenReturn(uinObj);
+			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+			Map<String, List<HandleDto>> inputHandlesMap = new HashMap<>();
+			inputHandlesMap.put("email", List.of(new HandleDto("ritik8989@gmail.com@email", "341_AAFB5CBEB3878A4BA9")));
+			Map<String, List<HandleDto>> existingHandlesMap = new HashMap<>();
+			existingHandlesMap.put("phone", List.of(new HandleDto("8987989789@phone", "341_AAFB5CBEB3878A4we3")));
+			when(idRepoServiceHelper.getSelectedHandles(any(), nullable(Map.class)))
+					.thenReturn(existingHandlesMap).thenReturn(inputHandlesMap);
+			when(handleRepo.findUinHashByHandleHash(Mockito.anyString())).thenReturn("125355668848368");
+			proxyService.updateIdentity(request.getRequest(), "234");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.HANDLE_RECORD_EXISTS.getErrorCode(), e.getErrorCode());
+			assertEquals(String.format(IdRepoErrorConstants.HANDLE_RECORD_EXISTS.getErrorMessage(), List.of("email")),
+					e.getErrorText());
+		}
 	}
 
 	@Test
@@ -1117,7 +1213,7 @@ public class IdRepoServiceTest {
 							.getBytes(),
 					Object.class);
 
-			RequestDTO req = new RequestDTO();
+			IdRequestDTO req = new IdRequestDTO();
 			req.setStatus("REGISTERED");
 			req.setRegistrationId("27841457360002620190730095024");
 			req.setIdentity(obj);
@@ -1135,10 +1231,7 @@ public class IdRepoServiceTest {
 			when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
 			when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-			IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
-			ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
-			when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
-			proxyService.updateIdentity(request, "1234");
+			proxyService.updateIdentity(request.getRequest(), "1234");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED.getErrorMessage(), e.getErrorText());
@@ -1151,7 +1244,7 @@ public class IdRepoServiceTest {
 				"{\"lastName\":[{\"language\":\"EN\",\"value\":\"Mano\"}],\"IDSchemaVersion\":1.0}".getBytes(),
 				Object.class);
 
-		RequestDTO req = new RequestDTO();
+		IdRequestDTO req = new IdRequestDTO();
 		req.setStatus(ACTIVATED);
 		req.setRegistrationId("27841457360002620190730095024");
 		req.setIdentity(obj);
@@ -1184,7 +1277,8 @@ public class IdRepoServiceTest {
 		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
-		ResponseDTO response = proxyService.updateIdentity(request, "234").getResponse();
+
+		ResponseDTO<Object> response = (ResponseDTO<Object>) proxyService.updateIdentity(request.getRequest(), "234").getResponse();
 		assertEquals(ACTIVATED, response.getStatus());
 	}
 
@@ -1234,11 +1328,9 @@ public class IdRepoServiceTest {
 			when(uinRepo.existsByRegId(Mockito.any())).thenReturn(true);
 			when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-			IdRequestDTO idRequestDTO = new IdRequestDTO();
-			RequestDTO req = new RequestDTO();
-			req.setRegistrationId("27841457360002620190730095024");
-			idRequestDTO.setRequest(req);
-			proxyService.updateIdentity(idRequestDTO, "12343");
+			IdRequestDTO<Object> request = new IdRequestDTO<>();
+			request.setRegistrationId("27841457360002620190730095024");
+			proxyService.updateIdentity(request, "12343");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.RECORD_EXISTS.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.RECORD_EXISTS.getErrorMessage(), e.getErrorText());
@@ -1248,15 +1340,13 @@ public class IdRepoServiceTest {
 	@Test
 	public void testUpdateIdentityUinNotExists() throws IdRepoAppException {
 		try {
-			IdRequestDTO idRequestDTO = new IdRequestDTO();
-			RequestDTO requestDTO = new RequestDTO();
+			IdRequestDTO<Object> requestDTO = new IdRequestDTO();
 			requestDTO.setRegistrationId("1234");
-			idRequestDTO.setRequest(requestDTO);
 			when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(false);
 			when(uinRepo.existsByRegId(Mockito.any())).thenReturn(true);
 			when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-			proxyService.updateIdentity(idRequestDTO, "12343");
+			proxyService.updateIdentity(requestDTO, "12343");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorMessage(), e.getErrorText());
@@ -1267,9 +1357,7 @@ public class IdRepoServiceTest {
 	public void testUpdateIdentityDataAccessError() throws IdRepoAppException {
 		try {
 			IdRequestDTO idRequestDTO = new IdRequestDTO();
-			RequestDTO requestDTO = new RequestDTO();
-			requestDTO.setRegistrationId("1234");
-			idRequestDTO.setRequest(requestDTO);
+			idRequestDTO.setRegistrationId("1234");
 			when(uinRepo.existsByRegId(Mockito.any())).thenReturn(true);
 			when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
@@ -1298,22 +1386,22 @@ public class IdRepoServiceTest {
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
 		when(uinRepo.existsByRegId(Mockito.any())).thenReturn(false);
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-		IdRequestDTO request = new IdRequestDTO();
-		RequestDTO req = new RequestDTO();
+		IdRequestDTO<Object> request = new IdRequestDTO();
 		String status = "status";
-		req.setStatus(status);
-		req.setRegistrationId("27841457360002620190730095024");
-		request.setRequest(req);
+		request.setStatus(status);
+		request.setRegistrationId("27841457360002620190730095024");
 		RestRequestDTO restReq = new RestRequestDTO();
 		restReq.setUri("http://localhost/v1/vid/{uin}");
 		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
 		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
 		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
+
 		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
-		IdResponseDTO updateIdentity = proxyService.updateIdentity(request, "12343");
+
+		IdResponseDTO<Object> updateIdentity = proxyService.updateIdentity(request, "12343");
 		assertEquals(status, updateIdentity.getResponse().getStatus());
 	}
 
@@ -1368,11 +1456,11 @@ public class IdRepoServiceTest {
 		uinObj.setUinHash("1234_1234");
 		uinObj.setUinRefId("1234");
 		uinObj.setStatusCode(ACTIVATED);
-		RequestDTO req = mapper
+		IdRequestDTO req = mapper
 				.readValue(("{\"identity\":{\"individualBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\""
 						+ IdRepoConstants.FILE_NAME_ATTRIBUTE
 						+ "\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"individualBiometrics\",\"value\":\"dGVzdA\"}]}")
-						.getBytes(), RequestDTO.class);
+						.getBytes(), IdRequestDTO.class);
 		req.setRegistrationId("27841457360002620190730095024");
 		request.setRequest(req);
 		UinBiometric biometrics = new UinBiometric();
@@ -1407,7 +1495,8 @@ public class IdRepoServiceTest {
 		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
-		IdResponseDTO updateIdentity = proxyService.updateIdentity(request, "1234");
+
+		IdResponseDTO<Object> updateIdentity = proxyService.updateIdentity(request.getRequest(), "1234");
 		assertEquals(ACTIVATED, updateIdentity.getResponse().getStatus());
 	}
 
@@ -1418,11 +1507,11 @@ public class IdRepoServiceTest {
 		uinObj.setUinHash("1234_1234");
 		uinObj.setUinRefId("1234");
 		uinObj.setStatusCode(ACTIVATED);
-		RequestDTO req = mapper
+		IdRequestDTO req = mapper
 				.readValue(("{\"identity\":{\"individualBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\""
 						+ IdRepoConstants.FILE_NAME_ATTRIBUTE
 						+ "\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"individualBiometrics\",\"value\":\"dGVzdA\"}]}")
-						.getBytes(), RequestDTO.class);
+						.getBytes(), IdRequestDTO.class);
 		req.setRegistrationId("27841457360002620190730095024");
 		request.setRequest(req);
 		UinBiometric biometrics = new UinBiometric();
@@ -1453,11 +1542,13 @@ public class IdRepoServiceTest {
 		when(restHelper.requestSync(Mockito.any())).thenReturn(
 				mapper.readValue("{\"response\":{\"data\":\"1234\"}}".getBytes(), ObjectNode.class),
 				mapper.readValue("{\"response\":{\"data\":\"1234\"}}".getBytes(), ObjectNode.class), eventsResponse);
+
 		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
+
 		try {
-			proxyService.updateIdentity(request, "1234");
+			proxyService.updateIdentity(request.getRequest(), "1234");
 		} catch (IdRepoAppException e) {
 			assertEquals(INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
 			assertEquals(String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "documents/" + 0 + "/value"),
@@ -1475,11 +1566,11 @@ public class IdRepoServiceTest {
 		uinObj.setUin("1234");
 		uinObj.setUinRefId("1234");
 		uinObj.setStatusCode(ACTIVATED);
-		RequestDTO req = mapper
+		IdRequestDTO req = mapper
 				.readValue(("{\"identity\":{\"parentOrGuardianBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\""
 						+ IdRepoConstants.FILE_NAME_ATTRIBUTE
 						+ "\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"parentOrGuardianBiometrics\",\"value\":\"dGVzdA\"}]}")
-						.getBytes(), RequestDTO.class);
+						.getBytes(), IdRequestDTO.class);
 		req.setRegistrationId("27841457360002620190730095024");
 		request.setRequest(req);
 
@@ -1509,10 +1600,12 @@ public class IdRepoServiceTest {
 		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(
 				mapper.readValue("{\"response\":{\"data\":\"1234\"}}".getBytes(), ObjectNode.class), eventsResponse);
+
 		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
-		IdResponseDTO updateIdentity = proxyService.updateIdentity(request, "1234");
+
+		IdResponseDTO<Object> updateIdentity = proxyService.updateIdentity(request.getRequest(), "1234");
 		assertEquals(ACTIVATED, updateIdentity.getResponse().getStatus());
 	}
 
@@ -1527,11 +1620,11 @@ public class IdRepoServiceTest {
 		uinObj.setUin("1234");
 		uinObj.setUinRefId("1234");
 		uinObj.setStatusCode(ACTIVATED);
-		RequestDTO req = mapper
+		IdRequestDTO req = mapper
 				.readValue(("{\"identity\":{\"parentOrGuardianBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\""
 						+ IdRepoConstants.FILE_NAME_ATTRIBUTE
 						+ "\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"parentOrGuardianBiometrics\",\"value\":\"dGVzdA\"}]}")
-						.getBytes(), RequestDTO.class);
+						.getBytes(), IdRequestDTO.class);
 		req.setRegistrationId("27841457360002620190730095024");
 		request.setRequest(req);
 
@@ -1561,11 +1654,12 @@ public class IdRepoServiceTest {
 		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(
 				mapper.readValue("{\"response\":{\"data\":\"1234\"}}".getBytes(), ObjectNode.class), eventsResponse);
+
 		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
 
-		IdResponseDTO updateIdentity = proxyService.updateIdentity(request, "1234");
+		IdResponseDTO<Object> updateIdentity = proxyService.updateIdentity(request.getRequest(), "1234");
 		assertEquals(ACTIVATED, updateIdentity.getResponse().getStatus());
 		ArgumentCaptor<CredentialRequestStatus> argCapture = ArgumentCaptor.forClass(CredentialRequestStatus.class);
 		verify(credRequestRepo).save(argCapture.capture());
@@ -1586,11 +1680,11 @@ public class IdRepoServiceTest {
 		uinObj.setUin("1234");
 		uinObj.setUinRefId("1234");
 		uinObj.setStatusCode("DEACTIVATED");
-		RequestDTO req = mapper
+		IdRequestDTO req = mapper
 				.readValue(("{\"identity\":{\"parentOrGuardianBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\""
 						+ IdRepoConstants.FILE_NAME_ATTRIBUTE
 						+ "\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"parentOrGuardianBiometrics\",\"value\":\"dGVzdA\"}]}")
-						.getBytes(), RequestDTO.class);
+						.getBytes(), IdRequestDTO.class);
 		req.setRegistrationId("27841457360002620190730095024");
 		request.setRequest(req);
 
@@ -1625,7 +1719,7 @@ public class IdRepoServiceTest {
 		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
 
-		IdResponseDTO updateIdentity = proxyService.updateIdentity(request, "1234");
+		IdResponseDTO<Object> updateIdentity = proxyService.updateIdentity(request.getRequest(), "1234");
 		assertEquals("DEACTIVATED", updateIdentity.getResponse().getStatus());
 		ArgumentCaptor<CredentialRequestStatus> argCapture = ArgumentCaptor.forClass(CredentialRequestStatus.class);
 		verify(credRequestRepo).save(argCapture.capture());
@@ -1641,11 +1735,11 @@ public class IdRepoServiceTest {
 		uinObj.setUin("1234");
 		uinObj.setUinRefId("1234");
 		uinObj.setStatusCode(ACTIVATED);
-		RequestDTO req = mapper
+		IdRequestDTO req = mapper
 				.readValue(("{\"identity\":{\"parentOrGuardianBiometrics\":{\"format\":\"pdf\",\"version\":1.0,\""
 						+ IdRepoConstants.FILE_NAME_ATTRIBUTE
 						+ "\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"parentOrGuardianBiometrics\",\"value\":\"dGVzdA\"}]}")
-						.getBytes(), RequestDTO.class);
+						.getBytes(), IdRequestDTO.class);
 		req.setRegistrationId("27841457360002620190730095024");
 		request.setRequest(req);
 		UinBiometric biometrics = new UinBiometric();
@@ -1673,10 +1767,12 @@ public class IdRepoServiceTest {
 		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(
 				mapper.readValue("{\"response\":{\"data\":\"1234\"}}".getBytes(), ObjectNode.class), eventsResponse);
+
 		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
-		IdResponseDTO updateIdentity = proxyService.updateIdentity(request, "1234");
+
+		IdResponseDTO<Object> updateIdentity = proxyService.updateIdentity(request.getRequest(), "1234");
 		assertEquals(ACTIVATED, updateIdentity.getResponse().getStatus());
 	}
 
@@ -1686,10 +1782,10 @@ public class IdRepoServiceTest {
 			Uin uinObj = new Uin();
 			uinObj.setUin("1234");
 			uinObj.setUinRefId("1234");
-			RequestDTO req = mapper.readValue(
+			IdRequestDTO req = mapper.readValue(
 					"{\"identity\":{\"parentOrGuardianBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\"fileReference\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"parentOrGuardianBiometrics\",\"value\":\"dGVzdA\"}]}"
 							.getBytes(),
-					RequestDTO.class);
+					IdRequestDTO.class);
 			req.setRegistrationId("27841457360002620190730095024");
 			request.setRequest(req);
 			UinBiometric biometrics = new UinBiometric();
@@ -1712,10 +1808,12 @@ public class IdRepoServiceTest {
 			when(cbeffUtil.updateXML(Mockito.any(), Mockito.any())).thenReturn("value".getBytes());
 			when(objectStoreHelper.getBiometricObject(Mockito.any(), Mockito.any()))
 					.thenThrow(new IdRepoAppUncheckedException(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR));
+
 			IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 			ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 			when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
-			proxyService.updateIdentity(request, "1234");
+
+			proxyService.updateIdentity(request.getRequest(), "1234");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorMessage(), e.getErrorText());
@@ -1728,10 +1826,10 @@ public class IdRepoServiceTest {
 			Uin uinObj = new Uin();
 			uinObj.setUin("1234");
 			uinObj.setUinRefId("1234");
-			RequestDTO req = mapper.readValue(
+			IdRequestDTO req = mapper.readValue(
 					"{\"identity\":{\"parentOrGuardianBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\"fileReference\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"parentOrGuardianBiometrics\",\"value\":\"dGVzdA\"}]}"
 							.getBytes(),
-					RequestDTO.class);
+					IdRequestDTO.class);
 			req.setRegistrationId("27841457360002620190730095024");
 			request.setRequest(req);
 			UinBiometric biometrics = new UinBiometric();
@@ -1754,11 +1852,7 @@ public class IdRepoServiceTest {
 			when(objectStoreHelper.getBiometricObject(Mockito.any(), Mockito.any())).thenThrow(
 					new IdRepoAppUncheckedException(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
 							IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorMessage()));
-			IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
-			ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
-			when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
-
-			proxyService.updateIdentity(request, "1234");
+			proxyService.updateIdentity(request.getRequest(), "1234");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorMessage(), e.getErrorText());
@@ -1771,10 +1865,10 @@ public class IdRepoServiceTest {
 			Uin uinObj = new Uin();
 			uinObj.setUin("1234");
 			uinObj.setUinRefId("1234");
-			RequestDTO req = mapper.readValue(
+			IdRequestDTO req = mapper.readValue(
 					"{\"identity\":{\"parentOrGuardianBiometrics\":{\"format\":\"cbeff\",\"version\":1.0,\"fileReference\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"parentOrGuardianBiometrics\",\"value\":\"dGVzdA\"}]}"
 							.getBytes(),
-					RequestDTO.class);
+					IdRequestDTO.class);
 			req.setRegistrationId("27841457360002620190730095024");
 			request.setRequest(req);
 			UinBiometric biometrics = new UinBiometric();
@@ -1792,11 +1886,7 @@ public class IdRepoServiceTest {
 			when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 			when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
 			when(cbeffUtil.updateXML(Mockito.any(), Mockito.any())).thenReturn("value".getBytes());
-			IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
-			ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
-			when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
-
-			proxyService.updateIdentity(request, "1234");
+			proxyService.updateIdentity(request.getRequest(), "1234");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.RECORD_EXISTS.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.RECORD_EXISTS.getErrorMessage(), e.getErrorText());
@@ -1809,11 +1899,11 @@ public class IdRepoServiceTest {
 		uinObj.setUin("1234");
 		uinObj.setUinRefId("1234");
 		uinObj.setStatusCode(ACTIVATED);
-		RequestDTO req = mapper
+		IdRequestDTO req = mapper
 				.readValue(("{\"identity\":{\"proofOfRelationship\":{\"format\":\"pdf\",\"type\":\"1.0\",\""
 						+ IdRepoConstants.FILE_NAME_ATTRIBUTE
 						+ "\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"proofOfRelationship\",\"value\":\"dGVzdA\"}]}")
-						.getBytes(), RequestDTO.class);
+						.getBytes(), IdRequestDTO.class);
 		req.setRegistrationId("27841457360002620190730095024");
 		request.setRequest(req);
 		UinDocument document = new UinDocument();
@@ -1844,7 +1934,7 @@ public class IdRepoServiceTest {
 		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
 
-		IdResponseDTO updateIdentity = proxyService.updateIdentity(request, "1234");
+		IdResponseDTO<Object> updateIdentity = proxyService.updateIdentity(request.getRequest(), "1234");
 		assertEquals(ACTIVATED, updateIdentity.getResponse().getStatus());
 	}
 
@@ -1854,10 +1944,10 @@ public class IdRepoServiceTest {
 		uinObj.setUin("1234");
 		uinObj.setUinRefId("1234");
 		uinObj.setStatusCode(ACTIVATED);
-		RequestDTO req = mapper.readValue(("{\"identity\":{\"ProofOfIdentity\":{\"format\":\"pdf\",\"type\":\"1.0\",\""
+		IdRequestDTO req = mapper.readValue(("{\"identity\":{\"ProofOfIdentity\":{\"format\":\"pdf\",\"type\":\"1.0\",\""
 				+ IdRepoConstants.FILE_NAME_ATTRIBUTE
 				+ "\":\"fileReferenceID\"}},\"documents\":[{\"category\":\"ProofOfIdentity\",\"value\":\"dGVzdA\"}]}")
-				.getBytes(), RequestDTO.class);
+				.getBytes(), IdRequestDTO.class);
 		req.setRegistrationId("27841457360002620190730095024");
 		request.setRequest(req);
 		UinDocument document = new UinDocument();
@@ -1884,10 +1974,12 @@ public class IdRepoServiceTest {
 		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(
 				mapper.readValue("{\"response\":{\"data\":\"1234\"}}".getBytes(), ObjectNode.class), eventsResponse);
+
 		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
-		IdResponseDTO updateIdentity = proxyService.updateIdentity(request, "1234");
+
+		IdResponseDTO<Object> updateIdentity = proxyService.updateIdentity(request.getRequest(), "1234");
 		assertEquals(ACTIVATED, updateIdentity.getResponse().getStatus());
 	}
 
@@ -1913,7 +2005,7 @@ public class IdRepoServiceTest {
 		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-		IdResponseDTO idResponseDTO = ReflectionTestUtils.invokeMethod(proxyService, "retrieveIdentity", ridValue,
+		IdResponseDTO<Object> idResponseDTO = ReflectionTestUtils.invokeMethod(proxyService, "retrieveIdentity", ridValue,
 				IdType.ID, "demo", null);
 		assertEquals(identity, mapper.writeValueAsString(idResponseDTO.getResponse().getIdentity()));
 	}
@@ -1958,7 +2050,7 @@ public class IdRepoServiceTest {
 		uinObj.setUinData(identity.getBytes());
 		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
 		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
-		IdResponseDTO retrieveIdentityByUin = proxyService.retrieveIdentity("1234", IdType.VID, null, null);
+		IdResponseDTO<Object> retrieveIdentityByUin = proxyService.retrieveIdentity("1234", IdType.VID, null, null);
 		assertEquals(identity, mapper.writeValueAsString(retrieveIdentityByUin.getResponse().getIdentity()));
 	}
 
@@ -2068,7 +2160,7 @@ public class IdRepoServiceTest {
 		when(uinRepo.existsByRegId(Mockito.any())).thenReturn(true);
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-		IdResponseDTO retrieveIdentityByUin = proxyService.retrieveIdentity("1234", IdType.UIN, "bio",
+		IdResponseDTO<Object> retrieveIdentityByUin = proxyService.retrieveIdentity("1234", IdType.UIN, "bio",
 				Map.of("extraction", "format"));
 		assertEquals(identityWithDoc, mapper.writeValueAsString(retrieveIdentityByUin.getResponse().getIdentity()));
 	}
@@ -2099,7 +2191,7 @@ public class IdRepoServiceTest {
 		when(uinRepo.existsByRegId(Mockito.any())).thenReturn(true);
 		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
 		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-		IdResponseDTO retrieveIdentityByUin = proxyService.retrieveIdentity("1234", IdType.UIN, "bio",
+		IdResponseDTO<Object> retrieveIdentityByUin = proxyService.retrieveIdentity("1234", IdType.UIN, "bio",
 				Map.of("fingerExtractionFormat", "format"));
 		assertEquals(identityWithDoc, mapper.writeValueAsString(retrieveIdentityByUin.getResponse().getIdentity()));
 	}
@@ -2185,13 +2277,13 @@ public class IdRepoServiceTest {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testUpdateIdentityUpdateVerifiedAttributes()
+	public void testUpdateIdentity_withNoValueClaims_thenDonotUpdateVerifiedAttributes()
 			throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
 		Object obj = mapper.readValue(
 				"{\"identity\":{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}}"
 						.getBytes(),
 				Object.class);
-		RequestDTO req = new RequestDTO();
+		IdRequestDTO req = new IdRequestDTO();
 		req.setStatus("REGISTERED");
 		req.setRegistrationId("27841457360002620190730095024");
 		req.setIdentity(obj);
@@ -2220,14 +2312,129 @@ public class IdRepoServiceTest {
 		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
 		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
 		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
+
 		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
 		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
 		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
 
-		Uin updatedIdentity = service.updateIdentity(request, "234");
-		List<String> verifiedAttributes = (List<String>) mapper.readValue(updatedIdentity.getUinData(), Map.class)
+		Uin updatedIdentity = service.updateIdentity(req, "234");
+		List<Map<String, Object>> verifiedAttributes = (List<Map<String, Object>>) mapper.readValue(updatedIdentity.getUinData(), Map.class)
 				.get("verifiedAttributes");
-		assertEquals(List.of("a", "b"), verifiedAttributes);
+
+		assertTrue(verifiedAttributes == null || verifiedAttributes.isEmpty());
+	}
+
+	@Test
+	public void testUpdateIdentity_withValidClaims_thenUpdateVerifiedAttributes()
+			throws IdRepoAppException, JsonParseException, JsonMappingException, IOException {
+		Object obj = mapper.readValue(
+				"{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}"
+						.getBytes(),
+				Object.class);
+		IdRequestDTO req = new IdRequestDTO();
+		req.setStatus("REGISTERED");
+		req.setRegistrationId("27841457360002620190730095024");
+		req.setIdentity(obj);
+		req.setVerifiedAttributes(List.of("a", "b", "lastName"));
+		request.setRequest(req);
+		Uin uinObj = new Uin();
+		uinObj.setUin("1234");
+		uinObj.setUinRefId("1234");
+		uinObj.setStatusCode("REGISTERED");
+		Object obj2 = mapper.readValue(
+				"{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}"
+						.getBytes(),
+				Object.class);
+		uinObj.setUinData(mapper.writeValueAsBytes(obj2));
+		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
+		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
+		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
+		when(uinRepo.save(Mockito.any())).thenReturn(uinObj);
+		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+		when(anonymousProfileHelper.isNewCbeffPresent()).thenReturn(false);
+		when(identityUpdateTracker.findById(any())).thenReturn(Optional.empty());
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("http://localhost/v1/vid/{uin}");
+		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
+		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
+		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
+		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
+
+		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
+		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
+		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
+
+		Uin updatedIdentity = service.updateIdentity(req, "234");
+
+		List<Map<String, Object>> verifiedAttributes = (List<Map<String, Object>>) mapper.readValue(updatedIdentity.getUinData(), Map.class)
+				.get("verifiedAttributes");
+
+        assertFalse(verifiedAttributes.isEmpty());
+		assertTrue(verifiedAttributes.size() == 1 && verifiedAttributes.get(0).get("claims") != null);
+
+		List<String> validClaims = (List<String>) verifiedAttributes.get(0).get("claims");
+		assertTrue(validClaims.size() == 1 && validClaims.contains("lastName"));
+	}
+
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testUpdateIdentity_UpdateVerifiedAttributesV2_thenPass()
+			throws IdRepoAppException, IOException {
+		Object obj = mapper.readValue(
+				"{\"firstName\":[{\"language\":\"AR\",\"value\":\"Manoj\",\"label\":\"string\"}]}"
+						.getBytes(),
+				Object.class);
+		IdRequestDTO req = new IdRequestDTO();
+		req.setStatus("REGISTERED");
+		req.setRegistrationId("27841457360002620190730095024");
+		req.setIdentity(obj);
+
+		VerificationMetadata verificationMetadata = new VerificationMetadata();
+		verificationMetadata.setTrustFramework("TF");
+		verificationMetadata.setVerificationProcess("VP");
+		verificationMetadata.setMetadata(Map.of("trust_framework", "TF", "verification_process", "VP"));
+		verificationMetadata.setClaims(Arrays.asList("firstName", "lastName"));
+		List<VerificationMetadata> list = new ArrayList<>();
+		list.add(verificationMetadata);
+		req.setVerifiedAttributes(list);
+
+		request.setRequest(req);
+		Uin uinObj = new Uin();
+		uinObj.setUin("1234");
+		uinObj.setUinRefId("1234");
+		uinObj.setStatusCode("REGISTERED");
+		Object obj2 = mapper.readValue(
+				"{\"firstName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"}],\"lastName\":[{\"language\":\"AR\",\"value\":\"Mano\",\"label\":\"string\"},{\"language\":\"FR\",\"value\":\"Mano\",\"label\":\"string\"}]}"
+						.getBytes(),
+				Object.class);
+		uinObj.setUinData(mapper.writeValueAsBytes(obj2));
+		when(uinDraftRepo.existsByRegId(Mockito.any())).thenReturn(false);
+		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(true);
+		when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
+		when(uinRepo.save(Mockito.any())).thenReturn(uinObj);
+		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg");
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+		when(anonymousProfileHelper.isNewCbeffPresent()).thenReturn(false);
+		when(identityUpdateTracker.findById(any())).thenReturn(Optional.empty());
+		RestRequestDTO restReq = new RestRequestDTO();
+		restReq.setUri("http://localhost/v1/vid/{uin}");
+		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(restReq);
+		ResponseWrapper<AuthTypeStatusEventDTO> eventsResponse = new ResponseWrapper<>();
+		eventsResponse.setResponse(new AuthTypeStatusEventDTO());
+		when(restHelper.requestSync(Mockito.any())).thenReturn(eventsResponse);
+		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
+		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
+		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any())).thenReturn("375848393846348345");
+
+		Uin updatedIdentity = service.updateIdentity(request.getRequest(), "234");
+
+		List<Map<String, Object>> verifiedAttributes = (List<Map<String, Object>>) mapper.readValue(updatedIdentity.getUinData(), Map.class)
+				.get("verifiedAttributes");
+
+		List<String> claims = (List<String>) verifiedAttributes.get(0).get("claims");
+		assertTrue(claims.containsAll(List.of("firstName", "lastName")));
 	}
 
 	@Test
@@ -2423,122 +2630,5 @@ public class IdRepoServiceTest {
 		when(uinRepo.existsByRegId(any())).thenReturn(true);
 		when(uinRepo.getUinHashByRid(any())).thenReturn("1234");
 		proxyService.getRemainingUpdateCountByIndividualId("1234", IdType.VID, List.of());
-	}
-
-	@Test
-	public void testGetIdVidMetadataForIndividual_VID_Success() throws Exception {
-		String vid = "1234567890123456";
-		String uin = "9999999999";
-		int saltId = 123;
-		Uin uinObj = getMockUin();
-
-		RestRequestDTO req = new RestRequestDTO();
-		req.setUri("http://dummy/uin/{vid}");
-		Mockito.when(restBuilder.buildRequest(Mockito.any(), Mockito.isNull(), Mockito.eq(ResponseWrapper.class)))
-				.thenReturn(req);
-
-		ResponseWrapper<Map<String, String>> wrapper = new ResponseWrapper<>();
-		Map<String, String> response = new HashMap<>();
-		response.put("UIN", uin);
-		wrapper.setResponse(response);
-
-		IdRepoSecurityManager idRepoSecurityManager = Mockito.mock(IdRepoSecurityManager.class);
-		ReflectionTestUtils.setField(proxyService, "securityManager", idRepoSecurityManager);
-		Mockito.when(restHelper.requestSync(Mockito.any())).thenReturn(wrapper);
-		Mockito.when(idRepoSecurityManager.getSaltKeyForId(Mockito.any())).thenReturn(saltId);
-		Mockito.when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-		Mockito.when(idRepoSecurityManager.hashwithSalt(Mockito.any(), Mockito.any())).thenReturn("hash");
-		Mockito.when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
-
-		IdVidMetadataResponseDTO result = proxyService.getIdVidMetadata(vid, IdType.VID);
-		assertEquals(uinObj.getRegId(), result.getRid());
-		String expectedCreated = formatToISOString(uinObj.getCreatedDateTime());
-		String expectedUpdated = formatToISOString(uinObj.getUpdatedDateTime());
-		assertEquals(expectedCreated, result.getCreatedOn());
-		assertEquals(expectedUpdated, result.getUpdatedOn());
-	}
-
-	@Test
-	public void testGetIdVidMetadataForIndividual_UIN_Success() throws Exception {
-		String uin = "9999999999";
-		int saltId = 123;
-		Uin uinObj = getMockUin();
-
-		IdRepoSecurityManager idRepoSecurityManager = Mockito.mock(IdRepoSecurityManager.class);
-		ReflectionTestUtils.setField(proxyService, "securityManager", idRepoSecurityManager);
-		Mockito.when(idRepoSecurityManager.getSaltKeyForId(Mockito.any())).thenReturn(saltId);
-		Mockito.when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-		Mockito.when(idRepoSecurityManager.hashwithSalt(Mockito.any(), Mockito.any())).thenReturn("hash");
-		Mockito.when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.of(uinObj));
-		IdVidMetadataResponseDTO result = proxyService.getIdVidMetadata(uin, IdType.UIN);
-
-		assertEquals(uinObj.getRegId(), result.getRid());
-		String expectedCreated = formatToISOString(uinObj.getCreatedDateTime());
-		String expectedUpdated = formatToISOString(uinObj.getUpdatedDateTime());
-		assertEquals(expectedCreated, result.getCreatedOn());
-		assertEquals(expectedUpdated, result.getUpdatedOn());
-	}
-
-	@Test
-	public void testGetIdVidMetadataForIndividual_ID_Success() throws Exception {
-		String regId = "reg123";
-		Uin uinObj = getMockUin();
-		Mockito.when(uinRepo.findByRegId(regId)).thenReturn(Optional.of(uinObj));
-
-		IdVidMetadataResponseDTO result = proxyService.getIdVidMetadata(regId, IdType.ID);
-		assertEquals(uinObj.getRegId(), result.getRid());
-		String expectedCreated = formatToISOString(uinObj.getCreatedDateTime());
-		String expectedUpdated = formatToISOString(uinObj.getUpdatedDateTime());
-		assertEquals(expectedCreated, result.getCreatedOn());
-		assertEquals(expectedUpdated, result.getUpdatedOn());
-	}
-
-	@Test(expected = IdRepoAppException.class)
-	public void testGetIdVidMetadataForIndividual_NoRecordFound() throws IdRepoAppException {
-		String uin = "9999999999";
-		int saltId = 123;
-
-		IdRepoSecurityManager idRepoSecurityManager = Mockito.mock(IdRepoSecurityManager.class);
-		ReflectionTestUtils.setField(proxyService, "securityManager", idRepoSecurityManager);
-		Mockito.when(idRepoSecurityManager.getSaltKeyForId(Mockito.any())).thenReturn(saltId);
-		Mockito.when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-		Mockito.when(idRepoSecurityManager.hashwithSalt(Mockito.any(), Mockito.any())).thenReturn("hash");
-		Mockito.when(uinRepo.findByUinHash(Mockito.any())).thenReturn(Optional.empty());
-		proxyService.getIdVidMetadata(uin, IdType.UIN);
-	}
-
-	@Test(expected = IdRepoAppException.class)
-	public void testGetIdVidMetadataForIndividual_DatabaseException() throws IdRepoAppException {
-		String uin = "9999999999";
-		int saltId = 123;
-
-		IdRepoSecurityManager idRepoSecurityManager = Mockito.mock(IdRepoSecurityManager.class);
-		ReflectionTestUtils.setField(proxyService, "securityManager", idRepoSecurityManager);
-		Mockito.when(idRepoSecurityManager.getSaltKeyForId(Mockito.any())).thenReturn(saltId);
-		Mockito.when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
-		Mockito.when(idRepoSecurityManager.hashwithSalt(Mockito.any(), Mockito.any())).thenReturn("hash");
-		Mockito.when(uinRepo.findByUinHash(Mockito.any())).thenThrow(new DataAccessException("DB Error") {});
-		proxyService.getIdVidMetadata(uin, IdType.UIN);
-	}
-
-	@Test(expected = IdRepoAppException.class)
-	public void testGetUinByVid_RestException() throws IdRepoAppException {
-		String vid = "1234567890123456";
-		RestServiceException ex = new RestServiceException(IdRepoErrorConstants.UNKNOWN_ERROR);
-
-		RestRequestDTO restRequestDTO = new RestRequestDTO();
-		restRequestDTO.setUri("http://dummy/uin/{vid}");
-		Mockito.when(restBuilder.buildRequest(Mockito.any(), Mockito.isNull(), Mockito.eq(ResponseWrapper.class)))
-				.thenReturn(restRequestDTO);
-		Mockito.when(restHelper.requestSync(Mockito.any())).thenThrow(ex);
-		proxyService.getIdVidMetadata(vid, IdType.VID);
-	}
-
-	private Uin getMockUin() {
-		Uin uin = new Uin();
-		uin.setRegId("reg123");
-		uin.setUpdatedDateTime(LocalDateTime.now());
-		uin.setCreatedDateTime(LocalDateTime.now().minusDays(1));
-		return uin;
 	}
 }
