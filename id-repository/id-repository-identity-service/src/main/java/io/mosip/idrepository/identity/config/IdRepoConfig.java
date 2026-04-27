@@ -95,15 +95,6 @@ public class IdRepoConfig extends IdRepoDataSourceConfig
 	/** The uin Status. */
 	private List<String> uinStatus;
 
-	@Value("${mosip.idrepo.extract.template.core-pool-size:50}")
-	private int corePoolSize;
-
-	@Value("${mosip.idrepo.extract.template.max-pool-size:100}")
-	private int maxPoolSize;
-
-	@Value("${mosip.idrepo.extract.template.queue-capacity:1000}")
-	private int queueCapacity;
-
 	/** The allowed bio types. */
 	private List<String> allowedBioAttributes;
 

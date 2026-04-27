@@ -197,11 +197,11 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<IdResponseDTO<List<String>>> addIdentity(@Validated @RequestBody RequestWrapper<IdRequestDTO<List<String>>> request,
 													 @ApiIgnore Errors errors) throws IdRepoAppException {
-		String regId = Optional.ofNullable(idRequestDTO.getRequest()).map(req -> String.valueOf(req.getRegistrationId()))
+		String regId = Optional.ofNullable(request.getRequest()).map(req -> String.valueOf(req.getRegistrationId()))
 				.orElse("null");
 		try {
-			String uin = getUin(idRequestDTO.getRequest());
-			validator.validateId(idRequestDTO.getId(), CREATE);
+			String uin = getUin(request.getRequest());
+			validator.validateId(request.getId(), CREATE);
 			DataValidationUtil.validate(errors);
 			if (!validator.validateUin(uin)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, "Invalid uin");
@@ -457,8 +457,8 @@ public class IdRepoController {
 		String regId = Optional.ofNullable(request.getRequest()).map(req -> String.valueOf(req.getRegistrationId()))
 				.orElse("null");
 		try {
-			String uin = getUin(idRequestDTO.getRequest());
-			validator.validateId(idRequestDTO.getId(), UPDATE);
+			String uin = getUin(request.getRequest());
+			validator.validateId(request.getId(), UPDATE);
 			DataValidationUtil.validate(errors);
 			if (!validator.validateUin(uin)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, "Invalid uin");
