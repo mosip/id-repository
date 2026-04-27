@@ -154,6 +154,7 @@ public class CredentialStoreBeanConfig {
 				new ConcurrentMapCache("DATASHARE_POLICIES"),
 				new ConcurrentMapCache("PARTNER_EXTRACTOR_FORMATS"),
 				new ConcurrentMapCache("topics"),
+				new ConcurrentMapCache("Online_Verification_Partners"),
 				new CaffeineCache("IDREPO_DATA",
 						Caffeine.newBuilder()
 								.expireAfterWrite(idrepoCacheExpireMinutes, TimeUnit.MINUTES)
@@ -161,4 +162,6 @@ public class CredentialStoreBeanConfig {
 								.build())));
 		return cacheManager;
 	}
+
+
 }
