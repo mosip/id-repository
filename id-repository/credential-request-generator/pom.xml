@@ -37,6 +37,7 @@
 		<springdoc.version>1.5.10</springdoc.version>
 		<kernel.auth.adapter.version>1.2.1-SNAPSHOT</kernel.auth.adapter.version>
 		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
+		<maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
 
 	</properties>
 	<dependencyManagement>
@@ -230,10 +231,38 @@
 				<artifactId>central-publishing-maven-plugin</artifactId>
 				<version>${central.publishing.maven.plugin.version}</version>
 				<extensions>true</extensions>
+				<executions>
+					<execution>
+						<id>default-publish</id>
+						<phase>none</phase>
+						<goals>
+							<goal>publish</goal>
+						</goals>
+					</execution>
+				</executions>
 				<configuration>
 					<publishingServerId>ossrh</publishingServerId>
 					<autoPublish>false</autoPublish>
 				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>${maven.deploy.plugin.version}</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+				<executions>
+					<execution>
+						<id>default-deploy</id>
+						<phase>none</phase>
+						<goals>
+							<goal>deploy</goal>
+						</goals>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
