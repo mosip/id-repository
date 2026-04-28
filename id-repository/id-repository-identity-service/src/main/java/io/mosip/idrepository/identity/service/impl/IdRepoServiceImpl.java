@@ -234,9 +234,9 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
 		String uinToEncrypt = getUinToEncrypt(uin);
 
-		mosipLogger.info("Before starting the checkAndGetHandles: {}", System.currentTimeMillis()-epoch);
+		mosipLogger.debug("Before starting the checkAndGetHandles: {}", System.currentTimeMillis()-epoch);
 		epoch = System.currentTimeMillis();
-		mosipLogger.info("After completing with checkAndGetHandles: {}", System.currentTimeMillis()-epoch);
+		mosipLogger.debug("After completing with checkAndGetHandles: {}", System.currentTimeMillis()-epoch);
 		epoch = System.currentTimeMillis();
 
 		anonymousProfileHelper

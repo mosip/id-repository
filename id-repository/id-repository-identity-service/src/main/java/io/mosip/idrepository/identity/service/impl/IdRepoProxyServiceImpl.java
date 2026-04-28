@@ -165,16 +165,16 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 				throw new IdRepoAppException(RECORD_EXISTS);
 			}
 
-			mosipLogger.info("Before starting the idreposervice addIdentity: {}", System.currentTimeMillis()-epoch);
+			mosipLogger.debug("Before starting the idreposervice addIdentity: {}", System.currentTimeMillis()-epoch);
 			epoch = System.currentTimeMillis();
 
 			Uin uinEntity = service.addIdentity(request, uin);
 
-			mosipLogger.info("After starting the idreposervice addIdentity: {}", System.currentTimeMillis()-epoch);
+			mosipLogger.debug("After starting the idreposervice addIdentity: {}", System.currentTimeMillis()-epoch);
 			epoch = System.currentTimeMillis();
 
 			notify(uin, false, request.getRegistrationId());
-			mosipLogger.info("After notify: {}", System.currentTimeMillis()-epoch);
+			mosipLogger.debug("After notify: {}", System.currentTimeMillis()-epoch);
 
 			return constructIdResponse(this.id.get(CREATE), uinEntity, null);
 
@@ -446,7 +446,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 
 				Optional<Entry<String, String>> extractionFormatForModality = extractionFormats.entrySet().stream()
 						.filter(ent -> ent.getKey().toLowerCase().contains(modality.value().toLowerCase())).findAny();
-				mosipLogger.info("Extraction Format {}, birTypesForModality-size: {}, extractionFormatFormatForModality: {}", extractionFormats, birTypesForModality.size(), extractionFormatForModality.isPresent());
+				mosipLogger.debug("Extraction Format {}, birTypesForModality-size: {}, extractionFormatFormatForModality: {}", extractionFormats, birTypesForModality.size(), extractionFormatForModality.isPresent());
 				if (!extractionFormatForModality.isEmpty() && !birTypesForModality.isEmpty()) {
 					Entry<String, String> format = extractionFormatForModality.get();
 					mosipLogger.info("Using biometricExtractionService for extraction");
