@@ -20,14 +20,11 @@ import java.util.List;
 public class EncryptedCredentialDao {
 
     @Autowired
-    private CredentialRepositary<CredentialEntity,String> credentialRepo;
+    private CredentialRepositary<CredentialEntity, String> credentialRepo;
 
     public List<CredentialEntity> getCredentialByStatus(String statusCode, int pageSize) {
-        try {
-            CryptoContext.setSkipDecryption(true);
+        try (CryptoContext ctx = CryptoContext.skipDecryptionScope(true)) {
             return credentialRepo.findCredentialByStatusCode(statusCode, pageSize);
-        } finally {
-            CryptoContext.setSkipDecryption(false);
-        }
+        } 
     }
 }

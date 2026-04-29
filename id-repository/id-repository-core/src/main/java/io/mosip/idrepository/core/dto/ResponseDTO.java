@@ -12,6 +12,6 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class ResponseDTO extends BaseRequestResponseDTO {
-	//TODO remove this dto
+public class ResponseDTO<T> extends RequestDTO {
+	private T verifiedAttributes;
 }

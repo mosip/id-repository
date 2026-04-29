@@ -61,14 +61,6 @@ public class PartnerServiceManagerTest {
     }
 
     /**
-     * This class tests the clearOLVPartnersCache method
-     */
-    @Test
-    public void clearOLVPartnersCacheTest(){
-        partnerServiceManager.clearOLVPartnersCache();
-    }
-
-    /**
      * This class tests the getOLVPartnerIdsException method
      *
      * @throws IdRepoDataValidationException

@@ -35,19 +35,14 @@ public class CredentialConstants {
 
 	public static final String ENCRYPTIONKEY = "encryptionKey";
 
-	public static final String BESTTWOFINGERS = "bestTwoFingers";
-
 	public static final String VID = "VID";
 
 	public static final String GENERATE = "GENERATE";
 
 	public static final String RETRIEVE = "RETRIEVE";
 
-	public static final String BF_SUB_TYPE ="subType";
-
-	public static final String BF_RANK = "rank";
+	public static final String BESTTWOFINGERS = "bestTwoFingers";
 	
-
 	public static final String MASKING_ATTRIBUTES = "maskingAttributes";
 	
 	public static final String FORMATTING_ATTRIBUTES = "formatingAttributes";
@@ -61,6 +56,12 @@ public class CredentialConstants {
 	public static final String FORMAT = "format";
 	
 	public static final String FULLADDRESS = "fullAddress";
+
+	public static final String BF_SUB_TYPE ="subType";
+
+	public static final String BF_RANK = "rank";
+
+	public static final String JPEG = "jpeg";
 	
 	/** The Constant DATETIME_PATTERN. */
 	public static final String DATETIME_PATTERN = "mosip.credential.service.datetime.pattern";
@@ -79,4 +80,5 @@ public class CredentialConstants {
 	public static final String CREDENTIAL_NAME_ATTRIBUTE_NAMES = "mosip.credential.name.attribute.names";
 	public static final String CREDENTIAL_ADDRESS_ATTRIBUTE_NAMES = "mosip.credential.address.attribute.names";
 
+	
 }

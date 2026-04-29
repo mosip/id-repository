@@ -37,6 +37,7 @@ CREATE TABLE credential.credential_transaction(
 CREATE INDEX IF NOT EXISTS cred_txn_status_code ON credential.credential_transaction USING btree (status_code);
 --index section ends------
 CREATE INDEX cred_tran_NEW_status_cr_dtimes ON credential.credential_transaction USING btree (cr_dtimes) WHERE status_code = 'NEW';
+--index section ends------
 
 -- ddl-end --
 COMMENT ON TABLE credential.credential_transaction IS 'Credential: The credential share is a functional service that interacts with the ID Repository and collects the user attributes for printing';

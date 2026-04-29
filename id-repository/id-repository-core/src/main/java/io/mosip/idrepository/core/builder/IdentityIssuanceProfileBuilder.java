@@ -170,18 +170,20 @@ public class IdentityIssuanceProfileBuilder {
 					.filter(bir -> bir.getOthers().keySet().stream()
 							.anyMatch(key -> key.contentEquals("EXCEPTION")))
 					.filter(bir -> bir.getOthers().get("EXCEPTION").contentEquals("true"))
-					.map(bir -> Exceptions.builder()
-							.type(bir.getBdbInfo().getType().stream().map(BiometricType::value)
-									.collect(Collectors.joining(" ")))
-							.subType(String.join(" ", bir.getBdbInfo().getSubtype())).build())
+					.map(bir -> {
+						String type = bir.getBdbInfo().getType().stream().map(BiometricType::value)
+								.collect(Collectors.joining(" "));
+						return Exceptions.builder()
+								.type(type)
+								.subType("Face".equalsIgnoreCase(type) ? null : String.join(" ", bir.getBdbInfo().getSubtype())).build();
+							})
 					.collect(Collectors.toList());
 		return List.of();
 	}
 
-	private List<String> getVerified(JsonNode identity) {
-		return Objects.isNull(identity.get(VERIFIED_ATTRIBUTES)) || identity.get(VERIFIED_ATTRIBUTES).isNull() ? List.of()
-				: mapper.convertValue(identity.get(VERIFIED_ATTRIBUTES), new TypeReference<List<String>>() {
-				});
+	private JsonNode getVerified(JsonNode identity) {
+		return Objects.isNull(identity.get(VERIFIED_ATTRIBUTES)) || identity.get(VERIFIED_ATTRIBUTES).isNull() ? mapper.createObjectNode()
+				: identity.get(VERIFIED_ATTRIBUTES);
 	}
 
 	private List<BiometricInfo> getBiometricInfo(List<BIR> biometrics) {
@@ -202,11 +204,12 @@ public class IdentityIssuanceProfileBuilder {
 							digitalId = new String(
 									CryptoUtil.decodeURLSafeBase64(digitalIdEncoded.get("digitalId").split("\\.")[1]));
 						}
-						
+
+						String biometricType = bir.getBdbInfo().getType().stream().map(BiometricType::value)
+								.collect(Collectors.joining(" "));
 						return BiometricInfo.builder()
-								.type(bir.getBdbInfo().getType().stream().map(BiometricType::value)
-										.collect(Collectors.joining(" ")))
-								.subType(String.join(" ", bir.getBdbInfo().getSubtype()))
+								.type(biometricType)
+								.subType("Face".equalsIgnoreCase(biometricType) ? null : String.join(" ", bir.getBdbInfo().getSubtype()))
 								.qualityScore(bir.getBdbInfo().getQuality().getScore())
 								.attempts(Objects.nonNull(bir.getOthers()) && bir.getOthers().containsKey("RETRIES")
 										? bir.getOthers().get("RETRIES")
@@ -287,11 +290,11 @@ public class IdentityIssuanceProfileBuilder {
 		} else if (jsonNode.isArray()) {
 			Iterator<JsonNode> iterator = jsonNode.iterator();
 			while (iterator.hasNext()) {
-				Map<String, String> valueMap = mapper.convertValue(iterator.next(),
-						new TypeReference<Map<String, String>>() {
+				Map<String, Object> valueMap = mapper.convertValue(iterator.next(),
+						new TypeReference<Map<String, Object>>() {
 						});
-				if (StringUtils.isNotBlank(filterLanguage) && valueMap.get("language").contentEquals(filterLanguage)) {
-					valueOpt = Optional.of(valueMap.get(VALUE));
+				if (StringUtils.isNotBlank(filterLanguage) &&  valueMap.containsKey("language") && ((String)valueMap.get("language")).contentEquals(filterLanguage)) {
+					valueOpt = Optional.of((String) valueMap.get(VALUE));
 				}
 			}
 			if (valueOpt.isEmpty())

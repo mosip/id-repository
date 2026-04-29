@@ -45,6 +45,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class CredentialRequestGeneratorControllerTest {
 	@Mock
 	private CredentialRequestService credentialRequestService;
+	
+	@Mock
+	private CredentialInstializer credentialInstializer;
+	
+	@Mock
+	private SubscribeEvent subscribeEvent;
+	
+	@Mock
+	JobLauncher jobLauncher;
 
 	@Mock
 	private RequestValidator requestValidator;
@@ -65,15 +74,7 @@ public class CredentialRequestGeneratorControllerTest {
 	String reqCredentialEventJson;
 
 	ResponseWrapper<PageDto<CredentialRequestIdsDto>> responseWrapper;
-	
-	@Mock
-	private CredentialInstializer credentialInstializer;
 
-	@Mock
-	private SubscribeEvent subscribeEvent;
-
-	@Mock
-	JobLauncher jobLauncher;
 
 	@Before
 	public void setup() throws Exception {

@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.HandleInfoDTO;
 import io.mosip.idrepository.core.dto.IdVidMetadataResponseDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 
@@ -47,7 +46,7 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 * @param id uin/vid/rid
 	 * @param idType 
 	 * @param type the type
-	 * @param extractionFormats
+	 * @param extractionFormat 
 	 * @return the response
 	 * @throws IdRepoAppException the id repo app exception
 	 */
@@ -81,10 +80,9 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 *
 	 * @param individualId the identifier of the individual whose metadata is to be fetched.
 	 * @param idType The type of ID that you're passing in.
-	 * @return an {@code IdVidMetadataResponseDTO} containing rid, createdOn, and updatedOn
+	 * @return an {@code IdVidMetaDataResponseDTO} containing rid, createdOn, and updatedOn
 	 * @throws IdRepoAppException if there is an error during retrieval
 	 */
-
 	IdVidMetadataResponseDTO getIdVidMetadata(String individualId, IdType idType) throws IdRepoAppException;
 
 	/**
@@ -100,5 +98,4 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 */
 	Map<String, Integer> getRemainingUpdateCountByIndividualId(String individualId, IdType idType,
 			List<String> attributeList) throws IdRepoAppException;
-
 }

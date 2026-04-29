@@ -5,6 +5,7 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_I
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.annotation.PostConstruct;
 
@@ -112,7 +113,7 @@ public class RestRequestBuilder {
 		checkHttpMethod(request, httpMethod);
 
 		if (requestBody != null) {
-			if (!headers.getContentType().includes(MediaType.MULTIPART_FORM_DATA)) {
+			if (!Objects.requireNonNull(headers.getContentType()).includes(MediaType.MULTIPART_FORM_DATA)) {
 				request.setRequestBody(requestBody);
 			} else {
 				if (requestBody instanceof MultiValueMap) {

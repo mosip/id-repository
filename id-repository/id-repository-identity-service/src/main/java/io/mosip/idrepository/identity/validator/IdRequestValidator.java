@@ -1,53 +1,49 @@
 package io.mosip.idrepository.identity.validator;
 
-import static io.mosip.idrepository.core.constant.IdRepoConstants.AUTH_TYPE_SEPERATOR;
-import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ID_OBJECT_PROCESSING_FAILED;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
+import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
+import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
-import io.mosip.idrepository.core.dto.IdRequestByIdDTO;
-
-import io.mosip.kernel.core.idvalidator.spi.RidValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
+import org.springframework.web.client.RestTemplate;
 
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.AuthTypeStatusRequestDto;
 import io.mosip.idrepository.core.dto.AuthtypeStatus;
+import io.mosip.idrepository.core.dto.IdRequestByIdDTO;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
+import io.mosip.idrepository.core.dto.VerificationMetadata;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.validator.BaseIdRepoValidator;
 import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
+import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.idobjectvalidator.constant.IdObjectValidatorErrorConstant;
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectIOException;
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailedException;
 import io.mosip.kernel.core.idobjectvalidator.exception.InvalidIdSchemaException;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
+import io.mosip.kernel.core.idvalidator.spi.RidValidator;
 import io.mosip.kernel.core.idvalidator.spi.UinValidator;
 import io.mosip.kernel.core.idvalidator.spi.VidValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.idobjectvalidator.impl.IdObjectSchemaValidator;
 
 /**
  * The Class IdRequestValidator - Validator for {@code IdRequestDTO}.
@@ -65,12 +61,6 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 
 	/** The Constant DOCUMENTS. */
 	private static final String DOCUMENTS = "documents";
-
-	/** The Constant CREATE. */
-	private static final String CREATE = "create";
-
-	/** The Constant CREATE. */
-	private static final String UPDATE = "update";
 
 	/** The Constant VALIDATE_REQUEST. */
 	private static final String VALIDATE_REQUEST = "validateRequest - ";
@@ -110,6 +100,10 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	@Value("#{'${mosip.kernel.idobjectvalidator.mandatory-attributes.id-repository.update-uin:}'.split(',')}")
 	private List<String> updateUinFields;
 
+	/** The verified attributes fields. */
+	@Value("#{'${mosip.kernel.idobjectvalidator.mandatory-attributes.id-repository.verified-attributes:}'.split(',')}")
+	private List<String> verifiedAttributesFields;
+
 	/** The status. */
 	@Resource
 	private List<String> uinStatus;
@@ -117,6 +111,9 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	/** The json validator. */
 	@Autowired
 	private IdObjectValidator idObjectValidator;
+
+	@Autowired
+	private IdObjectSchemaValidator idObjectSchemaValidator;
 
 	/** The allowed types. */
 	private List<String> allowedTypes = List.of("bio", "demo", "metadata", "all");
@@ -138,6 +135,12 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	@Autowired
 	private IdRepoServiceHelper idRepoServiceHelper;
 
+	@Autowired
+	@Qualifier("plainRestTemplate")
+	private RestTemplate restTemplate;
+
+	@Value("${mosip.idrepo.verified-attributes.schema-url}")
+	private String verifiedAttributesSchemaUrl;
 
 	@PostConstruct
 	public void init() {
@@ -147,26 +150,25 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.springframework.validation.Validator#supports(java.lang.Class)
 	 */
 	@Override
 	public boolean supports(Class<?> clazz) {
-		return IdRequestDTO.class.isAssignableFrom(clazz)
-				|| AuthTypeStatusRequestDto.class.isAssignableFrom(clazz)
-				|| IdRequestByIdDTO.class.isAssignableFrom(clazz);
+		return clazz.isAssignableFrom(IdRequestDTO.class) || clazz.isAssignableFrom(AuthTypeStatusRequestDto.class) || clazz.isAssignableFrom(RequestWrapper.class) 
+					|| clazz.isAssignableFrom(IdRequestByIdDTO.class);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.springframework.validation.Validator#validate(java.lang.Object,
 	 * org.springframework.validation.Errors)
 	 */
 	@Override
 	public void validate(@Nonnull Object target, Errors errors) {
-		if (target instanceof IdRequestDTO) {
-			IdRequestDTO request = (IdRequestDTO) target;
+		if (target instanceof RequestWrapper<?> && ((RequestWrapper<?>) target).getRequest() instanceof IdRequestDTO) {
+			RequestWrapper<IdRequestDTO<Object>> request = (RequestWrapper<IdRequestDTO<Object>>) target;
 
 			validateReqTime(request.getRequesttime(), errors);
 
@@ -245,6 +247,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 							String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), ROOT_PATH));
 				} else {
 					validateDocuments(requestMap, errors);
+					validateVerifiedAttributes(requestMap,errors);
 					Set<String> keysToRemove =  requestMap.keySet().stream().filter(key -> !key.contentEquals(ROOT_PATH)).collect(Collectors.toSet());
 					keysToRemove.forEach(requestMap::remove);
 					if (!errors.hasErrors()) {
@@ -279,13 +282,13 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 							index -> errors.rejectValue(REQUEST,
 									e.getCodes().get(index).equals(
 											IdObjectValidatorErrorConstant.INVALID_INPUT_PARAMETER.getErrorCode())
-											? INVALID_INPUT_PARAMETER.getErrorCode()
-											: MISSING_INPUT_PARAMETER.getErrorCode(),
+													? INVALID_INPUT_PARAMETER.getErrorCode()
+													: MISSING_INPUT_PARAMETER.getErrorCode(),
 									String.format(
 											e.getCodes().get(index)
 													.equals(IdObjectValidatorErrorConstant.INVALID_INPUT_PARAMETER.getErrorCode())
-													? INVALID_INPUT_PARAMETER.getErrorMessage()
-													: MISSING_INPUT_PARAMETER.getErrorMessage(),
+															? INVALID_INPUT_PARAMETER.getErrorMessage()
+															: MISSING_INPUT_PARAMETER.getErrorMessage(),
 											Arrays.asList(e.getErrorTexts().get(index).split("-")[1].trim().split("\\|")).stream()
 													.collect(Collectors.joining(" | ")))));
 		} catch (InvalidIdSchemaException | IdObjectIOException e) {
@@ -293,6 +296,48 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					VALIDATE_REQUEST + " InvalidIdSchemaException | IdObjectIOException " + e.getMessage());
 			errors.rejectValue(REQUEST, ID_OBJECT_PROCESSING_FAILED.getErrorCode(),
 					ID_OBJECT_PROCESSING_FAILED.getErrorMessage());
+		}
+	}
+
+	/**
+	 * validate verified attributes.
+	 * 
+	 * @param requestMap
+	 * @throws IdObjectValidationFailedException
+	 * @throws IdObjectIOException
+	 * @throws InvalidIdSchemaException
+	 */
+	@SuppressWarnings("unchecked")
+	private void validateVerifiedAttributes(Map<String, Object> requestMap,Errors errors)
+			throws IdObjectValidationFailedException, IdObjectIOException, InvalidIdSchemaException {
+		if (requestMap.containsKey(VERIFIED_ATTRIBUTES) && Objects.nonNull(requestMap.get(VERIFIED_ATTRIBUTES))
+				&& requestMap.get(VERIFIED_ATTRIBUTES) instanceof Map
+				&& !((Map<String, Object>) requestMap.get(VERIFIED_ATTRIBUTES)).isEmpty()
+				&& requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH))
+				&& !((Map<String, Object>) requestMap.get(ROOT_PATH)).isEmpty()) {
+
+			List<Object> verifiedAttributes = (List<Object>) requestMap.get(VERIFIED_ATTRIBUTES);
+
+			Set<String> compositeKeySet = new HashSet<>();
+			String idSchema = getVerifiedAttributeIdSchema(verifiedAttributesSchemaUrl);
+			for (Object obj : verifiedAttributes) {
+				if (obj instanceof String)
+					continue;
+
+				VerificationMetadata verificationMetadata = (VerificationMetadata) obj;
+
+				//Verify the metadata w.r.t schema
+				idObjectSchemaValidator.validateIdObject(idSchema, verificationMetadata, verifiedAttributesFields);
+
+				//Check if there is any duplicates in the list
+				StringBuilder compositeKeyBuilder = new StringBuilder();
+				compositeKeyBuilder.append(verificationMetadata.getTrustFramework())
+						.append(verificationMetadata.getTrustFramework());
+				if (!compositeKeySet.add(compositeKeyBuilder.toString())) {
+					errors.rejectValue(REQUEST, DUPLICATE_VERIFIED_ATTRIBUTES.getErrorCode(),
+							String.format(DUPLICATE_VERIFIED_ATTRIBUTES.getErrorMessage(), compositeKeyBuilder));
+				}
+			}
 		}
 	}
 
@@ -369,6 +414,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 			}
 		}
 	}
+
 
 	/**
 	 * Validate uin.
@@ -473,7 +519,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	}
 
 	public void validateIdvId(String individualId, IdType idType) throws IdRepoAppException {
-		if ((idType == IdType.UIN && !this.validateUin(individualId))
+		if ((idType != IdType.UIN && idType != IdType.VID) || (idType == IdType.UIN && !this.validateUin(individualId))
 				|| (idType == IdType.VID && !this.validateVid(individualId))) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "getIdType", "Invalid ID");
 			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
@@ -508,5 +554,10 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 			}
 		}
 		return null;
+	}
+
+	@Cacheable(cacheNames = VERIFIED_ATTRIBUTE_SCHEMA, key="{ #idSchemaUrl}")
+	private String getVerifiedAttributeIdSchema(String idSchemaUrl){
+		return restTemplate.getForObject(verifiedAttributesSchemaUrl, String.class);
 	}
 }

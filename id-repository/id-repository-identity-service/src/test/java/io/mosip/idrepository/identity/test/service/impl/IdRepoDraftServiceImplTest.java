@@ -50,6 +50,7 @@ import io.mosip.idrepository.identity.service.impl.IdRepoProxyServiceImpl;
 import io.mosip.idrepository.identity.service.impl.IdRepoServiceImpl;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
+import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.util.CryptoUtil;
 import org.apache.commons.io.IOUtils;
@@ -376,9 +377,9 @@ public class IdRepoDraftServiceImplTest {
 	@Test
 	public void testUpdateDraft() throws IdRepoAppException, IOException {
 		when(identityUpdateTracker.findById(any())).thenReturn(Optional.empty());
-		IdRequestDTO request = new IdRequestDTO();
+		RequestWrapper<IdRequestDTO<Object>> request = new RequestWrapper<>();
 		String registrationId = "1234567890";
-		RequestDTO req = new RequestDTO();
+		IdRequestDTO<Object> req = new IdRequestDTO<>();
 		UinDraft draft = new UinDraft();
 		draft.setUinHash("hash");
 		draft.setUin("274390482564");
@@ -393,15 +394,15 @@ public class IdRepoDraftServiceImplTest {
 		ReflectionTestUtils.setField(idRepoServiceImpl, "mapper", mapper);
 		ReflectionTestUtils.setField(idRepoServiceImpl, "uinPath", uinPath);
 		when(uinDraftRepo.findByRegId(Mockito.any())).thenReturn(uinOpt);
-		IdResponseDTO response = idRepoServiceImpl.updateDraft(registrationId, request);
+		IdResponseDTO response = idRepoServiceImpl.updateDraft(registrationId, request.getRequest());
 		assertNotNull(response);
 	}
 
 	@Test
 	public void testUpdateDraftWithNullUinData() throws IdRepoAppException, IOException {
-		IdRequestDTO request = new IdRequestDTO();
+		RequestWrapper<IdRequestDTO<Object>> request = new RequestWrapper<>();
 		String registrationId = "1234567890";
-		RequestDTO req = new RequestDTO();
+		IdRequestDTO<Object> req = new IdRequestDTO<>();
 		UinDraft draft = new UinDraft();
 		draft.setUin("274390482564");
 		String identityData = IOUtils.toString(
@@ -415,15 +416,14 @@ public class IdRepoDraftServiceImplTest {
 		ReflectionTestUtils.setField(idRepoServiceImpl, "mapper", mapper);
 		ReflectionTestUtils.setField(idRepoServiceImpl, "uinPath", uinPath);
 		when(uinDraftRepo.findByRegId(Mockito.any())).thenReturn(uinOpt);
-		IdResponseDTO response = idRepoServiceImpl.updateDraft(registrationId, request);
+		IdResponseDTO response = idRepoServiceImpl.updateDraft(registrationId, request.getRequest());
 		assertNotNull(response);
 	}
 
 	@Test
 	public void testUpdateDemographicData() throws JsonParseException, JsonMappingException, IOException {
 		when(identityUpdateTracker.findById(any())).thenReturn(Optional.empty());
-		IdRequestDTO request = new IdRequestDTO();
-		RequestDTO req = new RequestDTO();
+		IdRequestDTO<Object> req = new IdRequestDTO<>();
 		UinDraft draft = new UinDraft();
 		draft.setUinHash("hash");
 		draft.setUin("274390482564");
@@ -435,8 +435,7 @@ public class IdRepoDraftServiceImplTest {
 		ReflectionTestUtils.setField(idRepoServiceImpl, "securityManager", securityManager);
 		ReflectionTestUtils.setField(idRepoServiceImpl, "mapper", mapper);
 		ReflectionTestUtils.setField(idRepoServiceImpl, "uinPath", uinPath);
-		request.setRequest(req);
-		ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "updateDemographicData", request, draft);
+		ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "updateDemographicData", req, draft);
 	}
 
 	@Test

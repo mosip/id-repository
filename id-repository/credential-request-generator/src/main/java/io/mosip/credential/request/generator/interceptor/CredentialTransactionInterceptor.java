@@ -2,28 +2,17 @@ package io.mosip.credential.request.generator.interceptor;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
 
 import io.mosip.credential.request.generator.context.CryptoContext;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
-import org.springframework.http.MediaType;
 
-import io.mosip.credential.request.generator.constants.ApiName;
-import io.mosip.credential.request.generator.constants.CredentialRequestErrorCodes;
-import io.mosip.credential.request.generator.dto.CryptomanagerRequestDto;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
-import io.mosip.credential.request.generator.exception.CredentialRequestGeneratorUncheckedException;
 import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
-import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.core.http.RequestWrapper;
-import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
 
 /**
  * @author Manoj SP
@@ -33,11 +22,11 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 
 	private static final String REQUEST = "request";
 
-	private transient RestUtil restUtil;
-	
-	private static final long serialVersionUID = 1L;
-
 	private io.mosip.credential.request.generator.util.CryptoUtil cryptoUtil;
+
+	private transient RestUtil restUtil;
+
+	private static final long serialVersionUID = 1L;
 	
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialTransactionInterceptor.class);
 
@@ -92,6 +81,7 @@ public class CredentialTransactionInterceptor extends EmptyInterceptor {
 			state[indexOfData] = encryptedData;
 		}
 	}
+
 
 	public void setRestUtil(RestUtil restUtil) {
 		this.restUtil = restUtil;

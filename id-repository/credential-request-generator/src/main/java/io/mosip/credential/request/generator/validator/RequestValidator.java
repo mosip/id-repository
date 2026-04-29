@@ -1,6 +1,7 @@
 package io.mosip.credential.request.generator.validator;
 
 import io.mosip.idrepository.core.dto.CredentialIssueRequest;
+import io.mosip.idrepository.core.dto.CredentialIssueRequestDto;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.util.StringUtils;
@@ -24,7 +25,7 @@ public class RequestValidator {
         validateDataToCheckNullOrEmpty(requestWrapper.getRequest().getCredentialType(),
                 CREDENTIAL_TYPE);
         validateDataToCheckNullOrEmpty(requestWrapper.getRequest().getIssuer(), ISSUER);
-
+       
     }
 
     private void validateAPIRequestToCheckNull(RequestWrapper<CredentialIssueRequest> requestWrapper) throws IdRepoAppException {
