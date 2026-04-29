@@ -17,5 +17,4 @@ public class HandleInfoDTO {
     private LocalDateTime genratedOnTimestamp;
     private Integer transactionLimit;
     private Map<String, String> additionalData;
-    private Map<String, String> hashAttributes;
 }

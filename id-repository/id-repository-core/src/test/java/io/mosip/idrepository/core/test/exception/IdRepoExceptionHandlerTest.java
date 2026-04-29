@@ -238,7 +238,7 @@ public class IdRepoExceptionHandlerTest {
 		when(request.getHttpMethod()).thenReturn(HttpMethod.POST);
 		ResponseEntity<Object> handleExceptionInternal = ReflectionTestUtils.invokeMethod(handler,
 				"handleExceptionInternal", new IdRepoAppException(), null, null, null, request);
-		IdResponseDTO response = (IdResponseDTO) handleExceptionInternal.getBody();
+		IdResponseDTO<String> response = (IdResponseDTO<String>) handleExceptionInternal.getBody();
 		response.getErrors();
 	}
 
@@ -248,7 +248,7 @@ public class IdRepoExceptionHandlerTest {
 		ResponseEntity<Object> handleAuthenticationException = ReflectionTestUtils.invokeMethod(handler,
 				"handleAuthenticationException",
 				new AuthenticationException(IdRepoErrorConstants.AUTHORIZATION_FAILED, 401), request);
-		IdResponseDTO response = (IdResponseDTO) handleAuthenticationException.getBody();
+		IdResponseDTO<String> response = (IdResponseDTO<String>) handleAuthenticationException.getBody();
 		response.getErrors().forEach(e -> {
 			assertEquals(IdRepoErrorConstants.AUTHORIZATION_FAILED.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.AUTHORIZATION_FAILED.getErrorMessage(), e.getMessage());
@@ -262,7 +262,7 @@ public class IdRepoExceptionHandlerTest {
 				new IdRepoAppException(IdRepoErrorConstants.INVALID_REQUEST),"regenerate");
 		ResponseEntity<Object> handleIdAppException = ReflectionTestUtils.invokeMethod(handler, "handleIdAppException",
 				ex, request);
-		IdResponseDTO response = (IdResponseDTO) handleIdAppException.getBody();
+		IdResponseDTO<String> response = (IdResponseDTO<String>) handleIdAppException.getBody();
 		List<ServiceError> errorCode = response.getErrors();
 		errorCode.forEach(e -> {
 			assertEquals(IdRepoErrorConstants.INVALID_REQUEST.getErrorCode(), e.getErrorCode());

@@ -19,7 +19,6 @@ import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.dto.AuthtypeStatus;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.ResponseDTO;
-import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.RestServiceException;
@@ -77,6 +76,12 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	@Autowired
 	private IdRepoWebSubHelper webSubHelper;
 
+	@Autowired
+	private IdRepoProxyServiceImpl idRepoProxyServiceImpl;
+
+	@Autowired
+	private IdRepoServiceImpl idRepoServiceImpl;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -94,8 +99,11 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 	}
 
 	private List<Object[]> fetchAuthTypeStatusRecords(String individualId, IdType idType) throws IdRepoAppException {
-		if (idType == IdType.VID) {
-			individualId = getUin(individualId);
+		if (idType == IdType.UIN) {
+			String uinHash = idRepoProxyServiceImpl.retrieveUinHash(individualId);
+			idRepoServiceImpl.retrieveIdentity(uinHash, IdType.UIN, null, null);
+		} else if (idType == IdType.VID) {
+			individualId = idRepoProxyServiceImpl.getUinByVid(individualId);
 		}
 		String idHash = securityManager.hash(individualId.getBytes());
 		return authLockRepository.findByUinHash(idHash);
@@ -121,7 +129,7 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 					status.setMetadata(Collections.singletonMap(UNLOCK_EXP_TIMESTAMP, DateUtils
 							.formatToISOString(DateUtils.getUTCCurrentDateTime().plusSeconds(status.getUnlockForSeconds()))));
 				});
-		String uin = idType == IdType.VID ? getUin(individualId) : individualId;
+		String uin = idType == IdType.VID ? idRepoProxyServiceImpl.getUinByVid(individualId) : individualId;
 		IdResponseDTO updateAuthTypeStatus = doUpdateAuthTypeStatus(uin, authTypeStatusList);
 
 		List<String> partnerIds = getPartnerIds();
@@ -153,21 +161,6 @@ public class AuthTypeStatusImpl implements AuthtypeStatusService {
 					e.getMessage());
 		}
 		return Collections.emptyList();
-	}
-
-	private String getUin(String vid) throws IdRepoAppException {
-		try {
-			RestRequestDTO request = restBuilder.buildRequest(RestServicesConstants.RETRIEVE_UIN_BY_VID, null,
-					ResponseWrapper.class);
-			request.setUri(request.getUri().replace("{vid}", vid));
-			ResponseWrapper<Map<String, String>> response = restHelper.requestSync(request);
-			return response.getResponse().get("UIN");
-		} catch (RestServiceException e) {
-			List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(e.getResponseBodyAsString()
-					.orElseThrow(() -> new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR)));
-			mosipLogger.error(IdRepoSecurityManager.getUser(), AUTH_TYPE_STATUS_IMPL, "getUin", "\n" + errorList);
-			throw new IdRepoAppException(errorList.get(0).getErrorCode(), errorList.get(0).getMessage());
-		}
 	}
 
 	private IdResponseDTO doUpdateAuthTypeStatus(String individualId, List<AuthtypeStatus> authTypeStatusList) {

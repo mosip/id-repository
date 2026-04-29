@@ -13,7 +13,7 @@ import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.util.List;
 import io.mosip.credential.request.generator.entity.CredentialEntity;
 import io.mosip.kernel.core.dataaccess.spi.repository.BaseRepository;
 import java.util.List;
@@ -58,7 +58,7 @@ public interface CredentialRepositary<T extends CredentialEntity, E> extends Bas
 	 * @return the page
 	 */
 	@Transactional
-	@Lock(value = LockModeType.PESSIMISTIC_WRITE)
+	@Lock(value = LockModeType.PESSIMISTIC_WRITE) // adds 'FOR UPDATE' statement
 	@QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "1") })
 	@Query("SELECT crdn FROM CredentialEntity crdn WHERE crdn.statusCode in :statusCodes")
 	Page<CredentialEntity> findCredentialByStatusCodes(@Param("statusCodes") String[] statusCodes, Pageable pageable);

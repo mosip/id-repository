@@ -1,13 +1,5 @@
 package io.mosip.credentialstore.provider;
-import static io.mosip.credentialstore.constants.CredentialConstants.ADDRESS_FORMAT_FUNCTION;
-import static io.mosip.credentialstore.constants.CredentialConstants.CREDENTIAL_ADDRESS_ATTRIBUTE_NAMES;
-import static io.mosip.credentialstore.constants.CredentialConstants.CREDENTIAL_NAME_ATTRIBUTE_NAMES;
-import static io.mosip.credentialstore.constants.CredentialConstants.CREDENTIAL_PHOTO_ATTRIBUTE_NAMES;
-import static io.mosip.credentialstore.constants.CredentialConstants.FULLADDRESS;
-import static io.mosip.credentialstore.constants.CredentialConstants.FULLNAME;
-import static io.mosip.credentialstore.constants.CredentialConstants.IDENTITY_ATTRIBUTES;
-import static io.mosip.credentialstore.constants.CredentialConstants.NAME_FORMAT_FUNCTION;
-
+import io.mosip.biometrics.util.face.FaceDecoder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -31,6 +23,9 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import io.mosip.biometrics.util.ConvertRequestDto;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -83,6 +78,9 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 
+import static io.mosip.credentialstore.constants.CredentialConstants.*;
+
+
 /**
  * The Interface CredentialProvider.
  * 
@@ -94,6 +92,8 @@ public class CredentialProvider {
 	private static final String PHOTO = "photo";
 
 	private static final String DEFAULT = "default";
+
+	private static final String VERIFIED_ATTRIBUTES = "verifiedAttributes";
 
 	private static final String DOT = ".";
 
@@ -126,6 +126,9 @@ public class CredentialProvider {
 	@Value("${credential.service.default.vid.type:PERPETUAL}")
 	private String defaultVidType;
 
+	@Value("${credential.service.convert.request.version:ISO19794_5_2011}")
+	private String convertRequestVer;
+
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialProvider.class);
 
 	private IdentityMapping identityMap;
@@ -146,6 +149,7 @@ public class CredentialProvider {
 	/**
 	 * Gets the formatted credential data.
 	 *
+	 * @param encryptMap                  the encrypt map
 	 * @param credentialServiceRequestDto the credential service request dto
 	 * @param sharableAttributeMap        the sharable attribute map
 	 * @return the formatted credential data
@@ -220,7 +224,7 @@ public class CredentialProvider {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public Map<AllowedKycDto, Object> prepareSharableAttributes(IdResponseDTO idResponseDto,
+	public Map<AllowedKycDto, Object> prepareSharableAttributes(IdResponseDTO<Object> idResponseDto,
 			PartnerCredentialTypePolicyDto policyResponseDto, CredentialServiceRequestDto credentialServiceRequestDto)
 			throws CredentialFormatterException {
 		String requestId = credentialServiceRequestDto.getRequestId();
@@ -351,6 +355,13 @@ public class CredentialProvider {
 					attributesMap.put(key, vidInfoDTO.getVid());
 					additionalData.put("ExpiryTimestamp", vidInfoDTO.getExpiryTimestamp().toString());
 					additionalData.put("TransactionLimit", vidInfoDTO.getTransactionLimit());
+				} else if(attribute.equals(VERIFIED_ATTRIBUTES)) {
+					List savedVerifiedAttributes = (List) idResponseDto.getResponse().getVerifiedAttributes();
+					boolean metadataNotAvailable = savedVerifiedAttributes != null && savedVerifiedAttributes.stream().allMatch(item -> item instanceof String);
+					if(!metadataNotAvailable) {
+						attributesMap.put(key, idResponseDto.getResponse().getVerifiedAttributes());
+					}
+					LOGGER.debug("VERIFIED_ATTRIBUTES allowed, metadataNotAvailable: {}", metadataNotAvailable);
 				}
 			}
 
@@ -371,6 +382,17 @@ public class CredentialProvider {
 							&& CredentialConstants.BESTTWOFINGERS.equalsIgnoreCase(key.getFormat())) {
 						List<BestFingerDto> bestFingerList = getBestTwoFingers(individualBiometricsValue, key);
 						attributesMap.put(key, bestFingerList);
+					}else if((key.getFormat() != null)
+							&& CredentialConstants.JPEG.equalsIgnoreCase(key.getFormat())){
+						byte[] imageBytes = filterBiometricBir(individualBiometricsValue, key);
+						if(imageBytes!=null) {
+							ConvertRequestDto convertRequestDto = new ConvertRequestDto();
+							convertRequestDto.setVersion(convertRequestVer);
+							convertRequestDto.setInputBytes(imageBytes);
+							byte[] data = FaceDecoder.convertFaceISOToImageBytes(convertRequestDto);
+							String encryptedImageString = StringUtils.newStringUtf8(Base64.encodeBase64(data, false));
+							attributesMap.put(key, encryptedImageString);
+						}
 					} else {
 						String cbeff = filterBiometric(individualBiometricsValue, key);
 						attributesMap.put(key, cbeff);
@@ -379,7 +401,7 @@ public class CredentialProvider {
 
 			}
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"end preparing demo and bio sharable attributes");
+					"Final sharable attributes : " + attributesMap.keySet());
 			return attributesMap;
 		} catch (Exception e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
@@ -403,6 +425,10 @@ public class CredentialProvider {
 	private boolean isAttributeInProperty(String attrName, String propName, String defaultValue) {
 		return Stream.of(env.getProperty(propName, "").split(","))
 				.anyMatch(attrName::equalsIgnoreCase);
+	}
+
+	private boolean isVerifiedAttributes(String attrName) {
+		return VERIFIED_ATTRIBUTES.equals(attrName);
 	}
 
 	private AllowedKycDto createAllowedKycDto(String attrName) {
@@ -563,6 +589,42 @@ public class CredentialProvider {
 
 	}
 
+	private byte[] filterBiometricBir(String individualBiometricsValue, AllowedKycDto key) throws Exception {
+
+		Source source = key.getSource().get(0);
+		List<Filter> filterList = source.getFilter();
+		if (filterList != null && !filterList.isEmpty()) {
+			Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
+			filterList.forEach(filter -> {
+				if (filter.getSubType() != null && !filter.getSubType().isEmpty()) {
+					typeAndSubTypeMap.put(filter.getType(), filter.getSubType());
+				} else {
+					typeAndSubTypeMap.put(filter.getType(), null);
+				}
+			});
+
+			List<BIR> birList = cbeffutil.getBIRDataFromXML(CryptoUtil.decodeURLSafeBase64(individualBiometricsValue));
+
+			for (BIR bir : birList) {
+				BDBInfo bdbInfo = bir.getBdbInfo();
+				String type = bdbInfo.getType().get(0).value();
+				if (typeAndSubTypeMap.containsKey(type) && typeAndSubTypeMap.get(type) == null) {
+					return bir.getBdb();
+				} else if (typeAndSubTypeMap.containsKey(type) && typeAndSubTypeMap.get(type) != null) {
+					List<String> subTypeList = typeAndSubTypeMap.get(type);
+					List<String> bdbSubTypeList = bdbInfo.getSubtype();
+					String subType;
+					subType = getSubType(bdbSubTypeList);
+					if (subTypeList.contains(subType)) {
+						return bir.getBdb();
+					}
+				}
+			}
+
+		}
+		return null;
+	}
+
 	/**
 	 * format the data based on user request
 	 * 
@@ -573,13 +635,14 @@ public class CredentialProvider {
 	 * @throws Exception
 	 */
 	private Object filterAndFormat(AllowedKycDto key, JSONObject identity,
-			Map<String, Object> userReqFormatingAttributes) throws Exception {
+								   Map<String, Object> userReqFormatingAttributes) throws Exception {
 		Object formattedObject = null;
 		Source source = key.getSource().get(0);
 		String attribute = source.getAttribute();
 		String userSpecifiedAttributeFormat = userReqFormatingAttributes == null? null : (String) userReqFormatingAttributes.get(attribute);
-		String attributeFormat = userSpecifiedAttributeFormat != null ? userSpecifiedAttributeFormat 
+		String attributeFormat = userSpecifiedAttributeFormat != null ? userSpecifiedAttributeFormat
 				: key.getFormat();
+
 		if (attribute.equals(CredentialConstants.DATEOFBIRTH)) {
 			if(attributeFormat!=null) {
 				formattedObject = formatDate(identity.get(CredentialConstants.DATEOFBIRTH), attributeFormat);
@@ -587,10 +650,10 @@ public class CredentialProvider {
 		} else if (isNameAttribute(attribute)) {
 			List<String> identityAttributesList = attributeFormat==null?List.of():Arrays.asList(attributeFormat.split(","));
 			formattedObject = formatData(identity, CredentialConstants.NAME, identityAttributesList, source.getFilter());
-		}else if (isFullAddressAttribute(attribute) ) {
+		} else if (isFullAddressAttribute(attribute) ) {
 			List<String> identityAttributesList = attributeFormat==null?List.of():Arrays.asList(attributeFormat.split(","));
 			formattedObject = formatData(identity, FULLADDRESS, identityAttributesList, source.getFilter());
-		} else if(identity.get(attribute) instanceof List){
+		} else if(identity.get(attribute) instanceof List) {
 			formattedObject = formatData(identity, attribute, List.of(), source.getFilter());
 		}
 
@@ -598,6 +661,7 @@ public class CredentialProvider {
 	}
 
 	/**
+	 * @param format   the name and address attributes
 	 * @param identity
 	 * @param filter
 	 * @return
@@ -617,7 +681,6 @@ public class CredentialProvider {
 		}
 		Map<String, Map<String, String>> languageMap = new HashMap<>();
 		JSONArray array = new JSONArray();
-		LOGGER.debug("name attributes:  ");
 		for (String identityAttr : identityAttributesList) {
 			Object identityObj = identity.get(identityAttr);
 			if (identityObj != null && identityObj instanceof List) {

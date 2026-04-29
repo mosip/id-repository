@@ -1,5 +1,6 @@
 package io.mosip.idrepository.core.test.util;
 
+import io.mosip.kernel.core.http.RequestWrapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,14 +21,14 @@ import io.mosip.idrepository.core.util.DataValidationUtil;
 public class DataValidationUtilTest {
 
 	/** The request. */
-	IdRequestDTO request;
+	RequestWrapper<IdRequestDTO> request;
 
 	/**
 	 * Before.
 	 */
 	@Before
 	public void before() {
-		request = new IdRequestDTO();
+		request = new RequestWrapper<>();
 	}
 
 	/**

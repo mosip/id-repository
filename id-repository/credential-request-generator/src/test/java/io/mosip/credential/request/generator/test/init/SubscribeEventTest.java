@@ -1,11 +1,6 @@
 package io.mosip.credential.request.generator.test.init;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-
-import java.util.Date;
-
+import io.mosip.credential.request.generator.constants.SubscriptionMessage;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,11 +19,16 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.WebApplicationContext;
 
-import io.mosip.credential.request.generator.constants.SubscriptionMessage;
 import io.mosip.credential.request.generator.init.SubscribeEvent;
 import io.mosip.credential.request.generator.integration.WebSubSubscriptionHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.kernel.core.logger.spi.Logger;
+
+import java.util.Date;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest

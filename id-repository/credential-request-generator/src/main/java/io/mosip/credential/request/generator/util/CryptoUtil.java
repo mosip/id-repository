@@ -1,5 +1,4 @@
 package io.mosip.credential.request.generator.util;
-
 import io.mosip.credential.request.generator.constants.ApiName;
 import io.mosip.credential.request.generator.constants.CredentialRequestErrorCodes;
 import io.mosip.credential.request.generator.dto.CryptomanagerRequestDto;
@@ -14,6 +13,7 @@ import io.mosip.kernel.core.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+
 import java.util.Map;
 import java.util.Objects;
 
@@ -30,11 +30,11 @@ public class CryptoUtil {
     private RestUtil restUtil;
 
     public String decryptData(String data) {
-        return encryptDecryptData(ApiName.DECRYPTION, data);
+        return encryptDecryptData(ApiName.DECRYPTION,data);
     }
 
     public String encryptData(String data) {
-        return encryptDecryptData(ApiName.ENCRYPTION, data);
+        return encryptDecryptData(ApiName.ENCRYPTION,data);
     }
 
     private String encryptDecryptData(ApiName api, String data) {
