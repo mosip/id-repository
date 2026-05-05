@@ -1,7 +1,1 @@
-
-\c mosip_idrepo sysadmin
----------------------------------------------------------------------------------------------------
-
-ALTER TABLE idrepo.handle ADD COLUMN status character varying(32) NOT NULL DEFAULT 'ACTIVATED';
-
-------------------------------------------------------------------------------------------------
+\echo 'Upgrade Queries not required for transition from $CURRENT_VERSION to $UPGRADE_VERSION'
