@@ -1,7 +1,1 @@
-
-\c mosip_idrepo sysadmin
----------------------------------------------------------------------------------------------------
-
-ALTER TABLE idrepo.handle DROP COLUMN IF EXISTS status;
-
-------------------------------------------------------------------------------------------------
+\echo 'Rollback Queries not required for transition from $CURRENT_VERSION to $UPGRADE_VERSION'
