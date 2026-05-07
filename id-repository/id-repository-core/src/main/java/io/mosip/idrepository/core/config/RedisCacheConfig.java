@@ -40,6 +40,4 @@ public class RedisCacheConfig {
                  .withInitialCacheConfigurations(configurationMap)
                  .build();
     }
-    
-
 }
