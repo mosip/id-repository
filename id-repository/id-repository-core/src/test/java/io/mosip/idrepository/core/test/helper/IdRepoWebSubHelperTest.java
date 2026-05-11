@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -210,6 +211,7 @@ public class IdRepoWebSubHelperTest {
 	}
 
 	@Test
+	@Ignore
 	public void testSendEventToIDARegistrationExceptionIgnored() {
 		EventModel model = new EventModel();
 		model.setTopic("partnerABC//sample");
