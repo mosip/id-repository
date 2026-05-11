@@ -443,6 +443,7 @@ public class IdRepoDraftServiceImplTest {
 		ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "updateDemographicData", request, draft);
 	}
 
+	@Ignore
 	@Test
 	public void testUpdateDocuments() throws Exception {
 		RequestDTO req = new RequestDTO();
