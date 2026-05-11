@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -46,8 +49,10 @@ import org.skyscreamer.jsonassert.JSONCompare;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.skyscreamer.jsonassert.JSONCompareResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -199,6 +204,15 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	@Autowired
 	private IdRepoServiceHelper idRepoServiceHelper;
 
+	/**
+	 * Dedicated executor for parallel S3 uploads in {@link #addDocuments}.
+	 * Sized for IO-bound work; back-pressure via CallerRunsPolicy (configured
+	 * in {@code IdRepoConfig#documentUploadExecutor}).
+	 */
+	@Autowired
+	@Qualifier("documentUploadExecutor")
+	private ThreadPoolTaskExecutor documentUploadExecutor;
+
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
 
@@ -306,21 +320,101 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			List<UinBiometricHistory> bioHistoryList, List<UinDocumentHistory> docHistoryList,
 			boolean isDraft) {
 		ObjectNode identityObject = convertToObject(identityInfo, ObjectNode.class);
-		IntStream.range(0, documents.size()).filter(index -> identityObject.has(documents.get(index).getCategory())).forEach(index -> {
-			DocumentsDTO doc = documents.get(index);
-			JsonNode docType = identityObject.get(doc.getCategory());
-			try {
-				if (bioAttributes.contains(doc.getCategory())) {
-					addBiometricDocuments(uinHash, uinRefId, bioList, bioHistoryList, doc, docType, isDraft, index);
-					anonymousProfileHelper.setNewCbeff(doc.getValue());
-				} else {
-					addDemographicDocuments(uinHash, uinRefId, docList, docHistoryList, doc, docType, isDraft);
-				}
-			} catch (IdRepoAppException e) {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, e.getMessage());
-				throw new IdRepoAppUncheckedException(e.getErrorCode(), e.getErrorText(), e);
+
+		// Preserve original semantics: only process documents whose category is
+		// present in the identity object, in their original index order.
+		List<Integer> indices = IntStream.range(0, documents.size())
+				.filter(index -> identityObject.has(documents.get(index).getCategory()))
+				.boxed()
+				.collect(Collectors.toList());
+
+		if (indices.isEmpty()) {
+			return;
+		}
+
+		/*
+		 * Each document/biometric upload is an independent S3 round-trip. The
+		 * original implementation ran them sequentially on the request thread,
+		 * which made the publish/add latency scale linearly with the number of
+		 * attached files. They are now dispatched in parallel on a dedicated
+		 * IO-bound executor (`documentUploadExecutor`).
+		 *
+		 * Concurrency invariants preserved:
+		 *  • Worker tasks touch only their own per-task accumulator
+		 *    (`DocUploadResult`); the caller-supplied lists are mutated only
+		 *    after every future has completed, single-threaded, in the original
+		 *    document index order.
+		 *  • `anonymousProfileHelper.setNewCbeff(...)` is applied at merge time
+		 *    in original order, so the same "last biometric in iteration order
+		 *    wins" semantics as the original forEach are preserved.
+		 *  • A failure in any task aborts the whole call (fail-fast, matching
+		 *    the original forEach), and the original exception type
+		 *    (IdRepoAppUncheckedException) is re-thrown.
+		 */
+		List<CompletableFuture<DocUploadResult>> futures = indices.stream()
+				.map(index -> CompletableFuture.supplyAsync(() -> {
+					DocumentsDTO doc = documents.get(index);
+					JsonNode docType = identityObject.get(doc.getCategory());
+					DocUploadResult result = new DocUploadResult();
+					try {
+						if (bioAttributes.contains(doc.getCategory())) {
+							addBiometricDocuments(uinHash, uinRefId,
+									result.bios, result.bioHistory,
+									doc, docType, isDraft, index);
+							result.newCbeffValue = doc.getValue();
+						} else {
+							addDemographicDocuments(uinHash, uinRefId,
+									result.docs, result.docHistory,
+									doc, docType, isDraft);
+						}
+					} catch (IdRepoAppException e) {
+						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL,
+								ADD_IDENTITY, e.getMessage());
+						throw new IdRepoAppUncheckedException(e.getErrorCode(), e.getErrorText(), e);
+					}
+					return result;
+				}, documentUploadExecutor))
+				.collect(Collectors.toList());
+
+		// Wait for all uploads. Unwrap CompletionException so callers see the
+		// same exception types they would have seen from the original forEach.
+		try {
+			CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+		} catch (CompletionException ce) {
+			Throwable cause = (ce.getCause() != null) ? ce.getCause() : ce;
+			if (cause instanceof IdRepoAppUncheckedException) {
+				throw (IdRepoAppUncheckedException) cause;
 			}
-		});
+			if (cause instanceof RuntimeException) {
+				throw (RuntimeException) cause;
+			}
+			throw new IdRepoAppUncheckedException(UNKNOWN_ERROR, cause);
+		}
+
+		// Single-threaded merge in original document order — no concurrency
+		// hazards on the caller-supplied lists.
+		for (CompletableFuture<DocUploadResult> f : futures) {
+			DocUploadResult r = f.join();
+			if (!r.bios.isEmpty())        bioList.addAll(r.bios);
+			if (!r.docs.isEmpty())        docList.addAll(r.docs);
+			if (!r.bioHistory.isEmpty())  bioHistoryList.addAll(r.bioHistory);
+			if (!r.docHistory.isEmpty())  docHistoryList.addAll(r.docHistory);
+			if (r.newCbeffValue != null)  anonymousProfileHelper.setNewCbeff(r.newCbeffValue);
+		}
+	}
+
+	/**
+	 * Per-document accumulator used by {@link #addDocuments} to avoid sharing
+	 * any mutable state across parallel upload tasks. Each parallel task fills
+	 * its own instance, and the caller merges them back into the shared lists
+	 * single-threaded after every task has finished.
+	 */
+	private static final class DocUploadResult {
+		final List<UinBiometric> bios = new ArrayList<>(1);
+		final List<UinDocument> docs = new ArrayList<>(1);
+		final List<UinBiometricHistory> bioHistory = new ArrayList<>(1);
+		final List<UinDocumentHistory> docHistory = new ArrayList<>(1);
+		String newCbeffValue;
 	}
 
 	/**

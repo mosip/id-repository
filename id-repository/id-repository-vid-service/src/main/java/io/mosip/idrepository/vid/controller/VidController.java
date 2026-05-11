@@ -159,7 +159,7 @@ public class VidController {
 		} finally {
 			String vidType = Optional.ofNullable(request.getRequest()).map(req -> String.valueOf(req.getVidType()))
 					.orElse("null");
-			auditHelper.audit(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.CREATE_VID, uin, IdType.UIN,
+			auditHelper.auditAsync(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.CREATE_VID, uin, IdType.UIN,
 					"Create VID requested for " + vidType);
 		}
 	}
@@ -213,7 +213,7 @@ public class VidController {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_CONTROLLER, RETRIEVE_UIN_BY_VID, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
-			auditHelper.audit(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.RETRIEVE_VID_UIN, vid, IdType.VID,
+			auditHelper.auditAsync(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.RETRIEVE_VID_UIN, vid, IdType.VID,
 					"Retrieve Uin By VID requested");
 		}
 	}
@@ -248,7 +248,7 @@ public class VidController {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_CONTROLLER, RETRIEVE_VID_BY_UIN, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
-			auditHelper.audit(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.RETRIEVE_UIN_VID, uin, IdType.UIN,
+			auditHelper.auditAsync(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.RETRIEVE_UIN_VID, uin, IdType.UIN,
 					"Retrieve Vids By UIN requested");
 		}
 	}
@@ -296,7 +296,7 @@ public class VidController {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_CONTROLLER, UPDATE_VID_STATUS, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
-			auditHelper.audit(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.UPDATE_VID_STATUS, vid, IdType.VID,
+			auditHelper.auditAsync(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.UPDATE_VID_STATUS, vid, IdType.VID,
 					"Update VID requested");
 		}
 	}
@@ -336,7 +336,7 @@ public class VidController {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_CONTROLLER, REGENERATE_VID, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e, REGENERATE);
 		} finally {
-			auditHelper.audit(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.REGENERATE_VID, vid, IdType.VID,
+			auditHelper.auditAsync(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.REGENERATE_VID, vid, IdType.VID,
 					"Regenerate VID requested");
 		}
 	}
@@ -380,7 +380,7 @@ public class VidController {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_CONTROLLER, DEACTIVATE_VID, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e, DEACTIVATE);
 		} finally {
-			auditHelper.audit(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.DEACTIVATE_VID, uin, IdType.UIN,
+			auditHelper.auditAsync(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.DEACTIVATE_VID, uin, IdType.UIN,
 					"Deactivate VID Requested");
 		}
 	}
@@ -425,7 +425,7 @@ public class VidController {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), VID_CONTROLLER, DEACTIVATE_VID, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e, REACTIVATE);
 		} finally {
-			auditHelper.audit(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.REACTIVATE_VID, uin, IdType.UIN,
+			auditHelper.auditAsync(AuditModules.ID_REPO_VID_SERVICE, AuditEvents.REACTIVATE_VID, uin, IdType.UIN,
 					"Reactivate VID Requested");
 		}
 	}

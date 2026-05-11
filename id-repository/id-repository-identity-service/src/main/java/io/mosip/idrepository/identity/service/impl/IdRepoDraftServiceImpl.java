@@ -332,7 +332,13 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 			} else {
 				draftVid = vidDraftHelper.generateDraftVid(uin);
 				uinObject = super.addIdentity(idRequest, uin);
-				vidDraftHelper.activateDraftVid(draftVid);
+				/*
+				 * Activation is a remote REST call whose result the caller
+				 * never reads. Run it asynchronously so the user is not
+				 * blocked on the VID service round-trip. Failures are logged
+				 * inside activateDraftVidAsync (see VidDraftHelper).
+				 */
+				vidDraftHelper.activateDraftVidAsync(draftVid);
 			}
 
 			anonymousProfileHelper.buildAndsaveProfile(true);

@@ -43,6 +43,8 @@ import io.mosip.kernel.core.util.StringUtils;
  *  webSubHelperExecutor             idrepo-websub-              WebSub publish/receive
  *  credentialStatusManagerJobExec   idrepo-cred-status-job-     Credential status jobs
  *  anonymousProfileExecutor         idrepo-anon-profile-        Anonymous profile builds
+ *  documentUploadExecutor           idrepo-doc-upload-          Parallel S3 uploads inside
+ *                                                               addIdentity / updateIdentity
  *  withSecurityContext              idrepo-sec-ctx-             @Async tasks that need
  *                                                               security context propagation
  * </pre>
@@ -141,6 +143,19 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 
 	@Value("${mosip.idrepo.anon-profile-executor.await-termination-seconds:30}")
 	private int anonProfileAwaitTerminationSeconds;
+
+	// Document upload pool (parallel S3 uploads inside addIdentity / updateIdentity)
+	@Value("${mosip.idrepo.doc-upload-executor.core-pool-size:8}")
+	private int docUploadCorePoolSize;
+
+	@Value("${mosip.idrepo.doc-upload-executor.max-pool-size:32}")
+	private int docUploadMaxPoolSize;
+
+	@Value("${mosip.idrepo.doc-upload-executor.queue-capacity:200}")
+	private int docUploadQueueCapacity;
+
+	@Value("${mosip.idrepo.doc-upload-executor.await-termination-seconds:60}")
+	private int docUploadAwaitTerminationSeconds;
 
 	// Security-context-propagating pool  (used by @Async("withSecurityContext"))
 	@Value("${mosip.idrepo.extract.template.core-pool-size:20}")
@@ -257,6 +272,29 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	}
 
 	/**
+	 * Executor for parallel document / biometric S3 uploads performed during
+	 * {@code addIdentity} / {@code updateIdentity}.
+	 *
+	 * <p>Each upload is an independent network round-trip to the object store, so
+	 * running them concurrently turns an O(N) tail-of-uploads into roughly
+	 * O(N / poolSize) on the user's request path. The pool is sized for IO-bound
+	 * work (small core, larger max, deep queue) and uses {@code CallerRunsPolicy}
+	 * via {@link #buildExecutor} so back-pressure falls on the caller rather than
+	 * silently dropping uploads.
+	 */
+	@Bean
+	@Qualifier("documentUploadExecutor")
+	public ThreadPoolTaskExecutor documentUploadExecutor() {
+		return buildExecutor(
+				"idrepo-doc-upload-",
+				docUploadCorePoolSize,
+				docUploadMaxPoolSize,
+				docUploadQueueCapacity,
+				docUploadAwaitTerminationSeconds
+		);
+	}
+
+	/**
 	 * Security-context-propagating executor used by
 	 * {@code @Async("withSecurityContext")}.
 	 *
@@ -320,6 +358,10 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 	private ThreadPoolTaskExecutor injectedAnonProfileExecutor;
 
 	@Autowired
+	@Qualifier("documentUploadExecutor")
+	private ThreadPoolTaskExecutor injectedDocUploadExecutor;
+
+	@Autowired
 	@Qualifier("securityContextDelegateExecutor")
 	private ThreadPoolTaskExecutor injectedSecCtxExecutor;
 
@@ -341,6 +383,7 @@ public class IdRepoConfig extends IdRepoDataSourceConfig implements WebMvcConfig
 		logThreadQueueDetails(injectedWebSubExecutor);
 		logThreadQueueDetails(injectedCredStatusExecutor);
 		logThreadQueueDetails(injectedAnonProfileExecutor);
+		logThreadQueueDetails(injectedDocUploadExecutor);
 		logThreadQueueDetails(injectedSecCtxExecutor);
 	}
 

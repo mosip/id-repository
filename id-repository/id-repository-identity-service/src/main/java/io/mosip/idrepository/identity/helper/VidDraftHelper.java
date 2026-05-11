@@ -7,6 +7,7 @@ import java.util.Objects;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,6 +86,39 @@ public class VidDraftHelper {
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), "VidDraftHelper", "activateDraftVid", ExceptionUtils.getStackTrace(e));
 			throw new IdRepoAppException(VID_GENERATION_FAILED);
+		}
+	}
+
+	/**
+	 * Fire-and-forget variant of {@link #activateDraftVid(String)} used on the
+	 * {@code publishDraft} hot path.
+	 *
+	 * <p>VID activation is a remote REST call to the VID service whose result is
+	 * not consumed by the caller — neither the response body nor any thrown
+	 * exception influences the response sent back to the user. Running it
+	 * synchronously on the request thread therefore only adds latency.
+	 *
+	 * <p>This method is annotated {@code @Async} so the call is dispatched on
+	 * the default async executor and the caller returns immediately. Any failure
+	 * is logged in place of being re-thrown, because the worker has no caller to
+	 * propagate to. The synchronous {@link #activateDraftVid(String)} method is
+	 * preserved for callers that still want the strict-throwing semantics or
+	 * that need to observe the call completing before continuing.
+	 *
+	 * <p><b>Operational note:</b> a failed asynchronous activation leaves the VID
+	 * in {@code draft} state. The id-repository already had this exposure for
+	 * stranded VIDs (the VID is generated in a separate, non-participating
+	 * transaction), so this change preserves rather than introduces that risk.
+	 * Reconciliation should be handled out-of-band.
+	 */
+	@Async
+	public void activateDraftVidAsync(String draftVid) {
+		try {
+			activateDraftVid(draftVid);
+		} catch (Exception e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), "VidDraftHelper", "activateDraftVidAsync",
+					"Async VID activation failed | draftVid=" + draftVid + " | error="
+							+ ExceptionUtils.getStackTrace(e));
 		}
 	}
 }

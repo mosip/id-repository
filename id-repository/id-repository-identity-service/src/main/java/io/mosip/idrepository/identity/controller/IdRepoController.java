@@ -219,7 +219,7 @@ public class IdRepoController {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
-			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, regId,
+			auditHelper.auditAsync(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, regId,
 					IdType.ID, "Create Identity requested");
 		}
 	}
@@ -277,7 +277,7 @@ public class IdRepoController {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
-			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, id,
+			auditHelper.auditAsync(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, id,
 					IdType.UIN, "Retrieve Identity requested");
 		}
 	}
@@ -315,7 +315,7 @@ public class IdRepoController {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
-			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, idRequestByIdDTO.getId(),
+			auditHelper.auditAsync(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, idRequestByIdDTO.getId(),
 					IdType.UIN, "Retrieve Identity requested");
 		}
 	}
@@ -353,7 +353,7 @@ public class IdRepoController {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
-			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, request.getRequest().getId(),
+			auditHelper.auditAsync(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, request.getRequest().getId(),
 					IdType.UIN, "Retrieve Identity requested");
 		}
 	}
@@ -404,7 +404,7 @@ public class IdRepoController {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
-			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_IDENTITY_REQUEST_RESPONSE, regId,
+			auditHelper.auditAsync(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_IDENTITY_REQUEST_RESPONSE, regId,
 					IdType.ID, "Update Identity requested");
 		}
 	}
@@ -455,7 +455,7 @@ public class IdRepoController {
 			authtypeResponseDto.setResponse(authtypestatusmap);
 			authtypeResponseDto.setResponsetime(DateUtils2.getUTCCurrentDateTime());
 
-			auditHelper.audit(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
+			auditHelper.auditAsync(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
 					individualId, idType, "auth type status update status : " + true);
 
 			return new ResponseEntity<>(authtypeResponseDto, HttpStatus.OK);
@@ -519,7 +519,7 @@ public class IdRepoController {
 				IdResponseDTO updateAuthtypeStatus = authTypeStatusService.updateAuthTypeStatus(
 						individualId, idType, authTypeStatusRequest.getRequest());
 				String individualIdType = authTypeStatusRequest.getIndividualIdType();
-				auditHelper.audit(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
+				auditHelper.auditAsync(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
 						individualId,
 						individualIdType == null ? IdType.UIN : IdType.valueOf(individualIdType),
 						"auth type status update status : " + true);
@@ -548,7 +548,7 @@ public class IdRepoController {
 	public ResponseEntity<ResponseWrapper<RidDto>> getRidByIndividualId(@PathVariable("individualId") String individualId,
 			@RequestParam(name = ID_TYPE, required = false) @Nullable String idType) throws IdRepoAppException {
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
-		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
+		auditHelper.auditAsync(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
 				individualId, individualIdType, "Get RID by IndividualId Request received");
 		ResponseWrapper<RidDto> responseWrapper = new ResponseWrapper<>();
 		RidDto ridDto = new RidDto();
@@ -556,7 +556,7 @@ public class IdRepoController {
 		responseWrapper.setId(ridId);
 		responseWrapper.setVersion(ridVersion);
 		responseWrapper.setResponse(ridDto);
-		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
+		auditHelper.auditAsync(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID,
 				individualId, individualIdType, "Get RID by IndividualId Request success");
 		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}
@@ -579,7 +579,7 @@ public class IdRepoController {
 		String individualId = metadataRequest.getIndividualId();
 		String idType = metadataRequest.getIdType();
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
-		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
+		auditHelper.auditAsync(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
 				individualId, individualIdType, "IdVid metadata search request received");
 
 		IdVidMetadataResponseDTO metadataResponse = idRepoService.getIdVidMetadata(individualId, individualIdType);
@@ -589,7 +589,7 @@ public class IdRepoController {
 		responseWrapper.setVersion(idvidMetadataVersion);
 		responseWrapper.setResponse(metadataResponse);
 
-		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
+		auditHelper.auditAsync(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
 				individualId, individualIdType, "IdVid metadata search request successful");
 
 		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
@@ -610,7 +610,7 @@ public class IdRepoController {
 			@RequestParam(name = "attribute_list", required = false) @Nullable List<String> attributeList)
 			throws IdRepoAppException {
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
-		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID, individualId,
+		auditHelper.auditAsync(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID, individualId,
 				individualIdType, "Get Remaining update count by Individual Id Request received");
 		ResponseWrapper<AttributeListDto> responseWrapper = new ResponseWrapper<>();
 		AttributeListDto attributeListDto = new AttributeListDto();
@@ -619,7 +619,7 @@ public class IdRepoController {
 		List<UpdateCountDto> dtoList = countMap.entrySet().stream()
 				.map(map -> new UpdateCountDto(map.getKey(),map.getValue()))
 				.collect(Collectors.toList());
-		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID, individualId,
+		auditHelper.auditAsync(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID, individualId,
 				individualIdType, "Get Remaining update count by Individual Id Request success");
 		attributeListDto.setAttributes(dtoList);
 		responseWrapper.setResponse(attributeListDto);
