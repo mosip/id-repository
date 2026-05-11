@@ -21,7 +21,6 @@ import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.idrepository.core.dto.*;
 import org.assertj.core.util.Maps;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -1054,8 +1053,7 @@ public class IdRepoControllerTest {
 		assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), ex.getErrorCode());
 		verify(auditHelper).auditError(any(), any(), eq("IND123"), eq(IdType.UIN), any());
 	}
-
-	@Ignore
+	
 	@Test
 	public void testUpdateAuthtypeStatusNormalFlow() throws IdRepoAppException {
 		AuthTypeStatusRequestDto request = new AuthTypeStatusRequestDto();

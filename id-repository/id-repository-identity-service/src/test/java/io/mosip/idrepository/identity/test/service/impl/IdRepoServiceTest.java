@@ -26,7 +26,6 @@ import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -119,7 +118,6 @@ import io.mosip.kernel.core.util.CryptoUtil;
 @Import(EnvUtil.class)
 @ActiveProfiles("test")
 @ConfigurationProperties("mosip.idrepo.identity")
-@Ignore
 public class IdRepoServiceTest {
 
 	private static final String TYPE = "type";

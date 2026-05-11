@@ -100,8 +100,6 @@ import static org.junit.Assert.assertSame;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
@@ -442,8 +440,7 @@ public class IdRepoDraftServiceImplTest {
 		request.setRequest(req);
 		ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "updateDemographicData", request, draft);
 	}
-
-	@Ignore
+	
 	@Test
 	public void testUpdateDocuments() throws Exception {
 		RequestDTO req = new RequestDTO();
