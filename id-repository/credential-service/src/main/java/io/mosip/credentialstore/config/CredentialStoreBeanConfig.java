@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCache;
@@ -28,6 +29,7 @@ import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * The Class CredentialStoreConfig.
@@ -125,11 +127,9 @@ public class CredentialStoreBeanConfig {
 	}
 
 	@Bean
-	public RestHelper restHelper() {
-		return new RestHelper();
+	public RestHelper restHelper(@Qualifier("selfTokenWebClient") WebClient webClient) {
+		return new RestHelper(webClient);
 	}
-
-
 
 	@Bean
 	public AfterburnerModule afterburnerModule() {
