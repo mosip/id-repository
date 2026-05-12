@@ -158,6 +158,9 @@ public class IdRepoServiceHelper {
             String schemaVersion = String
 					.valueOf(identityMap.get(identityMapping.getIdentity().getIDSchemaVersion().getValue()));
 			String selectedHandlesFieldId = identityMapping.getIdentity().getSelectedHandles().getValue();
+            if (!supportedHandlesInSchema.containsKey(schemaVersion)) {
+                getSchema(schemaVersion);
+            }
 //			if 'selectedHandles' is not coming in the request body itself then will execute else if block.
 			if (identityMap.containsKey(selectedHandlesFieldId)
 					&& Objects.nonNull(identityMap.get(selectedHandlesFieldId))) {
