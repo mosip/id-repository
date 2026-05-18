@@ -35,7 +35,10 @@ public class UnsubscribeController {
         public WebSecurityCustomizer unsubscribeWebSecurityCustomizer() {
             // PRODUCTION & LOCAL: Completely bypass Spring Security and Keycloak AuthFilter for these public endpoints.
             // Required because users clicking the unsubscribe link from an email will not have a Keycloak session.
-            return (web) -> web.ignoring().requestMatchers(new AntPathRequestMatcher("/**/unsubscribe**"));
+            return (web) -> web.ignoring().requestMatchers(
+                    new AntPathRequestMatcher("/unsubscribe", "POST"),
+                    new AntPathRequestMatcher("/unsubscribe/status", "GET")
+            );
         }
     }
 
