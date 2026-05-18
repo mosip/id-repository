@@ -23,8 +23,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED;
 
 @Service
 @Transactional(rollbackFor = { IdRepoAppException.class })
@@ -79,7 +81,6 @@ public class UnsubscribeServiceImpl implements UnsubscribeService {
 
             // 3. Decrypt the UIN value to pass to updateIdentity
             // uinEntity.getUin() holds the encrypted UIN; we resolve the plain hash
-            String uinHash = uinEntity.getUinHash();
             String plainUin = resolveDecryptedUin(uinEntity);
 
             idRepoServiceImpl.updateIdentity(updateRequest, plainUin);
@@ -119,19 +120,20 @@ public class UnsubscribeServiceImpl implements UnsubscribeService {
      */
     private String resolveDecryptedUin(Uin uinEntity) throws IdRepoAppException {
         try {
-            // In production, the 'uin' field is stored as: saltId_SPLITTER_encryptedUin
-            String[] parts = uinEntity.getUin().split(io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER);
-            if (parts.length >= 2) {
+            // In production, the 'uin' field is stored as: saltId_SPLITTER_encryptedUin.
+            // We split with a limit of 2 to prevent the encrypted data from being truncated if it contains the splitter.
+            String[] parts = uinEntity.getUin().split(Pattern.quote(io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER), 2);
+            if (parts.length == 2 && !parts[1].isBlank()) {
                 // Execute the proper decryption process using MOSIP's Security Manager
                 byte[] decryptedBytes = securityManager.decrypt(parts[1].getBytes(), "uin");
                 return new String(decryptedBytes);
             }
         } catch (Exception e) {
             mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_NAME,
-                    "resolveDecryptedUin", "Failed to extract UIN: " + e.getMessage());
+                    "resolveDecryptedUin", "Failed to decrypt UIN: " + e.getMessage());
         }
-        throw new IdRepoAppException(NO_RECORD_FOUND.getErrorCode(),
-                "Unable to resolve UIN for deactivation");
+        throw new IdRepoAppException(ENCRYPTION_DECRYPTION_FAILED.getErrorCode(),
+                "Unable to decrypt UIN for deactivation");
     }
 
     private void saveUnsubscribeRecord(String email, String reason, String comments) {
