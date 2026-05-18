@@ -126,26 +126,6 @@
 			<version>${lombok.version}</version>
 			<optional>true</optional>
 		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-auth-adapter</artifactId>
-			<version>1.2.0.2</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.biosdk</groupId>
-			<artifactId>biosdk-client</artifactId>
-			<version>1.2.0.2</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-biometrics-api</artifactId>
-			<version>1.2.0.4</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-ref-idobjectvalidator</artifactId>
-			<version>1.2.0.2</version>
-		</dependency>
 	</dependencies>
 	<distributionManagement>
 		<snapshotRepository>
