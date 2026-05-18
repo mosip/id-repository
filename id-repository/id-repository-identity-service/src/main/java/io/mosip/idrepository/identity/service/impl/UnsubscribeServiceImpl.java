@@ -50,8 +50,31 @@ public class UnsubscribeServiceImpl implements UnsubscribeService {
     public void processUnsubscribe(UnsubscribeRequestDto request) throws IdRepoAppException {
         String email = request.getEmail().toLowerCase().trim();
 
+
+
+
+        //-------------------------- issue 1.0: UIN lookup by email --------------------------
         // 1. Find UIN(s) associated with this email from identity data
-        List<Uin> uinList = uinRepo.findByEmailInIdentityData(email);
+        List<Uin> uinList = uinRepo.findByEmailInIdentityData(email); // this one causing issue 1.0 
+        // error 1.0:  The issue is that your database WHERE clause is trying to search for a
+        //  plain-text email directly against the uin_data column, but because that column is
+        //  cryptographically encrypted (BYTEA), the SQL engine cannot decrypt records on
+        //  the fly to find a text match, resulting in failed lookups and hash mismatches.
+        // for to correction i need follow:
+         // as per issue i was understand that i cannot use original logic of passing a plain text email into the dtabase serach nor can just split the UIN 
+         //string withput decrypting it
+         /* fix for production:
+         1. we must hash the incoming email in java using IdRepoSecurityManger and serach the database against a stored email_hash column
+         2. decrypt properly : we must use IdRepoSecurityManager.decrypt() to extract the UIN instead of a simple string Split
+
+         logic need to add :
+            // 1. Hash the email to securely search the database
+        // Because uin_data is highly encrypted, we cannot search plain-text emails using SQL.
+        // We must search against an indexed hashed value of the email.
+        String emailHash = securityManager.hash(email.getBytes());
+        List<Uin> uinList = uinRepo.findByEmailHash(emailHash); // Ensure findByEmailHash is updated in UinRepo
+         
+         */
 
         if (uinList == null || uinList.isEmpty()) {
             mosipLogger.warn(IdRepoSecurityManager.getUser(), CLASS_NAME,
@@ -125,6 +148,19 @@ public class UnsubscribeServiceImpl implements UnsubscribeService {
             if (parts.length >= 2) {
                 return parts[1];
             }
+
+/* issue 1.0 changes: u need to update as :
+            // In production, the 'uin' field is stored as: saltId_SPLITTER_encryptedUin
+            String[] parts = uinEntity.getUin().split(io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER);
+            if (parts.length >= 2) {
+                // Execute the proper decryption process using MOSIP's Security Manager
+                byte[] decryptedBytes = securityManager.decrypt(parts[1].getBytes(), "uin");
+                return new String(decryptedBytes);
+
+*/
+
+
+
         } catch (Exception e) {
             mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_NAME,
                     "resolveDecryptedUin", "Failed to extract UIN: " + e.getMessage());
