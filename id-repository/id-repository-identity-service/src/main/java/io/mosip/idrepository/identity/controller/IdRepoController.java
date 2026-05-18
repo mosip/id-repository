@@ -164,8 +164,13 @@ public class IdRepoController {
 	 * @param binder
 	 *            the binder
 	 */
-	@InitBinder("idRequestDTO")
+	@InitBinder("requestWrapper")
 	public void initBinder(WebDataBinder binder) {
+		binder.addValidators(validator);
+	}
+
+	@InitBinder("idRequestByIdDTO")
+	public void initIdRequestByIdDTOBinder(WebDataBinder binder) {
 		binder.addValidators(validator);
 	}
 
@@ -638,9 +643,9 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
-	public ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> searchIdVidMetadata(@RequestBody RequestWrapper<IdVidMetadataRequestDTO> request) throws IdRepoAppException {
+	public ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> searchIdVidMetadata(@RequestBody RequestWrapper<IdVidMetadataRequestDTO> idVidMetadataRequestWrapper) throws IdRepoAppException {
 
-		IdVidMetadataRequestDTO metadataRequest = request.getRequest();
+		IdVidMetadataRequestDTO metadataRequest = idVidMetadataRequestWrapper.getRequest();
 		String individualId = metadataRequest.getIndividualId();
 		String idType = metadataRequest.getIdType();
 
