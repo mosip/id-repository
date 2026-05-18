@@ -2,7 +2,7 @@ modules:
   idrepo:
     enabled: true
     image:
-      repository: mosipid/apitest-idrepo
+      repository: mosipqa/apitest-idrepo
       tag: 1.3.x
       pullPolicy: Always
 
