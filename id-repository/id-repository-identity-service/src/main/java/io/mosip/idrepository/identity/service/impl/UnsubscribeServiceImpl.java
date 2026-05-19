@@ -79,6 +79,7 @@ public class UnsubscribeServiceImpl implements UnsubscribeService {
     */
     @Override
     public void processUnsubscribe(UnsubscribeRequestDto request) throws IdRepoAppException {
+        // Security Note: request.getEmail() is now securely populated by the Controller after JWT verification.
         String email = request.getEmail().toLowerCase(Locale.ENGLISH).trim();
 
         // 1. Hash the email to securely search the database
