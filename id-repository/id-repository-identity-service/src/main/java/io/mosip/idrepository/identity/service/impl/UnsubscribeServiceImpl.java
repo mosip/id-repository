@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -35,7 +36,7 @@ public class UnsubscribeServiceImpl implements UnsubscribeService {
     private static final String CLASS_NAME = "UnsubscribeServiceImpl";
 
     Logger mosipLogger = IdRepoLogger.getLogger(UnsubscribeServiceImpl.class);
-
+// these are writing in the field injection 
     @Autowired
     private UinRepo uinRepo;
 
@@ -51,9 +52,34 @@ public class UnsubscribeServiceImpl implements UnsubscribeService {
     @Value("${mosip.idrepo.identity.uin-status.deactivated:DEACTIVATED}")
     private String deactivatedStatus;
 
+
+    /* below is the alter method of the field injection which is constructor injection:
+    this will make the class immutable explicitly define its depedencies and make it much easier 
+    to write isolated unit test for it 
+      
+    private final UinRepo uinRepo;
+    private final UnsubscribeRecordRepo unsubscribeRecordRepo;
+    private final IdRepoServiceImpl idRepoServiceImpl;
+    private final IdRepoSecurityManager securityManager;
+
+    // Spring automatically autowires a class with a single constructor
+    public UnsubscribeServiceImpl(UinRepo uinRepo,
+                                  UnsubscribeRecordRepo unsubscribeRecordRepo,
+                                  IdRepoServiceImpl idRepoServiceImpl,
+                                  IdRepoSecurityManager securityManager) {
+        this.uinRepo = uinRepo;
+        this.unsubscribeRecordRepo = unsubscribeRecordRepo;
+        this.idRepoServiceImpl = idRepoServiceImpl;
+        this.securityManager = securityManager;
+    }
+
+    @Value("${mosip.idrepo.identity.uin-status.deactivated:DEACTIVATED}")
+    private String deactivatedStatus;
+    
+    */
     @Override
     public void processUnsubscribe(UnsubscribeRequestDto request) throws IdRepoAppException {
-        String email = request.getEmail().toLowerCase().trim();
+        String email = request.getEmail().toLowerCase(Locale.ENGLISH).trim();
 
         // 1. Hash the email to securely search the database
         // Because uin_data is highly encrypted, we cannot search plain-text emails using SQL.
@@ -95,7 +121,7 @@ public class UnsubscribeServiceImpl implements UnsubscribeService {
 
     @Override
     public boolean isAlreadyUnsubscribed(String email) {
-        return unsubscribeRecordRepo.existsByEmail(email.toLowerCase().trim());
+        return unsubscribeRecordRepo.existsByEmail(email.toLowerCase(Locale.ENGLISH).trim());
     }
 
     // -------------------------------------------------------------------------
