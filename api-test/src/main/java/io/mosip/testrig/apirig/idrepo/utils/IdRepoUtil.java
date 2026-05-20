@@ -1,7 +1,10 @@
 package io.mosip.testrig.apirig.idrepo.utils;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -94,6 +97,32 @@ public class IdRepoUtil extends AdminTestUtil {
 		DBManager.executeDBQueries(IdRepoConfigManager.getIdRepoDbUrl(), IdRepoConfigManager.getIdRepoDbUser(),
 				IdRepoConfigManager.getPMSDbPass(), "idrepo",
 				getGlobalResourcePath() + "/" + "config/idrepoCertDataDeleteQueries.txt");
+	}
+	
+	public String applyAddIdentityOverrides(String inputJson, String testCaseName) {
+	    Map<String, String> replacements = new LinkedHashMap<>();
+
+	    if (testCaseName.contains("_withInvalidEmail") || testCaseName.contains("_invalid_Email")) {
+	        replacements.put("$EMAILVALUE$", "@#$DDFFGG");
+	    }
+	    if (testCaseName.contains("Empty_Email")) {
+	        replacements.put("$EMAILVALUE$", " ");
+	    }
+	    if (testCaseName.contains("SpaceVal_Email")) {
+	        replacements.put("$EMAILVALUE$", "  ");
+	    }
+	    if (testCaseName.contains("_withInvalidPhone") || testCaseName.contains("_invalid_Phone")) {
+	        replacements.put("$PHONENUMBERFORIDENTITY$", "@%+++456789345678");
+	    }
+	    if (testCaseName.contains("_withEmptyPhone")) {
+	        replacements.put("$PHONENUMBERFORIDENTITY$", " ");
+	    }
+
+	    for (Map.Entry<String, String> entry : replacements.entrySet()) {
+	        inputJson = replaceKeywordWithValue(inputJson, entry.getKey(), entry.getValue());
+	    }
+
+	    return inputJson;
 	}
 	
 	public static String inputStringKeyWordHandeler(String jsonString, String testCaseName) {

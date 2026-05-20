@@ -150,15 +150,7 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {
 			inputJson = IdRepoArrayHandle.replaceArrayHandleValues(inputJson,testCaseName);
 		}
-		if (testCaseName.contains("_withInvalidEmail") || testCaseName.contains("_invalid_Email")) {
-			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "@#$DDFFGG");
-		}
-		if (testCaseName.contains("Empty_Email")) {
-			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", " ");
-		}
-		if (testCaseName.contains("SpaceVal_Email")) {
-			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "  ");
-		}
+		inputJson = applyAddIdentityOverrides(inputJson, testCaseName);
 
 		if (uin != null) {
 			inputJson = inputJson.replace("$UIN$", uin);

@@ -23,6 +23,11 @@ public class IdRepoArrayHandle {
 	    String email = AdminTestUtil.getValueFromAuthActuator("json-property", "emailId");
         String emailResult = email.replaceAll("\\[\"|\"\\]", "");
 
+	    if (testCaseName.contains("_withNotApplicableSelectedHandles")) {
+	        identity.put("selectedHandles", new JSONArray().put("fullName"));
+	        return jsonObj.toString();
+	    }
+
 	    for (int i = 0; i < selectedHandles.length(); i++) {
 	        String handle = selectedHandles.getString(i);
 

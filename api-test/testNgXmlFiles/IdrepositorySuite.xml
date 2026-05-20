@@ -16,6 +16,13 @@
 			<class name="io.mosip.testrig.apirig.idrepo.testscripts.AddIdentity" />
 		</classes>
 	</test>
+	<test name="AddIdentityV2">
+		<parameter name="ymlFile"
+			value="idRepository/AddIdentityV2/AddIdentityV2.yml" />
+		<classes>
+			<class name="io.mosip.testrig.apirig.idrepo.testscripts.AddIdentity" />
+		</classes>
+	</test>
 	<test name="CreateVID">
 		<parameter name="ymlFile" value="idRepository/CreateVID/CreateVid.yml" />
 		<parameter name="idKeyName" value="VID" />
