@@ -130,17 +130,26 @@ public class UnsubscribeController {
             throw new IdRepoAppException("INVALID_TOKEN", "Unsubscribe token is missing or invalid.");
         }
         try {
-            // PRODUCTION TODO: Integrate MOSIP Keymanager here to cryptographically verify the JWT signature.
+            // PRODUCTION TODO: Use MOSIP KeyManager/TokenValidator to verify the JWT signature
+            // before trusting any claims inside it. Replace the fallback logic below.
+            /*
+            Claims claims = mosipTokenValidator.validateAndGetClaims(token);
+            String email = claims.get("email", String.class);
+            */
+            
+            // INSECURE FALLBACK:
             String payload = new String(Base64.getUrlDecoder().decode(token.split("\\.")[1]));
             JsonNode claims = new ObjectMapper().readTree(payload);
-            if (claims.has("email")) {
+            if (claims.has("email") && !claims.get("email").asText().isBlank()) {
                 return claims.get("email").asText().toLowerCase(Locale.ENGLISH).trim();
             }
             throw new IdRepoAppException("INVALID_TOKEN", "Token does not contain an email claim.");
         } catch (Exception e) {
+            if (e instanceof IdRepoAppException) {
+                throw (IdRepoAppException) e;
+            }
             throw new IdRepoAppException("INVALID_TOKEN", "Failed to parse unsubscribe token.");
         }
-    }
     }
 
     /**
