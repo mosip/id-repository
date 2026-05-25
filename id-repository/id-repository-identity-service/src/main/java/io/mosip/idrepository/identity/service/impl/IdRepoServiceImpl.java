@@ -872,15 +872,22 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		JsonPath jsonPath = JsonPath.compile(path + DOT + key);
 		List<Map<String, String>> dbDataList = dbData.read(path + DOT + key, List.class);
 		List<Map<String, String>> inputDataList = inputData.read(path + DOT + key, List.class);
-		inputDataList.stream()
-				.filter(map -> map.containsKey(LANGUAGE) && dbDataList.stream().filter(dbMap -> dbMap.containsKey(LANGUAGE))
-						.allMatch(dbMap -> !StringUtils.equalsIgnoreCase(dbMap.get(LANGUAGE), map.get(LANGUAGE))))
-				.forEach(value -> dbData.add(jsonPath, value));
-		dbDataList.stream()
-				.filter(map -> map.containsKey(LANGUAGE)
-						&& inputDataList.stream().filter(inputDataMap -> inputDataMap.containsKey(LANGUAGE)).allMatch(
-						inputDataMap -> !StringUtils.equalsIgnoreCase(inputDataMap.get(LANGUAGE), map.get(LANGUAGE))))
-				.forEach(value -> inputData.add(jsonPath, value));
+		boolean hasLanguageKey = inputDataList.stream().anyMatch(map -> map.containsKey(LANGUAGE))
+				|| dbDataList.stream().anyMatch(map -> map.containsKey(LANGUAGE));
+		if (hasLanguageKey) {
+			inputDataList.stream()
+					.filter(map -> map.containsKey(LANGUAGE) && dbDataList.stream().filter(dbMap -> dbMap.containsKey(LANGUAGE))
+							.allMatch(dbMap -> !StringUtils.equalsIgnoreCase(dbMap.get(LANGUAGE), map.get(LANGUAGE))))
+					.forEach(value -> dbData.add(jsonPath, value));
+			dbDataList.stream()
+					.filter(map -> map.containsKey(LANGUAGE)
+							&& inputDataList.stream().filter(inputDataMap -> inputDataMap.containsKey(LANGUAGE)).allMatch(
+							inputDataMap -> !StringUtils.equalsIgnoreCase(inputDataMap.get(LANGUAGE), map.get(LANGUAGE))))
+					.forEach(value -> inputData.add(jsonPath, value));
+		} else {
+			String putPath = StringUtils.isEmpty(path) ? ROOT : path;
+			dbData.put(putPath, key, inputDataList);
+		}
 	}
 
 	/**
