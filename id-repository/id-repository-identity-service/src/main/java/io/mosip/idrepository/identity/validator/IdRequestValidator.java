@@ -45,6 +45,11 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.idobjectvalidator.impl.IdObjectSchemaValidator;
 
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.PathNotFoundException;
+
 /**
  * The Class IdRequestValidator - Validator for {@code IdRequestDTO}.
  *
@@ -256,10 +261,16 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 							schemaVersion = String
 									.valueOf(((Map<String, Object>) requestMap.get(ROOT_PATH))
 											.get(idRepoServiceHelper.getIdentityMapping().getIdentity().getIDSchemaVersion().getValue()));
+							String schema = idRepoServiceHelper.getSchema(schemaVersion);
 							if (method.equals(CREATE)) {
-								idObjectValidator.validateIdObject(idRepoServiceHelper.getSchema(schemaVersion), requestMap, newRegistrationFields);
-							} else {
-								idObjectValidator.validateIdObject(idRepoServiceHelper.getSchema(schemaVersion), requestMap, updateUinFields);
+								validateMinItemsFromSchema(schema, (Map<String, Object>) requestMap.get(ROOT_PATH), errors);
+							}
+							if (!errors.hasErrors()) {
+								if (method.equals(CREATE)) {
+									idObjectValidator.validateIdObject(schema, requestMap, newRegistrationFields);
+								} else {
+									idObjectValidator.validateIdObject(schema, requestMap, updateUinFields);
+								}
 							}
 						}
 					}
@@ -559,5 +570,69 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	@Cacheable(cacheNames = VERIFIED_ATTRIBUTE_SCHEMA, key="{ #idSchemaUrl}")
 	private String getVerifiedAttributeIdSchema(String idSchemaUrl){
 		return restTemplate.getForObject(verifiedAttributesSchemaUrl, String.class);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void validateMinItemsFromSchema(String schema, Map<String, Object> identity, Errors errors) {
+		try {
+			if (identity == null) return;
+
+			// Read all identity field definitions as a plain Map — no AS_PATH_LIST, no filter complexity
+			Map<String, Object> identityProperties;
+			try {
+				identityProperties = JsonPath.read(schema, "$['properties']['identity']['properties']");
+			} catch (PathNotFoundException e) {
+				return;
+			}
+			if (identityProperties == null || identityProperties.isEmpty()) return;
+
+			for (Map.Entry<String, Object> entry : identityProperties.entrySet()) {
+				String field = entry.getKey();
+				if (!(entry.getValue() instanceof Map)) continue;
+
+				Map<String, Object> fieldDef = (Map<String, Object>) entry.getValue();
+
+				// Skip fields that don't have minItems directly defined
+				if (!fieldDef.containsKey("minItems")) continue;
+
+				int minItems = ((Number) fieldDef.get("minItems")).intValue();
+				Object fieldValue = identity.get(field);
+
+				// Field not present in request — skip, required validation handles it
+				if (fieldValue == null) continue;
+
+				// Non-list field (e.g. string) with a value means 1 item is present — minItems satisfied
+				if (!(fieldValue instanceof List)) continue;
+
+				List<?> list = (List<?>) fieldValue;
+				int effectiveCount = 0;
+				for (Object item : list) {
+					if (item == null) continue;
+					if (item instanceof Map) {
+						// Count only if the item has a "value" key; empty object {} is not counted
+						if (((Map<?, ?>) item).containsKey("value")) effectiveCount++;
+					} else {
+						effectiveCount++;
+					}
+				}
+
+				if (effectiveCount < minItems) {
+					reject(field, errors, "effectiveCount(" + effectiveCount + ") < minItems(" + minItems + ")");
+					return;
+				}
+			}
+		} catch (Exception e) {
+			mosipLogger.warn(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR,
+					"validateMinItemsFromSchema", "Failed: " + e.getMessage());
+		}
+	}
+
+	private void reject(String field, Errors errors, String reason) {
+		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR,
+				"validateMinItemsFromSchema",
+				"Field '" + field + "' invalid: " + reason);
+
+		errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
+				String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), ROOT_PATH + "/" + field));
 	}
 }
