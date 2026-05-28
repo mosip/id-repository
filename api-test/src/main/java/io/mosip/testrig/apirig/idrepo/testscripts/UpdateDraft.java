@@ -93,6 +93,20 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 		String jsonInput = testCaseDTO.getInput();
 		String inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
 
+		String phoneNumber = "";
+		String email = testCaseName + "_" + BaseTestCase.runContext + "@mosip.net";
+		if (inputJson.contains("$PHONENUMBERFORIDENTITY$") || inputJson.contains("$EMAILVALUE$")) {
+			if (!phoneSchemaRegex.isEmpty()) {
+				try {
+					phoneNumber = genStringAsperRegex(phoneSchemaRegex);
+				} catch (Exception e) {
+					logger.error(e.getMessage());
+				}
+			}
+			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber);
+			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", email);
+		}
+
 		response = patchWithPathParamsBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 				testCaseDTO.getRole(), testCaseDTO.getTestCaseName(), pathParams);
 

@@ -51,6 +51,16 @@ public class IdRepoUtil extends AdminTestUtil {
 			throw new SkipException(GlobalConstants.KNOWN_ISSUES);
 		}
 
+		if (testCaseDTO.getRequiredSchemaFields() != null && testCaseDTO.getRequiredSchemaFields().length > 0) {
+			for (String field : testCaseDTO.getRequiredSchemaFields()) {
+				String trimmed = field.trim();
+				if (globalRequiredFields == null || !isElementPresent(globalRequiredFields, trimmed)) {
+					throw new SkipException(
+							"Schema field '" + trimmed + "' not present in current IdSchema — test not applicable");
+				}
+			}
+		}
+
 		JSONArray dobArray = new JSONArray(getValueFromAuthActuator("json-property", "dob"));
 		String dob = dobArray.getString(0);
 		JSONArray emailArray = new JSONArray(getValueFromAuthActuator("json-property", "emailId"));

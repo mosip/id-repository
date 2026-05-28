@@ -47,7 +47,7 @@ GetUpdateCount:
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
       outputTemplate: idRepository/error
       input: '{
-      "individualId": "",
+      "individualId": " ",
       "idType": "UIN",
        "attribute_list": "fullName"
 }'

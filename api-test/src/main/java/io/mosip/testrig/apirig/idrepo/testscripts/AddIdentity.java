@@ -141,28 +141,13 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 			inputJson = replaceKeywordWithValue(inputJson, "$FUNCTIONALID$", generateRandomNumberString(2)
 					+ Calendar.getInstance().getTimeInMillis());
 		}
-		
-		JSONObject jsonString = new JSONObject(inputJson);
-		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {
-			inputJson = IdRepoArrayHandle.replaceArrayHandleValues(inputJson,testCaseName);
-		}
-		if (testCaseName.contains("_withInvalidEmail") || testCaseName.contains("_invalid_Email")) {
-			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "@#$DDFFGG");
-		}
-		if (testCaseName.contains("Empty_Email")) {
-			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", " ");
-		}
-		if (testCaseName.contains("SpaceVal_Email")) {
-			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "  ");
-		}
-
 		if (uin != null) {
 			inputJson = inputJson.replace("$UIN$", uin);
 		}
 		inputJson = inputJson.replace("$RID$", genRid);
 		String phoneNumber = "";
 		String email = testCaseName + "_" + BaseTestCase.runContext + "@mosip.net";
-		if (inputJson.contains("$PHONENUMBERFORIDENTITY$")||inputJson.contains("$EMAILVALUE$")) {
+		if (inputJson.contains("$PHONENUMBERFORIDENTITY$") || inputJson.contains("$EMAILVALUE$")) {
 			if (!phoneSchemaRegex.isEmpty())
 				try {
 					phoneNumber = genStringAsperRegex(phoneSchemaRegex);
@@ -171,7 +156,12 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 				}
 			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber);
 			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", email);
-			
+		}
+		// Replace handle-array tokens before manipulating handle values so that
+		// applyWithDuplicateValue saves/restores the actual resolved values, not tokens.
+		JSONObject jsonString = new JSONObject(inputJson);
+		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {
+			inputJson = IdRepoArrayHandle.replaceArrayHandleValues(inputJson, testCaseName);
 		}
 
 		response = postWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
