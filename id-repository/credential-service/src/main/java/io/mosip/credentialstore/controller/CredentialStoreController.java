@@ -60,6 +60,34 @@ public class CredentialStoreController {
 
 	}
 
+	/**
+	 * Credential issue version 2.
+	 *
+	 * @param credentialServiceRequestDto the credential service request dto
+	 * @return the response entity
+	 */
+	//@PreAuthorize("hasAnyRole('CREDENTIAL_ISSUANCE')")
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostissuev2())")
+	@PostMapping(path = "/issue/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "create credential", description = "create credential", tags = { "Credential Store" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "create credential successfully",
+					content = @Content(array = @ArraySchema(schema = @Schema(implementation = CredentialServiceResponseDto.class)))),
+			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Unable to create credential" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
+	public ResponseEntity<Object> credentialIssueV2(
+			@RequestBody(required = true) CredentialServiceRequestDto credentialServiceRequestDto) {
+
+		CredentialServiceResponseDto credentialIssueResponseDto = credentialStoreService
+				.createCredentialIssuanceV2(credentialServiceRequestDto);
+
+		return ResponseEntity.status(HttpStatus.OK).body(credentialIssueResponseDto);
+
+	}
+
 	//@PreAuthorize("hasAnyRole(@authorizedRoles.getGetissuetypes())")
 	@GetMapping(path = "/types", consumes = MediaType.ALL_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "get the credential types", description = "get the credential types", tags = { "Credential Store" })

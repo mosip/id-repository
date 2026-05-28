@@ -338,7 +338,197 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		return credentialIssueResponseDto;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see io.mosip.credentialstore.service.CredentialStoreService#
+	 * createCredentialIssuance(io.mosip.credentialstore.dto.
+	 * CredentialServiceRequestDto)
+	 */
+	public CredentialServiceResponseDto createCredentialIssuanceV2(
+			CredentialServiceRequestDto credentialServiceRequestDto) {
+		LOGGER.debug(IdRepoSecurityManager.getUser(),
+				LoggerFileConstant.REQUEST_ID.toString(),
+				credentialServiceRequestDto.getRequestId(),
+				"started creating credential");
+		List<ErrorDTO> errorList = new ArrayList<>();
+		CredentialServiceResponseDto credentialIssueResponseDto = new CredentialServiceResponseDto();
+		CredentialServiceResponse credentialServiceResponse = null;
+		CredentialProvider credentialProvider;
 
+		try {
+			boolean containsSharableAttributes = Optional.ofNullable(credentialServiceRequestDto.getSharableAttributes()).filter(list -> !list.isEmpty()).isPresent();
+			PartnerCredentialTypePolicyDto policyDetailResponseDto = getPolicy(credentialServiceRequestDto, containsSharableAttributes);
+
+			if (credentialServiceRequestDto.getAdditionalData() == null) {
+				Map<String, Object> additionalData = new HashMap<>();
+				credentialServiceRequestDto.setAdditionalData(additionalData);
+			}
+
+			Map<String, String> bioAttributeFormatterMap = getFormatters(policyDetailResponseDto,
+					credentialServiceRequestDto.getIssuer(), credentialServiceRequestDto.getRequestId());
+			IdResponseDTO<Object> idResponseDto = idrepositaryUtil.getDataV2(credentialServiceRequestDto,
+					bioAttributeFormatterMap);
+
+
+			credentialProvider = getProvider(credentialServiceRequestDto.getCredentialType());
+
+			Map<AllowedKycDto, Object> shrableAttributesMap = credentialProvider.prepareSharableAttributes(
+					idResponseDto, policyDetailResponseDto,
+					credentialServiceRequestDto);
+			DataProviderResponse dataProviderResponse = credentialProvider
+					.getFormattedCredentialData(
+							credentialServiceRequestDto, shrableAttributesMap);
+			credentialServiceResponse = new CredentialServiceResponse();
+			DataShare dataShare = null;
+			String jsonData=null;
+			String signature = null;
+			String encodedData = null;
+			jsonData = JsonUtil.objectMapperObjectToJson(dataProviderResponse.getJSON());
+			encodedData = CryptoUtil.encodeToURLSafeBase64(jsonData.getBytes());
+			if (policyDetailResponseDto.getPolicies() != null && policyDetailResponseDto.getPolicies().getDataSharePolicies().getTypeOfShare()
+					.equalsIgnoreCase(DATASHARE)) {
+
+				dataShare = dataShareUtil.getDataShare(jsonData.getBytes(), policyDetailResponseDto.getPolicyId(),
+						credentialServiceRequestDto.getIssuer(),
+						credentialServiceRequestDto.getRequestId());
+				credentialServiceResponse.setDataShareUrl(dataShare.getUrl());
+
+			} else {
+
+				jsonData = encryptionUtil.encryptData(encodedData, credentialServiceRequestDto.getIssuer(),
+						credentialServiceRequestDto.getRequestId());
+
+			}
+			signature = digitalSignatureUtil.sign(encodedData, credentialServiceRequestDto.getRequestId());
+			EventModel eventModel = getEventModel(dataShare, credentialServiceRequestDto,
+					jsonData, signature);
+			String topic = credentialServiceRequestDto.getIssuer() + "/" + IDAEventType.CREDENTIAL_ISSUED;
+			webSubUtil.registerTopic(topic, credentialServiceRequestDto.getRequestId());
+			webSubUtil.publishSuccess(topic, eventModel);
+			credentialServiceResponse.setSignature(signature);
+			credentialServiceResponse.setStatus("ISSUED");
+			credentialServiceResponse.setCredentialId(dataProviderResponse.getCredentialId());
+
+
+			credentialServiceResponse.setIssuanceDate(dataProviderResponse.getIssuanceDate());
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					credentialServiceRequestDto.getRequestId(),
+					"ended creating credential");
+
+		} catch (ApiNotAccessibleException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getRequestId(), IdType.ID, e);
+			ErrorDTO error = new ErrorDTO();
+			error.setErrorCode(CredentialServiceErrorCodes.API_NOT_ACCESSIBLE_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialServiceErrorCodes.API_NOT_ACCESSIBLE_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					credentialServiceRequestDto.getRequestId(),
+					ExceptionUtils.getStackTrace(e));
+		} catch (IdRepoException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getRequestId(), IdType.ID, e);
+			ErrorDTO error = new ErrorDTO();
+			error.setErrorCode(CredentialServiceErrorCodes.IPREPO_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialServiceErrorCodes.IPREPO_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					credentialServiceRequestDto.getRequestId(),
+					ExceptionUtils.getStackTrace(e));
+		} catch (CredentialFormatterException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getRequestId(), IdType.ID, e);
+			ErrorDTO error = new ErrorDTO();
+			error.setErrorCode(CredentialServiceErrorCodes.CREDENTIAL_FORMATTER_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialServiceErrorCodes.CREDENTIAL_FORMATTER_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					credentialServiceRequestDto.getRequestId(),
+					ExceptionUtils.getStackTrace(e));
+		} catch (IOException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getRequestId(), IdType.ID, e);
+			ErrorDTO error = new ErrorDTO();
+			error.setErrorCode(CredentialServiceErrorCodes.IO_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialServiceErrorCodes.IO_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					credentialServiceRequestDto.getRequestId(),
+					ExceptionUtils.getStackTrace(e));
+		} catch (WebSubClientException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getRequestId(), IdType.ID, e);
+			ErrorDTO error = new ErrorDTO();
+			error.setErrorCode(CredentialServiceErrorCodes.WEBSUB_FAIL_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialServiceErrorCodes.WEBSUB_FAIL_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					credentialServiceRequestDto.getRequestId(),
+					ExceptionUtils.getStackTrace(e));
+		} catch (DataShareException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getRequestId(), IdType.ID, e);
+			ErrorDTO error = new ErrorDTO();
+			error.setErrorCode(CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialServiceErrorCodes.DATASHARE_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					credentialServiceRequestDto.getRequestId(),
+					ExceptionUtils.getStackTrace(e));
+		} catch (PolicyException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getRequestId(), IdType.ID, e);
+			ErrorDTO error = new ErrorDTO();
+			error.setErrorCode(CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialServiceErrorCodes.POLICY_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					credentialServiceRequestDto.getRequestId(),
+					ExceptionUtils.getStackTrace(e));
+		} catch (SignatureException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getRequestId(), IdType.ID, e);
+			ErrorDTO error = new ErrorDTO();
+			error.setErrorCode(CredentialServiceErrorCodes.SIGNATURE_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialServiceErrorCodes.SIGNATURE_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					credentialServiceRequestDto.getRequestId(),
+					ExceptionUtils.getStackTrace(e));
+		} catch (Exception e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getRequestId(), IdType.ID, e);
+			ErrorDTO error = new ErrorDTO();
+			error.setErrorCode(CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorCode());
+			error.setMessage(CredentialServiceErrorCodes.UNKNOWN_EXCEPTION.getErrorMessage());
+			errorList.add(error);
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					credentialServiceRequestDto.getRequestId(),
+					ExceptionUtils.getStackTrace(e));
+
+		} finally {
+
+			credentialIssueResponseDto.setId(EnvUtil.getCredServiceId());
+			credentialIssueResponseDto
+					.setResponsetime(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()));
+			credentialIssueResponseDto.setVersion(EnvUtil.getCredServiceVersion());
+
+			if (!errorList.isEmpty()) {
+				credentialIssueResponseDto.setErrors(errorList);
+			} else {
+				credentialIssueResponseDto.setResponse(credentialServiceResponse);
+			}
+			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_SERVICE, AuditEvents.CREATE_CREDENTIAL,
+					credentialServiceRequestDto.getRequestId(), IdType.ID, "Credentials Issued");
+		}
+		return credentialIssueResponseDto;
+	}
 
 	private PartnerCredentialTypePolicyDto getPolicy(CredentialServiceRequestDto credentialServiceRequestDto, boolean containsSharableAttributes)
 			throws PolicyException, ApiNotAccessibleException {
