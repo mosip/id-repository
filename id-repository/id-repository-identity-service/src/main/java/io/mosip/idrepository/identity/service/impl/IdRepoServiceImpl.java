@@ -62,6 +62,7 @@ import io.mosip.idrepository.identity.dto.HandleDto;
 import io.mosip.idrepository.identity.entity.*;
 import io.mosip.idrepository.identity.helper.AnonymousProfileHelper;
 import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
+import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 import io.mosip.idrepository.identity.provider.IdentityUpdateTrackerPolicyProvider;
 import io.mosip.idrepository.identity.repository.*;
@@ -189,6 +190,9 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 
 	@Autowired
 	private IdRepoServiceHelper idRepoServiceHelper;
+
+	@Autowired
+	private IdRequestValidator validator;
 
 	@Value("${" + UIN_REFID + "}")
 	private String uinRefId;
@@ -613,18 +617,35 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		if(inputVerifiedAttributes == null || inputVerifiedAttributes.isEmpty())
 			return;
 
-		//check if the verified claim has value in the identity object
+		// Step 1: Read allowed claim values from the verified attributes schema enum.
+		// e.g. ["fullName", "phone", "email", "dateOfBirth"] as defined in verified_attributes_schema.json.
+		// If the schema URL is unreachable or no enum is defined, allowedClaims will be empty.
+		List<String> allowedClaims = validator.getAllowedClaimValues();
+
+		// hasSchemaEnum = true  → schema enum found, filter claims to only enum values
+		// hasSchemaEnum = false → no enum in schema, fall back to identity field existence check only
+		boolean hasSchemaEnum = !allowedClaims.isEmpty();
+
 		for(VerificationMetadata verificationMetadata : inputVerifiedAttributes) {
 			List<String> onlyClaimsWithValue = verificationMetadata.getClaims()
 					.stream()
-					.filter( it -> doesFieldExists(it, inputData) ||  doesFieldExists(it, dbData))
+					// Step 2: Schema enum filter (runs only when enum is present in schema).
+					// Claims NOT in the schema enum are silently ignored.
+					// e.g. "xyz" not in ["fullName","phone","email","dateOfBirth"] → dropped.
+					// Fallback: if no enum in schema, all claim strings pass this filter.
+					.filter(it -> !hasSchemaEnum || allowedClaims.contains(it))
+					// Step 3: Identity field existence filter (always runs).
+					// A claim is kept only if its corresponding field has a non-null value
+					// in the input identity (current request) OR in the saved DB identity.
+					// e.g. claim "phone" kept only if identity.phone != null.
+					.filter(it -> doesFieldExists(it, inputData) || doesFieldExists(it, dbData))
 					.collect(Collectors.toList());
-			//Verified claims will be considered only if value is present for the verified claim
-			// either in input or in the saved identity object
 			verificationMetadata.setClaims(onlyClaimsWithValue);
 		}
 
-		//Remove it the claims list is empty
+		// Step 4: If all claims were filtered out (all non-enum OR all missing from identity),
+		// remove the entire VerificationMetadata entry silently — no error thrown.
+		// e.g. claims: ["xyz","abc"] where none are in enum → entry dropped entirely.
 		inputVerifiedAttributes.removeIf(it -> it.getClaims().isEmpty());
 	}
 
