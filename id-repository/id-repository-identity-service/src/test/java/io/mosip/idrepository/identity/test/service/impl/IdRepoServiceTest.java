@@ -92,6 +92,7 @@ import io.mosip.idrepository.identity.repository.UinRepo;
 import io.mosip.idrepository.identity.service.impl.DefaultShardResolver;
 import io.mosip.idrepository.identity.service.impl.IdRepoProxyServiceImpl;
 import io.mosip.idrepository.identity.service.impl.IdRepoServiceImpl;
+import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.biometrics.commons.CbeffValidator;
 import io.mosip.kernel.biometrics.constant.QualityType;
 import io.mosip.kernel.biometrics.entities.RegistryIDType;
@@ -205,6 +206,9 @@ public class IdRepoServiceTest {
 	@Mock
 	private HandleRepo handleRepo;
 
+	@Mock
+	private IdRequestValidator validator;
+
 	/** The id. */
 	private Map<String, String> id;
 
@@ -269,6 +273,7 @@ public class IdRepoServiceTest {
 		when(anonymousProfileHelper.setOldCbeff(Mockito.any())).thenReturn(anonymousProfileHelper);
 		when(anonymousProfileHelper.setNewUinData(Mockito.any())).thenReturn(anonymousProfileHelper);
 		when(anonymousProfileHelper.isNewCbeffPresent()).thenReturn(true);
+		when(validator.getAllowedClaimValues()).thenReturn(Collections.emptyList());
 	}
 
 	/**
