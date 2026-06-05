@@ -4,13 +4,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.mosip.idrepository</groupId>
 	<artifactId>id-repository-salt-generator</artifactId>
-	<version>1.2.1-SNAPSHOT</version>
+	<version>1.3.1-rc.1</version>
 	<name>ID-Repository Salt Generator</name>
 
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.2.1-SNAPSHOT</version>
+		<version>1.3.1-rc.1</version>
 	</parent>
 
 	<description>Batch Job Application to for one-time populating of salt values for ID Repository salt tables.</description>
@@ -115,11 +115,13 @@
 		<aspectjweaver.version>1.8.12</aspectjweaver.version>
 		<micrometer.core.version>1.4.2</micrometer.core.version>
 		<micrometer.registry.prometheus.version>1.4.2</micrometer.registry.prometheus.version>
-		<kernel-core.version>1.2.1-SNAPSHOT</kernel-core.version>
-		<kernel-logger-logback.version>1.2.1-SNAPSHOT</kernel-logger-logback.version>
+		<kernel-core.version>1.3.1-rc.1</kernel-core.version>
+		<kernel-logger-logback.version>1.3.1-rc.1</kernel-logger-logback.version>
 		<jacoco.maven.plugin.version>0.8.11</jacoco.maven.plugin.version>
 		<com.fasterxml.jackson.core.version>2.12.0</com.fasterxml.jackson.core.version>
 		<postgresql.version>42.2.2</postgresql.version>
+        <central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
+		<maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -240,7 +242,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>${spring.boot.version}</version>
 				<configuration>
 					<executable>true</executable>
 				</configuration>

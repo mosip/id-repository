@@ -8,6 +8,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +68,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.websub.model.Event;
 import io.mosip.kernel.core.websub.model.EventModel;
 import io.mosip.kernel.core.websub.model.Type;
@@ -146,6 +150,10 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 	@Autowired
 	EncryptionUtil encryptionUtil;
+
+	@Autowired
+	@Qualifier("credentialServiceExecutor")
+	private Executor credentialServiceExecutor = ForkJoinPool.commonPool();
 	
 	/*
 	 * (non-Javadoc)
@@ -195,6 +203,21 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			String encodedData = null;
 			jsonData = JsonUtil.objectMapperObjectToJson(dataProviderResponse.getJSON());
 			encodedData = CryptoUtil.encodeToURLSafeBase64(jsonData.getBytes());
+
+			// Start signing in parallel — sign uses encodedData which is already available,
+			// so it can run concurrently with the encryption/datashare operation below.
+			final String encodedDataForSign = encodedData;
+			final String requestIdForSign = credentialServiceRequestDto.getRequestId();
+			long t5sign = System.currentTimeMillis();
+			CompletableFuture<String> signatureFuture = CompletableFuture.supplyAsync(() -> {
+				try {
+					return digitalSignatureUtil.sign(encodedDataForSign, requestIdForSign);
+				} catch (ApiNotAccessibleException | SignatureException e) {
+					throw new CompletionException(e);
+				}
+			}, credentialServiceExecutor);
+
+			long t5 = System.currentTimeMillis();
 			if (policyDetailResponseDto.getPolicies() != null && policyDetailResponseDto.getPolicies().getDataSharePolicies().getTypeOfShare()
 					.equalsIgnoreCase(DATASHARE)) {
 				dataShare = dataShareUtil.getDataShare(jsonData.getBytes(), policyDetailResponseDto.getPolicyId(),
@@ -206,7 +229,15 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 				jsonData = encryptionUtil.encryptData(encodedData, credentialServiceRequestDto.getIssuer(),
 						credentialServiceRequestDto.getRequestId());
+			}
 
+			try {
+				signature = signatureFuture.join();
+			} catch (CompletionException e) {
+				Throwable cause = e.getCause();
+				if (cause instanceof ApiNotAccessibleException) throw (ApiNotAccessibleException) cause;
+				if (cause instanceof SignatureException) throw (SignatureException) cause;
+				throw new SignatureException(cause);
 			}
 			signature = digitalSignatureUtil.sign(encodedData, credentialServiceRequestDto.getRequestId());
 			EventModel eventModel = getEventModel(dataShare, credentialServiceRequestDto,
@@ -324,7 +355,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
 			credentialIssueResponseDto.setId(EnvUtil.getCredServiceId());
 			credentialIssueResponseDto
-					.setResponsetime(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()));
+					.setResponsetime(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()));
 			credentialIssueResponseDto.setVersion(EnvUtil.getCredServiceVersion());
 
 			if (!errorList.isEmpty()) {
@@ -374,8 +405,8 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		EventModel eventModel = new EventModel();
 		DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 		LocalDateTime localdatetime = LocalDateTime
-				.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
-		eventModel.setPublishedOn(DateUtils.toISOString(localdatetime));
+				.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+		eventModel.setPublishedOn(DateUtils2.toISOString(localdatetime));
 		eventModel.setPublisher("CREDENTIAL_SERVICE");
 		eventModel.setTopic(credentialServiceRequestDto.getIssuer() + "/" + IDAEventType.CREDENTIAL_ISSUED);
 		Event event = new Event();
@@ -395,7 +426,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 		map.put(JsonConstants.PROTECTIONKEY, credentialServiceRequestDto.getEncryptionKey());
 		credentialServiceRequestDto.setAdditionalData(map);
 		event.setData(credentialServiceRequestDto.getAdditionalData());
-		event.setTimestamp(DateUtils.toISOString(localdatetime));
+		event.setTimestamp(DateUtils2.toISOString(localdatetime));
 
 		String eventId = utilities.generateId();
 		LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),

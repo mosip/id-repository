@@ -30,6 +30,8 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -41,10 +43,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.GENERATE_UIN;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_GENERATION_FAILED;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
 
 @Component
 public class IdRepoServiceHelper {
@@ -55,9 +60,22 @@ public class IdRepoServiceHelper {
 
     private static final String REQUEST = "request";
 
-    /** The schema map. */
-    private static Map<String, String> schemaMap = new HashMap<>();
-    private static Map<String, List<String>> supportedHandlesInSchema = new HashMap<>();
+    /** The schema map. Max size prevents unbounded heap growth from many schema versions. */
+    private static final int MAX_SCHEMA_CACHE_SIZE = 100;
+    private static final Map<String, String> schemaMap = Collections.synchronizedMap(
+            new LinkedHashMap<String, String>(16, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, String> eldest) {
+                    return size() > MAX_SCHEMA_CACHE_SIZE;
+                }
+            });
+    private static final Map<String, List<String>> supportedHandlesInSchema = Collections.synchronizedMap(
+            new LinkedHashMap<String, List<String>>(16, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, List<String>> eldest) {
+                    return size() > MAX_SCHEMA_CACHE_SIZE;
+                }
+            });
 
     @Autowired
     private ObjectMapper mapper;
@@ -136,9 +154,10 @@ public class IdRepoServiceHelper {
                 restRequest = restBuilder.buildRequest(RestServicesConstants.SYNCDATA_SERVICE, null, ResponseWrapper.class);
                 restRequest.setUri(restRequest.getUri().concat("?schemaVersion=" + schemaVersion));
                 ResponseWrapper<Map<String, String>> response = restHelper.requestSync(restRequest);
-                schemaMap.put(schemaVersion, response.getResponse().get("schemaJson"));
-                supportedHandlesInSchema.put(schemaVersion, getSupportedHandles(response.getResponse().get("schemaJson")));
-                return getSchema(schemaVersion);
+                String schema = response.getResponse().get("schemaJson");
+                schemaMap.put(schemaVersion, schema);
+                supportedHandlesInSchema.put(schemaVersion, getSupportedHandles(schema));
+                return schema; // return directly - no recursive call needed
             }
         } catch (IdRepoDataValidationException | RestServiceException e) {
             mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER, "getSchema", "\n" + e.getMessage());
@@ -206,5 +225,35 @@ public class IdRepoServiceHelper {
             return "@".concat(fieldId);
         }
         return postfix;
+    }
+
+    /**
+     * Calls the UIN generator service and returns a new UIN string.
+     *
+     * <p>Uses {@link Propagation#NOT_SUPPORTED} so the caller's database
+     * transaction is suspended for the duration of the HTTP call.  This
+     * prevents a HikariCP connection from being held idle while waiting
+     * for the remote service, which would otherwise exhaust the pool
+     * under concurrent load.
+     *
+     * @return a freshly generated UIN
+     * @throws IdRepoAppException on any failure from the remote service
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public String generateUin() throws IdRepoAppException {
+        try {
+            RestRequestDTO restRequest = restBuilder.buildRequest(
+                    RestServicesConstants.UIN_GENERATOR_SERVICE, null, ResponseWrapper.class);
+            ResponseWrapper<Map<String, String>> response = restHelper.requestSync(restRequest);
+            return response.getResponse().get("uin");
+        } catch (IdRepoDataValidationException e) {
+            mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER,
+                    GENERATE_UIN, e.getMessage());
+            throw new IdRepoAppException(UNKNOWN_ERROR, e);
+        } catch (RestServiceException e) {
+            mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER,
+                    GENERATE_UIN, e.getMessage());
+            throw new IdRepoAppException(UIN_GENERATION_FAILED, e);
+        }
     }
 }

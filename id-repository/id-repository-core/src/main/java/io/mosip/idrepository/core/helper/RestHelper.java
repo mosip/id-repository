@@ -1,10 +1,5 @@
 package io.mosip.idrepository.core.helper;
 
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.CLIENT_ERROR;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.CONNECTION_TIMED_OUT;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.SERVER_ERROR;
-import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
-
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
@@ -42,6 +37,8 @@ import io.mosip.kernel.core.retry.WithRetry;
 import lombok.NoArgsConstructor;
 import reactor.core.publisher.Mono;
 
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.*;
+
 /**
  * The Class RestHelper - to send/receive HTTP requests and return the response.
  *
@@ -60,7 +57,7 @@ public class RestHelper {
 	/** The mapper. */
 	@Autowired
 	private ObjectMapper mapper;
-	
+
 	@Autowired
 	private ApplicationContext ctx;
 
@@ -87,19 +84,19 @@ public class RestHelper {
 
 	/** The mosipLogger. */
 	private static Logger mosipLogger = IdRepoLogger.getLogger(RestHelper.class);
-	
+
 	private WebClient webClient;
-	
+
 	public RestHelper(WebClient webClient) {
 		this.webClient = webClient;
 	}
-	
+
 	@PostConstruct
 	public void init() {
 		if (Objects.isNull(webClient))
 			webClient = ctx.getBean("webClient", WebClient.class);
 	}
-	
+
 	/**
 	 * Request to send/receive HTTP requests and return the response synchronously.
 	 *
@@ -125,7 +122,7 @@ public class RestHelper {
 				if(RestUtil.containsError(response.toString(), mapper)) {
 					mosipLogger.debug("Error in response %s", response.toString());
 				}
-			}	
+			}
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_SYNC,
 					"Received valid response");
 			return (T) response;
@@ -148,38 +145,85 @@ public class RestHelper {
 	}
 
 	/**
-	 * Request to send/receive HTTP requests and return the response asynchronously.
-	 *
-	 * @param request the request
-	 * @return the supplier
-	 * @throws RestServiceException 
+	 * Perfect async request method - fully non-blocking and type-safe
 	 */
 	@Async
 	public CompletableFuture<Object> requestAsync(@Valid RestRequestDTO request) {
 		mosipLogger.debug(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_ASYNC,
 				PREFIX_REQUEST + request.getUri());
-		try {
-			Object obj =  requestSync(request);
-			return CompletableFuture.completedFuture(obj);
-		} catch (RestServiceException e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_ASYNC,
-					ExceptionUtils.getStackTrace(e));
-			return CompletableFuture.failedFuture(e);
+
+		Mono<?> responseMono = request(request);   // your existing private method
+
+		if (request.getTimeout() != null && request.getTimeout() > 0) {
+			responseMono = responseMono.timeout(Duration.ofSeconds(request.getTimeout()));
 		}
+
+		return responseMono
+				.doOnSuccess(response -> {
+					if (response != null && !String.class.equals(request.getResponseType())) {
+						try {
+							checkErrorResponse(response, request.getResponseType());
+							if (RestUtil.containsError(response.toString(), mapper)) {
+								mosipLogger.debug("Error in response: {}", response.toString());
+							}
+						} catch (RestServiceException ex) {
+							throw new RuntimeException(ex); // wrapped for onErrorMap
+						}
+					}
+				})
+				.onErrorMap(WebClientResponseException.class, this::mapWebClientError)
+				.onErrorMap(TimeoutException.class, e ->
+						new IdRepoRetryException(new RestServiceException(CONNECTION_TIMED_OUT, e)))
+				.onErrorMap(RuntimeException.class, this::mapGenericRuntimeError)
+				.cast(Object.class)                    // ← This fixes the type issue
+				.toFuture();                           // Now safely returns CompletableFuture<Object>
+	}
+
+	/**
+	 * Maps WebClientResponseException using your existing handleStatusError logic
+	 */
+	private RestServiceException mapWebClientError(WebClientResponseException e) {
+		try {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER,
+					"Request failed with status code: " + e.getRawStatusCode(),
+					"\nResponse Body: " + e.getResponseBodyAsString());
+
+			// handleStatusError throws exception → we catch and return it
+			return handleStatusError(e, null);   // passing null is safe here because method handles it internally
+
+		} catch (RestServiceException ex) {
+			return ex;
+		} catch (Exception ex) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_HANDLE_STATUS_ERROR,
+					ex.getMessage(), ex);
+			return new RestServiceException(UNKNOWN_ERROR, ex);
+		}
+	}
+
+	/**
+	 * Maps generic runtime errors
+	 */
+	private IdRepoRetryException mapGenericRuntimeError(RuntimeException e) {
+		mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_ASYNC,
+				THROWING_REST_SERVICE_EXCEPTION + UNKNOWN_ERROR_LOG + ExceptionUtils.getStackTrace(e));
+
+		if (e.getCause() instanceof TimeoutException) {
+			return new IdRepoRetryException(new RestServiceException(CONNECTION_TIMED_OUT, e));
+		}
+		return new IdRepoRetryException(new RestServiceException(UNKNOWN_ERROR, e));
 	}
 
 	/**
 	 * Method to send/receive HTTP requests and return the response as Mono.
 	 *
 	 * @param request    the request
-	 * @param sslContext the ssl context
 	 * @return the mono
 	 */
 	private Mono<?> request(RestRequestDTO request) {
 		Mono<?> monoResponse;
 		RequestBodySpec requestBodySpec;
 		ResponseSpec exchange;
-		
+
 		if (request.getParams() != null && request.getPathVariables() == null) {
 			request.setUri(UriComponentsBuilder
 					.fromUriString(request.getUri())
@@ -197,7 +241,7 @@ public class RestHelper {
 					.buildAndExpand(request.getPathVariables())
 					.toUriString());
 		}
-		
+
 		requestBodySpec = webClient.method(request.getHttpMethod()).uri(request.getUri());
 
 		if (request.getHeaders() != null) {
@@ -254,7 +298,7 @@ public class RestHelper {
 	 * @param e            the response
 	 * @param responseType the response type
 	 * @return the mono<? extends throwable>
-	 * @throws RestServiceException 
+	 * @throws RestServiceException
 	 */
 	private RestServiceException handleStatusError(WebClientResponseException e, Class<?> responseType)
 			throws RestServiceException {
@@ -264,10 +308,19 @@ public class RestHelper {
 			if (e.getStatusCode().is4xxClientError()) {
 				if (e.getRawStatusCode() == HttpStatus.UNAUTHORIZED.value()) {
 					List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(e.getResponseBodyAsString());
+					if (errorList.isEmpty()) {
+						throw new AuthenticationException(AUTHENTICATION_FAILED.getErrorCode(),
+								AUTHENTICATION_FAILED.getErrorMessage(), e.getRawStatusCode());
+					}
 					throw new AuthenticationException(errorList.get(0).getErrorCode(), errorList.get(0).getMessage(),
 							e.getRawStatusCode());
 				} else if (e.getRawStatusCode() == HttpStatus.FORBIDDEN.value()) {
 					List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(e.getResponseBodyAsString());
+					if (errorList.isEmpty()) {
+						throw new IdRepoRetryException(new AuthenticationException(
+								AUTHENTICATION_FAILED.getErrorCode(),
+								AUTHENTICATION_FAILED.getErrorMessage(), e.getRawStatusCode()));
+					}
 					throw new IdRepoRetryException(new AuthenticationException(errorList.get(0).getErrorCode(),
 							errorList.get(0).getMessage(), e.getRawStatusCode()));
 				} else {

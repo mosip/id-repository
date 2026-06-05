@@ -65,3 +65,14 @@ COMMENT ON COLUMN idmap.vid.is_deleted IS 'IS_Deleted : Flag to mark whether the
 -- ddl-end --
 COMMENT ON COLUMN idmap.vid.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
 -- ddl-end --
+
+-- PERFORMANCE INDEXES START--
+CREATE INDEX IF NOT EXISTS idx_vid_status_expiry ON idmap.vid USING btree (status_code, expiry_dtimes DESC) WHERE (is_deleted = false);
+CREATE INDEX IF NOT EXISTS idx_vid_status_expiry_ind ON idmap.vid USING btree (status_code, expiry_dtimes);
+CREATE INDEX IF NOT EXISTS idx_vid_uinhash_status_expiry ON idmap.vid USING btree (uin_hash, status_code, expiry_dtimes DESC) WHERE (is_deleted = false);
+CREATE INDEX IF NOT EXISTS idx_vid_uinhash_status_expiry_ind ON idmap.vid USING btree (uin_hash, status_code, expiry_dtimes);
+CREATE INDEX IF NOT EXISTS idx_vid_uinhash_status_vidtype_expiry ON idmap.vid USING btree (uin_hash, status_code, vidtyp_code, expiry_dtimes DESC) WHERE (is_deleted = false);
+CREATE INDEX IF NOT EXISTS idx_vid_uinhash_status_vidtype_expiry_ind ON idmap.vid USING btree (uin_hash, status_code, vidtyp_code, expiry_dtimes);
+CREATE INDEX idx_vid_vid ON idmap.vid (vid);
+CREATE INDEX idx_vid_uinhash_status_vidtype ON idmap.vid (uin_hash, status_code, vidtyp_code);
+-- PERFORMANCE INDEXES END--

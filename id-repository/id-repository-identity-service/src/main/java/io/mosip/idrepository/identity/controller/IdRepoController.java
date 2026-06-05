@@ -15,6 +15,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
+import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.idrepository.identity.validator.IndividualIdValidator;
 import jakarta.annotation.Nullable;
 import jakarta.annotation.Resource;
@@ -61,7 +63,7 @@ import io.mosip.idrepository.identity.dto.UpdateCountDto;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -71,7 +73,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import springfox.documentation.annotations.ApiIgnore;
 import org.apache.commons.lang.StringUtils;
-
 /**
  * The Class IdRepoController - Controller class for Identity service. These
  * services is used by Registration Processor to store/update during
@@ -452,7 +453,7 @@ public class IdRepoController {
 			Map<String, List<AuthtypeStatus>> authtypestatusmap = new HashMap<>();
 			authtypestatusmap.put("authTypes", authtypeStatusList);
 			authtypeResponseDto.setResponse(authtypestatusmap);
-			authtypeResponseDto.setResponsetime(DateUtils.getUTCCurrentDateTime());
+			authtypeResponseDto.setResponsetime(DateUtils2.getUTCCurrentDateTime());
 
 			auditHelper.audit(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
 					individualId, idType, "auth type status update status : " + true);
@@ -594,6 +595,40 @@ public class IdRepoController {
             return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}
 
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostSearchIdVidMetadata())")
+	@PostMapping(path = "/idvid-metadata/search", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "Search IdVid metadata using Individual Id", description = "Search IdVid metadata using Individual Id", tags = {
+			"id-repo-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Request authenticated successfully", content = @Content(schema = @Schema(implementation = IdVidMetadataResponseDTO.class))),
+			@ApiResponse(responseCode = "400", description = "No Records Found", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
+	public ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> searchIdVidMetadata(@Validated @RequestBody IdVidMetadataRequestWrapper idVidMetadataRequestWrapper,
+																						 @ApiIgnore Errors errors) throws IdRepoAppException {
+
+		DataValidationUtil.validate(errors);
+		IdVidMetadataRequestDTO metadataRequest = idVidMetadataRequestWrapper.getRequest();
+		String individualId = metadataRequest.getIndividualId();
+		String idType = metadataRequest.getIdType();
+		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
+		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
+				individualId, individualIdType, "IdVid metadata search request received");
+
+		IdVidMetadataResponseDTO metadataResponse = idRepoService.getIdVidMetadata(individualId, individualIdType);
+
+		ResponseWrapper<IdVidMetadataResponseDTO> responseWrapper = new ResponseWrapper<>();
+		responseWrapper.setId(idvidMetadataId);
+		responseWrapper.setVersion(idvidMetadataVersion);
+		responseWrapper.setResponse(metadataResponse);
+
+		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.ID_VID_METADATA,
+				individualId, individualIdType, "IdVid metadata search request successful");
+
+		return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
+	}
+	
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getRemainingUpdateCountByIndividualId())")
 	@GetMapping(path = "/{individualId}/update-counts", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Get Remaining update count by Individual Id Request", description = "Get Remaining update count by Individual Id Request", tags = {

@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.Request;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -39,7 +41,7 @@ import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import io.mosip.kernel.core.idvalidator.spi.UinValidator;
 import io.mosip.kernel.core.idvalidator.spi.VidValidator;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 
 /**
  * 
@@ -110,6 +112,7 @@ public class VidRequestValidatorTest {
 		assertTrue(requestValidator.supports(RequestWrapper.class));
 	}
 
+
 	@Test
 	public void testSupport_Invalid() {
 		assertFalse(requestValidator.supports(IdRequestDTO.class));
@@ -130,7 +133,7 @@ public class VidRequestValidatorTest {
 	@Test
 	public void testValidateReqTimeFutureReqTime() {
 		ReflectionTestUtils.invokeMethod(requestValidator, "validateReqTime",
-				DateUtils.parseToLocalDateTime("9999-12-31T15:28:28.610Z"), errors);
+				DateUtils2.parseToLocalDateTime("9999-12-31T15:28:28.610Z"), errors);
 		assertTrue(errors.hasErrors());
 		errors.getAllErrors().forEach(error -> {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), error.getCode());
@@ -195,7 +198,7 @@ public class VidRequestValidatorTest {
 		VidRequestDTO request = new VidRequestDTO();
 		request.setVidStatus("ACTIVE");
 		req.setVersion("v1");
-		req.setRequesttime(DateUtils.getUTCCurrentDateTime()
+		req.setRequesttime(DateUtils2.getUTCCurrentDateTime()
 				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone())).toLocalDateTime());
 		req.setRequest(request);
 		ReflectionTestUtils.invokeMethod(requestValidator, "validate", req, errors);
@@ -208,7 +211,7 @@ public class VidRequestValidatorTest {
 		req.setId("mosip.vid.update");
 		req.setRequest(null);
 		req.setVersion("v1");
-		req.setRequesttime(DateUtils.getUTCCurrentDateTime()
+		req.setRequesttime(DateUtils2.getUTCCurrentDateTime()
 				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone())).toLocalDateTime());
 		ReflectionTestUtils.invokeMethod(requestValidator, "validate", req, errors);
 		assertTrue(errors.hasErrors());
@@ -235,7 +238,7 @@ public class VidRequestValidatorTest {
 		request.setVidType("Perpetual");
 		request.setUin("2953190571");
 		req.setVersion("v1");
-		req.setRequesttime(DateUtils.getUTCCurrentDateTime()
+		req.setRequesttime(DateUtils2.getUTCCurrentDateTime()
 				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone())).toLocalDateTime());
 		req.setRequest(request);
 		HashSet<String> value = new HashSet<String>();
@@ -256,7 +259,7 @@ public class VidRequestValidatorTest {
 		request.setUin("2953190571");
 		request.setVidType("Temp");
 		req.setVersion("v1");
-		req.setRequesttime(DateUtils.getUTCCurrentDateTime()
+		req.setRequesttime(DateUtils2.getUTCCurrentDateTime()
 				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone())).toLocalDateTime());
 		req.setRequest(request);
 		HashSet<String> value = new HashSet<String>();
@@ -282,7 +285,7 @@ public class VidRequestValidatorTest {
 		request.setUin("2953190571");
 		request.setVidType(null);
 		req.setVersion("v1");
-		req.setRequesttime(DateUtils.getUTCCurrentDateTime()
+		req.setRequesttime(DateUtils2.getUTCCurrentDateTime()
 				.atZone(ZoneId.of(EnvUtil.getDatetimeTimezone())).toLocalDateTime());
 		req.setRequest(request);
 		HashSet<String> value = new HashSet<String>();
@@ -300,13 +303,12 @@ public class VidRequestValidatorTest {
 	}
 	
 	
-	
 	@Test
 	public void testUinValid() {
 		Mockito.when(uinValidator.validateId(Mockito.anyString())).thenReturn(true);
 		ReflectionTestUtils.invokeMethod(requestValidator, "validateUin", "123456", errors);
 	}
-	
+
 	@Test
 	public void testUinInValid() {
 		Mockito.when(uinValidator.validateId(Mockito.anyString())).thenThrow(new InvalidIDException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),

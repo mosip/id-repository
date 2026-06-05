@@ -66,7 +66,7 @@ import io.mosip.kernel.core.idobjectvalidator.exception.InvalidIdSchemaException
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import io.mosip.kernel.core.idvalidator.spi.VidValidator;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.idvalidator.uin.impl.UinValidatorImpl;
 
 /**
@@ -416,7 +416,7 @@ public class IdRequestValidatorTest {
 		req.setStatus("ACTIVATED");
 		req.setIdentity(obj);
 		request.setRequest(req);
-		request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+		request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
 		validator.validate(request, errors);
 		assertFalse(errors.hasErrors());
 	}
@@ -440,7 +440,7 @@ public class IdRequestValidatorTest {
 		req.setStatus("BLOCKED");
 		req.setIdentity(obj);
 		request.setRequest(req);
-		request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+		request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
 		validator.validate(request, errors);
 		assertFalse(errors.hasErrors());
 	}

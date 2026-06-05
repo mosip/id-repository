@@ -16,6 +16,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.BatchSize;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,9 +37,9 @@ import lombok.ToString;
 public class Uin implements Persistable<String>, UinInfo {
 
 	public Uin(String uinRefId, String uin, String uinHash, byte[] uinData, String uinDataHash, String regId,
-			String statusCode, String createdBy, LocalDateTime createdDateTime,
-			String updatedBy, LocalDateTime updatedDateTime, Boolean isDeleted, LocalDateTime deletedDateTime,
-			List<UinBiometric> biometrics, List<UinDocument> documents) {
+			   String statusCode, String createdBy, LocalDateTime createdDateTime,
+			   String updatedBy, LocalDateTime updatedDateTime, Boolean isDeleted, LocalDateTime deletedDateTime,
+			   List<UinBiometric> biometrics, List<UinDocument> documents) {
 		this.uinRefId = uinRefId;
 		this.uin = uin;
 		this.uinHash = uinHash;
@@ -64,7 +65,7 @@ public class Uin implements Persistable<String>, UinInfo {
 	/** The uin. */
 	@Column(name="uin")
 	private String uin;
-	
+
 	@Column(name="uin_hash")
 	private String uinHash;
 
@@ -82,14 +83,14 @@ public class Uin implements Persistable<String>, UinInfo {
 	/** The reg id. */
 	@Column(name="reg_id")
 	private String regId;
-	
+
 	@Column(name="bio_ref_id")
 	private String bioRefId;
 
 	/** The status code. */
 	@Column(name="status_code")
 	private String statusCode;
-	
+
 	@Column(name="lang_code")
 	private String langCode;
 
@@ -117,9 +118,11 @@ public class Uin implements Persistable<String>, UinInfo {
 	@Column(name = "del_dtimes")
 	private LocalDateTime deletedDateTime;
 
+	@BatchSize(size = 100)
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "uin", cascade = CascadeType.ALL)
 	private List<UinBiometric> biometrics;
 
+	@BatchSize(size = 100)
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "uin", cascade = CascadeType.ALL)
 	private List<UinDocument> documents;
 

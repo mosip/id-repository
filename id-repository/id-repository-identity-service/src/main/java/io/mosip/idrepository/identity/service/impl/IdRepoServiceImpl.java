@@ -26,9 +26,12 @@ import com.jayway.jsonpath.InvalidJsonException;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
+import io.mosip.idrepository.core.constant.CredentialTriggerAction;
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
+import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
-import io.mosip.idrepository.core.dto.IdVidMetadataResponseDTO;
 import io.mosip.idrepository.core.dto.RequestDTO;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.entity.Handle;
@@ -48,20 +51,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.DocumentContext;
-import com.jayway.jsonpath.InvalidJsonException;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
-import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 
 import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
 import io.mosip.idrepository.core.constant.IdType;
@@ -89,7 +78,7 @@ import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.util.UUIDUtils;
 
 /**
@@ -97,7 +86,7 @@ import io.mosip.kernel.core.util.UUIDUtils;
  */
 @Component
 @Primary
-@Transactional(rollbackFor = { IdRepoAppException.class, IdRepoAppUncheckedException.class })
+//@Transactional(rollbackFor = { IdRepoAppException.class, IdRepoAppUncheckedException.class })
 public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	private static final String VERIFIED_ATTRIBUTES = "verifiedAttributes";
@@ -227,7 +216,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 */
 	@Override
 	public Uin addIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
-		String uinRefId = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils.getUTCCurrentDateTime())
+		String uinRefId = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils2.getUTCCurrentDateTime())
 				.toString();
 		ObjectNode identityObject = mapper.convertValue(request.getRequest().getIdentity(), ObjectNode.class);
 		identityObject.putPOJO(VERIFIED_ATTRIBUTES, request.getRequest().getVerifiedAttributes());
@@ -244,28 +233,37 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 		List<UinDocument> docList = new ArrayList<>();
 		List<UinBiometric> bioList = new ArrayList<>();
+		// Collect history records produced during S3 uploads; saved to DB after all uploads finish
+		List<UinBiometricHistory> bioHistoryList = new ArrayList<>();
+		List<UinDocumentHistory> docHistoryList = new ArrayList<>();
 		Uin uinEntity;
 		if (Objects.nonNull(request.getRequest().getDocuments()) && !request.getRequest().getDocuments().isEmpty()) {
+			// Phase A: S3 uploads (DB connection NOT actively used during S3 I/O)
 			addDocuments(uinHashWithSalt, identityInfo, request.getRequest().getDocuments(), uinRefId, docList, bioList,
-					false);
+					bioHistoryList, docHistoryList, false);
 			uinEntity = new Uin(uinRefId, uinToEncrypt, uinHash, identityInfo, securityManager.hash(identityInfo),
 					request.getRequest().getRegistrationId(), activeStatus, IdRepoSecurityManager.getUser(),
-					DateUtils.getUTCCurrentDateTime(), null, null, false, null, bioList, docList);
+					DateUtils2.getUTCCurrentDateTime(), null, null, false, null, bioList, docList);
+			// Phase B: DB writes (all batched together after S3 is done)
 			uinEntity = uinRepo.save(uinEntity);
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 					"Record successfully saved in db with documents");
 		} else {
 			uinEntity = new Uin(uinRefId, uinToEncrypt, uinHash, identityInfo, securityManager.hash(identityInfo),
 					request.getRequest().getRegistrationId(), activeStatus, IdRepoSecurityManager.getUser(),
-					DateUtils.getUTCCurrentDateTime(), null, null, false, null, null, null);
+					DateUtils2.getUTCCurrentDateTime(), null, null, false, null, null, null);
 			uinEntity = uinRepo.save(uinEntity);
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 					"Record successfully saved in db without documents");
 		}
 
-		uinHistoryRepo.save(new UinHistory(uinRefId, DateUtils.getUTCCurrentDateTime(), uinEntity.getUin(), uinEntity.getUinHash(),
+		uinHistoryRepo.save(new UinHistory(uinRefId, DateUtils2.getUTCCurrentDateTime(), uinEntity.getUin(), uinEntity.getUinHash(),
 						uinEntity.getUinData(), uinEntity.getUinDataHash(), uinEntity.getRegId(), activeStatus,
-						IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(), null, null, false, null));
+						IdRepoSecurityManager.getUser(), DateUtils2.getUTCCurrentDateTime(), null, null, false, null));
+
+		// Batch-save all history records collected during S3 uploads
+		if (!bioHistoryList.isEmpty()) uinBioHRepo.saveAll(bioHistoryList);
+		if (!docHistoryList.isEmpty()) uinDocHRepo.saveAll(docHistoryList);
 
 		addIdentityHandle(uinEntity, selectedUniqueHandlesMap);
 
@@ -298,20 +296,26 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @param bioList      the bio list
 	 * @throws IdRepoAppException the id repo app exception
 	 */
+	/**
+	 * Uploads all documents to object store and populates bioList / docList with
+	 * entity metadata. History records are appended to bioHistoryList / docHistoryList
+	 * so the caller can batch-save them AFTER all S3 work is done — keeping the DB
+	 * connection idle time to a minimum.
+	 */
 	private void addDocuments(String uinHash, byte[] identityInfo, List<DocumentsDTO> documents, String uinRefId,
-			List<UinDocument> docList, List<UinBiometric> bioList, boolean isDraft) {
+			List<UinDocument> docList, List<UinBiometric> bioList,
+			List<UinBiometricHistory> bioHistoryList, List<UinDocumentHistory> docHistoryList,
+			boolean isDraft) {
 		ObjectNode identityObject = convertToObject(identityInfo, ObjectNode.class);
 		IntStream.range(0, documents.size()).filter(index -> identityObject.has(documents.get(index).getCategory())).forEach(index -> {
 			DocumentsDTO doc = documents.get(index);
 			JsonNode docType = identityObject.get(doc.getCategory());
 			try {
 				if (bioAttributes.contains(doc.getCategory())) {
-					//print doc get category
-					mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, "Document Category: " + doc.getCategory());
-					addBiometricDocuments(uinHash, uinRefId, bioList, doc, docType, isDraft, index);
+					addBiometricDocuments(uinHash, uinRefId, bioList, bioHistoryList, doc, docType, isDraft, index);
 					anonymousProfileHelper.setNewCbeff(doc.getValue());
 				} else {
-					addDemographicDocuments(uinHash, uinRefId, docList, doc, docType, isDraft);
+					addDemographicDocuments(uinHash, uinRefId, docList, docHistoryList, doc, docType, isDraft);
 				}
 			} catch (IdRepoAppException e) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, e.getMessage());
@@ -330,9 +334,15 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @param docType  the doc type
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	private void addBiometricDocuments(String uinHash, String uinRefId, List<UinBiometric> bioList, DocumentsDTO doc,
+	/**
+	 * Uploads the biometric file to object store, appends metadata to bioList, and
+	 * — when not a draft — appends the audit history record to bioHistoryList for
+	 * batch-saving AFTER all S3 uploads finish. This prevents the DB connection
+	 * from being held idle during each individual S3 round-trip.
+	 */
+	private void addBiometricDocuments(String uinHash, String uinRefId, List<UinBiometric> bioList,
+			List<UinBiometricHistory> bioHistoryList, DocumentsDTO doc,
 			JsonNode docType, boolean isDraft, int index) throws IdRepoAppException {
-		byte[] data = null;
 		String fileRefId = getFileRefId(docType);
 
 		data = CryptoUtil.decodeURLSafeBase64(doc.getValue());
@@ -347,16 +357,18 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			throw new IdRepoAppUncheckedException(INVALID_INPUT_PARAMETER.getErrorCode(),
 					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "documents/" + index + "/value"), e);
 		}
+		// S3 upload — DB connection is NOT used here
 		objectStoreHelper.putBiometricObject(uinHash, fileRefId, data);
 
 		bioList.add(new UinBiometric(uinRefId, fileRefId, doc.getCategory(), docType.get(FILE_NAME_ATTRIBUTE).asText(),
 				securityManager.hash(data), "", IdRepoSecurityManager.getUser(),
-				DateUtils.getUTCCurrentDateTime(), null, null, false, null));
+				DateUtils2.getUTCCurrentDateTime(), null, null, false, null));
 
+		// Collect for batch DB save — caller saves these after ALL S3 uploads complete
 		if (!isDraft)
-			uinBioHRepo.save(new UinBiometricHistory(uinRefId, DateUtils.getUTCCurrentDateTime(), fileRefId, doc.getCategory(),
+			bioHistoryList.add(new UinBiometricHistory(uinRefId, DateUtils2.getUTCCurrentDateTime(), fileRefId, doc.getCategory(),
 					docType.get(FILE_NAME_ATTRIBUTE).asText(), securityManager.hash(doc.getValue().getBytes()),
-					"", IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(),
+					"", IdRepoSecurityManager.getUser(), DateUtils2.getUTCCurrentDateTime(),
 					null, null, false, null));
 	}
 
@@ -370,23 +382,31 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @param docType  the doc type
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	private void addDemographicDocuments(String uinHash, String uinRefId, List<UinDocument> docList, DocumentsDTO doc,
+	/**
+	 * Uploads the demographic file to object store, appends metadata to docList, and
+	 * — when not a draft — appends the audit history record to docHistoryList for
+	 * batch-saving AFTER all S3 uploads finish.
+	 */
+	private void addDemographicDocuments(String uinHash, String uinRefId, List<UinDocument> docList,
+			List<UinDocumentHistory> docHistoryList, DocumentsDTO doc,
 			JsonNode docType, boolean isDraft) throws IdRepoAppException {
 		String fileRefId = getFileRefId(docType);
 
 		byte[] data = CryptoUtil.decodeURLSafeBase64(doc.getValue());
+		// S3 upload — DB connection is NOT used here
 		objectStoreHelper.putDemographicObject(uinHash, fileRefId, data);
 
 		docList.add(new UinDocument(uinRefId, doc.getCategory(), docType.get(TYPE).asText(), fileRefId,
 				docType.get(FILE_NAME_ATTRIBUTE).asText(), docType.get(FILE_FORMAT_ATTRIBUTE).asText(),
 				securityManager.hash(data), "", IdRepoSecurityManager.getUser(),
-				DateUtils.getUTCCurrentDateTime(), null, null, false, null));
+				DateUtils2.getUTCCurrentDateTime(), null, null, false, null));
 
+		// Collect for batch DB save — caller saves these after ALL S3 uploads complete
 		if (!isDraft)
-			uinDocHRepo.save(new UinDocumentHistory(uinRefId, DateUtils.getUTCCurrentDateTime(), doc.getCategory(),
+			docHistoryList.add(new UinDocumentHistory(uinRefId, DateUtils2.getUTCCurrentDateTime(), doc.getCategory(),
 					docType.get(TYPE).asText(), fileRefId, docType.get(FILE_NAME_ATTRIBUTE).asText(),
 					docType.get(FILE_FORMAT_ATTRIBUTE).asText(), securityManager.hash(data),
-					"", IdRepoSecurityManager.getUser(), DateUtils.getUTCCurrentDateTime(),
+					"", IdRepoSecurityManager.getUser(), DateUtils2.getUTCCurrentDateTime(),
 					null, null, false, null));
 	}
 
@@ -434,7 +454,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					&& !StringUtils.equals(uinObject.getStatusCode(), request.getRequest().getStatus())) {
 				uinObject.setStatusCode(request.getRequest().getStatus());
 				uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
-				uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
+				uinObject.setUpdatedDateTime(DateUtils2.getUTCCurrentDateTime());
 			}
 			if (Objects.nonNull(request.getRequest()) && Objects.nonNull(request.getRequest().getIdentity())) {
 				RequestDTO requestDTO = request.getRequest();
@@ -442,7 +462,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						.mappingProvider(new JacksonMappingProvider()).build();
 				DocumentContext inputData = JsonPath.using(configuration).parse(requestDTO.getIdentity());
 				DocumentContext dbData = JsonPath.using(configuration).parse(new String(uinObject.getUinData()));
-				anonymousProfileHelper.setOldUinData(dbData.jsonString().getBytes());
+				anonymousProfileHelper.setOldUinData(uinObject.getUinData()); // reuse existing bytes - no copy needed
 				updateVerifiedAttributes(requestDTO, inputData, dbData);
 				replaceConfiguredFieldsOnUpdate(inputData, dbData);
 				JSONCompareResult comparisonResult = JSONCompare.compareJSON(inputData.jsonString(),
@@ -451,10 +471,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				if (comparisonResult.failed()) {
 					updateJsonObject(uinHash, inputData, dbData, comparisonResult, true);
 				}
-				uinObject.setUinData(convertToBytes(convertToObject(dbData.jsonString().getBytes(), Map.class)));
+				uinObject.setUinData(convertToBytes(dbData.json())); // eliminates intermediate String->bytes->Map->bytes conversions
 				uinObject.setUinDataHash(securityManager.hash(uinObject.getUinData()));
 				uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
-				uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
+				uinObject.setUpdatedDateTime(DateUtils2.getUTCCurrentDateTime());
 
 				if (Objects.nonNull(requestDTO.getDocuments()) && !requestDTO.getDocuments().isEmpty()) {
 					anonymousProfileHelper
@@ -464,20 +484,20 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 											: null);
 					updateDocuments(uinHashWithSalt, uinObject, requestDTO, false);
 					uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
-					uinObject.setUpdatedDateTime(DateUtils.getUTCCurrentDateTime());
+					uinObject.setUpdatedDateTime(DateUtils2.getUTCCurrentDateTime());
 				}
 			}
 
 			uinObject = uinRepo.save(uinObject);
 			anonymousProfileHelper.setNewUinData(uinObject.getUinData());
-			uinHistoryRepo.save(new UinHistory(uinObject.getUinRefId(), DateUtils.getUTCCurrentDateTime(),
+			uinHistoryRepo.save(new UinHistory(uinObject.getUinRefId(), DateUtils2.getUTCCurrentDateTime(),
 					uinObject.getUin(), uinObject.getUinHash(), uinObject.getUinData(), uinObject.getUinDataHash(),
 					uinObject.getRegId(), uinObject.getStatusCode(), IdRepoSecurityManager.getUser(),
-					DateUtils.getUTCCurrentDateTime(), IdRepoSecurityManager.getUser(),
-					DateUtils.getUTCCurrentDateTime(), false, null));
+					DateUtils2.getUTCCurrentDateTime(), IdRepoSecurityManager.getUser(),
+					DateUtils2.getUTCCurrentDateTime(), false, null));
 
 			issueCredential(uin, uinObject.getUin(), uinObject.getStatusCode(),
-					DateUtils.getUTCCurrentDateTime(), uinObject.getRegId(), true);
+					DateUtils2.getUTCCurrentDateTime(), uinObject.getRegId(), true);
 
 			anonymousProfileHelper.buildAndsaveProfile(false);
 			return uinObject;
@@ -580,8 +600,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
 		if (comparisonResult.failed()) {
-			// Code should never reach here
-			updateJsonObject(uinHash, inputData, dbData, comparisonResult, true);
+			// Should never reach here - log and bail instead of recursing to prevent unbounded stack growth
+			mosipLogger.warn(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateJsonObject",
+					"Comparison still failing after all update passes for uinHash: " + uinHash
+							+ " - remaining diff: " + comparisonResult.getMessage());
 		}
 		identityUpdateTracker.save(new IdentityUpdateTracker(updateCountTracker.getKey(), CryptoUtil
 				.encodeToURLSafeBase64(mapper.writeValueAsString(updateCountTrackerMap).getBytes()).getBytes()));
@@ -762,13 +784,17 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			throws IdRepoAppException {
 		List<UinDocument> docList = new ArrayList<>();
 		List<UinBiometric> bioList = new ArrayList<>();
+		// Collect history records during S3 uploads; batch-saved to DB afterwards
+		List<UinBiometricHistory> bioHistoryList = new ArrayList<>();
+		List<UinDocumentHistory> docHistoryList = new ArrayList<>();
 
 		if (Objects.nonNull(uinObject.getBiometrics())) {
 			updateCbeff(uinObject, requestDTO);
 		}
 
+		// Phase A: S3 uploads — DB connection NOT actively used during S3 I/O
 		addDocuments(uinHashwithSalt, convertToBytes(requestDTO.getIdentity()), requestDTO.getDocuments(),
-				uinObject.getUinRefId(), docList, bioList, isDraft);
+				uinObject.getUinRefId(), docList, bioList, bioHistoryList, docHistoryList, isDraft);
 
 		docList.stream().forEach(doc -> uinObject.getDocuments().stream()
 				.filter(docObj -> StringUtils.equals(doc.getDoccatCode(), docObj.getDoccatCode())).forEach(docObj -> {
@@ -798,6 +824,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				.filter(bio -> uinObject.getBiometrics().stream()
 						.allMatch(bioObj -> !StringUtils.equals(bio.getBioFileId(), bioObj.getBioFileId())))
 				.forEach(bio -> uinObject.getBiometrics().add(bio));
+
+		// Phase B: Batch DB saves — all S3 work is done; connection now used efficiently
+		if (!bioHistoryList.isEmpty()) uinBioHRepo.saveAll(bioHistoryList);
+		if (!docHistoryList.isEmpty()) uinDocHRepo.saveAll(docHistoryList);
 	}
 
 	/**
@@ -868,8 +898,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	@Override
 	public IdVidMetadataResponseDTO getIdVidMetadata(String individualId, IdType idType) throws IdRepoAppException {
-        throw new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(),
-                "getIdVidMetadata not implemented in IdRepoServiceImpl");
+		throw new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(),
+				"getIdVidMetadata not implemented in IdRepoServiceImpl");
 	}
 
 	/**
@@ -943,7 +973,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				credStatus.setStatus(CredentialRequestStatusLifecycle.NEW.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
 				credStatus.setTriggerAction(triggerAction);
-				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
+				credStatus.setUpdDTimes(DateUtils2.getUTCCurrentDateTime());
 				credRequestRepo.save(credStatus);
 			});
 		} else if (!credStatusList.isEmpty() && !uinStatus.contentEquals(activeStatus)) {
@@ -951,7 +981,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				credStatus.setTriggerAction(triggerAction);
 				credStatus.setStatus(CredentialRequestStatusLifecycle.DELETED.toString());
 				credStatus.setUpdatedBy(IdRepoSecurityManager.getUser());
-				credStatus.setUpdDTimes(DateUtils.getUTCCurrentDateTime());
+				credStatus.setUpdDTimes(DateUtils2.getUTCCurrentDateTime());
 				credRequestRepo.save(credStatus);
 			});
 		} else if (credStatusList.isEmpty()) {
@@ -964,7 +994,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			credStatus.setTriggerAction(triggerAction);
 			credStatus.setIdExpiryTimestamp(uinStatus.contentEquals(activeStatus) ? null : expiryTimestamp);
 			credStatus.setCreatedBy(IdRepoSecurityManager.getUser());
-			credStatus.setCrDTimes(DateUtils.getUTCCurrentDateTime());
+			credStatus.setCrDTimes(DateUtils2.getUTCCurrentDateTime());
 			if(enableConventionBasedId && (requestId != null)) {
 				credStatus.setRequestId(requestId);
 			} 
@@ -1026,18 +1056,17 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			for (Entry<String, HandleDto> handleDtoEntry : handles.entrySet()) {
 				int saltId = securityManager.getSaltKeyForHashOfId(handleDtoEntry.getValue().getHandle());
 				String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(saltId);
-
 				String encodedHandleValue = CryptoUtil.encodeToPlainBase64(handleDtoEntry.getValue().getHandle().getBytes());
 				String handleToEncrypt = saltId + SPLITTER + encodedHandleValue + SPLITTER + encryptSalt;
 
 				Handle handleEntity = new Handle();
 				handleEntity.setHandleHash(handleDtoEntry.getValue().getHandleHash());
 				handleEntity.setId(UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID,
-						handleDtoEntry.getValue().getHandle() + SPLITTER + DateUtils.getUTCCurrentDateTime()).toString());
+						handleDtoEntry.getValue().getHandle() + SPLITTER + DateUtils2.getUTCCurrentDateTime()).toString());
 				handleEntity.setHandle(handleToEncrypt);
 				handleEntity.setUinHash(uinEntity.getUinHash());
 				handleEntity.setCreatedBy(IdRepoSecurityManager.getUser());
-				handleEntity.setCreatedDateTime(DateUtils.getUTCCurrentDateTime());
+				handleEntity.setCreatedDateTime(DateUtils2.getUTCCurrentDateTime());
 				handleRepo.save(handleEntity);
 				mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY_HANDLE,
 						"Record successfully saved in db");
