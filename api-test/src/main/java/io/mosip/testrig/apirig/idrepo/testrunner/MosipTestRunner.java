@@ -93,7 +93,6 @@ public class MosipTestRunner {
 			AdminTestUtil.getRequiredField();
 
 			BaseTestCase.getLanguageList();
-			BaseTestCase.getLanguageList();
 			AdminTestUtil.getLocationData();
 			
 			// Generate device certificates to be consumed by Mock-MDS
@@ -157,12 +156,6 @@ public class MosipTestRunner {
 		MispPartnerAndLicenseKeyGeneration.setLogLevel();
 		JWKKeyUtil.setLogLevel();
 		CertsUtil.setLogLevel();
-		KernelAuthentication.setLogLevel();
-		BaseTestCase.setLogLevel();
-		IdRepoUtil.setLogLevel();
-		KeycloakUserManager.setLogLevel();
-		DBManager.setLogLevel();
-		BiometricDataProvider.setLogLevel();
 		KernelAuthentication.setLogLevel();
 		BaseTestCase.setLogLevel();
 		IdRepoUtil.setLogLevel();
