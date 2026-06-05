@@ -54,6 +54,10 @@
 			<version>${kernel.idvalidator.vid.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>com.fasterxml.jackson.module</groupId>
+			<artifactId>jackson-module-afterburner</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-uin</artifactId>
 			<version>${kernel.idvalidator.uin.version}</version>

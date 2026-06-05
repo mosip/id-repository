@@ -39,8 +39,6 @@ ALTER TABLE BATCH_JOB_EXECUTION ADD COLUMN JOB_CONFIGURATION_LOCATION VARCHAR(25
 -- Drop the indices if they were created
 DROP INDEX IF EXISTS idx_job_name;
 DROP INDEX IF EXISTS idx_job_key;
-<<<<<<<< HEAD:db_upgrade_scripts/mosip_credential/sql/1.2.1.0_to_1.3.0_rollback.sql
-========
 
 -- Below script required to rollback from 1.3.0-beta.1 to 1.3.0.
 

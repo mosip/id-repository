@@ -1,16 +1,17 @@
-\c :mosipdbname
+\c mosip_idmap
 
 GRANT CONNECT
-   ON DATABASE :mosipdbname
-   TO :dbuname;
+   ON DATABASE mosip_idmap
+   TO idmapuser;
 
 GRANT USAGE
    ON SCHEMA idmap
-   TO :dbuname;
+   TO idmapuser;
 
 GRANT SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES
-      ON ALL TABLES IN SCHEMA idmap
-          TO :dbuname;
+   ON ALL TABLES IN SCHEMA idmap
+   TO idmapuser;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA idmap
-	GRANT SELECT,INSERT,UPDATE,DELETE,REFERENCES ON TABLES TO :dbuname;
+	GRANT SELECT,INSERT,UPDATE,DELETE,REFERENCES ON TABLES TO idmapuser;
+

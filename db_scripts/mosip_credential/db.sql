@@ -1,4 +1,4 @@
-CREATE DATABASE :mosipdbname
+CREATE DATABASE mosip_credential
 	ENCODING = 'UTF8'
 	LC_COLLATE = 'en_US.UTF-8'
 	LC_CTYPE = 'en_US.UTF-8'
@@ -6,11 +6,11 @@ CREATE DATABASE :mosipdbname
 	OWNER = postgres
 	TEMPLATE  = template0;
 
-COMMENT ON DATABASE :mosipdbname IS 'credential related entities and its data is stored in this database';
+COMMENT ON DATABASE mosip_credential IS 'credential related entities and its data is stored in this database';
 
-\c :mosipdbname
+\c mosip_credential
 
 DROP SCHEMA IF EXISTS credential CASCADE;
 CREATE SCHEMA credential;
 ALTER SCHEMA credential OWNER TO postgres;
-ALTER DATABASE :mosipdbname SET search_path TO credential,pg_catalog,public;
+ALTER DATABASE mosip_credential SET search_path TO credential,pg_catalog,public;
