@@ -65,6 +65,7 @@ public class IdrepositaryUtil {
 			String faceExtractionFormat = bioAttributeFormatterMap.get(CredentialConstants.FACE);
 			String irisExtractionFormat = bioAttributeFormatterMap.get(CredentialConstants.IRIS);
 			IdRequestByIdDTO requestByIdDTO = new IdRequestByIdDTO();
+			RequestWrapper<IdRequestByIdDTO> idDTORequestWrapper=new RequestWrapper<>();
 
 			requestByIdDTO.setId(credentialServiceRequestDto.getId());
 			requestByIdDTO.setType(identityType);
@@ -81,11 +82,15 @@ public class IdrepositaryUtil {
 			if (StringUtils.isNotEmpty(irisExtractionFormat)) {
 				requestByIdDTO.setIrisExtractionFormat(irisExtractionFormat);
 			}
-
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
+			LocalDateTime localdatetime = LocalDateTime
+					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+			idDTORequestWrapper.setRequest(requestByIdDTO);
+			idDTORequestWrapper.setRequesttime(localdatetime);
 			LOGGER.debug(String.format("getIdentity request: %s", requestByIdDTO.toString()));
 
 			String responseString = restUtil.postApi(ApiName.IDREPORETRIEVEIDBYID, null, "", "",
-					MediaType.APPLICATION_JSON, requestByIdDTO, String.class);
+					MediaType.APPLICATION_JSON, idDTORequestWrapper, String.class);
 
 			IdResponseDTO responseObject = mapper.readValue(responseString, IdResponseDTO.class);
 			if (responseObject == null) {
