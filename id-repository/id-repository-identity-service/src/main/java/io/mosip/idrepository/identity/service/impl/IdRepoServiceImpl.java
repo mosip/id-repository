@@ -50,12 +50,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
-import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.*;
-import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
@@ -343,6 +339,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	private void addBiometricDocuments(String uinHash, String uinRefId, List<UinBiometric> bioList,
 			List<UinBiometricHistory> bioHistoryList, DocumentsDTO doc,
 			JsonNode docType, boolean isDraft, int index) throws IdRepoAppException {
+		byte[] data = null;
 		String fileRefId = getFileRefId(docType);
 
 		data = CryptoUtil.decodeURLSafeBase64(doc.getValue());

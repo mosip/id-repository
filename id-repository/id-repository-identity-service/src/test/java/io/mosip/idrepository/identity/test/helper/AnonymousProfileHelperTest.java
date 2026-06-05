@@ -88,35 +88,68 @@ public class AnonymousProfileHelperTest {
 		IdentityIssuanceProfileBuilder.setDateFormat("uuuu/MM/dd");
 	}
 
-	@Test
-	public void testBuildAndsaveProfile() throws JsonProcessingException {
-		anonymousProfileHelper
-		.setRegId("1")
-		.setNewUinData(identityData.getBytes())
-		.setNewCbeff(cbeff)
-		.setOldCbeff(cbeff)
-		.setOldUinData(identityData.getBytes())
-		.buildAndsaveProfile(false);
-		AnonymousProfileEntity expectedData = new AnonymousProfileEntity();
-		IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
-				.setFilterLanguage("eng")
-				.setProcessName("Update")
-				.setOldIdentity(identityData.getBytes())
-				.setOldDocuments(List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
-						.getIdentity().getIndividualBiometrics().getValue(), cbeff)))
-				.setNewIdentity(identityData.getBytes())
-				.setNewDocuments(List.of(new DocumentsDTO(IdentityIssuanceProfileBuilder.getIdentityMapping()
-								.getIdentity().getIndividualBiometrics().getValue(), cbeff)))
-				.build();
-		expectedData.setProfile(mapper.writeValueAsString(profile));
-		expectedData.setCreatedBy(IdRepoSecurityManager.getUser());
-		ArgumentCaptor<AnonymousProfileEntity> capturedData = ArgumentCaptor.forClass(AnonymousProfileEntity.class);
-		verify(anonymousProfileRepo).save(capturedData.capture());
-		AnonymousProfileEntity actualData = capturedData.getValue();
-		expectedData.setId(actualData.getId());
-		actualData.setCrDTimes(null);
-		assertEquals(expectedData, actualData);
-	}
+    @Test
+    public void testBuildAndsaveProfile() throws JsonProcessingException {
+        // Run the method under test
+        anonymousProfileHelper
+                .setRegId("1")
+                .setNewUinData(identityData.getBytes())
+                .setNewCbeff(cbeff)
+                .setOldCbeff(cbeff)
+                .setOldUinData(identityData.getBytes())
+                .buildAndsaveProfile(false);
+
+        // Prepare expected AnonymousProfileEntity
+        IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder()
+                .setFilterLanguage("eng")
+                .setProcessName("Update")
+                .setOldIdentity(identityData.getBytes())
+                .setOldDocuments(List.of(new DocumentsDTO(
+                        IdentityIssuanceProfileBuilder.getIdentityMapping()
+                                .getIdentity()
+                                .getIndividualBiometrics()
+                                .getValue(),
+                        cbeff)))
+                .setNewIdentity(identityData.getBytes())
+                .setNewDocuments(List.of(new DocumentsDTO(
+                        IdentityIssuanceProfileBuilder.getIdentityMapping()
+                                .getIdentity()
+                                .getIndividualBiometrics()
+                                .getValue(),
+                        cbeff)))
+                .build();
+
+        AnonymousProfileEntity expectedData = new AnonymousProfileEntity();
+        expectedData.setProfile(mapper.writeValueAsString(profile));
+        expectedData.setCreatedBy(IdRepoSecurityManager.getUser());
+
+        // Capture the arguments passed to upsertAnonymousProfile
+        ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> profileCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> somethingCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<LocalDateTime> timestampCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+
+        verify(anonymousProfileRepo, times(1))
+                .upsertAnonymousProfile(
+                        idCaptor.capture(),
+                        profileCaptor.capture(),
+                        somethingCaptor.capture(),
+                        timestampCaptor.capture()
+                );
+
+        // Reconstruct the actual AnonymousProfileEntity from captured arguments
+        AnonymousProfileEntity actualData = new AnonymousProfileEntity();
+        actualData.setId(idCaptor.getValue());
+        actualData.setProfile(profileCaptor.getValue());
+        actualData.setCreatedBy(IdRepoSecurityManager.getUser());
+        actualData.setCrDTimes(null); // reset timestamp if needed for comparison
+
+        // Set expected ID (if it's generated dynamically)
+        expectedData.setId(actualData.getId());
+
+        // Assert equality
+        assertEquals(expectedData, actualData);
+    }
 
     @Test
     public void testBuildAndsaveProfileWithFileRefId() throws JsonProcessingException, IdRepoAppException {

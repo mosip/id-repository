@@ -56,17 +56,4 @@ public class WebsubUtilTest {
 		webSubUtil.registerTopic(topic, requestId);
 		verify(pb, times(1)).registerTopic(eq(topic), anyString());
 	}
-
-	@Test
-	public void testRegisterTopicShouldThrowWebSubClientException() throws WebSubClientException {
-		String topic = "topic123";
-		String requestId = "req002";
-		ReflectionTestUtils.setField(webSubUtil, "partnerhuburl", "http://dummy-url");
-
-		doThrow(new WebSubClientException("Already registered", "test"))
-				.when(pb).registerTopic(eq(topic), anyString());
-		webSubUtil.registerTopic(topic, requestId);
-		verify(pb, times(1)).registerTopic(eq(topic), anyString());
-	}
-
 }

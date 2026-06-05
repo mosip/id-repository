@@ -112,9 +112,6 @@ public class IdRepoSecurityManager {
 
 	public static final String ID_TYPE = "id_type";
 
-	/** The mosip logger. */
-	private Logger mosipLogger = IdRepoLogger.getLogger(IdRepoSecurityManager.class);
-
 	/** The Constant ENCRYPT_DECRYPT_DATA. */
 	private static final String ENCRYPT_DECRYPT_DATA = "encryptDecryptData";
 

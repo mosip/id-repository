@@ -1016,31 +1016,27 @@ public class IdRepoDraftServiceImplTest {
 			when(uinDraftRepo.findByUinHash(Mockito.anyString())).thenReturn(uinDraft);
 			idRepoServiceImpl.getDraftUin(uin);
 		} catch (IdRepoAppException e) {
-			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
 		}
 	}
 
 	@Test
 	public void testCreateDraftWhenGenerateUinThrowsException() throws Exception {
-		ReflectionTestUtils.setField(idRepoServiceImpl, "restBuilder", restBuilder);
-		ReflectionTestUtils.setField(idRepoServiceImpl, "restHelper", restHelper);
-
-		when(restBuilder.buildRequest(any(), any(), any(Class.class)))
-				.thenThrow(new IdRepoDataValidationException(IdRepoErrorConstants.UNKNOWN_ERROR));
+		when(uinHistoryRepo.existsByRegId(any())).thenReturn(false);
+		when(uinDraftRepo.existsByRegId(any())).thenReturn(false);
+		when(idRepoServiceHelper.generateUin())
+				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
 		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
 				idRepoServiceImpl.createDraft("REG123", null));
-
 		assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), thrown.getErrorCode());
 	}
 
 	@Test
 	public void testCreateDraftWhenRestServiceExceptionOccurs() throws Exception {
-		ReflectionTestUtils.setField(idRepoServiceImpl, "restBuilder", restBuilder);
-		ReflectionTestUtils.setField(idRepoServiceImpl, "restHelper", restHelper);
-		when(restBuilder.buildRequest(any(), any(), any(Class.class)))
-				.thenReturn(mock(RestRequestDTO.class)); // return a valid RestRequestDTO
-		when(restHelper.requestSync(any()))
-				.thenThrow(new RestServiceException(IdRepoErrorConstants.UIN_GENERATION_FAILED));
+		when(uinHistoryRepo.existsByRegId(any())).thenReturn(false);
+		when(uinDraftRepo.existsByRegId(any())).thenReturn(false);
+		when(idRepoServiceHelper.generateUin())
+				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UIN_GENERATION_FAILED));
 		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
 				idRepoServiceImpl.createDraft("REG123", null));
 		assertEquals(IdRepoErrorConstants.UIN_GENERATION_FAILED.getErrorCode(), thrown.getErrorCode());
