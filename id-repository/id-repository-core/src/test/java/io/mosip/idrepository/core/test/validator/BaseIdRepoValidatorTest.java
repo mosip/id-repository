@@ -27,7 +27,7 @@ import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.core.validator.BaseIdRepoValidator;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import java.time.LocalDateTime;
 
 /**
@@ -83,7 +83,7 @@ public class BaseIdRepoValidatorTest {
 	@Test
 	public void testValidateReqTimeFutureReqTime() {
 		ReflectionTestUtils.invokeMethod(requestValidator, "validateReqTime",
-				DateUtils.parseToLocalDateTime("9999-12-31T15:28:28.610Z"), errors);
+				DateUtils2.parseToLocalDateTime("9999-12-31T15:28:28.610Z"), errors);
 		assertTrue(errors.hasErrors());
 		errors.getAllErrors().forEach(error -> {
 			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), error.getCode());

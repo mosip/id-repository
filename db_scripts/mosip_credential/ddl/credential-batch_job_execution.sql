@@ -17,3 +17,10 @@ CREATE TABLE credential.batch_job_execution  (
 WITH (
     OIDS = FALSE
 );
+
+-- PERFORMANCE OPTIMIZATION INDEXES
+ALTER TABLE batch_job_execution SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 1000, autovacuum_analyze_scale_factor = 0.03, autovacuum_analyze_threshold = 500);
+
+-- PERFORMANCE INDEXES START--
+CREATE INDEX IF NOT EXISTS idx_job_exec_instance ON credential.batch_job_execution USING btree (job_instance_id);
+-- PERFORMANCE INDEXES END--

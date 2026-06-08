@@ -5,11 +5,11 @@
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.2.1-SNAPSHOT</version>
+		<version>1.4.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>id-repository-identity-service</artifactId>
-	<version>1.2.1-SNAPSHOT</version>
+	<version>1.4.0-SNAPSHOT</version>
 	<name>identity-service</name>
 	<description>ID-Repository Identity service</description>
 
@@ -17,16 +17,17 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>21</maven.compiler.source>
 		<maven.compiler.target>21</maven.compiler.target>
-		<kernel.core.version>1.2.1-SNAPSHOT</kernel.core.version>
-		<kernel.idvalidator.uin.version>1.2.1-SNAPSHOT</kernel.idvalidator.uin.version>
-		<kernel.cbeffutil.api.version>1.2.1-SNAPSHOT</kernel.cbeffutil.api.version>
-		<kernel.idobjectvalidator.version>1.2.1-SNAPSHOT</kernel.idobjectvalidator.version>
-		<kernel-idvalidator-vid.version>1.2.1-SNAPSHOT</kernel-idvalidator-vid.version>
-		<kernel-idvalidator-rid.version>1.2.1-SNAPSHOT</kernel-idvalidator-rid.version>
-		<kernel.khazana.version>1.2.1-SNAPSHOT</kernel.khazana.version>
-		<kernel.auth.adapter.version>1.2.1-SNAPSHOT</kernel.auth.adapter.version>
+		<kernel.core.version>1.3.1-rc.1</kernel.core.version>
+		<kernel.idvalidator.uin.version>1.3.1-rc.1</kernel.idvalidator.uin.version>
+		<kernel.cbeffutil.api.version>1.3.1</kernel.cbeffutil.api.version>
+		<kernel.idobjectvalidator.version>1.3.1-rc.1</kernel.idobjectvalidator.version>
+		<kernel-idvalidator-vid.version>1.3.1-rc.1</kernel-idvalidator-vid.version>
+		<kernel-idvalidator-rid.version>1.3.1-rc.1</kernel-idvalidator-rid.version>
+		<kernel.khazana.version>1.3.2-rc.1</kernel.khazana.version>
+		<kernel.auth.adapter.version>1.3.1</kernel.auth.adapter.version>
 		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
 		<maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
+		<kernel.biosdk.provider.version>1.3.1</kernel.biosdk.provider.version>
 	</properties>
 
 	<dependencies>
@@ -58,6 +59,11 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-cbeffutil-api</artifactId>
 			<version>${kernel.cbeffutil.api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idvalidator-rid</artifactId>
+			<version>${kernel-idvalidator-rid.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
@@ -115,7 +121,7 @@
 		<dependency>
 			<artifactId>kernel-biosdk-provider</artifactId>
 			<groupId>io.mosip.kernel</groupId>
-			<version>1.2.1-SNAPSHOT</version>
+			<version>${kernel.biosdk.provider.version}</version>
 		</dependency>
 	</dependencies>
 	<distributionManagement>
@@ -171,7 +177,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>${spring.boot.version}</version>
 				<configuration>
 					<executable>true</executable>
 					<layout>ZIP</layout>

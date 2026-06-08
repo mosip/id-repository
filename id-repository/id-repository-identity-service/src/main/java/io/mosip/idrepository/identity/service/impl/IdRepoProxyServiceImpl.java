@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import jakarta.annotation.Resource;
@@ -21,7 +24,7 @@ import io.mosip.idrepository.core.dto.*;
 import io.mosip.idrepository.core.entity.Handle;
 import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import io.mosip.idrepository.core.repository.HandleRepo;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.websub.model.Event;
 import io.mosip.kernel.core.websub.model.EventModel;
 import io.mosip.kernel.core.websub.model.Type;
@@ -157,6 +160,10 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 	@Value("${id-repo-ida-event-type-name:ida}")
 	private String idaEventTypeName;
+
+	/** Total seconds to wait for all modality extractions to complete. */
+	@Value("${mosip.idrepo.bio.extraction.timeout-seconds:30}")
+	private long extractionTimeoutSeconds;
 
 	/*
 	 * (non-Javadoc)
@@ -430,12 +437,14 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 
 			for (BiometricType modality : SUPPORTED_MODALITIES) {
 				List<BIR> birTypesForModality = originalBirs.stream()
-						.filter(bir -> bir.getBdbInfo().getType().get(0).value().equalsIgnoreCase(modality.value()))
-						.filter(bir -> bir.getOthers().keySet().stream()
-								.anyMatch(key -> key.contentEquals("EXCEPTION")))
-						.filter(bir -> bir.getOthers().get("EXCEPTION").contentEquals("false"))
+						.filter(bir -> {
+							List<BiometricType> types = bir.getBdbInfo().getType();
+							return !types.isEmpty() && types.get(0).value().equalsIgnoreCase(modality.value());
+						})						.filter(bir -> {
+							Map<String, String> others = bir.getOthers();
+							return others == null || "false".equalsIgnoreCase(others.get("EXCEPTION"));
+						})
 						.collect(Collectors.toList());
-
 				Optional<Entry<String, String>> extractionFormatForModality = extractionFormats.entrySet().stream()
 						.filter(ent -> ent.getKey().toLowerCase().contains(modality.value().toLowerCase())).findAny();
 
@@ -452,10 +461,29 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				}
 			}
 
-			CompletableFuture.allOf(extractionFutures.toArray(new CompletableFuture<?>[extractionFutures.size()]))
-					.join();
+			originalBirs.clear(); // release parsed BIR list before blocking on futures - reduces live set during wait
+
+			// Wait for all modality extractions with a hard deadline.
+			// Previously .join() was used with no timeout, blocking indefinitely.
+			// Now .get(timeout) bounds the wait to mosip.idrepo.bio.extraction.timeout-seconds.
+			try {
+				CompletableFuture.allOf(extractionFutures.toArray(new CompletableFuture<?>[0]))
+						.get(extractionTimeoutSeconds, TimeUnit.SECONDS);
+			} catch (TimeoutException e) {
+				extractionFutures.forEach(f -> f.cancel(true));
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
+						"Biometric extraction timed out after " + extractionTimeoutSeconds + "s");
+				throw new IdRepoAppUncheckedException(BIO_EXTRACTION_ERROR, e);
+			} catch (ExecutionException e) {
+				Throwable cause = e.getCause();
+				if (cause instanceof IdRepoAppUncheckedException)
+					throw (IdRepoAppUncheckedException) cause;
+				throw new IdRepoAppUncheckedException(BIO_EXTRACTION_ERROR, cause);
+			}
+			// All futures completed normally; getNow() retrieves without a second blocking call
+			// (replaces the previous redundant future.get() loop after the join).
 			for (CompletableFuture<List<BIR>> future : extractionFutures) {
-				finalBirs.addAll(future.get());
+				finalBirs.addAll(future.getNow(Collections.emptyList()));
 			}
 
 			return cbeffUtil.createXML(finalBirs);
@@ -726,7 +754,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	private EventModel createEventModel(String topic, Map<String, Object> eventData, String transactionId) {
 		EventModel model = new EventModel();
 		model.setPublisher(ID_REPO);
-		String dateTime = DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime());
+		String dateTime = DateUtils2.formatToISOString(DateUtils2.getUTCCurrentDateTime());
 		model.setPublishedOn(dateTime);
 		Event event = new Event();
 		event.setTimestamp(dateTime);
@@ -804,12 +832,11 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		IdVidMetadataResponseDTO metadataResponseDTO = new IdVidMetadataResponseDTO();
 		metadataResponseDTO.setRid(uin.getRegId());
 		if (uin.getUpdatedDateTime() != null) {
-			metadataResponseDTO.setUpdatedOn(DateUtils.formatToISOString(uin.getUpdatedDateTime()));
+			metadataResponseDTO.setUpdatedOn(DateUtils2.formatToISOString(uin.getUpdatedDateTime()));
 		}
 		if (uin.getCreatedDateTime() != null) {
-			metadataResponseDTO.setCreatedOn(DateUtils.formatToISOString(uin.getCreatedDateTime()));
+			metadataResponseDTO.setCreatedOn(DateUtils2.formatToISOString(uin.getCreatedDateTime()));
 		}
 		return metadataResponseDTO;
 	}
-
 }

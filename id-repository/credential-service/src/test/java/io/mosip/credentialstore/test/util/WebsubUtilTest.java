@@ -56,5 +56,4 @@ public class WebsubUtilTest {
 		webSubUtil.registerTopic(topic, requestId);
 		verify(pb, times(1)).registerTopic(eq(topic), anyString());
 	}
-
 }

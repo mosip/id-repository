@@ -19,7 +19,7 @@ import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 
 /**
  * The Class BaseIdRepoValidator - base validator to validate common fields from
@@ -66,13 +66,13 @@ public abstract class BaseIdRepoValidator {
 			errors.rejectValue(REQUEST_TIME, MISSING_INPUT_PARAMETER.getErrorCode(),
 					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), REQUEST_TIME));
 		} else {
-			LocalDateTime currentUtcTime = DateUtils.getUTCCurrentDateTime();
+			LocalDateTime currentUtcTime = DateUtils2.getUTCCurrentDateTime();
 			LocalDateTime adjustedCurrentUtcTime = currentUtcTime.plusSeconds(EnvUtil.getDateTimeAdjustment());
 
 			int maxDeviationSeconds = maxRequestTimeDeviationSeconds;
 
-			if (DateUtils.after(reqTime, adjustedCurrentUtcTime.plusSeconds(maxDeviationSeconds))
-					|| DateUtils.before(reqTime, adjustedCurrentUtcTime.minusSeconds(maxDeviationSeconds))) {
+			if (DateUtils2.after(reqTime, adjustedCurrentUtcTime.plusSeconds(maxDeviationSeconds))
+					|| DateUtils2.before(reqTime, adjustedCurrentUtcTime.minusSeconds(maxDeviationSeconds))) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateReqTime",
 						"requesttime is outside the allowed deviation");
 				mosipLogger.error(IdRepoSecurityManager.getUser(), BASE_ID_REPO_VALIDATOR, "validateReqTime",

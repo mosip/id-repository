@@ -76,18 +76,6 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	String getRidByIndividualId(String individualId, IdType idType) throws IdRepoAppException;
 
 	/**
-	 * Retrieves the id vid metadata information for a given individual
-	 * based on the provided ID and its type.
-	 *
-	 * @param individualId the identifier of the individual whose metadata is to be fetched.
-	 * @param idType The type of ID that you're passing in.
-	 * @return an {@code IdVidMetadataResponseDTO} containing rid, createdOn, and updatedOn
-	 * @throws IdRepoAppException if there is an error during retrieval
-	 */
-
-	IdVidMetadataResponseDTO getIdVidMetadata(String individualId, IdType idType) throws IdRepoAppException;
-
-	/**
 	 * This function is used to get the maximum allowed update count of an attribute
 	 * for the given individual id
 	 * 
@@ -100,4 +88,16 @@ public interface IdRepoService<REQUEST, RESPONSE> {
 	 */
 	Map<String, Integer> getRemainingUpdateCountByIndividualId(String individualId, IdType idType,
 			List<String> attributeList) throws IdRepoAppException;
+
+	/**
+	 * Retrieves the id vid metadata information for a given individual
+	 * based on the provided ID and its type.
+	 *
+	 * @param individualId the identifier of the individual whose metadata is to be fetched.
+	 * @param idType The type of ID that you're passing in.
+	 * @return an {@code IdVidMetadataResponseDTO} containing rid, createdOn, and updatedOn
+	 * @throws IdRepoAppException if there is an error during retrieval
+	 */
+
+	IdVidMetadataResponseDTO getIdVidMetadata(String individualId, IdType idType) throws IdRepoAppException;
 }

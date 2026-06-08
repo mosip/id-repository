@@ -15,6 +15,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
+import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.idrepository.identity.validator.IndividualIdValidator;
 import jakarta.annotation.Nullable;
 import jakarta.annotation.Resource;
@@ -37,7 +39,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import io.mosip.kernel.core.http.RequestWrapper;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
@@ -61,7 +63,7 @@ import io.mosip.idrepository.identity.dto.UpdateCountDto;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -71,7 +73,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import springfox.documentation.annotations.ApiIgnore;
 import org.apache.commons.lang.StringUtils;
-
 /**
  * The Class IdRepoController - Controller class for Identity service. These
  * services is used by Registration Processor to store/update during
@@ -452,7 +453,7 @@ public class IdRepoController {
 			Map<String, List<AuthtypeStatus>> authtypestatusmap = new HashMap<>();
 			authtypestatusmap.put("authTypes", authtypeStatusList);
 			authtypeResponseDto.setResponse(authtypestatusmap);
-			authtypeResponseDto.setResponsetime(DateUtils.getUTCCurrentDateTime());
+			authtypeResponseDto.setResponsetime(DateUtils2.getUTCCurrentDateTime());
 
 			auditHelper.audit(AuditModules.AUTH_TYPE_STATUS, AuditEvents.UPDATE_AUTH_TYPE_STATUS_REQUEST_RESPONSE,
 					individualId, idType, "auth type status update status : " + true);
@@ -483,7 +484,7 @@ public class IdRepoController {
 	/**
 	 * Update authtype status.
 	 *
-	 * @param authTypeStatusDto
+	 * @param authTypeStatusRequest
 	 *            the auth type status dto
 	 * @param errors
 	 *            the e
@@ -593,7 +594,7 @@ public class IdRepoController {
 
             return new ResponseEntity<>(responseWrapper, HttpStatus.OK);
 	}
-
+	
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getRemainingUpdateCountByIndividualId())")
 	@GetMapping(path = "/{individualId}/update-counts", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Get Remaining update count by Individual Id Request", description = "Get Remaining update count by Individual Id Request", tags = {

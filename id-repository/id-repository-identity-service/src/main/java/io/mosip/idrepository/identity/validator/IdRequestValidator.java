@@ -20,7 +20,10 @@ import io.mosip.kernel.core.idvalidator.spi.RidValidator;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
+
+import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.idrepository.core.dto.IdRequestByIdDTO;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

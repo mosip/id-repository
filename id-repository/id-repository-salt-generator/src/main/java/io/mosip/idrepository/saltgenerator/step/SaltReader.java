@@ -20,7 +20,7 @@ import io.mosip.idrepository.saltgenerator.entity.idrepo.IdentityHashSaltEntity;
 import io.mosip.idrepository.saltgenerator.logger.SaltGeneratorLogger;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.util.HMACUtils2;
 
 /**
@@ -61,7 +61,7 @@ public class SaltReader implements ItemReader<IdRepoSaltEntitiesComposite> {
 		if (startSeq <= endSeq) {
 			String idHshSalt = CryptoUtil.encodeToPlainBase64(HMACUtils2.generateSalt());
 			String vidHshSalt = idHshSalt;
-			LocalDateTime currentDateTime = DateUtils.getUTCCurrentDateTime();
+			LocalDateTime currentDateTime = DateUtils2.getUTCCurrentDateTime();
 			
 			IdentityHashSaltEntity identityHashSalt = new IdentityHashSaltEntity();
 			identityHashSalt.setId(startSeq);
