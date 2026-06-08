@@ -27,6 +27,7 @@
 		<kernel.auth.adapter.version>1.3.1</kernel.auth.adapter.version>
 		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
 		<maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
+		<kernel.biosdk.provider.version>1.3.1</kernel.biosdk.provider.version>
 	</properties>
 
 	<dependencies>
@@ -120,7 +121,7 @@
 		<dependency>
 			<artifactId>kernel-biosdk-provider</artifactId>
 			<groupId>io.mosip.kernel</groupId>
-			<version>1.3.0</version>
+			<version>${kernel.biosdk.provider.version}</version>
 		</dependency>
 	</dependencies>
 	<distributionManagement>
