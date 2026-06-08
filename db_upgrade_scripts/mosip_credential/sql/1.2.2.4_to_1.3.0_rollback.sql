@@ -57,5 +57,3 @@ ALTER TABLE credential_transaction RESET (autovacuum_vacuum_scale_factor, autova
 ALTER TABLE batch_job_execution RESET (autovacuum_vacuum_scale_factor, autovacuum_vacuum_threshold, autovacuum_analyze_scale_factor, autovacuum_analyze_threshold);
 
 -- END ROLLBACK FOR PERFORMANCE OPTIMIZATION INDEXES
-
->>>>>>>> rel-1.3.1-test:db_upgrade_scripts/mosip_credential/sql/1.2.2.4_to_1.3.0_rollback.sql
