@@ -1249,7 +1249,7 @@ UpdateIdentityV2:
             "metadata": {
               "trust_framework": "invalid",
               "verification_process": "invalid",
-              "assurance_level": "Invalid",
+              "assurance_level": "invalid",
               "time": "2025-07-01T06:10:00.000Z"
             }
           }
@@ -1307,7 +1307,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithoutMetadataParameters_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify updating without trust_framework verification_process and assurance_level parameters in metadata
+    description: Verify updating identity without metadata field.
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_34
     role: testrig
     restMethod: patch
@@ -1494,7 +1494,7 @@ UpdateIdentityV2:
 }'
   IdRepository_UpdateIdentityV2_With_Mismatched_TrustFramework_And_VerificationProcess_In_Metadata_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Update identity with single verified attribute
+    description: Validate Identity Update Fails When Trust Framework and Verification Process in Metadata Do Not Match Verified Attributes
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_39
     role: testrig
     restMethod: patch

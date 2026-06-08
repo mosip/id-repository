@@ -461,6 +461,18 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	// ===== UpdateIdentity Private Handlers =====
+
+	private static void applyWithUpdateValues(JSONArray handleArray, String handle, String emailFieldName) {
+		for (int j = 0; j < handleArray.length(); j++) {
+			if (handle.equals(emailFieldName)) {
+				handleArray.getJSONObject(j).put("value", "mosip_update_" + RANDOM_ID + "@mosip.net");
+			} else {
+				handleArray.getJSONObject(j).put("value", "mosip" + RANDOM_ID + "_" + j);
+			}
+		}
+	}
+
 	private static void applyWithUpdateTags(JSONArray handleArray) {
 		for (int j = 0; j < handleArray.length(); j++) {
 			JSONObject handleObj = handleArray.getJSONObject(j);
@@ -683,18 +695,6 @@ public class IdRepoArrayHandle {
 		identity.remove("selectedHandles");
 		if (identity.has(phoneFieldName)) {
 			identity.put(phoneFieldName, BaseTestCase.generateRandomNumberString(10));
-		}
-	}
-
-	// ===== UpdateIdentity Private Handlers =====
-
-	private static void applyWithUpdateValues(JSONArray handleArray, String handle, String emailFieldName) {
-		for (int j = 0; j < handleArray.length(); j++) {
-			if (handle.equals(emailFieldName)) {
-				handleArray.getJSONObject(j).put("value", "mosip_update_" + RANDOM_ID + "@mosip.net");
-			} else {
-				handleArray.getJSONObject(j).put("value", "mosip" + RANDOM_ID + "_" + j);
-			}
 		}
 	}
 

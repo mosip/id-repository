@@ -38,7 +38,6 @@ import io.restassured.response.Response;
 public class UpdateIdentity extends IdRepoUtil implements ITest {
 	private static final Logger logger = Logger.getLogger(UpdateIdentity.class);
 	protected String testCaseName = "";
-	public String reqKeyName = null;
 	private static String identity;
 
 	@BeforeClass
@@ -74,7 +73,6 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 	public Object[] getTestCaseList(ITestContext context) {
 		String ymlFile = context.getCurrentXmlTest().getLocalParameters().get("ymlFile");
 		logger.info("Started executing yml: " + ymlFile);
-		reqKeyName = context.getCurrentXmlTest().getLocalParameters().get("reqKeyName");
 		return getYmlTestData(ymlFile);
 	}
 
@@ -91,9 +89,6 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
 		testCaseName = testCaseDTO.getTestCaseName();
 		testCaseName = IdRepoUtil.isTestCaseValidForExecution(testCaseDTO);
-		if(testCaseDTO.getUniqueIdentifier().contains("TC_IDRepo_UpdateIdentityV2_35")) {
-			System.out.print("Debug");
-		}
 		updateIdentity(testCaseDTO);
 
 	}
