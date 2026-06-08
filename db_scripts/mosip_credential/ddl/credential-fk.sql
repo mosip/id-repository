@@ -48,5 +48,5 @@ CREATE SEQUENCE credential.batch_step_execution_seq;
 
 -- grants to access all sequences
 GRANT usage, SELECT ON ALL SEQUENCES
-   IN SCHEMA credential
-   TO credentialuser;
+    IN SCHEMA credential
+    TO :dbuname;
