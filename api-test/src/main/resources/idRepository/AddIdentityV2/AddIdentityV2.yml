@@ -19,8 +19,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -69,8 +69,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -139,8 +139,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -192,8 +192,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -248,8 +248,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [],
@@ -284,10 +284,11 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": "$REMOVE$",
   
   "version": "v2",
   "introducerRID": "212124324784879",
@@ -319,8 +320,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": {},
@@ -359,8 +360,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -413,8 +414,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -463,8 +464,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -506,6 +507,7 @@ AddIdentityV2:
       uniqueIdentifier: TC_IDRepo_AddIdentityV2_11
       role: testrig
       restMethod: post
+      requiredSchemaFields: [phone]
       inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
       input: '{
@@ -520,7 +522,7 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
+  "email": "$EMAILVALUE$",
   "phone": "*&8249742850%@",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
@@ -560,6 +562,7 @@ AddIdentityV2:
       uniqueIdentifier: TC_IDRepo_AddIdentityV2_12
       role: testrig
       restMethod: post
+      requiredSchemaFields: [email]
       inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
       input: '{
@@ -575,7 +578,7 @@ AddIdentityV2:
    
   "postalCode": "14022",
   "email": "@*mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -614,6 +617,7 @@ AddIdentityV2:
       uniqueIdentifier: TC_IDRepo_AddIdentityV2_13
       role: testrig
       restMethod: post
+      requiredSchemaFields: [dateOfBirth]
       inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
       input: '{
@@ -628,8 +632,8 @@ AddIdentityV2:
   "dateOfBirth": "15-04-1994",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -682,8 +686,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -730,7 +734,7 @@ AddIdentityV2:
       input: '{
   "value": "$BIOVALUE$",
   "id": "mosip.id.create",
-  "registrationId": "@%invalid",
+  "registrationId": "@%invalid12$RUNCONTEXT$",
   "addressCopy": "Y",
   "biometricReferenceId": "23452353",
  
@@ -739,8 +743,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -778,12 +782,12 @@ AddIdentityV2:
 }'
   IdRepository_AddIdentityV2_WithInvalidClaim_Neg:
       endPoint: /idrepository/v1/identity/v2
-      description: Validate that Add Identity API returns an error when an invalid claim value is provided in the verifiedAttributes claims section during identity creation.
+      description: Validate that Add Identity API will ignore the claim when an invalid claim value is provided in the verifiedAttributes claims section during identity creation.
       uniqueIdentifier: TC_IDRepo_AddIdentityV2_16
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
-      outputTemplate: idRepository/error
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
       input: '{
   "value": "$BIOVALUE$",
   "id": "mosip.id.create",
@@ -796,8 +800,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -805,7 +809,7 @@ AddIdentityV2:
       "trustFramework": "internal",
       "verificationProcess": "otp_verified",
       "claims": [
-        "dummyField"
+        "invalid"
       ],
       "metadata": {
         "trust_framework": "internal",
@@ -824,11 +828,7 @@ AddIdentityV2:
    "requesttime": "$TIMESTAMP$"
 }'
       output: '{
-   "errors": [
-     {
-        "errorCode": "IDR-IDC-002"
-     }
-   ]
+   "status":"ACTIVATED"
 }'
   IdRepository_AddIdentityV2_WithEmptyClaim_Neg:
       endPoint: /idrepository/v1/identity/v2
@@ -850,8 +850,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -878,7 +878,7 @@ AddIdentityV2:
       output: '{
    "errors": [
      {
-        "errorCode": "IDR-IDC-002"
+        "errorCode": "IDR-IDC-016"
      }
    ]
 }'
@@ -902,8 +902,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -911,8 +911,8 @@ AddIdentityV2:
       "trustFramework": "kyc",
       "verificationProcess": "online_video",
       "claims": [
-        "fullName",
-        "dateOfBirth"
+        "phone",
+        "email"
       ],
       "metadata": {
         "trust_framework": "kyc",
@@ -949,11 +949,11 @@ AddIdentityV2:
    "requesttime": "$TIMESTAMP$"
 }'
       output: '{
-   "errors": [
-      {
-        "errorCode": "IDR-IDC-002"
-      }
-   ]
+  "errors": [
+    {
+       "errorCode": "IDR-IDC-015"
+    }
+  ]
 }'
   IdRepository_AddIdentityV2_WithInvalidMetadata_DataType_Neg:
       endPoint: /idrepository/v1/identity/v2
@@ -975,8 +975,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -1024,8 +1024,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -1052,7 +1052,7 @@ AddIdentityV2:
       output: '{
    "errors": [
      {
-        "errorCode": "IDR-IDC-002"
+        "errorCode": "IDR-IDC-016"
      }
    ]
 }'
@@ -1076,8 +1076,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -1104,18 +1104,18 @@ AddIdentityV2:
       output: '{
    "errors": [
      {
-        "errorCode": "IDR-IDC-002"
+        "errorCode": "IDR-IDC-016"
      }
    ]
 }'
-  IdRepository_AddIdentityV2_WithoutMetadata_Field_Neg:
+  IdRepository_AddIdentityV2_WithoutMetadata_Field:
       endPoint: /idrepository/v1/identity/v2
       description: Validate that Add Identity API returns an error when the metadata field is missing in verifiedAttributes.
       uniqueIdentifier: TC_IDRepo_AddIdentityV2_22
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
-      outputTemplate: idRepository/error
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
       input: '{
   "value": "$BIOVALUE$",
   "id": "mosip.id.create",
@@ -1128,8 +1128,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -1150,11 +1150,7 @@ AddIdentityV2:
    "requesttime": "$TIMESTAMP$"
 }'
       output: '{
-   "errors": [
-     {
-        "errorCode": "IDR-IDC-002"
-     }
-   ]
+   "status":"ACTIVATED"
 }'
   IdRepository_AddIdentityV2_WithoutClaim_Field_Neg:
       endPoint: /idrepository/v1/identity/v2
@@ -1176,8 +1172,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -1203,14 +1199,14 @@ AddIdentityV2:
       output: '{
    "errors": [
      {
-        "errorCode": "IDR-IDC-002"
+        "errorCode": "IDR-IDC-016"
      }
-   ]
+  ]
 }'
   IdRepository_AddIdentityV2_WithEmptyTrustFramework_Neg:
       endPoint: /idrepository/v1/identity/v2
       description: Validate that Add Identity API returns an error when trustFramework is provided as empty in verifiedAttributes.
-      uniqueIdentifier: TC_IDRepo_AddIdentityV2_23
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_24
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -1227,8 +1223,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -1257,14 +1253,14 @@ AddIdentityV2:
       output: '{
    "errors": [
      {
-        "errorCode": "IDR-IDC-002"
+        "errorCode": "IDR-IDC-016"
      }
    ]
 }'
   IdRepository_AddIdentityV2_WithEmptyVerificationProcess_Neg:
       endPoint: /idrepository/v1/identity/v2
       description: Validate that Add Identity API returns an error when verificationProcess is provided as empty in verifiedAttributes.
-      uniqueIdentifier: TC_IDRepo_AddIdentityV2_24
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_25
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -1281,8 +1277,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -1311,14 +1307,14 @@ AddIdentityV2:
       output: '{
    "errors": [
      {
-        "errorCode": "IDR-IDC-002"
+        "errorCode": "IDR-IDC-016"
      }
    ]
 }'
-  IdRepository_AddIdentityV2_WithEmptyMetadata_Neg:
+  IdRepository_AddIdentityV2_WithEmptyMetadata:
       endPoint: /idrepository/v1/identity/v2
       description: Validate that Add Identity API returns an error when metadata is provided as empty in verifiedAttributes.
-      uniqueIdentifier: TC_IDRepo_AddIdentityV2_25
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_26
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -1335,8 +1331,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -1367,7 +1363,7 @@ AddIdentityV2:
   IdRepository_AddIdentityV2_WithInvalidMetadata_Neg:
       endPoint: /idrepository/v1/identity/v2
       description: Validate that Add Identity API returns an error when invalid metadata fields are provided in verifiedAttributes.
-      uniqueIdentifier: TC_IDRepo_AddIdentityV2_26
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_27
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -1384,8 +1380,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -1412,16 +1408,17 @@ AddIdentityV2:
       output: '{
    "errors": [
      {
-        "errorCode": "IDR-IDC-002"
+        "errorCode": "IDR-IDC-016"
      }
    ]
 }'
   IdRepository_AddIdentityV2_With_Empty_Email_Neg:
       endPoint: /idrepository/v1/identity/v2
       description: Validate that Add Identity API returns an error when email is provided as empty.
-      uniqueIdentifier: TC_IDRepo_AddIdentityV2_27
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_28
       role: testrig
       restMethod: post
+      requiredSchemaFields: [email]
       inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
       input: '{
@@ -1437,7 +1434,7 @@ AddIdentityV2:
    
   "postalCode": "14022",
   "email": "",
-  "phone": "8249742850",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -1473,9 +1470,10 @@ AddIdentityV2:
   IdRepository_AddIdentityV2_With_SpaceVal_Email_Neg:
       endPoint: /idrepository/v1/identity/v2
       description: Validate that Add Identity API returns an error when email is provided with only whitespace value.
-      uniqueIdentifier: TC_IDRepo_AddIdentityV2_28
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_29
       role: testrig
       restMethod: post
+      requiredSchemaFields: [email]
       inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
       input: '{
@@ -1491,7 +1489,7 @@ AddIdentityV2:
    
   "postalCode": "14022",
   "email": " ",
-  "phone": "8249742850",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -1527,9 +1525,10 @@ AddIdentityV2:
   IdRepository_AddIdentityV2_withEmptyPhone_Neg:
       endPoint: /idrepository/v1/identity/v2
       description: Validate that Add Identity API returns an error when phone number is provided as empty.
-      uniqueIdentifier: TC_IDRepo_AddIdentityV2_29
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_30
       role: testrig
       restMethod: post
+      requiredSchemaFields: [phone]
       inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
       input: '{
@@ -1544,7 +1543,7 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
+  "email": "$EMAILVALUE$",
   "phone": "",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
@@ -1581,9 +1580,10 @@ AddIdentityV2:
   IdRepository_AddIdentityV2_WithEmptyDOB_Neg:
       endPoint: /idrepository/v1/identity/v2
       description: Validate that Add Identity API returns an error with empty dateOfBirth value.
-      uniqueIdentifier: TC_IDRepo_AddIdentityV2_30
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_31
       role: testrig
       restMethod: post
+      requiredSchemaFields: [dateOfBirth]
       inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
       input: '{
@@ -1598,8 +1598,8 @@ AddIdentityV2:
   "dateOfBirth": "",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -1635,9 +1635,10 @@ AddIdentityV2:
   IdRepository_AddIdentityV2_WithSpaceValueDOB_Neg:
       endPoint: /idrepository/v1/identity/v2
       description: Validate that Add Identity V2 API returns an error when dateOfBirth contains only space value.
-      uniqueIdentifier: TC_IDRepo_AddIdentityV2_31
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_32
       role: testrig
       restMethod: post
+      requiredSchemaFields: [dateOfBirth]
       inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
       input: '{
@@ -1652,8 +1653,8 @@ AddIdentityV2:
   "dateOfBirth": " ",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -1689,7 +1690,7 @@ AddIdentityV2:
   IdRepository_AddIdentityV2_WithInvalidPostalCode_Smoke_Pos:
       endPoint: /idrepository/v1/identity/v2
       description: Validate that Add Identity V2 API returns an error when postalCode contains invalid characters.
-      uniqueIdentifier: TC_IDRepo_AddIdentityV2_32
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_33
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -1706,8 +1707,8 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "12@45Ab",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -1742,8 +1743,164 @@ AddIdentityV2:
 }'
   IdRepository_AddIdentityV2_withNotApplicableSelectedHandles_Neg:
       endPoint: /idrepository/v1/identity/v2
-      description: Validate that Add Identity V2 API returns an error when selected handles are not applicable for the request.
-      uniqueIdentifier: TC_IDRepo_AddIdentityV2_33
+      description: Validate that Add Identity V2 API will ignore when selected handles are not applicable for the request.
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_34
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "otp_verified",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_WithInvalidToken_Neg:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Identity Creation Request Fails When an Invalid Authentication Token Is Used
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_35
+      role: invalid
+      restMethod: post
+      checkOnlyStatusCodeInResponse: true
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/responseCode
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "otp_verified",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "responseCode": "500"
+}'
+  IdRepository_AddIdentityV2_WithInvalidIdentity_Neg:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Identity Creation Fails When Multiple Identity Attributes Contain Invalid Values
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_36
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "15/04",
+   
+  "postalCode": "invalid",
+  "email": "invalid",
+  "phone": "invalid",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+      {
+        "trustFramework": "internal",
+        "verificationProcess": "otp_verified",
+        "claims": [
+          "phone"
+        ],
+        "metadata": {
+          "trust_framework": "internal",
+          "verification_process": "otp_verified",
+          "assurance_level": "Home",
+          "time": "2025-07-01T06:10:00.000Z"
+        }
+      }
+    ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+     {"errorCode":"IDR-IDC-002"},
+     {"errorCode":"IDR-IDC-002"},
+     {"errorCode":"IDR-IDC-002"},
+     {"errorCode":"IDR-IDC-002"}
+   ]
+}'
+  IdRepository_AddIdentityV2_WithInvalidCategory_Neg:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Identity Creation Fails When Invalid Document Category Is Provided in the Request Payload
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_37
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -1760,8 +1917,116 @@ AddIdentityV2:
   "dateOfBirth": "1992/04/15",
    
   "postalCode": "14022",
-  "email": "mosipuser123@mailinator.com",
-  "phone": "8249742850",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "category": "invalid",
+  "verifiedAttributes": [
+      {
+        "trustFramework": "internal",
+        "verificationProcess": "otp_verified",
+        "claims": [
+          "phone"
+        ],
+        "metadata": {
+          "trust_framework": "internal",
+          "verification_process": "otp_verified",
+          "assurance_level": "Home",
+          "time": "2025-07-01T06:10:00.000Z"
+        }
+      }
+    ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+     {
+        "errorCode": "IDR-IDC-002"
+     }
+  ]
+}'
+  IdRepository_AddIdentityV2_WithInvalidValue_Neg:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Identity Creation Fails When Invalid Document Value Is Provided in the Request Payload
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_38
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "invalid",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "category": "individualBiometrics",
+  "verifiedAttributes": [
+      {
+        "trustFramework": "internal",
+        "verificationProcess": "otp_verified",
+        "claims": [
+          "phone"
+        ],
+        "metadata": {
+          "trust_framework": "internal",
+          "verification_process": "otp_verified",
+          "assurance_level": "Home",
+          "time": "2025-07-01T06:10:00.000Z"
+        }
+      }
+    ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+     {
+        "errorCode": "IDR-IDC-002"
+     }
+  ]
+}'
+  IdRepository_AddIdentityV2_Without_Email_Neg:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Identity Creation Fails When Email Attribute Is Missing from the Request
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_39
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$REMOVE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [
@@ -1793,4 +2058,901 @@ AddIdentityV2:
         "errorCode": "IDR-IDC-002"
      }
    ]
+}'
+  IdRepository_AddIdentityV2_With_Invalid_TrustFramework_Pos:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Successful Identity Creation with an Invalid Trust Framework Value
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_40
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "invalid",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "invalid",
+        "verification_process": "otp_verified",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_With_RandomValue_TrustFramework_Pos:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Successful Identity Creation with a random Trust Framework Value
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_41
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "random value",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "random value",
+        "verification_process": "otp_verified",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_With_RandomValue_VerificationProcess:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Successful Identity Creation with a random Verification Process Value
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_42
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "kyc",
+      "verificationProcess": "random value",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "kyc",
+        "verification_process": "random value",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_With_Online_video_In_VerificationProcess:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Successful Identity Creation Using Online Video Verification Process
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_43
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "kyc",
+      "verificationProcess": "online_video",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "kyc",
+        "verification_process": "online_video",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_With_ClaimsValue_In_IdSchema:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Successful Identity Creation with Verified Claims Defined in the Identity Schema
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_44
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone",
+        "email"
+      ],
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "otp_verified",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_With_InvalidValue_VerificationProcess:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Successful Identity Creation When Verification Process Contains a Non-Standard Value
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_45
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "kyc",
+      "verificationProcess": "invalid",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "kyc",
+        "verification_process": "invalid",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_With_Empty_AssuranceLevel:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Successful Identity Creation When Assurance Level Is Provided as an Empty Value
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_46
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone",
+        "email"
+      ],
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "otp_verified",
+        "assurance_level": "",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_WithOut_AssuranceLevel:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Successful Identity Creation When Assurance Level Is Not Provided in Metadata
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_47
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone",
+        "email"
+      ],
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "otp_verified",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_WithInvalid_Level_Policy_Procedure:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Successful Identity Creation When Assurance Process Contains Invalid Level, Policy, and Procedure Values
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_48
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "kyc",
+      "verificationProcess": "online_video",
+      "claims": [
+        "fullName",
+        "dateOfBirth"
+      ],
+      "metadata": {
+        "trust_framework": "kyc",
+        "verification_process": "online_video",
+        "assurance_level": "Land",
+        "time": "2025-07-01T06:03:22.339Z",
+        "assurance_process": {
+          "level": "invalid",
+          "policy": "invalid",
+          "procedure": "invalid"
+        }
+      }
+    },
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone",
+        "email"
+      ],
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "otp_verified",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_WithEmpty_Level_Policy_Procedure:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Successful Identity Creation When Assurance Process Fields Contain Empty Values
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_49
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "kyc",
+      "verificationProcess": "online_video",
+      "claims": [
+        "fullName",
+        "dateOfBirth"
+      ],
+      "metadata": {
+        "trust_framework": "kyc",
+        "verification_process": "online_video",
+        "assurance_level": "Land",
+        "time": "2025-07-01T06:03:22.339Z",
+        "assurance_process": {
+          "level": "",
+          "policy": "",
+          "procedure": ""
+        }
+      }
+    },
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone",
+        "email"
+      ],
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "otp_verified",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_WithOut_Level_Policy_Procedure:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Successful Identity Creation When Assurance Process Object Is Provided Without Level, Policy, and Procedure Details
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_50
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "kyc",
+      "verificationProcess": "online_video",
+      "claims": [
+        "fullName",
+        "dateOfBirth"
+      ],
+      "metadata": {
+        "trust_framework": "kyc",
+        "verification_process": "online_video",
+        "assurance_level": "Land",
+        "time": "2025-07-01T06:03:22.339Z",
+        "assurance_process": {}
+      }
+    },
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone",
+        "email"
+      ],
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "otp_verified",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_WithInvalid_Data_In_Metadata:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Identity Creation Fails When Metadata Contains Invalid Trust Framework, Verification Process, and Assurance Level Values
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_51
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "invalid",
+        "verification_process": "invalid",
+        "assurance_level": "invalid",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+     {
+        "errorCode": "IDR-IDC-002"
+     }
+   ]
+}'
+  IdRepository_AddIdentityV2_WithEmpty_Data_In_Metadata:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Identity Creation Fails When Metadata Fields Are Provided with Empty Values
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_52
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "",
+        "verification_process": "",
+        "assurance_level": "",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+     {
+        "errorCode": "IDR-IDC-016"
+     }
+   ]
+}'
+  IdRepository_AddIdentityV2_WithOut_Any_Data_Except_Time:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Identity Creation Fails When Metadata Contains Only Time Field Without Required Verification Metadata
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_53
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+     {
+        "errorCode": "IDR-IDC-016"
+     }
+  ]
+}'
+  IdRepository_AddIdentityV2_With_Mismatched_TrustFramework_And_VerificationProcess_In_Metadata_Neg:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Identity Creation Fails When Metadata Trust Framework and Verification Process Values Differ from Verified Attributes
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_54
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "fullName",
+        "dateOfBirth",
+        "phone",
+        "email"
+      ],
+      "metadata": {
+        "trust_framework": "kyc",
+        "verification_process": "online_video",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+     {
+        "errorCode": "IDR-IDC-002"
+     }
+   ]
+}'
+  IdRepository_AddIdentityV2_WithDuplicateTrustFramework_And_VerificationProcess_With_Diff_Claims:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate Identity Creation Fails When Duplicate Trust Framework and Verification Process Combinations Are Provided Across Verified Attributes
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_55
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+ 
+   "UIN": "$UIN$",
+   
+  "dateOfBirth": "1992/04/15",
+   
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "mobileno": "8249742850",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "kyc",
+      "verificationProcess": "online_video",
+      "claims": [
+        "phone",
+        "email"
+      ],
+      "metadata": {
+        "trust_framework": "kyc",
+        "verification_process": "online_video",
+        "assurance_level": "Land",
+        "time": "2025-07-01T06:03:22.339Z",
+        "assurance_process": {
+          "level": "Land",
+          "policy": "kyc-policy",
+          "procedure": "video-identification"
+        }
+      }
+    },
+    {
+      "trustFramework": "kyc",
+      "verificationProcess": "online_video",
+      "claims": [
+        "fullName",
+        "dateOfBirth"
+      ],
+      "metadata": {
+        "trust_framework": "kyc",
+        "verification_process": "online_video",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+  
+  "version": "v2",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+   
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "errors": [
+    {
+       "errorCode": "IDR-IDC-015"
+    }
+  ]
 }'

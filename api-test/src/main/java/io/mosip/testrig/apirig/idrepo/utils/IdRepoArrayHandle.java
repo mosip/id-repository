@@ -37,6 +37,12 @@ public class IdRepoArrayHandle {
 			identity.put("selectedHandles", new JSONArray());
 			return jsonObj.toString();
 		}
+		if (testCaseName.contains("_withNotApplicableSelectedHandles")) {
+		    JSONArray selectedHandles = new JSONArray();
+		    selectedHandles.put("fullName");
+		    identity.put("selectedHandles", selectedHandles);
+		    return jsonObj.toString();
+		}
 		if (testCaseName.contains("_removealltagshandles")) {
 			removeTagsHandles(jsonObj);
 			return jsonObj.toString();
@@ -156,7 +162,7 @@ public class IdRepoArrayHandle {
 		} else if (testCaseName.contains("_withmultiplevalues")) {
 			putMultipleValues(handleArray);
 		} else if (testCaseName.contains("_withmultiplehandleswithoutvalue")) {
-			applyMultipleHandlesWithoutValue(identity, selectedHandles, handleArray);
+			applyMultipleHandlesWithoutValue(handleArray);
 		} else if (testCaseName.contains("_withfunctionalIdsUsedFirstTwoValueOutOfFive") && handle.equals("functionalId")) {
 			applyFunctionalIdsUsedFirstTwoValueOutOfFive(handleArray);
 		} else if (testCaseName.contains("_withfunctionalIdsUsedFirstTwoValue") && handle.equals("functionalId")) {
@@ -305,27 +311,23 @@ public class IdRepoArrayHandle {
 		}
 	}
 
-	private static void applyMultipleHandlesWithoutValue(JSONObject identity, JSONArray selectedHandles,
-			JSONArray handleArray) {
-		String phoneFieldName = resolvePhoneFieldName();
-		boolean containsPhone = false;
-		for (int j = 0; j < selectedHandles.length(); j++) {
-			if (phoneFieldName.equalsIgnoreCase(selectedHandles.getString(j))) {
-				containsPhone = true;
-				break;
-			}
-		}
-		if (!containsPhone) {
-			selectedHandles.put(phoneFieldName);
-			JSONObject phoneEntry = new JSONObject();
-			phoneEntry.put("value", "$PHONENUMBERFORIDENTITY$");
-			identity.put(phoneFieldName, new JSONArray().put(phoneEntry));
-		}
-		for (int j = 0; j < handleArray.length(); j++) {
-			handleArray.getJSONObject(j).remove("value");
-		}
-	}
+	private static void applyMultipleHandlesWithoutValue(JSONArray handleArray) {
 
+	    // Remove existing entries
+	    while (handleArray.length() > 0) {
+	        handleArray.remove(0);
+	    }
+
+	    JSONObject handleObj = new JSONObject();
+	    handleObj.put("tags", new JSONArray().put("handle"));
+
+	    JSONObject notificationObj = new JSONObject();
+	    notificationObj.put("tags", new JSONArray().put("notification"));
+
+	    handleArray.put(handleObj);
+	    handleArray.put(notificationObj);
+	}
+	
 	private static void applyFunctionalIdsUsedFirstTwoValueOutOfFive(JSONArray handleArray) {
 		String baseValue = handleArray.length() > 0 ? handleArray.getJSONObject(0).getString("value") : "";
 		for (int j = 0; j < 4; j++) {
@@ -403,9 +405,16 @@ public class IdRepoArrayHandle {
 	}
 
 	private static void applyWithCaseSensitiveHandles(JSONArray handleArray) {
-		for (int j = 0; j < handleArray.length(); j++) {
-			handleArray.getJSONObject(j).put("value", "HANDLES");
-		}
+	    for (int j = 0; j < handleArray.length(); j++) {
+	        JSONObject obj = handleArray.getJSONObject(j);
+
+	        JSONArray tags = obj.getJSONArray("tags");
+	        for (int k = 0; k < tags.length(); k++) {
+	            if ("handles".equalsIgnoreCase(tags.getString(k))) {
+	                tags.put(k, "HANDLES");
+	            }
+	        }
+	    }
 	}
 
 	private static void applyWithSelectedHandlePhone(JSONObject identity) {
@@ -449,18 +458,6 @@ public class IdRepoArrayHandle {
 			JSONObject obj = handleArray.getJSONObject(j);
 			obj.remove("value");
 			obj.put("value", selectedHandlesValue);
-		}
-	}
-
-	// ===== UpdateIdentity Private Handlers =====
-
-	private static void applyWithUpdateValues(JSONArray handleArray, String handle, String emailFieldName) {
-		for (int j = 0; j < handleArray.length(); j++) {
-			if (handle.equals(emailFieldName)) {
-				handleArray.getJSONObject(j).put("value", "mosip_update_" + RANDOM_ID + "@mosip.net");
-			} else {
-				handleArray.getJSONObject(j).put("value", "mosip" + RANDOM_ID + "_" + j);
-			}
 		}
 	}
 
@@ -686,6 +683,18 @@ public class IdRepoArrayHandle {
 		identity.remove("selectedHandles");
 		if (identity.has(phoneFieldName)) {
 			identity.put(phoneFieldName, BaseTestCase.generateRandomNumberString(10));
+		}
+	}
+
+	// ===== UpdateIdentity Private Handlers =====
+
+	private static void applyWithUpdateValues(JSONArray handleArray, String handle, String emailFieldName) {
+		for (int j = 0; j < handleArray.length(); j++) {
+			if (handle.equals(emailFieldName)) {
+				handleArray.getJSONObject(j).put("value", "mosip_update_" + RANDOM_ID + "@mosip.net");
+			} else {
+				handleArray.getJSONObject(j).put("value", "mosip" + RANDOM_ID + "_" + j);
+			}
 		}
 	}
 

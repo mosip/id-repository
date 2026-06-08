@@ -20,7 +20,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -55,7 +55,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -90,7 +90,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -104,7 +104,7 @@ AddIdentity:
       output: '{
   "errors": [
     {
-      "errorCode": "IDR-IDC-001"
+      "errorCode": "IDR-IDC-002"
     }
   ]
 }'
@@ -129,7 +129,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -164,7 +164,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -199,7 +199,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -234,7 +234,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -269,7 +269,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -308,7 +308,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -347,7 +347,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -382,7 +382,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -417,7 +417,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -456,7 +456,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742850",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -491,7 +491,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742850",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -526,7 +526,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742850",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -561,7 +561,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742850",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -596,7 +596,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742850",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -631,7 +631,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742850",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -666,7 +666,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742850",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742850",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -701,7 +701,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -736,7 +736,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -771,7 +771,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -806,7 +806,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -841,7 +841,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -876,7 +876,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -911,7 +911,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -946,7 +946,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -981,7 +981,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -1016,7 +1016,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -1051,7 +1051,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -1086,7 +1086,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -1121,7 +1121,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -1156,7 +1156,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -1192,6 +1192,7 @@ AddIdentity:
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
   "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -1226,7 +1227,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -1261,7 +1262,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -1296,7 +1297,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -1335,7 +1336,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -1374,7 +1375,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -1413,7 +1414,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249712345",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -1448,7 +1449,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -1483,7 +1484,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249712345",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -1518,7 +1519,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -1553,7 +1554,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249712345",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
@@ -1588,7 +1589,7 @@ AddIdentity:
    
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
-  "phone": "8249742851",
+  "phone": "$PHONENUMBERFORIDENTITY$",
   "mobileno": "8249742851",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",

@@ -38,6 +38,7 @@ import io.restassured.response.Response;
 public class UpdateIdentity extends IdRepoUtil implements ITest {
 	private static final Logger logger = Logger.getLogger(UpdateIdentity.class);
 	protected String testCaseName = "";
+	public String reqKeyName = null;
 	private static String identity;
 
 	@BeforeClass
@@ -73,6 +74,7 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 	public Object[] getTestCaseList(ITestContext context) {
 		String ymlFile = context.getCurrentXmlTest().getLocalParameters().get("ymlFile");
 		logger.info("Started executing yml: " + ymlFile);
+		reqKeyName = context.getCurrentXmlTest().getLocalParameters().get("reqKeyName");
 		return getYmlTestData(ymlFile);
 	}
 
@@ -89,6 +91,9 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
 		testCaseName = testCaseDTO.getTestCaseName();
 		testCaseName = IdRepoUtil.isTestCaseValidForExecution(testCaseDTO);
+		if(testCaseDTO.getUniqueIdentifier().contains("TC_IDRepo_UpdateIdentityV2_35")) {
+			System.out.print("Debug");
+		}
 		updateIdentity(testCaseDTO);
 
 	}
@@ -140,6 +145,29 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 		generatedRid = genRid;
 
 		String inputJson = getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate());
+		if (inputJson.contains("$SCHEMAVERSION$"))
+			inputJson = replaceKeywordWithValue(inputJson, "$SCHEMAVERSION$", generateLatestSchemaVersion());
+		
+		// V2 specific handling for verifiedAttributes and documents
+		if (testCaseDTO.getEndPoint().contains("/v2")) {
+
+		    JSONObject originalInput = new JSONObject(testCaseDTO.getInput());
+		    JSONObject requestJson = new JSONObject(inputJson);
+
+		    if (originalInput.has("verifiedAttributes")) {
+		        requestJson.getJSONObject("request")
+		                .put("verifiedAttributes",
+		                        originalInput.getJSONArray("verifiedAttributes"));
+		    }
+
+		    if (originalInput.has("documents")) {
+		        requestJson.getJSONObject("request")
+		                .put("documents",
+		                        originalInput.getJSONArray("documents"));
+		    }
+
+		    inputJson = requestJson.toString();
+		}
 
 		String phone = getValueFromAuthActuator("json-property", "phone_number");
 		String result = phone.replaceAll("\\[\"|\"\\]", "");
@@ -180,7 +208,14 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 
 		if (inputJson.contains("$PRIMARYLANG$"))
 			inputJson = inputJson.replace("$PRIMARYLANG$", BaseTestCase.languageList.get(0));
-
+		
+		inputJson = inputJsonKeyWordHandeler(inputJson, testCaseName);
+		if (testCaseName.toLowerCase().contains("_sid")) {
+			JSONObject reqJson = new JSONObject(inputJson);
+			String phonenumber = reqJson.getJSONObject("request").getJSONObject("identity").getString("phone");
+			writeToCache(getAutogenIdKeyName(testCaseName, "phone"), phonenumber);
+		}
+		
 		Response response = patchWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 				testCaseDTO.getRole(), testCaseDTO.getTestCaseName());
 

@@ -138,8 +138,6 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 			KeycloakUserManager.createVidUsers(IdRepoConfigManager.getproperty("new_Resident_User"), attrmap);
 		}
 
-
-		
 		//For_Array-Handle Related Cases
 		if (inputJson.contains("$FUNCTIONALID$")) {
 			inputJson = replaceKeywordWithValue(inputJson, "$FUNCTIONALID$", generateRandomNumberString(2)
