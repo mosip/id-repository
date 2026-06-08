@@ -1,4 +1,4 @@
-\c mosip_idmap
+\c :mosipdbname
 
 \ir ddl/idmap-vid.sql
 \ir ddl/idmap-vid_seed.sql

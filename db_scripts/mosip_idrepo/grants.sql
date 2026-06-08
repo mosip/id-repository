@@ -1,17 +1,16 @@
-\c mosip_idrepo
+\c :mosipdbname
 
 GRANT CONNECT
-   ON DATABASE mosip_idrepo
-   TO idrepouser;
+   ON DATABASE :mosipdbname
+   TO :dbuname;
 
 GRANT USAGE
    ON SCHEMA idrepo
-   TO idrepouser;
+   TO :dbuname;
 
 GRANT SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES
-   ON ALL TABLES IN SCHEMA idrepo
-   TO idrepouser;
+      ON ALL TABLES IN SCHEMA idrepo
+          TO :dbuname;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA idrepo
-	GRANT SELECT,INSERT,UPDATE,DELETE,REFERENCES ON TABLES TO idrepouser;
-
+	GRANT SELECT,INSERT,UPDATE,DELETE,REFERENCES ON TABLES TO :dbuname;

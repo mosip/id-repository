@@ -1,1 +1,1 @@
-drop role if exists idmapuser;
+drop role if exists :dbuname;

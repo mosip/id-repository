@@ -1,1 +1,1 @@
-drop role if exists idrepouser;
+drop role if exists :dbuname;

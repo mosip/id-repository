@@ -1,4 +1,4 @@
-\c mosip_idrepo
+\c :mosipdbname
 
 \ir ddl/idrepo-uin.sql
 \ir ddl/idrepo-uin_h.sql
