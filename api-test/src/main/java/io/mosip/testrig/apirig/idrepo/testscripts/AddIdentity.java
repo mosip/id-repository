@@ -95,7 +95,7 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 			throw new SkipException(
 					GlobalConstants.TARGET_ENV_HEALTH_CHECK_FAILED + HealthChecker.healthCheckFailureMapS);
 		}
-		if(testCaseDTO.getEndPoint().contains("/v1/identity/v2")) {
+		if(testCaseDTO.getEndPoint().contains(GlobalConstants.ADD_IDENTITY_V2_ENDPOINT)) {
 			testCaseDTO.setInputTemplate(AdminTestUtil.modifySchemaGenerateHbsV2(testCaseDTO.isRegenerateHbs()));
 		} else {
 			testCaseDTO.setInputTemplate(AdminTestUtil.modifySchemaGenerateHbs(testCaseDTO.isRegenerateHbs()));

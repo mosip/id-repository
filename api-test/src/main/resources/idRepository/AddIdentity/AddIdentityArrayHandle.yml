@@ -431,7 +431,7 @@ AddIdentity:
       output: '{
   "errors": [
     {
-      "errorCode": "IDR-IDC-001"
+      "errorCode": "IDR-IDC-002"
     }
   ]
 }'

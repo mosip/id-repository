@@ -37,9 +37,42 @@ public class IdRepoArrayHandle {
 			identity.put("selectedHandles", new JSONArray());
 			return jsonObj.toString();
 		}
+		if (testCaseName.contains("_withinvalidselectedhandletype")) {
+		    identity.put("selectedHandles", "email");
+		    return jsonObj.toString();
+		}
+		if (testCaseName.contains("_withnullselectedhandles")) {
+		    identity.put("selectedHandles", JSONObject.NULL);
+		    return jsonObj.toString();
+		}
 		if (testCaseName.contains("_withNotApplicableSelectedHandles")) {
 		    JSONArray selectedHandles = new JSONArray();
 		    selectedHandles.put("fullName");
+		    identity.put("selectedHandles", selectedHandles);
+		    return jsonObj.toString();
+		}
+		if (testCaseName.contains("_withUnknownSelectedHandles")) {
+		    JSONArray selectedHandles = new JSONArray();
+		    selectedHandles.put("passport");
+		    identity.put("selectedHandles", selectedHandles);
+		    return jsonObj.toString();
+		}
+		if (testCaseName.contains("_withSelectedHandlesCaseMismatch")) {
+		    JSONArray selectedHandles = new JSONArray();
+		    selectedHandles.put(resolveEmailFieldName().toUpperCase());
+		    identity.put("selectedHandles", selectedHandles);
+		    return jsonObj.toString();
+		}
+		if (testCaseName.contains("_withSelectedHandlesSpace")) {
+		    JSONArray selectedHandles = new JSONArray();
+		    selectedHandles.put(" " + resolveEmailFieldName() + " ");
+		    identity.put("selectedHandles", selectedHandles);
+		    return jsonObj.toString();
+		}
+		if (testCaseName.contains("_withDuplicateSelectedHandles")) {
+		    JSONArray selectedHandles = new JSONArray();
+		    selectedHandles.put(resolveEmailFieldName());
+		    selectedHandles.put(resolveEmailFieldName());
 		    identity.put("selectedHandles", selectedHandles);
 		    return jsonObj.toString();
 		}
@@ -98,6 +131,20 @@ public class IdRepoArrayHandle {
 		if (testCaseName.contains("_withoutselectedhandlesandattri")) {
 			applyWithoutSelectedHandlesAndAttri(identity);
 			return jsonObj.toString();
+		}
+		if (testCaseName.contains("_withnullselectedhandles")) {
+		    identity.put("selectedHandles", JSONObject.NULL);
+		    return jsonObj.toString();
+		}
+		if (testCaseName.contains("_withinvalidselectedhandletype")) {
+		    identity.put("selectedHandles", "email");
+		    return jsonObj.toString();
+		}
+		if (testCaseName.contains("_withSelectedHandlesSpace")) {
+		    JSONArray selectedHandles = new JSONArray();
+		    selectedHandles.put(" " + resolveEmailFieldName() + " ");
+		    identity.put("selectedHandles", selectedHandles);
+		    return jsonObj.toString();
 		}
 		if (testCaseName.contains("_withemptyselectedhandle")) {
 			identity.put("selectedHandles", new JSONArray());
@@ -161,8 +208,32 @@ public class IdRepoArrayHandle {
 			applyWithInvalidTag(handleArray);
 		} else if (testCaseName.contains("_withmultiplevalues")) {
 			putMultipleValues(handleArray);
+		} else if (testCaseName.contains("_WithEmailHandleAndNotification")
+		        && handle.equals(resolveEmailFieldName())) {
+		    applyEmailHandleAndNotification(handleArray);
 		} else if (testCaseName.contains("_withmultiplehandleswithoutvalue")) {
 			applyMultipleHandlesWithoutValue(handleArray);
+		} else if (testCaseName.contains("_WithMultipleEmail_And_OneEmail_As_Handle")
+		        && handle.equals(resolveEmailFieldName())) {
+		    applyMultipleEmailOneHandle(handleArray);
+		} else if (testCaseName.contains("_WithMultipleEmailWithoutHandle")
+		        && handle.equals(resolveEmailFieldName())) {
+		    applyMultipleEmailWithoutHandle(handleArray);
+		} else if (testCaseName.contains("_SelectedHandlesOrderVariation")
+		        && handle.equals(resolveEmailFieldName())) {
+		    applySelectedHandlesOrderVariation(handleArray);
+		} else if (testCaseName.contains("_OnlyNotificationTag")
+		        && handle.equals(resolveEmailFieldName())) {
+		    applyOnlyNotificationTag(handleArray);
+		} else if (testCaseName.contains("_WithLengthyEmailArray")
+		        && handle.equals(resolveEmailFieldName())) {
+		    applyLengthyEmailArray(handleArray);
+		} else if (testCaseName.contains("_WithMultipleHandlesDifferentDomains")
+		        && handle.equals(resolveEmailFieldName())) {
+		    applyMultipleHandlesDifferentDomains(handleArray);
+		} else if (testCaseName.contains("_WithMultipleEmailHandlesTagged")
+		        && handle.equals(resolveEmailFieldName())) {
+		    applyMultipleEmailHandlesTagged(handleArray);
 		} else if (testCaseName.contains("_withfunctionalIdsUsedFirstTwoValueOutOfFive") && handle.equals("functionalId")) {
 			applyFunctionalIdsUsedFirstTwoValueOutOfFive(handleArray);
 		} else if (testCaseName.contains("_withfunctionalIdsUsedFirstTwoValue") && handle.equals("functionalId")) {
@@ -225,6 +296,23 @@ public class IdRepoArrayHandle {
 			applyWithAllDemoFieldsRemoved(identity, selectedHandles, handle);
 		} else if (testCaseName.contains("_witharandomnonhandleattr")) {
 			applyWithARandomNonHandleAttr(identity, selectedHandles);
+		} else if (testCaseName.contains("_WithMultipleEmail_And_OneEmail_As_Handle")
+		        && handle.equals(resolveEmailFieldName())) {
+		    applyMultipleEmailOneHandle(handleArray);
+		} else if (testCaseName.contains("_WithMultipleEmailWithoutHandle")
+		        && handle.equals(resolveEmailFieldName())) {
+		    applyMultipleEmailWithoutHandle(handleArray);
+		} else if (testCaseName.contains("_WithMultipleEmailHandlesTagged")
+		        && handle.equals(resolveEmailFieldName())) {
+		    applyMultipleEmailHandlesTagged(handleArray);
+		} else if (testCaseName.contains("_RetainTaggedEmail")) {
+		    applyRetainTaggedEmail(handleArray);
+		} else if (testCaseName.contains("_WithLengthyEmailArray")
+		        && handle.equals(resolveEmailFieldName())) {
+		    applyLengthyEmailArray(handleArray);
+		} else if (testCaseName.contains("_WithMultipleHandlesDifferentDomains")
+		        && handle.equals(resolveEmailFieldName())) {
+		    applyMultipleHandlesDifferentDomains(handleArray);
 		} else if (testCaseName.contains("_updateselectedhandleswithscehmaattrwhichisnothandle")) {
 			applyUpdateSelectedHandlesWithSchemaAttrWhichIsNotHandle(identity, selectedHandles);
 		} else if (testCaseName.contains("_removeselectedhandle_updatephone")) {
@@ -328,6 +416,16 @@ public class IdRepoArrayHandle {
 	    handleArray.put(notificationObj);
 	}
 	
+	private static void applyEmailHandleAndNotification(JSONArray handleArray) {
+	    for (int j = 0; j < handleArray.length(); j++) {
+	        JSONObject emailObj = handleArray.getJSONObject(j);
+	        emailObj.put("tags",
+	                new JSONArray()
+	                        .put("handle")
+	                        .put("notification"));
+	    }
+	}
+	
 	private static void applyFunctionalIdsUsedFirstTwoValueOutOfFive(JSONArray handleArray) {
 		String baseValue = handleArray.length() > 0 ? handleArray.getJSONObject(0).getString("value") : "";
 		for (int j = 0; j < 4; j++) {
@@ -338,6 +436,113 @@ public class IdRepoArrayHandle {
 			}
 			handleArray.put(obj);
 		}
+	}
+	
+	private static void applyMultipleEmailOneHandle(JSONArray handleArray) {
+	    while (handleArray.length() > 0) {
+	        handleArray.remove(0);
+	    }
+	    JSONObject handleEmail = new JSONObject();
+	    handleEmail.put("value", "handle_" + BaseTestCase.generateRandomNumberString(2) + "@mail.com");
+	    handleEmail.put("tags", new JSONArray().put("handle"));
+	    JSONObject normalEmail = new JSONObject();
+	    normalEmail.put("value", "notification_" + BaseTestCase.generateRandomNumberString(2) + "@mail.com");
+	    handleArray.put(handleEmail);
+	    handleArray.put(normalEmail);
+	}
+	
+	private static void applySelectedHandlesOrderVariation(JSONArray handleArray) {
+	    for (int j = 0; j < handleArray.length(); j++) {
+	        JSONObject emailObj = handleArray.getJSONObject(j);
+	        JSONArray tags = new JSONArray();
+	        tags.put("notification");
+	        tags.put("handle");
+	        emailObj.put("tags", tags);
+	    }
+	}
+	
+	private static void applyOnlyNotificationTag(JSONArray handleArray) {
+	    for (int j = 0; j < handleArray.length(); j++) {
+	        JSONObject emailObj = handleArray.getJSONObject(j);
+	        JSONArray tags = new JSONArray();
+	        tags.put("notification");
+	        emailObj.put("tags", tags);
+	    }
+	}
+	
+	private static void applyLengthyEmailArray(JSONArray handleArray) {
+		while (handleArray.length() > 0) {
+			handleArray.remove(0);
+		}
+		for (int i = 1; i <= 20; i++) {
+			JSONObject emailObj = new JSONObject();
+			emailObj.put("value", "email" + i + BaseTestCase.generateRandomNumberString(2) + "@mosip.net");
+
+			if (i == 1) {
+				emailObj.put("tags", new JSONArray().put("handle"));
+			}
+
+			handleArray.put(emailObj);
+		}
+	}
+	
+	private static void applyMultipleHandlesDifferentDomains(JSONArray handleArray) {
+	    while (handleArray.length() > 0) {
+	        handleArray.remove(0);
+	    }
+	    JSONObject email1 = new JSONObject();
+	    email1.put("value", "user1_" + BaseTestCase.generateRandomNumberString(2) + "@gmail.com");
+	    email1.put("tags", new JSONArray().put("handle"));
+
+	    JSONObject email2 = new JSONObject();
+	    email2.put("value", "user2_" + BaseTestCase.generateRandomNumberString(2) + "@yahoo.com");
+	    email2.put("tags", new JSONArray().put("handle"));
+
+	    JSONObject email3 = new JSONObject();
+	    email3.put("value", "user3_" + BaseTestCase.generateRandomNumberString(2) + "@mosip.net");
+	    email3.put("tags", new JSONArray().put("handle"));
+
+	    handleArray.put(email1);
+	    handleArray.put(email2);
+	    handleArray.put(email3);
+	}
+	
+	private static void applyMultipleEmailWithoutHandle(JSONArray handleArray) {
+		while (handleArray.length() > 0) {
+			handleArray.remove(0);
+		}
+		JSONObject email1 = new JSONObject();
+		email1.put("value", "email01_" + BaseTestCase.generateRandomNumberString(2) + "@mosip.net");
+		JSONObject email2 = new JSONObject();
+		email2.put("value", "email02_" + BaseTestCase.generateRandomNumberString(2) + "@mosip.net");
+		handleArray.put(email1);
+		handleArray.put(email2);
+	}
+	
+	private static void applyMultipleEmailHandlesTagged(JSONArray handleArray) {
+	    // Clear existing email entries
+	    while (handleArray.length() > 0) {
+	        handleArray.remove(0);
+	    }
+	    JSONObject email1 = new JSONObject();
+	    email1.put("value", "email03_" + BaseTestCase.generateRandomNumberString(2) + "@mosip.net");
+	    email1.put("tags", new JSONArray().put("handle"));
+	    JSONObject email2 = new JSONObject();
+	    email2.put("value", "email04_" + BaseTestCase.generateRandomNumberString(2) + "@mosip.net");
+	    email2.put("tags", new JSONArray().put("handle"));
+	    handleArray.put(email1);
+	    handleArray.put(email2);
+	}
+	
+	private static void applyRetainTaggedEmail(JSONArray handleArray) {
+
+	    JSONObject existingEmail = handleArray.getJSONObject(0);
+
+	    JSONObject newEmail = new JSONObject();
+	    newEmail.put("value",
+	        "newemail_" + BaseTestCase.generateRandomNumberString(2) + "@mosip.net");
+
+	    handleArray.put(newEmail);
 	}
 
 	private static void applyFunctionalIdsUsedFirstTwoValue(JSONArray handleArray) {
