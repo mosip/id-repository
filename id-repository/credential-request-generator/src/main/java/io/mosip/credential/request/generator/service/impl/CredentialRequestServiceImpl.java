@@ -46,12 +46,11 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.util.StringUtils;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import io.mosip.credential.request.generator.constants.ApiName;
 import io.mosip.credential.request.generator.util.RestUtil;
 import io.mosip.idrepository.core.builder.AuditRequestBuilder;
@@ -70,7 +69,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 
 	@Autowired
 	private CredentialDao credentialDao;
-	
+
 	/** The Constant USER. */
 	private static final String PRINT_USER = "service-account-mosip-print-client";
 
@@ -157,7 +156,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
 			credentialIssueResponseWrapper
 					.setResponsetime(localdatetime);
@@ -167,7 +166,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			} else {
 				credentialIssueResponseWrapper.setResponse(credentialIssueResponse);
 			}
-			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID,"create credential request requested");
+			auditHelper.auditAsync(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID,"create credential request requested");
 		}
 		return credentialIssueResponseWrapper;
 	}
@@ -184,7 +183,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credential.setRequestId(rid);
 			credential.setRequest(mapper.writeValueAsString(credentialIssueRequestDto));
 			credential.setStatusCode(CredentialStatusCode.NEW.name());
-			credential.setCreateDateTime(DateUtils.getUTCCurrentDateTime());
+			credential.setCreateDateTime(DateUtils2.getUTCCurrentDateTime());
 			credential.setCreatedBy(IdRepoSecurityManager.getUser());
 			credential.setStatusComment("Request created");
 			credentialDao.save(credential);
@@ -213,14 +212,14 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
 
 			credentialIssueResponseWrapper
-					.setResponsetime(DateUtils.getUTCCurrentDateTime());
+					.setResponsetime(DateUtils2.getUTCCurrentDateTime());
 			credentialIssueResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
 			if (!errorList.isEmpty()) {
 				credentialIssueResponseWrapper.setErrors(errorList);
 			} else {
 				credentialIssueResponseWrapper.setResponse(credentialIssueResponse);
 			}
-			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID,"create credential request requested");
+			auditHelper.auditAsync(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID,"create credential request requested");
 		}
 		return credentialIssueResponseWrapper;
 	}
@@ -290,7 +289,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
 			credentialIssueResponseWrapper
 					.setResponsetime(localdatetime);
@@ -300,7 +299,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			} else {
 				credentialIssueResponseWrapper.setResponse(credentialIssueResponse);
 			}
-			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CANCEL_CREDENTIAL_REQUEST, requestId, IdType.ID,"Cancel the request");
+			auditHelper.auditAsync(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CANCEL_CREDENTIAL_REQUEST, requestId, IdType.ID,"Cancel the request");
 		}
 		return credentialIssueResponseWrapper;
 	}
@@ -356,7 +355,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credentialIssueStatusResponseWrapper.setId(EnvUtil.getCredReqServiceId());
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
 			credentialIssueStatusResponseWrapper
 					.setResponsetime(localdatetime);
@@ -400,16 +399,15 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			}
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					"ended updating  credential status");
-			audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,"update the request");
+			//audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,"update the request");
+			auditHelper.auditAsync(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,"update the request");
 		}catch (DataAccessLayerException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, UPDATE_STATUS_CREDENTIAL,
 					ExceptionUtils.getStackTrace(e));
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,e);
 
 			throw new CredentialRequestGeneratorException();
-
 		}
-
 	}
 
 	@Override
@@ -428,7 +426,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 				pageData = credentialDao.findByStatusCode(statusCode,
 						PageRequest.of(pageNumber, pageSize, Sort.by(Direction.fromString(direction), sortBy)));
 			}else {
-				LocalDateTime effectiveDateTime=DateUtils.parseToLocalDateTime(effectivedtimes);
+				LocalDateTime effectiveDateTime=DateUtils2.parseToLocalDateTime(effectivedtimes);
 				pageData = credentialDao.findByStatusCodeWithEffectiveDtimes(statusCode, effectiveDateTime,
 						PageRequest.of(pageNumber, pageSize, Sort.by(Direction.fromString(direction), sortBy)));
 			}
@@ -494,7 +492,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credentialRequestIdsResponseWrapper.setId(EnvUtil.getCredReqServiceId());
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
 			credentialRequestIdsResponseWrapper.setResponsetime(localdatetime);
 			credentialRequestIdsResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
@@ -565,7 +563,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credentialIssueResponseWrapper.setId(EnvUtil.getCredReqServiceId());
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+					.parse(DateUtils2.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
 
 			credentialIssueResponseWrapper.setResponsetime(localdatetime);
 			credentialIssueResponseWrapper.setVersion(EnvUtil.getCredReqServiceVersion());
@@ -574,7 +572,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			} else {
 				credentialIssueResponseWrapper.setResponse(credentialIssueResponse);
 			}
-			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.RETRY_CREDENTIAL_REQUEST,
+			auditHelper.auditAsync(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.RETRY_CREDENTIAL_REQUEST,
 					requestId, IdType.ID, "retrigger the request");
 		}
 		return credentialIssueResponseWrapper;

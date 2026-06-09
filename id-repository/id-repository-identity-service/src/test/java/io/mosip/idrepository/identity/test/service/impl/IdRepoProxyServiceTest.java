@@ -348,4 +348,5 @@ public class IdRepoProxyServiceTest {
 		});
 		assertEquals("Failed to extract template from bio extractor service", thrownException.getErrorText());
 	}
+
 }

@@ -9,7 +9,7 @@ import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.http.ResponseWrapper;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,7 +67,7 @@ public class VidDraftHelperTest {
         RequestWrapper<VidRequestDTO> request = new RequestWrapper<>();
         request.setId(EnvUtil.getCreateVidId());
         request.setVersion(EnvUtil.getVidAppVersion());
-        request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(vidCreationRequest);
 
         Map<String, String> response = new HashMap<>();
@@ -99,10 +99,9 @@ public class VidDraftHelperTest {
         RequestWrapper<VidRequestDTO> request = new RequestWrapper<>();
         request.setId(EnvUtil.getUpdatedVidId());
         request.setVersion(EnvUtil.getVidAppVersion());
-        request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
         request.setRequest(vidUpdationRequest);
 
-        System.out.println("request2= "+request);
         RestRequestDTO restRequest = new RestRequestDTO();
         restRequest.setUri("{vid}");
 

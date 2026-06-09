@@ -17,3 +17,8 @@ COMMENT ON COLUMN idrepo.channel_info.upd_by IS 'Updated By : ID or name of the 
 COMMENT ON COLUMN idrepo.channel_info.upd_dtimes IS 'Updated DateTimestamp : Date and Timestamp when any of the fields in the record is updated with new values.';
 COMMENT ON COLUMN idrepo.channel_info.is_deleted IS 'IS_Deleted : Flag to mark whether the record is Soft deleted.';
 COMMENT ON COLUMN idrepo.channel_info.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
+
+
+-- PERFORMANCE OPTIMIZATION INDEXES
+ALTER TABLE channel_info SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 500, autovacuum_analyze_scale_factor = 0.03, autovacuum_analyze_threshold = 500);
+-- END PERFORMANCE INDEXES--

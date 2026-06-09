@@ -51,7 +51,7 @@ import io.mosip.idrepository.identity.repository.AuthLockRepository;
 import io.mosip.idrepository.identity.service.impl.AuthTypeStatusImpl;
 import io.mosip.idrepository.identity.service.impl.IdRepoProxyServiceImpl;
 import io.mosip.idrepository.identity.service.impl.IdRepoServiceImpl;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.DateUtils2;
 
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
@@ -120,7 +120,7 @@ public class AuthTypeStatusImplTest {
 		Object[] obj = new Object[3];
 		obj[0] = "bio-FACE";
 		obj[1] = "true";
-		obj[2] = Timestamp.valueOf(DateUtils.getUTCCurrentDateTime().plusMinutes(1));
+		obj[2] = Timestamp.valueOf(DateUtils2.getUTCCurrentDateTime().plusMinutes(1));
 		when(authLockRepository.findByUinHash(any())).thenReturn(Collections.singletonList(obj));
 		List<AuthtypeStatus> response = authTypeStatusImpl.fetchAuthTypeStatus("", IdType.UIN);
 		assertEquals("bio", response.get(0).getAuthType());
@@ -136,7 +136,7 @@ public class AuthTypeStatusImplTest {
 		Object[] obj = new Object[3];
 		obj[0] = "bio-FACE";
 		obj[1] = "true";
-		obj[2] = Timestamp.valueOf(DateUtils.getUTCCurrentDateTime().plusSeconds(3));
+		obj[2] = Timestamp.valueOf(DateUtils2.getUTCCurrentDateTime().plusSeconds(3));
 		when(authLockRepository.findByUinHash(any())).thenReturn(Collections.singletonList(obj));
 		List<AuthtypeStatus> response = authTypeStatusImpl.fetchAuthTypeStatus("", IdType.UIN);
 		assertEquals("bio", response.get(0).getAuthType());

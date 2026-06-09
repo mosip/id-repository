@@ -1,7 +1,6 @@
 package io.mosip.idrepository.core.test.helper;
 
 import static org.junit.Assert.assertEquals;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;

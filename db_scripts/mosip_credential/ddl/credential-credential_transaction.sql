@@ -66,3 +66,17 @@ COMMENT ON COLUMN credential.credential_transaction.is_deleted IS 'IS_Deleted : 
 -- ddl-end --
 COMMENT ON COLUMN credential.credential_transaction.del_dtimes IS 'Deleted DateTimestamp : Date and Timestamp when the record is soft deleted with is_deleted=TRUE';
 -- ddl-end --
+
+-- PERFORMANCE OPTIMIZATION INDEXES
+CREATE INDEX IF NOT EXISTS idx_cred_new_status_cr_dtimes_active ON credential.credential_transaction (cr_dtimes) WHERE status_code = 'NEW' AND is_deleted = false;
+CREATE INDEX IF NOT EXISTS idx_cred_status_cr_dtimes_active ON credential.credential_transaction (status_code, cr_dtimes) WHERE is_deleted = false;
+CREATE INDEX IF NOT EXISTS idx_cred_status_upd_dtimes_active ON credential.credential_transaction (status_code, upd_dtimes) WHERE is_deleted = false;
+CREATE INDEX idx_credtran_status_crdtimes ON credential.credential_transaction USING btree (status_code, cr_dtimes);
+CREATE INDEX IF NOT EXISTS idx_credential_transaction_status_code ON credential_transaction (status_code);
+CREATE INDEX IF NOT EXISTS idx_credential_transaction_status_upd ON credential_transaction (status_code, upd_dtimes);
+CREATE INDEX IF NOT EXISTS idx_credential_transaction_status_cr ON credential_transaction (status_code, cr_dtimes);
+
+--index section starts----
+CREATE INDEX IF NOT EXISTS cred_txn_status_code ON credential.credential_transaction USING btree (status_code);
+
+ALTER TABLE credential_transaction SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 500, autovacuum_analyze_scale_factor = 0.03, autovacuum_analyze_threshold = 500);
