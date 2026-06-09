@@ -161,8 +161,7 @@ public class IdRepoServiceHelper {
                         .collect(Collectors.toMap(handleName->handleName,
                                 handleFieldId-> {
                                     String handle = ((String) identityMap.get(handleFieldId))
-                                            .concat(getHandlePostfix(handleFieldId))
-                                            .toLowerCase(Locale.ROOT);
+                                            .concat(getHandlePostfix(handleFieldId));
                                     return new HandleDto(handle, getHandleHash(handle));
                                 }));
             }
@@ -171,7 +170,7 @@ public class IdRepoServiceHelper {
     }
 
     public String getHandleHash(String handle) {
-        //handle is converted to lowercase. It is language neutral conversion.
+        // salt key selection uses lowercase for uniform distribution; the hash itself uses original case bytes
         int saltId = securityManager.getSaltKeyForHashOfId(handle.toLowerCase(Locale.ROOT));
         String salt = uinHashSaltRepo.retrieveSaltById(saltId);
         String saltedHash = securityManager.hashwithSalt(handle.getBytes(StandardCharsets.UTF_8),
