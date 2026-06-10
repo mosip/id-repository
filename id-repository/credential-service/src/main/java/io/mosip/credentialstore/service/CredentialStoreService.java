@@ -26,6 +26,15 @@ public interface CredentialStoreService {
 			CredentialServiceRequestDto credentialServiceRequestDto);
 
 	/**
+	 * Creates the credential issuance.
+	 *
+	 * @param credentialServiceRequestDto the credential service request dto
+	 * @return the string
+	 */
+	public CredentialServiceResponseDto createCredentialIssuanceV2(
+			CredentialServiceRequestDto credentialServiceRequestDto);
+
+	/**
 	 * Gets the credential types.
 	 *
 	 * @return the credential types

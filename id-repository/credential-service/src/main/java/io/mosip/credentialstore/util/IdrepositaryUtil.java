@@ -1,6 +1,7 @@
 package io.mosip.credentialstore.util;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.credentialstore.constants.ApiName;
@@ -92,6 +93,82 @@ public class IdrepositaryUtil {
 					MediaType.APPLICATION_JSON, idDTORequestWrapper, String.class);
 
 			IdResponseDTO responseObject = mapper.readValue(responseString, IdResponseDTO.class);
+			if (responseObject == null) {
+				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						CredentialServiceErrorCodes.IPREPO_EXCEPTION.getErrorMessage());
+				throw new IdRepoException();
+			}
+			if (responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
+				ServiceError error = (ServiceError) responseObject.getErrors().get(0);
+				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						error.getMessage());
+				throw new IdRepoException(error.getMessage());
+			} else {
+				LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+						"Id repository get data exit");
+				return responseObject;
+			}
+		} catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					ExceptionUtils.getStackTrace(e));
+			if (e.getCause() instanceof HttpClientErrorException) {
+				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
+				throw new io.mosip.credentialstore.exception.ApiNotAccessibleException(
+						httpClientException.getResponseBodyAsString());
+			} else if (e.getCause() instanceof HttpServerErrorException) {
+				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
+				throw new ApiNotAccessibleException(httpServerException.getResponseBodyAsString());
+			} else {
+				throw new IdRepoException(e);
+			}
+
+		}
+	}
+
+	public IdResponseDTO<Object> getDataV2(CredentialServiceRequestDto credentialServiceRequestDto,
+								 Map<String, String> bioAttributeFormatterMap)
+			throws ApiNotAccessibleException, IdRepoException, IOException {
+		String requestId=credentialServiceRequestDto.getRequestId();
+		try {
+			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					requestId, "Id repository get data entry");
+			LOGGER.debug(String.format("Formatters: %s", bioAttributeFormatterMap.toString()));
+			Map<String, Object> map = credentialServiceRequestDto.getAdditionalData();
+			String idType = null;
+			idType = (String) map.get("idType");
+
+			String fingerExtractionFormat = bioAttributeFormatterMap.get(CredentialConstants.FINGER);
+			String faceExtractionFormat = bioAttributeFormatterMap.get(CredentialConstants.FACE);
+			String irisExtractionFormat = bioAttributeFormatterMap.get(CredentialConstants.IRIS);
+			IdRequestByIdDTO requestByIdDTO = new IdRequestByIdDTO();
+			RequestWrapper<IdRequestByIdDTO> idDTORequestWrapper=new RequestWrapper<>();
+
+			requestByIdDTO.setId(credentialServiceRequestDto.getId());
+			requestByIdDTO.setType(identityType);
+
+			if (StringUtils.isNotEmpty(idType)) {
+				requestByIdDTO.setIdType(idType);
+			}
+			if (StringUtils.isNotEmpty(fingerExtractionFormat)) {
+				requestByIdDTO.setFingerExtractionFormat(fingerExtractionFormat);
+			}
+			if (StringUtils.isNotEmpty(faceExtractionFormat)) {
+				requestByIdDTO.setFaceExtractionFormat(faceExtractionFormat);
+			}
+			if (StringUtils.isNotEmpty(irisExtractionFormat)) {
+				requestByIdDTO.setIrisExtractionFormat(irisExtractionFormat);
+			}
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
+			LocalDateTime localdatetime = LocalDateTime
+					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
+			idDTORequestWrapper.setRequest(requestByIdDTO);
+			idDTORequestWrapper.setRequesttime(localdatetime);
+			LOGGER.debug(String.format("getIdentity request: %s", requestByIdDTO.toString()));
+
+			String responseString = restUtil.postApi(ApiName.IDREPORETRIEVEIDBYIDV2, null, "", "",
+					MediaType.APPLICATION_JSON, idDTORequestWrapper, String.class);
+
+			IdResponseDTO<Object> responseObject = mapper.readValue(responseString, new TypeReference<IdResponseDTO<Object>>() {});
 			if (responseObject == null) {
 				LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 						CredentialServiceErrorCodes.IPREPO_EXCEPTION.getErrorMessage());

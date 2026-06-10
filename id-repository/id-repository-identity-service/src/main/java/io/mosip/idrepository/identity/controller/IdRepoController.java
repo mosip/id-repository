@@ -262,6 +262,27 @@ public class IdRepoController {
 				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
 						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
 			}
+			List<VerificationMetadata> verifiedAttributes = idRequestDTO.getRequest().getVerifiedAttributes();
+			if (verifiedAttributes != null && !verifiedAttributes.isEmpty()) {
+				for (int i = 0; i < verifiedAttributes.size(); i++) {
+					VerificationMetadata vm = verifiedAttributes.get(i);
+					if (StringUtils.isBlank(vm.getTrustFramework())) {
+						throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+								String.format(INVALID_INPUT_PARAMETER.getErrorMessage(),
+										"verifiedAttributes/" + i + "/trustFramework"));
+					}
+					if (StringUtils.isBlank(vm.getVerificationProcess())) {
+						throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+								String.format(INVALID_INPUT_PARAMETER.getErrorMessage(),
+										"verifiedAttributes/" + i + "/verificationProcess"));
+					}
+					if (vm.getClaims() == null || vm.getClaims().isEmpty()) {
+						throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+								String.format(INVALID_INPUT_PARAMETER.getErrorMessage(),
+										"verifiedAttributes/" + i + "/claims"));
+					}
+				}
+			}
 			IdResponseDTO<List<VerificationMetadata>> responseDto = idRepoService.addIdentity(idRequestDTO.getRequest(), uin);
 			return new ResponseEntity<>(responseDto, HttpStatus.OK);
 		} catch (IdRepoDataValidationException e) {

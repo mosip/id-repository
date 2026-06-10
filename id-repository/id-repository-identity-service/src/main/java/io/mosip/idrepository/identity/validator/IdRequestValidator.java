@@ -151,6 +151,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	public void init() {
 		newRegistrationFields.remove("");
 		updateUinFields.remove("");
+		verifiedAttributesFields.remove("");
 	}
 
 	/*
@@ -312,42 +313,134 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 
 	/**
 	 * validate verified attributes.
-	 * 
-	 * @param requestMap
-	 * @throws IdObjectValidationFailedException
-	 * @throws IdObjectIOException
-	 * @throws InvalidIdSchemaException
+	 *
+	 * Validates per verified_attributes_schema.json and MOSIP design principles:
+	 * 1. trustFramework, verificationProcess, claims are required and non-empty.
+	 * 2. claims validation against ID schema field IDs is country-specific and NOT enforced here by default.
+	 * 3. metadata is optional; if provided it must be a non-empty object with trust_framework, verification_process, time.
+	 * 4. metadata.trust_framework must equal trustFramework (cross-field consistency).
+	 * 5. metadata.verification_process must equal verificationProcess (cross-field consistency).
+	 * 6. No duplicate entries — uniqueness is based on trustFramework + verificationProcess combination.
+	 *
+	 * @param requestMap the request map
+	 * @param errors     the errors
 	 */
 	@SuppressWarnings("unchecked")
-	private void validateVerifiedAttributes(Map<String, Object> requestMap,Errors errors)
-			throws IdObjectValidationFailedException, IdObjectIOException, InvalidIdSchemaException {
-		if (requestMap.containsKey(VERIFIED_ATTRIBUTES) && Objects.nonNull(requestMap.get(VERIFIED_ATTRIBUTES))
-				&& requestMap.get(VERIFIED_ATTRIBUTES) instanceof Map
-				&& !((Map<String, Object>) requestMap.get(VERIFIED_ATTRIBUTES)).isEmpty()
-				&& requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH))
-				&& !((Map<String, Object>) requestMap.get(ROOT_PATH)).isEmpty()) {
+	private void validateVerifiedAttributes(Map<String, Object> requestMap, Errors errors) {
+		if (!requestMap.containsKey(VERIFIED_ATTRIBUTES) || Objects.isNull(requestMap.get(VERIFIED_ATTRIBUTES)))
+			return;
 
-			List<Object> verifiedAttributes = (List<Object>) requestMap.get(VERIFIED_ATTRIBUTES);
+		Object verifiedAttributesObj = requestMap.get(VERIFIED_ATTRIBUTES);
+		if (!(verifiedAttributesObj instanceof List))
+			return;
 
-			Set<String> compositeKeySet = new HashSet<>();
-			String idSchema = getVerifiedAttributeIdSchema(verifiedAttributesSchemaUrl);
-			for (Object obj : verifiedAttributes) {
-				if (obj instanceof String)
+		List<Object> verifiedAttributes = (List<Object>) verifiedAttributesObj;
+		if (verifiedAttributes.isEmpty())
+			return;
+
+		Set<String> compositeKeySet = new HashSet<>();
+
+		for (int i = 0; i < verifiedAttributes.size(); i++) {
+			Object obj = verifiedAttributes.get(i);
+
+			// v1 format — List<String> — skip metadata validation
+			if (obj instanceof String)
+				continue;
+
+			Map<String, Object> vmMap = (Map<String, Object>) obj;
+			String path = VERIFIED_ATTRIBUTES + "/" + i;
+
+			// 1. trustFramework — required, non-blank
+			String trustFramework = (String) vmMap.get("trustFramework");
+			if (StringUtils.isBlank(trustFramework)) {
+				errors.rejectValue(REQUEST, MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorCode(),
+						String.format(MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorMessage(), path + "/trustFramework"));
+				continue;
+			}
+
+			// 2. verificationProcess — required, non-blank
+			String verificationProcess = (String) vmMap.get("verificationProcess");
+			if (StringUtils.isBlank(verificationProcess)) {
+				errors.rejectValue(REQUEST, MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorCode(),
+						String.format(MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorMessage(), path + "/verificationProcess"));
+				continue;
+			}
+
+			// 3. claims — required, non-empty list with no blank entries
+			Object claimsObj = vmMap.get("claims");
+			if (!(claimsObj instanceof List) || ((List<?>) claimsObj).isEmpty()) {
+				errors.rejectValue(REQUEST, MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorCode(),
+						String.format(MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorMessage(), path + "/claims"));
+				continue;
+			}
+			List<String> claimsList = (List<String>) claimsObj;
+			boolean hasBlankClaim = claimsList.stream().anyMatch(StringUtils::isBlank);
+			if (hasBlankClaim) {
+				errors.rejectValue(REQUEST, MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorCode(),
+						String.format(MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorMessage(), path + "/claims"));
+				continue;
+			}
+
+			// 4. metadata — optional field, but if provided must be a valid non-empty object
+			// (metadata is configurable per mosip.idrepo.verified-attributes.schema-url;
+			//  the default schema marks it required, but deployments may make it optional)
+			Object metadataObj = vmMap.get("metadata");
+			if (metadataObj != null) {
+				if (!(metadataObj instanceof Map) || ((Map<?, ?>) metadataObj).isEmpty()) {
+					errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
+							String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), path + "/metadata"));
 					continue;
-
-				VerificationMetadata verificationMetadata = (VerificationMetadata) obj;
-
-				//Verify the metadata w.r.t schema
-				idObjectSchemaValidator.validateIdObject(idSchema, verificationMetadata, verifiedAttributesFields);
-
-				//Check if there is any duplicates in the list
-				StringBuilder compositeKeyBuilder = new StringBuilder();
-				compositeKeyBuilder.append(verificationMetadata.getTrustFramework())
-						.append(verificationMetadata.getTrustFramework());
-				if (!compositeKeySet.add(compositeKeyBuilder.toString())) {
-					errors.rejectValue(REQUEST, DUPLICATE_VERIFIED_ATTRIBUTES.getErrorCode(),
-							String.format(DUPLICATE_VERIFIED_ATTRIBUTES.getErrorMessage(), compositeKeyBuilder));
 				}
+
+				Map<String, Object> metadata = (Map<String, Object>) metadataObj;
+
+				// 6. metadata.trust_framework — required, non-blank
+				String metaTrustFramework = (String) metadata.get("trust_framework");
+				if (StringUtils.isBlank(metaTrustFramework)) {
+					errors.rejectValue(REQUEST, MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorCode(),
+							String.format(MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorMessage(), path + "/metadata/trust_framework"));
+					continue;
+				}
+
+				// 7. metadata.verification_process — required, non-blank
+				String metaVerificationProcess = (String) metadata.get("verification_process");
+				if (StringUtils.isBlank(metaVerificationProcess)) {
+					errors.rejectValue(REQUEST, MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorCode(),
+							String.format(MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorMessage(), path + "/metadata/verification_process"));
+					continue;
+				}
+
+				// 8. metadata.time — required, non-blank
+				String metaTime = (String) metadata.get("time");
+				if (StringUtils.isBlank(metaTime)) {
+					errors.rejectValue(REQUEST, MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorCode(),
+							String.format(MISSING_VERIFIED_ATTRIBUTE_FIELDS.getErrorMessage(), path + "/metadata/time"));
+					continue;
+				}
+
+				// 9. Cross-field: metadata.trust_framework must equal trustFramework
+				if (!trustFramework.equalsIgnoreCase(metaTrustFramework)) {
+					errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
+							String.format(INVALID_INPUT_PARAMETER.getErrorMessage(),
+									path + "/metadata/trust_framework — must match trustFramework"));
+					continue;
+				}
+
+				// 10. Cross-field: metadata.verification_process must equal verificationProcess
+				if (!verificationProcess.equalsIgnoreCase(metaVerificationProcess)) {
+					errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
+							String.format(INVALID_INPUT_PARAMETER.getErrorMessage(),
+									path + "/metadata/verification_process — must match verificationProcess"));
+					continue;
+				}
+			}
+
+			// 11. Duplicate check — uniqueness by trustFramework + verificationProcess
+			String compositeKey = trustFramework.toLowerCase() + "|" + verificationProcess.toLowerCase();
+			if (!compositeKeySet.add(compositeKey)) {
+				errors.rejectValue(REQUEST, DUPLICATE_VERIFIED_ATTRIBUTES.getErrorCode(),
+						String.format(DUPLICATE_VERIFIED_ATTRIBUTES.getErrorMessage(),
+								"trustFramework=" + trustFramework + ", verificationProcess=" + verificationProcess));
 			}
 		}
 	}
@@ -570,6 +663,37 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	@Cacheable(cacheNames = VERIFIED_ATTRIBUTE_SCHEMA, key="{ #idSchemaUrl}")
 	private String getVerifiedAttributeIdSchema(String idSchemaUrl){
 		return restTemplate.getForObject(verifiedAttributesSchemaUrl, String.class);
+	}
+
+	/**
+	 * Reads the allowed claim values from the verified attributes schema enum
+	 * configured at ${mosip.idrepo.verified-attributes.schema-url}.
+	 *
+	 * The schema defines an optional enum under $.properties.claims.items.enum
+	 * e.g. ["fullName", "phone", "email", "dateOfBirth"].
+	 *
+	 * If the enum is present  → returns the list; callers should filter claims to only these values.
+	 * If the enum is absent   → returns empty list; callers should fall back to identity field check.
+	 *
+	 * @return list of allowed claim values from schema enum, or empty list if no enum is defined
+	 */
+	@SuppressWarnings("unchecked")
+	public List<String> getAllowedClaimValues() {
+		try {
+			String schema = getVerifiedAttributeIdSchema(verifiedAttributesSchemaUrl);
+			// Read the enum array from: $.properties.claims.items.enum
+			List<String> enumValues = JsonPath.read(schema, "$.properties.claims.items.enum");
+			return (enumValues != null) ? enumValues : Collections.emptyList();
+		} catch (PathNotFoundException e) {
+			// No enum defined in schema for claims items
+			// — caller should fall back to identity field existence check
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "getAllowedClaimValues",
+					"No claims enum in verified attributes schema — falling back to identity field check");
+		} catch (Exception e) {
+			mosipLogger.warn(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "getAllowedClaimValues",
+					"Failed to read claims enum from schema: " + e.getMessage());
+		}
+		return Collections.emptyList();
 	}
 
 	@SuppressWarnings("unchecked")
