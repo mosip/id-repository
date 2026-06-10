@@ -551,7 +551,7 @@ UpdateIdentityV2ArrayHandle:
       "UIN": "$ID:AddIdentityArrayHandleV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
       "dateOfBirth": "1992/04/15",
       "postalCode": "14022",
-      "email": "$ID:AddIdentityArrayHandleV2_WithSingleValidVerifiedAttributes_Smoke_Pos_EMAIL$",
+      "email": "$EMAILVALUE$",
       "phone": "$ID:AddIdentityArrayHandleV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
       "mobileno": "8249742850",
       "referenceIdentityNumber": "6789545678878",

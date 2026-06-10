@@ -422,7 +422,7 @@ UpdateIdentityV2:
     role: testrig
     restMethod: patch
     inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
-    outputTemplate: idRepository/error
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
     input: '{
       "id":"mosip.id.update",
       "registrationId":"@%invalid123$RUNCONTEXT$",
@@ -450,11 +450,7 @@ UpdateIdentityV2:
       "version":"v2"
 }'
     output: '{
-      "errors": [
-        {
-           "errorCode": "IDR-IDC-002"
-        }
-    ]
+      "status":"ACTIVATED"
 }'
   IdRepository_UpdateIdentityV2_WithEmptyTrustFrameworkInVerifiedAttributes_Neg:
     endPoint: /idrepository/v1/identity/v2

@@ -38,7 +38,7 @@ RetrieveIdentityPostV2:
       output: '{
    "errors": [
     {
-      "errorCode": "IDR-IDC-002"
+      "errorCode": "IDR-IDC-007"
     }
   ]
 }'
@@ -77,7 +77,7 @@ RetrieveIdentityPostV2:
       inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
       outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2Result
       input: '{
-    "id": "$ID:CreateVID_withValidParameters_For_VidType_Smoke_Temporary_sid_VID$",
+    "id": "$ID:CreateVID_withValidParameters_For_VidType_Smoke_Perpetual_sid_VID$",
     "type": "demo",
     "idType": "VID",
     "fingerExtractionFormat": "$REMOVE$",
