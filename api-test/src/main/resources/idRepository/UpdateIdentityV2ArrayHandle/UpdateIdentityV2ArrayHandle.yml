@@ -87,7 +87,7 @@ UpdateIdentityV2ArrayHandle:
     output: '{
       "status": "ACTIVATED"
 }'
-  IdRepository_UpdateIdentityV2ArrayHandle_WithMultipleEmailWithoutHandle_Neg:
+  IdRepository_UpdateIdentityV2ArrayHandle_WithMultipleEmailWithoutHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validates that Update Identity V2 API successfully updates an identity even when multiple email values are provided without a handle mapping.
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2ArrayHandle_03
@@ -131,7 +131,7 @@ UpdateIdentityV2ArrayHandle:
     output: '{
       "status": "ACTIVATED"
 }'
-  IdRepository_UpdateIdentityV2ArrayHandle_WithMultipleEmailHandlesTagged_Neg:
+  IdRepository_UpdateIdentityV2ArrayHandle_WithMultipleEmailHandlesTagged:
     endPoint: /idrepository/v1/identity/v2
     description: Validates that Update Identity V2 API successfully updates an identity when multiple email handles are provided as handle.
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2ArrayHandle_04
@@ -443,7 +443,7 @@ UpdateIdentityV2ArrayHandle:
         }
     ]
 }'
-  IdRepository_UpdateIdentityV2ArrayHandle_withemptyselectedhandle_Neg:
+  IdRepository_UpdateIdentityV2ArrayHandle_withemptyselectedhandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validates that Update Identity V2 API successfully updates an identity even when selected handles is provides as empty.
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2ArrayHandle_11
@@ -535,7 +535,7 @@ UpdateIdentityV2ArrayHandle:
         }
     ]
 }'
-  IdRepository_UpdateIdentityV2ArrayHandle_withSelectedHandlesSpace_Neg:
+  IdRepository_UpdateIdentityV2ArrayHandle_withSelectedHandlesSpace:
     endPoint: /idrepository/v1/identity/v2
     description: Validates that Update Identity V2 API ignores selected handles with leading/trailing spaces with verifiedAttributes.
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2ArrayHandle_13

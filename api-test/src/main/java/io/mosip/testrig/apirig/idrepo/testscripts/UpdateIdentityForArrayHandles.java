@@ -157,6 +157,12 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 			inputJson = replaceKeywordWithValue(inputJson, "$FUNCTIONALID$", generateRandomNumberString(2)
 					+ Calendar.getInstance().getTimeInMillis());
 		}
+		inputJson = inputJsonKeyWordHandeler(inputJson, testCaseName);
+		if (testCaseName.toLowerCase().contains("_sid")) {
+			JSONObject reqJson = new JSONObject(inputJson);
+			String phonenumber = reqJson.getJSONObject("request").getJSONObject("identity").getString("phone");
+			writeToCache(getAutogenIdKeyName(testCaseName, "phone"), phonenumber);
+		}
 
 		JSONObject jsonString = new JSONObject(inputJson);
 		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {

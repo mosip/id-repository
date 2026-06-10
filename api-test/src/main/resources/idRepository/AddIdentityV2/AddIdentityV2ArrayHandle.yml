@@ -89,7 +89,7 @@ AddIdentityV2ArrayHandle:
     output: '{
       "status":"ACTIVATED"
 }'
-  IdRepository_AddIdentityArrayHandleV2_WithMultipleEmailWithoutHandle_Neg:
+  IdRepository_AddIdentityArrayHandleV2_WithMultipleEmailWithoutHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validate Add Identity V2 with multiple email entries and no email tagged as handle.
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_03
@@ -179,7 +179,7 @@ AddIdentityV2ArrayHandle:
     output: '{
       "status":"ACTIVATED"
 }'
-  IdRepository_AddIdentityArrayHandleV2_WithMultipleEmailHandlesTagged_Neg:
+  IdRepository_AddIdentityArrayHandleV2_WithMultipleEmailHandlesTagged:
     endPoint: /idrepository/v1/identity/v2
     description: Verify Add Identity V2 with multiple email entries tagged as handle.
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_05
@@ -494,7 +494,7 @@ AddIdentityV2ArrayHandle:
     output: '{
       "status":"ACTIVATED"
 }'
-  IdRepository_AddIdentityArrayHandleV2_WithMultipleHandlesDifferentDomains_Neg:
+  IdRepository_AddIdentityArrayHandleV2_WithMultipleHandlesDifferentDomains:
     endPoint: /idrepository/v1/identity/v2
     description: Verify Add Identity V2 with multiple email handles from different domains.
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_12
@@ -911,7 +911,7 @@ AddIdentityV2ArrayHandle:
         }
     ]
 }'
-  IdRepository_AddIdentityArrayHandleV2_withSelectedHandlesCaseMismatch_Neg:
+  IdRepository_AddIdentityArrayHandleV2_withSelectedHandlesCaseMismatch:
     endPoint: /idrepository/v1/identity/v2
     description: Validates that Add Identity V2 API ignores case mismatches in selected handles with verifiedAttributes.
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_21
@@ -956,7 +956,7 @@ AddIdentityV2ArrayHandle:
     output: '{
       "status":"ACTIVATED"
 }'
-  IdRepository_AddIdentityArrayHandleV2_withSelectedHandlesSpace_Neg:
+  IdRepository_AddIdentityArrayHandleV2_withSelectedHandlesSpace:
     endPoint: /idrepository/v1/identity/v2
     description: Validates that Add Identity V2 API ignores selected handles with leading/trailing spaces with verifiedAttributes.
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_22

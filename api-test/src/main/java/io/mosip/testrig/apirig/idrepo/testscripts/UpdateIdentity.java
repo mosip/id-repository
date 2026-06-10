@@ -144,7 +144,7 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 			inputJson = replaceKeywordWithValue(inputJson, "$SCHEMAVERSION$", generateLatestSchemaVersion());
 		
 		// V2 specific handling for verifiedAttributes and documents
-		if (testCaseDTO.getEndPoint().contains("/v2")) {
+		if (testCaseDTO.getEndPoint().contains(GlobalConstants.ADD_IDENTITY_V2_ENDPOINT)) {
 
 		    JSONObject originalInput = new JSONObject(testCaseDTO.getInput());
 		    JSONObject requestJson = new JSONObject(inputJson);

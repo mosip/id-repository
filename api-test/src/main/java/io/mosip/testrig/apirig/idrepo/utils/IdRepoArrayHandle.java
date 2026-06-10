@@ -162,6 +162,19 @@ public class IdRepoArrayHandle {
 			identity.put("selectedHandles", new JSONArray().put(phoneFieldName));
 			return jsonObj.toString();
 		}
+		if (testCaseName.contains("_withonehandle")) {
+		    JSONArray selectedHandles = identity.getJSONArray("selectedHandles");
+		    JSONArray updatedHandles = new JSONArray();
+		    for (int i = 0; i < selectedHandles.length(); i++) {
+		        String handle = selectedHandles.getString(i);
+		        if (handle.equalsIgnoreCase("email")) {
+		            updatedHandles.put(handle);
+		            break; // keep only email
+		        }
+		    }
+		    identity.put("selectedHandles", updatedHandles);
+		    return jsonObj.toString();
+		}
 		if (testCaseName.contains("_updatewithphoneemail")) {
 			JSONArray updatedHandles = new JSONArray();
 			updatedHandles.put(emailFieldName);
@@ -280,8 +293,6 @@ public class IdRepoArrayHandle {
 			applyWithUpdateTagsAndHandles(handleArray);
 		} else if (testCaseName.contains("_withupdatetags")) {
 			applyWithUpdateTags(handleArray);
-		} else if (testCaseName.contains("_withmultipledemohandles")) {
-			applyWithMultipleDemoHandles(identity, selectedHandles, phoneFieldName);
 		} else if (testCaseName.contains("_withupdatedselectedhandleandfirstattribute")) {
 			applyWithUpdatedSelectedHandleAndFirstAttribute(identity, selectedHandles);
 		} else if (testCaseName.contains("_withupdatedselectedhandleanddemo")) {
@@ -705,23 +716,6 @@ public class IdRepoArrayHandle {
 					values.put(k, values.getString(k) + "_invalid" + RANDOM_ID);
 				}
 			}
-		}
-	}
-
-	private static void applyWithMultipleDemoHandles(JSONObject identity, JSONArray selectedHandles,
-			String phoneFieldName) {
-		boolean containsPhone = false;
-		for (int j = 0; j < selectedHandles.length(); j++) {
-			if (phoneFieldName.equalsIgnoreCase(selectedHandles.getString(j))) {
-				containsPhone = true;
-				break;
-			}
-		}
-		if (!containsPhone) {
-			selectedHandles.put(phoneFieldName);
-			JSONObject phoneEntry = new JSONObject();
-			phoneEntry.put("value", "$PHONENUMBERFORIDENTITY$");
-			identity.put(phoneFieldName, new JSONArray().put(phoneEntry));
 		}
 	}
 

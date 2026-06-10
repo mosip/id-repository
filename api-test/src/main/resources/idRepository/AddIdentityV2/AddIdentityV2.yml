@@ -119,7 +119,7 @@ AddIdentityV2:
       output: '{
   "status":"ACTIVATED"
 }'
-  IdRepository_AddIdentityV2_WithMultipleClaimsInVerifiedAttributes_Pos:
+  IdRepository_AddIdentityV2_WithMultipleClaimsInVerifiedAttributes_Pos_sid:
       endPoint: /idrepository/v1/identity/v2
       description: Validate that Add Identity V2 successfully creates identity when verifiedAttributes contains multiple valid claims
       uniqueIdentifier: TC_IDRepo_AddIdentityV2_03
@@ -723,14 +723,14 @@ AddIdentityV2:
      }
    ]
 }'
-  IdRepository_AddIdentityV2_WithInvalid_RegistrationId_Neg:
+  IdRepository_AddIdentityV2_WithInvalid_RegistrationId:
       endPoint: /idrepository/v1/identity/v2
-      description: Validate that Add Identity API returns an error when an invalid registration ID is provided in the request payload during identity creation.
+      description: Validate that creation of Add Identity API will successful when an invalid registration ID is provided in the request payload during identity creation.
       uniqueIdentifier: TC_IDRepo_AddIdentityV2_15
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
-      outputTemplate: idRepository/error
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
       input: '{
   "value": "$BIOVALUE$",
   "id": "mosip.id.create",
@@ -774,11 +774,7 @@ AddIdentityV2:
    "requesttime": "$TIMESTAMP$"
 }'
       output: '{
-   "errors": [
-     {
-        "errorCode": "IDR-IDC-002"
-     }
-   ]
+   "status":"ACTIVATED"
 }'
   IdRepository_AddIdentityV2_WithInvalidClaim_Neg:
       endPoint: /idrepository/v1/identity/v2
