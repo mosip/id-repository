@@ -16,14 +16,14 @@
 			<class name="io.mosip.testrig.apirig.idrepo.testscripts.AddIdentity" />
 		</classes>
 	</test>
-	 <test name="AddIdentityV2">
+	<test name="AddIdentityV2">
 		<parameter name="ymlFile"
 			value="idRepository/AddIdentityV2/AddIdentityV2.yml" />
 		<classes>
 			<class name="io.mosip.testrig.apirig.idrepo.testscripts.AddIdentity" />
 		</classes>
 	</test>
-	 <test name="CreateVID">
+	<test name="CreateVID">
 		<parameter name="ymlFile" value="idRepository/CreateVID/CreateVid.yml" />
 		<parameter name="idKeyName" value="VID" />
 		<classes>
@@ -36,6 +36,13 @@
 	<test name="AddIdentityArrayHandle">
 		<parameter name="ymlFile"
 			value="idRepository/AddIdentity/AddIdentityArrayHandle.yml" />
+		<classes>
+			<class name="io.mosip.testrig.apirig.idrepo.testscripts.AddIdentity" />
+		</classes>
+	</test>
+	<test name="AddIdentityV2ArrayHandle">
+		<parameter name="ymlFile"
+			value="idRepository/AddIdentityV2/AddIdentityV2ArrayHandle.yml" />
 		<classes>
 			<class name="io.mosip.testrig.apirig.idrepo.testscripts.AddIdentity" />
 		</classes>
@@ -72,6 +79,14 @@
 		<classes>
 			<class
 				name="io.mosip.testrig.apirig.idrepo.testscripts.UpdateIdentity" />
+		</classes>
+	</test>
+	<test name="UpdateIdentityV2ArrayHandle">
+		<parameter name="ymlFile"
+			value="idRepository/UpdateIdentityV2ArrayHandle/UpdateIdentityV2ArrayHandle.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.UpdateIdentityForArrayHandles" />
 		</classes>
 	</test>
 	<test name="UpdateVIDStatus">
@@ -111,6 +126,14 @@
 	<test name="RetrieveIdentityPost">
 		<parameter name="ymlFile"
 			value="idRepository/RetrieveIdentityPost/RetrieveIdentityPost.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePostForAutoGenId" />
+		</classes>
+	</test>
+	<test name="RetrieveIdentityPostV2">
+		<parameter name="ymlFile"
+			value="idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2.yml" />
 		<classes>
 			<class
 				name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePostForAutoGenId" />
