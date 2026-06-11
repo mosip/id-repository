@@ -1,0 +1,268 @@
+RetrieveIdentityPostV2:
+  IdRepository_RetrieveIdentityPostV2_WithValidUINAndIdTypeUIN_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Retrieve identity V2 details using valid UIN and idType as UIN
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_01
+      role: idrepo
+      restMethod: post
+      checkErrorsOnlyInResponse: true
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2Result
+      input: '{
+    "id": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+    "type": "all",
+    "idType": "UIN",
+    "fingerExtractionFormat": "",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+}'
+
+  IdRepository_RetrieveIdentityPostV2_WithValidUINAndIdTypeAsID_Neg:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Verify response passing valid UIN and idType as ID
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_02
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+    "type": "all",
+    "idType": "ID",
+    "fingerExtractionFormat": "$REMOVE$",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+
+  IdRepository_RetrieveIdentityPostV2_WithValidUINAndIdTypeAsVID_Neg:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Verify response passing valid UIN and idType as VID
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_03
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+    "type": "demo",
+    "idType": "VID",
+    "fingerExtractionFormat": "$REMOVE$",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_RetrieveIdentityPostV2_WithValidVIDAndIdTypeVID_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Verify response passing valid VID and idType as VID
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_04
+      role: idrepo
+      restMethod: post
+      checkErrorsOnlyInResponse: true
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2Result
+      input: '{
+    "id": "$ID:CreateVID_withValidParameters_For_VidType_Smoke_Perpetual_sid_VID$",
+    "type": "demo",
+    "idType": "VID",
+    "fingerExtractionFormat": "$REMOVE$",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+}'
+
+  IdRepository_RetrieveIdentityPostV2_WithValidUINAndIdTypeInvalid_Neg:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Verify response passing valid ID as UIN number and idType as invalid
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_05
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+    "type": "demo",
+    "idType": "invalid",
+    "fingerExtractionFormat": "$REMOVE$",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_RetrieveIdentityPostV2_WithEmailMarkedAsHandle_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Verify response passing email marked as handle
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_06
+      role: idrepo
+      restMethod: post
+      checkErrorsOnlyInResponse: true
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2Result
+      input: '{
+    "id": "$ID:AddIdentityV2_WithMultipleClaimsInVerifiedAttributes_Pos_sid_EMAIL$@email",
+    "type": "demo",
+    "idType": "HANDLE",
+    "fingerExtractionFormat": "$REMOVE$",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+}'
+
+  IdRepository_RetrieveIdentityPostV2_WithValidPhoneAndIdTypeHandle_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Verify response passing valid ID as phone number and idType as Handle
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_07
+      role: idrepo
+      restMethod: post
+      checkErrorsOnlyInResponse: true
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2Result
+      input: '{
+    "id": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$@phone",
+    "type": "demo",
+    "idType": "HANDLE",
+    "fingerExtractionFormat": "$REMOVE$",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+}'
+
+  IdRepository_RetrieveIdentityPostV2_WithValidPhoneAndInvalidIdType_Neg:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Verify response passing valid ID as phone number and idType as invalid
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_08
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$@phone",
+    "type": "all",
+    "idType": "invalid",
+    "fingerExtractionFormat": "mock-1.1",
+    "irisExtractionFormat":"mock-1.1",
+    "faceExtractionFormat":"mock-1.1"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_RetrieveIdentityPostV2_WithValidEmailAndInvalidExtension_Neg:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Verify response passing valid email and invalid extension.
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_09
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_EMAIL$@phone",
+    "type": "all",
+    "idType": "HANDLE",
+    "fingerExtractionFormat": "mock-1.1",
+    "irisExtractionFormat":"mock-1.1",
+    "faceExtractionFormat":"mock-1.1"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+
+  IdRepository_RetrieveIdentityPostV2_WithValidEmailAndInvalidPhoneExtension_Neg:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Verify response passing valid email and invalid extension.
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_10
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_EMAIL$@phonffe",
+    "type": "all",
+    "idType": "HANDLE",
+    "fingerExtractionFormat": "mock-1.1",
+    "irisExtractionFormat":"mock-1.1",
+    "faceExtractionFormat":"mock-1.1"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+
+  IdRepository_RetrieveIdentityPostV2_WithPhoneNumberAsHandle_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Verify response passing valid ID making phone number as Handles
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_11
+      role: idrepo
+      restMethod: post
+      checkErrorsOnlyInResponse: true
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2Result
+      input: '{
+    "id": "$ID:AddIdentityV2_WithMultipleVerifiedAttributes_Smoke_Pos_PHONE$@phone",
+    "type": "all",
+    "idType": "HANDLE",
+    "fingerExtractionFormat": "mock-1.1",
+    "irisExtractionFormat":"mock-1.1",
+    "faceExtractionFormat":"mock-1.1"
+}'
+      output: '{
+}'
+
+  IdRepository_RetrieveIdentityPostV2_WithEmailAsHandle_And_Invalid_ID_Type_Neg:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Verify response passing valid ID making Email as Handles
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_12
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/error
+      input: '{
+    "id": "$ID:AddIdentityV2_WithMultipleClaimsInVerifiedAttributes_Pos_sid_EMAIL$@email",
+    "type": "all",
+    "idType": "invalid",
+    "fingerExtractionFormat": "mock-1.1",
+    "irisExtractionFormat":"mock-1.1",
+    "faceExtractionFormat":"mock-1.1"
+}'
+      output: '{
+    "errors": [
+      {
+         "errorCode": "IDR-IDC-002"
+      }
+    ]
+}'

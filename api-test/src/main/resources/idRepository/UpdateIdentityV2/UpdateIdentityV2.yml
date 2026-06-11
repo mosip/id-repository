@@ -1,0 +1,1531 @@
+UpdateIdentityV2:
+  IdRepository_UpdateIdentityV2_WithSingleVerifiedAttribute_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 successfully updates an existing identity with a single valid verifiedAttributes entry.
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_01
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework":"kyc",
+          "verificationProcess":"online_video",
+          "claims":[
+            "phone"
+          ],
+          "metadata":{
+            "trust_framework":"kyc",
+            "verification_process":"online_video",
+            "assurance_level":"Home",
+            "time":"2025-07-01T06:10:00.000Z"
+          }
+        }
+      ],
+      "requesttime":"$TIMESTAMP$",
+      "version":"v2"
+}'
+    output: '{
+      "status":"ACTIVATED"
+}'
+  IdRepository_UpdateIdentityV2_WithInvalidAccessToken_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 returns an error response when the request is submitted with an invalid access token.
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_02
+    role: invalid
+    restMethod: patch
+    checkOnlyStatusCodeInResponse: true
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/responseCode
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework":"kyc",
+          "verificationProcess":"otp_verified",
+          "claims":[
+            "phone"
+          ],
+          "metadata":{
+            "trust_framework":"kyc",
+            "verification_process":"otp_verified",
+            "assurance_level":"Home",
+            "time":"2025-07-01T06:10:00.000Z"
+          }
+        }
+      ],
+      "requesttime":"$TIMESTAMP$",
+      "version":"v2"
+}'
+    output: '{
+      "responseCode": "500"
+}'
+  IdRepository_UpdateIdentityV2_WithInvalid_Id_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 returns the error response when an invalid request ID is provided.
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_03
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/error
+    input: '{
+      "id":"invalid",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework":"kyc",
+          "verificationProcess":"otp_verified",
+          "claims":[
+            "phone"
+          ],
+          "metadata":{
+            "trust_framework":"kyc",
+            "verification_process":"otp_verified",
+            "assurance_level":"Home",
+            "time":"2025-07-01T06:10:00.000Z"
+          }
+        }
+      ],
+      "requesttime":"$TIMESTAMP$",
+      "version":"v2"
+}'
+    output: '{
+      "errors": [
+        {
+           "errorCode": "IDR-IDC-002"
+        }
+    ]
+}'
+  IdRepository_UpdateIdentityV2_WithInvalid_Version_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 returns the error response when an invalid version is provided in the request.
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_04
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/error
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework":"kyc",
+          "verificationProcess":"otp_verified",
+          "claims":[
+            "phone"
+          ],
+          "metadata":{
+            "trust_framework":"kyc",
+            "verification_process":"otp_verified",
+            "assurance_level":"Home",
+            "time":"2025-07-01T06:10:00.000Z"
+          }
+        }
+      ],
+      "requesttime":"$TIMESTAMP$",
+      "version":"invalid"
+}'
+    output: '{
+      "errors": [
+        {
+           "errorCode": "IDR-IDC-002"
+        }
+    ]
+}'
+  IdRepository_UpdateIdentityV2_WithInvalid_RequestTime_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 returns the error response when an invalid request time is provided
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_05
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/error
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework":"kyc",
+          "verificationProcess":"otp_verified",
+          "claims":[
+            "phone"
+          ],
+          "metadata":{
+            "trust_framework":"kyc",
+            "verification_process":"otp_verified",
+            "assurance_level":"Home",
+            "time":"2025-07-01T06:10:00.000Z"
+          }
+        }
+      ],
+      "requesttime":"$T",
+      "version":"v2"
+}'
+    output: '{
+      "errors": [
+        {
+           "errorCode": "IDR-IDC-002"
+        }
+    ]
+}'
+  IdRepository_UpdateIdentityV2_WithInvalid_Status_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 returns the error response when an invalid status is provided
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_06
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/error
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+      "status":"INVALID",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework":"kyc",
+          "verificationProcess":"otp_verified",
+          "claims":[
+            "phone"
+          ],
+          "metadata":{
+            "trust_framework":"kyc",
+            "verification_process":"otp_verified",
+            "assurance_level":"Home",
+            "time":"2025-07-01T06:10:00.000Z"
+          }
+        }
+      ],
+      "requesttime":"$TIMESTAMP$",
+      "version":"v2"
+}'
+    output: '{
+      "errors": [
+        {
+           "errorCode": "IDR-IDC-002"
+        }
+    ]
+}'
+  IdRepository_UpdateIdentityV2_WithInvalid_Identity_DOB_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 returns error response when an invalid date of birth is provided in the identity information.
+    requiredSchemaFields: [dateOfBirth]
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_07
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/error
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework":"kyc",
+          "verificationProcess":"otp_verified",
+          "claims":[
+            "phone"
+          ],
+          "metadata":{
+            "trust_framework":"kyc",
+            "verification_process":"otp_verified",
+            "assurance_level":"Home",
+            "time":"2025-07-01T06:10:00.000Z"
+          }
+        }
+      ],
+      "requesttime":"$TIMESTAMP$",
+      "version":"v2"
+}'
+    output: '{
+      "errors": [
+        {
+           "errorCode": "IDR-IDC-002"
+        }
+    ]
+}'
+  IdRepository_UpdateIdentityV2_WithInvalid_Document_Category_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 returns error response when an invalid document category is provided.
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_08
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/error
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework":"kyc",
+          "verificationProcess":"otp_verified",
+          "claims":[
+            "phone"
+          ],
+          "metadata":{
+            "trust_framework":"kyc",
+            "verification_process":"otp_verified",
+            "assurance_level":"Home",
+            "time":"2025-07-01T06:10:00.000Z"
+          }
+        }
+      ],
+      "documents":[
+        {
+          "value":"fileReferenceID",
+          "category":"invalidCategory"
+        }
+      ],
+      "requesttime":"$TIMESTAMP$",
+      "version":"v2"
+}'
+    output: '{
+      "errors": [
+        {
+           "errorCode": "IDR-IDC-002"
+        }
+    ]
+}'
+  IdRepository_UpdateIdentityV2_WithInvalid_Document_Value_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 returns error response when an invalid document value is provided.
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_09
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/error
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework":"kyc",
+          "verificationProcess":"otp_verified",
+          "claims":[
+            "phone"
+          ],
+          "metadata":{
+            "trust_framework":"kyc",
+            "verification_process":"otp_verified",
+            "assurance_level":"Home",
+            "time":"2025-07-01T06:10:00.000Z"
+          }
+        }
+      ],
+      "documents":[
+        {
+          "value":"invalid",
+          "category":"individualBiometrics"
+        }
+      ],
+      "requesttime":"$TIMESTAMP$",
+      "version":"v2"
+}'
+    output: '{
+      "errors": [
+        {
+           "errorCode": "IDR-IDC-002"
+        }
+    ]
+}'
+  IdRepository_UpdateIdentityV2_WithInvalid_UIN_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 returns error response when an invalid UIN is provided.
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_10
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/error
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$INVALID_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework":"kyc",
+          "verificationProcess":"otp_verified",
+          "claims":[
+            "phone"
+          ],
+          "metadata":{
+            "trust_framework":"kyc",
+            "verification_process":"otp_verified",
+            "assurance_level":"Home",
+            "time":"2025-07-01T06:10:00.000Z"
+          }
+        }
+      ],
+      "requesttime":"$TIMESTAMP$",
+      "version":"v2"
+}'
+    output: '{
+      "errors": [
+        {
+           "errorCode": "IDR-IDC-002"
+        }
+    ]
+}'
+  IdRepository_UpdateIdentityV2_WithInvalid_RID_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 returns error response when an invalid registration ID is provided.
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_11
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"@%invalid123$RUNCONTEXT$",
+      "UIN":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework":"kyc",
+          "verificationProcess":"otp_verified",
+          "claims":[
+            "phone"
+          ],
+          "metadata":{
+            "trust_framework":"kyc",
+            "verification_process":"otp_verified",
+            "assurance_level":"Home",
+            "time":"2025-07-01T06:10:00.000Z"
+          }
+        }
+      ],
+      "requesttime":"$TIMESTAMP$",
+      "version":"v2"
+}'
+    output: '{
+      "status":"ACTIVATED"
+}'
+  IdRepository_UpdateIdentityV2_WithEmptyTrustFrameworkInVerifiedAttributes_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 returns the expected error response when the trustFramework field in verifiedAttributes is empty.
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_12
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/error
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "",
+            "verificationProcess": "otp_verified",
+            "claims": [
+              "phone"
+            ],
+            "metadata": {
+              "trust_framework": "",
+              "verification_process": "otp_verified",
+              "assurance_level": "Home",
+              "time": "2025-07-01T06:10:00.000Z"
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+        "errors": [
+          {
+            "errorCode": "IDR-IDC-016"
+          }
+        ]
+    }'
+  IdRepository_UpdateIdentityV2_WithRandomTrustFrameworkInVerifiedAttributes_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 successfully updates identity when a non-standard trustFramework value is provided in verifiedAttributes
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_13
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "randomTrustFramework",
+            "verificationProcess": "otp_verified",
+            "claims": [
+              "phone"
+            ],
+            "metadata": {
+              "trust_framework": "randomTrustFramework",
+              "verification_process": "otp_verified",
+              "assurance_level": "Home",
+              "time": "2025-07-01T06:10:00.000Z"
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+      "status":"ACTIVATED"
+    }'
+  IdRepository_UpdateIdentityV2_WithRandomVerificationProcessInVerifiedAttributes_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 successfully updates identity when a non-standard verificationProcess value is provided in verifiedAttributes.
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_14
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "internal",
+            "verificationProcess": "randomVerificationProcess",
+            "claims": [
+              "phone"
+            ],
+            "metadata": {
+              "trust_framework": "internal",
+              "verification_process": "randomVerificationProcess",
+              "assurance_level": "Home",
+              "time": "2025-07-01T06:10:00.000Z"
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+      "status":"ACTIVATED"
+    }'
+  IdRepository_UpdateIdentityV2_WithEmptyVerificationProcessInVerifiedAttributes_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 returns the expected error response when the verificationProcess field in verifiedAttributes is empty.
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_15
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/error
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "internal",
+            "verificationProcess": "",
+            "claims": [
+              "phone"
+            ],
+            "metadata": {
+              "trust_framework": "internal",
+              "verification_process": "",
+              "assurance_level": "Home",
+              "time": "2025-07-01T06:10:00.000Z"
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+        "errors": [
+          {
+            "errorCode": "IDR-IDC-016"
+          }
+        ]
+    }'
+  IdRepository_UpdateIdentityV2_WithOnlineVideoVerificationProcessInVerifiedAttributes_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 successfully updates identity with online_video as the verificationProcess in verifiedAttributes
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_16
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "internal",
+            "verificationProcess": "online_video",
+            "claims": [
+              "phone"
+            ],
+            "metadata": {
+              "trust_framework": "internal",
+              "verification_process": "online_video",
+              "assurance_level": "Land",
+              "time": "2025-07-01T06:03:22.339Z"
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+      "status": "ACTIVATED"
+    }'
+  IdRepository_UpdateIdentityV2_WithPhoneAndEmailClaimsInVerifiedAttributes_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 successfully updates identity with phone and email claims in verifiedAttributes.
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_17
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "internal",
+            "verificationProcess": "otp_verified",
+            "claims": [
+              "phone",
+              "email"
+            ],
+            "metadata": {
+              "trust_framework": "internal",
+              "verification_process": "otp_verified",
+              "assurance_level": "Home",
+              "time": "2025-07-01T06:10:00.000Z"
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+        "status": "ACTIVATED"
+    }'
+  IdRepository_UpdateIdentityV2_WithClaimNameNotInIdSchema_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 successfully updates identity when a claim not defined in the IdSchema is provided in verifiedAttributes
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_18
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "internal",
+            "verificationProcess": "otp_verified",
+            "claims": [
+              "Name"
+            ],
+            "metadata": {
+              "trust_framework": "internal",
+              "verification_process": "otp_verified",
+              "assurance_level": "Home",
+              "time": "2025-07-01T06:10:00.000Z"
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+       "status": "ACTIVATED"
+    }'
+  IdRepository_UpdateIdentityV2_WithValidFullNameClaimInVerifiedAttributes_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Verify updating valid claims in verifiedAttributes such as fullName
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_19
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "internal",
+            "verificationProcess": "otp_verified",
+            "claims": [
+              "fullName"
+            ],
+            "metadata": {
+              "trust_framework": "internal",
+              "verification_process": "otp_verified",
+              "assurance_level": "Home",
+              "time": "2025-07-01T06:10:00.000Z"
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+        "status": "ACTIVATED"
+    }'
+  IdRepository_UpdateIdentityV2_WithInvalidClaimInVerifiedAttributes_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Verify updating invalid claims in verifiedAttributes
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_20
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "internal",
+            "verificationProcess": "otp_verified",
+            "claims": [
+              "invalid"
+            ],
+            "metadata": {
+              "trust_framework": "internal",
+              "verification_process": "otp_verified",
+              "assurance_level": "Home",
+              "time": "2025-07-01T06:10:00.000Z"
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+      "status": "ACTIVATED"
+    }'
+  IdRepository_UpdateIdentityV2_WithEmptyClaimsInVerifiedAttributes_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Verify updating empty claims in verifiedAttributes
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_21
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/error
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "internal",
+            "verificationProcess": "otp_verified",
+            "claims": [],
+            "metadata": {
+              "trust_framework": "internal",
+              "verification_process": "otp_verified",
+              "assurance_level": "Home",
+              "time": "2025-07-01T06:10:00.000Z"
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+      "errors": [
+        {
+           "errorCode": "IDR-IDC-016"
+        }
+    ]
+    }'
+  IdRepository_UpdateIdentityV2_WithoutClaimsFieldInVerifiedAttributes_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Verify updating without claims field in verifiedAttributes
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_22
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/error
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "internal",
+            "verificationProcess": "otp_verified",
+            "metadata": {
+              "trust_framework": "internal",
+              "verification_process": "otp_verified",
+              "assurance_level": "Home",
+              "time": "2025-07-01T06:10:00.000Z"
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+      "errors": [
+        {
+           "errorCode": "IDR-IDC-016"
+        }
+    ]
+    }'
+  IdRepository_UpdateIdentityV2_WithValidAssuranceLevelLandInMetadata_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Verify updating valid data in the assurance_level field in metadata
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_23
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "kyc",
+            "verificationProcess": "online_video",
+            "claims": [
+              "phone"
+            ],
+            "metadata": {
+              "trust_framework": "kyc",
+              "verification_process": "online_video",
+              "assurance_level": "Land",
+              "time": "2025-07-01T06:03:22.339Z"
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+        "status": "ACTIVATED"
+    }'
+  IdRepository_UpdateIdentityV2_WithInvalidAssuranceLevelInMetadata_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Verify updating invalid data in the assurance_level field in metadata
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_24
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "kyc",
+            "verificationProcess": "online_video",
+            "claims": [
+              "phone"
+            ],
+            "metadata": {
+              "trust_framework": "kyc",
+              "verification_process": "online_video",
+              "assurance_level": "Invalid",
+              "time": "2025-07-01T06:03:22.339Z"
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+      "status": "ACTIVATED"
+    }'
+  IdRepository_UpdateIdentityV2_WithEmptyAssuranceLevelInMetadata_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Verify updating empty data in the assurance_level field in metadata
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_25
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "kyc",
+            "verificationProcess": "online_video",
+            "claims": [
+              "phone"
+            ],
+            "metadata": {
+              "trust_framework": "kyc",
+              "verification_process": "online_video",
+              "assurance_level": "",
+              "time": "2025-07-01T06:03:22.339Z"
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+      "status": "ACTIVATED"
+    }'
+  IdRepository_UpdateIdentityV2_WithoutAssuranceLevelInMetadata_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Verify updating without assurance_level field in metadata
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_26
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "kyc",
+            "verificationProcess": "online_video",
+            "claims": [
+              "phone"
+            ],
+            "metadata": {
+              "trust_framework": "kyc",
+              "verification_process": "online_video",
+              "time": "2025-07-01T06:03:22.339Z"
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+      "status": "ACTIVATED"
+    }'
+  IdRepository_UpdateIdentityV2_WithValidAssuranceProcessInMetadata_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Verify updating valid level policy and procedure in the assurance_process field
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_27
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithValidNestedMetadataObjectInVerifiedAttributes_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithValidNestedMetadataObjectInVerifiedAttributes_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "kyc",
+            "verificationProcess": "online_video",
+            "claims": [
+              "phone"
+            ],
+            "metadata": {
+              "trust_framework": "kyc",
+              "verification_process": "online_video",
+              "assurance_level": "Land",
+              "time": "2025-07-01T06:03:22.339Z",
+              "assurance_process": {
+                "level": "Home",
+                "policy": "kyc-policy",
+                "procedure": "video-identification"
+              }
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+        "status": "ACTIVATED"
+    }'
+  IdRepository_UpdateIdentityV2_WithInvalidAssuranceProcessInMetadata_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Verify updating invalid level policy and procedure in the assurance_process field
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_28
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithValidNestedMetadataObjectInVerifiedAttributes_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithValidNestedMetadataObjectInVerifiedAttributes_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "kyc",
+            "verificationProcess": "online_video",
+            "claims": [
+              "phone"
+            ],
+            "metadata": {
+              "trust_framework": "kyc",
+              "verification_process": "online_video",
+              "assurance_level": "Land",
+              "time": "2025-07-01T06:03:22.339Z",
+              "assurance_process": {
+                "level": "Invalid",
+                "policy": "invalid-policy",
+                "procedure": "invalid-procedure"
+              }
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+      "status": "ACTIVATED"
+    }'
+  IdRepository_UpdateIdentityV2_WithEmptyAssuranceProcessInMetadata_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Verify updating empty level policy and procedure in the assurance_process field
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_29
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithValidNestedMetadataObjectInVerifiedAttributes_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithValidNestedMetadataObjectInVerifiedAttributes_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "kyc",
+            "verificationProcess": "online_video",
+            "claims": [
+              "phone"
+            ],
+            "metadata": {
+              "trust_framework": "kyc",
+              "verification_process": "online_video",
+              "assurance_level": "Land",
+              "time": "2025-07-01T06:03:22.339Z",
+              "assurance_process": {
+                "level": "",
+                "policy": "",
+                "procedure": ""
+              }
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+      "status": "ACTIVATED"
+    }'
+  IdRepository_UpdateIdentityV2_WithoutAssuranceProcessParametersInMetadata_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Verify updating without level policy and procedure parameters in the assurance_process field
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_30
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithValidNestedMetadataObjectInVerifiedAttributes_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithValidNestedMetadataObjectInVerifiedAttributes_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "kyc",
+            "verificationProcess": "online_video",
+            "claims": [
+              "phone"
+            ],
+            "metadata": {
+              "trust_framework": "kyc",
+              "verification_process": "online_video",
+              "assurance_level": "Land",
+              "time": "2025-07-01T06:03:22.339Z",
+              "assurance_process": {}
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+        "status": "ACTIVATED"
+    }'
+  IdRepository_UpdateIdentityV2_WithValidMetadataParameters_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Verify updating valid trust_framework verification_process and assurance_level in metadata
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_31
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "internal",
+            "verificationProcess": "otp_verified",
+            "claims": [
+              "phone"
+            ],
+            "metadata": {
+              "trust_framework": "internal",
+              "verification_process": "otp_verified",
+              "assurance_level": "Home",
+              "time": "2025-07-01T06:10:00.000Z"
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+        "status": "ACTIVATED"
+    }'
+  IdRepository_UpdateIdentityV2_WithInvalidMetadataParameters_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Verify updating invalid trust_framework verification_process and assurance_level in metadata
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_32
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/error
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "internal",
+            "verificationProcess": "otp_verified",
+            "claims": [
+              "phone"
+            ],
+            "metadata": {
+              "trust_framework": "invalid",
+              "verification_process": "invalid",
+              "assurance_level": "invalid",
+              "time": "2025-07-01T06:10:00.000Z"
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+        "errors": [
+          {
+            "errorCode": "IDR-IDC-002"
+          }
+        ]
+    }'
+  IdRepository_UpdateIdentityV2_WithEmptyMetadataParameters_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Verify updating empty trust_framework verification_process and assurance_level in metadata
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_33
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/error
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "internal",
+            "verificationProcess": "otp_verified",
+            "claims": [
+              "phone"
+            ],
+            "metadata": {
+              "trust_framework": "",
+              "verification_process": "",
+              "assurance_level": "",
+              "time": "2025-07-01T06:10:00.000Z"
+            }
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+        "errors": [
+          {
+            "errorCode": "IDR-IDC-016"
+          }
+        ]
+    }'
+  IdRepository_UpdateIdentityV2_WithoutMetadataParameters_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Verify updating identity without metadata field.
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_34
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+        "id": "mosip.id.update",
+        "registrationId": "$RID$",
+        "UIN": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+        "status": "ACTIVATED",
+        "dateOfBirth": "1992/04/15",
+        "email": "$EMAILVALUE$",
+        "phone": "$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+        "verifiedAttributes": [
+          {
+            "trustFramework": "internal",
+            "verificationProcess": "otp_verified",
+            "claims": [
+              "phone"
+            ]
+          }
+        ],
+        "requesttime": "$TIMESTAMP$",
+        "version": "v2"
+    }'
+    output: '{
+        "status": "ACTIVATED"
+    }'
+  IdRepository_UpdateIdentityV2_For_Phone_Number_sid:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 successfully updates the phone number with a valid verifiedAttributes entry.
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_35
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$PHONENUMBER$",
+      "verifiedAttributes":[
+        {
+          "trustFramework":"kyc",
+          "verificationProcess":"online_video",
+          "claims":[
+            "phone"
+          ],
+          "metadata":{
+	          "trust_framework":"kyc",
+	          "verification_process":"online_video",
+	          "assurance_level":"Home",
+	          "time":"2025-07-01T06:10:00.000Z"
+	        }
+	      }
+	    ],
+	    "requesttime":"$TIMESTAMP$",
+	    "version":"v2"
+}'
+    output: '{
+      "status":"ACTIVATED"
+}'
+  IdRepository_UpdateIdentityV2_With_Phone_Which_Is_NotHandle_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 returns error response when updating identity with a phone number which is not selected as handle.
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_36
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/error
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:UpdateIdentityV2_For_Phone_Number_sid_phone$",
+      "verifiedAttributes":[
+        {
+          "trustFramework":"internal",
+          "verificationProcess":"online_video",
+          "claims":[
+            "phone"
+          ],
+          "metadata":{
+	          "trust_framework":"internal",
+	          "verification_process":"online_video",
+	          "assurance_level":"Home",
+	          "time":"2025-07-01T06:10:00.000Z"
+	        }
+	      }
+	    ],
+	    "requesttime":"$TIMESTAMP$",
+	    "version":"v2"
+}'
+    output: '{
+      "errors": [
+        {
+           "errorCode": "IDR-IDC-014"
+        }
+    ]
+}'
+  IdRepository_UpdateIdentityV2_For_Email_Number:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 successfully updates the email address with a valid verifiedAttributes entry
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_37
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithMultipleVerifiedAttributes_Smoke_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$RUNCONTEXT$mosip@gmail.com",
+      "phone":"$ID:AddIdentityV2_WithMultipleVerifiedAttributes_Smoke_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework":"internal",
+          "verificationProcess":"online_video",
+          "claims":[
+            "phone"
+          ],
+          "metadata":{
+	          "trust_framework":"internal",
+	          "verification_process":"online_video",
+	          "assurance_level":"Home",
+	          "time":"2025-07-01T06:10:00.000Z"
+	        }
+	      }
+	    ],
+	    "requesttime":"$TIMESTAMP$",
+	    "version":"v2"
+}'
+    output: '{
+      "status":"ACTIVATED"
+}'
+  IdRepository_UpdateIdentityV2_With_Email_Is_NotHandle_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 returns error response when updating identity with a email which is not selected as handle.
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_38
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/error
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$RUNCONTEXT$mosip@gmail.com",
+      "phone":"$ID:AddIdentityV2_WithMultipleVerifiedAttributes_Smoke_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework":"internal",
+          "verificationProcess":"online_video",
+          "claims":[
+            "phone"
+          ],
+          "metadata":{
+	          "trust_framework":"internal",
+	          "verification_process":"online_video",
+	          "assurance_level":"Home",
+	          "time":"2025-07-01T06:10:00.000Z"
+	        }
+	      }
+	    ],
+	    "requesttime":"$TIMESTAMP$",
+	    "version":"v2"
+}'
+    output: '{
+      "errors": [
+        {
+           "errorCode": "IDR-IDC-014"
+        }
+    ]
+}'
+  IdRepository_UpdateIdentityV2_With_Mismatched_TrustFramework_And_VerificationProcess_In_Metadata_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate Identity Update Fails When Trust Framework and Verification Process in Metadata Do Not Match Verified Attributes
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_39
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/error
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithMultipleVerifiedAttributes_Smoke_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_WithMultipleVerifiedAttributes_Smoke_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework":"internal",
+          "verificationProcess":"online_video",
+          "claims":[
+            "phone"
+          ],
+          "metadata":{
+              "trust_framework":"kyc",
+              "verification_process":"otp_verified",
+              "assurance_level":"Home",
+              "time":"2025-07-01T06:10:00.000Z"
+	        }
+	      }
+	    ],
+	    "requesttime":"$TIMESTAMP$",
+	    "version":"v2"
+}'
+    output: '{
+      "errors": [
+        {
+           "errorCode": "IDR-IDC-002"
+        }
+    ]
+}'

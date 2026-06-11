@@ -140,6 +140,29 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 		generatedRid = genRid;
 
 		String inputJson = getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate());
+		if (inputJson.contains("$SCHEMAVERSION$"))
+			inputJson = replaceKeywordWithValue(inputJson, "$SCHEMAVERSION$", generateLatestSchemaVersion());
+		
+		// V2 specific handling for verifiedAttributes and documents
+		if (testCaseDTO.getEndPoint().contains(GlobalConstants.ADD_IDENTITY_V2_ENDPOINT)) {
+
+		    JSONObject originalInput = new JSONObject(testCaseDTO.getInput());
+		    JSONObject requestJson = new JSONObject(inputJson);
+
+		    if (originalInput.has("verifiedAttributes")) {
+		        requestJson.getJSONObject("request")
+		                .put("verifiedAttributes",
+		                        originalInput.getJSONArray("verifiedAttributes"));
+		    }
+
+		    if (originalInput.has("documents")) {
+		        requestJson.getJSONObject("request")
+		                .put("documents",
+		                        originalInput.getJSONArray("documents"));
+		    }
+
+		    inputJson = requestJson.toString();
+		}
 
 		String phone = getValueFromAuthActuator("json-property", "phone_number");
 		String result = phone.replaceAll("\\[\"|\"\\]", "");
@@ -180,7 +203,14 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 
 		if (inputJson.contains("$PRIMARYLANG$"))
 			inputJson = inputJson.replace("$PRIMARYLANG$", BaseTestCase.languageList.get(0));
-
+		
+		inputJson = inputJsonKeyWordHandeler(inputJson, testCaseName);
+		if (testCaseName.toLowerCase().contains("_sid")) {
+			JSONObject reqJson = new JSONObject(inputJson);
+			String phonenumber = reqJson.getJSONObject("request").getJSONObject("identity").getString("phone");
+			writeToCache(getAutogenIdKeyName(testCaseName, "phone"), phonenumber);
+		}
+		
 		Response response = patchWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 				testCaseDTO.getRole(), testCaseDTO.getTestCaseName());
 
