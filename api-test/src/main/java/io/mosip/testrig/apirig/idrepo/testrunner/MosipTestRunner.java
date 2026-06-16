@@ -110,7 +110,7 @@ public class MosipTestRunner {
 			}
 
 			startTestRunner();
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			LOGGER.error("Exception " + e.getMessage());
 		}
 		

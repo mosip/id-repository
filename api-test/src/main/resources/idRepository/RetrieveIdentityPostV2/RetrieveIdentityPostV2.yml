@@ -121,7 +121,7 @@ RetrieveIdentityPostV2:
       inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
       outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2Result
       input: '{
-    "id": "$ID:AddIdentityV2_WithMultipleClaimsInVerifiedAttributes_Pos_sid_EMAIL$@email",
+    "id": "$ID:AddIdentity_array_handle_value_smoke_Pos_EMAIL$@email",
     "type": "demo",
     "idType": "HANDLE",
     "fingerExtractionFormat": "$REMOVE$",

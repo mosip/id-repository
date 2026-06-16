@@ -454,10 +454,10 @@ public class IdRepoArrayHandle {
 	        handleArray.remove(0);
 	    }
 	    JSONObject handleEmail = new JSONObject();
-	    handleEmail.put("value", "handle_" + BaseTestCase.generateRandomNumberString(2) + "@mail.com");
+	    handleEmail.put("value", "handle_" + BaseTestCase.generateRandomNumberString(6) + "@mail.com");
 	    handleEmail.put("tags", new JSONArray().put("handle"));
 	    JSONObject normalEmail = new JSONObject();
-	    normalEmail.put("value", "notification_" + BaseTestCase.generateRandomNumberString(2) + "@mail.com");
+	    normalEmail.put("value", "notification_" + BaseTestCase.generateRandomNumberString(6) + "@mail.com");
 	    handleArray.put(handleEmail);
 	    handleArray.put(normalEmail);
 	}
@@ -487,7 +487,7 @@ public class IdRepoArrayHandle {
 		}
 		for (int i = 1; i <= 20; i++) {
 			JSONObject emailObj = new JSONObject();
-			emailObj.put("value", "email" + i + BaseTestCase.generateRandomNumberString(2) + "@mosip.net");
+			emailObj.put("value", "email" + i + BaseTestCase.generateRandomNumberString(6) + "@mosip.net");
 
 			if (i == 1) {
 				emailObj.put("tags", new JSONArray().put("handle"));
@@ -502,15 +502,15 @@ public class IdRepoArrayHandle {
 	        handleArray.remove(0);
 	    }
 	    JSONObject email1 = new JSONObject();
-	    email1.put("value", "user1_" + BaseTestCase.generateRandomNumberString(2) + "@gmail.com");
+	    email1.put("value", "user1_" + BaseTestCase.generateRandomNumberString(6) + "@gmail.com");
 	    email1.put("tags", new JSONArray().put("handle"));
 
 	    JSONObject email2 = new JSONObject();
-	    email2.put("value", "user2_" + BaseTestCase.generateRandomNumberString(2) + "@yahoo.com");
+	    email2.put("value", "user2_" + BaseTestCase.generateRandomNumberString(6) + "@yahoo.com");
 	    email2.put("tags", new JSONArray().put("handle"));
 
 	    JSONObject email3 = new JSONObject();
-	    email3.put("value", "user3_" + BaseTestCase.generateRandomNumberString(2) + "@mosip.net");
+	    email3.put("value", "user3_" + BaseTestCase.generateRandomNumberString(6) + "@mosip.net");
 	    email3.put("tags", new JSONArray().put("handle"));
 
 	    handleArray.put(email1);
@@ -523,9 +523,9 @@ public class IdRepoArrayHandle {
 			handleArray.remove(0);
 		}
 		JSONObject email1 = new JSONObject();
-		email1.put("value", "email01_" + BaseTestCase.generateRandomNumberString(2) + "@mosip.net");
+		email1.put("value", "email01_" + BaseTestCase.generateRandomNumberString(6) + "@mosip.net");
 		JSONObject email2 = new JSONObject();
-		email2.put("value", "email02_" + BaseTestCase.generateRandomNumberString(2) + "@mosip.net");
+		email2.put("value", "email02_" + BaseTestCase.generateRandomNumberString(6) + "@mosip.net");
 		handleArray.put(email1);
 		handleArray.put(email2);
 	}
@@ -536,10 +536,10 @@ public class IdRepoArrayHandle {
 	        handleArray.remove(0);
 	    }
 	    JSONObject email1 = new JSONObject();
-	    email1.put("value", "email03_" + BaseTestCase.generateRandomNumberString(2) + "@mosip.net");
+	    email1.put("value", "email03_" + BaseTestCase.generateRandomNumberString(6) + "@mosip.net");
 	    email1.put("tags", new JSONArray().put("handle"));
 	    JSONObject email2 = new JSONObject();
-	    email2.put("value", "email04_" + BaseTestCase.generateRandomNumberString(2) + "@mosip.net");
+	    email2.put("value", "email04_" + BaseTestCase.generateRandomNumberString(6) + "@mosip.net");
 	    email2.put("tags", new JSONArray().put("handle"));
 	    handleArray.put(email1);
 	    handleArray.put(email2);
@@ -551,7 +551,7 @@ public class IdRepoArrayHandle {
 
 	    JSONObject newEmail = new JSONObject();
 	    newEmail.put("value",
-	        "newemail_" + BaseTestCase.generateRandomNumberString(2) + "@mosip.net");
+	        "newemail_" + BaseTestCase.generateRandomNumberString(6) + "@mosip.net");
 
 	    handleArray.put(newEmail);
 	}
