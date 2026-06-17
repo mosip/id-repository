@@ -17,7 +17,6 @@ UpdateIdentityV2ArrayHandle:
       "postalCode": "14022",
       "email": "$EMAILVALUE$",
       "phone": "$ID:AddIdentityArrayHandleV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
-      "mobileno": "8249742850",
       "referenceIdentityNumber": "6789545678878",
       "verifiedAttributes": [
         {
@@ -34,7 +33,7 @@ UpdateIdentityV2ArrayHandle:
            }
         }
       ],
-      "version": "v1",
+      "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
@@ -61,7 +60,6 @@ UpdateIdentityV2ArrayHandle:
       "postalCode": "14022",
       "email": "$ID:AddIdentityArrayHandleV2_WithSingleValidVerifiedAttributes_Smoke_Pos_EMAIL$",
       "phone": "$ID:AddIdentityArrayHandleV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
-      "mobileno": "8249742850",
       "referenceIdentityNumber": "6789545678878",
       "verifiedAttributes": [
         {
@@ -78,7 +76,7 @@ UpdateIdentityV2ArrayHandle:
            }
         }
       ],
-      "version": "v1",
+      "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
@@ -105,7 +103,6 @@ UpdateIdentityV2ArrayHandle:
       "postalCode": "14022",
       "email": "$ID:AddIdentityArrayHandleV2_WithSingleValidVerifiedAttributes_Smoke_Pos_EMAIL$",
       "phone": "$ID:AddIdentityArrayHandleV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
-      "mobileno": "8249742850",
       "referenceIdentityNumber": "6789545678878",
       "verifiedAttributes": [
         {
@@ -122,7 +119,7 @@ UpdateIdentityV2ArrayHandle:
            }
         }
       ],
-      "version": "v1",
+      "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
@@ -149,7 +146,6 @@ UpdateIdentityV2ArrayHandle:
       "postalCode": "14022",
       "email": "$ID:AddIdentityArrayHandleV2_WithSingleValidVerifiedAttributes_Smoke_Pos_EMAIL$",
       "phone": "$ID:AddIdentityArrayHandleV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
-      "mobileno": "8249742850",
       "referenceIdentityNumber": "6789545678878",
       "verifiedAttributes": [
         {
@@ -166,7 +162,7 @@ UpdateIdentityV2ArrayHandle:
            }
         }
       ],
-      "version": "v1",
+      "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
@@ -193,7 +189,6 @@ UpdateIdentityV2ArrayHandle:
       "postalCode": "14022",
       "email": "$ID:AddIdentityArrayHandleV2_WithUniqueEmail_Pos_EMAIL$",
       "phone": "$ID:AddIdentityArrayHandleV2_WithUniqueEmail_Pos_PHONE$",
-      "mobileno": "8249742850",
       "referenceIdentityNumber": "6789545678878",
       "verifiedAttributes": [
         {
@@ -210,7 +205,7 @@ UpdateIdentityV2ArrayHandle:
            }
         }
       ],
-      "version": "v1",
+      "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
@@ -237,7 +232,6 @@ UpdateIdentityV2ArrayHandle:
       "postalCode": "14022",
       "email": "$ID:AddIdentityArrayHandleV2_WithUniqueEmail_Pos_EMAIL$",
       "phone": "$ID:AddIdentityArrayHandleV2_WithUniqueEmail_Pos_PHONE$",
-      "mobileno": "8249742850",
       "referenceIdentityNumber": "6789545678878",
       "verifiedAttributes": [
         {
@@ -254,7 +248,7 @@ UpdateIdentityV2ArrayHandle:
            }
         }
       ],
-      "version": "v1",
+      "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
@@ -281,7 +275,6 @@ UpdateIdentityV2ArrayHandle:
       "postalCode": "14022",
       "email": "$ID:AddIdentityArrayHandleV2_WithUniqueEmail_Pos_EMAIL$",
       "phone": "$ID:AddIdentityArrayHandleV2_WithUniqueEmail_Pos_PHONE$",
-      "mobileno": "8249742850",
       "referenceIdentityNumber": "6789545678878",
       "verifiedAttributes": [
         {
@@ -298,7 +291,7 @@ UpdateIdentityV2ArrayHandle:
            }
         }
       ],
-      "version": "v1",
+      "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
@@ -325,7 +318,6 @@ UpdateIdentityV2ArrayHandle:
       "postalCode": "14022",
       "email": "$ID:AddIdentityArrayHandleV2_WithUniqueEmail_Pos_EMAIL$",
       "phone": "$ID:AddIdentityArrayHandleV2_WithUniqueEmail_Pos_PHONE$",
-      "mobileno": "8249742850",
       "referenceIdentityNumber": "6789545678878",
       "verifiedAttributes": [
         {
@@ -342,7 +334,7 @@ UpdateIdentityV2ArrayHandle:
            }
         }
       ],
-      "version": "v1",
+      "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
@@ -369,7 +361,6 @@ UpdateIdentityV2ArrayHandle:
       "postalCode": "14022",
       "email": "$ID:AddIdentityArrayHandleV2_WithMultipleEmail_And_OneEmail_As_Handle_Pos_EMAIL$",
       "phone": "$ID:AddIdentityArrayHandleV2_WithMultipleEmail_And_OneEmail_As_Handle_Pos_PHONE$",
-      "mobileno": "8249742850",
       "referenceIdentityNumber": "6789545678878",
       "verifiedAttributes": [
         {
@@ -386,7 +377,7 @@ UpdateIdentityV2ArrayHandle:
            }
         }
       ],
-      "version": "v1",
+      "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
@@ -413,7 +404,6 @@ UpdateIdentityV2ArrayHandle:
       "postalCode": "14022",
       "email": "$ID:AddIdentityArrayHandleV2_WithSingleValidVerifiedAttributes_Smoke_Pos_EMAIL$",
       "phone": "$ID:AddIdentityArrayHandleV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
-      "mobileno": "8249742850",
       "referenceIdentityNumber": "6789545678878",
       "verifiedAttributes": [
         {
@@ -430,7 +420,7 @@ UpdateIdentityV2ArrayHandle:
            }
         }
       ],
-      "version": "v1",
+      "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
@@ -461,7 +451,6 @@ UpdateIdentityV2ArrayHandle:
       "postalCode": "14022",
       "email": "$ID:AddIdentityArrayHandleV2_WithSingleValidVerifiedAttributes_Smoke_Pos_EMAIL$",
       "phone": "$ID:AddIdentityArrayHandleV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
-      "mobileno": "8249742850",
       "referenceIdentityNumber": "6789545678878",
       "verifiedAttributes": [
         {
@@ -478,7 +467,7 @@ UpdateIdentityV2ArrayHandle:
            }
         }
       ],
-      "version": "v1",
+      "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
@@ -505,7 +494,6 @@ UpdateIdentityV2ArrayHandle:
       "postalCode": "14022",
       "email": "$ID:AddIdentityArrayHandleV2_WithSingleValidVerifiedAttributes_Smoke_Pos_EMAIL$",
       "phone": "$ID:AddIdentityArrayHandleV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
-      "mobileno": "8249742850",
       "referenceIdentityNumber": "6789545678878",
       "verifiedAttributes": [
         {
@@ -522,7 +510,7 @@ UpdateIdentityV2ArrayHandle:
            }
         }
       ],
-      "version": "v1",
+      "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
@@ -553,7 +541,6 @@ UpdateIdentityV2ArrayHandle:
       "postalCode": "14022",
       "email": "$EMAILVALUE$",
       "phone": "$ID:AddIdentityArrayHandleV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
-      "mobileno": "8249742850",
       "referenceIdentityNumber": "6789545678878",
       "verifiedAttributes": [
         {
@@ -570,7 +557,7 @@ UpdateIdentityV2ArrayHandle:
            }
         }
       ],
-      "version": "v1",
+      "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",

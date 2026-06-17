@@ -103,7 +103,7 @@ public class IdRepoUtil extends AdminTestUtil {
 
 		DBManager.executeDBQueries(IdRepoConfigManager.getIdRepoDbUrl(), IdRepoConfigManager.getIdRepoDbUser(),
 				IdRepoConfigManager.getPMSDbPass(), "idrepo",
-				getGlobalResourcePath() + "/" + "config/idrepoCertDataDeleteQueries.txt");
+				getGlobalResourcePath() + "/" + "config/idrepoDeleteQueries.txt");
 	}
 	
 	public static String inputStringKeyWordHandeler(String jsonString, String testCaseName) {

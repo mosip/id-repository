@@ -158,6 +158,8 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 					logger.error(e.getMessage());
 				}
 			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber);
+		}
+		if (inputJson.contains("$EMAILVALUE$")) {
 			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", email);
 		}
 		// Replace handle-array tokens before manipulating handle values so that
