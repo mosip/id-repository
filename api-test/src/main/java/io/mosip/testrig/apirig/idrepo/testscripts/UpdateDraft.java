@@ -1,6 +1,5 @@
 package io.mosip.testrig.apirig.idrepo.testscripts;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
@@ -16,8 +15,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.internal.BaseTestMethod;
-import org.testng.internal.TestResult;
 
 import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
@@ -96,6 +93,20 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 		String jsonInput = testCaseDTO.getInput();
 		String inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
 
+		String phoneNumber = "";
+		String email = testCaseName + "_" + BaseTestCase.runContext + "@mosip.net";
+		if (inputJson.contains("$PHONENUMBERFORIDENTITY$") || inputJson.contains("$EMAILVALUE$")) {
+			if (!phoneSchemaRegex.isEmpty()) {
+				try {
+					phoneNumber = genStringAsperRegex(phoneSchemaRegex);
+				} catch (Exception e) {
+					logger.error(e.getMessage());
+				}
+			}
+			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber);
+			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", email);
+		}
+
 		response = patchWithPathParamsBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 				testCaseDTO.getRole(), testCaseDTO.getTestCaseName(), pathParams);
 
@@ -116,17 +127,7 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 	 */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {
-		try {
-			Field method = TestResult.class.getDeclaredField("m_method");
-			method.setAccessible(true);
-			method.set(result, result.getMethod().clone());
-			BaseTestMethod baseTestMethod = (BaseTestMethod) result.getMethod();
-			Field f = baseTestMethod.getClass().getSuperclass().getDeclaredField("m_methodName");
-			f.setAccessible(true);
-			f.set(baseTestMethod, testCaseName);
-		} catch (Exception e) {
-			Reporter.log("Exception : " + e.getMessage());
-		}
+		result.setAttribute("TestCaseName", testCaseName);
 	}
 
 	@AfterClass(alwaysRun = true)

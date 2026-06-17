@@ -1,0 +1,18 @@
+{
+  "id": "{{id}}",
+  "version": "{{version}}",
+  "requesttime": "{{requesttime}}",
+  "metadata": {},
+  "request": {
+    "registrationId": "{{registrationId}}",
+    "status": "{{status}}",
+    "identity": {
+      "UIN": "{{UIN}}",
+      "IDSchemaVersion": $SCHEMAVERSION$,
+      "dateOfBirth": "{{dateOfBirth}}",
+      "phone": "{{phone}}"
+    },
+    "verifiedAttributes": {{{json verifiedAttributes}}}{{#if documents}},
+    "documents": {{{json documents}}}{{/if}}
+  }
+}

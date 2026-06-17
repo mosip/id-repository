@@ -1,6 +1,5 @@
 package io.mosip.testrig.apirig.idrepo.testscripts;
 
-import java.lang.reflect.Field;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -24,8 +23,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.internal.BaseTestMethod;
-import org.testng.internal.TestResult;
 
 import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
@@ -98,13 +95,22 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 			throw new SkipException(
 					GlobalConstants.TARGET_ENV_HEALTH_CHECK_FAILED + HealthChecker.healthCheckFailureMapS);
 		}
-		testCaseDTO.setInputTemplate(AdminTestUtil.modifySchemaGenerateHbs(testCaseDTO.isRegenerateHbs()));
-		String uin = JsonPrecondtion
-				.getValueFromJson(
-						RestClient.getRequestWithCookie(ApplnURI + "/v1/idgenerator/uin", MediaType.APPLICATION_JSON,
-								MediaType.APPLICATION_JSON, COOKIENAME,
-								new KernelAuthentication().getTokenByRole(testCaseDTO.getRole())).asString(),
-						"response.uin");
+		if(testCaseDTO.getEndPoint().contains(GlobalConstants.ADD_IDENTITY_V2_ENDPOINT)) {
+			testCaseDTO.setInputTemplate(AdminTestUtil.modifySchemaGenerateHbsV2(testCaseDTO.isRegenerateHbs()));
+		} else {
+			testCaseDTO.setInputTemplate(AdminTestUtil.modifySchemaGenerateHbs(testCaseDTO.isRegenerateHbs()));
+		}
+		String jsonInput = testCaseDTO.getInput();
+
+		String inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
+		String uin = null;
+		if (inputJson.contains("$UIN$")) {
+			uin = JsonPrecondtion.getValueFromJson(
+					RestClient.getRequestWithCookie(ApplnURI + "/v1/idgenerator/uin", MediaType.APPLICATION_JSON,
+							MediaType.APPLICATION_JSON, COOKIENAME,
+							new KernelAuthentication().getTokenByRole(testCaseDTO.getRole())).asString(),
+					"response.uin");
+		}
 
 		DateFormat dateFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
 		Calendar cal = Calendar.getInstance();
@@ -116,6 +122,9 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 			KeycloakUserManager.removeVidUser();
 			Map<String, List<String>> attrmap = new HashMap<>();
 			List<String> list = new ArrayList<>();
+			if (uin == null) {
+		        throw new IllegalStateException("UIN not initialized");
+		    }
 			list.add(uin);
 			attrmap.put("individual_id", list);
 			list = new ArrayList<>();
@@ -126,41 +135,22 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 			String picture = properties.getProperty("picturevalue");
 			list.add(picture);
 			attrmap.put("picture", list);
-			KeycloakUserManager.createVidUsers(IdRepoConfigManager.getproperty("new_Resident_User"),
-					IdRepoConfigManager.getproperty("new_Resident_Password"), IdRepoConfigManager.getproperty("new_Resident_Role"),
-					attrmap);
+			KeycloakUserManager.createVidUsers(IdRepoConfigManager.getproperty("new_Resident_User"), attrmap);
 		}
 
-		String jsonInput = testCaseDTO.getInput();
-
-		String inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
-		
-		
 		//For_Array-Handle Related Cases
 		if (inputJson.contains("$FUNCTIONALID$")) {
 			inputJson = replaceKeywordWithValue(inputJson, "$FUNCTIONALID$", generateRandomNumberString(2)
 					+ Calendar.getInstance().getTimeInMillis());
 		}
 		
-		JSONObject jsonString = new JSONObject(inputJson);
-		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {
-			inputJson = IdRepoArrayHandle.replaceArrayHandleValues(inputJson,testCaseName);
+		if (uin != null) {
+			inputJson = inputJson.replace("$UIN$", uin);
 		}
-		if (testCaseName.contains("_withInvalidEmail") || testCaseName.contains("_invalid_Email")) {
-			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "@#$DDFFGG");
-		}
-		if (testCaseName.contains("Empty_Email")) {
-			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", " ");
-		}
-		if (testCaseName.contains("SpaceVal_Email")) {
-			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", "  ");
-		}
-
-		inputJson = inputJson.replace("$UIN$", uin);
 		inputJson = inputJson.replace("$RID$", genRid);
 		String phoneNumber = "";
-		String email = testCaseName +"@mosip.net";
-		if (inputJson.contains("$PHONENUMBERFORIDENTITY$")||inputJson.contains("$EMAILVALUE$")) {
+		String email = testCaseName + "_" + BaseTestCase.runContext + "@mosip.net";
+		if (inputJson.contains("$PHONENUMBERFORIDENTITY$") || inputJson.contains("$EMAILVALUE$")) {
 			if (!phoneSchemaRegex.isEmpty())
 				try {
 					phoneNumber = genStringAsperRegex(phoneSchemaRegex);
@@ -168,8 +158,15 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 					logger.error(e.getMessage());
 				}
 			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber);
+		}
+		if (inputJson.contains("$EMAILVALUE$")) {
 			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", email);
-			
+		}
+		// Replace handle-array tokens before manipulating handle values so that
+		// applyWithDuplicateValue saves/restores the actual resolved values, not tokens.
+		JSONObject jsonString = new JSONObject(inputJson);
+		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {
+			inputJson = IdRepoArrayHandle.replaceArrayHandleValues(inputJson, testCaseName);
 		}
 
 		response = postWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
@@ -185,8 +182,7 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 		if (testCaseDTO.getTestCaseName().contains("_Pos")) {
 			writeAutoGeneratedId(testCaseDTO.getTestCaseName(), "UIN", uin);
 			writeAutoGeneratedId(testCaseDTO.getTestCaseName(), "RID", genRid);
-			writeAutoGeneratedId(testCaseDTO.getTestCaseName(), "EMAIL", testCaseDTO.getTestCaseName() + "@mosip.net");
-			writeAutoGeneratedId(testCaseDTO.getTestCaseName(), "PHONE", phoneNumber);
+			writeAutoGeneratedId(testCaseDTO.getTestCaseName(), "EMAIL", email);
 		}
 		if (!phoneNumber.isEmpty())
 			writeAutoGeneratedId(testCaseDTO.getTestCaseName(), "PHONE", phoneNumber);
@@ -199,17 +195,7 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 	 */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {
-		try {
-			Field method = TestResult.class.getDeclaredField("m_method");
-			method.setAccessible(true);
-			method.set(result, result.getMethod().clone());
-			BaseTestMethod baseTestMethod = (BaseTestMethod) result.getMethod();
-			Field f = baseTestMethod.getClass().getSuperclass().getDeclaredField("m_methodName");
-			f.setAccessible(true);
-			f.set(baseTestMethod, testCaseName);
-		} catch (Exception e) {
-			Reporter.log("Exception : " + e.getMessage());
-		}
+		result.setAttribute("TestCaseName", testCaseName);
 	}
 
 	@AfterClass(alwaysRun = true)

@@ -1,6 +1,5 @@
 package io.mosip.testrig.apirig.idrepo.testscripts;
 
-import java.lang.reflect.Field;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -21,8 +20,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.internal.BaseTestMethod;
-import org.testng.internal.TestResult;
 
 import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
@@ -31,7 +28,6 @@ import io.mosip.testrig.apirig.idrepo.utils.IdRepoUtil;
 import io.mosip.testrig.apirig.testrunner.BaseTestCase;
 import io.mosip.testrig.apirig.testrunner.HealthChecker;
 import io.mosip.testrig.apirig.utils.AdminTestException;
-//import io.mosip.testrig.apirig.utils.AdminTestUtil;
 import io.mosip.testrig.apirig.utils.AuthenticationTestException;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
 import io.mosip.testrig.apirig.utils.OutputValidationUtil;
@@ -144,10 +140,29 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 		generatedRid = genRid;
 
 		String inputJson = getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate());
-
-//		JSONObject reqJsonObject = new JSONObject(inputJson);
-
+		if (inputJson.contains("$SCHEMAVERSION$"))
+			inputJson = replaceKeywordWithValue(inputJson, "$SCHEMAVERSION$", generateLatestSchemaVersion());
 		
+		// V2 specific handling for verifiedAttributes and documents
+		if (testCaseDTO.getEndPoint().contains(GlobalConstants.ADD_IDENTITY_V2_ENDPOINT)) {
+
+		    JSONObject originalInput = new JSONObject(testCaseDTO.getInput());
+		    JSONObject requestJson = new JSONObject(inputJson);
+
+		    if (originalInput.has("verifiedAttributes")) {
+		        requestJson.getJSONObject("request")
+		                .put("verifiedAttributes",
+		                        originalInput.getJSONArray("verifiedAttributes"));
+		    }
+
+		    if (originalInput.has("documents")) {
+		        requestJson.getJSONObject("request")
+		                .put("documents",
+		                        originalInput.getJSONArray("documents"));
+		    }
+
+		    inputJson = requestJson.toString();
+		}
 
 		String phone = getValueFromAuthActuator("json-property", "phone_number");
 		String result = phone.replaceAll("\\[\"|\"\\]", "");
@@ -188,7 +203,14 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 
 		if (inputJson.contains("$PRIMARYLANG$"))
 			inputJson = inputJson.replace("$PRIMARYLANG$", BaseTestCase.languageList.get(0));
-
+		
+		inputJson = inputJsonKeyWordHandeler(inputJson, testCaseName);
+		if (testCaseName.toLowerCase().contains("_sid")) {
+			JSONObject reqJson = new JSONObject(inputJson);
+			String phonenumber = reqJson.getJSONObject("request").getJSONObject("identity").getString("phone");
+			writeToCache(getAutogenIdKeyName(testCaseName, "phone"), phonenumber);
+		}
+		
 		Response response = patchWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 				testCaseDTO.getRole(), testCaseDTO.getTestCaseName());
 
@@ -223,16 +245,6 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 	 */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {
-		try {
-			Field method = TestResult.class.getDeclaredField("m_method");
-			method.setAccessible(true);
-			method.set(result, result.getMethod().clone());
-			BaseTestMethod baseTestMethod = (BaseTestMethod) result.getMethod();
-			Field f = baseTestMethod.getClass().getSuperclass().getDeclaredField("m_methodName");
-			f.setAccessible(true);
-			f.set(baseTestMethod, testCaseName);
-		} catch (Exception e) {
-			Reporter.log("Exception : " + e.getMessage());
-		}
+		result.setAttribute("TestCaseName", testCaseName);
 	}
 }
