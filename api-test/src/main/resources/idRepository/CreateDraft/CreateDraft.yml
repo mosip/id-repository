@@ -55,12 +55,12 @@ CreateDraft:
       inputTemplate: idRepository/CreateDraft/createDraft
       outputTemplate: idRepository/error
       input: '{
-      "registrationId":"ajajaj@gddb#$"
+      "registrationId":"$RUNCONTEXT$ajajaj@gddb#$"
       }'
       output: '{
    "errors": [
     {
-      "errorCode": "IDR-IDC-012"
+      "errorCode": "IDR-IDC-002"
     }
   ]
 }'

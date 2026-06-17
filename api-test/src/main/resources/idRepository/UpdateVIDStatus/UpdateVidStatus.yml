@@ -5,6 +5,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_01
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_01
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -27,6 +28,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_02
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_01
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -49,6 +51,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_03
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_01
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -71,6 +74,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_04
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_01
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -93,6 +97,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_05
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_01
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -115,6 +120,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_06
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_01
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -137,6 +143,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_07
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_01
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -159,6 +166,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_08
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_01
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -181,6 +189,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_09
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_02
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/UpdateVIDStatus/UpdateVidStatusResult
       input: '{
@@ -199,6 +208,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_10
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_02
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -221,6 +231,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_11
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_02
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -243,6 +254,7 @@ UpdateVidStatus:
       uniqueIdentifier : TC_IDRepo_UpdateVIDStatus_12
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_02
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -265,6 +277,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_13
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_02
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -287,6 +300,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_14
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_02
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -309,6 +323,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_15
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_02
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -331,6 +346,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_16
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_02
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -353,6 +369,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_17
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_02
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -375,6 +392,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_18
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_01
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -397,6 +415,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_19
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_01
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -419,6 +438,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_20
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_01
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -441,6 +461,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_21
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_01
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -463,6 +484,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_22
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_01
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -485,6 +507,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_23
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_01
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -507,6 +530,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_24
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_01
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -529,6 +553,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_25
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_01
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -551,6 +576,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_26
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_02
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -573,6 +599,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_27
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_02
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -595,6 +622,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_28
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_02
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -617,6 +645,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_29
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_02
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -639,6 +668,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_30
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_02
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -661,6 +691,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_31
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_02
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -683,6 +714,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_32
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_02
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -705,6 +737,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_33
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_02
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -797,6 +830,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_37
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_32
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -820,6 +854,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_38
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_32
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/error
       input: '{
@@ -843,6 +878,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_39
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_04
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/UpdateVIDStatus/UpdateVidStatusResult
       input: '{
@@ -861,6 +897,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_40
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_05
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/UpdateVIDStatus/UpdateVidStatusResult
       input: '{
@@ -879,6 +916,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_41
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_06
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/UpdateVIDStatus/UpdateVidStatusResult
       input: '{
@@ -897,6 +935,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_42
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_07
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/UpdateVIDStatus/UpdateVidStatusResult
       input: '{
@@ -915,6 +954,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_43
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_08
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/UpdateVIDStatus/UpdateVidStatusResult
       input: '{
@@ -933,6 +973,7 @@ UpdateVidStatus:
       uniqueIdentifier: TC_IDRepo_UpdateVIDStatus_44
       role: idrepo
       restMethod: PATCH
+      additionalDependencies: TC_IDRepo_AddIdentity_01
       inputTemplate: idRepository/UpdateVIDStatus/updateVidStatus
       outputTemplate: idRepository/UpdateVIDStatus/UpdateVidStatusResult
       input: '{

@@ -975,3 +975,49 @@ CreateVID:
       output: '{
   "vidStatus":"ACTIVE"
 }'
+
+  IdRepository_CreateVID_With_InvalidUIN_Neg:
+      endPoint: /idrepository/v1/vid
+      description: Create a Temporary VID passing Invalid UIN
+      uniqueIdentifier: TC_IDRepo_CreateVID_48
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/CreateVID/createVid
+      outputTemplate: idRepository/error
+      input: '{
+    "vidType": "Temporary",
+    "UIN": "$INVALID_UIN$",
+    "version": "v1",
+    "id": "mosip.vid.create",
+    "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+    "errors": [
+       {
+          "errorCode": "IDR-IDC-002"
+       }
+     ]
+}'
+
+  IdRepository_CreateVID_With_ValidUIN_But_Not_In_DB_Neg:
+      endPoint: /idrepository/v1/vid
+      description: Create a Temporary VID passing valid UIN but not present in DB
+      uniqueIdentifier: TC_IDRepo_CreateVID_49
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/CreateVID/createVid
+      outputTemplate: idRepository/error
+      input: '{
+    "vidType": "Temporary",
+    "UIN": "$VALID_UIN_NOTIN_DB$",
+    "version": "v1",
+    "id": "mosip.vid.create",
+    "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+    "errors": [
+      {
+         "errorCode": "IDR-IDC-007"
+      }
+    ]
+}'
