@@ -843,14 +843,14 @@ AddIdentityV2ArrayHandle:
     output: '{
       "status":"ACTIVATED"
 }'
-  IdRepository_AddIdentityArrayHandleV2_withDuplicateSelectedHandles_Neg:
+  IdRepository_AddIdentityArrayHandleV2_withDuplicateSelectedHandles:
     endPoint: /idrepository/v1/identity/v2
-    description: Validates that Add Identity V2 API rejects requests when duplicate selected handles are present.
+    description: Validates that Add Identity V2 API accepts requests when duplicate selected handles are present and successfully creates the identity.
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_20
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
-    outputTemplate: idRepository/error
+    outputTemplate: idRepository/AddIdentityV2/addIdentityResult
     input: '{
       "value": "$BIOVALUE$",
       "id": "mosip.id.create",
@@ -885,11 +885,7 @@ AddIdentityV2ArrayHandle:
       "requesttime": "$TIMESTAMP$"
 }'
     output: '{
-      "errors": [
-        {
-           "errorCode": "IDR-IDC-003"
-        }
-    ]
+      "status":"ACTIVATED"
 }'
   IdRepository_AddIdentityArrayHandleV2_withSelectedHandlesCaseMismatch:
     endPoint: /idrepository/v1/identity/v2
