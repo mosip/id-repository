@@ -2,7 +2,6 @@ package io.mosip.idrepository.identity.helper;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
@@ -20,6 +19,7 @@ import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.IdRepositoryUtil;
 import io.mosip.idrepository.identity.dto.HandleDto;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -166,7 +166,7 @@ public class IdRepoServiceHelper {
 					&& Objects.nonNull(identityMap.get(selectedHandlesFieldId))) {
 				mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER, "getSelectedHandles",
 						identityMap.get(selectedHandlesFieldId));
-				List<String> selectedHandleFieldIds = (List<String>) identityMap.get(selectedHandlesFieldId);
+				Set<String> selectedHandleFieldIds = new LinkedHashSet<>((List<String>) identityMap.get(selectedHandlesFieldId));
 				return selectedHandleFieldIds.stream()
 						.filter(handleFieldId -> supportedHandlesInSchema.get(schemaVersion).contains(handleFieldId))
 						.collect(Collectors.toMap(handleName -> handleName,
@@ -207,7 +207,8 @@ public class IdRepoServiceHelper {
             return new ArrayList<>();
 
         if(value instanceof String) {
-            String handle = ((String) value).concat(getHandlePostfix(fieldId)).toLowerCase(Locale.ROOT);
+            String valueStr = IdRepositoryUtil.getTrimmedLowercaseValue(value.toString());
+            String handle = IdRepositoryUtil.getTrimmedLowercaseValue(valueStr.concat(getHandlePostfix(fieldId)));
             List<HandleDto> handleDtos = new ArrayList<>();
             handleDtos.add(new HandleDto(handle, getHandleHash(handle)));
             return handleDtos;
@@ -241,9 +242,10 @@ public class IdRepoServiceHelper {
 
     public String getHandleHash(String handle) {
         //handle is converted to lowercase. It is language neutral conversion.
-        int saltId = securityManager.getSaltKeyForHashOfId(handle.toLowerCase(Locale.ROOT));
+        String trimmedHandle = IdRepositoryUtil.getTrimmedLowercaseValue(handle);
+        int saltId = securityManager.getSaltKeyForHashOfId(trimmedHandle);
         String salt = uinHashSaltRepo.retrieveSaltById(saltId);
-        String saltedHash = securityManager.hashwithSalt(handle.getBytes(StandardCharsets.UTF_8),
+        String saltedHash = securityManager.hashwithSalt(trimmedHandle.getBytes(StandardCharsets.UTF_8),
                 CryptoUtil.decodePlainBase64(salt));
         return saltId + SPLITTER + saltedHash;
     }

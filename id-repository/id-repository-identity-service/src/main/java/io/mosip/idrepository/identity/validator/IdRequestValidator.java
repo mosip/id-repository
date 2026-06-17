@@ -254,7 +254,6 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 				} else {
 					validateDocuments(requestMap, errors);
 					validateVerifiedAttributes(requestMap,errors);
-					validateSelectedHandles(requestMap, errors);
 					Set<String> keysToRemove =  requestMap.keySet().stream().filter(key -> !key.contentEquals(ROOT_PATH)).collect(Collectors.toSet());
 					keysToRemove.forEach(requestMap::remove);
 					if (!errors.hasErrors()) {
@@ -442,36 +441,6 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 				errors.rejectValue(REQUEST, DUPLICATE_VERIFIED_ATTRIBUTES.getErrorCode(),
 						String.format(DUPLICATE_VERIFIED_ATTRIBUTES.getErrorMessage(),
 								"trustFramework=" + trustFramework + ", verificationProcess=" + verificationProcess));
-			}
-		}
-	}
-
-	/**
-	 * Validate selectedHandles for duplicate entries.
-	 *
-	 * @param requestMap the request map
-	 * @param errors     the errors
-	 */
-	@SuppressWarnings("unchecked")
-	private void validateSelectedHandles(Map<String, Object> requestMap, Errors errors) {
-		if (!requestMap.containsKey(ROOT_PATH) || Objects.isNull(requestMap.get(ROOT_PATH)))
-			return;
-
-		Map<String, Object> identityMap = (Map<String, Object>) requestMap.get(ROOT_PATH);
-		String selectedHandlesFieldId = idRepoServiceHelper.getIdentityMapping().getIdentity().getSelectedHandles().getValue();
-
-		if (!identityMap.containsKey(selectedHandlesFieldId) || Objects.isNull(identityMap.get(selectedHandlesFieldId)))
-			return;
-
-		List<String> selectedHandles = (List<String>) identityMap.get(selectedHandlesFieldId);
-		Set<String> seen = new HashSet<>();
-		for (String handle : selectedHandles) {
-			if (!seen.add(handle)) {
-				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateSelectedHandles",
-						"Duplicate handle found in selectedHandles: " + handle);
-				errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
-						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), selectedHandlesFieldId));
-				return;
 			}
 		}
 	}
