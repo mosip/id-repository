@@ -35,6 +35,10 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.context.WebApplicationContext;
 
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.regex.Pattern;
+
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -65,9 +69,13 @@ public class IdRepoDraftControllerTest {
 
 	private Errors errors;
 
+	private static final String INVALID_RID = "5a5_ajajaj@gddb#$";
+	private static final String VALID_RID = "12345678901234";
+
 	@Before
 	public void init() {
 		errors = new BeanPropertyBindingResult(new IdRequestDTO(), "idRequestDto");
+		ReflectionTestUtils.setField(controller, "ridCompiledPattern", Pattern.compile("\\d*"));
 	}
 
 	@Test
@@ -287,6 +295,71 @@ public class IdRepoDraftControllerTest {
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
+		}
+	}
+
+	@Test
+	public void testCreateDraftInvalidRid() throws IdRepoAppException {
+		try {
+			controller.createDraft(INVALID_RID, null);
+		} catch (IdRepoAppException e) {
+			assertEquals(INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+		}
+	}
+
+	@Test
+	public void testUpdateDraftInvalidRid() throws IdRepoAppException {
+		try {
+			RequestWrapper<IdRequestDTO> idRequest = new RequestWrapper<>();
+			idRequest.setRequest(new IdRequestDTO<>());
+			controller.updateDraft(INVALID_RID, idRequest, errors);
+		} catch (IdRepoAppException e) {
+			assertEquals(INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+		}
+	}
+
+	@Test
+	public void testPublishDraftInvalidRid() throws IdRepoAppException {
+		try {
+			controller.publishDraft(INVALID_RID);
+		} catch (IdRepoAppException e) {
+			assertEquals(INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+		}
+	}
+
+	@Test
+	public void testDiscardDraftInvalidRid() throws IdRepoAppException {
+		try {
+			controller.discardDraft(INVALID_RID);
+		} catch (IdRepoAppException e) {
+			assertEquals(INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+		}
+	}
+
+	@Test
+	public void testHasDraftInvalidRid() throws IdRepoAppException {
+		try {
+			controller.hasDraft(INVALID_RID);
+		} catch (IdRepoAppException e) {
+			assertEquals(INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+		}
+	}
+
+	@Test
+	public void testGetDraftInvalidRid() throws IdRepoAppException {
+		try {
+			controller.getDraft(INVALID_RID, null, null, null);
+		} catch (IdRepoAppException e) {
+			assertEquals(INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+		}
+	}
+
+	@Test
+	public void testExtractBiometricsInvalidRid() throws IdRepoAppException {
+		try {
+			controller.extractBiometrics(INVALID_RID, null, null, null);
+		} catch (IdRepoAppException e) {
+			assertEquals(INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
 		}
 	}
 

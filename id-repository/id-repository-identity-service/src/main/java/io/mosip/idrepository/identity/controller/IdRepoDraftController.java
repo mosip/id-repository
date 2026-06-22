@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -48,10 +49,12 @@ import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FACE_EXTRACTION_FORMAT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FINGER_EXTRACTION_FORMAT;
@@ -85,7 +88,17 @@ public class IdRepoDraftController {
 
 	@Autowired
 	private Environment environment;
-	
+
+	@Value("${mosip.idrepo.rid.validation.pattern:\\d*}")
+	private String ridPattern;
+
+	private Pattern ridCompiledPattern;
+
+	@PostConstruct
+	public void compilePattern() {
+		ridCompiledPattern = Pattern.compile(ridPattern);
+	}
+
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
 		binder.addValidators(validator);
@@ -105,6 +118,10 @@ public class IdRepoDraftController {
 			@RequestParam(name = UIN, required = false) @Nullable String uin)
 			throws IdRepoAppException {
 		try {
+			if (!ridCompiledPattern.matcher(registrationId).matches()) {
+				throw new IdRepoAppException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id"));
+			}
 			return new ResponseEntity<>(draftService.createDraft(registrationId, uin), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_DRAFT_REQUEST_RESPONSE,
@@ -129,6 +146,10 @@ public class IdRepoDraftController {
 	public ResponseEntity<IdResponseDTO> updateDraft(@PathVariable String registrationId, @RequestBody RequestWrapper<IdRequestDTO> request,
 													 @ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
+			if (!ridCompiledPattern.matcher(registrationId).matches()) {
+				throw new IdRepoAppException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id"));
+			}
 			request.getRequest().setRegistrationId(registrationId);
 			validator.validateRequest(request.getRequest(), errors, "update");
 			DataValidationUtil.validate(errors);
@@ -155,6 +176,10 @@ public class IdRepoDraftController {
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<IdResponseDTO> publishDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
+			if (!ridCompiledPattern.matcher(registrationId).matches()) {
+				throw new IdRepoAppException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id"));
+			}
 			return new ResponseEntity<>(draftService.publishDraft(registrationId), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.PUBLISH_DRAFT_REQUEST_RESPONSE, registrationId,
@@ -179,6 +204,10 @@ public class IdRepoDraftController {
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<IdResponseDTO> discardDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
+			if (!ridCompiledPattern.matcher(registrationId).matches()) {
+				throw new IdRepoAppException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id"));
+			}
 			return new ResponseEntity<>(draftService.discardDraft(registrationId), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.DISCARD_DRAFT_REQUEST_RESPONSE, registrationId,
@@ -203,6 +232,10 @@ public class IdRepoDraftController {
 			})
 	public ResponseEntity<Void> hasDraft(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
+			if (!ridCompiledPattern.matcher(registrationId).matches()) {
+				throw new IdRepoAppException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id"));
+			}
 			HttpStatus responseStatus = draftService.hasDraft(registrationId) ? HttpStatus.OK : HttpStatus.NO_CONTENT;
 			return new ResponseEntity<>(responseStatus);
 		} catch (IdRepoAppException e) {
@@ -232,6 +265,10 @@ public class IdRepoDraftController {
 			@RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat)
 			throws IdRepoAppException {
 		try {
+			if (!ridCompiledPattern.matcher(registrationId).matches()) {
+				throw new IdRepoAppException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id"));
+			}
 			return new ResponseEntity<>(draftService.getDraft(registrationId,
 					buildExtractionFormatMap(fingerExtractionFormat, irisExtractionFormat, faceExtractionFormat)),
 					HttpStatus.OK);
@@ -262,6 +299,10 @@ public class IdRepoDraftController {
 			@RequestParam(name = IRIS_EXTRACTION_FORMAT, required = false) @Nullable String irisExtractionFormat,
 			@RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat) throws IdRepoAppException {
 		try {
+			if (!ridCompiledPattern.matcher(registrationId).matches()) {
+				throw new IdRepoAppException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id"));
+			}
 			return new ResponseEntity<>(draftService.extractBiometrics(registrationId,
 					buildExtractionFormatMap(fingerExtractionFormat, irisExtractionFormat, faceExtractionFormat)),
 					HttpStatus.OK);

@@ -4,6 +4,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.*;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.Set;
@@ -147,11 +148,17 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	@Value("${mosip.idrepo.verified-attributes.schema-url}")
 	private String verifiedAttributesSchemaUrl;
 
+	@Value("${mosip.idrepo.rid.validation.pattern:\\d*}")
+	private String ridValidationPattern;
+
+	private Pattern ridCompiledPattern;
+
 	@PostConstruct
 	public void init() {
 		newRegistrationFields.remove("");
 		updateUinFields.remove("");
 		verifiedAttributesFields.remove("");
+		ridCompiledPattern = Pattern.compile(ridValidationPattern);
 	}
 
 	/*
@@ -224,6 +231,10 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateRegId", "NULL RID");
 			errors.rejectValue(REQUEST, MISSING_INPUT_PARAMETER.getErrorCode(),
 					String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), REGISTRATION_ID));
+		} else if (!ridCompiledPattern.matcher(registrationId).matches()) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR, "validateRegId", "INVALID RID - " + registrationId);
+			errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
+					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), REGISTRATION_ID));
 		}
 	}
 
