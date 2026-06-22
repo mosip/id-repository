@@ -57,6 +57,26 @@ public class IdRepoArrayHandle {
 		    identity.put("selectedHandles", selectedHandles);
 		    return jsonObj.toString();
 		}
+		if (testCaseName.contains("_withTaggedListTypeNotInSchema")) {
+		    String nonHandleField = "fullName";
+		    if (identity.has(nonHandleField)) {
+		        JSONObject entry = new JSONObject();
+		        entry.put("value", "InvalidTaggedValue_" + RANDOM_ID);
+		        entry.put("tags", new JSONArray().put("handle"));
+		        identity.put(nonHandleField, new JSONArray().put(entry));
+		    }
+		    return jsonObj.toString();
+		}
+		if (testCaseName.contains("_withArrayOfStringNotInSchema")) {
+		    String nonSimpleTypeField = "postalCode";
+		    if (identity.has(nonSimpleTypeField)) {
+		        JSONArray stringArray = new JSONArray();
+		        stringArray.put("140221");
+		        stringArray.put("140222");
+		        identity.put(nonSimpleTypeField, stringArray);
+		    }
+		    return jsonObj.toString();
+		}
 		if (testCaseName.contains("_withSelectedHandlesCaseMismatch")) {
 		    JSONArray selectedHandles = new JSONArray();
 		    selectedHandles.put(resolveEmailFieldName().toUpperCase());
@@ -187,6 +207,26 @@ public class IdRepoArrayHandle {
 			// Email stays as already set by updateIdentityHbs + $EMAILVALUE$ replacement.
 			// $ID: tokens put here would not be resolved by the framework at this stage.
 			return jsonObj.toString();
+		}
+		if (testCaseName.contains("_withTaggedListTypeNotInSchema")) {
+		    String nonHandleField = "fullName";
+		    if (identity.has(nonHandleField)) {
+		        JSONObject entry = new JSONObject();
+		        entry.put("value", "InvalidTaggedValue_" + RANDOM_ID);
+		        entry.put("tags", new JSONArray().put("handle"));
+		        identity.put(nonHandleField, new JSONArray().put(entry));
+		    }
+		    return jsonObj.toString();
+		}
+		if (testCaseName.contains("_withArrayOfStringNotInSchema")) {
+		    String taggedListTypeField = emailFieldName;
+		    if (identity.has(taggedListTypeField)) {
+		        JSONArray stringArray = new JSONArray();
+		        stringArray.put("invalidStringValue1_" + RANDOM_ID);
+		        stringArray.put("invalidStringValue2_" + RANDOM_ID);
+		        identity.put(taggedListTypeField, stringArray);
+		    }
+		    return jsonObj.toString();
 		}
 
 		JSONArray selectedHandles = identity.getJSONArray("selectedHandles");
