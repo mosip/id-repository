@@ -711,12 +711,12 @@ AddIdentityV2:
 }'
   IdRepository_AddIdentityV2_WithInvalid_RegistrationId:
       endPoint: /idrepository/v1/identity/v2
-      description: Validate that creation of Add Identity API will successful when an invalid registration ID is provided in the request payload during identity creation.
+      description: Validate that Add Identity V2 API rejects identity creation when an invalid registration ID is provided in the request payload.
       uniqueIdentifier: TC_IDRepo_AddIdentityV2_15
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
-      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      outputTemplate: idRepository/error
       input: '{
   "value": "$BIOVALUE$",
   "id": "mosip.id.create",
@@ -759,7 +759,11 @@ AddIdentityV2:
    "requesttime": "$TIMESTAMP$"
 }'
       output: '{
-   "status":"ACTIVATED"
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
 }'
   IdRepository_AddIdentityV2_WithInvalidClaim_Neg:
       endPoint: /idrepository/v1/identity/v2
