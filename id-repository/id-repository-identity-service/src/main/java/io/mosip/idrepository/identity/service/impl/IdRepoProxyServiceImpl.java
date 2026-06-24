@@ -804,7 +804,7 @@ public class IdRepoProxyServiceImpl<T> implements IdRepoService<IdRequestDTO<T>,
 	private IdResponseDTO retrieveIdentityByHandle(String handle, String type, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
 		try {
-			String handleHash = idRepoServiceHelper.getHandleHash(handle);
+			String handleHash = idRepoServiceHelper.getHandleHash(handle.toLowerCase(Locale.ROOT));
 			String uinHash = handleRepo.findUinHashByHandleHash(handleHash);
 			if (Objects.nonNull(uinHash)) {
 				return retrieveIdentityByUinHash(type, uinHash, extractionFormats);

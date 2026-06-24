@@ -785,7 +785,7 @@ public class IdRepoControllerTest {
 		dto.setIndividualId(individualId);
 		dto.setIdType(null);
 
-		RequestWrapper<IdVidMetadataRequestDTO> request = new RequestWrapper<>();
+		IdVidMetadataRequestWrapper request = new IdVidMetadataRequestWrapper();
 		request.setRequest(dto);
 
 		String createdOn = "2025-06-18T12:08:04.536Z";
@@ -796,7 +796,7 @@ public class IdRepoControllerTest {
 		when(validator.validateUin(individualId)).thenReturn(true);
 		when(idRepoService.getIdVidMetadata(individualId, IdType.UIN)).thenReturn(expected);
 
-		ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> response = controller.searchIdVidMetadata(request);
+		ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> response = controller.searchIdVidMetadata(request, new BeanPropertyBindingResult(request, "IdVidMetadataRequestDTO"));
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals(idvidMetadataId, response.getBody().getId());
@@ -813,7 +813,7 @@ public class IdRepoControllerTest {
 		dto.setIndividualId(individualId);
 		dto.setIdType(null);
 
-		RequestWrapper<IdVidMetadataRequestDTO> request = new RequestWrapper<>();
+		IdVidMetadataRequestWrapper request = new IdVidMetadataRequestWrapper();
 		request.setRequest(dto);
 
 		String createdOn = "2025-06-18T12:08:04.536Z";
@@ -824,7 +824,7 @@ public class IdRepoControllerTest {
 		when(validator.validateVid(individualId)).thenReturn(true);
 		when(idRepoService.getIdVidMetadata(individualId, IdType.VID)).thenReturn(expected);
 
-		ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> response = controller.searchIdVidMetadata(request);
+		ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> response = controller.searchIdVidMetadata(request, new BeanPropertyBindingResult(request, "IdVidMetadataRequestDTO"));
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals(idvidMetadataId, response.getBody().getId());
@@ -841,7 +841,7 @@ public class IdRepoControllerTest {
 		dto.setIndividualId(individualId);
 		dto.setIdType(null);
 
-		RequestWrapper<IdVidMetadataRequestDTO> request = new RequestWrapper<>();
+		IdVidMetadataRequestWrapper request = new IdVidMetadataRequestWrapper();
 		request.setRequest(dto);
 
 		String createdOn = "2025-06-18T12:08:04.536Z";
@@ -852,7 +852,7 @@ public class IdRepoControllerTest {
 		when(validator.validateVid(individualId)).thenReturn(false);
 		when(idRepoService.getIdVidMetadata(individualId, IdType.ID)).thenReturn(expected);
 
-		ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> response = controller.searchIdVidMetadata(request);
+		ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> response = controller.searchIdVidMetadata(request, new BeanPropertyBindingResult(request, "IdVidMetadataRequestDTO"));
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals(idvidMetadataId, response.getBody().getId());
@@ -871,7 +871,7 @@ public class IdRepoControllerTest {
 		dto.setIndividualId(individualId);
 		dto.setIdType(idTypeValue);
 
-		RequestWrapper<IdVidMetadataRequestDTO> request = new RequestWrapper<>();
+		IdVidMetadataRequestWrapper request = new IdVidMetadataRequestWrapper();
 		request.setRequest(dto);
 
 		String createdOn = "2025-06-18T12:08:04.536Z";
@@ -881,7 +881,7 @@ public class IdRepoControllerTest {
 		when(validator.validateIdType(idTypeValue)).thenReturn(IdType.UIN);
 		when(idRepoService.getIdVidMetadata(individualId, IdType.UIN)).thenReturn(expected);
 
-		ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> response = controller.searchIdVidMetadata(request);
+		ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> response = controller.searchIdVidMetadata(request, new BeanPropertyBindingResult(request, "IdVidMetadataRequestDTO"));
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals(idvidMetadataId, response.getBody().getId());
@@ -900,7 +900,7 @@ public class IdRepoControllerTest {
 		dto.setIndividualId(individualId);
 		dto.setIdType(idTypeValue);
 
-		RequestWrapper<IdVidMetadataRequestDTO> request = new RequestWrapper<>();
+		IdVidMetadataRequestWrapper request = new IdVidMetadataRequestWrapper();
 		request.setRequest(dto);
 
 		String createdOn = "2025-06-18T12:08:04.536Z";
@@ -911,7 +911,7 @@ public class IdRepoControllerTest {
 		when(validator.validateIdType(idTypeValue)).thenReturn(IdType.VID);
 		when(idRepoService.getIdVidMetadata(individualId, IdType.VID)).thenReturn(expected);
 
-		ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> response = controller.searchIdVidMetadata(request);
+		ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> response = controller.searchIdVidMetadata(request, new BeanPropertyBindingResult(request, "IdVidMetadataRequestDTO"));
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals(idvidMetadataId, response.getBody().getId());
@@ -930,7 +930,7 @@ public class IdRepoControllerTest {
 		dto.setIndividualId(individualId);
 		dto.setIdType(idTypeValue);
 
-		RequestWrapper<IdVidMetadataRequestDTO> request = new RequestWrapper<>();
+		IdVidMetadataRequestWrapper request = new IdVidMetadataRequestWrapper();
 		request.setRequest(dto);
 
 		String createdOn = "2025-06-18T12:08:04.536Z";
@@ -940,7 +940,7 @@ public class IdRepoControllerTest {
 		when(validator.validateIdType(idTypeValue)).thenReturn(IdType.ID);
 		when(idRepoService.getIdVidMetadata(individualId, IdType.ID)).thenReturn(expected);
 
-		ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> response = controller.searchIdVidMetadata(request);
+		ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> response = controller.searchIdVidMetadata(request, new BeanPropertyBindingResult(request, "IdVidMetadataRequestDTO"));
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals(idvidMetadataId, response.getBody().getId());

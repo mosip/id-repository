@@ -17,6 +17,7 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -149,6 +150,7 @@ public class IdRequestValidatorTest {
 		ReflectionTestUtils.setField(validator, "uinStatus", uinStatus);
 		ReflectionTestUtils.setField(validator, "allowedTypes", allowedTypes);
 		ReflectionTestUtils.setField(validator, "idRepoServiceHelper", idRepoServiceHelper);
+		ReflectionTestUtils.setField(validator, "ridCompiledPattern", Pattern.compile("\\d*"));
 		ReflectionTestUtils.setField(idRepoServiceHelper, "mapper", mapper);
 		ReflectionTestUtils.setField(idRepoServiceHelper, "restBuilder", restBuilder);
 		ReflectionTestUtils.setField(idRepoServiceHelper, "restHelper", restHelper);

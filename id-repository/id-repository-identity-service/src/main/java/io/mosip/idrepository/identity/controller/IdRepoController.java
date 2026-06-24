@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import io.mosip.idrepository.core.util.IdRepositoryUtil;
 import io.mosip.idrepository.identity.validator.IndividualIdValidator;
 import javax.annotation.Nullable;
 import javax.annotation.Resource;
@@ -39,8 +41,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import io.mosip.kernel.core.http.RequestWrapper;
-import io.mosip.kernel.core.util.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
@@ -356,7 +356,8 @@ public class IdRepoController {
 	public ResponseEntity<IdResponseDTO<?>> retrieveIdentityByIdV2(@Validated @RequestBody RequestWrapper<IdRequestByIdDTO> idRequestByIdDTO,
 														   @ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
-			return new ResponseEntity<>(getIdentity(idRequestByIdDTO.getRequest().getId(), idRequestByIdDTO.getRequest().getType(),
+			String id = IdRepositoryUtil.getTrimmedLowercaseValue(idRequestByIdDTO.getRequest().getId());
+			return new ResponseEntity<>(getIdentity(id, idRequestByIdDTO.getRequest().getType(),
 					idRequestByIdDTO.getRequest().getIdType(), idRequestByIdDTO.getRequest().getFingerExtractionFormat(), idRequestByIdDTO.getRequest().getIrisExtractionFormat(),
 					idRequestByIdDTO.getRequest().getFaceExtractionFormat()), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
@@ -395,9 +396,9 @@ public class IdRepoController {
 			}
 			extractionFormats.remove(null);
 			validator.validateTypeAndExtractionFormats(type, extractionFormats);
-			return new ResponseEntity<>(idRepoService.retrieveIdentity(idRequestByIdDTO.getId(),
-					Objects.isNull(idRequestByIdDTO.getIdType()) ? getIdType(idRequestByIdDTO.getId()) : validator.validateIdType(idRequestByIdDTO.getIdType()), type, extractionFormats),
-					HttpStatus.OK);
+			String id = IdRepositoryUtil.getTrimmedLowercaseValue(idRequestByIdDTO.getId());
+			return new ResponseEntity<>(idRepoService.retrieveIdentity(id, Objects.isNull(idRequestByIdDTO.getIdType()) ?
+					getIdType(id) : validator.validateIdType(idRequestByIdDTO.getIdType()), type, extractionFormats), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE,
 					AuditEvents.RETRIEVE_IDENTITY_REQUEST_RESPONSE_UIN, idRequestByIdDTO.getId(), IdType.UIN, e);
@@ -664,8 +665,10 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
-	public ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> searchIdVidMetadata(@RequestBody RequestWrapper<IdVidMetadataRequestDTO> idVidMetadataRequestWrapper) throws IdRepoAppException {
+	public ResponseEntity<ResponseWrapper<IdVidMetadataResponseDTO>> searchIdVidMetadata(@Validated @RequestBody IdVidMetadataRequestWrapper idVidMetadataRequestWrapper,
+																					   @ApiIgnore Errors errors) throws IdRepoAppException {
 
+		DataValidationUtil.validate(errors);
 		IdVidMetadataRequestDTO metadataRequest = idVidMetadataRequestWrapper.getRequest();
 		String individualId = metadataRequest.getIndividualId();
 		String idType = metadataRequest.getIdType();
@@ -707,6 +710,11 @@ public class IdRepoController {
 			@PathVariable String individualId, @RequestParam(name = ID_TYPE, required = false) @Nullable String idType,
 			@RequestParam(name = "attribute_list", required = false) @Nullable List<String> attributeList)
 			throws IdRepoAppException {
+		if (StringUtils.isBlank(individualId)) {
+			throw new IdRepoAppException(
+					INVALID_INPUT_PARAMETER.getErrorCode(),
+					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "individualId"));
+		}
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID, individualId,
 				individualIdType, "Get Remaining update count by Individual Id Request received");
