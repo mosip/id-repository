@@ -65,7 +65,6 @@ public class IdrepositaryUtil {
 			String faceExtractionFormat = bioAttributeFormatterMap.get(CredentialConstants.FACE);
 			String irisExtractionFormat = bioAttributeFormatterMap.get(CredentialConstants.IRIS);
 			IdRequestByIdDTO requestByIdDTO = new IdRequestByIdDTO();
-			RequestWrapper<IdRequestByIdDTO> idDTORequestWrapper=new RequestWrapper<>();
 
 			requestByIdDTO.setId(credentialServiceRequestDto.getId());
 			requestByIdDTO.setType(identityType);
@@ -82,15 +81,17 @@ public class IdrepositaryUtil {
 			if (StringUtils.isNotEmpty(irisExtractionFormat)) {
 				requestByIdDTO.setIrisExtractionFormat(irisExtractionFormat);
 			}
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(EnvUtil.getDateTimePattern());
-			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(EnvUtil.getDateTimePattern()), format);
-			idDTORequestWrapper.setRequest(requestByIdDTO);
-			idDTORequestWrapper.setRequesttime(localdatetime);
 			LOGGER.debug(String.format("getIdentity request: %s", requestByIdDTO.toString()));
 
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"getData - calling ApiName: " + ApiName.IDREPORETRIEVEIDBYID.name()
+					+ " | requestBody: " + mapper.writeValueAsString(requestByIdDTO));
+
 			String responseString = restUtil.postApi(ApiName.IDREPORETRIEVEIDBYID, null, "", "",
-					MediaType.APPLICATION_JSON, idDTORequestWrapper, String.class);
+					MediaType.APPLICATION_JSON, requestByIdDTO, String.class);
+
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"getData - raw responseString from IDREPORETRIEVEIDBYID: " + responseString);
 
 			IdResponseDTO responseObject = mapper.readValue(responseString, IdResponseDTO.class);
 			if (responseObject == null) {
@@ -109,6 +110,8 @@ public class IdrepositaryUtil {
 				return responseObject;
 			}
 		} catch (Exception e) {
+			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"getData - exception before/during id-repo call: " + e.getClass().getName() + " - " + e.getMessage());
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
 					ExceptionUtils.getStackTrace(e));
 			if (e.getCause() instanceof HttpClientErrorException) {
