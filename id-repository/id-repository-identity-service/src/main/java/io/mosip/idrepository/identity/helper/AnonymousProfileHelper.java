@@ -87,6 +87,14 @@ public class AnonymousProfileHelper {
 	public void buildAndsaveProfile(boolean isDraft) {
 		if (!isDraft)
 			try {
+				// [ANON-TRACE] Log instance field state when async thread picks up —
+				// if newUinData/regId is NULL here, a race condition wiped it before this ran
+				mosipLogger.info(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "buildAndsaveProfile",
+						"[ANON-TRACE] async thread started | regId=" + regId
+						+ " | thread=" + Thread.currentThread().getName()
+						+ " | newUinData=" + (newUinData == null ? "NULL <-- RACE CONDITION" : "PRESENT (" + newUinData.length + " bytes)")
+						+ " | oldUinData=" + (oldUinData == null ? "NULL" : "PRESENT (" + oldUinData.length + " bytes)"));
+
 				List<DocumentsDTO> oldDocList = List.of(new DocumentsDTO());
 				List<DocumentsDTO> newDocList = List.of(new DocumentsDTO());
 				if (Objects.isNull(oldCbeff) && Objects.nonNull(oldCbeffRefId))
@@ -106,10 +114,23 @@ public class AnonymousProfileHelper {
 						.setFilterLanguage(EnvUtil.getAnonymousProfileFilterLanguage())
 						.setProcessName(Objects.isNull(oldUinData) ? "New" : "Update").setOldIdentity(oldUinData)
 						.setOldDocuments(oldDocList).setNewIdentity(newUinData).setNewDocuments(newDocList).build();
+
+				// [ANON-TRACE] Log the DB id and profile state — use this id to query anonymous_profile table
+				mosipLogger.info(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "buildAndsaveProfile",
+						"[ANON-TRACE] saving profile | anonymous_profile.id=" + id
+						+ " | regId=" + regId
+						+ " | processName=" + profile.getProcessName()
+						+ " | newProfile=" + (profile.getNewProfile() == null ? "NULL <-- data lost" : "PRESENT")
+						+ " | oldProfile=" + (profile.getOldProfile() == null ? "NULL" : "PRESENT"));
+
 				AnonymousProfileEntity anonymousProfile = AnonymousProfileEntity.builder().id(id)
 						.profile(mapper.writeValueAsString(profile)).createdBy(IdRepoSecurityManager.getUser())
 						.crDTimes(DateUtils.getUTCCurrentDateTime()).build();
 				anonymousProfileRepo.save(anonymousProfile);
+
+				mosipLogger.info(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "buildAndsaveProfile",
+						"[ANON-TRACE] saved to DB | anonymous_profile.id=" + id + " | regId=" + regId);
+
 				updateChannelInfo();
 			} catch (Exception e) {
 				mosipLogger.warn(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "buildAndsaveProfile",
@@ -170,8 +191,15 @@ public class AnonymousProfileHelper {
 	}
 
 	public AnonymousProfileHelper setRegId(String regId) {
-		if (Objects.nonNull(this.regId) && !this.regId.contentEquals(regId))
+		if (Objects.nonNull(this.regId) && !this.regId.contentEquals(regId)) {
+			// [ANON-TRACE] New RID arrived before async completed for previous RID — this triggers resetData()
+			// If newUinData is PRESENT here, that data is about to be wiped (race condition)
+			mosipLogger.warn(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper", "setRegId",
+					"[ANON-TRACE] resetData triggered | prevRegId=" + this.regId + " | newRegId=" + regId
+					+ " | newUinData=" + (newUinData == null ? "NULL" : "PRESENT <-- will be wiped")
+					+ " | thread=" + Thread.currentThread().getName());
 			resetData();
+		}
 		this.regId = regId;
 		return this;
 	}
