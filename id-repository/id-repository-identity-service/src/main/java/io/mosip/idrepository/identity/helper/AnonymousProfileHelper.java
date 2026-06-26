@@ -95,6 +95,7 @@ public class AnonymousProfileHelper {
 						+ " | newUinData=" + (newUinData == null ? "NULL <-- RACE CONDITION" : "PRESENT (" + newUinData.length + " bytes)")
 						+ " | oldUinData=" + (oldUinData == null ? "NULL" : "PRESENT (" + oldUinData.length + " bytes)"));
 
+				mosipLogger.info("anonymous profile rId = " + regId + " | newUinData=" + newUinData + " | oldUinData=" + oldUinData);
 				List<DocumentsDTO> oldDocList = List.of(new DocumentsDTO());
 				List<DocumentsDTO> newDocList = List.of(new DocumentsDTO());
 				if (Objects.isNull(oldCbeff) && Objects.nonNull(oldCbeffRefId))
