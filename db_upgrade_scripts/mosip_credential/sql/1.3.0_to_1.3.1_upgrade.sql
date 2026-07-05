@@ -1,4 +1,4 @@
-\c mosip_credential
+\c :mosipdbname
 
 -- PERFORMANCE INDEXES START--
 CREATE INDEX IF NOT EXISTS idx_credential_transaction_status_code ON credential_transaction (status_code);

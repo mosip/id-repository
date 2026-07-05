@@ -1,4 +1,4 @@
-\c mosip_credential
+\c :mosipdbname
 
 -- ------------------------------------------------------------------------------------------
 -- Rollback script for Migrating Spring batch version back from 5.0 as part of Java 21 Migration.
@@ -13,7 +13,7 @@ TRUNCATE TABLE batch_step_execution_context CASCADE;
 
 GRANT usage, SELECT ON ALL SEQUENCES
    IN SCHEMA credential
-   TO credentialuser;
+   TO :dbuname;
 
 -- Revert ALTER on BATCH_STEP_EXECUTION
 ALTER TABLE BATCH_STEP_EXECUTION DROP COLUMN CREATE_TIME;  -- Remove the column added
