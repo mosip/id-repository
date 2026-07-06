@@ -8,10 +8,9 @@ Previously, handle fields were restricted to a single string value (e.g., one ph
 
 * A field marked `handle: true` in the ID schema may be either a `string` (single value) or an `array` (multiple values).
 * Each element in an array-type handle field carries a `value` and an optional `tags` list.
-* Supported tag values are `"handle"` and `"notification"`.
+* Supported tag values are `"handle"` (e.g., `"tags": ["handle"]`). Other tag values such as `"notification"` are reserved for future use and not yet implemented.
 * **Default handle behaviour** — if **no element** in the array has a `"handle"` tag (i.e., `tags` is absent or empty on every element), then **all values** in the array are treated as handles.
 * **Selective handle behaviour** — if **at least one element** explicitly carries the `"handle"` tag, the system switches to selective mode: **only those elements that have the `"handle"` tag** are registered as handles. Elements that have no `"handle"` tag are stored in the identity but are **not** registered as handles in this case — this exclusion applies only because another element in the same array opted in via the tag.
-* The `"notification"` tag is independent of the `"handle"` tag and governs which values are used for OTP/notification delivery.
 * `selectedHandles` continues to hold the list of fieldIds (e.g., `["email", "phone"]`); within an array field, tag-based selection determines which individual values within that field become handles.
 * All handle uniqueness and postfix rules described in [handle_support.md](./handle_support.md) continue to apply for every value that is resolved as a handle.
 
@@ -52,13 +51,16 @@ A field declared as an array-type handle looks like:
         "type": "array",
         "items": {
           "type": "string",
-          "enum": ["handle", "notification"]
+          "enum": ["handle"]
         }
       }
     }
   }
 }
 ```
+
+> **Note:** The `enum` supports multiple tag values — `"handle"` and `"notification"`. The `"notification"` tag marks a value as the target for OTP/notification delivery.
+
 
 ## Tag Resolution Logic
 
@@ -69,8 +71,6 @@ Given an array field `email` with `handle: true` and the field is listed in `sel
 | No tags on any element | `[{value: "a@x.com"}, {value: "b@x.com"}]` | Both `a@x.com` and `b@x.com` |
 | Only some elements tagged `"handle"` | `[{value: "a@x.com", tags: ["handle"]}, {value: "b@x.com"}]` | Only `a@x.com` |
 | Multiple elements tagged `"handle"` | `[{value: "a@x.com", tags: ["handle"]}, {value: "b@x.com", tags: ["handle"]}, {value: "c@x.com"}]` | `a@x.com` and `b@x.com` |
-| Element tagged `"notification"` only | `[{value: "a@x.com", tags: ["notification"]}, {value: "b@x.com"}]` | No element has `"handle"` tag → both are handles; `a@x.com` also receives notifications |
-| Element tagged both `"handle"` and `"notification"` | `[{value: "a@x.com", tags: ["handle", "notification"]}, {value: "b@x.com"}]` | Only `a@x.com` (handle + notification); `b@x.com` is neither |
 
 ## Changes in `add_identity` API
 
@@ -143,7 +143,7 @@ In the above request:
 
 1. Define `simpleListType` (or an inline equivalent) in the schema `definitions`.
 2. Set the field `type` to `array` and add `"handle": true`.
-3. Include `value` (required) and `tags` (optional, enum `["handle","notification"]`) in the item properties.
+3. Include `value` (required) and `tags` (optional, enum `["handle"]`) in the item properties.
 4. Publish the schema and configure the postfix mapping:
    ```
    mosip.identity.fieldid.handle-postfix.mapping={"email": "@email", "phone": "@phone"}
@@ -158,14 +158,3 @@ In the above request:
 * Fields declared as `"type": "string"` with `"handle": true` continue to work without any change.
 * If an array-type handle field is present in `selectedHandles` but all elements lack a `tags` property, all values are treated as handles — this means existing data that omits tags is handled gracefully without requiring migration.
 * Fields in `selectedHandles` that are not present in the schema as handle-eligible are silently ignored (same as before).
-
-## Questions
-
-1. **Maximum handles per field** — should there be a configurable limit on how many values in an array can be simultaneously registered as handles for a single field?
-   Recommendation: Introduce a configurable property `mosip.identity.fieldid.handle-max-count.mapping` (e.g., `{"email": 3}`) so that countries can enforce a cap. Default: unlimited.
-
-2. **Partial update of array values** — when an update request includes the email array with fewer elements than saved, are the missing elements removed or preserved?
-   Decision: The array in the update request fully replaces the saved array for that field. Handle registrations are recalculated from the new array. This is consistent with how `selectedHandles` replacement works.
-
-3. **Notification channel resolution** — should `"notification"` tag selection follow the same default-all logic as `"handle"` tag?
-   Decision: No. The `"notification"` tag is opt-in only. If no element has `"notification"` tag, no notification-specific channel is designated from this field. The existing notification channel configuration in the system continues to govern OTP delivery fallback.
