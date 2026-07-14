@@ -1,6 +1,6 @@
-## What is Array of Handles?
+## Handle Support for Array values
 
-Array of Handles is an enhancement to the existing [Handle support](./handle_support.md) in MOSIP that allows a single identity field to hold **multiple values**, each of which can independently be designated as a handle, a notification target, both, or neither.
+Handle Support for Array values is an enhancement to the existing [Handle support](./handle_support.md) in MOSIP that allows a single identity field to hold **multiple values**, each of which can independently be designated as a handle, a notification target, both, or neither.
 
 Previously, handle fields were restricted to a single string value (e.g., one phone number, one email). With this enhancement, handle-eligible fields can be declared as arrays in the ID schema, enabling residents to register multiple values for a single field (e.g., multiple email addresses) and selectively choose which ones act as handles for authentication.
 
