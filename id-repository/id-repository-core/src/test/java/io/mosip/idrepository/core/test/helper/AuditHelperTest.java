@@ -9,16 +9,8 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.core.env.Environment;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,18 +23,16 @@ import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
+import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.core.util.EnvUtil;
 
 /**
  * @author Manoj SP
  *
  */
-@ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
-@RunWith(SpringRunner.class)
-@WebMvcTest @Import(EnvUtil.class)
+@RunWith(MockitoJUnitRunner.class)
 public class AuditHelperTest {
 
 	@Mock
@@ -54,22 +44,16 @@ public class AuditHelperTest {
 	@Mock
 	IdRepoSecurityManager securityManager;
 
-	@Autowired
-	MockMvc mockMvc;
-
 	@Mock
 	AuditRequestBuilder auditBuilder;
 
 	@Mock
 	RestRequestBuilder restBuilder;
 
-	@Autowired
-	Environment env;
-
 	@Before
 	public void before() {
-		ReflectionTestUtils.setField(restBuilder, "env", env);
 		ReflectionTestUtils.setField(auditHelper, "mapper", new ObjectMapper());
+		ReflectionTestUtils.setField(auditHelper, "asyncEnabled", false);
 		when(securityManager.hash(Mockito.any())).thenReturn("mock");
 	}
 
@@ -103,6 +87,22 @@ public class AuditHelperTest {
 		auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",
 				IdType.ID, new IdRepoAppException(IdRepoErrorConstants.AUTHORIZATION_FAILED));
 		ReflectionTestUtils.setField(auditHelper, "mapper", new ObjectMapper());
+	}
+
+	@Test
+	public void testAuditWithNullIdSkipsHashing() throws IdRepoDataValidationException {
+		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, null,
+				IdType.ID, "desc");
+	}
+
+	@Test
+	public void testAuditRestServiceExceptionIsSwallowed() throws IdRepoDataValidationException, RestServiceException {
+		when(restBuilder.buildRequest(Mockito.any(), Mockito.any(), Mockito.any()))
+				.thenReturn(new io.mosip.idrepository.core.dto.RestRequestDTO());
+		Mockito.doThrow(new RestServiceException(IdRepoErrorConstants.UNKNOWN_ERROR))
+				.when(restHelper).requestSync(Mockito.any());
+		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",
+				IdType.ID, "desc");
 	}
 
 	@Test

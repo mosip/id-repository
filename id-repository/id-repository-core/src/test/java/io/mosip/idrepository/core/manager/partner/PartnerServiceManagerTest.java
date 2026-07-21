@@ -12,22 +12,16 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestContext;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.context.WebApplicationContext;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@WebMvcTest
-@ContextConfiguration(classes = {TestContext.class, WebApplicationContext.class})
-@RunWith(SpringRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class PartnerServiceManagerTest {
 
     @InjectMocks
@@ -107,4 +101,45 @@ public class PartnerServiceManagerTest {
         Mockito.when(dummyCheck.getDummyOLVPartnerId()).thenReturn("Exceptiontest");
         partnerServiceManager.getOLVPartnerIds();
     }
+
+	@Test
+	public void getOLVPartnerIdsActivePartnerTest() throws IdRepoDataValidationException, RestServiceException {
+		Map<String, Object> partner = new HashMap<>();
+		partner.put("status", "Active");
+		partner.put("partnerID", "partner-1");
+		Map<String, Object> response = new HashMap<>();
+		response.put("partners", List.of(partner));
+		Map<String, Object> responseWrapperMap = new HashMap<>();
+		responseWrapperMap.put("response", response);
+		RestRequestDTO request = new RestRequestDTO();
+		Mockito.when(restBuilder.buildRequest(RestServicesConstants.PARTNER_SERVICE, null, Map.class)).thenReturn(request);
+		Mockito.when(restHelper.requestSync(request)).thenReturn(responseWrapperMap);
+		Mockito.when(dummyCheck.isDummyOLVPartner("partner-1")).thenReturn(false);
+		List<String> partners = partnerServiceManager.getOLVPartnerIds();
+		org.junit.Assert.assertEquals(List.of("partner-1"), partners);
+	}
+
+	@Test
+	public void getOLVPartnerIdsIgnoresNonListPartnersTest() throws IdRepoDataValidationException, RestServiceException {
+		Map<String, Object> response = new HashMap<>();
+		response.put("partners", "not-a-list");
+		Map<String, Object> responseWrapperMap = new HashMap<>();
+		responseWrapperMap.put("response", response);
+		RestRequestDTO request = new RestRequestDTO();
+		Mockito.when(restBuilder.buildRequest(RestServicesConstants.PARTNER_SERVICE, null, Map.class)).thenReturn(request);
+		Mockito.when(restHelper.requestSync(request)).thenReturn(responseWrapperMap);
+		Mockito.when(dummyCheck.getDummyOLVPartnerId()).thenReturn("dummy");
+		org.junit.Assert.assertEquals(List.of("dummy"), partnerServiceManager.getOLVPartnerIds());
+	}
+
+	@Test
+	public void getOLVPartnerIdsIgnoresNonMapResponseTest() throws IdRepoDataValidationException, RestServiceException {
+		Map<String, Object> responseWrapperMap = new HashMap<>();
+		responseWrapperMap.put("response", "not-a-map");
+		RestRequestDTO request = new RestRequestDTO();
+		Mockito.when(restBuilder.buildRequest(RestServicesConstants.PARTNER_SERVICE, null, Map.class)).thenReturn(request);
+		Mockito.when(restHelper.requestSync(request)).thenReturn(responseWrapperMap);
+		Mockito.when(dummyCheck.getDummyOLVPartnerId()).thenReturn("dummy");
+		org.junit.Assert.assertEquals(List.of("dummy"), partnerServiceManager.getOLVPartnerIds());
+	}
 }

@@ -1,341 +1,224 @@
-# ID Repository — Agent Guide
-This file provides guidance to AI agents when working with code in this repository.
+# AGENTS.md — MOSIP ID-Repository (repo root)
 
-## Project Overview
-
-**ID Repository** is the authoritative identity store in the MOSIP (Modular Open Source Identity Platform) platform. It is responsible for secure storage and lifecycle management of foundational identity data (UIN-linked demographic + biometric data), Virtual IDs (VIDs), and verifiable credential issuance.
-
-MOSIP ID Lifecycle: Registration Processor creates/updates identities via Identity Service → VID Service generates revocable tokens for privacy → Credential Service issues credentials (auth, eKYC, QR, eUIN) to partners → ID Authentication consumes these for online verification.
+> Infrastructure, database, deployment, and Helm guides for the **id-repository** git repo.  
+> For Java / Maven application work, see [`id-repository/AGENTS.md`](id-repository/AGENTS.md).
 
 ---
 
-## Repository Layout
+## Guide index
+
+| Area | Path | Guide |
+|------|------|-------|
+| **Java / Maven** (core, service, salt-gen) | `id-repository/` | [`id-repository/AGENTS.md`](id-repository/AGENTS.md) |
+| Fresh DB install (DDL) | `db_scripts/` | [§ db_scripts](#db_scripts) |
+| Version upgrade SQL | `db_upgrade_scripts/` | [§ db_upgrade_scripts](#db_upgrade_scripts) |
+| Point-in-time release SQL | `db_release_scripts/` | [§ db_release_scripts](#db_release_scripts) |
+| K8s Helm charts | `helm/` | [§ helm](#helm) |
+| Cluster install scripts | `deploy/` | [§ deploy](#deploy) |
+| Functional API tests | `api-test/` | [§ api-test](#api-test) |
+| OpenAPI specs | `api-docs/` | [§ api-docs](#api-docs) |
+
+**Java build:** `cd id-repository && mvn clean install` (JDK 21, Maven 3.9+).
+
+---
+
+## Repository layout (repo root)
 
 ```
-id-repository/                        ← repo root
-├── id-repository/                    ← Maven multi-module project
-│   ├── pom.xml                       ← parent POM (id-repository-parent)
-│   ├── id-repository-core/           ← shared library (DTOs, entities, utils, SPIs)
-│   ├── id-repository-identity-service/  ← identity CRUD service (port 8090)
-│   ├── id-repository-vid-service/    ← VID lifecycle service (port 8091)
-│   ├── credential-request-generator/ ← batch: triggers credential issuance (port 8092)
-│   ├── credential-service/           ← credential issuance service
-│   └── id-repository-salt-generator/ ← one-time batch: populate encryption salts
-├── api-test/                         ← functional API tests (RestAssured + YAML)
-├── db_scripts/                       ← PostgreSQL init scripts
-├── db_release_scripts/               ← release DB scripts
-├── db_upgrade_scripts/               ← DB migration scripts
-├── deploy/                           ← Kubernetes deployment shell scripts
-├── helm/                             ← Helm charts
-└── docs/                             ← design docs and configuration guide
+id-repository/                    # git repo root (this AGENTS.md)
+├── id-repository/                # Maven parent → see id-repository/AGENTS.md
+├── db_scripts/                   # Greenfield DB create (3 schemas)
+├── db_upgrade_scripts/           # Incremental version upgrades + rollback
+├── db_release_scripts/           # Release / revoke DDL per MOSIP version
+├── helm/                         # Kubernetes Helm charts
+├── deploy/                       # Shell installers for cluster components
+├── api-test/                     # End-to-end API test rig
+├── api-docs/                     # OpenAPI YAML
+└── contrib/                      # Reference configs (e.g. kernel auth BeanConfig)
 ```
 
-> The credential feeder (`id-repository-credentials-feeder`) has been moved to [mosip-utilities](https://github.com/mosip/mosip-utilities).
+### Databases (3 schemas — do not merge)
+
+| Schema | Purpose |
+|--------|---------|
+| `mosip_idrepo` | UIN, identity, credential request status, idrepo salt tables |
+| `mosip_idmap` | VID, idmap salt tables |
+| `mosip_credential` | Credential store + Spring Batch `BATCH_*` metadata |
+
+Salt tables (`uin_hash_salt`, `uin_encrypt_salt`) exist in **both** `idrepo` and `idmap`. Populate via salt-generator Job after DB deploy — not via HTTP service.
 
 ---
 
-## Build System
+## `db_scripts`
 
-| Item | Value |
-|------|-------|
-| Language | Java 21 (JDK 21.0.3) |
-| Build tool | Maven 3.9.6 |
-| Spring Boot | 2.0.2.RELEASE |
-| Spring Cloud Config | 2.0.0.RELEASE |
-| Spring Batch | 4.0.1.RELEASE |
-| Packaging | Executable JARs via `spring-boot-maven-plugin` |
+Greenfield PostgreSQL install. One folder per schema:
 
-**Standard build command:**
-```bash
-mvn clean install -Dmaven.javadoc.skip=true -Dgpg.skip=true
+```
+db_scripts/
+├── mosip_idrepo/     # deploy.sh, ddl/, db.sql, role_dbuser.sql, grants.sql
+├── mosip_idmap/
+└── mosip_credential/
 ```
 
-**Skip tests:**
-```bash
-mvn clean install -DskipTests -Dmaven.javadoc.skip=true -Dgpg.skip=true
+### Agent rules
+
+- New tables/columns: add DDL under `<schema>/ddl/`, include in `<schema>/ddl.sql`.
+- Keep schemas separate — never merge idrepo and idmap salt DDL.
+- Run per schema: `cd db_scripts/mosip_idrepo && ./deploy.sh` (set `deploy.properties` first).
+- Used automatically in [MOSIP Sandbox](https://docs.mosip.io/1.2.0/deployment/sandbox-deployment) DB init.
+
+### Key salt DDL
+
+| Schema | Tables |
+|--------|--------|
+| `idrepo` | `uin_hash_salt`, `uin_encrypt_salt` |
+| `idmap` | `uin_hash_salt`, `uin_encrypt_salt` |
+
+After deploy, run salt-generator Job (`helm/idrepo-saltgen`) to populate salt rows.
+
+---
+
+## `db_upgrade_scripts`
+
+Incremental upgrades between MOSIP versions. Paired `_upgrade.sql` / `_rollback.sql` per hop.
+
+```
+db_upgrade_scripts/
+├── mosip_idrepo/sql/       # e.g. 1.2.1.0_to_1.3.0_upgrade.sql
+├── mosip_idmap/sql/
+├── mosip_credential/sql/
+└── */upgrade.sh + upgrade.properties
 ```
 
-**Run a specific service locally:**
-```bash
-java -Dspring.profiles.active=<profile> \
-     -Dspring.cloud.config.uri=<config-url> \
-     -Dspring.cloud.config.label=<config-label> \
-     -jar id-repository/<service-dir>/target/<service>.jar
+### Agent rules
+
+- Add **both** upgrade and rollback for every schema change.
+- Name files `{from}_to_{to}_upgrade.sql` / `_rollback.sql`.
+- Run via `<schema>/upgrade.sh` after updating `upgrade.properties` (DB host, user, log path).
+- Apply all three schemas in dependency order when cross-schema FKs exist.
+
+---
+
+## `db_release_scripts`
+
+Point-in-time release and revoke scripts per MOSIP module version (e.g. `1.2.1_release.sql`, `1.2.1_revoke.sql`).
+
+```
+db_release_scripts/
+├── mosip_idrepo/     # deploy.sh, revoke.sh, ddl/, sql/
+├── mosip_idmap/
+└── mosip_credential/
 ```
 
-Swagger UI: `http://localhost:<port>/v1/<service>/swagger-ui/index.html`
+### Agent rules
+
+- New feature DDL for a release: add under `<schema>/ddl/` **and** wire into `<version>_release.sql`.
+- Always provide matching `_revoke.sql` for rollback.
+- Update `deploy.properties` before `deploy.sh` / `revoke.sh`.
+- See `db_release_scripts/README.MD` for WinSCP encoding and log directory setup.
 
 ---
 
-## Modules
+## `helm`
 
-### id-repository-core
-Shared library consumed by all services. Not deployed standalone.
+Kubernetes charts for id-repository components.
 
-Key packages under `io.mosip.idrepository.core`:
+| Chart | Path | Deploys |
+|-------|------|---------|
+| **idrepo** (umbrella) | `helm/idrepo/` | Modular install entry |
+| **identity** | `helm/identity/` | Consolidated HTTP service (identity + credential + credreq) |
+| **idrepo-saltgen** | `helm/idrepo-saltgen/` | One-shot salt Job |
 
-| Package | Contents |
-|---------|----------|
-| `dto` | Request/response DTOs |
-| `entity` | JPA entities |
-| `repository` | Spring Data repositories |
-| `spi` | Service Provider Interfaces |
-| `manager` | Domain managers (credential, anonymous profile, etc.) |
-| `util` | Utilities (TokenIDGenerator, CryptoUtil, etc.) |
-| `security` | Auth filters and handlers |
-| `config` | Spring configuration beans |
-| `exception` | Custom exceptions |
-| `httpfilter` | HTTP request/response filters |
-| `constant` | Enums and constants |
+### Consolidated deployment model
 
----
+| Workload | Chart / template | Notes |
+|----------|------------------|-------|
+| HTTP API (no jobs) | `helm/identity` | `mosip.idrepo.jobs.enabled=false`, HPA 3–10 |
+| HTTP + batch jobs | `helm/identity` | `mosip.idrepo.jobs.enabled=true`, replicas 1–3 |
+| Salt population | `helm/idrepo-saltgen` | K8s **Job** only — run after DB deploy |
 
-### id-repository-identity-service
-Manages the full lifecycle of UIN-linked identity records.
-
-- **Port:** 8090
-- **Context path:** `/idrepository/v1/identity`
-- **Main class:** `IdRepoBootApplication`
-- **Database:** `mosip_idrepo`
-
-Key packages under `io.mosip.idrepository.identity`:
-
-| Package | Contents |
-|---------|----------|
-| `controller` | REST endpoints (add, update, retrieve identity; update UIN status) |
-| `service` | Business logic |
-| `helper` | Biometric extraction, object store integration |
-| `provider` | Biometric SDK provider |
-| `validator` | Identity schema validation |
-| `config` | Beans, datasource setup |
-| `entity` | Identity, document entities |
-| `repository` | JPA repositories |
-
-**Core flow:** Registration Processor calls Identity Service → Key Manager encrypts data → Biometric SDK extracts templates → data stored in `mosip_idrepo` + Object Store → WebSub event published for downstream consumers.
-
-**Local dev dependency:** requires `kernel-auth-adapter.jar` and a Biometric SDK jar (or mock-sdk) on the classpath.
-
----
-
-### id-repository-vid-service
-Creates and manages Virtual IDs — revocable tokens mapped to UINs for privacy protection.
-
-- **Port:** 8091
-- **Context path:** `/idrepository/v1/vid`
-- **Main class:** `VidBootApplication`
-- **Database:** `mosip_idmap`
-
-Key packages under `io.mosip.idrepository.vid`:
-
-| Package | Contents |
-|---------|----------|
-| `controller` | REST endpoints (create, update, revoke VID; retrieve UIN by VID) |
-| `service` | VID generation and policy enforcement |
-| `provider` | External provider integrations |
-| `validator` | VID request validation |
-| `entity` | VID entities |
-| `repository` | JPA repositories |
-
-VID policies (perpetual, temporary, one-time) are configured externally via `mosip-vid-policy.json`.
-
----
-
-### credential-request-generator
-Spring Batch application that initiates credential issuance workflows.
-
-- **Port:** 8092
-- **Context path:** `/idrepository/v1/credentialrequest`
-- **Type:** Spring Batch job
-
-Key packages under `io.mosip.credential.request.generator`:
-
-| Package | Contents |
-|---------|----------|
-| `batch` | Job and step configuration |
-| `service` | Credential request logic |
-| `integration` | WebSub, partner service clients |
-| `controller` | REST endpoints for job control |
-| `api` | External API adapters |
-| `entity` | Credential request entities |
-
----
-
-### credential-service
-Issues verifiable credentials to authorized partners.
-
-**Five default credential types:**
-
-| Type | Purpose |
-|------|---------|
-| `auth` | Online Verification Partners (authentication / eKYC) |
-| `qrcode` | QR code credentials |
-| `euin` | Electronic UIN card |
-| `reprint` | Reprint partner credentials |
-| `vercred` | W3C Verifiable Credentials |
-
----
-
-### id-repository-salt-generator
-One-time Spring Batch job to populate encryption/hashing salt values in `mosip_idrepo` and `mosip_idmap` databases. Run once per environment during initial setup.
-
----
-
-## Code Conventions
-
-**Package structure** (consistent across all services):
-```
-controller/    REST API layer
-service/       Business logic
-entity/        JPA domain objects
-repository/    Spring Data interfaces
-dto/           Request/response objects
-validator/     Input validation
-config/        Spring @Configuration classes
-exception/     Custom exceptions
-util/          Helpers and utilities
-constant/      Enums and string constants
-httpfilter/    Servlet filters
-interceptor/   HandlerInterceptors
+```console
+helm repo add mosip https://mosip.github.io
+helm -n idrepo install my-release mosip/idrepo
 ```
 
-**Naming:**
-- Service classes: `*ServiceImpl` implementing a `*Service` interface
-- Controllers: `*Controller`
-- Entities match table names in snake_case
-- REST context path pattern: `/idrepository/v1/{module-name}`
+### Agent rules
 
-**Frameworks / libraries:**
-- Lombok for boilerplate reduction — use `@Data`, `@Slf4j`, etc.
-- Springfox Swagger 2 + SpringDoc OpenAPI for API docs
-- JUnit 4 + Mockito 3 + PowerMock for unit tests
-- H2 in-memory DB for tests; PostgreSQL for runtime
+- Do not deploy salt-generator as a long-lived Deployment.
+- Same Docker image for HTTP and jobs pods; split via env (`mosip.idrepo.jobs.enabled`).
+- Chart values: `helm/identity/values.yaml`, `helm/idrepo-saltgen/values.yaml`.
+- After schema deploy, install/run saltgen Job before starting HTTP service.
 
 ---
 
-## Testing
+## `deploy`
 
-**Framework:** JUnit 4 + Mockito 3 + PowerMock
+Shell installers for cluster-side deployment (wrap Helm / config).
 
-**Test location:** mirrors source structure under `src/test/java/io/mosip/idrepository/<module>/`
-
-**JVM flags required for tests** (already in parent POM surefire config):
 ```
---add-opens java.base/java.lang=ALL-UNNAMED
---add-opens java.base/java.util=ALL-UNNAMED
---add-opens java.base/sun.security.jca=ALL-UNNAMED
+deploy/
+├── idrepo/                 # install.sh, delete.sh, restart.sh
+├── idrepo-apitestrig/      # API test rig install
+├── credential-feeder/      # credential feeder (legacy)
+└── copy_cm_func.sh         # shared configmap helper
 ```
 
-**Sonar coverage exclusions** (do not write tests for these — excluded by convention):
-- `**/constant/**`, `**/config/**`, `**/httpfilter/**`
-- `**/dto/**`, `**/entity/**`, `**/repository/**`
-- `**/*BootApplication.java`
+### Agent rules
 
-**Functional / API tests** live in `api-test/` — see `api-test/CLAUDE.md` for full details on YAML test cases, HBS template generation, and handle mutation logic.
-
-Run unit tests only:
-```bash
-mvn test -pl id-repository/id-repository-identity-service
-```
+- Primary id-repo install: `deploy/idrepo/install.sh`.
+- Teardown: `deploy/idrepo/delete.sh`.
+- Rolling restart: `deploy/idrepo/restart.sh`.
+- Coordinate with `helm/` chart versions and config server labels.
 
 ---
 
-## Configuration
+## `api-test`
 
-Services use **Spring Cloud Config** — a running config server is required for local development.
+Functional end-to-end tests (Karate-style resources under `src/main/resources/idRepository/`).
 
-Bootstrap properties per service (`src/main/resources/bootstrap.properties`):
-```properties
-server.port=<port>
-server.servlet.path=/idrepository/v1/<module>
-spring.cloud.config.uri=<config-server-url>
-spring.cloud.config.name=application,id-repository
-```
+### Agent rules
 
-Key external config files (in config repo, not this repo):
-- `application-default.properties`
-- `id-repository-default.properties`
-- `credential-request-default.properties`
-- `identity-mapping.json` — maps identity schema fields
-- `mosip-vid-policy.json` — VID type policies
+- Run after service deploy to validate external contracts (identity, VID, credential paths).
+- Config: `api-test/src/main/resources/config/Idrepo.properties`.
+- Install rig via `deploy/idrepo-apitestrig/install.sh` on cluster, or run locally per `api-test/README.md`.
+- Do not change request/response shapes that IDA or partners depend on without updating tests.
 
 ---
 
-## Databases
+## `api-docs`
 
-| Database | Used by |
-|----------|---------|
-| `mosip_idrepo` | Identity Service — demographic data, biometric file references |
-| `mosip_idmap` | VID Service, Salt Generator — VID mappings, encryption salts |
-
-Scripts: `db_scripts/` (init), `db_upgrade_scripts/` (migrations).
+OpenAPI YAML for credential and related services (`api-docs/credential-service.yaml`, etc.). Keep in sync with controller paths in `id-repository-service`.
 
 ---
 
-## Integration Points
+## `contrib`
 
-| System | How |
-|--------|-----|
-| Registration Processor | Calls Identity Service REST APIs to create/update UINs |
-| ID Authentication | Consumes credential events via WebSub |
-| Resident Services | Calls VID Service to generate/revoke VIDs |
-| Key Manager | Encrypts/decrypts identity data |
-| Biometric SDK | Extracts biometric templates during identity storage |
-| WebSub | Event bus for UIN lifecycle events (update, auth-lock, etc.) |
-| Object Store | Stores biometric and document files |
-| Partner Management Service | Resolves credential partner policies |
+Reference implementations not shipped in main artifacts — e.g. `contrib/kernel-auth-defaultadapter/BeanConfig.java` (RestTemplate pool tuning).
 
 ---
 
-## Deployment
+## Cross-cutting agent rules (infra)
 
-**Kubernetes (production):**
-```bash
-export KUBECONFIG=~/.kube/<cluster.config>
-cd deploy && ./install.sh   # deploy
-cd deploy && ./restart.sh   # restart
-cd deploy && ./delete.sh    # teardown
-```
+### Do
 
-Helm charts are in `helm/`.
+1. Change **all three** DB folders (`db_scripts`, `db_upgrade_scripts`, `db_release_scripts`) when schema changes affect a schema.
+2. Run salt-generator Job after fresh DB or salt-table DDL changes.
+3. Keep Helm values aligned with consolidated single-image deployable (`id-repository-service`).
+4. Point Java work to [`id-repository/AGENTS.md`](id-repository/AGENTS.md).
 
-**Docker (quick demo):**
-```bash
-docker pull mosipid/id-repository-identity-service:<version>
-docker pull mosipid/id-repository-vid-service:<version>
-docker pull mosipid/credential-service:<version>
-docker pull mosipid/credential-request-generator:<version>
-docker pull mosipid/id-repository-salt-generator:<version>
-```
+### Do not
+
+1. Merge `mosip_idrepo` and `mosip_idmap` schemas or salt routing.
+2. Deploy salt-generator as a scaled Deployment.
+3. Skip rollback scripts for upgrade/release changes.
+4. Change REST paths or WebSub topics without updating `api-test` and documenting in Java AGENTS.
 
 ---
 
-## Key Files for Common Tasks
+## IDA note (infra)
 
-| Task | Files to look at |
-|------|-----------------|
-| Add/change an Identity API endpoint | `id-repository-identity-service/src/main/java/.../controller/IdRepoController.java` |
-| Change identity business logic | `id-repository-identity-service/src/main/java/.../service/IdRepoService.java` |
-| Modify VID lifecycle | `id-repository-vid-service/src/main/java/.../service/VidService.java` |
-| Change credential types or issuance | `credential-service/src/main/java/.../service/` |
-| Shared DTOs or entities | `id-repository-core/src/main/java/io/mosip/idrepository/core/` |
-| DB schema changes | `db_scripts/mosip_idrepo/` or `db_scripts/mosip_idmap/` |
-| Config properties reference | `docs/configuration.md` |
+IDA does **not** use id-repo salt tables. IDA schema is separate (`ida.uin_hash_salt` in id-authentication). Infra changes to idrepo/idmap salt tables affect id-repository crypto only — smoke-test identity retrieve + credential issuance after salt deploy.
 
 ---
 
-## CI/CD & Quality
-
-- **CI:** GitHub Actions — `.github/workflows/push-trigger.yml` triggers Maven build on push
-- **Code quality:** SonarCloud (`mosip_id-repository` project)
-- **Publishing:** Snapshots published to Sonatype; GPG signing enabled for Maven Central (skip with `-Dgpg.skip=true` locally)
-- **License:** Mozilla Public License 2.0
-
----
-
-## Common Pitfalls
-
-- **Config server must be running** before starting any service locally — services fail fast if Spring Cloud Config is unreachable.
-- **Biometric SDK jar is required** for Identity Service to start; use [mock-sdk](https://github.com/mosip/mosip-mock-services/tree/master/mock-sdk) for local dev.
-- **Salt generator must run once** before Identity or VID services can encrypt/hash data.
-- **Do not GPG-sign locally** — always pass `-Dgpg.skip=true` unless publishing to Maven Central.
-- **Module versions must stay in sync** — id-repository-core version must match what identity/VID services declare as a dependency.
+*Last updated: 2026-07-07.*

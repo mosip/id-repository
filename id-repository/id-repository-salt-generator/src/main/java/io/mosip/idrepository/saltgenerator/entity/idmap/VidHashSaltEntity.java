@@ -11,41 +11,44 @@ import io.mosip.idrepository.saltgenerator.entity.ISaltEntity;
 import lombok.Data;
 
 /**
- * The Class SaltEntity.
+ * JPA mapping for {@code idmap.uin_hash_salt} on {@code mosip_idmap}.
  *
- * @author Manoj SP
+ * <p>
+ * Reference entity documenting the VID hash-salt table (schema {@code idmap}). Runtime
+ * inserts use JDBC rather than this entity.
+ * </p>
+ *
+ * @author MOSIP
+ * @see ISaltEntity
+ * @see VidEncryptSaltEntity
  */
 @Entity
-
-/**
- * Instantiates a new salt entity.
- */
 @Data
 @Table(name = "uin_hash_salt", schema = "idmap")
-public class VidHashSaltEntity implements ISaltEntity{
+public class VidHashSaltEntity implements ISaltEntity {
 
-	/** The id. */
+	/** Salt bucket id (primary key). */
 	@Id
 	@Column(updatable = false, nullable = false, unique = true)
 	private Long id;
 
-	/** The salt. */
+	/** Base64-encoded hash salt. */
 	@Column(updatable = true, nullable = false, unique = true)
 	private String salt;
 
-	/** The created by. */
+	/** Create-audit user ({@code cr_by}). */
 	@Column(name = "cr_by", updatable = true, nullable = false, unique = false)
 	private String createdBy;
 
-	/** The create dtimes. */
+	/** Create timestamp ({@code cr_dtimes}). */
 	@Column(name = "cr_dtimes", updatable = true, nullable = false, unique = false)
 	private LocalDateTime createDtimes;
 
-	/** The updated by. */
+	/** Update-audit user ({@code upd_by}). */
 	@Column(name = "upd_by", updatable = true, nullable = true, unique = false)
 	private String updatedBy;
 
-	/** The updated dtimes. */
+	/** Update timestamp ({@code upd_dtimes}). */
 	@Column(name = "upd_dtimes", updatable = true, nullable = true, unique = true)
 	private LocalDateTime updatedDtimes;
 

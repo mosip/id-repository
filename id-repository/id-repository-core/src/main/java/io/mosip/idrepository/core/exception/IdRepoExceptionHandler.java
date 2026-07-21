@@ -23,6 +23,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import com.fasterxml.jackson.core.JsonParseException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.lang.NonNull;
@@ -44,45 +45,77 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
- * The Class IdRepoExceptionHandler - Handler class for all exceptions thrown in
- * Id Repository Idenitty and VID service.
+ * Global REST exception handler for ID Repository services.
+ * <p>
+ * Registered as {@link RestControllerAdvice} and converts all thrown exceptions into
+ * MOSIP-standard {@link IdResponseDTO} error payloads with HTTP 200 (except authentication
+ * failures which may return 401). Maps HTTP method and operation context to the correct
+ * response {@code id} field via the injected {@code id} map.
+ * </p>
+ *
+ * @see IdRepoAppException
+ * @see IdRepoAppUncheckedException
+ * @see IdRepoUnknownException
+ * @see AuthenticationException
+ * @see RestServiceException
+ * @see io.mosip.idrepository.core.dto.IdResponseDTO
  *
  * @author Manoj SP
  */
 @RestControllerAdvice
 public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 
+	/** URI suffix for UIN reactivation endpoints. */
 	private static final String REACTIVATE = "reactivate";
 
+	/** URI suffix for UIN deactivation endpoints. */
 	private static final String DEACTIVATE = "deactivate";
 
-	/** The Constant ID_REPO_EXCEPTION_HANDLER. */
+	/** Logger category identifier for this handler. */
 	private static final String ID_REPO_EXCEPTION_HANDLER = "IdRepoExceptionHandler";
-	
-	/** The Constant TIMESTAMP. */
+
+	/** Request field name used when reporting {@link DateTimeParseException} on {@code requesttime}. */
 	private static final String REQUEST_TIME = "requesttime";
 
-	/** The Constant ID_REPO. */
+	/** Application module name for structured logging. */
 	private static final String ID_REPO = "IdRepo";
 
-	/** The Constant READ. */
+	/** HTTP GET operation key for response {@code id} resolution. */
 	private static final String READ = "read";
 
-	/** The Constant CREATE. */
+	/** HTTP POST operation key for response {@code id} resolution. */
 	private static final String CREATE = "create";
 
-	/** The Constant UPDATE. */
+	/** HTTP PATCH operation key for response {@code id} resolution. */
 	private static final String UPDATE = "update";
 
-	/** The mosip logger. */
+	/** Structured logger for exception handling events. */
 	Logger mosipLogger = IdRepoLogger.getLogger(IdRepoExceptionHandler.class);
 
-	/** The id. */
+	/**
+	 * Map of operation names to MOSIP response {@code id} values
+	 * (e.g. {@code create} → {@code mosip.id.create}, {@code read} → {@code mosip.id.read}).
+	 */
 	@Resource
 	private Map<String, String> id;
 
+	/** Exception class name substring used to detect invalid {@code requesttime} values. */
 	private static final String DATE_TIME_PARSE_EXCEPTION = "DateTimeParseException";
 
+	/**
+	 * Handles malformed or unreadable HTTP request bodies.
+	 * <p>
+	 * Maps {@link DateTimeParseException} on {@code requesttime} to
+	 * {@link io.mosip.idrepository.core.constant.IdRepoErrorConstants#INVALID_INPUT_PARAMETER}; all other cases return
+	 * {@link io.mosip.idrepository.core.constant.IdRepoErrorConstants#INVALID_REQUEST}.
+	 * </p>
+	 *
+	 * @param httpMessageNotReadableException deserialization failure
+	 * @param headers                         response headers
+	 * @param status                          HTTP status from the framework
+	 * @param request                         current web request
+	 * @return MOSIP error response with HTTP 200
+	 */
 	@Override
 	protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException httpMessageNotReadableException, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 
@@ -94,13 +127,32 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 		if(exceptionMessage != null && httpMessageNotReadableException.getMessage().contains(DATE_TIME_PARSE_EXCEPTION)){
 			idRepoAppException = new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(), String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), REQUEST_TIME));
 			return new ResponseEntity<>(buildExceptionResponse(idRepoAppException, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.OK);
+		} else if (rootCause instanceof JsonParseException jsonParseException
+				&& jsonParseException.getMessage() != null
+				&& jsonParseException.getMessage().contains("code 160")) {
+			idRepoAppException = new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+					"Request JSON contains non-breaking spaces (U+00A0); replace with normal spaces or re-type the body.");
+			return new ResponseEntity<>(buildExceptionResponse(idRepoAppException,
+					((ServletWebRequest) request).getHttpMethod(), null), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(buildExceptionResponse(httpMessageNotReadableException, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.OK);
 		}
 	}
 
+	/**
+	 * Handles requests to non-existent static or API resources.
+	 *
+	 * @param noResourceFoundException resource-not-found failure from Spring MVC
+	 * @param headers                  response headers
+	 * @param status                   HTTP status from the framework
+	 * @param request                  current web request
+	 * @return MOSIP error response with {@link io.mosip.idrepository.core.constant.IdRepoErrorConstants#INVALID_REQUEST} and HTTP 200
+	 */
 	@Override
 	protected ResponseEntity<Object> handleNoResourceFoundException(NoResourceFoundException noResourceFoundException, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+		if (isFaviconRequest(noResourceFoundException)) {
+			return ResponseEntity.notFound().build();
+		}
 		Throwable rootCause = getRootCause(noResourceFoundException);
 		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_EXCEPTION_HANDLER,
 				"handleNoResourceFoundException - \n" + ExceptionUtils.getStackTrace(Objects.isNull(rootCause) ? noResourceFoundException : rootCause));
@@ -109,13 +161,20 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 			return new ResponseEntity<>(buildExceptionResponse(idRepoAppException, ((ServletWebRequest)request).getHttpMethod(), null), HttpStatus.OK);
 	}
 
+	private static boolean isFaviconRequest(NoResourceFoundException exception) {
+		String resourcePath = exception.getResourcePath();
+		return resourcePath != null && resourcePath.toLowerCase().contains("favicon");
+	}
+
 	/**
-	 * Handles exceptions that are not handled by other methods in
-	 * {@code IdRepoExceptionHandler}.
+	 * Handles exceptions that are not handled by other methods in this advice.
+	 * <p>
+	 * Logs the full stack trace and returns {@link io.mosip.idrepository.core.constant.IdRepoErrorConstants#UNKNOWN_ERROR}.
+	 * </p>
 	 *
-	 * @param ex the exception
-	 * @param request the request
-	 * @return the response entity
+	 * @param ex      any unhandled exception
+	 * @param request current web request
+	 * @return MOSIP error response with HTTP 200
 	 */
 	@ExceptionHandler(Exception.class)
 	protected ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
@@ -129,14 +188,18 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 	
 	/**
-	 * Handles bean creation exception.{@code BeanCreationException} is handled because
-	 * IdObjetMasterDataValidator is loaded lazily and makes use of RestTemplate in
-	 * PostConstruct. When RestTemplate throws any exception inside PostConstruct,
-	 * it is wrapped as BeanCreationException and thrown by Spring.
+	 * Handles {@link BeanCreationException} raised during lazy bean initialization.
+	 * <p>
+	 * {@code IdObjectMasterDataValidator} is loaded lazily and uses {@code RestTemplate}
+	 * in {@code @PostConstruct}. When that call fails, Spring wraps the cause as
+	 * {@link BeanCreationException}. This handler unwraps {@link AuthenticationException}
+	 * and {@link IdRepoAppUncheckedException} causes before falling back to
+	 * {@link #handleAllExceptions(Exception, WebRequest)}.
+	 * </p>
 	 *
-	 * @param ex the ex
-	 * @param request the request
-	 * @return the response entity
+	 * @param ex      bean creation failure
+	 * @param request current web request
+	 * @return delegated handler response
 	 */
 	@ExceptionHandler(BeanCreationException.class)
 	protected ResponseEntity<Object> handleBeanCreationException(BeanCreationException ex, WebRequest request) {
@@ -155,14 +218,11 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	/**
-	 * Handle access denied exception thrown when user is not allowed to access the
-	 * specific API.
+	 * Handles {@link AccessDeniedException} when the authenticated user lacks API permission.
 	 *
-	 * @param ex
-	 *            the ex
-	 * @param request
-	 *            the request
-	 * @return the response entity
+	 * @param ex      access denied failure
+	 * @param request current web request
+	 * @return MOSIP error response with {@link io.mosip.idrepository.core.constant.IdRepoErrorConstants#AUTHORIZATION_FAILED} and HTTP 200
 	 */
 	@ExceptionHandler(AccessDeniedException.class)
 	protected ResponseEntity<Object> handleAccessDeniedException(Exception ex, WebRequest request) {
@@ -176,12 +236,15 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	/**
-	 * Handle authentication exception - thrown in {@code RestHelper} when an 
-	 * application fails to authenticate the rest request.
+	 * Handles {@link AuthenticationException} from outbound REST authentication failures.
+	 * <p>
+	 * Maps to {@link IdRepoUnknownException} with auth-adapter error codes when available.
+	 * Returns HTTP 401 (or the status code carried by the exception) instead of HTTP 200.
+	 * </p>
 	 *
-	 * @param ex the ex
-	 * @param request the request
-	 * @return the response entity
+	 * @param ex      authentication failure from {@link io.mosip.idrepository.core.helper.RestHelper}
+	 * @param request current web request
+	 * @return MOSIP error response with appropriate HTTP status
 	 */
 	@ExceptionHandler(AuthenticationException.class)
 	protected ResponseEntity<Object> handleAuthenticationException(@NonNull AuthenticationException ex, WebRequest request) {
@@ -196,14 +259,20 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 				ex.getStatusCode() == 0 ? HttpStatus.UNAUTHORIZED : HttpStatus.valueOf(ex.getStatusCode()));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.web.servlet.mvc.method.annotation.
-	 * ResponseEntityExceptionHandler#handleExceptionInternal(java.lang.Exception,
-	 * java.lang.Object, org.springframework.http.HttpHeaders,
-	 * org.springframework.http.HttpStatus,
-	 * org.springframework.web.context.request.WebRequest)
+	/**
+	 * Internal handler for framework-level exceptions not covered by specific {@code @ExceptionHandler} methods.
+	 * <p>
+	 * Special-cases {@link DateTimeParseException} on {@code requesttime} for deactivate/reactivate URIs,
+	 * and maps {@link HttpMessageNotReadableException}, {@link ServletException}, and
+	 * {@link BeansException} to {@link io.mosip.idrepository.core.constant.IdRepoErrorConstants#INVALID_REQUEST}.
+	 * </p>
+	 *
+	 * @param ex           the exception
+	 * @param errorMessage optional error body (unused)
+	 * @param headers      response headers
+	 * @param status       HTTP status
+	 * @param request      current web request
+	 * @return MOSIP error response, or delegates to {@link #handleAllExceptions(Exception, WebRequest)}
 	 */
 	protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object errorMessage,
 			HttpHeaders headers, HttpStatus status, WebRequest request) {
@@ -246,12 +315,14 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	/**
-	 * Handle id app exception - handle {@code IdRepoAppException} thrown from 
-	 * application.
+	 * Handles checked {@link IdRepoAppException} thrown from application business logic.
+	 * <p>
+	 * Uses {@link IdRepoAppException#getOperation()} when set to resolve the response {@code id}.
+	 * </p>
 	 *
-	 * @param ex the ex
-	 * @param request the request
-	 * @return the response entity
+	 * @param ex      application checked exception
+	 * @param request current web request
+	 * @return MOSIP error response with HTTP 200
 	 */
 	@ExceptionHandler(IdRepoAppException.class)
 	protected ResponseEntity<Object> handleIdAppException(@NonNull IdRepoAppException ex, WebRequest request) {
@@ -264,12 +335,11 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	/**
-	 * Handle id app unchecked exception - handle {@code IdRepoAppUncheckedException} thrown from 
-	 * application..
+	 * Handles unchecked {@link IdRepoAppUncheckedException} thrown from application runtime logic.
 	 *
-	 * @param ex the ex
-	 * @param request the request
-	 * @return the response entity
+	 * @param ex      application unchecked exception
+	 * @param request current web request
+	 * @return MOSIP error response with HTTP 200
 	 */
 	@ExceptionHandler(IdRepoAppUncheckedException.class)
 	protected ResponseEntity<Object> handleIdAppUncheckedException(@NonNull IdRepoAppUncheckedException ex, WebRequest request) {
@@ -283,12 +353,16 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	/**
-	 * Constructs exception response body for all exceptions.
+	 * Builds a MOSIP-standard {@link IdResponseDTO} error payload from any exception.
+	 * <p>
+	 * Resolves the response {@code id} from the operation name or HTTP method, extracts
+	 * {@link ServiceError} entries from the root cause, and sets the application version.
+	 * </p>
 	 *
-	 * @param ex the ex
-	 * @param httpMethod the http method
-	 * @param operation the operation
-	 * @return the object
+	 * @param ex         the exception (possibly wrapped)
+	 * @param httpMethod HTTP method of the failed request, used for {@code id} fallback
+	 * @param operation  explicit operation name override (e.g. {@code deactivate})
+	 * @return populated {@link IdResponseDTO} error response object
 	 */
 	private Object buildExceptionResponse(Exception ex, @Nullable HttpMethod httpMethod, String operation) {
 
@@ -315,6 +389,16 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 		return response;
 	}
 
+	/**
+	 * Extracts distinct {@link ServiceError} entries from a MOSIP kernel exception.
+	 * <p>
+	 * Used by {@link io.mosip.idrepository.core.helper.AuditHelper#auditError} to serialize
+	 * error details into audit log descriptions.
+	 * </p>
+	 *
+	 * @param e checked or unchecked kernel exception with error codes and messages
+	 * @return list of distinct service errors, or {@code null} if {@code e} is not a kernel exception
+	 */
 	public static List<ServiceError> getAllErrors(Throwable e) {
 		List<ServiceError> errors = null;
 		if (e instanceof BaseCheckedException) {
@@ -334,12 +418,17 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 			errors = errorTexts.parallelStream()
 					.map(errMsg -> new ServiceError(errorCodes.get(errorTexts.indexOf(errMsg)), errMsg)).distinct()
 					.collect(Collectors.toList());
-
 		}
-		
 		return errors;
 	}
 
+	/**
+	 * Unwraps the root cause of an exception, falling back to {@link IdRepoAppException} chain walking
+	 * if {@link ExceptionUtils#getRootCause} itself throws.
+	 *
+	 * @param ex the exception to unwrap
+	 * @return root cause throwable, or {@code null}
+	 */
 	private Throwable getRootCause(Exception ex) {
 		Throwable rootCause;
 		try {
@@ -352,10 +441,10 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	/**
-	 * Gets the root cause.
+	 * Walks the exception cause chain to find the innermost {@link IdRepoAppException}.
 	 *
-	 * @param ex the ex
-	 * @return the root cause
+	 * @param ex the outer exception, possibly wrapping {@link IdRepoAppException}
+	 * @return the deepest {@link IdRepoAppException} in the chain, or {@code ex} if none found
 	 */
 	private Throwable getIdRepoAppExceptionRootCause(Exception ex) {
 		Throwable e = ex;

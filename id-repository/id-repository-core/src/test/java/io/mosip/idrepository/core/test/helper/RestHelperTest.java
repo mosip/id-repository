@@ -1,43 +1,44 @@
 package io.mosip.idrepository.core.test.helper;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.modules.junit4.PowerMockRunnerDelegate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
-import org.springframework.core.env.Environment;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.context.ApplicationContext;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -51,7 +52,9 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.util.UriBuilder;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -65,7 +68,7 @@ import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.IdRepoRetryException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.RestHelper;
-import io.mosip.idrepository.core.util.EnvUtil;
+import io.mosip.idrepository.core.util.RestUtil;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import reactor.core.publisher.Mono;
@@ -75,14 +78,8 @@ import reactor.core.publisher.Mono;
  *
  * @author Manoj SP
  */
-@RunWith(PowerMockRunner.class)
-@PowerMockRunnerDelegate(SpringJUnit4ClassRunner.class)
-@PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*",
-		"com.sun.org.apache.xalan.*", "javax.activation.*", "javax.crypto.*" })
-@Import(EnvUtil.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@PrepareForTest({ WebClient.class, SslContextBuilder.class })
-@Ignore
 public class RestHelperTest {
 
 	/** The rest helper. */
@@ -90,11 +87,9 @@ public class RestHelperTest {
 	RestHelper restHelper;
 
 	/** The environment. */
-	@Autowired
-	Environment environment;
+	private MockEnvironment environment;
 
 	/** The mapper. */
-	@MockBean
 	private ObjectMapper mapper;
 
 	/** The audit factory. */
@@ -105,6 +100,9 @@ public class RestHelperTest {
 	@InjectMocks
 	RestRequestBuilder restBuilder;
 
+	private MockedStatic<WebClient> webClientStatic;
+	private MockedStatic<SslContextBuilder> sslContextBuilderStatic;
+
 	/**
 	 * Before.
 	 *
@@ -112,14 +110,27 @@ public class RestHelperTest {
 	 */
 	@Before
 	public void before() throws SSLException {
+		environment = new MockEnvironment();
+		mapper = new ObjectMapper();
 		ReflectionTestUtils.setField(restBuilder, "env", environment);
 		ReflectionTestUtils.setField(restHelper, "mapper", mapper);
-		PowerMockito.mockStatic(SslContextBuilder.class);
-		SslContextBuilder sslContextBuilder = PowerMockito.mock(SslContextBuilder.class);
-		PowerMockito.when(SslContextBuilder.forClient()).thenReturn(sslContextBuilder);
-		PowerMockito.when(sslContextBuilder.trustManager(Mockito.any(TrustManagerFactory.class)))
+		sslContextBuilderStatic = Mockito.mockStatic(SslContextBuilder.class);
+		SslContextBuilder sslContextBuilder = Mockito.mock(SslContextBuilder.class);
+		sslContextBuilderStatic.when(SslContextBuilder::forClient).thenReturn(sslContextBuilder);
+		Mockito.when(sslContextBuilder.trustManager(Mockito.any(TrustManagerFactory.class)))
 				.thenReturn(sslContextBuilder);
-		PowerMockito.when(sslContextBuilder.build()).thenReturn(Mockito.mock(SslContext.class));
+		Mockito.when(sslContextBuilder.build()).thenReturn(Mockito.mock(SslContext.class));
+		webClientStatic = Mockito.mockStatic(WebClient.class);
+	}
+
+	@After
+	public void after() {
+		if (webClientStatic != null) {
+			webClientStatic.close();
+		}
+		if (sslContextBuilderStatic != null) {
+			sslContextBuilderStatic.close();
+		}
 	}
 
 	/**
@@ -133,28 +144,28 @@ public class RestHelperTest {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testReqSync() throws JsonParseException, JsonMappingException, IOException, RestServiceException {
-		PowerMockito.mockStatic(WebClient.class);
-		ResponseSpec responseSpec = PowerMockito.mock(ResponseSpec.class);
-		PowerMockito.mock(ClientResponse.class);
+		ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+		Mockito.mock(ClientResponse.class);
 		String response = "{\"response\":{\"status\":\"success\"}}";
 		RestRequestDTO restReqDTO = new RestRequestDTO();
 		restReqDTO.setHttpMethod(HttpMethod.GET);
 		restReqDTO.setUri("0.0.0.0");
-		WebClient webClient = PowerMockito.mock(WebClient.class);
+		restReqDTO.setResponseType(String.class);
+		WebClient webClient = Mockito.mock(WebClient.class);
 		ReflectionTestUtils.setField(restHelper, "webClient", webClient);
-		RequestBodyUriSpec requestBodyUriSpec = PowerMockito.mock(RequestBodyUriSpec.class);
-		RequestBodySpec requestBodySpec = PowerMockito.mock(RequestBodySpec.class);
-		Builder mockBuilder = PowerMockito.mock(WebClient.Builder.class);
-		PowerMockito.when(WebClient.builder()).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.build()).thenReturn(webClient);
-		PowerMockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
-		PowerMockito.when(requestBodyUriSpec.uri(Mockito.anyString())).thenReturn(requestBodySpec);
-		PowerMockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
-		PowerMockito.when(responseSpec.bodyToMono((Class) null))
-				.thenReturn(Mono.<Object>just(mapper.readValue(response.getBytes(), ObjectNode.class)));
+		RequestBodyUriSpec requestBodyUriSpec = Mockito.mock(RequestBodyUriSpec.class);
+		RequestBodySpec requestBodySpec = Mockito.mock(RequestBodySpec.class);
+		Builder mockBuilder = Mockito.mock(WebClient.Builder.class);
+		webClientStatic.when(WebClient::builder).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.build()).thenReturn(webClient);
+		Mockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
+		Mockito.when(requestBodyUriSpec.uri(Mockito.anyString())).thenReturn(requestBodySpec);
+		Mockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+		Mockito.when(responseSpec.bodyToMono(String.class))
+				.thenReturn(Mono.just(response));
 		restHelper.requestSync(restReqDTO);
 	}
 
@@ -162,29 +173,29 @@ public class RestHelperTest {
 	@Test
 	public void testReqSyncWithTimeout()
 			throws JsonParseException, JsonMappingException, IOException, RestServiceException {
-		PowerMockito.mockStatic(WebClient.class);
-		ResponseSpec responseSpec = PowerMockito.mock(ResponseSpec.class);
-		PowerMockito.mock(ClientResponse.class);
+		ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+		Mockito.mock(ClientResponse.class);
 		String response = "{\"response\":{\"status\":\"success\"}}";
 		RestRequestDTO restReqDTO = new RestRequestDTO();
 		restReqDTO.setHttpMethod(HttpMethod.GET);
 		restReqDTO.setUri("0.0.0.0");
+		restReqDTO.setResponseType(String.class);
 		restReqDTO.setTimeout(1);
-		WebClient webClient = PowerMockito.mock(WebClient.class);
+		WebClient webClient = Mockito.mock(WebClient.class);
 		ReflectionTestUtils.setField(restHelper, "webClient", webClient);
-		RequestBodyUriSpec requestBodyUriSpec = PowerMockito.mock(RequestBodyUriSpec.class);
-		RequestBodySpec requestBodySpec = PowerMockito.mock(RequestBodySpec.class);
-		Builder mockBuilder = PowerMockito.mock(WebClient.Builder.class);
-		PowerMockito.when(WebClient.builder()).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.build()).thenReturn(webClient);
-		PowerMockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
-		PowerMockito.when(requestBodyUriSpec.uri(Mockito.anyString())).thenReturn(requestBodySpec);
-		PowerMockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
-		PowerMockito.when(responseSpec.bodyToMono((Class) null))
-				.thenReturn(Mono.<Object>just(mapper.readValue(response.getBytes(), ObjectNode.class)));
+		RequestBodyUriSpec requestBodyUriSpec = Mockito.mock(RequestBodyUriSpec.class);
+		RequestBodySpec requestBodySpec = Mockito.mock(RequestBodySpec.class);
+		Builder mockBuilder = Mockito.mock(WebClient.Builder.class);
+		webClientStatic.when(WebClient::builder).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.build()).thenReturn(webClient);
+		Mockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
+		Mockito.when(requestBodyUriSpec.uri(Mockito.anyString())).thenReturn(requestBodySpec);
+		Mockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+		Mockito.when(responseSpec.bodyToMono(String.class))
+				.thenReturn(Mono.just(response));
 		restHelper.requestSync(restReqDTO);
 	}
 
@@ -200,32 +211,36 @@ public class RestHelperTest {
 	@Test
 	public void testReqSyncWithHeaders()
 			throws JsonParseException, JsonMappingException, IOException, RestServiceException {
-		PowerMockito.mockStatic(WebClient.class);
-		ResponseSpec responseSpec = PowerMockito.mock(ResponseSpec.class);
-		PowerMockito.mock(ClientResponse.class);
+		ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+		Mockito.mock(ClientResponse.class);
 		String response = "{\"response\":{\"status\":\"success\"}}";
 		RestRequestDTO restReqDTO = new RestRequestDTO();
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		restReqDTO.setHeaders(headers);
-		WebClient webClient = PowerMockito.mock(WebClient.class);
-		RequestBodyUriSpec requestBodyUriSpec = PowerMockito.mock(RequestBodyUriSpec.class);
-		RequestBodySpec requestBodySpec = PowerMockito.mock(RequestBodySpec.class);
-		Builder mockBuilder = PowerMockito.mock(WebClient.Builder.class);
-		PowerMockito.when(WebClient.builder()).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.build()).thenReturn(webClient);
+		WebClient webClient = Mockito.mock(WebClient.class);
+		RequestBodyUriSpec requestBodyUriSpec = Mockito.mock(RequestBodyUriSpec.class);
+		RequestBodySpec requestBodySpec = Mockito.mock(RequestBodySpec.class);
+		Builder mockBuilder = Mockito.mock(WebClient.Builder.class);
+		webClientStatic.when(WebClient::builder).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.build()).thenReturn(webClient);
 		ReflectionTestUtils.setField(restHelper, "webClient", webClient);
-		PowerMockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
-		PowerMockito.when(requestBodyUriSpec.uri(Mockito.anyString())).thenReturn(requestBodySpec);
-		PowerMockito.when(requestBodySpec.headers(Mockito.any())).thenReturn(requestBodySpec);
-		PowerMockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
-		PowerMockito.when(responseSpec.bodyToMono((Class) null))
-				.thenReturn(Mono.<Object>just(mapper.readValue(response.getBytes(), ObjectNode.class)));
+		Mockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
+		Mockito.when(requestBodyUriSpec.uri(Mockito.anyString())).thenReturn(requestBodySpec);
+		Mockito.when(requestBodySpec.headers(Mockito.any())).thenAnswer(invocation -> {
+			Consumer<HttpHeaders> consumer = invocation.getArgument(0);
+			consumer.accept(new HttpHeaders());
+			return requestBodySpec;
+		});
+		Mockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+		Mockito.when(responseSpec.bodyToMono(String.class))
+				.thenReturn(Mono.just(response));
 		restReqDTO.setHttpMethod(HttpMethod.GET);
 		restReqDTO.setUri("0.0.0.0");
+		restReqDTO.setResponseType(String.class);
 		restHelper.requestSync(restReqDTO);
 	}
 
@@ -238,8 +253,7 @@ public class RestHelperTest {
 	@Test(expected = RestServiceException.class)
 	public void testReqSyncUnknownError() throws Throwable {
 		try {
-			PowerMockito.mockStatic(WebClient.class);
-			ResponseSpec responseSpec = PowerMockito.mock(ResponseSpec.class);
+				ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
 			String response = "{\"response\":{\"status\":\"success\"}}";
 			RestRequestDTO restReqDTO = new RestRequestDTO();
 			HttpHeaders headers = new HttpHeaders();
@@ -247,21 +261,21 @@ public class RestHelperTest {
 			restReqDTO.setHeaders(headers);
 			restReqDTO.setResponseType(String.class);
 			restReqDTO.setUri("");
-			WebClient webClient = PowerMockito.mock(WebClient.class);
-			RequestBodyUriSpec requestBodyUriSpec = PowerMockito.mock(RequestBodyUriSpec.class);
-			RequestBodySpec requestBodySpec = PowerMockito.mock(RequestBodySpec.class);
-			Builder mockBuilder = PowerMockito.mock(WebClient.Builder.class);
-			PowerMockito.when(WebClient.builder()).thenReturn(mockBuilder);
-			PowerMockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
-			PowerMockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
-			PowerMockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
-			PowerMockito.when(mockBuilder.build()).thenReturn(webClient);
-			PowerMockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
+			WebClient webClient = Mockito.mock(WebClient.class);
+			RequestBodyUriSpec requestBodyUriSpec = Mockito.mock(RequestBodyUriSpec.class);
+			RequestBodySpec requestBodySpec = Mockito.mock(RequestBodySpec.class);
+			Builder mockBuilder = Mockito.mock(WebClient.Builder.class);
+			webClientStatic.when(WebClient::builder).thenReturn(mockBuilder);
+			Mockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
+			Mockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
+			Mockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
+			Mockito.when(mockBuilder.build()).thenReturn(webClient);
+			Mockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
 			Function<UriBuilder, URI> uriFunction = Mockito.any();
-			PowerMockito.when(requestBodyUriSpec.uri(uriFunction)).thenReturn(requestBodySpec);
-			PowerMockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
-			PowerMockito.when(responseSpec.bodyToMono((Class) null))
-					.thenReturn(Mono.<Object>just(mapper.readValue(response.getBytes(), ObjectNode.class)));
+			Mockito.when(requestBodyUriSpec.uri(uriFunction)).thenReturn(requestBodySpec);
+			Mockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+			Mockito.when(responseSpec.bodyToMono(String.class))
+					.thenReturn(Mono.just(response));
 			restHelper.requestSync(restReqDTO);
 		} catch (Exception e) {
 			throw e.getCause();
@@ -281,28 +295,28 @@ public class RestHelperTest {
 	@Test
 	public void vtestRequestSyncWithParams() throws IdRepoDataValidationException, RestServiceException,
 			JsonParseException, JsonMappingException, IOException {
-		PowerMockito.mockStatic(WebClient.class);
-		ResponseSpec responseSpec = PowerMockito.mock(ResponseSpec.class);
-		PowerMockito.mock(ClientResponse.class);
+		ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+		Mockito.mock(ClientResponse.class);
 		String response = "{\"response\":{\"status\":\"success\"}}";
 		RestRequestDTO restReqDTO = new RestRequestDTO();
 		restReqDTO.setParams(new LinkedMultiValueMap<>(0));
-		WebClient webClient = PowerMockito.mock(WebClient.class);
-		RequestBodyUriSpec requestBodyUriSpec = PowerMockito.mock(RequestBodyUriSpec.class);
-		RequestBodySpec requestBodySpec = PowerMockito.mock(RequestBodySpec.class);
-		Builder mockBuilder = PowerMockito.mock(WebClient.Builder.class);
-		PowerMockito.when(WebClient.builder()).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.build()).thenReturn(webClient);
-		PowerMockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
+		restReqDTO.setResponseType(String.class);
+		WebClient webClient = Mockito.mock(WebClient.class);
+		RequestBodyUriSpec requestBodyUriSpec = Mockito.mock(RequestBodyUriSpec.class);
+		RequestBodySpec requestBodySpec = Mockito.mock(RequestBodySpec.class);
+		Builder mockBuilder = Mockito.mock(WebClient.Builder.class);
+		webClientStatic.when(WebClient::builder).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.build()).thenReturn(webClient);
+		Mockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
 		ReflectionTestUtils.setField(restHelper, "webClient", webClient);
-		PowerMockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
-		PowerMockito.when(requestBodyUriSpec.uri(Mockito.anyString())).thenReturn(requestBodySpec);
-		PowerMockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
-		PowerMockito.when(responseSpec.bodyToMono((Class) null))
-				.thenReturn(Mono.<Object>just(mapper.readValue(response.getBytes(), ObjectNode.class)));
+		Mockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
+		Mockito.when(requestBodyUriSpec.uri(Mockito.anyString())).thenReturn(requestBodySpec);
+		Mockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+		Mockito.when(responseSpec.bodyToMono(String.class))
+				.thenReturn(Mono.just(response));
 		restReqDTO.setHttpMethod(HttpMethod.GET);
 		restReqDTO.setUri("0.0.0.0");
 		restHelper.requestSync(restReqDTO);
@@ -321,31 +335,31 @@ public class RestHelperTest {
 	@Test
 	public void vtestRequestSyncWithPathVariables() throws IdRepoDataValidationException, RestServiceException,
 			JsonParseException, JsonMappingException, IOException {
-		PowerMockito.mockStatic(WebClient.class);
-		ResponseSpec responseSpec = PowerMockito.mock(ResponseSpec.class);
-		PowerMockito.mock(ClientResponse.class);
+		ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+		Mockito.mock(ClientResponse.class);
 		String response = "{\"response\":{\"status\":\"success\"}}";
 		RestRequestDTO restReqDTO = new RestRequestDTO();
 		Map<String, String> pathVariables = new HashMap<>();
 		restReqDTO.setPathVariables(pathVariables);
-		WebClient webClient = PowerMockito.mock(WebClient.class);
-		RequestBodyUriSpec requestBodyUriSpec = PowerMockito.mock(RequestBodyUriSpec.class);
-		RequestBodySpec requestBodySpec = PowerMockito.mock(RequestBodySpec.class);
-		Builder mockBuilder = PowerMockito.mock(WebClient.Builder.class);
-		PowerMockito.when(WebClient.builder()).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.build()).thenReturn(webClient);
-		PowerMockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
+		WebClient webClient = Mockito.mock(WebClient.class);
+		RequestBodyUriSpec requestBodyUriSpec = Mockito.mock(RequestBodyUriSpec.class);
+		RequestBodySpec requestBodySpec = Mockito.mock(RequestBodySpec.class);
+		Builder mockBuilder = Mockito.mock(WebClient.Builder.class);
+		webClientStatic.when(WebClient::builder).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.build()).thenReturn(webClient);
+		Mockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
 		ReflectionTestUtils.setField(restHelper, "webClient", webClient);
-		PowerMockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
-		PowerMockito.when(requestBodyUriSpec.uri(Mockito.anyString())).thenReturn(requestBodySpec);
-		PowerMockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
-		PowerMockito.when(responseSpec.bodyToMono((Class) null))
-				.thenReturn(Mono.<Object>just(mapper.readValue(response.getBytes(), ObjectNode.class)));
+		Mockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
+		Mockito.when(requestBodyUriSpec.uri(Mockito.anyString())).thenReturn(requestBodySpec);
+		Mockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+		Mockito.when(responseSpec.bodyToMono(String.class))
+				.thenReturn(Mono.just(response));
 		restReqDTO.setHttpMethod(HttpMethod.GET);
 		restReqDTO.setUri("0.0.0.0");
+		restReqDTO.setResponseType(String.class);
 		restHelper.requestSync(restReqDTO);
 	}
 
@@ -358,28 +372,27 @@ public class RestHelperTest {
 	@Test(expected = RestServiceException.class)
 	public void utestRequestSyncWithTimeout() throws Throwable {
 		try {
-			PowerMockito.mockStatic(WebClient.class);
-			ResponseSpec responseSpec = PowerMockito.mock(ResponseSpec.class);
-			PowerMockito.mock(ClientResponse.class);
+				ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+			Mockito.mock(ClientResponse.class);
 			RestRequestDTO restReqDTO = new RestRequestDTO();
 			restReqDTO.setTimeout(1);
 			restReqDTO.setResponseType(String.class);
 			Map<String, String> pathVariables = new HashMap<>();
 			restReqDTO.setPathVariables(pathVariables);
-			WebClient webClient = PowerMockito.mock(WebClient.class);
-			RequestBodyUriSpec requestBodyUriSpec = PowerMockito.mock(RequestBodyUriSpec.class);
-			RequestBodySpec requestBodySpec = PowerMockito.mock(RequestBodySpec.class);
-			Builder mockBuilder = PowerMockito.mock(WebClient.Builder.class);
-			PowerMockito.when(WebClient.builder()).thenReturn(mockBuilder);
-			PowerMockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
-			PowerMockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
-			PowerMockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
-			PowerMockito.when(mockBuilder.build()).thenReturn(webClient);
-			PowerMockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
+			WebClient webClient = Mockito.mock(WebClient.class);
+			RequestBodyUriSpec requestBodyUriSpec = Mockito.mock(RequestBodyUriSpec.class);
+			RequestBodySpec requestBodySpec = Mockito.mock(RequestBodySpec.class);
+			Builder mockBuilder = Mockito.mock(WebClient.Builder.class);
+			webClientStatic.when(WebClient::builder).thenReturn(mockBuilder);
+			Mockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
+			Mockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
+			Mockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
+			Mockito.when(mockBuilder.build()).thenReturn(webClient);
+			Mockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
 			Function<UriBuilder, URI> uriFunction = Mockito.any();
-			PowerMockito.when(requestBodyUriSpec.uri(uriFunction)).thenReturn(requestBodySpec);
-			PowerMockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
-			PowerMockito.when(responseSpec.bodyToMono(Mockito.any(Class.class)))
+			Mockito.when(requestBodyUriSpec.uri(uriFunction)).thenReturn(requestBodySpec);
+			Mockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+			Mockito.when(responseSpec.bodyToMono(String.class))
 					.thenReturn(Mono.error(new RuntimeException((new TimeoutException()))));
 			restHelper.requestSync(restReqDTO);
 		} catch (Exception e) {
@@ -400,33 +413,33 @@ public class RestHelperTest {
 	@Test
 	public void testRequestAsync() throws IdRepoDataValidationException, RestServiceException, JsonParseException,
 			JsonMappingException, IOException {
-		PowerMockito.mockStatic(WebClient.class);
-		ResponseSpec responseSpec = PowerMockito.mock(ResponseSpec.class);
-		PowerMockito.mock(ClientResponse.class);
+		ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+		Mockito.mock(ClientResponse.class);
 		String response = "{\"response\":{\"status\":\"success\"}}";
 		RestRequestDTO restReqDTO = new RestRequestDTO();
 		Map<String, String> pathVariables = new HashMap<>();
 		restReqDTO.setPathVariables(pathVariables);
-		WebClient webClient = PowerMockito.mock(WebClient.class);
-		RequestBodyUriSpec requestBodyUriSpec = PowerMockito.mock(RequestBodyUriSpec.class);
-		RequestBodySpec requestBodySpec = PowerMockito.mock(RequestBodySpec.class);
-		Builder mockBuilder = PowerMockito.mock(WebClient.Builder.class);
-		PowerMockito.when(WebClient.builder()).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
-		PowerMockito.when(mockBuilder.build()).thenReturn(webClient);
-		PowerMockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
+		WebClient webClient = Mockito.mock(WebClient.class);
+		RequestBodyUriSpec requestBodyUriSpec = Mockito.mock(RequestBodyUriSpec.class);
+		RequestBodySpec requestBodySpec = Mockito.mock(RequestBodySpec.class);
+		Builder mockBuilder = Mockito.mock(WebClient.Builder.class);
+		webClientStatic.when(WebClient::builder).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.build()).thenReturn(webClient);
+		Mockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
 		ReflectionTestUtils.setField(restHelper, "webClient", webClient);
-		PowerMockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
-		PowerMockito.when(requestBodyUriSpec.uri(Mockito.anyString())).thenReturn(requestBodySpec);
-		RequestHeadersSpec responseHeaderSpec = PowerMockito.mock(RequestHeadersSpec.class);
-		PowerMockito.when(requestBodySpec.syncBody(Mockito.any())).thenReturn(responseHeaderSpec);
-		PowerMockito.when(responseHeaderSpec.retrieve()).thenReturn(responseSpec);
-		PowerMockito.when(responseSpec.bodyToMono((Class) null))
-				.thenReturn(Mono.<Object>just(mapper.readValue(response.getBytes(), ObjectNode.class)));
+		Mockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
+		Mockito.when(requestBodyUriSpec.uri(Mockito.anyString())).thenReturn(requestBodySpec);
+		Mockito.when(requestBodySpec.contentType(Mockito.any(MediaType.class))).thenReturn(requestBodySpec);
+		Mockito.doReturn(requestBodySpec).when(requestBodySpec).bodyValue(Mockito.anyString());
+		Mockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+		Mockito.when(responseSpec.bodyToMono(String.class))
+				.thenReturn(Mono.just(response));
 		restReqDTO.setHttpMethod(HttpMethod.GET);
 		restReqDTO.setUri("0.0.0.0");
+		restReqDTO.setResponseType(String.class);
 		restReqDTO.setRequestBody(response);
 		restHelper.requestAsync(restReqDTO);
 	}
@@ -442,28 +455,27 @@ public class RestHelperTest {
 	@Test(expected = RestServiceException.class)
 	public void ztestRequestSyncWebClientResponseException() throws Throwable {
 		try {
-			PowerMockito.mockStatic(WebClient.class);
-			ResponseSpec responseSpec = PowerMockito.mock(ResponseSpec.class);
-			PowerMockito.mock(ClientResponse.class);
+				ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+			Mockito.mock(ClientResponse.class);
 			RestRequestDTO restReqDTO = new RestRequestDTO();
 			restReqDTO.setTimeout(1);
 			restReqDTO.setResponseType(String.class);
 			Map<String, String> pathVariables = new HashMap<>();
 			restReqDTO.setPathVariables(pathVariables);
-			WebClient webClient = PowerMockito.mock(WebClient.class);
-			RequestBodyUriSpec requestBodyUriSpec = PowerMockito.mock(RequestBodyUriSpec.class);
-			RequestBodySpec requestBodySpec = PowerMockito.mock(RequestBodySpec.class);
-			Builder mockBuilder = PowerMockito.mock(WebClient.Builder.class);
-			PowerMockito.when(WebClient.builder()).thenReturn(mockBuilder);
-			PowerMockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
-			PowerMockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
-			PowerMockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
-			PowerMockito.when(mockBuilder.build()).thenReturn(webClient);
-			PowerMockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
+			WebClient webClient = Mockito.mock(WebClient.class);
+			RequestBodyUriSpec requestBodyUriSpec = Mockito.mock(RequestBodyUriSpec.class);
+			RequestBodySpec requestBodySpec = Mockito.mock(RequestBodySpec.class);
+			Builder mockBuilder = Mockito.mock(WebClient.Builder.class);
+			webClientStatic.when(WebClient::builder).thenReturn(mockBuilder);
+			Mockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
+			Mockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
+			Mockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
+			Mockito.when(mockBuilder.build()).thenReturn(webClient);
+			Mockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
 			Function<UriBuilder, URI> uriFunction = Mockito.any();
-			PowerMockito.when(requestBodyUriSpec.uri(uriFunction)).thenReturn(requestBodySpec);
-			PowerMockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
-			PowerMockito.when(responseSpec.bodyToMono(Mockito.any(Class.class))).thenReturn(
+			Mockito.when(requestBodyUriSpec.uri(uriFunction)).thenReturn(requestBodySpec);
+			Mockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+			Mockito.when(responseSpec.bodyToMono(String.class)).thenReturn(
 					Mono.error(new WebClientResponseException("message", 200, "statusText", null, null, null)));
 			restHelper.requestSync(restReqDTO);
 		} catch (Exception e) {
@@ -480,13 +492,12 @@ public class RestHelperTest {
 	public void testHandleStatusErrorWithErrorResponseBody() throws Throwable {
 		try {
 			RestRequestDTO restRequestDTO = new RestRequestDTO();
-			restRequestDTO.setUri("0.0.0.0");
+			restRequestDTO.setHttpMethod(HttpMethod.GET);
+			restRequestDTO.setUri("http://test/status-error");
 			restRequestDTO.setResponseType(ObjectNode.class);
-			WebClient webClient = PowerMockito.mock(WebClient.class);
-			PowerMockito.when(webClient.method(Mockito.any())).thenThrow(new WebClientResponseException("message", 400,
-					"failed", null, mapper.writeValueAsBytes(restRequestDTO), null));
-			restRequestDTO.setParams(new LinkedMultiValueMap<>(0));
-			restRequestDTO.setPathVariables(Collections.singletonMap("", ""));
+			WebClient webClient = Mockito.mock(WebClient.class);
+			Mockito.when(webClient.method(HttpMethod.GET)).thenThrow(new WebClientResponseException("message", 400,
+					"failed", null, "{\"response\":{}}".getBytes(), null));
 			ReflectionTestUtils.setField(restHelper, "webClient", webClient);
 			restHelper.requestSync(restRequestDTO);
 		} catch (RestServiceException e) {
@@ -503,8 +514,8 @@ public class RestHelperTest {
 			restRequestDTO.setPathVariables(Collections.singletonMap("", ""));
 			restRequestDTO.setUri("0.0.0.0");
 			restRequestDTO.setResponseType(String.class);
-			WebClient webClient = PowerMockito.mock(WebClient.class);
-			PowerMockito.when(webClient.method(Mockito.any()))
+			WebClient webClient = Mockito.mock(WebClient.class);
+			Mockito.when(webClient.method(Mockito.any()))
 					.thenThrow(new RuntimeException(new TimeoutException("")));
 			ReflectionTestUtils.setField(restHelper, "webClient", webClient);
 			restHelper.requestSync(restRequestDTO);
@@ -523,17 +534,7 @@ public class RestHelperTest {
 	@Test
 	public void testHandleStatusErrorWithoutResponseBodyUnauthorisedError() throws Throwable {
 		try {
-			PowerMockito.mockStatic(WebClient.class);
-			WebClient webClient = PowerMockito.mock(WebClient.class);
-			PowerMockito.when(WebClient.create(Mockito.any())).thenReturn(webClient);
-			RequestBodyUriSpec requestBodyUriSpec = PowerMockito.mock(RequestBodyUriSpec.class);
-			PowerMockito.when(webClient.post()).thenReturn(requestBodyUriSpec);
-			PowerMockito.when(requestBodyUriSpec.cookie(Mockito.any(), Mockito.any())).thenReturn(requestBodyUriSpec);
-			ClientResponse clientResponse = PowerMockito.mock(ClientResponse.class);
-			PowerMockito.when(requestBodyUriSpec.exchange()).thenReturn(Mono.just(clientResponse));
 			String response = "{\"errors\":[{\"errorCode\":\"KER-ATH-402\"}]}";
-			PowerMockito.when(clientResponse.bodyToMono(Mockito.any(Class.class)))
-					.thenReturn(Mono.just(mapper.readValue(response.getBytes(), ObjectNode.class)));
 			ReflectionTestUtils.invokeMethod(restHelper, "handleStatusError",
 					new WebClientResponseException("message", 401, "failed", null, response.getBytes(), null),
 					String.class);
@@ -647,5 +648,383 @@ public class RestHelperTest {
 			assertEquals(cause.getErrorCode(), IdRepoErrorConstants.CLIENT_ERROR.getErrorCode());
 			assertEquals(cause.getErrorText(), IdRepoErrorConstants.CLIENT_ERROR.getErrorMessage());
 		}
+	}
+
+	@Test
+	public void testInitResolvesSelfTokenWebClient() {
+		RestHelper helper = new RestHelper();
+		ApplicationContext ctx = Mockito.mock(ApplicationContext.class);
+		WebClient sourceClient = Mockito.mock(WebClient.class);
+		Builder mutateBuilder = Mockito.mock(Builder.class);
+		WebClient mutatedClient = Mockito.mock(WebClient.class);
+		Mockito.when(ctx.containsBean("selfTokenWebClient")).thenReturn(true);
+		Mockito.when(ctx.getBean("selfTokenWebClient", WebClient.class)).thenReturn(sourceClient);
+		Mockito.when(sourceClient.mutate()).thenReturn(mutateBuilder);
+		Mockito.when(mutateBuilder.exchangeStrategies(Mockito.any())).thenReturn(mutateBuilder);
+		Mockito.when(mutateBuilder.build()).thenReturn(mutatedClient);
+		ReflectionTestUtils.setField(helper, "ctx", ctx);
+		ReflectionTestUtils.setField(helper, "mapper", mapper);
+		ReflectionTestUtils.setField(helper, "maxInMemorySize", 20971520);
+		helper.init();
+		assertEquals(mutatedClient, ReflectionTestUtils.getField(helper, "webClient"));
+	}
+
+	@Test
+	public void testInitResolvesWebClientBean() {
+		RestHelper helper = new RestHelper();
+		ApplicationContext ctx = Mockito.mock(ApplicationContext.class);
+		WebClient sourceClient = Mockito.mock(WebClient.class);
+		Builder mutateBuilder = Mockito.mock(Builder.class);
+		WebClient mutatedClient = Mockito.mock(WebClient.class);
+		Mockito.when(ctx.containsBean("selfTokenWebClient")).thenReturn(false);
+		Mockito.when(ctx.getBean("webClient", WebClient.class)).thenReturn(sourceClient);
+		Mockito.when(sourceClient.mutate()).thenReturn(mutateBuilder);
+		Mockito.when(mutateBuilder.exchangeStrategies(Mockito.any())).thenReturn(mutateBuilder);
+		Mockito.when(mutateBuilder.build()).thenReturn(mutatedClient);
+		ReflectionTestUtils.setField(helper, "ctx", ctx);
+		ReflectionTestUtils.setField(helper, "mapper", mapper);
+		ReflectionTestUtils.setField(helper, "maxInMemorySize", 1024);
+		helper.init();
+		assertEquals(mutatedClient, ReflectionTestUtils.getField(helper, "webClient"));
+	}
+
+	@Test
+	public void testInitMutatesConstructorInjectedWebClient() {
+		WebClient sourceClient = Mockito.mock(WebClient.class);
+		Builder mutateBuilder = Mockito.mock(Builder.class);
+		WebClient mutatedClient = Mockito.mock(WebClient.class);
+		RestHelper helper = new RestHelper(sourceClient);
+		Mockito.when(sourceClient.mutate()).thenReturn(mutateBuilder);
+		Mockito.when(mutateBuilder.exchangeStrategies(Mockito.any())).thenReturn(mutateBuilder);
+		Mockito.when(mutateBuilder.build()).thenReturn(mutatedClient);
+		ReflectionTestUtils.setField(helper, "mapper", mapper);
+		ReflectionTestUtils.setField(helper, "maxInMemorySize", 4096);
+		helper.init();
+		assertEquals(mutatedClient, ReflectionTestUtils.getField(helper, "webClient"));
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testRequestSyncTypedObjectNodeResponse() throws RestServiceException {
+		ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+		String response = "{\"response\":{\"status\":\"success\"}}";
+		RestRequestDTO restReqDTO = new RestRequestDTO();
+		restReqDTO.setHttpMethod(HttpMethod.GET);
+		restReqDTO.setUri("http://test");
+		restReqDTO.setResponseType(ObjectNode.class);
+		WebClient webClient = setupWebClientMocks(responseSpec);
+		Mockito.when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.just(response));
+		ObjectNode result = restHelper.requestSync(restReqDTO);
+		assertNotNull(result);
+		assertEquals("success", result.get("response").get("status").asText());
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test(expected = RestServiceException.class)
+	public void testRequestSyncTypedResponseWithErrorsInBody() throws Throwable {
+		try {
+			ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+			String response = "{\"errors\":[{\"errorCode\":\"ERR-001\"}],\"response\":{}}";
+			RestRequestDTO restReqDTO = new RestRequestDTO();
+			restReqDTO.setHttpMethod(HttpMethod.GET);
+			restReqDTO.setUri("http://test");
+			restReqDTO.setResponseType(AuditRequestDTO.class);
+			setupWebClientMocks(responseSpec);
+			Mockito.when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.just(response));
+			restHelper.requestSync(restReqDTO);
+		} catch (Exception e) {
+			throw e.getCause() != null ? e.getCause() : e;
+		}
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testDecodeResponseByteArray() {
+		ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+		byte[] payload = "binary-payload".getBytes();
+		Mockito.when(responseSpec.bodyToMono(byte[].class)).thenReturn(Mono.just(payload));
+		Mono<?> mono = ReflectionTestUtils.invokeMethod(restHelper, "decodeResponse", responseSpec, byte[].class);
+		assertArrayEquals(payload, (byte[]) mono.block());
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testRequestSyncByteArrayResponse() throws RestServiceException {
+		ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+		byte[] payload = "binary-payload".getBytes();
+		RestRequestDTO restReqDTO = new RestRequestDTO();
+		restReqDTO.setHttpMethod(HttpMethod.GET);
+		restReqDTO.setUri("http://test");
+		restReqDTO.setResponseType(byte[].class);
+		setupWebClientMocks(responseSpec);
+		Mockito.when(responseSpec.bodyToMono(byte[].class)).thenReturn(Mono.just(payload));
+		byte[] result = restHelper.requestSync(restReqDTO);
+		assertArrayEquals(payload, result);
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testRequestSyncWithParamsAndPathVariables() throws RestServiceException {
+		ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+		String response = "{\"response\":{\"status\":\"success\"}}";
+		RestRequestDTO restReqDTO = new RestRequestDTO();
+		LinkedMultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("q", "1");
+		restReqDTO.setParams(params);
+		restReqDTO.setPathVariables(Collections.singletonMap("id", "99"));
+		restReqDTO.setHttpMethod(HttpMethod.GET);
+		restReqDTO.setUri("http://test/{id}");
+		restReqDTO.setResponseType(String.class);
+		setupWebClientMocks(responseSpec);
+		Mockito.when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.just(response));
+		assertEquals(response, restHelper.requestSync(restReqDTO));
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test(expected = RestServiceException.class)
+	public void testRequestSyncWebClientResponseExceptionFromBlock() throws Throwable {
+		try {
+			ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+			RestRequestDTO restReqDTO = new RestRequestDTO();
+			restReqDTO.setHttpMethod(HttpMethod.GET);
+			restReqDTO.setUri("http://test");
+			restReqDTO.setResponseType(AuditRequestDTO.class);
+			setupWebClientMocks(responseSpec);
+			byte[] errorBody = mapper.writeValueAsBytes(new AuditRequestDTO());
+			Mockito.when(responseSpec.bodyToMono(String.class))
+					.thenReturn(Mono.error(new WebClientResponseException("message", 400, "failed", null, errorBody, null)));
+			restHelper.requestSync(restReqDTO);
+		} catch (Exception e) {
+			throw e.getCause() != null ? e.getCause() : e;
+		}
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testRequestSyncWebClientResponseExceptionHandleStatusErrorReturns() throws Throwable {
+		ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+		RestRequestDTO restReqDTO = new RestRequestDTO();
+		restReqDTO.setHttpMethod(HttpMethod.GET);
+		restReqDTO.setUri("http://test");
+		restReqDTO.setResponseType(AuditRequestDTO.class);
+		setupWebClientMocks(responseSpec);
+		Mockito.when(responseSpec.bodyToMono(String.class))
+				.thenReturn(Mono.error(new WebClientResponseException("message", 404, "failed", null,
+						"not-json".getBytes(), null)));
+		try {
+			restHelper.requestSync(restReqDTO);
+		} catch (RestServiceException e) {
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
+			assertTrue(e.getCause() instanceof IOException);
+		}
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test(expected = RestServiceException.class)
+	public void testRequestSyncRethrowsRestServiceExceptionFromCheckError() throws Throwable {
+		try (MockedStatic<RestUtil> restUtilStatic = Mockito.mockStatic(RestUtil.class)) {
+			ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+			String response = "{\"errors\":[{\"errorCode\":\"ERR\"}]}";
+			RestRequestDTO restReqDTO = new RestRequestDTO();
+			restReqDTO.setHttpMethod(HttpMethod.GET);
+			restReqDTO.setUri("http://test");
+			restReqDTO.setResponseType(ObjectNode.class);
+			setupWebClientMocks(responseSpec);
+			restUtilStatic.when(() -> RestUtil.containsError(Mockito.anyString(), Mockito.any())).thenReturn(false);
+			Mockito.when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.just(response));
+			restHelper.requestSync(restReqDTO);
+		} catch (Exception e) {
+			throw e.getCause() != null ? e.getCause() : e;
+		}
+	}
+
+	@Test(expected = UncheckedIOException.class)
+	public void testWriteJsonBodyIOException() throws JsonProcessingException {
+		ObjectMapper failingMapper = Mockito.mock(ObjectMapper.class);
+		ObjectNode node = mapper.createObjectNode();
+		node.put("key", "value");
+		try {
+			Mockito.when(failingMapper.valueToTree(Mockito.any())).thenReturn(node);
+			Mockito.when(failingMapper.writeValueAsString(Mockito.any())).thenThrow(new JsonProcessingException("serialization failed") {
+			});
+			ReflectionTestUtils.setField(restHelper, "mapper", failingMapper);
+			ReflectionTestUtils.invokeMethod(restHelper, "writeJsonBody", Collections.singletonMap("key", "value"));
+		} finally {
+			ReflectionTestUtils.setField(restHelper, "mapper", mapper);
+		}
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test(expected = RestServiceException.class)
+	public void testRequestSyncCheckErrorResponseOnTypedResponse() throws Throwable {
+		try {
+			ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+			String response = "{\"errors\":[{\"errorCode\":\"ERR\"}]}";
+			RestRequestDTO restReqDTO = new RestRequestDTO();
+			restReqDTO.setHttpMethod(HttpMethod.GET);
+			restReqDTO.setUri("http://test");
+			restReqDTO.setResponseType(ObjectNode.class);
+			setupWebClientMocks(responseSpec);
+			Mockito.when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.just(response));
+			restHelper.requestSync(restReqDTO);
+		} catch (Exception e) {
+			throw e.getCause() != null ? e.getCause() : e;
+		}
+	}
+
+	@Test
+	public void testCheckErrorResponseNullResponse() {
+		try {
+			ReflectionTestUtils.invokeMethod(restHelper, "checkErrorResponse", null, ObjectNode.class);
+		} catch (UndeclaredThrowableException e) {
+			RestServiceException ex = (RestServiceException) e.getCause();
+			assertEquals(IdRepoErrorConstants.CLIENT_ERROR.getErrorCode(), ex.getErrorCode());
+		}
+	}
+
+	@Test
+	public void testHandleStatusError403Forbidden() {
+		boolean caught = false;
+		try {
+			String response = "{\"errors\":[{\"errorCode\":\"KER-ATH-403\",\"message\":\"Forbidden\"}]}";
+			ReflectionTestUtils.invokeMethod(restHelper, "handleStatusError",
+					new WebClientResponseException("message", 403, "failed", null, response.getBytes(), null),
+					String.class);
+		} catch (UndeclaredThrowableException e) {
+			caught = true;
+			Throwable cause = e.getCause();
+			if (cause instanceof IdRepoRetryException) {
+				assertTrue(cause.getCause() instanceof AuthenticationException);
+				assertEquals("KER-ATH-403", ((AuthenticationException) cause.getCause()).getErrorCode());
+			} else {
+				assertTrue(cause instanceof AuthenticationException);
+				assertEquals("KER-ATH-403", ((AuthenticationException) cause).getErrorCode());
+			}
+		} catch (IdRepoRetryException e) {
+			caught = true;
+			assertTrue(e.getCause() instanceof AuthenticationException);
+			assertEquals("KER-ATH-403", ((AuthenticationException) e.getCause()).getErrorCode());
+		} catch (AuthenticationException e) {
+			caught = true;
+			assertEquals("KER-ATH-403", e.getErrorCode());
+			assertEquals(403, e.getStatusCode());
+		}
+		assertTrue(caught);
+	}
+
+	@Test
+	public void testRequestAsyncFailure() throws Exception {
+		RestHelper spy = Mockito.spy(restHelper);
+		RestRequestDTO restReqDTO = new RestRequestDTO();
+		restReqDTO.setUri("http://test");
+		Mockito.doThrow(new RestServiceException(IdRepoErrorConstants.CLIENT_ERROR)).when(spy).requestSync(restReqDTO);
+		CompletableFuture<Object> future = spy.requestAsync(restReqDTO);
+		assertTrue(future.isCompletedExceptionally());
+		try {
+			future.get();
+		} catch (ExecutionException e) {
+			assertTrue(e.getCause() instanceof RestServiceException);
+		}
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testRequestSyncNormalizesUtcTimestampsInBody() throws RestServiceException {
+		ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+		String response = "{\"response\":{\"status\":\"success\"}}";
+		RestRequestDTO restReqDTO = new RestRequestDTO();
+		restReqDTO.setHttpMethod(HttpMethod.POST);
+		restReqDTO.setUri("http://test");
+		restReqDTO.setResponseType(String.class);
+		Map<String, Object> inner = new HashMap<>();
+		inner.put("actionTimeStamp", "2024-01-01T12:00:00.123");
+		inner.put("timeStamp", "2024-01-01T12:00:00.456");
+		Map<String, Object> body = new HashMap<>();
+		body.put("requesttime", "2024-01-01T12:00:00.789");
+		body.put("request", inner);
+		restReqDTO.setRequestBody(body);
+		RequestBodySpec requestBodySpec = setupWebClientMocksWithBody(responseSpec);
+		ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
+		Mockito.doReturn(requestBodySpec).when(requestBodySpec).bodyValue(bodyCaptor.capture());
+		Mockito.when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.just(response));
+		restHelper.requestSync(restReqDTO);
+		String sentBody = bodyCaptor.getValue();
+		assertTrue(sentBody.contains("2024-01-01T12:00:00.123Z"));
+		assertTrue(sentBody.contains("2024-01-01T12:00:00.456Z"));
+		assertTrue(sentBody.contains("2024-01-01T12:00:00.789Z"));
+	}
+
+	@Test
+	public void testSummarizeRequestBodyRedactsDataAndSalt() throws Exception {
+		Map<String, Object> inner = new HashMap<>();
+		inner.put("data", "cipherTextValue");
+		inner.put("salt", "saltValue");
+		Map<String, Object> root = new HashMap<>();
+		root.put("request", inner);
+		String json = mapper.writeValueAsString(root);
+		String summarized = ReflectionTestUtils.invokeMethod(restHelper, "summarizeRequestBody", json);
+		assertTrue(summarized.contains("<redacted len="));
+	}
+
+	@Test
+	public void testSummarizeRequestBodyInvalidJsonReturnsOriginal() {
+		String badJson = "not-json";
+		String summarized = ReflectionTestUtils.invokeMethod(restHelper, "summarizeRequestBody", badJson);
+		assertEquals(badJson, summarized);
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test(expected = RestServiceException.class)
+	public void testRequestSyncUnwrapsRestServiceException() throws Throwable {
+		try {
+			ResponseSpec responseSpec = Mockito.mock(ResponseSpec.class);
+			RestRequestDTO restReqDTO = new RestRequestDTO();
+			restReqDTO.setHttpMethod(HttpMethod.GET);
+			restReqDTO.setUri("http://test");
+			restReqDTO.setResponseType(String.class);
+			setupWebClientMocks(responseSpec);
+			Mockito.when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.error(
+					new RuntimeException(new RestServiceException(IdRepoErrorConstants.CLIENT_ERROR))));
+			restHelper.requestSync(restReqDTO);
+		} catch (Exception e) {
+			throw e.getCause() != null ? e.getCause() : e;
+		}
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private WebClient setupWebClientMocks(ResponseSpec responseSpec) {
+		WebClient webClient = Mockito.mock(WebClient.class);
+		RequestBodyUriSpec requestBodyUriSpec = Mockito.mock(RequestBodyUriSpec.class);
+		RequestBodySpec requestBodySpec = Mockito.mock(RequestBodySpec.class);
+		Builder mockBuilder = Mockito.mock(Builder.class);
+		webClientStatic.when(WebClient::builder).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.build()).thenReturn(webClient);
+		ReflectionTestUtils.setField(restHelper, "webClient", webClient);
+		Mockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
+		Mockito.when(requestBodyUriSpec.uri(Mockito.anyString())).thenReturn(requestBodySpec);
+		Mockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+		return webClient;
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private RequestBodySpec setupWebClientMocksWithBody(ResponseSpec responseSpec) {
+		WebClient webClient = Mockito.mock(WebClient.class);
+		RequestBodyUriSpec requestBodyUriSpec = Mockito.mock(RequestBodyUriSpec.class);
+		RequestBodySpec requestBodySpec = Mockito.mock(RequestBodySpec.class);
+		Builder mockBuilder = Mockito.mock(Builder.class);
+		webClientStatic.when(WebClient::builder).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.clientConnector(Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.baseUrl(Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.defaultHeader(Mockito.any(), Mockito.any())).thenReturn(mockBuilder);
+		Mockito.when(mockBuilder.build()).thenReturn(webClient);
+		ReflectionTestUtils.setField(restHelper, "webClient", webClient);
+		Mockito.when(webClient.method(Mockito.any())).thenReturn(requestBodyUriSpec);
+		Mockito.when(requestBodyUriSpec.uri(Mockito.anyString())).thenReturn(requestBodySpec);
+		Mockito.when(requestBodySpec.contentType(Mockito.any(MediaType.class))).thenReturn(requestBodySpec);
+		Mockito.when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+		return requestBodySpec;
 	}
 }

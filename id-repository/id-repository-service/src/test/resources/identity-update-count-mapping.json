@@ -1,0 +1,6 @@
+{
+	"attributeUpdateCountLimit": {
+		"email": 3,
+		"phone": 5
+	}
+}

@@ -19,6 +19,7 @@ logs/
 *.swp
 *~.nib
 local.properties
+local-run.env.bat
 .loadpath
 .DS_Store
 test.txt
@@ -29,3 +30,13 @@ test.txt
 /.recommenders/
 **/*.iml
 .vscode
+
+# Ignore JAR files in lib
+id-repository/lib/*.jar
+
+# Temporary files
+response.txt
+sanity-test-output.log
+
+# Ignore all scripts if they are temporary
+id-repository/scripts/*.py

@@ -4,57 +4,66 @@ import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 
 /**
- * The Class IdRepoAppUncheckedException.
+ * Base unchecked exception for ID Repository runtime errors.
+ * <p>
+ * Extends {@link BaseUncheckedException} and is handled globally by
+ * {@link IdRepoExceptionHandler#handleIdAppUncheckedException(IdRepoAppUncheckedException, org.springframework.web.context.request.WebRequest)}.
+ * Used for non-recoverable failures that should not force callers to declare checked exceptions.
+ * </p>
+ *
+ * @see IdRepoAppException
+ * @see IdRepoExceptionHandler
+ * @see IdRepoErrorConstants
  *
  * @author Manoj SP
  */
 public class IdRepoAppUncheckedException extends BaseUncheckedException {
 
-	/** The Constant serialVersionUID. */
+	/** Serialization version UID. */
 	private static final long serialVersionUID = 6748760277721155095L;
 
 	/**
-	 * Instantiates a new id repo app unchecked exception.
+	 * Creates an empty unchecked exception instance.
 	 */
 	public IdRepoAppUncheckedException() {
 		super();
 	}
 
 	/**
-	 * Instantiates a new id repo app unchecked exception.
+	 * Creates an unchecked exception with the given error code and message.
 	 *
-	 * @param errorCode    the error code
-	 * @param errorMessage the error message
+	 * @param errorCode    MOSIP error code
+	 * @param errorMessage human-readable error message
 	 */
 	public IdRepoAppUncheckedException(String errorCode, String errorMessage) {
 		super(errorCode, errorMessage);
 	}
 
 	/**
-	 * Instantiates a new id repo app unchecked exception.
+	 * Creates an unchecked exception with error details and root cause.
 	 *
-	 * @param errorCode    the error code
-	 * @param errorMessage the error message
-	 * @param rootCause    the root cause
+	 * @param errorCode    MOSIP error code
+	 * @param errorMessage human-readable error message
+	 * @param rootCause    underlying cause of the failure
 	 */
 	public IdRepoAppUncheckedException(String errorCode, String errorMessage, Throwable rootCause) {
 		super(errorCode, errorMessage, rootCause);
 	}
 
 	/**
-	 * Instantiates a new id repo app unchecked exception.
+	 * Creates an unchecked exception from a predefined {@link IdRepoErrorConstants} entry.
 	 *
-	 * @param exceptionConstant the exception constant
+	 * @param exceptionConstant predefined error code and message pair
 	 */
 	public IdRepoAppUncheckedException(IdRepoErrorConstants exceptionConstant) {
 		this(exceptionConstant.getErrorCode(), exceptionConstant.getErrorMessage());
 	}
 
 	/**
-	 * Instantiates a new id repo app unchecked exception.
+	 * Creates an unchecked exception from a predefined constant with root cause.
 	 *
-	 * @param exceptionConstant the exception constant
-	 * @param rootCause         the root cause
+	 * @param exceptionConstant predefined error code and message pair
+	 * @param rootCause         underlying cause of the failure
 	 */
 	public IdRepoAppUncheckedException(IdRepoErrorConstants exceptionConstant, Throwable rootCause) {
 		this(exceptionConstant.getErrorCode(), exceptionConstant.getErrorMessage(), rootCause);

@@ -1,10 +1,12 @@
 package io.mosip.idrepository.core.test.exception;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.nio.file.AccessDeniedException;
 import java.time.format.DateTimeParseException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -13,24 +15,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestContext;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.validation.Errors;
-import org.springframework.web.HttpMediaTypeNotSupportedException;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.request.ServletWebRequest;
-import org.springframework.web.context.request.WebRequest;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 
@@ -40,19 +25,26 @@ import io.mosip.idrepository.core.exception.AuthenticationException;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.IdRepoExceptionHandler;
-import io.mosip.idrepository.core.util.EnvUtil;
+import io.mosip.idrepository.core.test.support.TestEnvSupport;
 import io.mosip.kernel.core.exception.ServiceError;
+import org.springframework.http.HttpInputMessage;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.validation.Errors;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.context.request.WebRequest;
 
 /**
  * The Class IdRepoExceptionHandlerTest.
  *
  * @author Manoj SP
  */
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
-@WebMvcTest @Import(EnvUtil.class)
-@ActiveProfiles("test")
-@ConfigurationProperties("mosip.idrepo.identity")
+@RunWith(MockitoJUnitRunner.class)
 public class IdRepoExceptionHandlerTest {
 
 	private Map<String, String> id;
@@ -81,6 +73,13 @@ public class IdRepoExceptionHandlerTest {
 	 */
 	@Before
 	public void before() {
+		TestEnvSupport.initEnvUtil(TestEnvSupport.loadTestEnvironment());
+		id = new HashMap<>();
+		id.put("read", "mosip.id.read");
+		id.put("create", "mosip.id.create");
+		id.put("update", "mosip.id.update");
+		id.put("deactivate", "mosip.vid.deactivate");
+		id.put("regenerate", "mosip.vid.regenerate");
 		ReflectionTestUtils.setField(handler, "id", id);
 	}
 
@@ -125,8 +124,9 @@ public class IdRepoExceptionHandlerTest {
 	@Test
 	public void testHandleExceptionInternal_HttpMessageNotReadableException() {
 		WebRequest request = new ServletWebRequest(new MockHttpServletRequest("POST", "deactivate"));
-		HttpMessageNotReadableException httpMessageNotReadableException = new HttpMessageNotReadableException("",
-				new DateTimeParseException("", "", 0));
+		HttpInputMessage httpInputMessage = mock(HttpInputMessage.class);
+		HttpMessageNotReadableException httpMessageNotReadableException = new HttpMessageNotReadableException(
+				"invalid body", new DateTimeParseException("invalid", "", 0), httpInputMessage);
 		Class<? extends Throwable> class1 = httpMessageNotReadableException.getCause().getClass();
 		class1.isAssignableFrom(InvalidFormatException.class);
 		ResponseEntity<Object> handleExceptionInternal = ReflectionTestUtils.invokeMethod(handler,
