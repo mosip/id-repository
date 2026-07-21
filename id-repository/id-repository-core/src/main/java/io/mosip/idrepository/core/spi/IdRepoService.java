@@ -4,100 +4,100 @@ import java.util.List;
 import java.util.Map;
 
 import io.mosip.idrepository.core.constant.IdType;
-import io.mosip.idrepository.core.dto.HandleInfoDTO;
 import io.mosip.idrepository.core.dto.IdVidMetadataResponseDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 
 /**
- * The Interface IdRepoService - service to provide functionality to create, 
- * retrieve and update Uin data in Id repository.
+ * Core SPI for UIN identity lifecycle operations in ID Repository.
+ * <p>
+ * Defines create, retrieve, update, and metadata APIs shared across identity
+ * controllers and in-process callers. Generic type parameters allow the REST
+ * layer ({@code IdRequestDTO}/{@code IdResponseDTO}) and the internal entity
+ * layer ({@code Uin}) to share one contract.
+ * </p>
+ * <p>
+ * <b>Implementors:</b> service-layer classes in {@code id-repository-service}
+ * (for example {@code IdRepoServiceImpl}, {@code IdRepoProxyServiceImpl}).
+ * </p>
+ * <p>
+ * <b>Callers:</b> identity REST controllers, in-process clients such as
+ * {@code InProcessIdentityClient}, and auth-type status services.
+ * </p>
  *
  * @author Manoj SP
- * @param <REQUEST> the Request Object
- * @param <RESPONSE> the Response Object
+ * @param <REQUEST>  inbound request DTO type
+ * @param <RESPONSE> outbound response DTO or entity type
  */
 public interface IdRepoService<REQUEST, RESPONSE> {
 
 	/**
-	 * This service will create a new ID record in ID repository and store 
-	 * corresponding demographic and bio-metric documents.
+	 * Creates a new identity record with demographic and biometric documents.
 	 *
-	 * @param request the request
-	 * @param uin     uin
-	 * @return the response
-	 * @throws IdRepoAppException the id repo app exception
+	 * @param request identity registration/update payload
+	 * @param uin     assigned UIN for the new record
+	 * @return created identity response
+	 * @throws IdRepoAppException on validation or persistence failure
 	 */
 	RESPONSE addIdentity(REQUEST request, String uin) throws IdRepoAppException;
 
 	/**
-	 * This service will retrieve an ID record from ID repository for a given UIN
-	 * (Unique Identification Number) and identity type as bio/demo/all.
-	 * 
-	 * 1. When type=bio is selected, individualBiometrics along with Identity
-	 * details of the Individual are returned 
-	 * 2. When type=demo is selected,
-	 * Demographic documents along with Identity details of the Individual are
-	 * returned 
-	 * 3. When type=all is selected, both individualBiometrics and
-	 * demographic documents are returned along with Identity details of the
-	 * Individual 
-	 * 4. If no identity type is provided, stored Identity details of the
-	 * Individual will be returned as a default response.
+	 * Retrieves an identity record for the given identifier and type.
+	 * <p>
+	 * When {@code type} is {@code bio}, individual biometrics plus identity
+	 * metadata are returned; {@code demo} returns demographic documents;
+	 * {@code all} returns both. When {@code type} is omitted, stored identity
+	 * JSON is returned. {@code extractionFormats} selects biometric template
+	 * formats per modality.
+	 * </p>
 	 *
-	 * @param id uin/vid/rid
-	 * @param idType 
-	 * @param type the type
-	 * @param extractionFormat 
-	 * @return the response
-	 * @throws IdRepoAppException the id repo app exception
+	 * @param id                 UIN, VID, RID, or handle value
+	 * @param idType             identifier type ({@link IdType})
+	 * @param type               retrieval scope ({@code bio}, {@code demo}, {@code all}, or null)
+	 * @param extractionFormats  per-modality biometric extraction format map
+	 * @return identity response with requested data subsets
+	 * @throws IdRepoAppException if the identifier is not found or access is denied
 	 */
 	RESPONSE retrieveIdentity(String id, IdType idType, String type, Map<String, String> extractionFormats) throws IdRepoAppException;
 
 	/**
-	 * This operation will update an existing ID record in the ID repository for a 
-	 * given UIN (Unique Identification Number).
+	 * Updates an existing identity record for the given UIN.
 	 *
-	 * @param request the request
-	 * @param uin     uin
-	 * @return the response
-	 * @throws IdRepoAppException the id repo app exception
+	 * @param request update payload
+	 * @param uin     UIN of the record to update
+	 * @return updated identity response
+	 * @throws IdRepoAppException on validation or persistence failure
 	 */
 	RESPONSE updateIdentity(REQUEST request, String uin) throws IdRepoAppException;
 
 	/**
-	 * This function takes an individualId and an IdType as input and returns the
-	 * RID in the
-	 * form of a ResponseWrapper object
-	 * 
-	 * @param individualId The ID of the individual whose RID is to be retrieved.
-	 * @param idType       The type of ID that you're passing in.
-	 * @return ResponseWrapper<String>
+	 * Resolves the Registration ID (RID) for a given individual identifier.
+	 *
+	 * @param individualId individual identifier (UIN, VID, etc.)
+	 * @param idType       identifier type
+	 * @return RID string for the individual
+	 * @throws IdRepoAppException if the identifier cannot be resolved
 	 */
 	String getRidByIndividualId(String individualId, IdType idType) throws IdRepoAppException;
 
 	/**
-	 * This function is used to get the maximum allowed update count of an attribute
-	 * for the given individual id
-	 * 
-	 * @param individualId  The UIN of the individual
-	 * @param idType        The type of the ID. For example, UIN, RID, VID, etc.
-	 * @param attributeList List of attributes for which the update count is to be
-	 *                      retrieved.
-	 * @return A map of attribute name and the maximum allowed update count for that
-	 *         attribute.
+	 * Returns metadata (RID, created-on, updated-on) for the given identifier.
+	 *
+	 * @param individualId individual identifier
+	 * @param idType       identifier type
+	 * @return metadata DTO
+	 * @throws IdRepoAppException if the identifier is not found
+	 */
+	IdVidMetadataResponseDTO getIdVidMetadata(String individualId, IdType idType) throws IdRepoAppException;
+
+	/**
+	 * Returns the remaining allowed update count per attribute for an individual.
+	 *
+	 * @param individualId  UIN or other individual identifier
+	 * @param idType        identifier type
+	 * @param attributeList demographic attributes to check
+	 * @return map of attribute name to remaining update count
+	 * @throws IdRepoAppException if the individual is not found
 	 */
 	Map<String, Integer> getRemainingUpdateCountByIndividualId(String individualId, IdType idType,
 			List<String> attributeList) throws IdRepoAppException;
-
-	/**
-	 * Retrieves the id vid metadata information for a given individual
-	 * based on the provided ID and its type.
-	 *
-	 * @param individualId the identifier of the individual whose metadata is to be fetched.
-	 * @param idType The type of ID that you're passing in.
-	 * @return an {@code IdVidMetadataResponseDTO} containing rid, createdOn, and updatedOn
-	 * @throws IdRepoAppException if there is an error during retrieval
-	 */
-
-	IdVidMetadataResponseDTO getIdVidMetadata(String individualId, IdType idType) throws IdRepoAppException;
 }

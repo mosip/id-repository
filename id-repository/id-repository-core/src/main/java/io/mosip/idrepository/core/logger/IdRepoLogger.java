@@ -4,25 +4,31 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.logger.logback.factory.Logfactory;
 
 /**
- * Logger for IdRepo which provides implementation from kernel logback.
- * 
- * @author Manoj SP
+ * Factory for obtaining structured SLF4J loggers across ID Repository modules.
+ * <p>
+ * Wraps the MOSIP kernel {@link Logfactory} to provide a single entry point for
+ * consistent log configuration. All core classes should obtain their logger via
+ * {@link #getLogger(Class)} rather than calling {@code Logfactory} directly.
+ * </p>
  *
+ * @see io.mosip.kernel.logger.logback.factory.Logfactory
+ * @see io.mosip.kernel.core.logger.spi.Logger
+ *
+ * @author Manoj SP
  */
 public final class IdRepoLogger {
 
-
 	/**
-	 * Instantiates a new id repo logger.
+	 * Private constructor — utility class, not instantiable.
 	 */
 	private IdRepoLogger() {
 	}
 
 	/**
-	 * Method to get the logger for the class provided.
+	 * Returns an SLF4J logger bound to the given class name.
 	 *
-	 * @param clazz the clazz
-	 * @return the logger
+	 * @param clazz the class requesting a logger; used as the log category
+	 * @return configured {@link Logger} instance for structured MOSIP logging
 	 */
 	public static Logger getLogger(Class<?> clazz) {
 		return Logfactory.getSlf4jLogger(clazz);

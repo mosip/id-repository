@@ -10,16 +10,12 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
-import org.mockito.InjectMocks;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestContext;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.context.WebApplicationContext;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import io.mosip.idrepository.core.builder.AuditRequestBuilder;
+import io.mosip.idrepository.core.test.support.TestEnvSupport;
 import io.mosip.idrepository.core.constant.AuditEvents;
 import io.mosip.idrepository.core.constant.AuditModules;
 import io.mosip.idrepository.core.constant.IdType;
@@ -32,18 +28,16 @@ import io.mosip.kernel.core.http.RequestWrapper;
  * @author Manoj SP
  *
  */
-@ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
-@RunWith(SpringRunner.class)
-@WebMvcTest @Import(EnvUtil.class)
+@RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@ActiveProfiles("test")
 public class AuditRequestBuilderTest {
 
-	@InjectMocks
 	AuditRequestBuilder auditBuilder;
 
 	@Before
 	public void before() {
+		TestEnvSupport.initEnvUtil(TestEnvSupport.loadTestEnvironment());
+		auditBuilder = new AuditRequestBuilder();
 	}
 
 	@Test
@@ -75,6 +69,48 @@ public class AuditRequestBuilderTest {
 			e.printStackTrace();
 		}
 		assertEquals(expectedRequest, actualRequest.getRequest());
+	}
+
+	@Test
+	public void testBuildRequestWithNullIdType() {
+		RequestWrapper<AuditRequestDTO> actualRequest = auditBuilder.buildRequest(AuditModules.ID_REPO_CORE_SERVICE,
+				AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id", null, "desc");
+		assertEquals(null, actualRequest.getRequest().getIdType());
+	}
+
+	@Test
+	public void testResolveHostDetailsUsesEnvHostName() throws Exception {
+		InetAddress inetAddress = Mockito.mock(InetAddress.class);
+		Mockito.when(inetAddress.getHostAddress()).thenReturn("127.0.0.1");
+		try (MockedStatic<InetAddress> inetStatic = Mockito.mockStatic(InetAddress.class)) {
+			inetStatic.when(InetAddress::getLocalHost).thenReturn(inetAddress);
+			AuditRequestBuilder.HostDetails details = AuditRequestBuilder.resolveHostDetails("env-host");
+			assertEquals("env-host", details.hostName());
+			assertEquals("127.0.0.1", details.hostAddress());
+		}
+	}
+
+	@Test
+	public void testResolveHostDetailsUsesInetAddressWhenEnvHostBlank() throws Exception {
+		InetAddress inetAddress = Mockito.mock(InetAddress.class);
+		Mockito.when(inetAddress.getHostName()).thenReturn("local-host");
+		Mockito.when(inetAddress.getHostAddress()).thenReturn("10.0.0.1");
+		try (MockedStatic<InetAddress> inetStatic = Mockito.mockStatic(InetAddress.class)) {
+			inetStatic.when(InetAddress::getLocalHost).thenReturn(inetAddress);
+			AuditRequestBuilder.HostDetails details = AuditRequestBuilder.resolveHostDetails(" ");
+			assertEquals("local-host", details.hostName());
+			assertEquals("10.0.0.1", details.hostAddress());
+		}
+	}
+
+	@Test
+	public void testResolveHostDetailsHandlesUnknownHostException() throws Exception {
+		try (MockedStatic<InetAddress> inetStatic = Mockito.mockStatic(InetAddress.class)) {
+			inetStatic.when(InetAddress::getLocalHost).thenThrow(new UnknownHostException("unresolvable"));
+			AuditRequestBuilder.HostDetails details = AuditRequestBuilder.resolveHostDetails(null);
+			assertEquals("", details.hostName());
+			assertEquals("", details.hostAddress());
+		}
 	}
 
 }

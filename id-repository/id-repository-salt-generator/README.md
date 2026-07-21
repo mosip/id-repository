@@ -1,12 +1,25 @@
-# Salt Generator
+# id-repository-salt-generator
 
-## Overview
-Refer [here](https://docs.mosip.io/1.2.0/modules/id-repository#salt-generator).
+One-shot batch job that populates `uin_hash_salt` and `uin_encrypt_salt` in **both** `mosip_idrepo` and `mosip_idmap`.
 
-## Run locally
+- **Not** part of the HTTP service — deploy as a Kubernetes Job (`helm/idrepo-saltgen`), not as a scaled Deployment.
+- All salt logic: this module → `io.mosip.idrepository.saltgenerator.*`
+- Shared library: `id-repository-core` → `io.mosip.idrepository.core.*` (EnvUtil, logging, Hikari helpers only)
+- Entry point: `io.mosip.idrepository.saltgenerator.SaltGeneratorBootApplication`
+
+## Build & run
+
+```bash
+cd id-repository
+mvn install -pl id-repository-salt-generator -am -DskipTests=true
+java -jar id-repository-salt-generator/target/id-repository-salt-generator-*.jar
 ```
-java -Dspring.cloud.config.uri=<url> -Dspring.cloud.config.label=<label> -Dspring.cloud.config.name=<name> -Dspring.profiles.active=<profile> -jar id-repository-salt-generator.jar
-```
 
-## Default context-path and port
-Refer [`bootstrap.properties`](src/main/resources/bootstrap.properties)
+Windows: `run-id-repository-saltgen-local.bat` from repo root (uses `local-run.env.bat`).
+
+## Docker
+
+```bash
+mvn package -pl id-repository-salt-generator -am -DskipTests=true
+docker build -t id-repository-salt-generator id-repository-salt-generator
+```

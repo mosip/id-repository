@@ -5,93 +5,118 @@ import java.time.LocalDateTime;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * The Class AuditRequestDTO - class defines attributes for making audit
- * requests.
+ * Payload describing a single audit event sent to the MOSIP audit manager.
+ *
+ * <p>
+ * Built by {@link io.mosip.idrepository.core.builder.AuditRequestBuilder} and
+ * posted by {@link io.mosip.idrepository.core.helper.AuditHelper}. Fields marked
+ * {@link NotNull} are required when posting audit records; subject id fields
+ * are optional and often carry a hashed identifier for privacy.
+ * </p>
+ *
+ * <h2>API context</h2>
+ * <p>
+ * Outbound REST call to the kernel audit service. Not part of the public
+ * identity/VID/credential HTTP surface, but used on every audited identity and
+ * credential operation.
+ * </p>
+ *
+ * <h2>Consumers</h2>
+ * <ul>
+ *   <li>{@code AuditRequestBuilder} — constructs instances</li>
+ *   <li>{@code AuditHelper} — posts to audit manager</li>
+ *   <li>Identity, VID, and credential service layers that emit audits</li>
+ * </ul>
  *
  * @author Manoj SP
+ * @see io.mosip.idrepository.core.builder.AuditRequestBuilder
+ * @see io.mosip.idrepository.core.helper.AuditHelper
+ * @see AuditResponseDTO
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuditRequestDTO {
 
-	/** The event id. */
+	/** Unique identifier of the audit event type (configured in audit module). */
 	@NotNull
 	@Size(min = 1, max = 255)
 	private String eventId;
 
-	/** The event name. */
+	/** Human-readable name of the audit event. */
 	@NotNull
 	@Size(min = 1, max = 255)
 	private String eventName;
 
-	/** The event type. */
+	/** Category of the event (for example, business or system). */
 	@NotNull
 	@Size(min = 1, max = 255)
 	private String eventType;
 
-	/** The action time stamp. */
+	/** Timestamp when the audited action occurred. */
 	@NotNull
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 	private LocalDateTime actionTimeStamp;
 
-	/** The host name. */
+	/** Host name of the machine that performed the action. */
 	@NotNull
 	@Size(min = 1, max = 255)
 	private String hostName;
 
-	/** The host ip. */
+	/** IP address of the host that performed the action. */
 	@NotNull
 	@Size(min = 1, max = 255)
 	private String hostIp;
 
-	/** The application id. */
+	/** Application identifier registered with the audit service. */
 	@NotNull
 	@Size(min = 1, max = 255)
 	private String applicationId;
 
-	/** The application name. */
+	/** Display name of the application that generated the audit. */
 	@NotNull
 	@Size(min = 1, max = 255)
 	private String applicationName;
 
-	/** The session user id. */
+	/** Identifier of the user session that triggered the event. */
 	@NotNull
 	@Size(min = 1, max = 255)
 	private String sessionUserId;
 
-	/** The session user name. */
+	/** Display name of the user associated with the session. */
 	@NotNull
 	@Size(min = 1, max = 255)
 	private String sessionUserName;
 
-	/** The id. */
+	/** Subject identifier related to the event (UIN, VID, RID, etc.); optional. */
 	@Size(max = 255)
 	private String id;
 
-	/** The id type. */
+	/** Type of the subject identifier (for example, UIN or VID); optional. */
 	@Size(max = 255)
 	private String idType;
 
-	/** The created by. */
+	/** User or system component that created the audit record. */
 	@NotNull
 	@Size(min = 1, max = 255)
 	private String createdBy;
 
-	/** The module name. */
+	/** Name of the functional module where the event originated; optional. */
 	@Size(max = 255)
 	private String moduleName;
 
-	/** The module id. */
+	/** Identifier of the functional module; optional. */
 	@Size(max = 255)
 	private String moduleId;
 
-	/** The description. */
+	/** Free-text description of the audited action; optional. */
 	@Size(max = 2048)
 	private String description;
-
 }
