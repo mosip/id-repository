@@ -27,6 +27,10 @@ jobs:
     with:
       SERVICE_LOCATION: ./id-repository
       BUILD_ARTIFACT: id-repository
+      # Boot 4 removed fully-executable JARs (no Unix +x bit). Kattu's default zip
+      # step only packs -executable JARs; list deployable fat JARs here so the
+      # id-repository artifact is uploaded for docker-build.
+      MAVEN_NON_EXEC_ARTIFACTS: id-repository-service.jar,id-repository-salt-generator.jar
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
       OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
@@ -125,9 +129,9 @@ jobs:
       SERVICE_LOCATION: api-test
       BUILD_ARTIFACT: apitest-idrepo-local
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up JDK 21
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: 21

@@ -43,7 +43,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<mainClass>io.mosip.idrepository.saltgenerator.SaltGeneratorBootApplication</mainClass>
-					<executable>true</executable>
+					<!-- Boot 4 removed executable launch scripts; ZIP layout supports java -jar -->
 					<layout>ZIP</layout>
 				</configuration>
 				<executions>
