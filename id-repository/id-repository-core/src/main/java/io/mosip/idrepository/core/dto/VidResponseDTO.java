@@ -5,26 +5,48 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
- * This class will provide values to hold uin,vid and vidStatus
- * 
- * @author Prem Kumar
+ * Response body returned after VID create, update, or restore operations.
  *
+ * <p>
+ * Exposes decrypted UIN, generated VID, status, and any restored VID details
+ * produced by auto-restore policy. Jackson {@code @JsonProperty} maps
+ * {@code UIN} and {@code VID} JSON keys — keep those annotations stable for
+ * external clients.
+ * </p>
+ *
+ * <h2>API context</h2>
+ * <p>
+ * Outbound body for {@code /idrepository/v1/vid} create/update/restore.
+ * When auto-restore applies, {@link #restoredVid} may nest another
+ * {@link VidResponseDTO} describing the restored identifier.
+ * </p>
+ *
+ * <h2>Consumers</h2>
+ * <ul>
+ *   <li>{@code VidServiceImpl}</li>
+ *   <li>Registration and partner VID clients</li>
+ *   <li>api-test VID scenarios</li>
+ * </ul>
+ *
+ * @author Prem Kumar
+ * @see VidRequestDTO
+ * @see VidInfoDTO
+ * @see io.mosip.idrepository.vid.service.impl.VidServiceImpl
  */
 @Data
 public class VidResponseDTO {
 
-	/** The Value Of UIN in Decrypted value */
+	/** Decrypted UIN of the individual; JSON key is {@code UIN}. */
 	@JsonProperty("UIN")
 	private String uin;
 
-	/** The Value to hold vid */
+	/** Generated or updated Virtual ID; JSON key is {@code VID}. */
 	@JsonProperty("VID")
 	private String vid;
 
-	/** The Value to hold vidStatus */
+	/** Current lifecycle status of the VID. */
 	private String vidStatus;
-	
-	/** The Value to hold updatedVid */
+
+	/** Details of a VID restored during an auto-restore policy action, if applicable. */
 	private VidResponseDTO restoredVid;
-	
 }

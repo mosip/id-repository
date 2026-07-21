@@ -5,66 +5,74 @@ import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 
 /**
- * The Class IdRepoRetryException - Unchecked exception used to trigger retry
- * in RestHelper.
+ * Unchecked exception used to signal that an outbound REST call should be retried.
+ * <p>
+ * Thrown by {@link io.mosip.idrepository.core.helper.RestHelper} on transient failures
+ * (connection timeout, HTTP 403, HTTP 5xx) and consumed by the kernel {@code @WithRetry}
+ * aspect to trigger automatic retry with backoff.
+ * </p>
+ *
+ * @see io.mosip.idrepository.core.helper.RestHelper#requestSync(io.mosip.idrepository.core.dto.RestRequestDTO)
+ * @see RestServiceException
+ * @see AuthenticationException
  *
  * @author Manoj SP
  */
 public class IdRepoRetryException extends BaseUncheckedException {
 
-	/** The Constant serialVersionUID. */
+	/** Serialization version UID. */
 	private static final long serialVersionUID = 6748760277721155095L;
 
 	/**
-	 * Instantiates a new id repo retry exception.
+	 * Creates an empty retry exception instance.
 	 */
 	public IdRepoRetryException() {
 		super();
 	}
 
 	/**
-	 * Instantiates a new id repo retry exception.
+	 * Creates a retry exception with the given error code and message.
 	 *
-	 * @param errorCode    the error code
-	 * @param errorMessage the error message
+	 * @param errorCode    MOSIP error code
+	 * @param errorMessage human-readable error message
 	 */
 	public IdRepoRetryException(String errorCode, String errorMessage) {
 		super(errorCode, errorMessage);
 	}
 
 	/**
-	 * Instantiates a new id repo retry exception.
+	 * Creates a retry exception with error details and root cause.
 	 *
-	 * @param errorCode    the error code
-	 * @param errorMessage the error message
-	 * @param rootCause    the root cause
+	 * @param errorCode    MOSIP error code
+	 * @param errorMessage human-readable error message
+	 * @param rootCause    underlying transient failure
 	 */
 	public IdRepoRetryException(String errorCode, String errorMessage, Throwable rootCause) {
 		super(errorCode, errorMessage, rootCause);
 	}
 
 	/**
-	 * Instantiates a new id repo retry exception.
+	 * Creates a retry exception from a predefined {@link IdRepoErrorConstants} entry.
 	 *
-	 * @param exceptionConstant the exception constant
+	 * @param exceptionConstant predefined error code and message pair
 	 */
 	public IdRepoRetryException(IdRepoErrorConstants exceptionConstant) {
 		this(exceptionConstant.getErrorCode(), exceptionConstant.getErrorMessage());
 	}
 
 	/**
-	 * Instantiates a new id repo retry exception.
+	 * Wraps a checked kernel exception as a retry-triggering unchecked exception.
 	 *
-	 * @param BaseCheckedException the root cause
+	 * @param rootCause checked exception from a failed REST or service call
 	 */
 	public IdRepoRetryException(BaseCheckedException rootCause) {
 		this(rootCause.getErrorCode(), rootCause.getErrorText(), rootCause);
 	}
 
 	/**
-	 * Instantiates a new id repo retry exception.
+	 * Wraps an unchecked kernel exception as a retry-triggering unchecked exception.
 	 *
-	 * @param BaseUncheckedException the root cause
+	 * @param rootCause unchecked exception from a failed REST or service call
 	 */
 	public IdRepoRetryException(BaseUncheckedException rootCause) {
 		this(rootCause.getErrorCode(), rootCause.getErrorText(), rootCause);

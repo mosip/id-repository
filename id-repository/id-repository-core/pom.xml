@@ -5,24 +5,17 @@
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.4.0-SNAPSHOT</version>
+		<version>1.4.1-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<artifactId>id-repository-core</artifactId>
+	<version>1.4.1-SNAPSHOT</version>
 	<name>idrepo-core</name>
 	<description>ID-Repository core</description>
-	<version>1.4.0-SNAPSHOT</version>
 
 	<properties>
-		<kernel-websubclient-api.version>1.3.1-rc.1</kernel-websubclient-api.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>21</maven.compiler.source>
-		<maven.compiler.target>21</maven.compiler.target>
-		<spring-cloud-config.version>2.0.0.RELEASE</spring-cloud-config.version>
-		<swagger.version>2.9.2</swagger.version>
-		<lombok.version>1.18.32</lombok.version>
-		<postgresql.version>42.2.2</postgresql.version>
-		<powermock.version>2.0.9</powermock.version>
 		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
 	</properties>
 	<dependencies>
@@ -43,30 +36,166 @@
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.fasterxml.jackson.module</groupId>
-			<artifactId>jackson-module-afterburner</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>io.springfox</groupId>
-			<artifactId>springfox-swagger2</artifactId>
-			<version>${swagger.version}</version>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>io.springfox</groupId>
-			<artifactId>springfox-swagger-ui</artifactId>
-			<version>${swagger.version}</version>
+			<groupId>com.fasterxml.jackson.module</groupId>
+			<artifactId>jackson-module-afterburner</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-cache</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.retry</groupId>
+			<artifactId>spring-retry</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.zaxxer</groupId>
+			<artifactId>HikariCP</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.mvel</groupId>
+			<artifactId>mvel2</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.jayway.jsonpath</groupId>
+			<artifactId>json-path</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.skyscreamer</groupId>
+			<artifactId>jsonassert</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-core</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter</artifactId>
+				</exclusion>
+				<!-- Boot 4: bootstrap child context bypasses our spring.factories filter -->
+				<exclusion>
+					<groupId>org.springframework.cloud</groupId>
+					<artifactId>spring-cloud-starter-bootstrap</artifactId>
+				</exclusion>
+				<!-- Shaded NativeImageUtil in kernel-auth-adapter breaks afterburner setupModule -->
+				<exclusion>
+					<groupId>com.fasterxml.jackson.module</groupId>
+					<artifactId>jackson-module-afterburner</artifactId>
+				</exclusion>
+				<!-- kernel-core pairs javax jaxb-api 2.3 with jaxb-runtime 4.x (jakarta); CBEFF needs 2.x -->
+				<exclusion>
+					<groupId>org.glassfish.jaxb</groupId>
+					<artifactId>jaxb-runtime</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<!-- javax.xml.bind implementation for CbeffValidator / BIR on JDK 21 -->
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-dataaccess-hibernate</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idvalidator-uin</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idvalidator-rid</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idvalidator-vid</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idobjectvalidator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-cbeffutil-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-biosdk-provider</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.commons</groupId>
+			<artifactId>khazana</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>io.mosip.kernel</groupId>
+					<artifactId>kernel-keymanager-service</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-dependencies</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>info.weboftrust</groupId>
+			<artifactId>ld-signatures-java</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.biometric.util</groupId>
+			<artifactId>biometrics-util</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.postgresql</groupId>
@@ -90,16 +219,43 @@
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
 		</dependency>
+		
+<!--		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-biosdk-provider</artifactId>
+			<version>${kernel.biosdk.provider.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-lang3</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>-->
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-websubclient-api</artifactId>
-			<version>${kernel-websubclient-api.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.github.java-json-tools</groupId>
+			<artifactId>json-schema-validator</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
 	</dependencies>
+	<repositories>
+		<repository>
+			<id>danubetech-maven-public</id>
+			<url>https://repo.danubetech.com/repository/maven-public/</url>
+		</repository>
+	</repositories>
 	<distributionManagement>
 		<snapshotRepository>
 			<id>ossrh</id>
@@ -129,6 +285,13 @@
 					<compilerArgs>
 						<arg>-parameters</arg>
 					</compilerArgs>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version>
+						</path>
+					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
 		</plugins>

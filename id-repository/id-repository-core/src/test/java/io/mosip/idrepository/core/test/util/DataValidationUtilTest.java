@@ -7,6 +7,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 
+import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.util.DataValidationUtil;
@@ -53,7 +54,7 @@ public class DataValidationUtilTest {
 			throws IdRepoDataValidationException, NoSuchFieldException, SecurityException {
 		request.setId("uniqueID");
 		Errors errors = new BindException(request, "IdRequestDTO");
-		errors.rejectValue("id", "errorCode", "defaultMessage");
+		errors.rejectValue("id", IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), "defaultMessage");
 		DataValidationUtil.validate(errors);
 	}
 
