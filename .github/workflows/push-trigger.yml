@@ -27,7 +27,6 @@ jobs:
     with:
       SERVICE_LOCATION: ./id-repository
       BUILD_ARTIFACT: id-repository
-      MAVEN_NON_EXEC_ARTIFACTS: "credential-request-generator.jar, credential-service.jar, id-repository-identity-service.jar, id-repository-salt-generator.jar, id-repository-vid-service.jar"
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
       OSSRH_SECRET: ${{ secrets.OSSRH_SECRET }}
@@ -54,21 +53,14 @@ jobs:
     strategy:
       matrix:
         include:
-          - SERVICE_LOCATION: 'id-repository/credential-request-generator'
-            SERVICE_NAME: 'credential-request-generator'
+          - SERVICE_LOCATION: 'id-repository/id-repository-service'
+            SERVICE_NAME: 'id-repository-service'
             BUILD_ARTIFACT: 'id-repository'
-          - SERVICE_LOCATION: 'id-repository/credential-service'
-            SERVICE_NAME: 'credential-service'
-            BUILD_ARTIFACT: 'id-repository'
-          - SERVICE_LOCATION: 'id-repository/id-repository-identity-service'
-            SERVICE_NAME: 'id-repository-identity-service'
-            BUILD_ARTIFACT: 'id-repository'
+            SQUASH_LAYERS: '12'
           - SERVICE_LOCATION: 'id-repository/id-repository-salt-generator'
             SERVICE_NAME: 'id-repository-salt-generator'
             BUILD_ARTIFACT: 'id-repository'
-          - SERVICE_LOCATION: 'id-repository/id-repository-vid-service'
-            SERVICE_NAME: 'id-repository-vid-service'
-            BUILD_ARTIFACT: 'id-repository'
+            SQUASH_LAYERS: '12'
       fail-fast: false
     name: ${{ matrix.SERVICE_NAME }}
     uses: mosip/kattu/.github/workflows/docker-build.yml@master-java21
@@ -76,6 +68,7 @@ jobs:
       SERVICE_LOCATION: ${{ matrix.SERVICE_LOCATION }}
       SERVICE_NAME: ${{ matrix.SERVICE_NAME }}
       BUILD_ARTIFACT: ${{ matrix.BUILD_ARTIFACT }}
+      SQUASH_LAYERS: ${{ matrix.SQUASH_LAYERS }}
     secrets:
       DEV_NAMESPACE_DOCKER_HUB: ${{ secrets.DEV_NAMESPACE_DOCKER_HUB }}
       ACTOR_DOCKER_HUB: ${{ secrets.ACTOR_DOCKER_HUB }}
