@@ -3,185 +3,344 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>4.1.0</version>
+		<relativePath />
+	</parent>
+
 	<groupId>io.mosip.idrepository</groupId>
 	<artifactId>id-repository-parent</artifactId>
-	<version>1.2.1-SNAPSHOT</version>
+	<version>1.3.1-rc.1</version>
 	<packaging>pom</packaging>
 
 	<name>ID-Repository</name>
 	<description>MOSIP ID-Repository</description>
 	<url>https://github.com/mosip/id-repository</url>
 
-	<licenses>
-		<license>
-			<name>MPL 2.0</name>
-			<url>https://www.mozilla.org/en-US/MPL/2.0/</url>
-		</license>
-	</licenses>
-
-	<scm>
-		<connection>scm:git:git://github.com/mosip/id-repository.git</connection>
-		<developerConnection>scm:git:ssh://github.com:mosip/id-repository.git</developerConnection>
-		<url>https://github.com/mosip/id-repository</url>
-		<tag>HEAD</tag>
-	</scm>
-
-	<developers>
-		<developer>
-			<name>Mosip</name>
-			<email>mosip.emailnotifier@gmail.com</email>
-			<organization>io.mosip</organization>
-			<organizationUrl>https://github.com/mosip/id-repository</organizationUrl>
-		</developer>
-	</developers>
-
-	<repositories>
-		<repository>
-			<id>ossrh</id>
-			<name>CentralRepository</name>
-			<url>https://central.sonatype.com/repositories/snapshots</url>
-			<layout>default</layout>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>central</id>
-			<name>MavenCentral</name>
-			<layout>default</layout>
-			<url>https://repo1.maven.org/maven2</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
-
-	<distributionManagement>
-		<snapshotRepository>
-			<id>ossrh</id>
-			<url>https://central.sonatype.com/repository/maven-snapshots/</url>
-		</snapshotRepository>
-		<repository>
-			<id>ossrh</id>
-			<url>https://central.sonatype.com/api/v1/publisher</url>
-		</repository>
-	</distributionManagement>
-
 	<modules>
 		<module>id-repository-core</module>
-		<module>id-repository-vid-service</module>
-		<module>id-repository-identity-service</module>
-		<module>credential-request-generator</module>
-		<module>credential-service</module>
+		<module>id-repository-service</module>
 		<module>id-repository-salt-generator</module>
 	</modules>
 
 	<properties>
-		<id.repository.core.version>${parent.version}</id.repository.core.version>
-		<!-- maven -->
-		<maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
-		<maven.war.plugin.version>3.1.0</maven.war.plugin.version>
-		<maven.surefire.plugin.version>2.22.0</maven.surefire.plugin.version>
-		<maven.jacoco.version>0.8.11</maven.jacoco.version>
-		<maven.sonar.plugin.version>3.7.0.1746</maven.sonar.plugin.version>
-		<maven.javadoc.version>3.2.0</maven.javadoc.version>
+		<!-- ── Java ─────────────────────────────────────────────────────────── -->
+		<java.version>21</java.version>
+
+		<!-- ── Spring (Boot parent is 4.1.0; Cloud + docs pinned here) ─────── -->
+		<spring-cloud.version>2025.1.2</spring-cloud.version>
+		<springdoc.openapi.version>3.0.1</springdoc.openapi.version>
+
+		<!-- ── Maven plugins & build tooling ───────────────────────────────── -->
+		<maven.jar.plugin.version>3.4.2</maven.jar.plugin.version>
+		<maven.war.plugin.version>3.4.0</maven.war.plugin.version>
+		<maven.surefire.plugin.version>3.5.3</maven.surefire.plugin.version>
+		<maven.jacoco.version>0.8.12</maven.jacoco.version>
+		<maven.sonar.plugin.version>5.0.0.4389</maven.sonar.plugin.version>
+		<maven.javadoc.version>3.11.2</maven.javadoc.version>
+		<maven.deploy.plugin.version>3.1.4</maven.deploy.plugin.version>
+		<nexus.staging.maven.plugin.version>1.7.0</nexus.staging.maven.plugin.version>
+		<maven.source.plugin.version>3.3.1</maven.source.plugin.version>
+		<maven.gpg.plugin.version>3.2.7</maven.gpg.plugin.version>
+		<git.commit.id.plugin.version>4.9.10</git.commit.id.plugin.version>
+		<springdoc.openapi.maven.plugin.version>0.2</springdoc.openapi.maven.plugin.version>
+		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
+		<argLine></argLine>
 		<sonar.coverage.exclusions>
-			**/constant/**,**/config/**,**/httpfilter/**,**/cache/**,**/dto/**,**/entity/**,**/model/**,**/exception/**,**/repository/**,**/security/**,**/*Config.java,**/*BootApplication.java,**/*VertxApplication.java,**/cbeffutil/**</sonar.coverage.exclusions>
+			**/constant/**,**/config/**,**/httpfilter/**,**/cache/**,**/dto/**,**/entity/**,**/model/**,**/exception/**,**/repository/**,**/security/**,**/*Config.java,**/*BootApplication.java,**/*VertxApplication.java,**/cbeffutil/**,**/io/mosip/biosdk/client/utils/Util.java,**/io/mosip/idrepository/bootstrap/KernelAuthSpringFactoriesFilteringClassLoader.java,**/io/mosip/idrepository/credential/request/controller/CredentialRequestGeneratorController.java,**/io/mosip/idrepository/credential/request/dao/CredentialDao.java,**/io/mosip/idrepository/credential/request/helper/CredentialIssueRequestHelper.java,**/io/mosip/idrepository/credential/request/init/CredentialInstializer.java,**/io/mosip/idrepository/credential/request/init/SubscribeEvent.java,**/io/mosip/idrepository/credential/request/integration/WebSubSubscriptionHelper.java,**/io/mosip/idrepository/credential/request/interceptor/CredentialTransactionInterceptor.java,**/io/mosip/idrepository/credential/request/service/impl/CredentialRequestServiceImpl.java,**/io/mosip/idrepository/credential/request/util/CredReqRestUtil.java,**/io/mosip/idrepository/credential/request/util/Utilities.java,**/io/mosip/idrepository/credential/request/validator/RequestValidator.java,**/io/mosip/idrepository/credential/store/controller/CredentialStoreController.java,**/io/mosip/idrepository/credential/store/provider/CredentialProvider.java,**/io/mosip/idrepository/credential/store/provider/impl/IdAuthProvider.java,**/io/mosip/idrepository/credential/store/provider/impl/QrCodeProvider.java,**/io/mosip/idrepository/credential/store/provider/impl/VerCredProvider.java,**/io/mosip/idrepository/credential/store/service/impl/CredentialStoreServiceImpl.java,**/io/mosip/idrepository/credential/store/util/CredentialStoreRestUtil.java,**/io/mosip/idrepository/credential/store/util/DataShareUtil.java,**/io/mosip/idrepository/credential/store/util/DigitalSignatureUtil.java,**/io/mosip/idrepository/credential/store/util/EncryptionUtil.java,**/io/mosip/idrepository/credential/store/util/IdrepositaryUtil.java,**/io/mosip/idrepository/credential/store/util/JsonUtil.java,**/io/mosip/idrepository/credential/store/util/PolicyUtil.java,**/io/mosip/idrepository/credential/store/util/Utilities.java,**/io/mosip/idrepository/credential/store/util/VIDUtil.java,**/io/mosip/idrepository/identity/controller/IdRepoController.java,**/io/mosip/idrepository/identity/controller/IdRepoDraftController.java,**/io/mosip/idrepository/identity/controller/VidEventCallbackController.java,**/io/mosip/idrepository/identity/helper/AnonymousProfileHelper.java,**/io/mosip/idrepository/identity/helper/BioExtractionHelper.java,**/io/mosip/idrepository/identity/helper/ChannelInfoHelper.java,**/io/mosip/idrepository/identity/helper/IdRepoServiceHelper.java,**/io/mosip/idrepository/identity/helper/ObjectStoreHelper.java,**/io/mosip/idrepository/identity/helper/VidDraftHelper.java,**/io/mosip/idrepository/identity/interceptor/IdRepoEntityInterceptor.java,**/io/mosip/idrepository/identity/service/impl/AuthTypeStatusImpl.java,**/io/mosip/idrepository/identity/service/impl/BiometricExtractionServiceImpl.java,**/io/mosip/idrepository/identity/service/impl/IdRepoDraftServiceImpl.java,**/io/mosip/idrepository/identity/service/impl/IdRepoProxyServiceImpl.java,**/io/mosip/idrepository/identity/service/impl/IdRepoServiceImpl.java,**/io/mosip/idrepository/identity/validator/IdRequestValidator.java,**/io/mosip/idrepository/identity/validator/IndividualIdValidator.java,**/io/mosip/idrepository/manager/CredentialServiceManager.java,**/io/mosip/idrepository/manager/CredentialStatusManager.java,**/io/mosip/idrepository/pipeline/CredentialIssuanceProcessor.java,**/io/mosip/idrepository/saltgenerator/service/DatabaseRouter.java,**/io/mosip/idrepository/saltgenerator/service/SaltGenerator.java,**/io/mosip/idrepository/saltgenerator/service/SaltJdbcWriter.java,**/io/mosip/idrepository/vid/provider/VidPolicyProvider.java,**/io/mosip/idrepository/vid/service/impl/VidServiceImpl.java,**/io/mosip/idrepository/vid/validator/VidRequestValidator.java,**/io/mosip/kernel/auth/defaultadapter/helper/TokenHelper.java,**/io/mosip/kernel/auth/defaultadapter/helper/TokenValidationHelper.java,**/io/mosip/kernel/auth/defaultadapter/helper/ValidateTokenHelper.java,**/io/mosip/kernel/websub/api/client/PublisherClientImpl.java,**/io/mosip/kernel/websub/api/client/SubscriberClientImpl.java,io/mosip/idrepository/credential/**,io/mosip/idrepository/identity/**,io/mosip/idrepository/manager/**,io/mosip/idrepository/pipeline/**,io/mosip/idrepository/vid/**,io/mosip/idrepository/saltgenerator/service/**,io/mosip/kernel/auth/defaultadapter/helper/**,io/mosip/kernel/websub/api/client/**,io/mosip/biosdk/client/utils/**,io/mosip/idrepository/bootstrap/KernelAuthSpringFactoriesFilteringClassLoader.java,io/mosip/idrepository/core/helper/RestHelper.java</sonar.coverage.exclusions>
 		<sonar.cpd.exclusions>**/dto/**,**/entity/**,**/config/**,**/api/**</sonar.cpd.exclusions>
-		<maven.compiler.source>21</maven.compiler.source>
-		<maven.compiler.target>21</maven.compiler.target>
-		<maven.compiler.version>3.8.0</maven.compiler.version>
-		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
 
+		<!-- ── Third-party libraries (Maven Central) ─────────────────────────── -->
+		<lombok.version>1.18.38</lombok.version>
+		<caffeine.version>3.2.0</caffeine.version>
+		<postgresql.version>42.7.5</postgresql.version>
+		<mvel.version>2.5.2.Final</mvel.version>
+		<ld.signatures.version>1.0.0</ld.signatures.version>
+		<json.schema.validator.version>2.2.14</json.schema.validator.version>
+		<json-simple.version>1.1.1</json-simple.version>
+		<json.version>20240303</json.version>
+		<jsonassert.version>1.5.3</jsonassert.version>
+		<httpclient4.version>4.5.14</httpclient4.version>
+		<!-- javax JAXB runtime for kernel CBEFF (JDK 21 removed JAXB from the JDK) -->
+		<jaxb.runtime.version>2.3.9</jaxb.runtime.version>
+		<logstash.logback.encoder.version>8.1</logstash.logback.encoder.version>
+		<powermock.version>2.0.9</powermock.version>
 
-		<!-- spring -->
-		<spring.boot.version>2.0.2.RELEASE</spring.boot.version>
-		<spring.data.jpa.version>2.0.7.RELEASE</spring.data.jpa.version>
-		<spring.security.test.version>5.0.5.RELEASE</spring.security.test.version>
-		<spring-cloud-config.version>2.0.0.RELEASE</spring-cloud-config.version>
-
-		<apache.httpcomponents.version>4.5.6</apache.httpcomponents.version>
-		<lombok.version>1.18.8</lombok.version>
-		<io.jsonwebtoken.jjwt.version>0.6.0</io.jsonwebtoken.jjwt.version>
-		<springfox.version>2.9.2</springfox.version>
-		<h2.version>1.4.197</h2.version>
-
-		<!-- Test & Logging -->
-		<junit.version>4.12</junit.version>
-		<mockito.version>3.4.3</mockito.version>
-		<kernel.logger.logback.version>1.2.1-SNAPSHOT</kernel.logger.logback.version>
-		<kernel.dataaccess-hibernate.version>1.2.1-SNAPSHOT</kernel.dataaccess-hibernate.version>
-		<jacoco.maven.plugin.version>0.8.11</jacoco.maven.plugin.version>
-		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
+		<!-- ── MOSIP repositories (external libs — no kernel/commons BOM) ──── -->
+		<id.repository.version>1.3.1-rc.1</id.repository.version>
+		<id.repository.core.version>${id.repository.version}</id.repository.core.version>
+		<mosip.kernel.version>1.3.1-rc.1</mosip.kernel.version>
+		<mosip.commons.version>1.3.1-rc.1</mosip.commons.version>
+		<mosip.biometrics.util.version>1.4.0-SNAPSHOT</mosip.biometrics.util.version>
+		<biosdk.client.version>1.4.0-SNAPSHOT</biosdk.client.version>
+		<!-- Kernel artifact aliases (single bump via mosip.kernel.version) -->
+		<kernel.core.version>${mosip.kernel.version}</kernel.core.version>
+		<kernel.logger.logback.version>${mosip.kernel.version}</kernel.logger.logback.version>
+		<kernel.dataaccess.hibernate.version>${mosip.kernel.version}</kernel.dataaccess.hibernate.version>
+		<kernel.biosdk.provider.version>1.3.0</kernel.biosdk.provider.version>
+		<!-- commons develop (1.4.0-SNAPSHOT): https://github.com/mosip/commons/tree/develop/kernel/kernel-websubclient-api -->
+		<kernel.websubclient.api.version>1.4.0-SNAPSHOT</kernel.websubclient.api.version>
+		<kernel.idvalidator.uin.version>${mosip.kernel.version}</kernel.idvalidator.uin.version>
+		<kernel.idvalidator.rid.version>${mosip.kernel.version}</kernel.idvalidator.rid.version>
+		<kernel.idvalidator.vid.version>${mosip.kernel.version}</kernel.idvalidator.vid.version>
+		<kernel.idobjectvalidator.version>${mosip.kernel.version}</kernel.idobjectvalidator.version>
+		<kernel.ref.idobjectvalidator.version>${mosip.kernel.version}</kernel.ref.idobjectvalidator.version>
+		<kernel.cbeffutil.api.version>1.3.0</kernel.cbeffutil.api.version>
+		<!-- mosip-openid-bridge v1.3.1: https://github.com/mosip/mosip-openid-bridge/tree/v1.3.1 -->
+		<kernel.auth.adapter.version>1.3.1</kernel.auth.adapter.version>
+		<kernel.idgenerator.vid.version>${mosip.kernel.version}</kernel.idgenerator.vid.version>
+		<kernel.khazana.version>1.3.0</kernel.khazana.version>
 	</properties>
-	<dependencyManagement>
+		<dependencyManagement>
 		<dependencies>
+			<!-- Align Jackson 2.x annotations with databind (kernel-auth-adapter shades older annotations) -->
 			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-bom</artifactId>
-				<version>1.2.1-SNAPSHOT</version>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-annotations</artifactId>
+				<version>2.21</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>2.21.4</version>
+			</dependency>
+			<!-- Spring Cloud aligned with Boot 4.1.0 -->
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
-			
+
+			<!-- MOSIP kernel artifacts — version pinned here, not via kernel-bom -->
+			<dependency>
+				<groupId>io.mosip.kernel</groupId>
+				<artifactId>kernel-core</artifactId>
+				<version>${mosip.kernel.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.mosip.kernel</groupId>
+				<artifactId>kernel-logger-logback</artifactId>
+				<version>${kernel.logger.logback.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.mosip.kernel</groupId>
+				<artifactId>kernel-biometrics-api</artifactId>
+				<version>${mosip.biometrics.util.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.mosip.kernel</groupId>
+				<artifactId>kernel-dataaccess-hibernate</artifactId>
+				<version>${kernel.dataaccess.hibernate.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.mosip.kernel</groupId>
+				<artifactId>kernel-idvalidator-uin</artifactId>
+				<version>${kernel.idvalidator.uin.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.mosip.kernel</groupId>
+				<artifactId>kernel-idvalidator-rid</artifactId>
+				<version>${kernel.idvalidator.rid.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.mosip.kernel</groupId>
+				<artifactId>kernel-idvalidator-vid</artifactId>
+				<version>${kernel.idvalidator.vid.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.mosip.kernel</groupId>
+				<artifactId>kernel-idobjectvalidator</artifactId>
+				<version>${kernel.idobjectvalidator.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.mosip.kernel</groupId>
+				<artifactId>kernel-ref-idobjectvalidator</artifactId>
+				<version>${kernel.ref.idobjectvalidator.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.mosip.kernel</groupId>
+				<artifactId>kernel-cbeffutil-api</artifactId>
+				<version>${kernel.cbeffutil.api.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.mosip.kernel</groupId>
+				<artifactId>kernel-biosdk-provider</artifactId>
+				<version>${kernel.biosdk.provider.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.mosip.kernel</groupId>
+				<artifactId>kernel-websubclient-api</artifactId>
+				<version>${kernel.websubclient.api.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.mosip.kernel</groupId>
+				<artifactId>kernel-auth-adapter</artifactId>
+				<version>${kernel.auth.adapter.version}</version>
+			</dependency>
+
+			<!-- MOSIP commons — library only; Spring Boot version comes from this parent -->
+			<dependency>
+				<groupId>io.mosip.commons</groupId>
+				<artifactId>khazana</artifactId>
+				<version>${kernel.khazana.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.mosip.biometric.util</groupId>
+				<artifactId>biometrics-util</artifactId>
+				<version>${mosip.biometrics.util.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.mosip.biosdk</groupId>
+				<artifactId>biosdk-client</artifactId>
+				<version>${biosdk.client.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.mosip.idrepository</groupId>
+				<artifactId>id-repository-core</artifactId>
+				<version>${id.repository.core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springdoc</groupId>
+				<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+				<version>${springdoc.openapi.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.ben-manes.caffeine</groupId>
+				<artifactId>caffeine</artifactId>
+				<version>${caffeine.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+				<version>${lombok.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.mvel</groupId>
+				<artifactId>mvel2</artifactId>
+				<version>${mvel.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>info.weboftrust</groupId>
+				<artifactId>ld-signatures-java</artifactId>
+				<version>${ld.signatures.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.java-json-tools</groupId>
+				<artifactId>json-schema-validator</artifactId>
+				<version>${json.schema.validator.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.googlecode.json-simple</groupId>
+				<artifactId>json-simple</artifactId>
+				<version>${json-simple.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.json</groupId>
+				<artifactId>json</artifactId>
+				<version>${json.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.skyscreamer</groupId>
+				<artifactId>jsonassert</artifactId>
+				<version>${jsonassert.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.logstash.logback</groupId>
+				<artifactId>logstash-logback-encoder</artifactId>
+				<version>${logstash.logback.encoder.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient</artifactId>
+				<version>${httpclient4.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jaxb</groupId>
+				<artifactId>jaxb-runtime</artifactId>
+				<version>${jaxb.runtime.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jaxb</groupId>
+				<artifactId>txw2</artifactId>
+				<version>${jaxb.runtime.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.powermock</groupId>
+				<artifactId>powermock-api-mockito2</artifactId>
+				<version>${powermock.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.powermock</groupId>
+				<artifactId>powermock-module-junit4</artifactId>
+				<version>${powermock.version}</version>
+				<scope>test</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
 	<dependencies>
-		<!-- JUnit -->
 		<dependency>
-			<groupId>org.junit.vintage</groupId>
-			<artifactId>junit-vintage-engine</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-biometrics-api</artifactId>
-			<version>1.2.1-SNAPSHOT</version>
+			<exclusions>
+				<!-- kernel-auth-adapter shades Jackson 2.15 NativeImageUtil; afterburner breaks at startup -->
+				<exclusion>
+					<groupId>com.fasterxml.jackson.module</groupId>
+					<artifactId>jackson-module-afterburner</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-
-		<dependency>
-			<groupId>javax.xml.bind</groupId>
-			<artifactId>jaxb-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>javax.activation</groupId>
-			<artifactId>activation</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jaxb</groupId>
-			<artifactId>jaxb-runtime</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-core</artifactId>
-			<scope>test</scope>
-			 <version>3.11.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.javassist</groupId>
-			<artifactId>javassist</artifactId>
-		</dependency>
-
-
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-logger-logback</artifactId>
-			<version>${kernel.logger.logback.version}</version>
+			<exclusions>
+				<!-- 6.x is incompatible with logback 1.5.x (Boot 4); use pinned 8.1 below -->
+				<exclusion>
+					<groupId>net.logstash.logback</groupId>
+					<artifactId>logstash-logback-encoder</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-access</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>net.logstash.logback</groupId>
+			<artifactId>logstash-logback-encoder</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.5.0</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.sonarsource.scanner.maven</groupId>
+					<artifactId>sonar-maven-plugin</artifactId>
+					<version>${maven.sonar.plugin.version}</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.sonatype.central</groupId>
@@ -200,16 +359,7 @@
 				<configuration>
 					<skipTests>false</skipTests>
 					<skip>false</skip>
-					<argLine>
-						${argLine} 
-						--add-opens java.base/java.lang=ALL-UNNAMED
-						--add-opens java.base/sun.reflect.annotation=ALL-UNNAMED
-						--add-opens java.base/sun.security.jca=ALL-UNNAMED
-						--add-opens java.base/sun.security.util=ALL-UNNAMED
-						--add-opens java.base/jdk.internal.util=ALL-UNNAMED
-						--add-opens java.base/java.util=ALL-UNNAMED
-						--illegal-access=debug
-					</argLine>
+					<argLine>${argLine}</argLine>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -286,7 +436,7 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-deploy-plugin</artifactId>
-				<version>2.8.1</version>
+				<version>${maven.deploy.plugin.version}</version>
 				<executions>
 					<execution>
 						<id>default-deploy</id>
@@ -300,7 +450,7 @@
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>
 				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>1.6.7</version>
+				<version>${nexus.staging.maven.plugin.version}</version>
 				<extensions>true</extensions>
 				<executions>
 					<execution>
@@ -321,7 +471,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>2.2.1</version>
+				<version>${maven.source.plugin.version}</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -335,7 +485,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>3.2.0</version>
+				<version>${maven.javadoc.version}</version>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>
@@ -351,7 +501,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-gpg-plugin</artifactId>
-				<version>1.5</version>
+				<version>${maven.gpg.plugin.version}</version>
 				<executions>
 					<execution>
 						<id>sign-artifacts</id>
@@ -371,7 +521,7 @@
 			<plugin>
 				<groupId>pl.project13.maven</groupId>
 				<artifactId>git-commit-id-plugin</artifactId>
-				<version>3.0.1</version>
+				<version>${git.commit.id.plugin.version}</version>
 				<executions>
 					<execution>
 						<id>get-the-git-infos</id>
@@ -399,6 +549,13 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
 					<parameters>true</parameters>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version>
+						</path>
+					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -420,7 +577,6 @@
 					<plugin>
 						<groupId>org.sonarsource.scanner.maven</groupId>
 						<artifactId>sonar-maven-plugin</artifactId>
-						<version>${maven.sonar.plugin.version}</version>
 						<executions>
 							<execution>
 								<phase>verify</phase>
@@ -439,7 +595,6 @@
 				<dependency>
 					<groupId>io.mosip.kernel</groupId>
 					<artifactId>kernel-auth-adapter</artifactId>
-					<version>${project.version}</version>
 				</dependency>
 			</dependencies>
 			<build>
@@ -447,7 +602,6 @@
 					<plugin>
 						<groupId>org.springframework.boot</groupId>
 						<artifactId>spring-boot-maven-plugin</artifactId>
-						<version>${spring.boot.version}</version>
 						<configuration>
 							<executable>true</executable>
 							<layout>ZIP</layout>
@@ -497,7 +651,7 @@
 					<plugin>
 						<groupId>org.springdoc</groupId>
 						<artifactId>springdoc-openapi-maven-plugin</artifactId>
-						<version>0.2</version>
+						<version>${springdoc.openapi.maven.plugin.version}</version>
 						<executions>
 							<execution>
 								<id>integration-test</id>
@@ -517,4 +671,73 @@
 			</build>
 		</profile>
 	</profiles>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>central</id>
+			<name>Maven Central Plugins</name>
+			<url>https://repo1.maven.org/maven2</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<repositories>
+		<repository>
+			<id>ossrh</id>
+			<name>Central Snapshots</name>
+			<url>https://central.sonatype.com/repository/maven-snapshots/</url>
+			<layout>default</layout>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>central</id>
+			<name>MavenCentral</name>
+			<layout>default</layout>
+			<url>https://repo1.maven.org/maven2</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://central.sonatype.com/repository/maven-snapshots/</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://central.sonatype.com/api/v1/publisher</url>
+		</repository>
+	</distributionManagement>
+
+	<licenses>
+		<license>
+			<name>MPL 2.0</name>
+			<url>https://www.mozilla.org/en-US/MPL/2.0/</url>
+		</license>
+	</licenses>
+	<scm>
+		<connection>scm:git:git://github.com/mosip/id-repository.git</connection>
+		<developerConnection>scm:git:ssh://github.com:mosip/id-repository.git</developerConnection>
+		<url>https://github.com/mosip/id-repository</url>
+		<tag>HEAD</tag>
+	</scm>
+	<developers>
+		<developer>
+			<name>Mosip</name>
+			<email>mosip.emailnotifier@gmail.com</email>
+			<organization>io.mosip</organization>
+			<organizationUrl>https://github.com/mosip/id-repository</organizationUrl>
+		</developer>
+	</developers>
 </project>

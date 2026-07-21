@@ -52,7 +52,7 @@ service:
 
 image:
   registry: docker.io
-  repository: mosipqa/id-repository-identity-service
+  repository: mosipqa/id-repository-service
   tag: develop
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
@@ -244,9 +244,12 @@ updateStrategy:
   type: RollingUpdate
 
 ## Additional environment variables to set
+## Per-pod DB pool sizing (budget: replicas × sum of pool.max per database):
+##   default: identity 12, vid 6, credential 10 → ~28 conn/pod
 ## Example:
 ## extraEnvVars:
-##   - name: FOO
+##   - name: MOSIP_IDREPO_IDENTITY_POOL_MAX
+##     value: "12"
 ##     value: "bar"
 ##
 extraEnvVars: []

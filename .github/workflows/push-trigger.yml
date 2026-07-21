@@ -53,26 +53,14 @@ jobs:
     strategy:
       matrix:
         include:
-          - SERVICE_LOCATION: 'id-repository/credential-request-generator'
-            SERVICE_NAME: 'credential-request-generator'
-            BUILD_ARTIFACT: 'id-repository'
-            SQUASH_LAYERS: '11'
-          - SERVICE_LOCATION: 'id-repository/credential-service'
-            SERVICE_NAME: 'credential-service'
-            BUILD_ARTIFACT: 'id-repository'
-            SQUASH_LAYERS: '11'
-          - SERVICE_LOCATION: 'id-repository/id-repository-identity-service'
-            SERVICE_NAME: 'id-repository-identity-service'
+          - SERVICE_LOCATION: 'id-repository/id-repository-service'
+            SERVICE_NAME: 'id-repository-service'
             BUILD_ARTIFACT: 'id-repository'
             SQUASH_LAYERS: '12'
           - SERVICE_LOCATION: 'id-repository/id-repository-salt-generator'
             SERVICE_NAME: 'id-repository-salt-generator'
             BUILD_ARTIFACT: 'id-repository'
-            SQUASH_LAYERS: '9'
-          - SERVICE_LOCATION: 'id-repository/id-repository-vid-service'
-            SERVICE_NAME: 'id-repository-vid-service'
-            BUILD_ARTIFACT: 'id-repository'
-            SQUASH_LAYERS: '10'
+            SQUASH_LAYERS: '12'
       fail-fast: false
     name: ${{ matrix.SERVICE_NAME }}
     uses: mosip/kattu/.github/workflows/docker-build.yml@master-java21

@@ -13,15 +13,20 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
+import io.mosip.idrepository.core.dto.BiometricInfo;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdentityIssuanceProfile;
 import io.mosip.idrepository.core.dto.IdentityMapping;
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.core.util.CryptoUtil;
 
 public class IdentityIssuanceProfileBuilderTest {
@@ -190,6 +195,7 @@ public class IdentityIssuanceProfileBuilderTest {
 	@Test
 	public void testNewProfileSuccessWithoutGender() throws IOException {
 		identityMapping.getIdentity().getGender().setValue(null);
+		IdentityIssuanceProfileBuilder.setIdentityMapping(identityMapping);
 		ObjectNode identityDataAsObjectNode = mapper.readValue(identityData, ObjectNode.class);
 		identityDataAsObjectNode.remove(identityMapping.getIdentity().getGender().getValue());
 		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder().setFilterLanguage("eng")
@@ -217,6 +223,7 @@ public class IdentityIssuanceProfileBuilderTest {
 		ObjectNode identityDataAsObjectNode = mapper.readValue(identityData, ObjectNode.class);
 		IdentityIssuanceProfileBuilder.getIdentityMapping().getIdentity().getLocationHierarchyForProfiling()
 				.getValueList().forEach(identityDataAsObjectNode::remove);
+		IdentityIssuanceProfileBuilder.setIdentityMapping(IdentityIssuanceProfileBuilder.getIdentityMapping());
 		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder().setProcessName("New")
 				.setFilterLanguage("eng").setNewIdentity(identityDataAsObjectNode.toString().getBytes())
 				.setOldDocuments(List.of(new DocumentsDTO()))
@@ -284,7 +291,14 @@ public class IdentityIssuanceProfileBuilderTest {
 		IdentityIssuanceProfile newProfile = IdentityIssuanceProfile.builder().setProcessName("New")
 				.setNewIdentity(identityData.getBytes()).setOldDocuments(List.of(new DocumentsDTO()))
 				.setNewDocuments(List.of(new DocumentsDTO("individualBiometrics", cbeff))).build();
-		assertEquals(new IdentityIssuanceProfile(), newProfile);
+		assertEquals("New", newProfile.getProcessName());
+		assertEquals(LocalDate.now(), newProfile.getDate());
+		assertNull(newProfile.getOldProfile());
+		assertNotNull(newProfile.getNewProfile());
+		assertNull(newProfile.getNewProfile().getYearOfBirth());
+		assertNull(newProfile.getNewProfile().getGender());
+		assertTrue(newProfile.getNewProfile().getLocation().isEmpty());
+		assertTrue(newProfile.getNewProfile().getDocuments().isEmpty());
 	}
 
 	@Test
@@ -324,6 +338,75 @@ public class IdentityIssuanceProfileBuilderTest {
 		assertEquals(List.of("x", "y"), newProfile.getNewProfile().getVerified());
 		assertEquals(0, newProfile.getNewProfile().getBiometricInfo().size());
 		assertEquals(List.of("DOC015", "DOC006", "DOC025", "COE"), newProfile.getNewProfile().getDocuments());
+	}
+
+	@Test
+	public void testBuildSwallowsUnexpectedException() throws IOException {
+		IdentityIssuanceProfileBuilder.setIdentityMapping(identityMapping);
+		IdentityIssuanceProfileBuilder.setDateFormat("uuuu/MM/dd");
+		ObjectNode identityDataAsObjectNode = mapper.readValue(identityData, ObjectNode.class);
+		identityDataAsObjectNode.put(identityMapping.getIdentity().getDob().getValue(), "not-a-valid-date");
+		IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder().setProcessName("New")
+				.setNewIdentity(identityDataAsObjectNode.toString().getBytes()).build();
+		assertNull(profile.getProcessName());
+		assertNull(profile.getDate());
+		assertNull(profile.getNewProfile());
+	}
+
+	@Test
+	public void testOldProfileWithEmptyBirList() {
+		IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder().setProcessName("Update")
+				.setOldIdentity(identityData.getBytes())
+				.setOldDocuments(List.of(new DocumentsDTO("wrongCategory", cbeff))).build();
+		assertNotNull(profile.getOldProfile());
+		assertTrue(profile.getOldProfile().getBiometricInfo().isEmpty());
+	}
+
+	@Test
+	public void testBiometricInfoWithoutRetries() {
+		BIR bir = Mockito.mock(BIR.class, Mockito.RETURNS_DEEP_STUBS);
+		Mockito.when(bir.getOthers()).thenReturn(null);
+		Mockito.when(bir.getBdbInfo().getType()).thenReturn(List.of(BiometricType.FINGER));
+		Mockito.when(bir.getBdbInfo().getSubtype()).thenReturn(List.of("Left", "Thumb"));
+		IdentityIssuanceProfileBuilder builder = IdentityIssuanceProfile.builder();
+		@SuppressWarnings("unchecked")
+		List<BiometricInfo> info = (List<BiometricInfo>) ReflectionTestUtils.invokeMethod(builder,
+				"getBiometricInfo", List.of(bir));
+		assertEquals(1, info.size());
+		assertNull(info.get(0).getAttempts());
+	}
+
+	@Test
+	public void testSetDateFormatBlank() {
+		IdentityIssuanceProfileBuilder.setDateFormat("");
+		IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder().setNewIdentity(identityData.getBytes())
+				.build();
+		assertNull(profile.getNewProfile().getYearOfBirth());
+		IdentityIssuanceProfileBuilder.setDateFormat("uuuu/MM/dd");
+	}
+
+	@Test
+	public void testMappingFieldsFromSparseNullFields() {
+		IdentityMapping sparseMapping = new IdentityMapping();
+		sparseMapping.setIdentity(new IdentityMapping.Identity());
+		IdentityIssuanceProfileBuilder.setIdentityMapping(sparseMapping);
+		IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder().setNewIdentity(identityData.getBytes())
+				.build();
+		assertNotNull(profile.getNewProfile());
+		assertNull(profile.getNewProfile().getGender());
+		assertTrue(profile.getNewProfile().getLocation().isEmpty());
+		assertTrue(profile.getNewProfile().getDocuments().isEmpty());
+		IdentityIssuanceProfileBuilder.setIdentityMapping(identityMapping);
+	}
+
+	@Test
+	public void testNewProfileWithNullVerifiedAttributes() throws IOException {
+		ObjectNode identityDataAsObjectNode = mapper.readValue(identityData, ObjectNode.class);
+		identityDataAsObjectNode.putNull("verifiedAttributes");
+		IdentityIssuanceProfile profile = IdentityIssuanceProfile.builder().setProcessName("New")
+				.setNewIdentity(identityDataAsObjectNode.toString().getBytes())
+				.setNewDocuments(List.of(new DocumentsDTO("individualBiometrics", cbeff))).build();
+		assertTrue(profile.getNewProfile().getVerified().isEmpty());
 	}
 
 }

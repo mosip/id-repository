@@ -4,71 +4,85 @@ import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 
 /**
- * The Class IdRepoAppException.
+ * Base checked exception for ID Repository application errors.
+ * <p>
+ * Extends {@link io.mosip.kernel.core.exception.BaseCheckedException} and carries
+ * MOSIP-standard error codes and messages. Optionally records the API operation
+ * (e.g. {@code create}, {@code read}, {@code update}) so that
+ * {@link IdRepoExceptionHandler} can populate the correct response {@code id} field.
+ * </p>
+ *
+ * @see IdRepoExceptionHandler#handleIdAppException(IdRepoAppException, org.springframework.web.context.request.WebRequest)
+ * @see IdRepoErrorConstants
+ * @see IdRepoDataValidationException
+ * @see RestServiceException
  *
  * @author Manoj SP
  */
 public class IdRepoAppException extends BaseCheckedException {
 
-	/** The Constant serialVersionUID. */
+	/** Serialization version UID. */
 	private static final long serialVersionUID = 6748760277721155095L;
 
-	/** The operation. */
+	/**
+	 * Optional API operation name used to resolve the response {@code id} in error payloads
+	 * (e.g. {@code create}, {@code read}, {@code update}, {@code deactivate}).
+	 */
 	private String operation;
 
 	/**
-	 * Instantiates a new id repo app exception.
+	 * Creates an empty exception instance.
 	 */
 	public IdRepoAppException() {
 		super();
 	}
 
 	/**
-	 * Instantiates a new id repo app exception.
+	 * Creates an exception with the given error code and message.
 	 *
-	 * @param errorCode    the error code
-	 * @param errorMessage the error message
+	 * @param errorCode    MOSIP error code
+	 * @param errorMessage human-readable error message
 	 */
 	public IdRepoAppException(String errorCode, String errorMessage) {
 		super(errorCode, errorMessage);
 	}
 
 	/**
-	 * Instantiates a new id repo app exception.
+	 * Creates an exception with the given error code, message, and root cause.
 	 *
-	 * @param errorCode    the error code
-	 * @param errorMessage the error message
-	 * @param rootCause    the root cause
+	 * @param errorCode    MOSIP error code
+	 * @param errorMessage human-readable error message
+	 * @param rootCause    underlying cause of the failure
 	 */
 	public IdRepoAppException(String errorCode, String errorMessage, Throwable rootCause) {
 		super(errorCode, errorMessage, rootCause);
 	}
 
 	/**
-	 * Instantiates a new id repo app exception.
+	 * Creates an exception from a predefined {@link IdRepoErrorConstants} entry.
 	 *
-	 * @param exceptionConstant the exception constant
+	 * @param exceptionConstant predefined error code and message pair
 	 */
 	public IdRepoAppException(IdRepoErrorConstants exceptionConstant) {
 		this(exceptionConstant.getErrorCode(), exceptionConstant.getErrorMessage());
 	}
 
 	/**
-	 * Instantiates a new id repo app exception.
+	 * Creates an exception from a predefined constant with an underlying cause.
 	 *
-	 * @param exceptionConstant the exception constant
-	 * @param rootCause         the root cause
+	 * @param exceptionConstant predefined error code and message pair
+	 * @param rootCause         underlying cause of the failure
 	 */
 	public IdRepoAppException(IdRepoErrorConstants exceptionConstant, Throwable rootCause) {
 		this(exceptionConstant.getErrorCode(), exceptionConstant.getErrorMessage(), rootCause);
 	}
 
 	/**
-	 * Instantiates a new id repo app exception.
+	 * Creates an exception with error details and the API operation context.
 	 *
-	 * @param errorCode    the error code
-	 * @param errorMessage the error message
-	 * @param operation the operation
+	 * @param errorCode    MOSIP error code
+	 * @param errorMessage human-readable error message
+	 * @param operation    API operation name for response {@code id} resolution
 	 */
 	public IdRepoAppException(String errorCode, String errorMessage, String operation) {
 		super(errorCode, errorMessage);
@@ -76,12 +90,12 @@ public class IdRepoAppException extends BaseCheckedException {
 	}
 
 	/**
-	 * Instantiates a new id repo app exception.
+	 * Creates an exception with error details, root cause, and API operation context.
 	 *
-	 * @param errorCode    the error code
-	 * @param errorMessage the error message
-	 * @param rootCause    the root cause
-	 * @param operation the operation
+	 * @param errorCode    MOSIP error code
+	 * @param errorMessage human-readable error message
+	 * @param rootCause    underlying cause of the failure
+	 * @param operation    API operation name for response {@code id} resolution
 	 */
 	public IdRepoAppException(String errorCode, String errorMessage, Throwable rootCause, String operation) {
 		super(errorCode, errorMessage, rootCause);
@@ -89,10 +103,10 @@ public class IdRepoAppException extends BaseCheckedException {
 	}
 
 	/**
-	 * Instantiates a new id repo app exception.
+	 * Creates an exception from a predefined constant with API operation context.
 	 *
-	 * @param exceptionConstant the exception constant
-	 * @param operation the operation
+	 * @param exceptionConstant predefined error code and message pair
+	 * @param operation         API operation name for response {@code id} resolution
 	 */
 	public IdRepoAppException(IdRepoErrorConstants exceptionConstant, String operation) {
 		this(exceptionConstant.getErrorCode(), exceptionConstant.getErrorMessage());
@@ -100,11 +114,11 @@ public class IdRepoAppException extends BaseCheckedException {
 	}
 
 	/**
-	 * Instantiates a new id repo app exception.
+	 * Creates an exception from a predefined constant with root cause and operation context.
 	 *
-	 * @param exceptionConstant the exception constant
-	 * @param rootCause         the root cause
-	 * @param operation the operation
+	 * @param exceptionConstant predefined error code and message pair
+	 * @param rootCause         underlying cause of the failure
+	 * @param operation         API operation name for response {@code id} resolution
 	 */
 	public IdRepoAppException(IdRepoErrorConstants exceptionConstant, Throwable rootCause, String operation) {
 		this(exceptionConstant.getErrorCode(), exceptionConstant.getErrorMessage(), rootCause);
@@ -112,12 +126,11 @@ public class IdRepoAppException extends BaseCheckedException {
 	}
 
 	/**
-	 * Gets the operation.
+	 * Returns the API operation associated with this exception, if set.
 	 *
-	 * @return the operation
+	 * @return operation name (e.g. {@code create}, {@code read}), or {@code null} if not set
 	 */
 	public String getOperation() {
 		return operation;
 	}
-
 }

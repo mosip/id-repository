@@ -5,54 +5,64 @@ import java.util.Optional;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 
 /**
- * Thrown when an exception occurs using Rest exchange.
- * 
- * @author Manoj SP
+ * Checked exception for failures during outbound REST service calls.
+ * <p>
+ * Thrown by {@link io.mosip.idrepository.core.helper.RestHelper} when a remote
+ * MOSIP service returns an error response, times out, or returns a body containing
+ * an {@code errors} array. Optionally captures the raw and deserialized response
+ * body for downstream error handling and logging.
+ * </p>
  *
+ * @see io.mosip.idrepository.core.helper.RestHelper
+ * @see IdRepoRetryException
+ * @see IdRepoErrorConstants#CLIENT_ERROR
+ * @see IdRepoErrorConstants#SERVER_ERROR
+ *
+ * @author Manoj SP
  */
 public class RestServiceException extends IdRepoAppException {
 
-	/** The Constant serialVersionUID. */
+	/** Serialization version UID. */
 	private static final long serialVersionUID = 372518972095526748L;
 
-	/** The response body. */
+	/** Raw response body string from the failed REST call, if available. */
 	private transient String responseBodyAsString;
 
-	/** The response body. */
+	/** Deserialized response body object from the failed REST call, if available. */
 	private transient Object responseBody;
 
 	/**
-	 * Instantiates a new rest service exception.
+	 * Creates an empty REST service exception instance.
 	 */
 	public RestServiceException() {
 		super();
 	}
 
 	/**
-	 * Instantiates a new rest client exception.
+	 * Creates a REST service exception from a predefined error constant.
 	 *
-	 * @param exceptionConstant the exception constant
+	 * @param exceptionConstant predefined error code and message pair
 	 */
 	public RestServiceException(IdRepoErrorConstants exceptionConstant) {
 		super(exceptionConstant);
 	}
 
 	/**
-	 * Instantiates a new rest client exception.
+	 * Creates a REST service exception from a predefined constant with root cause.
 	 *
-	 * @param exceptionConstant the exception constant
-	 * @param rootCause         the root cause
+	 * @param exceptionConstant predefined error code and message pair
+	 * @param rootCause         underlying HTTP or parsing failure
 	 */
 	public RestServiceException(IdRepoErrorConstants exceptionConstant, Throwable rootCause) {
 		super(exceptionConstant, rootCause);
 	}
 
 	/**
-	 * Instantiates a new rest service exception.
+	 * Creates a REST service exception with error constant and captured response bodies.
 	 *
-	 * @param exceptionConstant    the exception constant
-	 * @param responseBodyAsString the response body as string
-	 * @param responseBody         the response body
+	 * @param exceptionConstant    predefined error code and message pair
+	 * @param responseBodyAsString raw response body as string
+	 * @param responseBody         deserialized response body object
 	 */
 	public RestServiceException(IdRepoErrorConstants exceptionConstant, String responseBodyAsString,
 			Object responseBody) {
@@ -62,21 +72,20 @@ public class RestServiceException extends IdRepoAppException {
 	}
 
 	/**
-	 * Gets the response body.
+	 * Returns the deserialized response body from the failed REST call.
 	 *
-	 * @return the response body
+	 * @return optional containing the response body, or empty if not captured
 	 */
 	public Optional<Object> getResponseBody() {
 		return Optional.ofNullable(responseBody);
 	}
 
 	/**
-	 * Gets the response body as string.
+	 * Returns the raw response body string from the failed REST call.
 	 *
-	 * @return the response body as string
+	 * @return optional containing the response body string, or empty if not captured
 	 */
 	public Optional<String> getResponseBodyAsString() {
 		return Optional.ofNullable(responseBodyAsString);
 	}
-
 }

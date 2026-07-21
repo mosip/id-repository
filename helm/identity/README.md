@@ -1,6 +1,6 @@
-# IDRepo Identity Service
+# ID-Repository Service
 
-Helm chart for installing IDrepo Identity service. 
+Helm chart for the merged MOSIP ID-Repository deployable (`id-repository-service`): identity, credential store, and credential-request APIs in one pod.
 
 ## TL;DR
 

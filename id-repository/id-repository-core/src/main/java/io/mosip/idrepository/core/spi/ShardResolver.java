@@ -3,19 +3,32 @@ package io.mosip.idrepository.core.spi;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 
 /**
- * The Interface ShardResolver - resolver to resolve which DB to use based on
- * the input id.
+ * SPI for resolving a database shard name from an individual identifier.
+ * <p>
+ * In multi-shard deployments, the shard determines which physical database
+ * holds the UIN record. The resolved name is placed on the current thread via
+ * {@link ShardDataSourceResolver#setCurrentShard(String)} before repository
+ * access.
+ * </p>
+ * <p>
+ * <b>Implementor:</b> {@code DefaultShardResolver} in {@code id-repository-service}.
+ * </p>
+ * <p>
+ * <b>Callers:</b> identity service layer before read/write operations on
+ * sharded datasources (wired from {@code IdRepoConfig} when enabled).
+ * </p>
  *
  * @author Manoj SP
+ * @see ShardDataSourceResolver
  */
 public interface ShardResolver {
 
 	/**
-	 * Gets the shrad.
+	 * Resolves the shard name for the given identifier.
 	 *
-	 * @param id the id
-	 * @return the shrad
-	 * @throws IdRepoAppException IdRepoApp Exception
+	 * @param id individual identifier (typically UIN or hash)
+	 * @return shard lookup key used by {@link ShardDataSourceResolver}
+	 * @throws IdRepoAppException if the identifier cannot be mapped to a shard
 	 */
 	String getShard(String id) throws IdRepoAppException;
 }

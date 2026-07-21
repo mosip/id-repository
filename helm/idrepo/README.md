@@ -2,9 +2,7 @@
 
 Helm chart for installing IDrepo services:
 * idrepo-saltgen
-* identity
-* credential
-* credential-request generator
+* id-repository-service (merged identity + credential + credential-request)
 * vid
 
 ## TL;DR

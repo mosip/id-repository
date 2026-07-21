@@ -1,22 +1,7 @@
 saltgen:
   enabled: true
 
-credential:
-  enabled: true
-  istio:
-    enabled: false
-
-vid:
-  enabled: true
-  istio:
-    enabled: false
-
-identity:
-  enabled: true
-  istio:
-    enabled: false
-
-credentialrequest:
+service:
   enabled: true
   istio:
     enabled: false

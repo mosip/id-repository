@@ -6,25 +6,31 @@ import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.SERVER_ER
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
+import java.util.regex.Pattern;
 
 import jakarta.annotation.PostConstruct;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
 import org.springframework.web.reactive.function.client.WebClient.ResponseSpec;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -43,8 +49,40 @@ import lombok.NoArgsConstructor;
 import reactor.core.publisher.Mono;
 
 /**
- * The Class RestHelper - to send/receive HTTP requests and return the response.
+ * Reactive HTTP client helper for synchronous and asynchronous outbound REST calls.
+ * <p>
+ * Uses Spring {@link WebClient} to invoke MOSIP microservices (cryptomanager, audit-manager,
+ * PMS, datashare, keymanager, etc.). Request descriptors are typically built by
+ * {@link io.mosip.idrepository.core.builder.RestRequestBuilder} from
+ * {@link io.mosip.idrepository.core.constant.RestServicesConstants} keys.
+ * </p>
  *
+ * <h2>WebClient selection</h2>
+ * <p>
+ * {@link #init()} prefers the {@code selfTokenWebClient} bean (IAM client-credentials) when
+ * present; otherwise falls back to {@code webClient}. Buffer size is raised via
+ * {@code mosip.idrepo.rest.client.max-in-memory-size} (default 20 MiB) for large crypto payloads.
+ * </p>
+ *
+ * <h2>Retry and errors</h2>
+ * <ul>
+ *   <li>{@link #requestSync} is annotated with {@code @WithRetry} — timeouts, 403, and 5xx
+ *       throw {@link IdRepoRetryException} so kernel retry can re-attempt</li>
+ *   <li>401 becomes {@link AuthenticationException}; other 4xx become {@link RestServiceException}</li>
+ *   <li>HTTP 200 bodies with a MOSIP {@code errors} array are treated as client errors</li>
+ * </ul>
+ *
+ * <h2>Jackson 2 note</h2>
+ * <p>
+ * Response bodies are decoded with the injected Jackson 2 {@link ObjectMapper} rather than
+ * Boot 4's default Jackson 3 WebClient codecs, so {@code ObjectNode} and other Jackson 2 types
+ * deserialize correctly.
+ * </p>
+ *
+ * @see io.mosip.idrepository.core.builder.RestRequestBuilder
+ * @see RestServiceException
+ * @see IdRepoRetryException
+ * @see AuthenticationException
  * @author Manoj SP
  */
 @NoArgsConstructor
@@ -54,59 +92,101 @@ public class RestHelper {
 
 	private static final String UNKNOWN_ERROR_LOG = "- UNKNOWN_ERROR - ";
 
-	/** The Constant ERRORS. */
+	/** JSON key for MOSIP error arrays in response bodies. */
 	private static final String ERRORS = "errors";
 
-	/** The mapper. */
+	/** Log method name for synchronous request handling. */
+	private static final String METHOD_REQUEST_SYNC = "requestSync";
+
+	/** Log method name for HTTP status error handling. */
+	private static final String METHOD_HANDLE_STATUS_ERROR = "handleStatusError";
+
+	/** Log prefix for outbound request URI logging. */
+	private static final String PREFIX_REQUEST = "Request : ";
+
+	/** Log method name for asynchronous request handling. */
+	private static final String METHOD_REQUEST_ASYNC = "requestAsync";
+
+	/** Log class name identifier for structured logging. */
+	private static final String CLASS_REST_HELPER = "RestHelper";
+
+	/** Log message prefix when throwing {@link RestServiceException}. */
+	private static final String THROWING_REST_SERVICE_EXCEPTION = "Throwing RestServiceException";
+
+	/** Log method name for runtime exceptions during sync requests. */
+	private static final String REQUEST_SYNC_RUNTIME_EXCEPTION = "requestSync-RuntimeException";
+
+	/** Log method name for HTTP request/response tracing. */
+	private static final String LOG_HTTP_EXCHANGE = "httpExchange";
+
+	/** MOSIP UTC timestamps must end with literal {@code Z} (audit, cryptomanager, etc.). */
+	private static final Pattern MOSIP_UTC_MS_NO_Z = Pattern
+			.compile("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}");
+
+	/** JSON mapper for parsing error response bodies. */
 	@Autowired
 	private ObjectMapper mapper;
-	
+
+	/** Spring context used to resolve {@code selfTokenWebClient} or {@code webClient} in {@link #init()}. */
 	@Autowired
 	private ApplicationContext ctx;
 
-	/** The Constant METHOD_REQUEST_SYNC. */
-	private static final String METHOD_REQUEST_SYNC = "requestSync";
+	/**
+	 * WebClient in-memory buffer for large keymanager/cryptomanager payloads.
+	 * Property: {@code mosip.idrepo.rest.client.max-in-memory-size} (default {@code 20971520} = 20 MiB).
+	 */
+	@Value("${mosip.idrepo.rest.client.max-in-memory-size:20971520}")
+	private int maxInMemorySize;
 
-	/** The Constant METHOD_HANDLE_STATUS_ERROR. */
-	private static final String METHOD_HANDLE_STATUS_ERROR = "handleStatusError";
+	/** Structured logger for REST helper operations. */
+	private static final Logger mosipLogger = IdRepoLogger.getLogger(RestHelper.class);
 
-	/** The Constant PREFIX_REQUEST. */
-	private static final String PREFIX_REQUEST = "Request : ";
-
-	/** The Constant METHOD_REQUEST_ASYNC. */
-	private static final String METHOD_REQUEST_ASYNC = "requestAsync";
-
-	/** The Constant CLASS_REST_HELPER. */
-	private static final String CLASS_REST_HELPER = "RestHelper";
-
-	/** The Constant THROWING_REST_SERVICE_EXCEPTION. */
-	private static final String THROWING_REST_SERVICE_EXCEPTION = "Throwing RestServiceException";
-
-	/** The Constant REQUEST_SYNC_RUNTIME_EXCEPTION. */
-	private static final String REQUEST_SYNC_RUNTIME_EXCEPTION = "requestSync-RuntimeException";
-
-	/** The mosipLogger. */
-	private static Logger mosipLogger = IdRepoLogger.getLogger(RestHelper.class);
-	
+	/** Reactive HTTP client; resolved from context in {@link #init()} if not constructor-injected. */
 	private WebClient webClient;
-	
+
+	/**
+	 * Creates a RestHelper with an explicit {@link WebClient} instance.
+	 *
+	 * @param webClient configured WebClient bean for outbound HTTP calls
+	 */
 	public RestHelper(WebClient webClient) {
 		this.webClient = webClient;
 	}
-	
+
+	/**
+	 * Resolves the {@link WebClient} bean from the application context when not set via constructor,
+	 * then applies {@link #maxInMemorySize} exchange strategies.
+	 * <p>
+	 * Prefers {@code selfTokenWebClient} (outbound IAM token) over plain {@code webClient}.
+	 * </p>
+	 */
 	@PostConstruct
 	public void init() {
-		if (Objects.isNull(webClient))
-			webClient = ctx.getBean("webClient", WebClient.class);
+		if (Objects.isNull(webClient)) {
+			if (ctx.containsBean("selfTokenWebClient")) {
+				webClient = ctx.getBean("selfTokenWebClient", WebClient.class);
+			} else {
+				webClient = ctx.getBean("webClient", WebClient.class);
+			}
+		}
+		webClient = webClient.mutate()
+				.exchangeStrategies(ExchangeStrategies.builder()
+						.codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(maxInMemorySize))
+						.build())
+				.build();
 	}
 	
 	/**
-	 * Request to send/receive HTTP requests and return the response synchronously.
+	 * Sends an HTTP request synchronously and returns the deserialized response.
+	 * <p>
+	 * Annotated with {@code @WithRetry} — throws {@link IdRepoRetryException} on transient
+	 * failures to trigger kernel retry. Validates MOSIP error arrays in non-String responses.
+	 * </p>
 	 *
-	 * @param         <T> the generic type
-	 * @param request the request
-	 * @return the response object or null in case of exception
-	 * @throws RestServiceException the rest service exception
+	 * @param <T>     expected response type
+	 * @param request REST request descriptor with URI, method, headers, and body
+	 * @return deserialized response body
+	 * @throws RestServiceException on client errors or unrecoverable failures
 	 */
 	@SuppressWarnings("unchecked")
 	@WithRetry
@@ -120,12 +200,9 @@ public class RestHelper {
 			} else {
 				response = request(request).block();
 			}
-			if(!String.class.equals(request.getResponseType())) {
+			if(!String.class.equals(request.getResponseType()) && !byte[].class.equals(request.getResponseType())) {
 				checkErrorResponse(response, request.getResponseType());
-				if(RestUtil.containsError(response.toString(), mapper)) {
-					mosipLogger.debug("Error in response %s", response.toString());
-				}
-			}	
+			}
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_SYNC,
 					"Received valid response");
 			return (T) response;
@@ -134,7 +211,13 @@ public class RestHelper {
 					THROWING_REST_SERVICE_EXCEPTION + "- Http Status error - \n " + e.getMessage()
 							+ " \n Response Body : \n" + e.getResponseBodyAsString());
 			throw handleStatusError(e, request.getResponseType());
+		} catch (RestServiceException e) {
+			throw e;
 		} catch (RuntimeException e) {
+			RestServiceException restError = unwrapRestServiceException(e);
+			if (restError != null) {
+				throw restError;
+			}
 			if (e.getCause() != null && e.getCause().getClass().equals(TimeoutException.class)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_SYNC,
 						THROWING_REST_SERVICE_EXCEPTION + "- CONNECTION_TIMED_OUT - \n " + ExceptionUtils.getStackTrace(e));
@@ -148,11 +231,14 @@ public class RestHelper {
 	}
 
 	/**
-	 * Request to send/receive HTTP requests and return the response asynchronously.
+	 * Sends an HTTP request asynchronously on the Spring {@code @Async} thread pool.
+	 * <p>
+	 * Delegates to {@link #requestSync} and wraps the result in a {@link CompletableFuture}.
+	 * Failures are returned as {@code CompletableFuture.failedFuture(e)}.
+	 * </p>
 	 *
-	 * @param request the request
-	 * @return the supplier
-	 * @throws RestServiceException 
+	 * @param request REST request descriptor
+	 * @return future completing with the response, or failing with {@link RestServiceException}
 	 */
 	@Async
 	public CompletableFuture<Object> requestAsync(@Valid RestRequestDTO request) {
@@ -169,11 +255,15 @@ public class RestHelper {
 	}
 
 	/**
-	 * Method to send/receive HTTP requests and return the response as Mono.
+	 * Builds and executes a reactive HTTP call for the given request descriptor.
+	 * <p>
+	 * Expands path variables and query params onto the URI, applies headers, serializes the
+	 * JSON body (with UTC {@code Z} normalization), and returns a {@link Mono} of the
+	 * decoded response type.
+	 * </p>
 	 *
-	 * @param request    the request
-	 * @param sslContext the ssl context
-	 * @return the mono
+	 * @param request REST request descriptor with URI, method, headers, and body
+	 * @return reactive publisher that completes with the response body
 	 */
 	private Mono<?> request(RestRequestDTO request) {
 		Mono<?> monoResponse;
@@ -205,23 +295,190 @@ public class RestHelper {
 					.headers(headers -> headers.addAll(request.getHeaders()));
 		}
 
+		mosipLogger.info(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, LOG_HTTP_EXCHANGE,
+				request.getHttpMethod() + " " + request.getUri());
+
 		if (request.getRequestBody() != null) {
-			exchange = requestBodySpec.syncBody(request.getRequestBody()).retrieve();
+			String requestJson = writeJsonBody(request.getRequestBody());
+			mosipLogger.info(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, LOG_HTTP_EXCHANGE,
+					"request body=" + summarizeRequestBody(requestJson));
+			exchange = requestBodySpec.contentType(MediaType.APPLICATION_JSON).bodyValue(requestJson).retrieve();
 		} else {
 			exchange = requestBodySpec.retrieve();
 		}
 
-		monoResponse = exchange.bodyToMono(request.getResponseType());
+		monoResponse = decodeResponse(exchange, request.getResponseType());
 
 		return monoResponse;
 	}
 
 	/**
-	 * Check error response.
+	 * Decodes HTTP response bodies with the injected Jackson 2 {@link ObjectMapper}.
+	 * <p>
+	 * Spring Boot 4 WebClient defaults to Jackson 3 codecs, which cannot deserialize
+	 * {@code com.fasterxml.jackson.databind.node.ObjectNode} and other Jackson 2 types.
+	 * String and {@code byte[]} responses bypass JSON parsing.
+	 * </p>
 	 *
-	 * @param response     the response
-	 * @param responseType the response type
-	 * @throws RestServiceException the rest service exception
+	 * @param exchange     WebClient response spec after {@code retrieve()}
+	 * @param responseType expected Java type (may be {@code null}, treated as String)
+	 * @return mono of the decoded body
+	 */
+	private Mono<?> decodeResponse(ResponseSpec exchange, Class<?> responseType) {
+		if (responseType == null || String.class.equals(responseType)) {
+			return exchange.bodyToMono(String.class);
+		}
+		if (byte[].class.equals(responseType)) {
+			return exchange.bodyToMono(byte[].class);
+		}
+		return exchange.bodyToMono(String.class).flatMap(body -> parseResponseBodyMono(body, responseType));
+	}
+
+	/**
+	 * Parses a MOSIP JSON response: checks the raw {@code errors} array first, then deserializes.
+	 *
+	 * @param body         raw response body string
+	 * @param responseType target type for successful deserialization
+	 * @return mono of the typed body, or {@link Mono#error} with {@link RestServiceException}
+	 */
+	private Mono<Object> parseResponseBodyMono(String body, Class<?> responseType) {
+		if (RestUtil.containsError(body, mapper)) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, CHECK_ERROR_RESPONSE,
+					"MOSIP error response body=" + body);
+			return Mono.error(new RestServiceException(CLIENT_ERROR, body, readResponseBody(body, responseType)));
+		}
+		return Mono.just(readResponseBody(body, responseType));
+	}
+
+	/**
+	 * Serializes the request body to JSON and normalizes MOSIP UTC timestamp fields.
+	 *
+	 * @param body request object (wrapper or DTO)
+	 * @return JSON string
+	 * @throws UncheckedIOException if Jackson serialization fails
+	 */
+	private String writeJsonBody(Object body) {
+		try {
+			JsonNode tree = mapper.valueToTree(body);
+			if (tree.isObject()) {
+				normalizeMosipUtcTimestamps((ObjectNode) tree);
+			}
+			return mapper.writeValueAsString(tree);
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+	}
+
+	/**
+	 * Appends literal {@code Z} to envelope/request timestamps missing the MOSIP UTC suffix.
+	 * <p>
+	 * Touches {@code requesttime} on the wrapper and {@code actionTimeStamp}/{@code timeStamp}
+	 * on the nested {@code request} object when they match {@code yyyy-MM-dd'T'HH:mm:ss.SSS}.
+	 * </p>
+	 *
+	 * @param node root JSON object of the outbound body
+	 */
+	private void normalizeMosipUtcTimestamps(ObjectNode node) {
+		appendUtcZSuffix(node, "requesttime");
+		if (node.has("request") && node.get("request").isObject()) {
+			ObjectNode inner = (ObjectNode) node.get("request");
+			appendUtcZSuffix(inner, "actionTimeStamp");
+			appendUtcZSuffix(inner, "timeStamp");
+		}
+	}
+
+	/**
+	 * If {@code field} is a textual timestamp without trailing {@code Z}, appends {@code Z}.
+	 *
+	 * @param node  JSON object that may contain the field
+	 * @param field property name to normalize
+	 */
+	private void appendUtcZSuffix(ObjectNode node, String field) {
+		JsonNode value = node.get(field);
+		if (value != null && value.isTextual()) {
+			String text = value.asText();
+			if (!text.endsWith("Z") && MOSIP_UTC_MS_NO_Z.matcher(text).matches()) {
+				node.put(field, text + "Z");
+			}
+		}
+	}
+
+	/**
+	 * Returns request JSON suitable for INFO logs with ciphertext fields shortened.
+	 * <p>
+	 * Redacts nested {@code request.data} and {@code request.salt} to length-only placeholders.
+	 * </p>
+	 *
+	 * @param json full request JSON
+	 * @return redacted JSON, or the original string if parsing fails
+	 */
+	private String summarizeRequestBody(String json) {
+		try {
+			ObjectNode node = mapper.readValue(json, ObjectNode.class);
+			if (node.has("request") && node.get("request").isObject()) {
+				ObjectNode inner = (ObjectNode) node.get("request");
+				redactBinaryField(inner, "data");
+				redactBinaryField(inner, "salt");
+			}
+			return mapper.writeValueAsString(node);
+		} catch (IOException e) {
+			return json;
+		}
+	}
+
+	/**
+	 * Replaces a textual field with {@code <redacted len=N>} for log safety.
+	 *
+	 * @param node  parent JSON object
+	 * @param field field name to redact when present and textual
+	 */
+	private void redactBinaryField(ObjectNode node, String field) {
+		if (node.has(field) && node.get(field).isTextual()) {
+			node.put(field, "<redacted len=" + node.get(field).asText().length() + ">");
+		}
+	}
+
+	/**
+	 * Deserializes a JSON body to {@code responseType} using Jackson 2.
+	 *
+	 * @param body         raw JSON
+	 * @param responseType target class
+	 * @return deserialized object
+	 * @throws UncheckedIOException if parsing fails
+	 */
+	private Object readResponseBody(String body, Class<?> responseType) {
+		try {
+			return mapper.readValue(body, responseType);
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+	}
+
+	/**
+	 * Walks the cause chain and returns the first {@link RestServiceException}, if any.
+	 *
+	 * @param error throwable from a blocked reactive call
+	 * @return nested {@link RestServiceException}, or {@code null}
+	 */
+	private static RestServiceException unwrapRestServiceException(Throwable error) {
+		for (Throwable current = error; current != null; current = current.getCause()) {
+			if (current instanceof RestServiceException restServiceException) {
+				return restServiceException;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Validates that a deserialized MOSIP response does not contain a non-empty {@code errors} array.
+	 * <p>
+	 * Used after sync decode for non-String / non-{@code byte[]} response types. A null response
+	 * or present {@code errors} array throws {@link RestServiceException} with {@code CLIENT_ERROR}.
+	 * </p>
+	 *
+	 * @param response     deserialized response object
+	 * @param responseType expected type (used when re-reading the error body)
+	 * @throws RestServiceException if the body is null, contains MOSIP errors, or cannot be inspected
 	 */
 	private void checkErrorResponse(Object response, Class<?> responseType) throws RestServiceException {
 		try {
@@ -248,28 +505,37 @@ public class RestHelper {
 	}
 
 	/**
-	 * Handle 4XX/5XX status error. Retry is triggered using {@code IdRepoRetryException}.
-	 * Retry is done for 401 and 5xx status codes.
+	 * Maps HTTP 4xx/5xx {@link WebClientResponseException} to ID-Repository exceptions.
+	 * <table>
+	 *   <caption>Status to exception mapping</caption>
+	 *   <tr><th>Status</th><th>Result</th></tr>
+	 *   <tr><td>401</td><td>{@link AuthenticationException} (no retry)</td></tr>
+	 *   <tr><td>403</td><td>{@link IdRepoRetryException} wrapping {@link AuthenticationException}</td></tr>
+	 *   <tr><td>other 4xx</td><td>{@link RestServiceException} {@code CLIENT_ERROR}</td></tr>
+	 *   <tr><td>5xx</td><td>{@link IdRepoRetryException} wrapping {@code SERVER_ERROR}</td></tr>
+	 * </table>
 	 *
-	 * @param e            the response
-	 * @param responseType the response type
-	 * @return the mono<? extends throwable>
-	 * @throws RestServiceException 
+	 * @param e            WebClient status exception with response body
+	 * @param responseType type used when parsing the error body into a typed payload
+	 * @return {@link RestServiceException} only when body parsing fails after status handling
+	 * @throws RestServiceException       for non-retryable client errors
+	 * @throws AuthenticationException    for HTTP 401
+	 * @throws IdRepoRetryException       for 403 and 5xx (propagates as runtime for retry)
 	 */
 	private RestServiceException handleStatusError(WebClientResponseException e, Class<?> responseType)
 			throws RestServiceException {
 		try {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER,
-					"request failed with status code :" + e.getRawStatusCode(), "\n\n" + e.getResponseBodyAsString());
+					"request failed with status code :" + e.getStatusCode().value(), "\n\n" + e.getResponseBodyAsString());
 			if (e.getStatusCode().is4xxClientError()) {
-				if (e.getRawStatusCode() == HttpStatus.UNAUTHORIZED.value()) {
+				if (e.getStatusCode().value() == HttpStatus.UNAUTHORIZED.value()) {
 					List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(e.getResponseBodyAsString());
 					throw new AuthenticationException(errorList.get(0).getErrorCode(), errorList.get(0).getMessage(),
-							e.getRawStatusCode());
-				} else if (e.getRawStatusCode() == HttpStatus.FORBIDDEN.value()) {
+							e.getStatusCode().value());
+				} else if (e.getStatusCode().value() == HttpStatus.FORBIDDEN.value()) {
 					List<ServiceError> errorList = ExceptionUtils.getServiceErrorList(e.getResponseBodyAsString());
 					throw new IdRepoRetryException(new AuthenticationException(errorList.get(0).getErrorCode(),
-							errorList.get(0).getMessage(), e.getRawStatusCode()));
+							errorList.get(0).getMessage(), e.getStatusCode().value()));
 				} else {
 					mosipLogger.error(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_HANDLE_STATUS_ERROR,
 							"Status error - returning RestServiceException - CLIENT_ERROR ");

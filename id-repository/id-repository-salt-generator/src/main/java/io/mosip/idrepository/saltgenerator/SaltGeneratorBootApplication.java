@@ -1,48 +1,65 @@
 package io.mosip.idrepository.saltgenerator;
 
-import io.mosip.idrepository.saltgenerator.logger.SaltGeneratorLogger;
-import io.mosip.idrepository.saltgenerator.service.SaltGenerator;
-import io.mosip.kernel.core.logger.spi.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
+
+import io.mosip.idrepository.saltgenerator.config.SaltGeneratorConfiguration;
 
 /**
- * The Class SaltGeneratorBootApplication - Salt generator Job is a
- * one-time job which populates salts for hashing and encrypting data.
+ * Spring Boot entry point for the ID-Repository salt-generator Kubernetes Job.
  *
- * @author Manoj SP
+ * <p>
+ * Starts a <strong>non-web</strong> Spring context, runs
+ * {@link SaltGeneratorRunner} once, then exits the JVM with the Spring exit code.
+ * Spring Batch auto-configuration is excluded — this Job uses plain JDBC chunking,
+ * not Spring Batch metadata tables.
+ * </p>
+ *
+ * <h2>Component scan</h2>
+ * <ul>
+ *   <li>{@code io.mosip.idrepository.saltgenerator} — Job-local beans</li>
+ *   <li>{@code io.mosip.idrepository.core.util} — {@code EnvUtil} and related helpers</li>
+ * </ul>
+ * Controllers, identity/VID/credential services, and HTTP security are intentionally
+ * out of scope.
+ *
+ * <h2>Deploy</h2>
+ * Chart: {@code helm/idrepo-saltgen}. Image entry runs this class as a one-shot Job
+ * ({@code restartPolicy: Never}), not a Deployment.
+ *
+ * <h2>Consumers</h2>
+ * <ul>
+ *   <li>Ops / Helm after fresh DB deploy or salt-table DDL changes</li>
+ *   <li>Local: {@code run-id-repository-saltgen-local.bat} or
+ *       {@code java -jar id-repository-salt-generator-*.jar}</li>
+ * </ul>
+ *
+ * @author MOSIP
+ * @see SaltGeneratorRunner
+ * @see SaltGeneratorConfiguration
+ * @see io.mosip.idrepository.saltgenerator.service.SaltGenerator
  */
-@ComponentScan(basePackages={"io.mosip.idrepository.saltgenerator.*"})
-@SpringBootApplication(exclude = {BatchAutoConfiguration.class})
-public class SaltGeneratorBootApplication implements CommandLineRunner {
-
-	Logger mosipLogger = SaltGeneratorLogger.getLogger(SaltGeneratorBootApplication.class);
-
-	@Autowired
-	private SaltGenerator saltGenerator;
+@SpringBootApplication(excludeName = {
+		"org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration" })
+@ComponentScan(basePackages = { "io.mosip.idrepository.saltgenerator", "io.mosip.idrepository.core.util" })
+@Import({ SaltGeneratorConfiguration.class, SaltGeneratorRunner.class })
+public class SaltGeneratorBootApplication {
 
 	/**
-	 * The main method.
+	 * Boots the non-web application, runs the salt Job via {@link SaltGeneratorRunner},
+	 * and terminates the process.
 	 *
-	 * @param args the arguments
+	 * @param args unused command-line arguments (config comes from Spring Cloud Config /
+	 *             environment)
 	 */
 	public static void main(String[] args) {
-		ApplicationContext applicationContext = SpringApplication.run(SaltGeneratorBootApplication.class,
-				args);
-		SpringApplication.exit(applicationContext);
+		SpringApplication app = new SpringApplication(SaltGeneratorBootApplication.class);
+		app.setWebApplicationType(WebApplicationType.NONE);
+		ConfigurableApplicationContext ctx = app.run(args);
+		System.exit(SpringApplication.exit(ctx));
 	}
-
-	@Override
-	public void run(String... args) throws Exception {
-		mosipLogger.info(" started......");
-		saltGenerator.start();
-		mosipLogger.info("  Completed......");
-
-	}
-
 }

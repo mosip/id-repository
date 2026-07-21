@@ -16,6 +16,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import io.mosip.idrepository.core.builder.RestRequestBuilder;
+import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.RestServicesConstants;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.RestServiceException;
@@ -26,49 +27,54 @@ import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 
 /**
- * The Class PartnerServiceManager.
- * 
+ * Manages Online Verification (OLV) partner ID resolution from Partner Management Service.
+ * <p>
+ * Fetches active credential partners from PMS via {@link RestHelper}, filters out dummy/test
+ * partners, and caches results in the {@code Online_Verification_Partners} cache region.
+ * Falls back to the configured dummy OLV partner when PMS returns no active partners.
+ * </p>
+ *
+ * @see io.mosip.idrepository.manager.CredentialServiceManager
+ * @see PartnerCacheUpdateSchedulerConfig
+ * @see RestServicesConstants#PARTNER_SERVICE
+ * @see DummyPartnerCheckUtil
+ *
  * @author Loganathan S
  */
 @Component
 public class PartnerServiceManager {
-	
-	/** The Constant ONLINE_VERIFICATION_PARTNERS. */
-	private static final String ONLINE_VERIFICATION_PARTNERS = "Online_Verification_Partners";
 
+	/** Spring cache region name for OLV partner ID list. */
+	private static final String ONLINE_VERIFICATION_PARTNERS = IdRepoConstants.CACHE_ONLINE_VERIFICATION_PARTNERS;
 
-	/** The Constant GET_OLV_PARTNER_IDS. */
+	/** Structured log method name for partner ID retrieval. */
 	private static final String GET_OLV_PARTNER_IDS = "getOLVPartnerIds";
 
-
-	/** The Constant mosipLogger. */
+	/** Structured logger for partner service operations. */
 	private static final Logger mosipLogger = IdRepoLogger.getLogger(PartnerServiceManager.class);
-	
 
-	/** The Constant RESPONSE. */
+	/** JSON response wrapper key for PMS partner list responses. */
 	private static final String RESPONSE = "response";
 
-	/** The Constant PARTNER_ACTIVE_STATUS. */
+	/** PMS partner status value indicating an active credential partner. */
 	private static final String PARTNER_ACTIVE_STATUS = "Active";
-	
 
-	/** The rest helper. */
+	/** REST client for PMS calls; resolved in {@link #init()} if null. */
 	private RestHelper restHelper;
 
-	/** The rest builder. */
+	/** REST request builder for PMS service URL resolution. */
 	@Autowired
 	private RestRequestBuilder restBuilder;
-	
-	/** The dummy check. */
+
+	/** Utility to identify and exclude dummy/test OLV partners. */
 	@Autowired
 	private DummyPartnerCheckUtil dummyCheck;
-	
-	/** The ctx. */
+
 	@Autowired
 	private ApplicationContext ctx;
-	
+
 	/**
-	 * Inits the.
+	 * Resolves the {@link RestHelper} bean from the application context when not constructor-injected.
 	 */
 	@PostConstruct
 	public void init() {
@@ -76,11 +82,16 @@ public class PartnerServiceManager {
 			this.restHelper = ctx.getBean(RestHelper.class);
 	}
 
-	
 	/**
-	 * Gets the partner ids.
+	 * Returns the list of active Online Verification partner IDs from PMS.
+	 * <p>
+	 * Results are cached in {@code Online_Verification_Partners}. Active partners are
+	 * filtered by status {@code Active} and exclude dummy OLV partners. Returns a
+	 * singleton list containing the dummy partner ID when PMS returns no partners.
+	 * </p>
 	 *
-	 * @return the partner ids
+	 * @return non-empty list of partner IDs eligible for credential issuance
+	 * @see #clearOLVPartnersCache()
 	 */
 	@SuppressWarnings("unchecked")
 	@Cacheable(cacheNames = ONLINE_VERIFICATION_PARTNERS)
@@ -117,14 +128,18 @@ public class PartnerServiceManager {
 			return partners;
 		}
 	}
-	
+
 	/**
-	 * Clear OLV partners cache.
+	 * Evicts the cached OLV partner ID list, forcing a fresh PMS fetch on next access.
+	 * <p>
+	 * Invoked by {@link PartnerCacheUpdateSchedulerConfig} on a configurable schedule.
+	 * </p>
+	 *
+	 * @see #getOLVPartnerIds()
 	 */
 	@CacheEvict(value=ONLINE_VERIFICATION_PARTNERS)
 	public void clearOLVPartnersCache() {
 		mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(), "clearOLVPartnersCache",
 				ONLINE_VERIFICATION_PARTNERS + " cache cleared");
 	}
-
 }

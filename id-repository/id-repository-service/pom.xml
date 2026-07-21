@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>io.mosip.idrepository</groupId>
+		<artifactId>id-repository-parent</artifactId>
+		<version>1.3.1-rc.1</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<artifactId>id-repository-service</artifactId>
+	<name>id-repository-service</name>
+	<description>MOSIP ID-Repository deployable service (depends on id-repository-core)</description>
+
+	<!-- Inherits all version properties from id-repository-parent; no module-specific overrides. -->
+	<properties>
+		<!-- Maven Central publishing (Sonatype) -->
+		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
+	</properties>
+
+	<dependencies>
+		<!-- Before kernel-auth-adapter (shades logback 1.2.x); must win on classpath -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+		</dependency>
+		<!-- Before kernel-auth-adapter (fat jar shades org.springframework.*) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+		</dependency>
+
+		<!-- All business logic, jobs, batch, credential pipeline -->
+		<dependency>
+			<groupId>io.mosip.idrepository</groupId>
+			<artifactId>id-repository-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<!-- MOSIP/kernel use com.fasterxml.jackson.databind.ObjectMapper (Jackson 2 API) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-jackson2</artifactId>
+		</dependency>
+		<!-- kernel-auth AuthFilter constructs JsonMapper + AfterburnerModule; excluded from kernel-core -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.module</groupId>
+			<artifactId>jackson-module-afterburner</artifactId>
+		</dependency>
+		<!-- Win over kernel-auth-adapter shaded Jackson 2.15 annotations on unit-test classpath -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-config</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-biosdk-provider</artifactId>
+		</dependency>
+		<!-- BioAPIFactory loads Client_V_1_0 from id-repository-default.properties (config server).
+		     Util.java in this module shadows biosdk-client until a Spring-7-safe release is published. -->
+		<dependency>
+			<groupId>io.mosip.biosdk</groupId>
+			<artifactId>biosdk-client</artifactId>
+		</dependency>
+		<!-- IdObjectReferenceValidator (version from parent dependencyManagement) -->
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-ref-idobjectvalidator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-auth-adapter</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<!-- javax JAXB runtime on deployable classpath (CBEFF); see KernelAuthSpringFactoriesFilteringClassLoader -->
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<!-- Fat jar embeds stale com.fasterxml.jackson.annotation.* that breaks ObjectMapper in tests -->
+					<classpathDependencyExcludes>
+						<classpathDependencyExclude>io.mosip.kernel:kernel-auth-adapter</classpathDependencyExclude>
+					</classpathDependencyExcludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<mainClass>io.mosip.idrepository.bootstrap.IdRepositoryLauncher</mainClass>
+					<!-- Boot 4 removed the executable flag; ZIP layout supports java -jar -->
+					<layout>ZIP</layout>
+					<includeSystemScope>true</includeSystemScope>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>build-info</goal>
+							<goal>repackage</goal>
+						</goals>
+						<configuration>
+							<attach>false</attach>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

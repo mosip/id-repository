@@ -48,10 +48,17 @@ image:
 ##
 # existingConfigmap:
 
-## Command and args for running the container (set to default if not set). Use array form
+## Command and args — dedicated id-repository-salt-generator image (K8s Job, not HTTP service)
 ##
-command: []
-args: []
+command:
+  - /bin/bash
+  - -c
+args:
+  - |
+    exec java -Dspring.cloud.config.label="${spring_config_label_env}" \
+      -Dspring.profiles.active="${active_profile_env}" \
+      -Dspring.cloud.config.uri="${spring_config_url_env}" \
+      -jar id-repository-salt-generator.jar
 
 ## Deployment pod host aliases
 ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
@@ -61,6 +68,7 @@ hostAliases: []
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
 ##
 resources:
+  # 1M salt keys: recommend at least 512Mi–1Gi memory; job is chunked (default 500 rows/commit)
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
