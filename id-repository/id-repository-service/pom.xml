@@ -6,11 +6,12 @@
 	<parent>
 		<groupId>io.mosip.idrepository</groupId>
 		<artifactId>id-repository-parent</artifactId>
-		<version>1.3.1-rc.1</version>
+		<version>1.4.1-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<artifactId>id-repository-service</artifactId>
+	<version>1.4.1-SNAPSHOT</version>
 	<name>id-repository-service</name>
 	<description>MOSIP ID-Repository deployable service (depends on id-repository-core)</description>
 
