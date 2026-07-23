@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.testng.SkipException;
 
 import io.mosip.testrig.apirig.dbaccess.DBManager;
@@ -51,14 +52,47 @@ public class IdRepoUtil extends AdminTestUtil {
 			throw new SkipException(GlobalConstants.KNOWN_ISSUES);
 		}
 
+		// The schema-conditional skips below use FEATURE_NOT_SUPPORTED_MESSAGE so EmailableReport routes
+		// them to the Ignored bucket (it matches on that phrase), not Skipped.
 		if (testCaseDTO.getRequiredSchemaFields() != null && testCaseDTO.getRequiredSchemaFields().length > 0) {
 			for (String field : testCaseDTO.getRequiredSchemaFields()) {
 				String trimmed = field.trim();
 				if (globalRequiredFields == null || !isElementPresent(globalRequiredFields, trimmed)) {
-					throw new SkipException(
-							"Schema field '" + trimmed + "' not present in current IdSchema — test not applicable");
+					throw new SkipException("Schema field '" + trimmed + "' not present in current IdSchema — "
+							+ GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 				}
 			}
+		}
+
+		// Skip-only handle gate: skip a test whose listed field isn't a handle in the live schema.
+		if (testCaseDTO.getRequiredHandleFields() != null && testCaseDTO.getRequiredHandleFields().length > 0) {
+			JSONObject identityProps = AdminTestUtil.getIdentitySchemaProperties();
+			for (String field : testCaseDTO.getRequiredHandleFields()) {
+				String trimmed = field.trim();
+				if (!isFieldHandleCapable(identityProps, trimmed)) {
+					throw new SkipException("Schema field '" + trimmed + "' is not a handle in the current IdSchema — "
+							+ GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
+				}
+			}
+		}
+
+		// Schema-capability skips for the generic (field-name-agnostic) handle scenarios. Each test
+		// declares the capability it needs via its name; if the live schema can't support it, skip.
+		if (testCaseName.contains("_missingRequiredHandle") && !schemaHasRequiredHandle()) {
+			throw new SkipException(
+					"No required handle field in the current IdSchema — " + GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
+		}
+		if (testCaseName.contains("_invalidStringHandleValue") && !schemaHasHandleOfType("string")) {
+			throw new SkipException(
+					"No string-typed handle in the current IdSchema — " + GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
+		}
+		if (testCaseName.contains("_invalidArrayHandleValue") && !schemaHasHandleOfType("array")) {
+			throw new SkipException(
+					"No array-typed handle in the current IdSchema — " + GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
+		}
+		if (testCaseName.contains("_extraNonSchemaField") && schemaAllowsAdditionalProperties()) {
+			throw new SkipException("Schema permits additional properties, unknown-field rejection not applicable — "
+					+ GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
 
 		JSONArray dobArray = new JSONArray(getValueFromAuthActuator("json-property", "dob"));
@@ -72,7 +106,7 @@ public class IdRepoUtil extends AdminTestUtil {
 		}
 
 		if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("_handle")
-				&& foundHandlesInIdSchema == false) {
+				&& !schemaHasAnyHandle()) {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
 
@@ -89,7 +123,17 @@ public class IdRepoUtil extends AdminTestUtil {
 
 		return testCaseName;
 	}
-	
+
+	/** True when the named field exists in the schema and is declared "handle": true (case-insensitive). */
+	private static boolean isFieldHandleCapable(JSONObject identityProps, String fieldName) {
+		for (String key : identityProps.keySet()) {
+			if (key.equalsIgnoreCase(fieldName)) {
+				return identityProps.getJSONObject(key).optBoolean("handle", false);
+			}
+		}
+		return false;
+	}
+
 	public static void dbCleanUp() {
 		DBManager.executeDBQueries(IdRepoConfigManager.getKMDbUrl(), IdRepoConfigManager.getKMDbUser(),
 				IdRepoConfigManager.getKMDbPass(), IdRepoConfigManager.getKMDbSchema(),
@@ -116,5 +160,80 @@ public class IdRepoUtil extends AdminTestUtil {
 			jsonString = replaceKeywordWithValue(jsonString, "$RIDEXT$", genRidExt);
 		return jsonString;
 	}
-	
+
+	/**
+	 * Resolves $HANDLEVALUE:<fieldName>$ tokens emitted by the full-schema builder for optional handle
+	 * fields. Delegates to the shared implementation in {@link AdminTestUtil}.
+	 */
+	public static String resolveGenericHandleValueTokens(String jsonString) {
+		return AdminTestUtil.resolveSchemaHandleValueTokens(jsonString);
+	}
+
+	/**
+	 * Generates a value satisfying the given schema field's own validator. Delegates to the shared
+	 * implementation in {@link AdminTestUtil}; kept as a thin wrapper so idrepo callers (e.g.
+	 * IdRepoArrayHandle handle-value mutations) don't need to change.
+	 */
+	public static String generateSchemaFieldValue(String fieldName) {
+		return AdminTestUtil.generateSchemaFieldValue(fieldName);
+	}
+
+	/**
+	 * True when the live IdSchema declares at least one handle field. Computed directly from the
+	 * schema rather than relying on a flag that a template build sets as a side effect, so the
+	 * _handle skip gate is correct regardless of suite order or a narrowed testCasesToExecute run.
+	 */
+	public static boolean schemaHasAnyHandle() {
+		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
+		for (String fieldName : props.keySet()) {
+			if (props.getJSONObject(fieldName).optBoolean("handle", false)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** True when the schema declares at least one handle field of the given "type" ("string"/"array"). */
+	public static boolean schemaHasHandleOfType(String type) {
+		return resolveHandleOfType(type) != null;
+	}
+
+	/** First handle field of the given schema "type", or null if none — schema-driven, no field names. */
+	public static String resolveHandleOfType(String type) {
+		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
+		for (String fieldName : props.keySet()) {
+			JSONObject fieldDef = props.getJSONObject(fieldName);
+			if (fieldDef.optBoolean("handle", false) && type.equals(fieldDef.optString("type", "string"))) {
+				return fieldName;
+			}
+		}
+		return null;
+	}
+
+	/** True when the schema declares a handle field that is also in its "required" array. */
+	public static boolean schemaHasRequiredHandle() {
+		return resolveRequiredHandle() != null;
+	}
+
+	/** First handle field that is also required, or null if none. */
+	public static String resolveRequiredHandle() {
+		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
+		for (String fieldName : props.keySet()) {
+			if (props.getJSONObject(fieldName).optBoolean("handle", false)
+					&& isElementPresent(globalRequiredFields, fieldName)) {
+				return fieldName;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * True when the live schema's identity node permits fields it does not define
+	 * ("additionalProperties": true). Most schemas are strict (false) and reject unknown fields.
+	 */
+	public static boolean schemaAllowsAdditionalProperties() {
+		AdminTestUtil.getIdentitySchemaProperties(); // ensure the flag is populated
+		return Boolean.TRUE.equals(AdminTestUtil.globalIdentityAdditionalProperties);
+	}
+
 }
