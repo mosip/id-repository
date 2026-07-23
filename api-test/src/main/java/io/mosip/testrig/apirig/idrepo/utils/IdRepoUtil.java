@@ -161,28 +161,17 @@ public class IdRepoUtil extends AdminTestUtil {
 		return jsonString;
 	}
 
-	/**
-	 * Resolves $HANDLEVALUE:<fieldName>$ tokens emitted by the full-schema builder for optional handle
-	 * fields. Delegates to the shared implementation in {@link AdminTestUtil}.
-	 */
+	/** Resolves $HANDLEVALUE:&lt;field&gt;$ tokens; delegates to {@link AdminTestUtil}. */
 	public static String resolveGenericHandleValueTokens(String jsonString) {
 		return AdminTestUtil.resolveSchemaHandleValueTokens(jsonString);
 	}
 
-	/**
-	 * Generates a value satisfying the given schema field's own validator. Delegates to the shared
-	 * implementation in {@link AdminTestUtil}; kept as a thin wrapper so idrepo callers (e.g.
-	 * IdRepoArrayHandle handle-value mutations) don't need to change.
-	 */
+	/** Generates a value satisfying the given schema field's validator; delegates to {@link AdminTestUtil}. */
 	public static String generateSchemaFieldValue(String fieldName) {
 		return AdminTestUtil.generateSchemaFieldValue(fieldName);
 	}
 
-	/**
-	 * True when the live IdSchema declares at least one handle field. Computed directly from the
-	 * schema rather than relying on a flag that a template build sets as a side effect, so the
-	 * _handle skip gate is correct regardless of suite order or a narrowed testCasesToExecute run.
-	 */
+	/** True when the live IdSchema declares at least one handle field. */
 	public static boolean schemaHasAnyHandle() {
 		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
 		for (String fieldName : props.keySet()) {
@@ -227,10 +216,7 @@ public class IdRepoUtil extends AdminTestUtil {
 		return null;
 	}
 
-	/**
-	 * True when the live schema's identity node permits fields it does not define
-	 * ("additionalProperties": true). Most schemas are strict (false) and reject unknown fields.
-	 */
+	/** True when the schema's identity node permits fields it does not define ("additionalProperties":true). */
 	public static boolean schemaAllowsAdditionalProperties() {
 		AdminTestUtil.getIdentitySchemaProperties(); // ensure the flag is populated
 		return Boolean.TRUE.equals(AdminTestUtil.globalIdentityAdditionalProperties);

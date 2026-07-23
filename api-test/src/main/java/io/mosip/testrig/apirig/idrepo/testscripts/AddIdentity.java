@@ -96,8 +96,7 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 			throw new SkipException(
 					GlobalConstants.TARGET_ENV_HEALTH_CHECK_FAILED + HealthChecker.healthCheckFailureMapS);
 		}
-		// Call modifySchemaGenerateHbs first only to populate schema globals (idSchemaVersion,
-		// phoneSchemaRegex) used below; its template is then replaced with the full-schema one.
+		// modifySchemaGenerateHbs is called only to populate schema globals used below; its template is replaced.
 		if(testCaseDTO.getEndPoint().contains(GlobalConstants.ADD_IDENTITY_V2_ENDPOINT)) {
 			AdminTestUtil.modifySchemaGenerateHbsV2(testCaseDTO.isRegenerateHbs());
 			testCaseDTO.setInputTemplate(SchemaBasedIdentityTemplateBuilder.buildAddIdentityTemplateV2());

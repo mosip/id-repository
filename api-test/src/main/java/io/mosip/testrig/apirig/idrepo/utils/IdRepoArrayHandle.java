@@ -13,11 +13,7 @@ import io.mosip.testrig.apirig.testrunner.BaseTestCase;
 import io.mosip.testrig.apirig.utils.AdminTestUtil;
 
 public class IdRepoArrayHandle {
-	/**
-	 * Handle values captured from a "_save_" test's identity, keyed by field name, replayed later to
-	 * trigger a duplicate-handle rejection (IDR-IDC-014). Keyed per field because a value only collides
-	 * with the same field, and a schema can declare several handles.
-	 */
+	/** Handle values captured from a "_save_" test's identity, replayed to trigger IDR-IDC-014. */
 	private static final Map<String, String> savedHandleValues = new LinkedHashMap<>();
 	public static String RANDOM_ID = "mosip" + BaseTestCase.generateRandomNumberString(2)
 			+ Calendar.getInstance().getTimeInMillis();
@@ -139,10 +135,7 @@ public class IdRepoArrayHandle {
 		return jsonObj.toString();
 	}
 
-	/**
-	 * Adds a field the live schema does not define, for the _extraNonSchemaField test. Driven from the
-	 * test script (not the handle dispatch) so it also runs on schemas with no handles.
-	 */
+	/** Adds a field the live schema does not define, for the _extraNonSchemaField test. */
 	public static String injectExtraNonSchemaField(String inputJson) {
 		JSONObject jsonObj = new JSONObject(inputJson);
 		JSONObject identity = jsonObj.getJSONObject("request").getJSONObject("identity");
@@ -472,11 +465,7 @@ public class IdRepoArrayHandle {
 		writeHandleValue(identity, handle, INVALID_HANDLE_VALUE);
 	}
 
-	/**
-	 * Reads a handle's value irrespective of how the schema types it: a "type": "string" handle
-	 * (e.g. licenseNo) holds the value directly, a "type": "array" handle (e.g. functionalId) holds
-	 * it as [{value, tags}]. Returns null when the field is absent or carries no value.
-	 */
+	/** Reads a handle's value regardless of schema shape (string, or array of {value,tags}); null if absent. */
 	private static String readHandleValue(JSONObject identity, String handle) {
 		Object handleObj = identity.opt(handle);
 		if (handleObj instanceof JSONArray) {
@@ -508,8 +497,7 @@ public class IdRepoArrayHandle {
 		}
 	}
 
-	/** Records the identity's current handle values (from the schema's handle list, so string-typed
-	 *  handles are captured too) for a later test to replay. */
+	/** Records the identity's current handle values for a later test to replay. */
 	private static void saveHandleValues(JSONObject identity) {
 		for (String handle : resolveSchemaHandleFields()) {
 			String value = readHandleValue(identity, handle);
