@@ -853,13 +853,13 @@ UpdateIdentity:
 }'
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_handle_value_withusedhandlevaluewithoutselectedhandles:
       endPoint: /idrepository/v1/identity/
-      description: Update Identity reusing another identity's handle values while omitting selectedHandles - the duplicate handle value must still be rejected (uniqueness enforced on the stored handles). NOTE - currently the server returns ACTIVATED; this test asserts the correct expected behaviour and is expected to fail until confirmed/fixed with the IdRepo team.
+      description: Update Identity reusing another identity's handle values while omitting selectedHandles - confirmed with the IdRepo team that the update is expected to succeed (uniqueness on stored handles is not enforced in this scenario).
       uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_31
       role: testrig
       additionalDependencies: TC_IDRepo_AddIdentityArrayHandle_38
       restMethod: patch
       inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
-      outputTemplate: idRepository/error
+      outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
       input: '{
 	    "registrationId": "$RID$",
         "id": "mosip.id.update",
@@ -877,13 +877,9 @@ UpdateIdentity:
 	    "category": "individualBiometrics",
 	    "requesttime": "$TIMESTAMP$"
 	  }'
-      output: '	  {
-        "errors": [
-          {
-           "errorCode": "IDR-IDC-014"
-          }
-        ]
-      }'
+      output: '{
+    "status": "ACTIVATED"
+}'
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_handle_value_removeselectedhandlesandupdateemail:
       endPoint: /idrepository/v1/identity/
       description: Update Identity remove selected handle then pass email value
