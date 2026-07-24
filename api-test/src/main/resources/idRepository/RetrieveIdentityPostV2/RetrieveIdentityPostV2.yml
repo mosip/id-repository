@@ -115,6 +115,7 @@ RetrieveIdentityPostV2:
       endPoint: /idrepository/v1/identity/idvid/v2
       description: Verify response passing email marked as handle
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_06
+      requiredHandleFields: [email]
       role: idrepo
       restMethod: post
       checkErrorsOnlyInResponse: true
@@ -135,6 +136,7 @@ RetrieveIdentityPostV2:
       endPoint: /idrepository/v1/identity/idvid/v2
       description: Verify response passing valid ID as phone number and idType as Handle
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_07
+      requiredHandleFields: [phone]
       role: idrepo
       restMethod: post
       checkErrorsOnlyInResponse: true
@@ -227,6 +229,7 @@ RetrieveIdentityPostV2:
       endPoint: /idrepository/v1/identity/idvid/v2
       description: Verify response passing valid ID making phone number as Handles
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_11
+      requiredHandleFields: [phone]
       role: idrepo
       restMethod: post
       checkErrorsOnlyInResponse: true
