@@ -26,6 +26,7 @@ import io.mosip.testrig.apirig.dto.TestCaseDTO;
 import io.mosip.testrig.apirig.idrepo.utils.IdRepoArrayHandle;
 import io.mosip.testrig.apirig.idrepo.utils.IdRepoConfigManager;
 import io.mosip.testrig.apirig.idrepo.utils.IdRepoUtil;
+import io.mosip.testrig.apirig.utils.SchemaBasedIdentityTemplateBuilder;
 import io.mosip.testrig.apirig.testrunner.BaseTestCase;
 import io.mosip.testrig.apirig.testrunner.HealthChecker;
 import io.mosip.testrig.apirig.utils.AdminTestException;
@@ -92,10 +93,13 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 		testCaseName = testCaseDTO.getTestCaseName();
 		testCaseName = IdRepoUtil.isTestCaseValidForExecution(testCaseDTO);
 		
+		// updateIdentityHbs is called only to populate schema globals used below; its template is replaced.
 		if(testCaseDTO.getEndPoint().contains(GlobalConstants.ADD_IDENTITY_V2_ENDPOINT)) {
-			testCaseDTO.setInputTemplate(AdminTestUtil.updateIdentityHbsV2(testCaseDTO.isRegenerateHbs()));
+			AdminTestUtil.updateIdentityHbsV2(testCaseDTO.isRegenerateHbs());
+			testCaseDTO.setInputTemplate(SchemaBasedIdentityTemplateBuilder.buildUpdateIdentityTemplateV2());
 		} else {
-			testCaseDTO.setInputTemplate(AdminTestUtil.updateIdentityHbs(testCaseDTO.isRegenerateHbs()));
+			AdminTestUtil.updateIdentityHbs(testCaseDTO.isRegenerateHbs());
+			testCaseDTO.setInputTemplate(SchemaBasedIdentityTemplateBuilder.buildUpdateIdentityTemplate());
 		}
 		testCaseName = testCaseDTO.getTestCaseName();
 		if (HealthChecker.signalTerminateExecution) {
@@ -164,6 +168,8 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 			writeToCache(getAutogenIdKeyName(testCaseName, "phone"), phonenumber);
 		}
 
+		// Resolve $HANDLEVALUE tokens before IdRepoArrayHandle runs so its mutations see real values.
+		inputJson = IdRepoUtil.resolveGenericHandleValueTokens(inputJson);
 		JSONObject jsonString = new JSONObject(inputJson);
 		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {
 			inputJson = IdRepoArrayHandle.replaceArrayHandleValuesForUpdateIdentity(inputJson,testCaseName);
