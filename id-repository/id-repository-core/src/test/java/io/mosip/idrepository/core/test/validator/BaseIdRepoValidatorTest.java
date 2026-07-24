@@ -54,6 +54,7 @@ public class BaseIdRepoValidatorTest {
 	public void before() {
 		EnvUtil.setVersionPattern("^v\\d+(\\.\\d+)?$");
 		EnvUtil.setDateTimePattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		EnvUtil.setDateTimeAdjustment(0L);
 		id = new HashMap<>();
 		id.put("read", "mosip.identity.read");
 		id.put("deactivate", "mosip.vid.deactivate");
