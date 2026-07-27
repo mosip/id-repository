@@ -46,6 +46,7 @@ UpdateIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validates that Update Identity V2 API successfully updates an identity when multiple email values are provided but only one valid email handle is processed.
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2ArrayHandle_02
+    requiredHandleFields: [email]
     role: testrig
     restMethod: patch
     inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -89,6 +90,7 @@ UpdateIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validates that Update Identity V2 API successfully updates an identity even when multiple email values are provided without a handle mapping.
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2ArrayHandle_03
+    requiredHandleFields: [email]
     role: testrig
     restMethod: patch
     inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -132,6 +134,7 @@ UpdateIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validates that Update Identity V2 API successfully updates an identity when multiple email handles are provided as handle.
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2ArrayHandle_04
+    requiredHandleFields: [email]
     role: testrig
     restMethod: patch
     inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -218,6 +221,7 @@ UpdateIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validates that Update Identity V2 API retains tagged email information with verifiedAttributes during update.
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2ArrayHandle_06
+    requiredHandleFields: [email]
     role: testrig
     restMethod: patch
     inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -261,6 +265,7 @@ UpdateIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validates that Update Identity V2 API successfully handles and updates identities with a lengthy email array with verifiedAttributes.
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2ArrayHandle_07
+    requiredHandleFields: [email]
     role: testrig
     restMethod: patch
     inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -304,6 +309,7 @@ UpdateIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validates that Update Identity V2 API successfully updates an identity when multiple email handles with different domains are provided.
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2ArrayHandle_08
+    requiredHandleFields: [email]
     role: testrig
     restMethod: patch
     inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -347,6 +353,7 @@ UpdateIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validates that Update Identity V2 API successfully updates an identity without modifying handle parameters.
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2ArrayHandle_09
+    requiredHandleFields: [email]
     role: testrig
     restMethod: patch
     inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle

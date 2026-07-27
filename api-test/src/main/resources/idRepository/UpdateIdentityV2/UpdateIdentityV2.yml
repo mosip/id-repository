@@ -1377,6 +1377,7 @@ UpdateIdentityV2:
     endPoint: /idrepository/v1/identity/v2
     description: Validate that Update Identity V2 returns error response when updating identity with a phone number which is not selected as handle.
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_36
+    requiredHandleFields: [phone]
     role: testrig
     restMethod: patch
     inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
@@ -1455,6 +1456,7 @@ UpdateIdentityV2:
     endPoint: /idrepository/v1/identity/v2
     description: Validate that Update Identity V2 returns error response when updating identity with a email which is not selected as handle.
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_38
+    requiredHandleFields: [email]
     role: testrig
     restMethod: patch
     inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
