@@ -122,24 +122,37 @@ public final class KernelAuthSpringFactoriesFilteringClassLoader extends URLClas
 	 * @throws IOException if classpath is empty or kernel-auth entry is not found
 	 */
 	private static KernelAuthSpringFactoriesFilteringClassLoader create(ClassLoader parent) throws IOException {
-		String classpath = System.getProperty("java.class.path");
-		if (classpath == null || classpath.isBlank()) {
-			throw new IOException("java.class.path is empty");
-		}
 		List<URL> primaryUrls = new ArrayList<>();
 		URL kernelAuthJar = null;
-		for (String entry : CLASSPATH_SEPARATOR.split(classpath)) {
-			if (entry.isBlank()) {
-				continue;
+		if (parent instanceof URLClassLoader urlClassLoader) {
+			for (URL url : urlClassLoader.getURLs()) {
+				String entry = url.toExternalForm();
+				if (isKernelAuthClasspathEntry(entry)) {
+					kernelAuthJar = url;
+					continue;
+				}
+				primaryUrls.add(url);
 			}
-			if (isKernelAuthClasspathEntry(entry)) {
-				kernelAuthJar = Path.of(entry).toUri().toURL();
-				continue;
-			}
-			primaryUrls.add(Path.of(entry).toUri().toURL());
 		}
 		if (kernelAuthJar == null) {
-			throw new IOException("kernel-auth-adapter jar not found on java.class.path");
+			primaryUrls.clear();
+			String classpath = System.getProperty("java.class.path");
+			if (classpath == null || classpath.isBlank()) {
+				throw new IOException("java.class.path is empty");
+			}
+			for (String entry : CLASSPATH_SEPARATOR.split(classpath)) {
+				if (entry.isBlank()) {
+					continue;
+				}
+				if (isKernelAuthClasspathEntry(entry)) {
+					kernelAuthJar = Path.of(entry).toUri().toURL();
+					continue;
+				}
+				primaryUrls.add(Path.of(entry).toUri().toURL());
+			}
+		}
+		if (kernelAuthJar == null) {
+			throw new IOException("kernel-auth-adapter jar not found on java.class.path or parent URLClassLoader");
 		}
 		return new KernelAuthSpringFactoriesFilteringClassLoader(primaryUrls.toArray(URL[]::new), kernelAuthJar,
 				ClassLoader.getPlatformClassLoader());

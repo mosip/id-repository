@@ -186,6 +186,24 @@ public class KernelAuthSpringFactoriesFilteringClassLoaderTest {
 	}
 
 	@Test
+	public void installSucceedsUsingParentURLClassLoaderWhenJavaClassPathIsEmpty() throws Exception {
+		Path workDir = Files.createTempDirectory("kernel-auth-filter-");
+		Path primaryJar = workDir.resolve("primary-only.jar");
+		Path kernelAuthJar = workDir.resolve("kernel-auth-adapter-test.jar");
+		createMinimalClasspathJars(primaryJar, kernelAuthJar);
+
+		URLClassLoader parentLoader = new URLClassLoader(new URL[] {
+				primaryJar.toUri().toURL(),
+				kernelAuthJar.toUri().toURL()
+		}, ClassLoader.getPlatformClassLoader());
+
+		System.setProperty("java.class.path", "   ");
+		ClassLoader installed = KernelAuthSpringFactoriesFilteringClassLoader.install(parentLoader);
+		assertNotNull(installed);
+		assertTrue(installed instanceof KernelAuthSpringFactoriesFilteringClassLoader);
+	}
+
+	@Test
 	public void loadClassReturnsCachedClassWithoutReloading() throws Exception {
 		KernelAuthSpringFactoriesFilteringClassLoader filtering = createFilteringClassLoader();
 		Class<?> first = filtering.loadClass(PRIMARY_ONLY_CLASS);
