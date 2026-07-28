@@ -44,7 +44,7 @@ public final class IdRepositoryLauncher {
 	 * @throws Exception if class-loader installation fails or reflective {@code main} invocation fails
 	 */
 	public static void main(String[] args) throws Exception {
-		ClassLoader classLoader = KernelAuthSpringFactoriesFilteringClassLoader.install(null);
+		ClassLoader classLoader = KernelAuthSpringFactoriesFilteringClassLoader.install(IdRepositoryLauncher.class.getClassLoader());
 		Class<?> applicationClass = Class.forName("io.mosip.idrepository.IdRepositoryBootApplication", true,
 				classLoader);
 		Method main = applicationClass.getMethod("main", String[].class);
