@@ -56,11 +56,16 @@ import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.skyscreamer.jsonassert.JSONCompareResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
 
@@ -95,6 +100,8 @@ import io.mosip.idrepository.identity.repository.UinBiometricRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentRepo;
 import io.mosip.idrepository.identity.repository.UinDraftRepo;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
+import io.mosip.idrepository.manager.CredentialStatusManager;
+import io.mosip.idrepository.pipeline.PendingCredentialSync;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -128,6 +135,13 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	@Autowired
 	/** Uin draft repo. */
 	private UinDraftRepo uinDraftRepo;
+
+	@Autowired
+	private PlatformTransactionManager transactionManager;
+
+	@Autowired
+	@Lazy
+	private CredentialStatusManager credentialStatusManager;
 
 	@Autowired
 	/** Validator. */
@@ -394,50 +408,74 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl implements IdRepoD
 	@Override
 	/**
 	 * Publish draft.
+	 * <p>
+	 * Runs DB work in a dedicated transaction, then sync credentials <em>after</em> that TX
+	 * releases its JDBC connection (same pool-hold fix as add/update identity).
+	 * </p>
 	 * @param regId reg id
 	 * @return id response dto
 	 */
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public IdResponseDTO publishDraft(String regId) throws IdRepoAppException {
 		long startNanos = System.nanoTime();
+		TransactionTemplate tx = new TransactionTemplate(transactionManager);
+		tx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+		try {
+			return tx.execute(status -> {
+				try {
+					return publishDraftInTransaction(regId);
+				} catch (IdRepoAppException e) {
+					throw new IdRepoAppUncheckedException(e.getErrorCode(), e.getErrorText(), e);
+				}
+			});
+		} catch (IdRepoAppUncheckedException e) {
+			PendingCredentialSync.clear();
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		} catch (RuntimeException e) {
+			PendingCredentialSync.clear();
+			throw e;
+		} finally {
+			credentialStatusManager.runPendingAfterIdentityCommit();
+			IdentityServicePerformanceLog.log(idrepoDraftLogger, ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT, startNanos);
+		}
+	}
+
+	private IdResponseDTO publishDraftInTransaction(String regId) throws IdRepoAppException {
 		anonymousProfileHelper.setRegId(regId);
 		try {
-			try {
-				String draftVid = null;
-				Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
-				if (uinDraft.isEmpty()) {
-					idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
-							DRAFT_RECORD_NOT_FOUND);
-					throw new IdRepoAppException(NO_RECORD_FOUND);
+			String draftVid = null;
+			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
+			if (uinDraft.isEmpty()) {
+				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT,
+						DRAFT_RECORD_NOT_FOUND);
+				throw new IdRepoAppException(NO_RECORD_FOUND);
+			} else {
+				UinDraft draft = uinDraft.get();
+				anonymousProfileHelper
+				.setNewCbeff(draft.getUinHash().split("_")[1],
+						!anonymousProfileHelper.isNewCbeffPresent() && Objects.nonNull(draft.getBiometrics())
+						&& !draft.getBiometrics().isEmpty()
+						? draft.getBiometrics().get(draft.getBiometrics().size() - 1).getBioFileId()
+								: null);
+				IdRequestDTO idRequest = buildRequest(regId, draft);
+				validateRequest(idRequest.getRequest());
+				String uin = decryptUin(draft.getUin(), draft.getUinHash());
+				final Uin uinObject;
+				if (uinRepo.existsByUinHash(draft.getUinHash())) {
+					uinObject = super.updateIdentity(idRequest, uin);
 				} else {
-					UinDraft draft = uinDraft.get();
-					anonymousProfileHelper
-					.setNewCbeff(draft.getUinHash().split("_")[1],
-							!anonymousProfileHelper.isNewCbeffPresent() && Objects.nonNull(draft.getBiometrics())
-							&& !draft.getBiometrics().isEmpty()
-							? draft.getBiometrics().get(draft.getBiometrics().size() - 1).getBioFileId()
-									: null);
-					IdRequestDTO idRequest = buildRequest(regId, draft);
-					validateRequest(idRequest.getRequest());
-					String uin = decryptUin(draft.getUin(), draft.getUinHash());
-					final Uin uinObject;
-					if (uinRepo.existsByUinHash(draft.getUinHash())) {
-						uinObject = super.updateIdentity(idRequest, uin);
-					} else {
-						draftVid = vidDraftHelper.generateDraftVid(uin);
-						uinObject = super.addIdentity(idRequest, uin);
-						vidDraftHelper.activateDraftVid(draftVid);
-					}
-					anonymousProfileHelper.buildAndsaveProfile(true);
-					publishDocuments(draft, uinObject);
-					this.discardDraft(regId);
-					return constructIdResponse(null, uinObject.getStatusCode(), null, draftVid);
+					draftVid = vidDraftHelper.generateDraftVid(uin);
+					uinObject = super.addIdentity(idRequest, uin);
+					vidDraftHelper.activateDraftVid(draftVid);
 				}
-			} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
-				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT, e.getMessage());
-				throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
+				anonymousProfileHelper.buildAndsaveProfile(true);
+				publishDocuments(draft, uinObject);
+				this.discardDraft(regId);
+				return constructIdResponse(null, uinObject.getStatusCode(), null, draftVid);
 			}
-		} finally {
-			IdentityServicePerformanceLog.log(idrepoDraftLogger, ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT, startNanos);
+		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL, PUBLISH_DRAFT, e.getMessage());
+			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 		}
 	}
 

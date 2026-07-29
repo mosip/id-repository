@@ -50,22 +50,63 @@ public class InProcessIdentityClient {
 	 */
 	public IdResponseDTO retrieveIdentity(CredentialServiceRequestDto request,
 			Map<String, String> bioAttributeFormatterMap) throws IdRepoException {
+		CredentialPipelineContext.State pipeline = CredentialPipelineContext.get();
+		String cacheKey = buildIdentityCacheKey(request.getId(), bioAttributeFormatterMap);
 		try {
-			IdType idType = resolveIdType(request);
-			Map<String, String> extractionFormats = new HashMap<>();
-			if (bioAttributeFormatterMap != null) {
-				putIfPresent(extractionFormats, CredentialConstants.FINGER,
-						bioAttributeFormatterMap.get(CredentialConstants.FINGER));
-				putIfPresent(extractionFormats, CredentialConstants.FACE,
-						bioAttributeFormatterMap.get(CredentialConstants.FACE));
-				putIfPresent(extractionFormats, CredentialConstants.IRIS,
-						bioAttributeFormatterMap.get(CredentialConstants.IRIS));
+			if (pipeline != null) {
+				return pipeline.getIdentityCache().computeIfAbsent(cacheKey, key -> {
+					try {
+						return doRetrieveIdentity(request, bioAttributeFormatterMap);
+					} catch (IdRepoAppException e) {
+						throw new IdentityRetrieveUncheckedException(e);
+					}
+				});
 			}
-			return idRepoProxyService.retrieveIdentity(request.getId(), idType, identityType, extractionFormats);
+			return doRetrieveIdentity(request, bioAttributeFormatterMap);
+		} catch (IdentityRetrieveUncheckedException e) {
+			throw new IdRepoException(e.getCause());
 		} catch (IdRepoAppException e) {
 			throw new IdRepoException(e);
 		} catch (Exception e) {
 			throw new IdRepoException(e);
+		}
+	}
+
+	private IdResponseDTO doRetrieveIdentity(CredentialServiceRequestDto request,
+			Map<String, String> bioAttributeFormatterMap) throws IdRepoAppException {
+		IdType idType = resolveIdType(request);
+		Map<String, String> extractionFormats = new HashMap<>();
+		if (bioAttributeFormatterMap != null) {
+			putIfPresent(extractionFormats, CredentialConstants.FINGER,
+					bioAttributeFormatterMap.get(CredentialConstants.FINGER));
+			putIfPresent(extractionFormats, CredentialConstants.FACE,
+					bioAttributeFormatterMap.get(CredentialConstants.FACE));
+			putIfPresent(extractionFormats, CredentialConstants.IRIS,
+					bioAttributeFormatterMap.get(CredentialConstants.IRIS));
+		}
+		return idRepoProxyService.retrieveIdentity(request.getId(), idType, identityType, extractionFormats);
+	}
+
+	/**
+	 * Builds a stable cache key so partners with the same id + bio formats share one retrieve.
+	 */
+	static String buildIdentityCacheKey(String id, Map<String, String> bioAttributeFormatterMap) {
+		if (bioAttributeFormatterMap == null || bioAttributeFormatterMap.isEmpty()) {
+			return id + "|";
+		}
+		return id + "|" + bioAttributeFormatterMap.entrySet().stream()
+				.sorted(Map.Entry.comparingByKey())
+				.map(e -> e.getKey() + "=" + e.getValue())
+				.reduce((a, b) -> a + "&" + b)
+				.orElse("");
+	}
+
+	/** Wraps checked identity failures for {@code ConcurrentMap#computeIfAbsent}. */
+	private static final class IdentityRetrieveUncheckedException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
+
+		private IdentityRetrieveUncheckedException(IdRepoAppException cause) {
+			super(cause);
 		}
 	}
 

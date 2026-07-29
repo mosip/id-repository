@@ -77,13 +77,13 @@ public final class KernelAuthSpringFactoriesFilteringClassLoader extends URLClas
 	}
 
 	/**
-	 * @param primaryUrls     classpath entries excluding kernel-auth-adapter
-	 * @param kernelAuthJarUrl sole URL for the kernel-auth fat JAR
-	 * @param parent          typically {@link ClassLoader#getPlatformClassLoader()}
+	 * @param primaryUrls      classpath entries excluding isolated JARs
+	 * @param isolatedJarUrls  URLs for the isolated JARs
+	 * @param parent           typically {@link ClassLoader#getPlatformClassLoader()}
 	 */
-	private KernelAuthSpringFactoriesFilteringClassLoader(URL[] primaryUrls, URL kernelAuthJarUrl, ClassLoader parent) {
+	private KernelAuthSpringFactoriesFilteringClassLoader(URL[] primaryUrls, URL[] isolatedJarUrls, ClassLoader parent) {
 		super(primaryUrls, parent);
-		this.kernelAuthLoader = new KernelAuthOnlyClassLoader(kernelAuthJarUrl, this);
+		this.kernelAuthLoader = new KernelAuthOnlyClassLoader(isolatedJarUrls, this);
 	}
 
 	/**
@@ -115,33 +115,46 @@ public final class KernelAuthSpringFactoriesFilteringClassLoader extends URLClas
 	}
 
 	/**
-	 * Splits {@code java.class.path} into primary application URLs and the kernel-auth JAR URL.
+	 * Splits {@code java.class.path} into primary application URLs and the isolated JAR URLs.
 	 *
 	 * @param parent ignored; platform class loader is always used as parent
 	 * @return new filtering loader instance
-	 * @throws IOException if classpath is empty or kernel-auth entry is not found
+	 * @throws IOException if classpath is empty or isolated JAR entries are not found
 	 */
 	private static KernelAuthSpringFactoriesFilteringClassLoader create(ClassLoader parent) throws IOException {
-		String classpath = System.getProperty("java.class.path");
-		if (classpath == null || classpath.isBlank()) {
-			throw new IOException("java.class.path is empty");
-		}
 		List<URL> primaryUrls = new ArrayList<>();
-		URL kernelAuthJar = null;
-		for (String entry : CLASSPATH_SEPARATOR.split(classpath)) {
-			if (entry.isBlank()) {
-				continue;
+		List<URL> isolatedUrls = new ArrayList<>();
+		if (parent instanceof URLClassLoader urlClassLoader) {
+			for (URL url : urlClassLoader.getURLs()) {
+				String entry = url.toExternalForm();
+				if (isIsolatedClasspathEntry(entry)) {
+					isolatedUrls.add(url);
+					continue;
+				}
+				primaryUrls.add(url);
 			}
-			if (isKernelAuthClasspathEntry(entry)) {
-				kernelAuthJar = Path.of(entry).toUri().toURL();
-				continue;
+		}
+		if (isolatedUrls.isEmpty()) {
+			primaryUrls.clear();
+			String classpath = System.getProperty("java.class.path");
+			if (classpath == null || classpath.isBlank()) {
+				throw new IOException("java.class.path is empty");
 			}
-			primaryUrls.add(Path.of(entry).toUri().toURL());
+			for (String entry : CLASSPATH_SEPARATOR.split(classpath)) {
+				if (entry.isBlank()) {
+					continue;
+				}
+				if (isIsolatedClasspathEntry(entry)) {
+					isolatedUrls.add(Path.of(entry).toUri().toURL());
+					continue;
+				}
+				primaryUrls.add(Path.of(entry).toUri().toURL());
+			}
 		}
-		if (kernelAuthJar == null) {
-			throw new IOException("kernel-auth-adapter jar not found on java.class.path");
+		if (isolatedUrls.isEmpty()) {
+			throw new IOException("Isolated JARs (kernel-auth-adapter or biosdk-client-jar-with-dependencies) not found on java.class.path or parent URLClassLoader");
 		}
-		return new KernelAuthSpringFactoriesFilteringClassLoader(primaryUrls.toArray(URL[]::new), kernelAuthJar,
+		return new KernelAuthSpringFactoriesFilteringClassLoader(primaryUrls.toArray(URL[]::new), isolatedUrls.toArray(URL[]::new),
 				ClassLoader.getPlatformClassLoader());
 	}
 
@@ -172,7 +185,7 @@ public final class KernelAuthSpringFactoriesFilteringClassLoader extends URLClas
 	}
 
 	/**
-	 * Core delegation: platform → shaded-on-primary → primary → kernel-auth → parent.
+	 * Core delegation: platform → shaded-on-primary → primary → isolated → parent.
 	 *
 	 * @param name binary class name
 	 * @return resolved class
@@ -189,23 +202,25 @@ public final class KernelAuthSpringFactoriesFilteringClassLoader extends URLClas
 			return findClass(name);
 		}
 		catch (ClassNotFoundException ex) {
-			if (isKernelAuthPackage(name)) {
-				return loadKernelAuthClass(name);
+			try {
+				return loadIsolatedClass(name);
 			}
-			return getParent().loadClass(name);
+			catch (ClassNotFoundException ex2) {
+				return getParent().loadClass(name);
+			}
 		}
 	}
 
 	/**
-	 * Delegates {@code io.mosip.kernel.auth.*} to the child loader.
+	 * Delegates lookup to the isolated child class loader.
 	 *
-	 * @param name auth package class name
-	 * @return class from primary shadow or kernel-auth JAR
+	 * @param name class name
+	 * @return class from primary shadow or isolated JARs
 	 * @throws ClassNotFoundException if the child loader cannot resolve the name
 	 */
-	private Class<?> loadKernelAuthClass(String name) throws ClassNotFoundException {
+	private Class<?> loadIsolatedClass(String name) throws ClassNotFoundException {
 		if (kernelAuthLoader instanceof KernelAuthOnlyClassLoader authLoader) {
-			return authLoader.loadFromKernelAuthJar(name);
+			return authLoader.loadFromIsolatedJars(name);
 		}
 		throw new ClassNotFoundException(name);
 	}
@@ -381,30 +396,40 @@ public final class KernelAuthSpringFactoriesFilteringClassLoader extends URLClas
 	 * @param url  candidate URL
 	 * @return {@code true} to exclude this URL from the result
 	 */
+	/**
+	 * Decides whether a metadata URL should be omitted from {@link #getResources(String)}.
+	 * <p>
+	 * Drops kernel-auth Spring metadata and duplicate springdoc {@code spring.factories}.
+	 * </p>
+	 *
+	 * @param name resource path
+	 * @param url  candidate URL
+	 * @return {@code true} to exclude this URL from the result
+	 */
 	private static boolean shouldFilterMetadataResource(String name, URL url) {
 		String location = url.toExternalForm().toLowerCase();
-		if (location.contains(KERNEL_AUTH_ADAPTER)) {
+		if (location.contains(KERNEL_AUTH_ADAPTER) || location.contains("biosdk-client-jar-with-dependencies")) {
 			return isFilteredMetadataName(name);
 		}
 		return SPRING_FACTORIES.equals(name) && location.contains("springdoc-openapi");
 	}
 
 	/**
-	 * Detects the kernel-auth fat JAR on the process classpath string.
+	 * Detects the isolated fat JARs on the process classpath string.
 	 *
 	 * @param entry single {@code java.class.path} entry (file path)
-	 * @return {@code true} if the path contains {@code kernel-auth-adapter}
+	 * @return {@code true} if the path contains an isolated JAR keyword
 	 */
-	private static boolean isKernelAuthClasspathEntry(String entry) {
-		return entry.replace('\\', '/').toLowerCase().contains(KERNEL_AUTH_ADAPTER);
+	private static boolean isIsolatedClasspathEntry(String entry) {
+		String path = entry.replace('\\', '/').toLowerCase();
+		return path.contains(KERNEL_AUTH_ADAPTER) || path.contains("biosdk-client-jar-with-dependencies");
 	}
 
 	/**
-	 * Child {@link URLClassLoader} scoped to the kernel-auth JAR only.
+	 * Child {@link URLClassLoader} scoped to the isolated JARs only.
 	 * <p>
 	 * Shaded Spring/Jackson/Logback requests delegate to the parent filtering loader so
-	 * {@code AuthFilter} bytecode links against application Spring 7 types. Auth-package classes
-	 * prefer primary shadows via {@link #loadFromKernelAuthJar(String)} before reading the JAR.
+	 * {@code AuthFilter} bytecode links against application Spring 7 types.
 	 * </p>
 	 */
 	private static final class KernelAuthOnlyClassLoader extends URLClassLoader {
@@ -414,27 +439,27 @@ public final class KernelAuthSpringFactoriesFilteringClassLoader extends URLClas
 		}
 
 		/**
-		 * @param kernelAuthJarUrl URL of the kernel-auth-adapter JAR
+		 * @param isolatedJarUrls URLs of the isolated JARs
 		 * @param parent           parent filtering class loader
 		 */
-		private KernelAuthOnlyClassLoader(URL kernelAuthJarUrl, ClassLoader parent) {
-			super(new URL[] { kernelAuthJarUrl }, parent);
+		private KernelAuthOnlyClassLoader(URL[] isolatedJarUrls, ClassLoader parent) {
+			super(isolatedJarUrls, parent);
 		}
 
-		/** Restricts resource lookup to this JAR (no parent delegation for resources). */
+		/** Restricts resource lookup to these JARs (no parent delegation for resources). */
 		@Override
 		public URL getResource(String name) {
 			return findResource(name);
 		}
 
-		/** Restricts resource enumeration to this JAR. */
+		/** Restricts resource enumeration to these JARs. */
 		@Override
 		public Enumeration<URL> getResources(String name) throws IOException {
 			return findResources(name);
 		}
 
 		/**
-		 * Loads shaded packages from parent; auth packages from primary shadow or this JAR.
+		 * Loads shaded packages from parent; auth/isolated packages from primary shadow or these JARs.
 		 *
 		 * @param name    binary class name
 		 * @param resolve whether to resolve
@@ -443,27 +468,29 @@ public final class KernelAuthSpringFactoriesFilteringClassLoader extends URLClas
 		 */
 		@Override
 		protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-			if (isKernelAuthShadedPackage(name)) {
+			if (isPlatformClass(name) || isKernelAuthShadedPackage(name)) {
 				return getParent().loadClass(name);
 			}
-			if (isKernelAuthPackage(name)) {
-				Class<?> clazz = loadFromKernelAuthJar(name);
+			try {
+				Class<?> clazz = loadFromIsolatedJars(name);
 				if (resolve) {
 					resolveClass(clazz);
 				}
 				return clazz;
 			}
-			return getParent().loadClass(name);
+			catch (ClassNotFoundException ex) {
+				return getParent().loadClass(name);
+			}
 		}
 
 		/**
-		 * Resolves {@code io.mosip.kernel.auth.*}: primary classpath shadow first, then kernel-auth JAR.
+		 * Resolves isolated classes: primary classpath shadow first, then isolated JARs.
 		 *
-		 * @param name binary class name in the auth package
+		 * @param name binary class name
 		 * @return loaded class
-		 * @throws ClassNotFoundException if neither primary nor JAR contains the class
+		 * @throws ClassNotFoundException if neither primary nor JARs contain the class
 		 */
-		private Class<?> loadFromKernelAuthJar(String name) throws ClassNotFoundException {
+		private Class<?> loadFromIsolatedJars(String name) throws ClassNotFoundException {
 			synchronized (getClassLoadingLock(name)) {
 				Class<?> loaded = findLoadedClass(name);
 				if (loaded != null) {
@@ -475,18 +502,13 @@ public final class KernelAuthSpringFactoriesFilteringClassLoader extends URLClas
 						return filtering.loadPrimaryClassOnly(name);
 					}
 					catch (ClassNotFoundException ignored) {
-						// fall through to kernel-auth jar
+						// fall through to isolated jars
 					}
 				}
 				Class<?> clazz = findClass(name);
 				resolveClass(clazz);
 				return clazz;
 			}
-		}
-
-		/** @return {@code true} for {@code io.mosip.kernel.auth.*} */
-		private static boolean isKernelAuthPackage(String name) {
-			return name.startsWith("io.mosip.kernel.auth.");
 		}
 
 	}

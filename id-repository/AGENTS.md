@@ -1,7 +1,7 @@
 # AGENTS.md — Maven Parent (`id-repository/`)
 
 > Java application code for consolidated MOSIP ID-Repository (JDK 21, Spring Boot 2.0.2).  
-> For **database, Helm, deploy, and api-test** work, see the [repo root `AGENTS.md`](../AGENTS.md).
+> For **database, Helm, deploy, and api-test** work, see the [repo root `AGENTS.md`](../AGENTS.md) and folder guides: [`db_scripts`](../db_scripts/AGENTS.md), [`db_upgrade_scripts`](../db_upgrade_scripts/AGENTS.md), [`db_release_scripts`](../db_release_scripts/AGENTS.md), [`helm`](../helm/AGENTS.md), [`deploy`](../deploy/AGENTS.md).
 
 ---
 
@@ -65,7 +65,7 @@ id-repository/                         # Maven parent (this folder)
 └── id-repository-salt-generator/      # Salt K8s Job
 ```
 
-Repo-root folders (`db_scripts`, `helm`, `deploy`, `api-test`, …): [../AGENTS.md](../AGENTS.md).
+Repo-root folders: [../AGENTS.md](../AGENTS.md) — detailed guides under [`db_scripts`](../db_scripts/AGENTS.md), [`helm`](../helm/AGENTS.md), [`deploy`](../deploy/AGENTS.md), etc.
 
 ---
 
@@ -119,7 +119,7 @@ Repo-root folders (`db_scripts`, `helm`, `deploy`, `api-test`, …): [../AGENTS.
 **Phase 2 — + credreq-gen**
 - [ ] PU3 on `mosip_credential`
 - [ ] In-process `CredentialIssuanceProcessor` → `CredentialStoreService`
-- [ ] Helm: single image / single HTTP deployment — see [../AGENTS.md](../AGENTS.md#helm)
+- [ ] Helm: single image / single HTTP deployment — see [../helm/AGENTS.md](../helm/AGENTS.md)
 
 ---
 
@@ -129,7 +129,7 @@ Repo-root folders (`db_scripts`, `helm`, `deploy`, `api-test`, …): [../AGENTS.
 |------------|----------|---------|
 | id-repository (`helm/identity`) | HPA as needed | HTTP + synchronous credential pipeline |
 
-Salt: separate Job — chart and deploy details in [../AGENTS.md](../AGENTS.md#helm); Java entry in [`id-repository-salt-generator/AGENTS.md`](id-repository-salt-generator/AGENTS.md).
+Salt: separate Job — chart details in [`../helm/AGENTS.md`](../helm/AGENTS.md), installers in [`../deploy/AGENTS.md`](../deploy/AGENTS.md); Java entry in [`id-repository-salt-generator/AGENTS.md`](id-repository-salt-generator/AGENTS.md).
 
 ---
 

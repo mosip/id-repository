@@ -227,11 +227,14 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 					credentialServiceRequestDto.getRequestId(),
 					"CREDENTIAL_ISSUE bio formatters resolved count=" + bioAttributeFormatterMap.size());
 
+			long identityStart = System.currentTimeMillis();
 			IdResponseDTO idResponseDto = idrepositaryUtil.getData(credentialServiceRequestDto,
 					bioAttributeFormatterMap);
+			long identityEnd = System.currentTimeMillis();
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
 					credentialServiceRequestDto.getRequestId(),
-					"CREDENTIAL_ISSUE identity retrieved for id=" + credentialServiceRequestDto.getId());
+					"CREDENTIAL_ISSUE identity retrieved for id=" + credentialServiceRequestDto.getId()
+							+ " durationMs=" + (identityEnd - identityStart));
 
 			credentialProvider = getProvider(credentialServiceRequestDto.getCredentialType());
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
@@ -239,12 +242,24 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 					"CREDENTIAL_ISSUE using formatter provider for credentialType="
 							+ credentialServiceRequestDto.getCredentialType());
 
+			long prepareStart = System.currentTimeMillis();
 			Map<AllowedKycDto, Object> shrableAttributesMap = credentialProvider.prepareSharableAttributes(
 					idResponseDto, policyDetailResponseDto,
 					credentialServiceRequestDto);
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					credentialServiceRequestDto.getRequestId(),
+					"CREDENTIAL_ISSUE prepareSharableAttributes durationMs="
+							+ (System.currentTimeMillis() - prepareStart));
+
+			long formatStart = System.currentTimeMillis();
 			DataProviderResponse dataProviderResponse = credentialProvider
 					.getFormattedCredentialData(
 					credentialServiceRequestDto, shrableAttributesMap);
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					credentialServiceRequestDto.getRequestId(),
+					"CREDENTIAL_ISSUE getFormattedCredentialData durationMs="
+							+ (System.currentTimeMillis() - formatStart));
+
 			credentialServiceResponse = new CredentialServiceResponse();
 			DataShare dataShare = null;
 			String jsonData=null;
@@ -252,18 +267,67 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 			String encodedData = null;
 			jsonData = JsonUtil.objectMapperObjectToJson(dataProviderResponse.getJSON());
 			encodedData = CryptoUtil.encodeToURLSafeBase64(jsonData.getBytes());
-			if (policyDetailResponseDto.getPolicies() != null && policyDetailResponseDto.getPolicies().getDataSharePolicies().getTypeOfShare()
-					.equalsIgnoreCase(DATASHARE)) {
-				dataShare = dataShareUtil.getDataShare(jsonData.getBytes(), policyDetailResponseDto.getPolicyId(),
-						credentialServiceRequestDto.getIssuer(),
-						credentialServiceRequestDto.getRequestId());
+			boolean useDataShare = policyDetailResponseDto.getPolicies() != null
+					&& policyDetailResponseDto.getPolicies().getDataSharePolicies().getTypeOfShare()
+					.equalsIgnoreCase(DATASHARE);
+			long shareSignStart = System.currentTimeMillis();
+			if (useDataShare) {
+				// Datashare upload and JWT sign are independent — overlap remote RTTs.
+				final String jsonForShare = jsonData;
+				final String encodedForSign = encodedData;
+				java.util.concurrent.CompletableFuture<DataShare> dataShareFuture =
+						java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+							try {
+								return dataShareUtil.getDataShare(jsonForShare.getBytes(),
+										policyDetailResponseDto.getPolicyId(),
+										credentialServiceRequestDto.getIssuer(),
+										credentialServiceRequestDto.getRequestId());
+							} catch (Exception e) {
+								throw new java.util.concurrent.CompletionException(e);
+							}
+						});
+				java.util.concurrent.CompletableFuture<String> signFuture =
+						java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+							try {
+								return digitalSignatureUtil.sign(encodedForSign,
+										credentialServiceRequestDto.getRequestId());
+							} catch (Exception e) {
+								throw new java.util.concurrent.CompletionException(e);
+							}
+						});
+				try {
+					dataShare = dataShareFuture.join();
+					signature = signFuture.join();
+				} catch (java.util.concurrent.CompletionException e) {
+					Throwable cause = e.getCause() != null ? e.getCause() : e;
+					if (cause instanceof DataShareException dse) {
+						throw dse;
+					}
+					if (cause instanceof ApiNotAccessibleException aae) {
+						throw aae;
+					}
+					if (cause instanceof SignatureException se) {
+						throw se;
+					}
+					if (cause instanceof IOException ioe) {
+						throw ioe;
+					}
+					if (cause instanceof RuntimeException re) {
+						throw re;
+					}
+					throw new CredentialFormatterException(cause);
+				}
 				credentialServiceResponse.setDataShareUrl(dataShare.getUrl());
-
 			} else {
 				jsonData = encryptionUtil.encryptData(encodedData, credentialServiceRequestDto.getIssuer(),
 						credentialServiceRequestDto.getRequestId());
+				signature = digitalSignatureUtil.sign(encodedData, credentialServiceRequestDto.getRequestId());
 			}
-			signature = digitalSignatureUtil.sign(encodedData, credentialServiceRequestDto.getRequestId());
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(),
+					credentialServiceRequestDto.getRequestId(),
+					"CREDENTIAL_ISSUE datashareOrEncrypt+sign durationMs="
+							+ (System.currentTimeMillis() - shareSignStart)
+							+ ", useDataShare=" + useDataShare);
 			EventModel eventModel = getEventModel(dataShare, credentialServiceRequestDto,
 					jsonData, signature);
 			String topic = credentialServiceRequestDto.getIssuer() + "/" + IDAEventType.CREDENTIAL_ISSUED;

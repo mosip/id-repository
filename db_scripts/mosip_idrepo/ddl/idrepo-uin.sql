@@ -43,6 +43,7 @@ CREATE TABLE idrepo.uin(
 
 --index section starts----
 CREATE INDEX IF NOT EXISTS idx_uin_uin_hash ON idrepo.uin USING btree(uin_hash);
+CREATE INDEX IF NOT EXISTS idx_uin_status ON idrepo.uin USING btree (status_code);
 --index section ends------
 
 COMMENT ON TABLE idrepo.uin IS 'UIN: Information related to an individual (demographic, biometric, and uploaded documents) are stored. The information is stored in JSON format. A hash value of the JSON file is also maintained as a separate column as an added security to prevent data tampering.';

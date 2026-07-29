@@ -83,7 +83,7 @@ public class MosipTestRunner {
 			setLogLevels();
 
 			HealthChecker healthcheck = new HealthChecker();
-			healthcheck.setCurrentRunningModule(BaseTestCase.currentModule);
+			healthcheck.setCurrentRunningModule(GlobalConstants.IDREPO);
 			Thread trigger = new Thread(healthcheck);
 			trigger.start();
 			
@@ -111,7 +111,10 @@ public class MosipTestRunner {
 
 			startTestRunner();
 		} catch (Exception e) {
-			LOGGER.error("Exception " + e.getMessage());
+			LOGGER.error("Exception", e);
+		} catch (Error e) {
+			LOGGER.fatal("Fatal error during test run", e);
+			throw e;
 		}
 		
 		IdRepoUtil.dbCleanUp();

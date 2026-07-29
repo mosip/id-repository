@@ -91,9 +91,12 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
 		testCaseName = testCaseDTO.getTestCaseName();
 		testCaseName = IdRepoUtil.isTestCaseValidForExecution(testCaseDTO);
-
-
-		testCaseDTO.setInputTemplate(AdminTestUtil.updateIdentityHbs(testCaseDTO.isRegenerateHbs()));
+		
+		if(testCaseDTO.getEndPoint().contains(GlobalConstants.ADD_IDENTITY_V2_ENDPOINT)) {
+			testCaseDTO.setInputTemplate(AdminTestUtil.updateIdentityHbsV2(testCaseDTO.isRegenerateHbs()));
+		} else {
+			testCaseDTO.setInputTemplate(AdminTestUtil.updateIdentityHbs(testCaseDTO.isRegenerateHbs()));
+		}
 		testCaseName = testCaseDTO.getTestCaseName();
 		if (HealthChecker.signalTerminateExecution) {
 			throw new SkipException(
@@ -153,6 +156,12 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 		if (inputJson.contains("$FUNCTIONALID$")) {
 			inputJson = replaceKeywordWithValue(inputJson, "$FUNCTIONALID$", generateRandomNumberString(2)
 					+ Calendar.getInstance().getTimeInMillis());
+		}
+		inputJson = inputJsonKeyWordHandeler(inputJson, testCaseName);
+		if (testCaseName.toLowerCase().contains("_sid")) {
+			JSONObject reqJson = new JSONObject(inputJson);
+			String phonenumber = reqJson.getJSONObject("request").getJSONObject("identity").getString("phone");
+			writeToCache(getAutogenIdKeyName(testCaseName, "phone"), phonenumber);
 		}
 
 		JSONObject jsonString = new JSONObject(inputJson);

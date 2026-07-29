@@ -50,10 +50,6 @@ public class DataShareUtil {
 
 	private static final String CREDENTIALFILE = "credentialfile";
 
-	// TODO(TESTING): Set to false and remove constants below after dev2 datashare testing.
-	private static final boolean USE_DEV2_DATASHARE_BASE_URL = true;
-	private static final String DEV2_DATASHARE_BASE_URL = "https://api-internal.dev2.mosip.net";
-
 	/** Default protocol when {@link #httpProtocol} is unset. */
 	public static final String PROTOCOL = "https";
 
@@ -75,9 +71,21 @@ public class DataShareUtil {
 	/**
 	 * Internal Kubernetes/service domain for data-share host.
 	 * Config key: {@value io.mosip.idrepository.core.constant.IdRepoConstants#DATA_SHARE_INTERNAL_DOMAIN_NAME}.
+	 * <p>
+	 * Config server often sets {@code datashare.datashare} (cluster DNS). For laptop runs that host
+	 * does not resolve — {@link #apiInternalHost} is used instead when the configured name looks
+	 * cluster-local (see {@link #resolveDataShareHost()}).
+	 * </p>
 	 */
 	@Value("${" + IdRepoConstants.DATA_SHARE_INTERNAL_DOMAIN_NAME + "}")
 	private String internalDomainName;
+
+	/**
+	 * Public/reachable API host used when {@link #internalDomainName} is cluster-only.
+	 * Set by local runner as {@code -Dmosip.api.internal.host=api-internal.dev2.mosip.net}.
+	 */
+	@Value("${mosip.api.internal.host:}")
+	private String apiInternalHost;
 
 	/** Resolves data-share API path from {@link ApiName#CREATEDATASHARE}. */
 	@Autowired
@@ -126,23 +134,30 @@ public class DataShareUtil {
 		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 		HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<LinkedMultiValueMap<String, Object>>(
 				map, headers);
+			String pathOrUrl = env.getProperty(ApiName.CREATEDATASHARE.name());
 			String url;
-
-			// TODO(TESTING): Remove if-branch and USE_DEV2_* constants after dev2 datashare testing.
-			if (USE_DEV2_DATASHARE_BASE_URL) {
-				url = DEV2_DATASHARE_BASE_URL + env.getProperty(ApiName.CREATEDATASHARE.name());
+			if (pathOrUrl != null && (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://"))) {
+				// Absolute URL from config — rewrite cluster-local host for laptop runs.
+				URL absolute = new URL(pathOrUrl);
+				String host = resolveDataShareHost(absolute.getHost());
+				String protocol = isClusterLocalHost(absolute.getHost()) ? PROTOCOL : absolute.getProtocol();
+				url = new URL(protocol, host, absolute.getPort(), absolute.getFile()).toString();
 			} else {
-				URL dataShareUrl = null;
+				String host = resolveDataShareHost(internalDomainName);
 				String protocol = PROTOCOL;
-
-				if (httpProtocol != null && !httpProtocol.isEmpty()) {
+				if (!isClusterLocalHost(internalDomainName) && httpProtocol != null && !httpProtocol.isEmpty()) {
+					protocol = httpProtocol;
+				} else if (isClusterLocalHost(internalDomainName)) {
+					// Cluster config often uses http; public api-internal expects https.
+					protocol = PROTOCOL;
+				} else if (httpProtocol != null && !httpProtocol.isEmpty()) {
 					protocol = httpProtocol;
 				}
-
-				dataShareUrl = new URL(protocol, internalDomainName, env.getProperty(ApiName.CREATEDATASHARE.name()));
-				url = dataShareUrl.toString();
-				url = url.replaceAll("[\\[\\]]", "");
+				URL dataShareUrl = new URL(protocol, host, pathOrUrl);
+				url = dataShareUrl.toString().replaceAll("[\\[\\]]", "");
 			}
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
+					"data share POST url host=" + new URL(url).getHost());
 			String responseString = restUtil.postApi(url, pathsegments, "", "",
 					MediaType.MULTIPART_FORM_DATA, requestEntity, String.class);
 
@@ -192,5 +207,29 @@ public class DataShareUtil {
 
 	}
 
+	/**
+	 * Prefer a reachable host when config points at K8s-only DNS (e.g. {@code datashare.datashare}).
+	 */
+	private String resolveDataShareHost(String configuredHost) {
+		if (isClusterLocalHost(configuredHost) && apiInternalHost != null && !apiInternalHost.isBlank()) {
+			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.SESSIONID.toString(),
+					"data share host remapped from " + configuredHost + " to " + apiInternalHost);
+			return apiInternalHost;
+		}
+		return configuredHost;
+	}
+
+	/** True for short K8s service names that do not resolve outside the cluster. */
+	static boolean isClusterLocalHost(String host) {
+		if (host == null || host.isBlank()) {
+			return true;
+		}
+		String h = host.toLowerCase();
+		return "datashare.datashare".equals(h)
+				|| h.endsWith(".svc")
+				|| h.endsWith(".svc.cluster.local")
+				|| h.endsWith(".cluster.local");
+	}
 
 }

@@ -63,7 +63,9 @@ import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 import io.mosip.idrepository.identity.repository.UinDraftRepo;
 import io.mosip.idrepository.identity.repository.UinHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinRepo;
+import io.mosip.idrepository.manager.CredentialStatusManager;
 import io.mosip.idrepository.pipeline.InProcessVidClient;
+import io.mosip.idrepository.pipeline.PendingCredentialSync;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
@@ -110,6 +112,10 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 	/** Service. */
 	@Autowired
 	private IdRepoService<IdRequestDTO, Uin> service;
+
+	@Autowired
+	@Lazy
+	private CredentialStatusManager credentialStatusManager;
 
 	/** Security manager. */
 	@Autowired
@@ -187,16 +193,20 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 			return constructIdResponse(this.id.get(CREATE), uinEntity, null);
 
 		} catch (IdRepoAppException e) {
+			PendingCredentialSync.clear();
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, e.getErrorText());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
+			PendingCredentialSync.clear();
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 		} catch (IdRepoAppUncheckedException e) {
+			PendingCredentialSync.clear();
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
 					"\n" + e.getMessage());
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
+			credentialStatusManager.runPendingAfterIdentityCommit();
 			IdentityServicePerformanceLog.log(mosipLogger, "IdRepoProxyServiceImpl", ADD_IDENTITY, startNanos);
 		}
 	}
@@ -558,17 +568,21 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 					mosipLogger.info("Uin is in active status");
 					notify(uin, true, request.getRequest().getRegistrationId());
 				}
-				return constructIdResponse(MOSIP_ID_UPDATE, service.retrieveIdentity(uinHash, IdType.UIN, null, null),
-						null);
+				return constructIdResponse(MOSIP_ID_UPDATE, uinObject, null);
 			} else {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
 						NO_RECORD_FOUND.getErrorMessage());
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
+		} catch (IdRepoAppException e) {
+			PendingCredentialSync.clear();
+			throw e;
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
+			PendingCredentialSync.clear();
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, UPDATE_IDENTITY, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 		} finally {
+			credentialStatusManager.runPendingAfterIdentityCommit();
 			IdentityServicePerformanceLog.log(mosipLogger, "IdRepoProxyServiceImpl", UPDATE_IDENTITY, startNanos);
 		}
 	}

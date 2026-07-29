@@ -168,16 +168,54 @@ public class IdAuthProvider extends CredentialProvider {
 		}
 
 		 Map<String,Object> additionalData=credentialServiceRequestDto.getAdditionalData();
-		 if(!demoZkDataAttributes.isEmpty()) {
-				EncryptZkResponseDto demoEncryptZkResponseDto = encryptionUtil
+		 // Demo and bio ZK use independent keymanager calls — run in parallel when both present.
+		 EncryptZkResponseDto demoEncryptZkResponseDto = null;
+		 EncryptZkResponseDto bioEncryptZkResponseDto = null;
+		 if (!demoZkDataAttributes.isEmpty() && !bioZkDataAttributes.isEmpty()) {
+			 java.util.concurrent.CompletableFuture<EncryptZkResponseDto> demoFuture =
+					 java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+						 try {
+							 return encryptionUtil.encryptDataWithZK(credentialServiceRequestDto.getId(),
+									 demoZkDataAttributes, requestId);
+						 } catch (DataEncryptionFailureException | ApiNotAccessibleException e) {
+							 throw new java.util.concurrent.CompletionException(e);
+						 }
+					 });
+			 java.util.concurrent.CompletableFuture<EncryptZkResponseDto> bioFuture =
+					 java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+						 try {
+							 return encryptionUtil.encryptDataWithZK(credentialServiceRequestDto.getId(),
+									 bioZkDataAttributes, requestId);
+						 } catch (DataEncryptionFailureException | ApiNotAccessibleException e) {
+							 throw new java.util.concurrent.CompletionException(e);
+						 }
+					 });
+			 try {
+				 demoEncryptZkResponseDto = demoFuture.join();
+				 bioEncryptZkResponseDto = bioFuture.join();
+			 } catch (java.util.concurrent.CompletionException e) {
+				 Throwable cause = e.getCause() != null ? e.getCause() : e;
+				 if (cause instanceof DataEncryptionFailureException de) {
+					 throw de;
+				 }
+				 if (cause instanceof ApiNotAccessibleException api) {
+					 throw api;
+				 }
+				 throw new CredentialFormatterException(cause);
+			 }
+		 } else if (!demoZkDataAttributes.isEmpty()) {
+				demoEncryptZkResponseDto = encryptionUtil
 						.encryptDataWithZK(credentialServiceRequestDto.getId(), demoZkDataAttributes, requestId);
+		 } else if (!bioZkDataAttributes.isEmpty()) {
+				bioEncryptZkResponseDto = encryptionUtil
+						.encryptDataWithZK(credentialServiceRequestDto.getId(), bioZkDataAttributes, requestId);
+		 }
+		 if (demoEncryptZkResponseDto != null) {
 			 addToFormatter(demoEncryptZkResponseDto,formattedMap);
 			 additionalData.put(DEMO_ENCRYPTED_RANDOM_KEY, demoEncryptZkResponseDto.getEncryptedRandomKey());
 			 additionalData.put(DEMO_ENCRYPTED_RANDOM_INDEX, demoEncryptZkResponseDto.getRankomKeyIndex());
 		 }
-			if (!bioZkDataAttributes.isEmpty()) {
-				EncryptZkResponseDto bioEncryptZkResponseDto = encryptionUtil
-						.encryptDataWithZK(credentialServiceRequestDto.getId(), bioZkDataAttributes, requestId);
+		 if (bioEncryptZkResponseDto != null) {
 			 addToFormatter(bioEncryptZkResponseDto,formattedMap);
 			 additionalData.put(BIO_ENCRYPTED_RANDOM_KEY, bioEncryptZkResponseDto.getEncryptedRandomKey());
 			 additionalData.put(BIO_ENCRYPTED_RANDOM_INDEX, bioEncryptZkResponseDto.getRankomKeyIndex());

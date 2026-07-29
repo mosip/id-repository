@@ -154,7 +154,7 @@ public class EnvUtil {
 	 * Seconds added to UTC “now” before request-time skew checks
 	 * ({@link IdRepoConstants#DATETIME_ADJUSTMENT}).
 	 */
-	@Getter @Setter private static Long dateTimeAdjustment;
+	@Getter @Setter private static Long dateTimeAdjustment = 0L;
 	/** Regex pattern for API version validation ({@link IdRepoConstants#VERSION_PATTERN}). */
 	@Getter @Setter private static String versionPattern;
 	/** UTC datetime format pattern ({@link IdRepoConstants#DATETIME_PATTERN}). */

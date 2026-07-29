@@ -196,6 +196,8 @@ public class RestHelper {
 			mosipLogger.debug(IdRepoSecurityManager.getUser(), CLASS_REST_HELPER, METHOD_REQUEST_SYNC,
 					request.getUri());
 			if (request.getTimeout() != null) {
+				// *.rest.timeout values in MOSIP config are historically seconds (e.g. 100 ≈ 100s),
+				// despite older DTO comments saying ms. ofMillis breaks cryptomanager/audit calls.
 				response = request(request).timeout(Duration.ofSeconds(request.getTimeout())).block();
 			} else {
 				response = request(request).block();

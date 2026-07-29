@@ -186,6 +186,24 @@ public class KernelAuthSpringFactoriesFilteringClassLoaderTest {
 	}
 
 	@Test
+	public void installSucceedsUsingParentURLClassLoaderWhenJavaClassPathIsEmpty() throws Exception {
+		Path workDir = Files.createTempDirectory("kernel-auth-filter-");
+		Path primaryJar = workDir.resolve("primary-only.jar");
+		Path kernelAuthJar = workDir.resolve("kernel-auth-adapter-test.jar");
+		createMinimalClasspathJars(primaryJar, kernelAuthJar);
+
+		URLClassLoader parentLoader = new URLClassLoader(new URL[] {
+				primaryJar.toUri().toURL(),
+				kernelAuthJar.toUri().toURL()
+		}, ClassLoader.getPlatformClassLoader());
+
+		System.setProperty("java.class.path", "   ");
+		ClassLoader installed = KernelAuthSpringFactoriesFilteringClassLoader.install(parentLoader);
+		assertNotNull(installed);
+		assertTrue(installed instanceof KernelAuthSpringFactoriesFilteringClassLoader);
+	}
+
+	@Test
 	public void loadClassReturnsCachedClassWithoutReloading() throws Exception {
 		KernelAuthSpringFactoriesFilteringClassLoader filtering = createFilteringClassLoader();
 		Class<?> first = filtering.loadClass(PRIMARY_ONLY_CLASS);
@@ -341,13 +359,13 @@ public class KernelAuthSpringFactoriesFilteringClassLoaderTest {
 	@Test
 	public void privateConstructorIsAccessibleForCoverage() throws Exception {
 		Constructor<KernelAuthSpringFactoriesFilteringClassLoader> constructor = KernelAuthSpringFactoriesFilteringClassLoader.class
-				.getDeclaredConstructor(URL[].class, URL.class, ClassLoader.class);
+				.getDeclaredConstructor(URL[].class, URL[].class, ClassLoader.class);
 		constructor.setAccessible(true);
 		Path workDir = Files.createTempDirectory("kernel-auth-private-");
 		Path primaryJar = workDir.resolve("primary-only.jar");
 		Path kernelAuthJar = workDir.resolve("kernel-auth-adapter-test.jar");
 		createMinimalClasspathJars(primaryJar, kernelAuthJar);
-		constructor.newInstance(new URL[] { primaryJar.toUri().toURL() }, kernelAuthJar.toUri().toURL(),
+		constructor.newInstance(new URL[] { primaryJar.toUri().toURL() }, new URL[] { kernelAuthJar.toUri().toURL() },
 				ClassLoader.getPlatformClassLoader());
 	}
 
@@ -371,13 +389,13 @@ public class KernelAuthSpringFactoriesFilteringClassLoaderTest {
 
 		Class<?> innerClass = Class.forName(
 				"io.mosip.idrepository.bootstrap.KernelAuthSpringFactoriesFilteringClassLoader$KernelAuthOnlyClassLoader");
-		Constructor<?> constructor = innerClass.getDeclaredConstructor(URL.class, ClassLoader.class);
+		Constructor<?> constructor = innerClass.getDeclaredConstructor(URL[].class, ClassLoader.class);
 		constructor.setAccessible(true);
-		Object standaloneLoader = constructor.newInstance(kernelAuthJar.toUri().toURL(),
+		Object standaloneLoader = constructor.newInstance((Object) new URL[] { kernelAuthJar.toUri().toURL() },
 				new URLClassLoader(new URL[0], ClassLoader.getPlatformClassLoader()));
-		Method loadFromKernelAuthJar = innerClass.getDeclaredMethod("loadFromKernelAuthJar", String.class);
-		loadFromKernelAuthJar.setAccessible(true);
-		assertNotNull(loadFromKernelAuthJar.invoke(standaloneLoader, KERNEL_AUTH_ONLY_CLASS));
+		Method loadFromIsolatedJars = innerClass.getDeclaredMethod("loadFromIsolatedJars", String.class);
+		loadFromIsolatedJars.setAccessible(true);
+		assertNotNull(loadFromIsolatedJars.invoke(standaloneLoader, KERNEL_AUTH_ONLY_CLASS));
 	}
 
 	@Test

@@ -1,1 +1,1 @@
-drop role if exists credentialuser;
+drop role if exists :dbuname;

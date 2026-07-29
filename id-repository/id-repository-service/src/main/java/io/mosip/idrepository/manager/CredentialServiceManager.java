@@ -22,6 +22,7 @@ import io.mosip.idrepository.core.repository.UinEncryptSaltRepo;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.kernel.core.util.CryptoUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.ApplicationContext;
@@ -38,11 +39,16 @@ import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.core.util.SupplierWithException;
 import io.mosip.idrepository.core.util.TokenIDGenerator;
+import io.mosip.idrepository.pipeline.CredentialPipelineContext;
 import io.mosip.idrepository.pipeline.InProcessCredentialRequestClient;
 import io.mosip.idrepository.pipeline.InProcessVidClient;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.websub.model.EventModel;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.*;
 
@@ -148,6 +154,13 @@ public class CredentialServiceManager {
 
 	@Autowired
 	private InProcessVidClient inProcessVidClient;
+
+	/**
+	 * Security-context executor for parallel partner credential issuance. Optional for unit tests.
+	 */
+	@Autowired(required = false)
+	@Qualifier("withSecurityContext")
+	private Executor securityContextExecutor;
 
 	
 	@Value("${" + SKIP_REQUESTING_EXISTING_CREDENTIALS_FOR_PARTNERS + ":"
@@ -483,7 +496,12 @@ public class CredentialServiceManager {
 	}
 
 	/**
-	 * Sends a batch of credential issue requests to credreq service, one per DTO.
+	 * Sends a batch of credential issue requests to credreq service.
+	 * <p>
+	 * When more than one request is present and {@code withSecurityContext} is available,
+	 * partners are issued in parallel (shared {@link CredentialPipelineContext} identity cache),
+	 * then status callbacks run serially on the caller thread. HTTP still waits until all finish.
+	 * </p>
 	 *
 	 * @param eventRequestsList                 list of credential issue request DTOs
 	 * @param isUpdate                          {@code true} labels events as "Update ID"
@@ -491,38 +509,85 @@ public class CredentialServiceManager {
 	 */
 	public void sendRequestToCredService(List<CredentialIssueRequestDto> eventRequestsList, boolean isUpdate,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
-		eventRequestsList.forEach(reqDto -> {
+		if (eventRequestsList == null || eventRequestsList.isEmpty()) {
+			return;
+		}
+		String eventTypeDisplayName = isUpdate ? "Update ID" : "Create ID";
+		if (eventRequestsList.size() == 1 || securityContextExecutor == null) {
+			eventRequestsList.forEach(reqDto -> notifySinglePartner(reqDto, eventTypeDisplayName,
+					credentialRequestResponseConsumer));
+			return;
+		}
+		CredentialPipelineContext.State pipelineState = CredentialPipelineContext.get();
+		List<CompletableFuture<PartnerIssueResult>> futures = new ArrayList<>(eventRequestsList.size());
+		for (CredentialIssueRequestDto reqDto : eventRequestsList) {
+			futures.add(CompletableFuture.supplyAsync(
+					() -> issuePartnerOnWorker(reqDto, eventTypeDisplayName, pipelineState),
+					securityContextExecutor));
+		}
+		List<PartnerIssueResult> results = new ArrayList<>(futures.size());
+		for (CompletableFuture<PartnerIssueResult> future : futures) {
+			try {
+				results.add(future.join());
+			} catch (CompletionException e) {
+				mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(),
+						SEND_REQUEST_TO_CRED_SERVICE, ExceptionUtils.getStackTrace(e));
+			}
+		}
+		// Status-row updates stay serial on the calling thread (transaction-safe).
+		for (PartnerIssueResult result : results) {
+			if (credentialRequestResponseConsumer != null && result != null) {
+				credentialRequestResponseConsumer.accept(result.requestWrapper(), result.response());
+			}
+		}
+	}
+
+	private PartnerIssueResult issuePartnerOnWorker(CredentialIssueRequestDto reqDto, String eventTypeDisplayName,
+			CredentialPipelineContext.State pipelineState) {
+		CredentialPipelineContext.attach(pipelineState);
+		try {
+			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
+					"notifying Credential Service for event " + eventTypeDisplayName);
 			CredentialIssueRequestWrapperDto requestWrapper = new CredentialIssueRequestWrapperDto();
 			requestWrapper.setRequest(reqDto);
 			requestWrapper.setRequesttime(DateUtils2.getUTCCurrentDateTime());
-			String eventTypeDisplayName = isUpdate ? "Update ID" : "Create ID";
-			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
-					"notifying Credential Service for event " + eventTypeDisplayName);
-			sendRequestToCredService(reqDto.getIssuer(), requestWrapper, credentialRequestResponseConsumer);
+			Map<String, Object> response = queueCredentialRequest(requestWrapper);
 			mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
 					"notified Credential Service for event " + eventTypeDisplayName);
-		});
+			return new PartnerIssueResult(requestWrapper, response);
+		} finally {
+			CredentialPipelineContext.clear();
+		}
 	}
 
-	/**
-	 * Send request to cred service.
-	 *
-	 * @param requestWrapper                    the request wrapper
-	 * @param credentialRequestResponseConsumer the credential response consumer
-	 */
-	private void sendRequestToCredService(String partnerId, CredentialIssueRequestWrapperDto requestWrapper,
+	private void notifySinglePartner(CredentialIssueRequestDto reqDto, String eventTypeDisplayName,
 			BiConsumer<CredentialIssueRequestWrapperDto, Map<String, Object>> credentialRequestResponseConsumer) {
+		mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
+				"notifying Credential Service for event " + eventTypeDisplayName);
+		CredentialIssueRequestWrapperDto requestWrapper = new CredentialIssueRequestWrapperDto();
+		requestWrapper.setRequest(reqDto);
+		requestWrapper.setRequesttime(DateUtils2.getUTCCurrentDateTime());
+		Map<String, Object> response = queueCredentialRequest(requestWrapper);
+		mosipLogger.info(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), NOTIFY,
+				"notified Credential Service for event " + eventTypeDisplayName);
+		if (credentialRequestResponseConsumer != null) {
+			credentialRequestResponseConsumer.accept(requestWrapper, response);
+		}
+	}
+
+	private Map<String, Object> queueCredentialRequest(CredentialIssueRequestWrapperDto requestWrapper) {
 		Map<String, Object> response = Map.of();
 		try {
 			response = inProcessCredentialRequestClient.queueRequest(requestWrapper.getRequest());
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(), SEND_REQUEST_TO_CRED_SERVICE,
-					ExceptionUtils.getStackTrace(e));
-		} finally {
-			if (credentialRequestResponseConsumer != null) {
-				credentialRequestResponseConsumer.accept(requestWrapper, response);
-			}
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getCanonicalName(),
+					SEND_REQUEST_TO_CRED_SERVICE, ExceptionUtils.getStackTrace(e));
 		}
+		return response;
+	}
+
+	private record PartnerIssueResult(CredentialIssueRequestWrapperDto requestWrapper,
+			Map<String, Object> response) {
 	}
 
 	/**
