@@ -107,10 +107,10 @@ echo   Swagger Identity : http://localhost:8090/idrepository/v1/identity/swagger
 echo   Swagger VID      : http://localhost:8090/idrepository/v1/swagger-ui/index.html
 echo   Swagger Cred     : http://localhost:8090/v1/credentialservice/swagger-ui/index.html
 echo   Swagger CredReq  : http://localhost:8090/v1/credentialrequest/swagger-ui/index.html
-echo   OpenAPI Identity : http://localhost:8090/v3/api-docs/identity
-echo   OpenAPI VID      : http://localhost:8090/v3/api-docs/vid
-echo   OpenAPI Cred     : http://localhost:8090/v3/api-docs/credential-service
-echo   OpenAPI CredReq  : http://localhost:8090/v3/api-docs/credential-request
+echo   OpenAPI Identity : http://localhost:8090/idrepository/v1/identity/v3/api-docs
+echo   OpenAPI VID      : http://localhost:8090/idrepository/v1/v3/api-docs
+echo   OpenAPI Cred     : http://localhost:8090/v1/credentialservice/v3/api-docs
+echo   OpenAPI CredReq  : http://localhost:8090/v1/credentialrequest/v3/api-docs
 echo   Identity      : http://localhost:8090/idrepository/v1/identity/
 echo   Identity draft: http://localhost:8090/idrepository/v1/identity/draft/
 echo   VID           : http://localhost:8090/idrepository/v1/vid/

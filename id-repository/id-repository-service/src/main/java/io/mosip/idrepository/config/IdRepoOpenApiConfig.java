@@ -33,16 +33,16 @@ import jakarta.servlet.http.HttpServletRequest;
  *
  * <h2>Per-service Swagger UI</h2>
  * <table>
- *   <caption>Swagger UI and OpenAPI document URLs</caption>
+ *   <caption>Swagger UI and OpenAPI document URLs (legacy paths)</caption>
  *   <tr><th>Service</th><th>Swagger UI</th><th>OpenAPI JSON</th></tr>
  *   <tr><td>Identity</td><td>{@code /idrepository/v1/identity/swagger-ui/index.html}</td>
- *       <td>{@code /v3/api-docs/identity}</td></tr>
+ *       <td>{@code /idrepository/v1/identity/v3/api-docs}</td></tr>
  *   <tr><td>VID</td><td>{@code /idrepository/v1/swagger-ui/index.html}</td>
- *       <td>{@code /v3/api-docs/vid}</td></tr>
+ *       <td>{@code /idrepository/v1/v3/api-docs}</td></tr>
  *   <tr><td>Credential store</td><td>{@code /v1/credentialservice/swagger-ui/index.html}</td>
- *       <td>{@code /v3/api-docs/credential-service}</td></tr>
+ *       <td>{@code /v1/credentialservice/v3/api-docs}</td></tr>
  *   <tr><td>Credential request</td><td>{@code /v1/credentialrequest/swagger-ui/index.html}</td>
- *       <td>{@code /v3/api-docs/credential-request}</td></tr>
+ *       <td>{@code /v1/credentialrequest/v3/api-docs}</td></tr>
  * </table>
  *
  * @see IdRepoApiPathConfig
@@ -71,8 +71,17 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 			return uiBasePath + "/swagger-ui/index.html";
 		}
 
-		/** @return SpringDoc group document {@code /v3/api-docs/{groupId}} */
+		/**
+		 * Public OpenAPI JSON path (legacy per-service URL).
+		 *
+		 * @return {@code {uiBasePath}/v3/api-docs}
+		 */
 		public String apiDocsPath() {
+			return uiBasePath + "/v3/api-docs";
+		}
+
+		/** Internal SpringDoc group document forwarded from {@link #apiDocsPath()}. */
+		public String springDocGroupPath() {
 			return "/v3/api-docs/" + groupId;
 		}
 	}
@@ -84,8 +93,11 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 			registry.addRedirectViewController(mount.uiBasePath() + "/swagger-ui.html", index);
 			registry.addRedirectViewController(mount.uiBasePath() + "/swagger-ui", index);
 			registry.addRedirectViewController(mount.uiBasePath() + "/swagger-ui/", index);
-			registry.addRedirectViewController(mount.uiBasePath() + "/v3/api-docs", mount.apiDocsPath());
-			registry.addRedirectViewController(mount.uiBasePath() + "/v3/api-docs/", mount.apiDocsPath());
+			// Keep browser URL as legacy .../v3/api-docs; forward to SpringDoc group document
+			registry.addViewController(mount.uiBasePath() + "/v3/api-docs")
+					.setViewName("forward:" + mount.springDocGroupPath());
+			registry.addViewController(mount.uiBasePath() + "/v3/api-docs/")
+					.setViewName("forward:" + mount.springDocGroupPath());
 		}
 		// Root UI → identity (per-service UIs are canonical)
 		registry.addRedirectViewController("/swagger-ui.html", IDENTITY_PATH_PREFIX + "/swagger-ui/index.html");
@@ -170,7 +182,7 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 	 * Serves a dedicated Swagger UI HTML page under each service prefix.
 	 * <p>
 	 * Static assets load from SpringDoc’s root {@code /swagger-ui/*} webjars; each page pins
-	 * {@code url} to that service’s {@code /v3/api-docs/{group}} document (no group dropdown).
+	 * {@code url} to that service’s legacy {@code {prefix}/v3/api-docs} document (no group dropdown).
 	 * </p>
 	 */
 	@Controller
