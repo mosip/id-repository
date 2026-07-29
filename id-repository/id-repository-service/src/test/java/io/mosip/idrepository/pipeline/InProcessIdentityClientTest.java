@@ -5,6 +5,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -12,6 +13,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +55,25 @@ public class InProcessIdentityClientTest {
 	@Before
 	public void setUp() {
 		ReflectionTestUtils.setField(client, "identityType", IdRepoConstants.FETCH_IDENTITY_TYPE_DEFAULT);
+	}
+
+	@After
+	public void tearDown() {
+		CredentialPipelineContext.clear();
+	}
+
+	@Test
+	public void retrieveIdentityReusesPipelineCacheForSameFormats() throws Exception {
+		CredentialPipelineContext.set(UIN, "enc", "CREATE");
+		CredentialServiceRequestDto request = baseRequest(UIN);
+		when(idRequestValidator.validateUin(UIN)).thenReturn(true);
+		Map<String, String> bioFormats = Map.of(CredentialConstants.FINGER, "ISO19794");
+		IdResponseDTO expected = new IdResponseDTO();
+		when(idRepoProxyService.retrieveIdentity(any(), any(), any(), any())).thenReturn(expected);
+
+		assertSame(expected, client.retrieveIdentity(request, bioFormats));
+		assertSame(expected, client.retrieveIdentity(request, bioFormats));
+		verify(idRepoProxyService, times(1)).retrieveIdentity(any(), any(), any(), any());
 	}
 
 	@Test

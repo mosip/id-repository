@@ -46,7 +46,8 @@ import lombok.NoArgsConstructor;
  * <ul>
  *   <li>{@code {serviceName}.rest.uri} — target URL (may include path placeholders)</li>
  *   <li>{@code {serviceName}.rest.httpMethod} — HTTP verb ({@code GET}, {@code POST}, …)</li>
- *   <li>{@code {serviceName}.rest.timeout} — timeout in milliseconds (optional)</li>
+ *   <li>{@code {serviceName}.rest.timeout} — timeout in <strong>seconds</strong> (optional;
+	 *       applied via {@code Duration.ofSeconds} in {@link io.mosip.idrepository.core.helper.RestHelper})</li>
  *   <li>{@code {serviceName}.rest.headers.mediaType} — request {@code Content-Type}</li>
  * </ul>
  *
@@ -91,7 +92,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RestRequestBuilder {
 
-	/** Suffix for the REST call timeout property (milliseconds). */
+	/** Suffix for the REST call timeout property (seconds). */
 	private static final String REST_TIMEOUT = ".rest.timeout";
 
 	/** Suffix for the REST HTTP method property. */
@@ -178,9 +179,9 @@ public class RestRequestBuilder {
 				contentType = null;
 			}
 		}
-		Integer timeoutMs = StringUtils.isEmpty(timeout) ? null : Integer.valueOf(timeout);
+		Integer timeoutSeconds = StringUtils.isEmpty(timeout) ? null : Integer.valueOf(timeout);
 		HttpMethod method = StringUtils.isEmpty(httpMethod) ? null : HttpMethod.valueOf(httpMethod);
-		return new RestServiceConfig(uri, method, timeoutMs, contentType, mediaType);
+		return new RestServiceConfig(uri, method, timeoutSeconds, contentType, mediaType);
 	}
 
 	/**
@@ -257,8 +258,8 @@ public class RestRequestBuilder {
 			request.setPathVariables(pathVariables);
 		}
 
-		if (config.timeoutMs() != null) {
-			request.setTimeout(config.timeoutMs());
+		if (config.timeoutSeconds() != null) {
+			request.setTimeout(config.timeoutSeconds());
 		}
 
 		return request;
@@ -326,12 +327,12 @@ public class RestRequestBuilder {
 	 *
 	 * @param uri          target URI (may contain path placeholders)
 	 * @param httpMethod   HTTP verb; {@code null} if the property was missing
-	 * @param timeoutMs    call timeout in milliseconds; {@code null} if not configured
+	 * @param timeoutSeconds call timeout in seconds; {@code null} if not configured
 	 * @param contentType  parsed media type; {@code null} when raw value is invalid
 	 *                     (validated lazily in {@link #createHeaders()})
 	 * @param rawMediaType original media-type property string used for error messages
 	 */
-	private record RestServiceConfig(String uri, HttpMethod httpMethod, Integer timeoutMs, MediaType contentType,
+	private record RestServiceConfig(String uri, HttpMethod httpMethod, Integer timeoutSeconds, MediaType contentType,
 			String rawMediaType) {
 		/**
 		 * Creates request headers with the configured content type.

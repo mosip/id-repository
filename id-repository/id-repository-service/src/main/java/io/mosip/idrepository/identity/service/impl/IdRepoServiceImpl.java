@@ -49,8 +49,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -88,6 +86,7 @@ import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 import io.mosip.idrepository.identity.provider.IdentityUpdateTrackerPolicyProvider;
 import io.mosip.idrepository.identity.repository.*;
+import io.mosip.idrepository.pipeline.PendingCredentialSync;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
@@ -1074,20 +1073,17 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		scheduleSynchronizedCredentialPipeline(uin, encryptedUin, uinStatus, expiryTimestamp, isUpdate, requestId);
 	}
 
+	/**
+	 * Enqueues sync credential issuance for after the identity TX returns (connection released).
+	 * <p>
+	 * Do not run credentials in {@code afterCommit}: Spring still holds the JDBC connection then.
+	 * {@link IdRepoProxyServiceImpl} / draft publish drain via
+	 * {@link CredentialStatusManager#runPendingAfterIdentityCommit()}.
+	 * </p>
+	 */
 	private void scheduleSynchronizedCredentialPipeline(String uin, String encryptedUin, String uinStatus,
 			LocalDateTime expiryTimestamp, boolean isUpdate, String requestId) {
-		if (TransactionSynchronizationManager.isSynchronizationActive()) {
-			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-				@Override
-				public void afterCommit() {
-					credentialStatusManager.processSynchronouslyAfterIssueCredential(uin, encryptedUin, uinStatus,
-							expiryTimestamp, isUpdate, requestId);
-				}
-			});
-		} else {
-			credentialStatusManager.processSynchronouslyAfterIssueCredential(uin, encryptedUin, uinStatus,
-					expiryTimestamp, isUpdate, requestId);
-		}
+		PendingCredentialSync.enqueue(uin, encryptedUin, uinStatus, expiryTimestamp, isUpdate, requestId);
 	}
 
 	/**

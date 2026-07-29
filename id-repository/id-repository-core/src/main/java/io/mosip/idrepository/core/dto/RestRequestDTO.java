@@ -80,7 +80,7 @@ public class RestRequestDTO {
 	@NotNull
 	private HttpHeaders headers;
 
-	/** Optional socket read timeout in milliseconds. */
+	/** Optional socket read timeout in seconds (MOSIP {@code *.rest.timeout} convention). */
 	@Pattern(regexp = "^[0-9]*$", message = "{mosip.rest.request.timeout.message}")
 	private Integer timeout;
 }

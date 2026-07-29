@@ -23,6 +23,7 @@ import io.mosip.idrepository.core.dto.CredentialIssueRequestWrapperDto;
 import io.mosip.idrepository.core.dto.CredentialIssueResponse;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.pipeline.CredentialPipelineContext;
+import io.mosip.idrepository.pipeline.PendingCredentialSync;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.helper.AuditHelper;
@@ -99,9 +100,25 @@ public class CredentialStatusManager {
 	private AuditHelper auditHelper;
 	
 	/**
+	 * Drain {@link PendingCredentialSync} after the identity transaction has returned its connection
+	 * to the pool. Safe to call from proxy / draft entry points in {@code finally}.
+	 */
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
+	public void runPendingAfterIdentityCommit() {
+		PendingCredentialSync.Task task = PendingCredentialSync.poll();
+		if (task == null) {
+			return;
+		}
+		processSynchronouslyAfterIssueCredential(task.getPlainUin(), task.getEncryptedUin(), task.getUinStatus(),
+				task.getExpiryTimestamp(), task.isUpdate(), task.getRequestId());
+	}
+
+	/**
 	 * Runs the credential pipeline synchronously after {@code issueCredential} commits on the identity DB.
 	 * <p>
 	 * Notifies partners / credreq and issues credentials in-process (no scheduled polling).
+	 * Must not be invoked from {@code TransactionSynchronization.afterCommit} — that still holds the
+	 * JDBC connection. Prefer {@link #runPendingAfterIdentityCommit()} after the TX method returns.
 	 * </p>
 	 */
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)

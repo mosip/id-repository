@@ -10,11 +10,11 @@
 | Area | Path | Guide |
 |------|------|-------|
 | **Java / Maven** (core, service, salt-gen) | `id-repository/` | [`id-repository/AGENTS.md`](id-repository/AGENTS.md) |
-| Fresh DB install (DDL) | `db_scripts/` | [§ db_scripts](#db_scripts) |
-| Version upgrade SQL | `db_upgrade_scripts/` | [§ db_upgrade_scripts](#db_upgrade_scripts) |
-| Point-in-time release SQL | `db_release_scripts/` | [§ db_release_scripts](#db_release_scripts) |
-| K8s Helm charts | `helm/` | [§ helm](#helm) |
-| Cluster install scripts | `deploy/` | [§ deploy](#deploy) |
+| Fresh DB install (DDL) | `db_scripts/` | [`db_scripts/AGENTS.md`](db_scripts/AGENTS.md) |
+| Version upgrade SQL | `db_upgrade_scripts/` | [`db_upgrade_scripts/AGENTS.md`](db_upgrade_scripts/AGENTS.md) |
+| Point-in-time release SQL | `db_release_scripts/` | [`db_release_scripts/AGENTS.md`](db_release_scripts/AGENTS.md) |
+| K8s Helm charts | `helm/` | [`helm/AGENTS.md`](helm/AGENTS.md) |
+| Cluster install scripts | `deploy/` | [`deploy/AGENTS.md`](deploy/AGENTS.md) |
 | Functional API tests | `api-test/` | [§ api-test](#api-test) |
 | OpenAPI specs | `api-docs/` | [§ api-docs](#api-docs) |
 
@@ -27,11 +27,11 @@
 ```
 id-repository/                    # git repo root (this AGENTS.md)
 ├── id-repository/                # Maven parent → see id-repository/AGENTS.md
-├── db_scripts/                   # Greenfield DB create (3 schemas)
-├── db_upgrade_scripts/           # Incremental version upgrades + rollback
-├── db_release_scripts/           # Release / revoke DDL per MOSIP version
-├── helm/                         # Kubernetes Helm charts
-├── deploy/                       # Shell installers for cluster components
+├── db_scripts/                   # Greenfield DB create → db_scripts/AGENTS.md
+├── db_upgrade_scripts/           # Incremental upgrades → db_upgrade_scripts/AGENTS.md
+├── db_release_scripts/           # Release / revoke DDL → db_release_scripts/AGENTS.md
+├── helm/                         # Kubernetes Helm charts → helm/AGENTS.md
+├── deploy/                       # Shell installers → deploy/AGENTS.md
 ├── api-test/                     # End-to-end API test rig
 ├── api-docs/                     # OpenAPI YAML
 └── contrib/                      # Reference configs (e.g. kernel auth BeanConfig)
@@ -51,7 +51,7 @@ Salt tables (`uin_hash_salt`, `uin_encrypt_salt`) exist in **both** `idrepo` and
 
 ## `db_scripts`
 
-Greenfield PostgreSQL install. One folder per schema:
+Greenfield PostgreSQL install. Full agent guide: [`db_scripts/AGENTS.md`](db_scripts/AGENTS.md).
 
 ```
 db_scripts/
@@ -60,27 +60,19 @@ db_scripts/
 └── mosip_credential/
 ```
 
-### Agent rules
+### Agent rules (summary)
 
 - New tables/columns: add DDL under `<schema>/ddl/`, include in `<schema>/ddl.sql`.
 - Keep schemas separate — never merge idrepo and idmap salt DDL.
 - Run per schema: `cd db_scripts/mosip_idrepo && ./deploy.sh` (set `deploy.properties` first).
 - Used automatically in [MOSIP Sandbox](https://docs.mosip.io/1.2.0/deployment/sandbox-deployment) DB init.
-
-### Key salt DDL
-
-| Schema | Tables |
-|--------|--------|
-| `idrepo` | `uin_hash_salt`, `uin_encrypt_salt` |
-| `idmap` | `uin_hash_salt`, `uin_encrypt_salt` |
-
-After deploy, run salt-generator Job (`helm/idrepo-saltgen`) to populate salt rows.
+- After deploy, run salt-generator Job (`helm/idrepo-saltgen`) to populate salt rows.
 
 ---
 
 ## `db_upgrade_scripts`
 
-Incremental upgrades between MOSIP versions. Paired `_upgrade.sql` / `_rollback.sql` per hop.
+Incremental upgrades between MOSIP versions. Full agent guide: [`db_upgrade_scripts/AGENTS.md`](db_upgrade_scripts/AGENTS.md).
 
 ```
 db_upgrade_scripts/
@@ -90,18 +82,18 @@ db_upgrade_scripts/
 └── */upgrade.sh + upgrade.properties
 ```
 
-### Agent rules
+### Agent rules (summary)
 
 - Add **both** upgrade and rollback for every schema change.
 - Name files `{from}_to_{to}_upgrade.sql` / `_rollback.sql`.
-- Run via `<schema>/upgrade.sh` after updating `upgrade.properties` (DB host, user, log path).
+- Run via `<schema>/upgrade.sh` after updating `upgrade.properties` (DB host, user, versions, `ACTION`).
 - Apply all three schemas in dependency order when cross-schema FKs exist.
 
 ---
 
 ## `db_release_scripts`
 
-Point-in-time release and revoke scripts per MOSIP module version (e.g. `1.2.1_release.sql`, `1.2.1_revoke.sql`).
+Point-in-time release and revoke scripts per MOSIP module version. Full agent guide: [`db_release_scripts/AGENTS.md`](db_release_scripts/AGENTS.md).
 
 ```
 db_release_scripts/
@@ -110,7 +102,7 @@ db_release_scripts/
 └── mosip_credential/
 ```
 
-### Agent rules
+### Agent rules (summary)
 
 - New feature DDL for a release: add under `<schema>/ddl/` **and** wire into `<version>_release.sql`.
 - Always provide matching `_revoke.sql` for rollback.
@@ -121,7 +113,7 @@ db_release_scripts/
 
 ## `helm`
 
-Kubernetes charts for id-repository components.
+Kubernetes charts for id-repository components. Full agent guide: [`helm/AGENTS.md`](helm/AGENTS.md).
 
 | Chart | Path | Deploys |
 |-------|------|---------|
@@ -133,8 +125,7 @@ Kubernetes charts for id-repository components.
 
 | Workload | Chart / template | Notes |
 |----------|------------------|-------|
-| HTTP API (no jobs) | `helm/identity` | `mosip.idrepo.jobs.enabled=false`, HPA 3–10 |
-| HTTP + batch jobs | `helm/identity` | `mosip.idrepo.jobs.enabled=true`, replicas 1–3 |
+| HTTP API | `helm/identity` | Single `id-repository-service` image |
 | Salt population | `helm/idrepo-saltgen` | K8s **Job** only — run after DB deploy |
 
 ```console
@@ -142,10 +133,10 @@ helm repo add mosip https://mosip.github.io
 helm -n idrepo install my-release mosip/idrepo
 ```
 
-### Agent rules
+### Agent rules (summary)
 
 - Do not deploy salt-generator as a long-lived Deployment.
-- Same Docker image for HTTP and jobs pods; split via env (`mosip.idrepo.jobs.enabled`).
+- Same Docker image family for the HTTP deployable; salt is a separate Job chart.
 - Chart values: `helm/identity/values.yaml`, `helm/idrepo-saltgen/values.yaml`.
 - After schema deploy, install/run saltgen Job before starting HTTP service.
 
@@ -153,7 +144,7 @@ helm -n idrepo install my-release mosip/idrepo
 
 ## `deploy`
 
-Shell installers for cluster-side deployment (wrap Helm / config).
+Shell installers for cluster-side deployment (wrap Helm / config). Full agent guide: [`deploy/AGENTS.md`](deploy/AGENTS.md).
 
 ```
 deploy/
@@ -163,7 +154,7 @@ deploy/
 └── copy_cm_func.sh         # shared configmap helper
 ```
 
-### Agent rules
+### Agent rules (summary)
 
 - Primary id-repo install: `deploy/idrepo/install.sh`.
 - Teardown: `deploy/idrepo/delete.sh`.
@@ -201,10 +192,11 @@ Reference implementations not shipped in main artifacts — e.g. `contrib/kernel
 
 ### Do
 
-1. Change **all three** DB folders (`db_scripts`, `db_upgrade_scripts`, `db_release_scripts`) when schema changes affect a schema.
-2. Run salt-generator Job after fresh DB or salt-table DDL changes.
+1. Change **all three** DB folders (`db_scripts`, `db_upgrade_scripts`, `db_release_scripts`) when schema changes affect a schema — see each folder’s AGENTS.md.
+2. Run salt-generator Job after fresh DB or salt-table DDL changes — [`helm/AGENTS.md`](helm/AGENTS.md).
 3. Keep Helm values aligned with consolidated single-image deployable (`id-repository-service`).
 4. Point Java work to [`id-repository/AGENTS.md`](id-repository/AGENTS.md).
+5. Point cluster install work to [`deploy/AGENTS.md`](deploy/AGENTS.md).
 
 ### Do not
 
@@ -221,4 +213,4 @@ IDA does **not** use id-repo salt tables. IDA schema is separate (`ida.uin_hash_
 
 ---
 
-*Last updated: 2026-07-07.*
+*Last updated: 2026-07-28.*

@@ -47,6 +47,16 @@ public class CredentialPipelineContextTest {
 		assertEquals(PLAIN_UIN, state.getPlainIndividualId());
 		assertEquals(ENCRYPTED_UIN, state.getEncryptedIndividualId());
 		assertEquals(TRIGGER_ACTION, state.getTriggerAction());
+		assertNotNull(state.getIdentityCache());
+	}
+
+	@Test
+	public void attachSharesSameStateInstance() {
+		CredentialPipelineContext.State state = new CredentialPipelineContext.State(PLAIN_UIN, ENCRYPTED_UIN,
+				TRIGGER_ACTION);
+		CredentialPipelineContext.attach(state);
+		assertEquals(state, CredentialPipelineContext.get());
+		assertEquals(state.getIdentityCache(), CredentialPipelineContext.get().getIdentityCache());
 	}
 
 	@Test

@@ -1,6 +1,6 @@
 apiVersion: v2
 name: identity
-description: A Helm chart for MOSIP IDRepo Identity Service
+description: A Helm chart for MOSIP ID-Repository Service (identity + credential + credential-request)
 type: application
 version: 0.0.1-develop
 appVersion: ""

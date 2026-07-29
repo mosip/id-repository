@@ -87,7 +87,9 @@ exit /b 1
 if not defined MOSIP_KERNEL_UIN_SALT set "MOSIP_KERNEL_UIN_SALT=9cl3KUcCASLyUYLD"
 if not defined MOSIP_KERNEL_PARTNERCODE_SALT set "MOSIP_KERNEL_PARTNERCODE_SALT=4exm0iwskVVkV4vg"
 if not defined IDREPO_WEBSUB_VID_CREDENTIAL_UPDATE_SECRET set "IDREPO_WEBSUB_VID_CREDENTIAL_UPDATE_SECRET=qbcNVWL7FzhTxHEi"
-set "JVM_ARGS=-Dspring.cloud.bootstrap.enabled=false -Dspring.cloud.config.uri=http://localhost:51000/config -Dspring.profiles.active=default -Dspring.cloud.loadbalancer.enabled=false -Dspring.autoconfigure.exclude=org.springframework.cloud.loadbalancer.config.LoadBalancerAutoConfiguration,org.springframework.cloud.loadbalancer.config.BlockingLoadBalancerClientAutoConfiguration,org.springframework.cloud.loadbalancer.config.LoadBalancerCacheAutoConfiguration,org.springframework.cloud.loadbalancer.config.LoadBalancerStatsAutoConfiguration,org.springframework.cloud.loadbalancer.security.OAuth2LoadBalancerClientAutoConfiguration -Dlogging.file.path=%IDREPO_LOG_DIR% -Dmosip.kernel.uin.salt=%MOSIP_KERNEL_UIN_SALT% -Dmosip.kernel.partnercode.salt=%MOSIP_KERNEL_PARTNERCODE_SALT% -Didrepo.websub.vid.credential.update.secret=%IDREPO_WEBSUB_VID_CREDENTIAL_UPDATE_SECRET% -Dmosip.api.internal.host=%MOSIP_API_INTERNAL_HOST% -Dmosip.idrepo.biosdk.url=%MOSIP_IDREPO_BIOSDK_URL% -Dmosip.biosdk.default.service.url=%MOSIP_BIOSDK_DEFAULT_SERVICE_URL% -Dmosip.kernel.auditmanager.url=%MOSIP_IDREPO_BIOSDK_URL% -Dmosip.pms.partnermanager.url=%MOSIP_IDREPO_BIOSDK_URL% -Dobject.store.s3.url=%MOSIP_OBJECT_STORE_S3_URL% -Dobject.store.s3.accesskey=%MOSIP_OBJECT_STORE_S3_ACCESSKEY% -Dobject.store.s3.secretkey=%MOSIP_OBJECT_STORE_S3_SECRETKEY% -Dmosip.idrepo.objectstore.bucket-name=%MOSIP_IDREPO_OBJECTSTORE_BUCKET_NAME% -Ds3.pretext.value= -Dobject.store.s3.bucket-name-prefix= -Dobject.store.client.execution.timeout=60000"
+REM Datashare: config server uses K8s host datashare.datashare — unreachable from a laptop.
+REM Point at the same api-internal host used for keymanager/biosdk (https).
+set "JVM_ARGS=-Dspring.cloud.bootstrap.enabled=false -Dspring.cloud.config.uri=http://localhost:51000/config -Dspring.profiles.active=default -Dspring.cloud.loadbalancer.enabled=false -Dspring.autoconfigure.exclude=org.springframework.cloud.loadbalancer.config.LoadBalancerAutoConfiguration,org.springframework.cloud.loadbalancer.config.BlockingLoadBalancerClientAutoConfiguration,org.springframework.cloud.loadbalancer.config.LoadBalancerCacheAutoConfiguration,org.springframework.cloud.loadbalancer.config.LoadBalancerStatsAutoConfiguration,org.springframework.cloud.loadbalancer.security.OAuth2LoadBalancerClientAutoConfiguration -Dlogging.file.path=%IDREPO_LOG_DIR% -Dmosip.kernel.uin.salt=%MOSIP_KERNEL_UIN_SALT% -Dmosip.kernel.partnercode.salt=%MOSIP_KERNEL_PARTNERCODE_SALT% -Didrepo.websub.vid.credential.update.secret=%IDREPO_WEBSUB_VID_CREDENTIAL_UPDATE_SECRET% -Dmosip.api.internal.host=%MOSIP_API_INTERNAL_HOST% -Dmosip.idrepo.biosdk.url=%MOSIP_IDREPO_BIOSDK_URL% -Dmosip.biosdk.default.service.url=%MOSIP_BIOSDK_DEFAULT_SERVICE_URL% -Dmosip.kernel.auditmanager.url=%MOSIP_IDREPO_BIOSDK_URL% -Dmosip.pms.partnermanager.url=%MOSIP_IDREPO_BIOSDK_URL% -Dmosip.data.share.internal.domain.name=%MOSIP_API_INTERNAL_HOST% -Dmosip.data.share.protocol=https -Dobject.store.s3.url=%MOSIP_OBJECT_STORE_S3_URL% -Dobject.store.s3.accesskey=%MOSIP_OBJECT_STORE_S3_ACCESSKEY% -Dobject.store.s3.secretkey=%MOSIP_OBJECT_STORE_S3_SECRETKEY% -Dmosip.idrepo.objectstore.bucket-name=%MOSIP_IDREPO_OBJECTSTORE_BUCKET_NAME% -Ds3.pretext.value= -Dobject.store.s3.bucket-name-prefix= -Dobject.store.client.execution.timeout=60000"
 if defined SPRING_CLOUD_CONFIG_URI set "JVM_ARGS=%JVM_ARGS% -Dspring.cloud.config.uri=%SPRING_CLOUD_CONFIG_URI%"
 if defined SPRING_CLOUD_CONFIG_LABEL set "JVM_ARGS=%JVM_ARGS% -Dspring.cloud.config.label=%SPRING_CLOUD_CONFIG_LABEL%"
 if defined MOSIP_IAM_ADAPTER_CLIENTSECRET set "JVM_ARGS=%JVM_ARGS% -Dmosip.iam.adapter.clientsecret=%MOSIP_IAM_ADAPTER_CLIENTSECRET% -Dmosip.iam.adapter.clientsecret.id-repository=%MOSIP_IAM_ADAPTER_CLIENTSECRET%"
@@ -101,8 +103,14 @@ if not defined MOSIP_IAM_ADAPTER_CLIENTSECRET (
 echo --- Endpoints after startup ---
 echo   Health        : http://localhost:8090/actuator/health
 echo   Actuator      : http://localhost:8090/actuator/info  (also /prometheus, /refresh, /restart)
-echo   Swagger UI    : http://localhost:8090/swagger-ui.html
-echo   OpenAPI JSON  : http://localhost:8090/v3/api-docs
+echo   Swagger Identity : http://localhost:8090/idrepository/v1/identity/swagger-ui/index.html
+echo   Swagger VID      : http://localhost:8090/idrepository/v1/swagger-ui/index.html
+echo   Swagger Cred     : http://localhost:8090/v1/credentialservice/swagger-ui/index.html
+echo   Swagger CredReq  : http://localhost:8090/v1/credentialrequest/swagger-ui/index.html
+echo   OpenAPI Identity : http://localhost:8090/v3/api-docs/identity
+echo   OpenAPI VID      : http://localhost:8090/v3/api-docs/vid
+echo   OpenAPI Cred     : http://localhost:8090/v3/api-docs/credential-service
+echo   OpenAPI CredReq  : http://localhost:8090/v3/api-docs/credential-request
 echo   Identity      : http://localhost:8090/idrepository/v1/identity/
 echo   Identity draft: http://localhost:8090/idrepository/v1/identity/draft/
 echo   VID           : http://localhost:8090/idrepository/v1/vid/
