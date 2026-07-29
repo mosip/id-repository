@@ -5,15 +5,19 @@ import static io.mosip.idrepository.common.constant.IdRepoApiPathConstants.CREDE
 import static io.mosip.idrepository.common.constant.IdRepoApiPathConstants.IDENTITY_PATH_PREFIX;
 import static io.mosip.idrepository.common.constant.IdRepoApiPathConstants.VID_PATH_PREFIX;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -29,6 +33,12 @@ import jakarta.servlet.http.HttpServletRequest;
  * <p>
  * Each former microservice keeps its own Swagger UI under the legacy public path prefix
  * (same shape as pre-consolidation), instead of one grouped UI at {@code /swagger-ui/index.html}.
+ * </p>
+ * <p>
+ * Swagger UI static assets are served under each service prefix (e.g.
+ * {@code /idrepository/v1/identity/swagger-ui/swagger-ui.css}) so Istio routes that only
+ * expose {@code /idrepository/...} and {@code /v1/credential*} still load CSS/JS. Absolute
+ * {@code /swagger-ui/*} asset URLs work locally but 404 behind the gateway.
  * </p>
  *
  * <h2>Per-service Swagger UI</h2>
@@ -59,6 +69,9 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 			new SwaggerMount(CREDENTIAL_REQUEST_PATH_PREFIX, "credential-request",
 					"MOSIP Credential Request Generator"));
 
+	/** Classpath location of versioned swagger-ui webjar assets (trailing slash). */
+	private static final String SWAGGER_UI_WEBJAR_LOCATION = resolveSwaggerUiWebJarLocation();
+
 	/**
 	 * @param uiBasePath service public prefix (e.g. {@code /idrepository/v1/identity})
 	 * @param groupId    SpringDoc {@link GroupedOpenApi} group name
@@ -83,6 +96,19 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 		/** Internal SpringDoc group document forwarded from {@link #apiDocsPath()}. */
 		public String springDocGroupPath() {
 			return "/v3/api-docs/" + groupId;
+		}
+	}
+
+	/**
+	 * Serves swagger-ui CSS/JS under each API prefix so the gateway does not need a root
+	 * {@code /swagger-ui} route.
+	 */
+	@Override
+	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+		for (SwaggerMount mount : SWAGGER_MOUNTS) {
+			registry.addResourceHandler(mount.uiBasePath() + "/swagger-ui/**")
+					.addResourceLocations(SWAGGER_UI_WEBJAR_LOCATION)
+					.resourceChain(true);
 		}
 	}
 
@@ -179,10 +205,41 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 	}
 
 	/**
+	 * Resolves {@code classpath:/META-INF/resources/webjars/swagger-ui/&lt;version&gt;/} for the
+	 * swagger-ui dependency on the classpath (version comes from the webjar, not hard-coded).
+	 */
+	private static String resolveSwaggerUiWebJarLocation() {
+		try {
+			Resource[] resources = new PathMatchingResourcePatternResolver()
+					.getResources("classpath*:/META-INF/resources/webjars/swagger-ui/*/swagger-ui.css");
+			if (resources.length > 0) {
+				String url = resources[0].getURL().toExternalForm();
+				int marker = url.lastIndexOf("/swagger-ui.css");
+				if (marker > 0) {
+					String dir = url.substring(0, marker + 1);
+					if (dir.startsWith("jar:")) {
+						int bang = dir.indexOf("!/");
+						if (bang >= 0) {
+							return "classpath:" + dir.substring(bang + 1);
+						}
+					}
+					if (dir.contains("META-INF/resources/webjars/swagger-ui/")) {
+						return "classpath:/" + dir.substring(dir.indexOf("META-INF/"));
+					}
+				}
+			}
+		} catch (IOException ignored) {
+			// fall through to default
+		}
+		return "classpath:/META-INF/resources/webjars/swagger-ui/";
+	}
+
+	/**
 	 * Serves a dedicated Swagger UI HTML page under each service prefix.
 	 * <p>
-	 * Static assets load from SpringDoc’s root {@code /swagger-ui/*} webjars; each page pins
-	 * {@code url} to that service’s legacy {@code {prefix}/v3/api-docs} document (no group dropdown).
+	 * Asset hrefs are <em>relative</em> ({@code swagger-ui.css} next to {@code index.html}) so
+	 * the browser requests {@code {prefix}/swagger-ui/...}, which Istio already routes to this
+	 * service. Absolute {@code /swagger-ui/...} URLs 404 on the gateway.
 	 * </p>
 	 */
 	@Controller
@@ -206,27 +263,27 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 			// Longest prefix first so /idrepository/v1/identity wins over /idrepository/v1
 			return SWAGGER_MOUNTS.stream()
 					.sorted((a, b) -> Integer.compare(b.uiBasePath().length(), a.uiBasePath().length()))
-					.filter(m -> path.startsWith(m.uiBasePath() + "/swagger-ui"))
+					.filter(m -> path.contains(m.uiBasePath() + "/swagger-ui"))
 					.findFirst();
 		}
 
 		private static String renderSwaggerHtml(SwaggerMount mount) {
 			String title = escape(mount.title());
+			// Absolute path under the same gateway prefix as this UI (not /v3/api-docs/group)
 			String apiDocs = escape(mount.apiDocsPath());
-			// Absolute asset URLs from SpringDoc’s default swagger-ui resource mapping
 			return """
 					<!DOCTYPE html>
 					<html lang="en">
 					<head>
 					  <meta charset="UTF-8">
 					  <title>%s</title>
-					  <link rel="stylesheet" type="text/css" href="/swagger-ui/swagger-ui.css">
-					  <link rel="icon" type="image/png" href="/swagger-ui/favicon-32x32.png" sizes="32x32">
+					  <link rel="stylesheet" type="text/css" href="swagger-ui.css">
+					  <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32">
 					</head>
 					<body>
 					  <div id="swagger-ui"></div>
-					  <script src="/swagger-ui/swagger-ui-bundle.js"></script>
-					  <script src="/swagger-ui/swagger-ui-standalone-preset.js"></script>
+					  <script src="swagger-ui-bundle.js"></script>
+					  <script src="swagger-ui-standalone-preset.js"></script>
 					  <script>
 					    window.onload = function() {
 					      window.ui = SwaggerUIBundle({
