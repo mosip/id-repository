@@ -468,10 +468,10 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 					objectStoreHelper.deleteDraftDemographicObject(ridHash, doc.getDocId());
 				}
 			}
-			deleteDraftDbRecords(regId, draft);
+			deleteDraftDbRecords(regId);
 	}
 
-	private void deleteDraftDbRecords(String regId, UinDraft draft) {
+	private void deleteDraftDbRecords(String regId) {
 		uinBiometricDraftRepo.deleteByRegId(regId);
 		uinDocumentDraftRepo.deleteByRegId(regId);
 		uinDraftRepo.deleteByRegId(regId);
