@@ -117,8 +117,7 @@ Kubernetes charts for id-repository components. Full agent guide: [`helm/AGENTS.
 
 | Chart | Path | Deploys |
 |-------|------|---------|
-| **idrepo** (umbrella) | `helm/idrepo/` | Modular install entry |
-| **identity** | `helm/identity/` | Consolidated HTTP service (identity + credential + credreq) |
+| **identity** | `helm/identity/` | Consolidated HTTP service (identity + credential + credreq + vid) |
 | **idrepo-saltgen** | `helm/idrepo-saltgen/` | One-shot salt Job |
 
 ### Consolidated deployment model
@@ -130,7 +129,8 @@ Kubernetes charts for id-repository components. Full agent guide: [`helm/AGENTS.
 
 ```console
 helm repo add mosip https://mosip.github.io
-helm -n idrepo install my-release mosip/idrepo
+helm -n idrepo install idrepo-saltgen mosip/idrepo-saltgen --wait --wait-for-jobs
+helm -n idrepo install identity mosip/identity
 ```
 
 ### Agent rules (summary)

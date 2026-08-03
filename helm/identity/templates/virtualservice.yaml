@@ -18,8 +18,10 @@ spec:
   - {{ .Values.istio.gateway }}
   http:
   - match:
+      {{- range .Values.istio.prefixes }}
       - uri:
-          prefix: {{ .Values.istio.prefix }}
+          prefix: {{ . }}
+      {{- end }}
     route:
     - destination:
         host: {{ template "common.names.fullname" . }}

@@ -1,6 +1,6 @@
 # AGENTS.md — `helm/`
 
-> Kubernetes Helm charts for MOSIP ID-Repository (HTTP service + salt Job + umbrella chart).  
+> Kubernetes Helm charts for MOSIP ID-Repository (HTTP service + salt Job).  
 > Parent guide: [repo root `AGENTS.md`](../AGENTS.md).  
 > Cluster installers: [`deploy/AGENTS.md`](../deploy/AGENTS.md). Salt Java: [`id-repository-salt-generator/AGENTS.md`](../id-repository/id-repository-salt-generator/AGENTS.md).
 
@@ -10,16 +10,11 @@
 
 | Chart | Path | Deploys |
 |-------|------|---------|
-| **idrepo** (umbrella) | `helm/idrepo/` | Modular entry; depends on `idrepo-saltgen` + `identity` |
 | **identity** | `helm/identity/` | Consolidated HTTP service (`id-repository-service`) |
 | **idrepo-saltgen** | `helm/idrepo-saltgen/` | One-shot salt **Job** |
 
 ```
 helm/
-├── idrepo/              # umbrella Chart.yaml dependencies
-│   ├── Chart.yaml
-│   ├── values.yaml      # saltgen.enabled / service.enabled
-│   └── README.md
 ├── identity/            # Deployment, Service, probes, Istio VS, ServiceMonitor
 │   ├── Chart.yaml
 │   ├── values.yaml
@@ -42,12 +37,9 @@ Same Docker image family for the HTTP deployable (`mosipqa/id-repository-service
 |----------|-------|-------|
 | HTTP API | `helm/identity` | Port `8090`; health on `/idrepository/v1/identity/actuator/health` |
 | Salt population | `helm/idrepo-saltgen` | K8s **Job** only — run after DB deploy |
-| Umbrella install | `helm/idrepo` | Toggles: `saltgen.enabled`, `service.enabled` |
 
 ```console
 helm repo add mosip https://mosip.github.io
-helm -n idrepo install my-release mosip/idrepo
-# or install charts individually:
 helm -n idrepo install idrepo-saltgen mosip/idrepo-saltgen --wait --wait-for-jobs
 helm -n idrepo install identity mosip/identity
 ```
@@ -75,7 +67,6 @@ Prefer environment overlays / deploy scripts for cluster-specific ConfigMap and 
 
 - Template: `templates/job.yaml` — **Job**, not Deployment.
 - Run after `db_scripts` (or salt DDL changes) so `uin_hash_salt` / `uin_encrypt_salt` in **idrepo** and **idmap** are populated.
-- Umbrella: `helm/idrepo` dependency `saltgen` with `condition: saltgen.enabled`.
 - Ops path: often invoked from [`deploy/idrepo/install.sh`](../deploy/AGENTS.md) with `--wait --wait-for-jobs`.
 
 ---

@@ -92,7 +92,7 @@ Same Docker image, two deployments:
 | id-repository-jobs | `true` | 1–3 |
 | id-repository | `false` | 3–10 (HPA) |
 
-Chart: `helm/idrepo` (repo root).
+Chart: `helm/identity` (repo root).
 
 ---
 
