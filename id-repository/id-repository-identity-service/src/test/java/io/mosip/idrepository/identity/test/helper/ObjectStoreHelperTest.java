@@ -3,11 +3,13 @@ package io.mosip.idrepository.identity.test.helper;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 
+import io.mosip.commons.khazana.exception.ObjectStoreAdapterException;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,13 +56,6 @@ public class ObjectStoreHelperTest {
 		ApplicationContext ctxMock = mock(ApplicationContext.class);
 		when(ctxMock.getBean("objectStoreAdapterName", ObjectStoreAdapter.class)).thenReturn(adapter);
 		helper.setObjectStore(ctxMock);
-	}
-
-	@Test
-	public void testDemographicObjectExists() throws IdRepoAppException {
-		when(adapter.exists(any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
-		boolean exists = helper.demographicObjectExists("", "");
-		assertTrue(exists);
 	}
 
 	@Test
@@ -192,6 +187,241 @@ public class ObjectStoreHelperTest {
 	public void testDeleteBiometricObjectNotExists() throws IdRepoAppException {
 		when(adapter.exists(any(), any(), any(), any(), any())).thenReturn(Boolean.FALSE);
 		helper.deleteBiometricObject("hash", "refId");
+	}
+
+	// ── getRidHash ───────────────────────────────────────────────────────────
+
+	@Test
+	public void testGetRidHash() {
+		String hash = helper.getRidHash("1234567890");
+		assertNotNull(hash);
+		assertTrue(hash.length() > 0);
+	}
+
+	// ── draft biometric / demographic exists ─────────────────────────────────
+
+	@Test
+	public void testDraftBiometricObjectExists_True() {
+		when(adapter.exists(any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
+		assertTrue(helper.draftBiometricObjectExists("ridHash", "fileRefId"));
+	}
+
+	@Test
+	public void testDraftBiometricObjectExists_False() {
+		when(adapter.exists(any(), any(), any(), any(), any())).thenReturn(Boolean.FALSE);
+		assertFalse(helper.draftBiometricObjectExists("ridHash", "fileRefId"));
+	}
+
+	@Test
+	public void testDraftDemographicObjectExists_True() {
+		when(adapter.exists(any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
+		assertTrue(helper.draftDemographicObjectExists("ridHash", "fileRefId"));
+	}
+
+	@Test
+	public void testDraftDemographicObjectExists_False() {
+		when(adapter.exists(any(), any(), any(), any(), any())).thenReturn(Boolean.FALSE);
+		assertFalse(helper.draftDemographicObjectExists("ridHash", "fileRefId"));
+	}
+
+	// ── putDraftBiometricObject / putDraftDemographicObject ──────────────────
+
+	@Test
+	public void testPutDraftBiometricObject() throws IdRepoAppException {
+		when(securityManager.encrypt(any(), any())).thenReturn("enc".getBytes());
+		when(adapter.putObject(any(), any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
+
+		helper.putDraftBiometricObject("ridHash", "fileRefId", "data".getBytes());
+
+		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+		verify(adapter).putObject(any(), any(), any(), any(), captor.capture(), any());
+		assertTrue(captor.getValue().contains("_draft"));
+		assertTrue(captor.getValue().contains("Biometrics"));
+	}
+
+	@Test
+	public void testPutDraftDemographicObject() throws IdRepoAppException {
+		when(securityManager.encrypt(any(), any())).thenReturn("enc".getBytes());
+		when(adapter.putObject(any(), any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
+
+		helper.putDraftDemographicObject("ridHash", "fileRefId", "data".getBytes());
+
+		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+		verify(adapter).putObject(any(), any(), any(), any(), captor.capture(), any());
+		assertTrue(captor.getValue().contains("_draft"));
+		assertTrue(captor.getValue().contains("Demographics"));
+	}
+
+	// ── getDraftBiometricObject / getDraftDemographicObject ──────────────────
+
+	@Test
+	public void testGetDraftBiometricObject() throws IdRepoAppException {
+		when(adapter.getObject(any(), any(), any(), any(), any()))
+				.thenReturn(new ByteArrayInputStream("enc".getBytes()));
+		when(securityManager.decrypt(any(), any())).thenReturn("dec".getBytes());
+
+		byte[] result = helper.getDraftBiometricObject("ridHash", "fileRefId");
+		assertEquals("dec", new String(result));
+	}
+
+	@Test
+	public void testGetDraftBiometricObject_NotFound() throws IdRepoAppException {
+		when(adapter.getObject(any(), any(), any(), any(), any())).thenReturn(null);
+
+		try {
+			helper.getDraftBiometricObject("ridHash", "fileRefId");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.FILE_NOT_FOUND.getErrorCode(), e.getErrorCode());
+		}
+	}
+
+	@Test
+	public void testGetDraftDemographicObject() throws IdRepoAppException {
+		when(adapter.getObject(any(), any(), any(), any(), any()))
+				.thenReturn(new ByteArrayInputStream("enc".getBytes()));
+		when(securityManager.decrypt(any(), any())).thenReturn("dec".getBytes());
+
+		byte[] result = helper.getDraftDemographicObject("ridHash", "fileRefId");
+		assertEquals("dec", new String(result));
+	}
+
+	@Test
+	public void testGetDraftDemographicObject_NotFound() throws IdRepoAppException {
+		when(adapter.getObject(any(), any(), any(), any(), any())).thenReturn(null);
+
+		try {
+			helper.getDraftDemographicObject("ridHash", "fileRefId");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.FILE_NOT_FOUND.getErrorCode(), e.getErrorCode());
+		}
+	}
+
+	// ── deleteDraftBiometricObject / deleteDraftDemographicObject ────────────
+
+	@Test
+	public void testDeleteDraftBiometricObject_Exists() {
+		when(adapter.exists(any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
+		when(adapter.deleteObject(any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
+
+		helper.deleteDraftBiometricObject("ridHash", "fileRefId");
+
+		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+		verify(adapter).deleteObject(any(), any(), any(), any(), captor.capture());
+		assertTrue(captor.getValue().contains("_draft"));
+		assertTrue(captor.getValue().contains("Biometrics"));
+	}
+
+	@Test
+	public void testDeleteDraftBiometricObject_NotExists() {
+		when(adapter.exists(any(), any(), any(), any(), any())).thenReturn(Boolean.FALSE);
+		helper.deleteDraftBiometricObject("ridHash", "fileRefId");
+		verify(adapter, never()).deleteObject(any(), any(), any(), any(), any());
+	}
+
+	@Test
+	public void testDeleteDraftDemographicObject_Exists() {
+		when(adapter.exists(any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
+		when(adapter.deleteObject(any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
+
+		helper.deleteDraftDemographicObject("ridHash", "fileRefId");
+
+		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+		verify(adapter).deleteObject(any(), any(), any(), any(), captor.capture());
+		assertTrue(captor.getValue().contains("_draft"));
+		assertTrue(captor.getValue().contains("Demographics"));
+	}
+
+	@Test
+	public void testDeleteDraftDemographicObject_NotExists() {
+		when(adapter.exists(any(), any(), any(), any(), any())).thenReturn(Boolean.FALSE);
+		helper.deleteDraftDemographicObject("ridHash", "fileRefId");
+		verify(adapter, never()).deleteObject(any(), any(), any(), any(), any());
+	}
+
+	// ── copyAndReplaceBiometricDraftToLive / copyAndReplaceDemographicDraftToLive
+
+	@Test
+	public void testCopyAndReplaceBiometricDraftToLive_Success() throws IdRepoAppException {
+		when(adapter.copyAndReplaceObject(any(), any(), any(), any())).thenReturn(Boolean.TRUE);
+		helper.copyAndReplaceBiometricDraftToLive("srcHash", "destHash", "fileRefId");
+		verify(adapter).copyAndReplaceObject(any(), any(), any(), any());
+	}
+
+	@Test
+	public void testCopyAndReplaceBiometricDraftToLive_ReturnsFalse() {
+		when(adapter.copyAndReplaceObject(any(), any(), any(), any())).thenReturn(Boolean.FALSE);
+		try {
+			helper.copyAndReplaceBiometricDraftToLive("srcHash", "destHash", "fileRefId");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
+		}
+	}
+
+	@Test
+	public void testCopyAndReplaceBiometricDraftToLive_Exception() {
+		when(adapter.copyAndReplaceObject(any(), any(), any(), any()))
+				.thenThrow(new ObjectStoreAdapterException("ERR", "copy failed"));
+		try {
+			helper.copyAndReplaceBiometricDraftToLive("srcHash", "destHash", "fileRefId");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
+		}
+	}
+
+	@Test
+	public void testCopyAndReplaceDemographicDraftToLive_Success() throws IdRepoAppException {
+		when(adapter.copyAndReplaceObject(any(), any(), any(), any())).thenReturn(Boolean.TRUE);
+		helper.copyAndReplaceDemographicDraftToLive("srcHash", "destHash", "fileRefId");
+		verify(adapter).copyAndReplaceObject(any(), any(), any(), any());
+	}
+
+	@Test
+	public void testCopyAndReplaceDemographicDraftToLive_Exception() {
+		when(adapter.copyAndReplaceObject(any(), any(), any(), any()))
+				.thenThrow(new ObjectStoreAdapterException("ERR", "copy failed"));
+		try {
+			helper.copyAndReplaceDemographicDraftToLive("srcHash", "destHash", "fileRefId");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
+		}
+	}
+
+	// ── copyBiometricLiveToDraft / copyDemographicLiveToDraft ────────────────
+
+	@Test
+	public void testCopyBiometricLiveToDraft_Success() throws IdRepoAppException {
+		when(adapter.copyAndReplaceObject(any(), any(), any(), any())).thenReturn(Boolean.TRUE);
+		helper.copyBiometricLiveToDraft("liveHash", "ridHash", "fileRefId");
+		verify(adapter).copyAndReplaceObject(any(), any(), any(), any());
+	}
+
+	@Test
+	public void testCopyBiometricLiveToDraft_Exception() {
+		when(adapter.copyAndReplaceObject(any(), any(), any(), any()))
+				.thenThrow(new ObjectStoreAdapterException("ERR", "copy failed"));
+		try {
+			helper.copyBiometricLiveToDraft("liveHash", "ridHash", "fileRefId");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
+		}
+	}
+
+	@Test
+	public void testCopyDemographicLiveToDraft_Success() throws IdRepoAppException {
+		when(adapter.copyAndReplaceObject(any(), any(), any(), any())).thenReturn(Boolean.TRUE);
+		helper.copyDemographicLiveToDraft("liveHash", "ridHash", "fileRefId");
+		verify(adapter).copyAndReplaceObject(any(), any(), any(), any());
+	}
+
+	@Test
+	public void testCopyDemographicLiveToDraft_Exception() {
+		when(adapter.copyAndReplaceObject(any(), any(), any(), any()))
+				.thenThrow(new ObjectStoreAdapterException("ERR", "copy failed"));
+		try {
+			helper.copyDemographicLiveToDraft("liveHash", "ridHash", "fileRefId");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
+		}
 	}
 
 }

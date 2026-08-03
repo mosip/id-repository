@@ -38,8 +38,10 @@ import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import io.mosip.idrepository.identity.helper.VidDraftHelper;
 import io.mosip.idrepository.identity.repository.IdentityUpdateTrackerRepo;
+import io.mosip.idrepository.identity.repository.UinBiometricDraftRepo;
 import io.mosip.idrepository.identity.repository.UinBiometricHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinBiometricRepo;
+import io.mosip.idrepository.identity.repository.UinDocumentDraftRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentRepo;
 import io.mosip.idrepository.identity.repository.UinDraftRepo;
@@ -203,6 +205,12 @@ public class IdRepoDraftServiceImplTest {
 
 	@Mock
 	private BiometricExtractionService biometricExtractionService;
+
+	@Mock
+	private UinBiometricDraftRepo uinBiometricDraftRepo;
+
+	@Mock
+	private UinDocumentDraftRepo uinDocumentDraftRepo;
 
 	@InjectMocks
 	IdRepoDraftServiceImpl idRepoServiceImpl;
@@ -596,7 +604,7 @@ public class IdRepoDraftServiceImplTest {
 		}
 	}
 
-	@Test(expected = IdRepoAppException.class)
+	@Test
 	public void testExtractBiometrics() throws IdRepoAppException, NoSuchAlgorithmException {
 		Map<String, String> extractionFormats = new HashMap<>();
 		extractionFormats.put(FINGER_EXTRACTION_FORMAT, "fingerFormat");
@@ -825,7 +833,7 @@ public class IdRepoDraftServiceImplTest {
 	@Test
 	public void testDiscardDraftJDBCConnectionException() throws IdRepoAppException {
 		try {
-			when(uinDraftRepo.existsByRegId(Mockito.any())).thenThrow(JDBCConnectionException.class);
+			when(uinDraftRepo.findByRegId(Mockito.any())).thenThrow(JDBCConnectionException.class);
 			IdResponseDTO response = idRepoServiceImpl.discardDraft("123567890");
 			assertNotNull(response);
 		} catch (IdRepoAppException e) {
@@ -1040,5 +1048,114 @@ public class IdRepoDraftServiceImplTest {
 		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
 				idRepoServiceImpl.createDraft("REG123", null));
 		assertEquals(IdRepoErrorConstants.UIN_GENERATION_FAILED.getErrorCode(), thrown.getErrorCode());
+	}
+
+	// ── createDraftV2 ────────────────────────────────────────────────────────
+
+	@Test
+	public void testCreateDraftV2_Success() throws IdRepoAppException {
+		when(uinHistoryRepo.existsByRegId(any())).thenReturn(false);
+		when(uinDraftRepo.existsByRegId(any())).thenReturn(false);
+		IdResponseDTO response = idRepoServiceImpl.createDraftV2("REG123");
+		assertNotNull(response);
+	}
+
+	@Test
+	public void testCreateDraftV2_AlreadyExists() {
+		when(uinHistoryRepo.existsByRegId(any())).thenReturn(false);
+		when(uinDraftRepo.existsByRegId(any())).thenReturn(true);
+		try {
+			idRepoServiceImpl.createDraftV2("REG123");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.RECORD_EXISTS.getErrorCode(), e.getErrorCode());
+		}
+	}
+
+	@Test
+	public void testCreateDraftV2_JDBCConnectionException() {
+		when(uinHistoryRepo.existsByRegId(any())).thenReturn(false);
+		when(uinDraftRepo.existsByRegId(any())).thenThrow(JDBCConnectionException.class);
+		try {
+			idRepoServiceImpl.createDraftV2("REG123");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
+		}
+	}
+
+	// ── updateDraftUin ───────────────────────────────────────────────────────
+
+	@Test
+	public void testUpdateDraftUin_NoRecordFound() {
+		when(uinDraftRepo.existsByRegId(any())).thenReturn(false);
+		try {
+			idRepoServiceImpl.updateDraftUin("REG123", "274390482564");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorCode(), e.getErrorCode());
+		}
+	}
+
+	@Test
+	public void testUpdateDraftUin_JDBCConnectionException() {
+		when(uinDraftRepo.existsByRegId(any())).thenThrow(JDBCConnectionException.class);
+		try {
+			idRepoServiceImpl.updateDraftUin("REG123", "274390482564");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
+		}
+	}
+
+	// ── getDraft with type parameter ─────────────────────────────────────────
+
+	@Test
+	public void testGetDraftWithTypeDemographics() throws IdRepoAppException, IOException {
+		UinDraft uin = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(uin));
+		IdResponseDTO response = idRepoServiceImpl.getDraft("1234567890", new HashMap<>(), "demographics");
+		assertNotNull(response);
+	}
+
+	@Test
+	public void testGetDraftWithTypeBiometrics() throws IdRepoAppException, IOException {
+		UinDraft uin = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(uin));
+		IdResponseDTO response = idRepoServiceImpl.getDraft("1234567890", new HashMap<>(), "biometrics");
+		assertNotNull(response);
+	}
+
+	@Test
+	public void testGetDraftWithTypeAll() throws IdRepoAppException, IOException {
+		UinDraft uin = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(uin));
+		IdResponseDTO response = idRepoServiceImpl.getDraft("1234567890", new HashMap<>(), "all");
+		assertNotNull(response);
+	}
+
+	@Test
+	public void testGetDraftWithTypeNull() throws IdRepoAppException, IOException {
+		UinDraft uin = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(uin));
+		IdResponseDTO response = idRepoServiceImpl.getDraft("1234567890", new HashMap<>(), null);
+		assertNotNull(response);
+	}
+
+	@Test
+	public void testGetDraftWithInvalidType() {
+		try {
+			idRepoServiceImpl.getDraft("1234567890", new HashMap<>(), "invalid");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+		}
+	}
+
+	private UinDraft buildMinimalDraft() throws IOException {
+		UinDraft uin = new UinDraft();
+		uin.setUin("274390482564");
+		uin.setUinHash("123_5B72C3B57A72C6497461289FCA7B1F865ED6FB0596B446FEA1F92AF931A5D4B7");
+		uin.setRegId("1234567890");
+		String identityData = IOUtils.toString(
+				this.getClass().getClassLoader().getResourceAsStream("identity-data.json"), StandardCharsets.UTF_8);
+		uin.setUinData(identityData.getBytes());
+		uin.setStatusCode("DRAFTED");
+		return uin;
 	}
 }

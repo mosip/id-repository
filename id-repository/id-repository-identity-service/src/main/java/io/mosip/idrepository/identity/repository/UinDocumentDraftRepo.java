@@ -1,6 +1,8 @@
 package io.mosip.idrepository.identity.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.transaction.annotation.Transactional;
 
 import io.mosip.idrepository.identity.entity.UinDocumentDraft;
 
@@ -10,4 +12,8 @@ import io.mosip.idrepository.identity.entity.UinDocumentDraft;
  * @author Manoj SP
  */
 public interface UinDocumentDraftRepo extends JpaRepository<UinDocumentDraft, String> {
+
+	@Modifying
+	@Transactional
+	void deleteByRegId(String regId);
 }

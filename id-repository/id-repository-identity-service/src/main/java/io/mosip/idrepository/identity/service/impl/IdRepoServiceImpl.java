@@ -355,7 +355,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "documents/" + index + "/value"), e);
 		}
 		// S3 upload — DB connection is NOT used here
-		objectStoreHelper.putBiometricObject(uinHash, fileRefId, data);
+		if (isDraft) {
+			objectStoreHelper.putDraftBiometricObject(uinHash, fileRefId, data);
+		} else {
+			objectStoreHelper.putBiometricObject(uinHash, fileRefId, data);
+		}
 
 		bioList.add(new UinBiometric(uinRefId, fileRefId, doc.getCategory(), docType.get(FILE_NAME_ATTRIBUTE).asText(),
 				securityManager.hash(data), "", IdRepoSecurityManager.getUser(),
@@ -391,7 +395,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 		byte[] data = CryptoUtil.decodeURLSafeBase64(doc.getValue());
 		// S3 upload — DB connection is NOT used here
-		objectStoreHelper.putDemographicObject(uinHash, fileRefId, data);
+		if (isDraft) {
+			objectStoreHelper.putDraftDemographicObject(uinHash, fileRefId, data);
+		} else {
+			objectStoreHelper.putDemographicObject(uinHash, fileRefId, data);
+		}
 
 		docList.add(new UinDocument(uinRefId, doc.getCategory(), docType.get(TYPE).asText(), fileRefId,
 				docType.get(FILE_NAME_ATTRIBUTE).asText(), docType.get(FILE_FORMAT_ATTRIBUTE).asText(),
@@ -786,7 +794,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		List<UinDocumentHistory> docHistoryList = new ArrayList<>();
 
 		if (Objects.nonNull(uinObject.getBiometrics())) {
-			updateCbeff(uinObject, requestDTO);
+			updateCbeff(uinObject, requestDTO, isDraft);
 		}
 
 		// Phase A: S3 uploads — DB connection NOT actively used during S3 I/O
@@ -834,7 +842,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @param requestDTO the request DTO
 	 * @throws IdRepoAppException the id repo app exception
 	 */
-	private void updateCbeff(Uin uinObject, RequestDTO requestDTO) {
+	private void updateCbeff(Uin uinObject, RequestDTO requestDTO, boolean isDraft) {
 		ObjectNode identityMap = convertToObject(uinObject.getUinData(), ObjectNode.class);
 		IntStream.range(0, uinObject.getBiometrics().size()).forEach(index -> {
 			UinBiometric bio = uinObject.getBiometrics().get(index);
@@ -843,7 +851,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						try {
 							String uinHash = uinObject.getUinHash().split("_")[1];
 							String bioFileId = bio.getBioFileId();
-							byte[] data = objectStoreHelper.getBiometricObject(uinHash, bioFileId);
+							byte[] data = isDraft
+									? objectStoreHelper.getDraftBiometricObject(uinHash, bioFileId)
+									: objectStoreHelper.getBiometricObject(uinHash, bioFileId);
 								if (StringUtils.equalsIgnoreCase(
 										identityMap.get(bio.getBiometricFileType()).get(FILE_FORMAT_ATTRIBUTE).asText(), CBEFF_FORMAT)
 										&& bioFileId.endsWith(CBEFF_FORMAT)) {
