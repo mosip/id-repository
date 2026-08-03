@@ -295,12 +295,6 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 
 		
 		try {
-			Optional<CredentialIssueStatusResponse> cachedResponse = Optional.ofNullable(cacheUtil.getCredentialTransaction(requestId));
-			if(cachedResponse.isPresent()) {
-				credentialIssueStatusResponseWrapper.setResponse(cachedResponse.get());
-				return credentialIssueStatusResponseWrapper;
-			}
-			
 			Optional<CredentialEntity> result = credentialDao.findById(requestId);
 			CredentialEntity credentialEntity = result.isPresent() ? result.get() : null;
 			if (credentialEntity!=null && credentialEntity.getRequestId() != null) {
