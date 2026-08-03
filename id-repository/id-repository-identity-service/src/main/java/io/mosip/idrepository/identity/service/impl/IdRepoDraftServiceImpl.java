@@ -427,7 +427,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 			// Build anonymous profile after biometrics are in the live path so
 			// AnonymousProfileHelper can read {uinHash}/Biometrics/{fileId} successfully.
 			anonymousProfileHelper.buildAndsaveProfile(true);
-
+			cleanupDraft(regId,draft);
 			return constructIdResponse(null, uinObject.getStatusCode(), null, draftVid);
 
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
@@ -446,7 +446,17 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 						DISCARD_DRAFT, "RID NOT FOUND IN DB | regId=" + regId);
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
-			UinDraft draft = draftOptional.get();
+			cleanupDraft(regId,draftOptional.get());
+			return constructIdResponse(null, "DISCARDED", null, null);
+		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+					DISCARD_DRAFT, e.getMessage());
+			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
+		}
+	}
+
+
+	public void cleanupDraft(String regId,UinDraft draft) throws IdRepoAppException {
 			String ridHash = objectStoreHelper.getRidHash(draft.getRegId());
 			if (draft.getBiometrics() != null) {
 				for (UinBiometricDraft bio : draft.getBiometrics()) {
@@ -459,12 +469,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 				}
 			}
 			deleteDraftDbRecords(regId, draft);
-			return constructIdResponse(null, "DISCARDED", null, null);
-		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
-			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-					DISCARD_DRAFT, e.getMessage());
-			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
-		}
 	}
 
 	private void deleteDraftDbRecords(String regId, UinDraft draft) {
