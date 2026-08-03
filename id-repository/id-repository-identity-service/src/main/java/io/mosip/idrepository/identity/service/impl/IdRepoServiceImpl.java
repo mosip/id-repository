@@ -243,6 +243,8 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		mosipLogger.debug("After completing with checkAndGetHandles: {}", System.currentTimeMillis()-epoch);
 		epoch = System.currentTimeMillis();
 
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
+				"[ANON-TRACE] addIdentity | regId=" + request.getRegistrationId() + " | uin(hash)=" + uinHash);
 		anonymousProfileHelper
 				.setRegId(request.getRegistrationId())
 				.setNewUinData(identityInfo);
@@ -285,6 +287,8 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 		mosipLogger.info("After issueCredential: {}", System.currentTimeMillis()-epoch);
 		epoch = System.currentTimeMillis();
 
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY,
+				"[ANON-TRACE] dispatching buildAndsaveProfile | regId=" + request.getRegistrationId());
 		anonymousProfileHelper.buildAndsaveProfile(false);
 		mosipLogger.info("After buildAndsaveProfile: {}", System.currentTimeMillis()-epoch);
 		return uinEntity;
@@ -426,6 +430,8 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 	 */
 	@Override
 	public Uin updateIdentity(IdRequestDTO<T> request, String uin) throws IdRepoAppException {
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, UPDATE_IDENTITY,
+				"[ANON-TRACE] updateIdentity | regId=" + request.getRegistrationId());
 		anonymousProfileHelper.setRegId(request.getRegistrationId());
 		String uinHash = getUinHash(uin);
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
@@ -491,6 +497,8 @@ public class IdRepoServiceImpl<T> implements IdRepoService<IdRequestDTO<T>, Uin>
 			issueCredential(uin, uinObject.getUin(), uinObject.getStatusCode(),
 					DateUtils.getUTCCurrentDateTime(), uinObject.getRegId(), true);
 
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, UPDATE_IDENTITY,
+					"[ANON-TRACE] dispatching buildAndsaveProfile | regId=" + request.getRegistrationId());
 			anonymousProfileHelper.buildAndsaveProfile(false);
 			return uinObject;
 		} catch (JSONException | InvalidJsonException | IOException e) {
