@@ -370,9 +370,9 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credentialEntity.setUpdatedBy(PRINT_USER);
 			credentialEntity.setStatusComment("updated the status from partner");
 			String credentialEntityRequest = credentialEntity.getRequest();
+			CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credentialEntityRequest, CredentialIssueRequestDto.class);
 			credentialDao.save(credentialEntity);
 
-			CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credentialEntityRequest, CredentialIssueRequestDto.class);
 			cacheUtil.updateCredentialTransaction(requestId, credentialEntity, credentialIssueRequestDto.getId());
 			
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId, 
