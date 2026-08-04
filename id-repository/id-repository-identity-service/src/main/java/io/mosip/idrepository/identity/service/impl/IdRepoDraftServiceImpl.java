@@ -438,6 +438,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 			// Build anonymous profile after biometrics are in the live path so
 			// AnonymousProfileHelper can read {uinHash}/Biometrics/{fileId} successfully.
 			anonymousProfileHelper.buildAndsaveProfile(true);
+			cleanupDraft(uin,draft);
 			return constructIdResponse(null, uinObject.getStatusCode(), null, draftVid);
 
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
