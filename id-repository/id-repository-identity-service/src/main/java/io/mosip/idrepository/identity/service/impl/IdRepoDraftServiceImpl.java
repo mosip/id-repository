@@ -29,6 +29,7 @@ import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -184,29 +185,29 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	}
 
 	@Override
-	public IdResponseDTO updateDraftUin(String registrationId, String uin) throws IdRepoAppException {
+	public IdResponseDTO updateDraftRid(String registrationId, String uin) throws IdRepoAppException {
 		try {
-			if (!uinDraftRepo.existsByRegId(registrationId)) {
-				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-						UPDATE_DRAFT, "RID NOT FOUND IN DB | regId=" + registrationId);
-				throw new IdRepoAppException(NO_RECORD_FOUND);
-			}
 			// We must replicate the interceptor's encryptWithSalt step here so that the
 			// value stored in the DB is "{saltId}_{encryptedBase64}", which is what
 			// decryptUin() expects.
 			String preEncryptFormat = super.getUinToEncrypt(uin);
 			List<String> uinParts = Arrays.asList(preEncryptFormat.split(SPLITTER));
 			byte[] encryptedUinBytes = securityManager.encryptWithSalt(
-					uinParts.get(1).getBytes(),
+					uinParts.get(1).getBytes(StandardCharsets.UTF_8),
 					CryptoUtil.decodePlainBase64(uinParts.get(2)),
 					uinRefId);
-			String encryptedUin = uinParts.get(0) + SPLITTER + new String(encryptedUinBytes);
-			uinDraftRepo.updateUinByRegId(
+			String encryptedUin = uinParts.get(0) + SPLITTER + new String(encryptedUinBytes, StandardCharsets.UTF_8);
+			int affected = uinDraftRepo.updateUinByRegId(
 					registrationId,
 					encryptedUin,
 					super.getUinHash(uin),
 					IdRepoSecurityManager.getUser(),
 					DateUtils2.getUTCCurrentDateTime());
+			if (affected == 0) {
+				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+						UPDATE_DRAFT, "RID NOT FOUND IN DB | regId=" + registrationId);
+				throw new IdRepoAppException(NO_RECORD_FOUND);
+			}
 			return constructIdResponse(null, DRAFTED, null, null);
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
@@ -368,13 +369,19 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 
 			UinDraft draft = uinDraft.get();
 
-			// LOST drafts have no UIN until updateDraftUin is called after ABIS match.
+			// LOST drafts have no UIN until updateDraftRid is called after ABIS match.
 			if (draft.getUinHash() == null || draft.getUin() == null) {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-						PUBLISH_DRAFT, "Cannot publish draft without UIN — updateDraftUin must be called first | regId=" + regId
+						PUBLISH_DRAFT, "Cannot publish draft without UIN — updateDraftRid must be called first | regId=" + regId
 								+ " | uinNull=" + (draft.getUin() == null) + " | uinHashNull=" + (draft.getUinHash() == null));
 				throw new IdRepoAppException(UNKNOWN_ERROR,
-						"Draft UIN has not been assigned; updateDraftUin was not called for regId=" + regId);
+						"Draft UIN has not been assigned; updateDraftRid was not called for regId=" + regId);
+			}
+			if (draft.getUinData() == null) {
+				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+						PUBLISH_DRAFT, "Cannot publish draft without identity data | regId=" + regId);
+				throw new IdRepoAppException(UNKNOWN_ERROR,
+						"Draft identity data is missing; updateDraft was not called for regId=" + regId);
 			}
 
 			// Resolve the last biometric file ID safely — biometrics may be empty.
@@ -403,15 +410,20 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 
 			publishDocuments(draft, uinObject);
 
-			// srcPrefix is always _draft/{ridHash}/ — ridHash derived on the fly from regId.
-			// destPrefix is always the live uinHash slot.
+			// Delete draft DB records before touching object store — if an object-store
+			// operation fails after this point the identity is already committed to live,
+			// so there is no data-loss risk. The reverse ordering (delete objects first)
+			// could leave the draft in an inconsistent state on DB rollback.
+			deleteDraftDbRecords(regId);
+
+			// Copy draft objects to live slot. copyAndReplace* uses moveObject(true) which
+			// handles the copy and source-deletion atomically, so no separate delete needed.
 			String srcPrefix = objectStoreHelper.getRidHash(draft.getRegId());
 			String destPrefix = draft.getUinHash().split(SPLITTER)[1];
 			if (draft.getBiometrics() != null) {
 				for (UinBiometricDraft bio : draft.getBiometrics()) {
 					if (objectStoreHelper.draftBiometricObjectExists(srcPrefix, bio.getBioFileId())) {
 						objectStoreHelper.copyAndReplaceBiometricDraftToLive(srcPrefix, destPrefix, bio.getBioFileId());
-						objectStoreHelper.deleteDraftBiometricObject(srcPrefix, bio.getBioFileId());
 					}
 				}
 			}
@@ -419,7 +431,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 				for (UinDocumentDraft doc : draft.getDocuments()) {
 					if (objectStoreHelper.draftDemographicObjectExists(srcPrefix, doc.getDocId())) {
 						objectStoreHelper.copyAndReplaceDemographicDraftToLive(srcPrefix, destPrefix, doc.getDocId());
-						objectStoreHelper.deleteDraftDemographicObject(srcPrefix, doc.getDocId());
 					}
 				}
 			}
@@ -427,7 +438,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 			// Build anonymous profile after biometrics are in the live path so
 			// AnonymousProfileHelper can read {uinHash}/Biometrics/{fileId} successfully.
 			anonymousProfileHelper.buildAndsaveProfile(true);
-			cleanupDraft(regId,draft);
 			return constructIdResponse(null, uinObject.getStatusCode(), null, draftVid);
 
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
@@ -549,7 +559,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 		if (type == null || type.trim().isEmpty()) {
 			return "all";
 		}
-		String normalized = type.trim().toLowerCase();
+		String normalized = type.trim().toLowerCase(Locale.ROOT);
 		switch (normalized) {
 			case "demographics":
 			case "biometrics":

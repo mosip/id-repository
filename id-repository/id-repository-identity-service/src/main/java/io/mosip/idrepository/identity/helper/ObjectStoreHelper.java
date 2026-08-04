@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import io.mosip.commons.khazana.dto.ObjectStoreReference;
 import io.mosip.commons.khazana.exception.ObjectStoreAdapterException;
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
@@ -145,26 +146,26 @@ public class ObjectStoreHelper {
 			throws IdRepoAppException {
 		String srcKey = buildDraftObjectName(srcPrefix, true, fileRefId);
 		String destKey = buildObjectName(destPrefix, true, fileRefId);
-		copyRaw(srcKey, destKey);
+		copyRaw(srcKey, destKey, true);
 	}
 
 	public void copyAndReplaceDemographicDraftToLive(String srcPrefix, String destPrefix, String fileRefId)
 			throws IdRepoAppException {
 		String srcKey = buildDraftObjectName(srcPrefix, false, fileRefId);
 		String destKey = buildObjectName(destPrefix, false, fileRefId);
-		copyRaw(srcKey, destKey);
+		copyRaw(srcKey, destKey, true);
 	}
 
 	// Copies live biometric/demographic files into the draft path so that
 	// updateDraft can read and merge them (UPDATE/ACTIVATED/DEACTIVATED packets).
 	public void copyBiometricLiveToDraft(String livePrefix, String ridHash, String fileRefId)
 			throws IdRepoAppException {
-		copyRaw(buildObjectName(livePrefix, true, fileRefId), buildDraftObjectName(ridHash, true, fileRefId));
+		copyRaw(buildObjectName(livePrefix, true, fileRefId), buildDraftObjectName(ridHash, true, fileRefId), false);
 	}
 
 	public void copyDemographicLiveToDraft(String livePrefix, String ridHash, String fileRefId)
 			throws IdRepoAppException {
-		copyRaw(buildObjectName(livePrefix, false, fileRefId), buildDraftObjectName(ridHash, false, fileRefId));
+		copyRaw(buildObjectName(livePrefix, false, fileRefId), buildDraftObjectName(ridHash, false, fileRefId), false);
 	}
 
 	private boolean exists(String uinHash, boolean isBio, String fileRefId) {
@@ -276,11 +277,20 @@ public class ObjectStoreHelper {
 		}
 	}
 
-	/** Copies raw encrypted bytes from srcKey to destKey using a server-side atomic copy. */
-	private void copyRaw(String srcKey, String destKey) throws IdRepoAppException {
+	/**
+	 * Performs a server-side copy from srcKey to destKey.
+	 * Pass deleteSourceAfterCopy=true only when the source is draft data being
+	 * promoted to live (draft→live), so the draft file is removed as part of the
+	 * move. Pass false when copying live data into the draft path (live→draft) to
+	 * preserve the live record for authentication and failure recovery.
+	 */
+	private void copyRaw(String srcKey, String destKey, boolean deleteSourceAfterCopy) throws IdRepoAppException {
+		ObjectStoreReference src = new ObjectStoreReference(
+				objectStoreAccountName, objectStoreBucketName, null, null, srcKey);
+		ObjectStoreReference dst = new ObjectStoreReference(
+				objectStoreAccountName, objectStoreBucketName, null, null, destKey);
 		try {
-			boolean copied = objectStore.copyAndReplaceObject(
-					objectStoreAccountName, objectStoreBucketName, srcKey, destKey);
+			boolean copied = objectStore.moveObject(src, dst, deleteSourceAfterCopy);
 			if (!copied) {
 				throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
 						"Server-side copy returned false: " + srcKey + " -> " + destKey);

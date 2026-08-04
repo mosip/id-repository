@@ -87,10 +87,10 @@ public interface UinDraftRepo extends JpaRepository<UinDraft, String> {
 	@Modifying
 	@Transactional
 	@Query("UPDATE UinDraft SET uin = :uin, uinHash = :uinHash, updatedBy = :updatedBy, updatedDateTime = :updatedDateTime WHERE regId = :regId")
-	void updateUinByRegId(@Param("regId") String regId,
-	                      @Param("uin") String uin,
-	                      @Param("uinHash") String uinHash,
-	                      @Param("updatedBy") String updatedBy,
-	                      @Param("updatedDateTime") LocalDateTime updatedDateTime);
+	int updateUinByRegId(@Param("regId") String regId,
+	                     @Param("uin") String uin,
+	                     @Param("uinHash") String uinHash,
+	                     @Param("updatedBy") String updatedBy,
+	                     @Param("updatedDateTime") LocalDateTime updatedDateTime);
 
 }

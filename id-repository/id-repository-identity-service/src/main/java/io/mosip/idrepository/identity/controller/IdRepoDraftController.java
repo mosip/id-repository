@@ -14,6 +14,7 @@ import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.IdRepoDraftService;
 import io.mosip.idrepository.core.util.DataValidationUtil;
+import io.mosip.idrepository.identity.dto.UpdateDraftRidRequestDto;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
@@ -25,7 +26,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -52,6 +55,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FACE_EXTRACTION_FORMAT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.FINGER_EXTRACTION_FORMAT;
@@ -86,6 +90,16 @@ public class IdRepoDraftController {
 	@Autowired
 	private Environment environment;
 
+	@Value("${mosip.idrepo.rid.validation.pattern:\\d*}")
+	private String ridPattern;
+
+	private Pattern ridCompiledPattern;
+
+	@PostConstruct
+	public void compilePattern() {
+		ridCompiledPattern = Pattern.compile(ridPattern);
+	}
+
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
 		binder.addValidators(validator);
@@ -105,6 +119,12 @@ public class IdRepoDraftController {
 			@RequestParam(name = UIN, required = false) @Nullable String uin)
 			throws IdRepoAppException {
 		try {
+			if (!ridCompiledPattern.matcher(registrationId).matches()) {
+				throw new IdRepoAppException(
+						IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id")
+				);
+			}
 			return new ResponseEntity<>(draftService.createDraft(registrationId, uin), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_DRAFT_REQUEST_RESPONSE,
@@ -127,6 +147,12 @@ public class IdRepoDraftController {
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<IdResponseDTO> createDraftV2(@PathVariable String registrationId) throws IdRepoAppException {
 		try {
+			if (!ridCompiledPattern.matcher(registrationId).matches()) {
+				throw new IdRepoAppException(
+						IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id")
+				);
+			}
 			return new ResponseEntity<>(draftService.createDraftV2(registrationId), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_DRAFT_REQUEST_RESPONSE,
@@ -140,17 +166,17 @@ public class IdRepoDraftController {
 	}
 
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getPatchdraftupdateregistrationId())")
-	@PatchMapping(path = "/uin/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "updateDraftUin", description = "Stamp UIN on an existing LOST draft after ABIS match", tags = { "id-repo-draft-controller" })
+	@PatchMapping(path = "/rid/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "updateDraftRid", description = "Stamp UIN on an existing LOST draft after ABIS match", tags = { "id-repo-draft-controller" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK"),
 			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
-	public ResponseEntity<IdResponseDTO> updateDraftUin(@PathVariable String registrationId,
-			@RequestParam(name = UIN) String uin) throws IdRepoAppException {
+	public ResponseEntity<IdResponseDTO> updateDraftRid(@PathVariable String registrationId,
+			@RequestBody UpdateDraftRidRequestDto request) throws IdRepoAppException {
 		try {
-			return new ResponseEntity<>(draftService.updateDraftUin(registrationId, uin), HttpStatus.OK);
+			return new ResponseEntity<>(draftService.updateDraftRid(registrationId, request.getUin()), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_DRAFT_REQUEST_RESPONSE,
 					registrationId, IdType.ID, e);

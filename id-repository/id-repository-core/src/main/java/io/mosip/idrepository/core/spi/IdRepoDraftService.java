@@ -26,7 +26,7 @@ public interface IdRepoDraftService<REQUEST, RESPONSE> {
 	 * Stamps UIN and uinHash on an existing LOST draft after ABIS finds the match.
 	 * Called by Bio-Dedupe after resolving the matched registration's UIN.
 	 */
-	public RESPONSE updateDraftUin(String registrationId, String uin) throws IdRepoAppException;
+	public RESPONSE updateDraftRid(String registrationId, String uin) throws IdRepoAppException;
 	
 	public RESPONSE updateDraft(String registrationId, REQUEST request) throws IdRepoAppException;
 	

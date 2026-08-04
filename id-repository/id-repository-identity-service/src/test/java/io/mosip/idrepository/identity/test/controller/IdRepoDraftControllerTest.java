@@ -34,6 +34,12 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.context.WebApplicationContext;
 
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.regex.Pattern;
+
+import io.mosip.idrepository.identity.dto.UpdateDraftRidRequestDto;
+
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -67,6 +73,7 @@ public class IdRepoDraftControllerTest {
 	@Before
 	public void init() {
 		errors = new BeanPropertyBindingResult(new IdRequestDTO(), "idRequestDto");
+		ReflectionTestUtils.setField(controller, "ridCompiledPattern", Pattern.compile("\\d*"));
 	}
 
 	@Test
@@ -255,7 +262,7 @@ public class IdRepoDraftControllerTest {
 	public void testCreateDraftV2() throws IdRepoAppException {
 		IdResponseDTO responseDTO = new IdResponseDTO();
 		when(draftService.createDraftV2(any())).thenReturn(responseDTO);
-		ResponseEntity<IdResponseDTO> response = controller.createDraftV2("REG123");
+		ResponseEntity<IdResponseDTO> response = controller.createDraftV2("10001100770000320200720094735");
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals(responseDTO, response.getBody());
 	}
@@ -265,7 +272,7 @@ public class IdRepoDraftControllerTest {
 		when(draftService.createDraftV2(any()))
 				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
 		try {
-			controller.createDraftV2("REG123");
+			controller.createDraftV2("10001100770000320200720094735");
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
@@ -273,20 +280,44 @@ public class IdRepoDraftControllerTest {
 	}
 
 	@Test
-	public void testUpdateDraftUin() throws IdRepoAppException {
+	public void testCreateDraft_InvalidRidPattern() throws IdRepoAppException {
+		try {
+			controller.createDraft("REG-ABC-123", null);
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+			assertEquals(String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id"), e.getErrorText());
+		}
+	}
+
+	@Test
+	public void testCreateDraftV2_InvalidRidPattern() throws IdRepoAppException {
+		try {
+			controller.createDraftV2("REG-ABC-123");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+			assertEquals(String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id"), e.getErrorText());
+		}
+	}
+
+	@Test
+	public void testUpdateDraftRid() throws IdRepoAppException {
 		IdResponseDTO responseDTO = new IdResponseDTO();
-		when(draftService.updateDraftUin(any(), any())).thenReturn(responseDTO);
-		ResponseEntity<IdResponseDTO> response = controller.updateDraftUin("REG123", "274390482564");
+		when(draftService.updateDraftRid(any(), any())).thenReturn(responseDTO);
+		UpdateDraftRidRequestDto request = new UpdateDraftRidRequestDto();
+		request.setUin("274390482564");
+		ResponseEntity<IdResponseDTO> response = controller.updateDraftRid("10001100770000320200720094735", request);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals(responseDTO, response.getBody());
 	}
 
 	@Test
-	public void testUpdateDraftUinException() throws IdRepoAppException {
-		when(draftService.updateDraftUin(any(), any()))
+	public void testUpdateDraftRidException() throws IdRepoAppException {
+		when(draftService.updateDraftRid(any(), any()))
 				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
 		try {
-			controller.updateDraftUin("REG123", "274390482564");
+			UpdateDraftRidRequestDto request = new UpdateDraftRidRequestDto();
+			request.setUin("274390482564");
+			controller.updateDraftRid("10001100770000320200720094735", request);
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
