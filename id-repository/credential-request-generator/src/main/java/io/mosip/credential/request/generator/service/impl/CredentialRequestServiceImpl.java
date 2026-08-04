@@ -295,6 +295,11 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 
 		
 		try {
+			Optional<CredentialIssueStatusResponse> cachedResponse = Optional.ofNullable(cacheUtil.getCredentialTransaction(requestId));
+			if(cachedResponse.isPresent()) {
+				credentialIssueStatusResponseWrapper.setResponse(cachedResponse.get());
+				return credentialIssueStatusResponseWrapper;
+			}
 			Optional<CredentialEntity> result = credentialDao.findById(requestId);
 			CredentialEntity credentialEntity = result.isPresent() ? result.get() : null;
 			if (credentialEntity!=null && credentialEntity.getRequestId() != null) {
@@ -364,13 +369,16 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			credentialEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 			credentialEntity.setUpdatedBy(PRINT_USER);
 			credentialEntity.setStatusComment("updated the status from partner");
+			String credentialEntityRequest = credentialEntity.getRequest();
+			CredentialIssueRequestDto credentialIssueRequestDto = mapper.readValue(credentialEntityRequest, CredentialIssueRequestDto.class);
 			credentialDao.save(credentialEntity);
-			cacheUtil.updateCredentialTransaction(requestId, credentialEntity, event.getId());
+
+			cacheUtil.updateCredentialTransaction(requestId, credentialEntity, credentialIssueRequestDto.getId());
 			
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId, 
 					"ended updating  credential status : "+event.getStatus());
 			auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,"update the request");
-		}catch (DataAccessLayerException e) {
+		}catch (DataAccessLayerException | JsonProcessingException e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), CREDENTIAL_SERVICE, UPDATE_STATUS_CREDENTIAL,
 					ExceptionUtils.getStackTrace(e));
 			auditHelper.auditError(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.UPDATE_CREDENTIAL_REQUEST, requestId, IdType.ID,e);
