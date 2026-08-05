@@ -14,6 +14,8 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -579,6 +581,82 @@ public class IdRequestValidatorTest {
 		ReflectionTestUtils.setField(validator, "allowedTypes", allowedTypes);
 		String response = validator.validateType("metadata,bio");
 		assertNotNull(response);
+	}
+
+	@Test
+	public void validateVerifiedAttributes_rejectsMissingTrustFramework() {
+		assertVerifiedAttributeError(metadata(null, "process", List.of("firstName"), validMetadata("tf", "process")));
+	}
+
+	@Test
+	public void validateVerifiedAttributes_rejectsMissingVerificationProcess() {
+		assertVerifiedAttributeError(metadata("tf", " ", List.of("firstName"), validMetadata("tf", "process")));
+	}
+
+	@Test
+	public void validateVerifiedAttributes_rejectsEmptyOrBlankClaims() {
+		assertVerifiedAttributeError(metadata("tf", "process", Collections.emptyList(), validMetadata("tf", "process")));
+		assertVerifiedAttributeError(metadata("tf", "process", List.of(" "), validMetadata("tf", "process")));
+	}
+
+	@Test
+	public void validateVerifiedAttributes_rejectsEmptyOrIncompleteMetadata() {
+		assertVerifiedAttributeError(metadata("tf", "process", List.of("firstName"), Collections.emptyMap()));
+		assertVerifiedAttributeError(metadata("tf", "process", List.of("firstName"),
+				Map.of("trust_framework", "tf", "verification_process", "process", "time", " ")));
+	}
+
+	@Test
+	public void validateVerifiedAttributes_rejectsTrustFrameworkMetadataMismatch() {
+		assertVerifiedAttributeError(metadata("tf", "process", List.of("firstName"),
+				validMetadata("other-framework", "process")));
+	}
+
+	@Test
+	public void validateVerifiedAttributes_rejectsDuplicateFrameworkAndProcess() {
+		errors = freshErrors();
+		Map<String, Object> requestMap = Map.of("verifiedAttributes", Arrays.asList(
+				metadata("tf", "process", List.of("firstName"), validMetadata("tf", "process")),
+				metadata("TF", "PROCESS", List.of("lastName"), validMetadata("TF", "PROCESS"))));
+		ReflectionTestUtils.invokeMethod(validator, "validateVerifiedAttributes", requestMap, errors);
+
+		assertTrue(errors.hasErrors());
+		assertEquals(IdRepoErrorConstants.DUPLICATE_VERIFIED_ATTRIBUTES.getErrorCode(), errors.getAllErrors().get(0).getCode());
+	}
+
+	@Test
+	public void validateVerifiedAttributes_acceptsMixedLegacyV1AndValidV2Values() {
+		Map<String, Object> requestMap = Map.of("verifiedAttributes", Arrays.asList(
+				"legacyClaim", metadata("tf", "process", List.of("firstName"), validMetadata("tf", "process"))));
+
+		ReflectionTestUtils.invokeMethod(validator, "validateVerifiedAttributes", requestMap, errors);
+
+		assertFalse(errors.hasErrors());
+	}
+
+	private void assertVerifiedAttributeError(Map<String, Object> verifiedAttribute) {
+		errors = freshErrors();
+		ReflectionTestUtils.invokeMethod(validator, "validateVerifiedAttributes",
+				Map.of("verifiedAttributes", List.of(verifiedAttribute)), errors);
+		assertTrue(errors.hasErrors());
+	}
+
+	private Errors freshErrors() {
+		return new BeanPropertyBindingResult(new RequestWrapper<>(), "idRequestDto");
+	}
+
+	private Map<String, Object> metadata(String trustFramework, String verificationProcess, List<String> claims,
+			Map<String, Object> metadata) {
+		Map<String, Object> result = new HashMap<>();
+		result.put("trustFramework", trustFramework);
+		result.put("verificationProcess", verificationProcess);
+		result.put("claims", claims);
+		result.put("metadata", metadata);
+		return result;
+	}
+
+	private Map<String, Object> validMetadata(String trustFramework, String verificationProcess) {
+		return Map.of("trust_framework", trustFramework, "verification_process", verificationProcess, "time", "2026-01-01T00:00:00Z");
 	}
 	
 }

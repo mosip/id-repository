@@ -51,6 +51,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
 import com.google.common.collect.Lists;
 
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
@@ -2635,5 +2637,44 @@ public class IdRepoServiceTest {
 		when(uinRepo.existsByRegId(any())).thenReturn(true);
 		when(uinRepo.getUinHashByRid(any())).thenReturn("1234");
 		proxyService.getRemainingUpdateCountByIndividualId("1234", IdType.VID, List.of());
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void updateVerifiedAttributes_retainsOnlySavedClaimsNotUpdatedInRequest() {
+		when(validator.getAllowedClaimValues()).thenReturn(Collections.emptyList());
+		IdRequestDTO<Object> updatedRequest = requestWithMetadata("new-framework", "new-process", List.of("firstName"));
+		DocumentContext input = JsonPath.parse("{\"firstName\":\"new\"}");
+		DocumentContext saved = JsonPath.parse("{\"firstName\":\"old\",\"lastName\":\"old\",\"verifiedAttributes\":[{\"trustFramework\":\"saved-framework\",\"verificationProcess\":\"saved-process\",\"claims\":[\"firstName\",\"lastName\"],\"metadata\":{}}]}");
+
+		ReflectionTestUtils.invokeMethod(service, "updateVerifiedAttributes", updatedRequest, input, saved);
+
+		List<?> result = saved.read("$.verifiedAttributes");
+		assertEquals(2, result.size());
+		assertTrue(result.get(0) instanceof VerificationMetadata);
+		assertEquals(List.of("lastName"), ((VerificationMetadata) result.get(1)).getClaims());
+	}
+
+	@Test
+	public void updateVerifiedAttributes_removesSavedMetadataWhenEverySavedClaimIsUpdated() {
+		when(validator.getAllowedClaimValues()).thenReturn(Collections.emptyList());
+		IdRequestDTO<Object> updatedRequest = new IdRequestDTO<>();
+		DocumentContext input = JsonPath.parse("{\"firstName\":\"new\",\"lastName\":\"new\"}");
+		DocumentContext saved = JsonPath.parse("{\"firstName\":\"old\",\"lastName\":\"old\",\"verifiedAttributes\":[{\"trustFramework\":\"saved-framework\",\"verificationProcess\":\"saved-process\",\"claims\":[\"firstName\",\"lastName\"],\"metadata\":{}}]}");
+
+		ReflectionTestUtils.invokeMethod(service, "updateVerifiedAttributes", updatedRequest, input, saved);
+
+		assertTrue(saved.<List<?>>read("$.verifiedAttributes").isEmpty());
+	}
+
+	private IdRequestDTO<Object> requestWithMetadata(String trustFramework, String verificationProcess, List<String> claims) {
+		VerificationMetadata metadata = new VerificationMetadata();
+		metadata.setTrustFramework(trustFramework);
+		metadata.setVerificationProcess(verificationProcess);
+		metadata.setClaims(claims);
+		metadata.setMetadata(Map.of("trust_framework", trustFramework, "verification_process", verificationProcess));
+		IdRequestDTO<Object> updatedRequest = new IdRequestDTO<>();
+		updatedRequest.setVerifiedAttributes(new ArrayList<>(List.of(metadata)));
+		return updatedRequest;
 	}
 }
