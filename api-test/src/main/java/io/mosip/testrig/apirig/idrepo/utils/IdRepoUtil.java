@@ -90,6 +90,10 @@ public class IdRepoUtil extends AdminTestUtil {
 			throw new SkipException(
 					"No array-typed handle in the current IdSchema — " + GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
+		if (testCaseName.contains("_appendUntaggedValuesToArrayHandle") && !schemaHasHandleOfType("array")) {
+			throw new SkipException(
+					"No array-typed handle in the current IdSchema — " + GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
+		}
 		if (testCaseName.contains("_extraNonSchemaField") && schemaAllowsAdditionalProperties()) {
 			throw new SkipException("Schema permits additional properties, unknown-field rejection not applicable — "
 					+ GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);

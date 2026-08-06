@@ -65,6 +65,16 @@
 		</classes>
 	</test>
 
+	<!-- Runs after UpdateIdentityArrayHandle: reuses an email value freed by
+	     TC_IDRepo_UpdateIdentityArrayHandle_36 in a brand-new Add Identity call. -->
+	<test name="AddIdentityArrayHandlePostUpdate">
+		<parameter name="ymlFile"
+			value="idRepository/AddIdentity/AddIdentityArrayHandlePostUpdate.yml" />
+		<classes>
+			<class name="io.mosip.testrig.apirig.idrepo.testscripts.AddIdentity" />
+		</classes>
+	</test>
+
 	<test name="UpdateIdentity">
 		<parameter name="ymlFile"
 			value="idRepository/UpdateIdentity/UpdateIdentity.yml" />
