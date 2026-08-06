@@ -1,7 +1,7 @@
 CreateVID:
   IdRepository_CreateVID_withValidParameters_For_VidType_Smoke_Temporary_sid:
       endPoint: /idrepository/v1/vid
-      description: Create a Temporary VID passing valid parameters
+      description: Verify that the system successfully creates a VID when the API is called with valid parameters for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_01
       role: idrepo
       restMethod: post
@@ -19,7 +19,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withValidParameters_For_VidType_Smoke_Perpetual_sid:
       endPoint: /idrepository/v1/vid
-      description: Create Perpetual VID passing valid parameters
+      description: Verify that the system successfully creates a VID when the API is called with valid parameters for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_02
       role: idrepo
       restMethod: post
@@ -38,7 +38,7 @@ CreateVID:
 
   IdRepository_CreateVID_withValidParameters_For_VidType_Smoke_Onetimeuse_sid:
       endPoint: /idrepository/v1/vid   
-      description: Create Onetimeuse VID passing valid parameters
+      description: Verify that the system successfully creates a VID when the API is called with valid parameters for one-time use VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_03
       role: idrepo
       restMethod: post
@@ -57,7 +57,7 @@ CreateVID:
 
   IdRepository_CreateVID_withValidParameters_positive_Smoke_Temporary_sid:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID with UIN entering valid parameters
+      description: Verify that the system successfully creates a VID when the API is called with valid parameters for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_04
       role: idrepo
       restMethod: post
@@ -75,7 +75,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withValidParameters_pexp_Smoke_Perpetual_sid:
       endPoint: /idrepository/v1/vid
-      description: Create perpetual VID passing valid parameters
+      description: Verify that the system successfully creates a VID when the API is called with valid parameters for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_05
       role: idrepo
       restMethod: post
@@ -93,7 +93,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withValidParameters_pdea_Smoke_Perpetual_sid:
       endPoint: /idrepository/v1/vid
-      description: Create perpetual VID passing valid parameters
+      description: Verify that the system successfully creates a VID when the API is called with valid parameters for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_06
       role: idrepo
       restMethod: post
@@ -111,7 +111,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withValidParameters_tdea_Smoke_Temporary_sid:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID passing valid parameters
+      description: Verify that the system successfully creates a VID when the API is called with valid parameters for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_07
       role: idrepo
       restMethod: post
@@ -129,7 +129,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withValidParameters_pre_Smoke_Perpetual_sid:
       endPoint: /idrepository/v1/vid
-      description: Create perpetual VID passing valid parameters
+      description: Verify that the system successfully creates a VID when the API is called with valid parameters for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_08
       role: idrepo
       restMethod: post
@@ -147,7 +147,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withValidParameters_tre_Smoke_Temporary_sid:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID passing valid parameters
+      description: Verify that the system successfully creates a VID when the API is called with valid parameters for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_09
       role: idrepo
       restMethod: post
@@ -165,7 +165,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withInvalidVersion_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID adding Invalid version
+      description: Verify that the system rejects creating a VID when the API is called with an invalid version for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_10
       role: idrepo
       restMethod: post
@@ -187,7 +187,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withblankVersion_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID passing version blank
+      description: Verify that the system rejects creating a VID when the API is called with a blank version for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_11
       role: idrepo
       restMethod: post
@@ -209,7 +209,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withInvalidRequestTime_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID entering Invalid Request Time
+      description: Verify that the system rejects creating a VID when the API is called with an invalid request time for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_12
       role: idrepo
       restMethod: post
@@ -231,7 +231,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withmissingRequestTime_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID adding passing empty requesttime
+      description: Verify that the system rejects creating a VID when the API is called with the request time field missing for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_13
       role: idrepo
       restMethod: post
@@ -253,7 +253,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withBLANKRequestTime_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID without entering Request time
+      description: Verify that the system rejects creating a VID when the API is called with a blank request time for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_14
       role: idrepo
       restMethod: post
@@ -275,7 +275,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withInvalidVidType_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID by entering invalid vid type
+      description: Verify that the system rejects creating a VID when the API is called with an invalid VID type for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_15
       role: idrepo
       restMethod: post
@@ -297,7 +297,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withblankVidType_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID passing empty vid type
+      description: Verify that the system rejects creating a VID when the API is called with an empty VID type for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_16
       role: idrepo
       restMethod: post
@@ -319,7 +319,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withInvalidId_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID adding Invalid ID
+      description: Verify that the system rejects creating a VID when the API is called with an invalid VID type for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_17
       role: idrepo
       restMethod: post
@@ -341,7 +341,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withMissingId_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID without entering ID
+      description: Verify that the system rejects creating a VID when the API is called with the ID field missing for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_18
       role: idrepo
       restMethod: post
@@ -363,7 +363,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withBlankId_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID without entering ID
+      description: Verify that the system rejects creating a VID when the API is called with an empty VID type for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_19
       role: idrepo
       restMethod: post
@@ -385,7 +385,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withInvalidVersion_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
-      description: Create Perpetual VID entering invalid version
+      description: Verify that the system rejects creating a VID when the API is called with an invalid version for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_20
       role: idrepo
       restMethod: post
@@ -407,7 +407,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withInvalidRequest_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
-      description: Create Perpetual VID passing Invalid request time
+      description: Verify that the system rejects creating a VID when the API is called with an invalid request time for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_21
       role: idrepo
       restMethod: post
@@ -429,7 +429,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withmissingRequest_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
-      description: Create Perpetual VID without entering Vid Type
+      description: Verify that the system rejects creating a VID when the API is called with the request time field missing for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_22
       role: idrepo
       restMethod: post
@@ -451,7 +451,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withBLANKRequest_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
-      description: Create Perpetual VID without entering Request time
+      description: Verify that the system rejects creating a VID when the API is called with a blank request time for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_23
       role: idrepo
       restMethod: post
@@ -473,7 +473,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withInvalidVidType_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
-      description: Create Perpetual VID entering invalid vid type
+      description: Verify that the system rejects creating a VID when the API is called with an invalid VID type for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_24
       role: idrepo
       restMethod: post
@@ -495,7 +495,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withmissingVidType_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
-      description: Create Perpetual VID without entering Vid Type
+      description: Verify that the system rejects creating a VID when the API is called with the VID type field missing for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_25
       role: idrepo
       restMethod: post
@@ -517,7 +517,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withblankVidType_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
-      description: Create Perpetual VID without entering Vid Type
+      description: Verify that the system rejects creating a VID when the API is called with an empty VID type for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_26
       role: idrepo
       restMethod: post
@@ -539,7 +539,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withInvalId_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
-      description: create perpetual VID passing invalid ID
+      description: Verify that the system rejects creating a VID when the API is called with an invalid VID type for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_27
       role: idrepo
       restMethod: post
@@ -561,7 +561,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withmissingId_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
-      description: Create Perpetual VID without entering Vid Type
+      description: Verify that the system rejects creating a VID when the API is called with the VID type field missing for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_28
       role: idrepo
       restMethod: post
@@ -583,7 +583,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withBlankId_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
-      description: Create perpetual VID without entering ID
+      description: Verify that the system rejects creating a VID when the API is called with an empty VID type for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_29
       role: idrepo
       restMethod: post
@@ -605,7 +605,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withMissingVersion_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID without entering vesrion
+      description: Verify that the system rejects creating a VID when the API is called with the version field missing for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_30
       role: idrepo
       restMethod: post
@@ -627,7 +627,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withBlankVersion_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID without entering version
+      description: Verify that the system rejects creating a VID when the API is called with a blank version for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_31
       role: idrepo
       restMethod: post
@@ -649,7 +649,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withinvalidVersion_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID Type passing Invalid version
+      description: Verify that the system rejects creating a VID when the API is called with an invalid version for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_32
       role: idrepo
       restMethod: post
@@ -671,7 +671,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withMissingRequestTime_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID without entering Request Time
+      description: Verify that the system rejects creating a VID when the API is called with the request time field missing for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_33
       role: idrepo
       restMethod: post
@@ -693,7 +693,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withMissingVidType_ForVidType_Temporary:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID without entering Vid Type
+      description: Verify that the system rejects creating a VID when the API is called with the ID field missing for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_34
       role: idrepo
       restMethod: post
@@ -715,7 +715,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withMissingIdForTemporary:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID without entering ID
+      description: Verify that the system rejects creating a VID when the API is called with the ID field missing for Temporary VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_35
       role: idrepo
       restMethod: post
@@ -737,7 +737,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withMissingVersion_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
-      description: Create Perpetual VID without entering version
+      description: Verify that the system rejects creating a VID when the API is called with the VID type field missing for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_36
       role: idrepo
       restMethod: post
@@ -759,7 +759,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withMissingRequestTime_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
-      description: Create Perpetual VID without entering Request Time
+      description: Verify that the system rejects creating a VID when the API is called with the request time field missing for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_37
       role: idrepo
       restMethod: post
@@ -781,7 +781,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withMissingVidType_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
-      description: Create Perpetual VID without entering VID Type
+      description: Verify that the system rejects creating a VID when the API is called with the VID type field missing for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_38
       role: idrepo
       restMethod: post
@@ -803,7 +803,7 @@ CreateVID:
 }'
   IdRepository_CreateVID_withMissingId_ForVidType_Perpetual:
       endPoint: /idrepository/v1/vid
-      description: Create Perpetual VID without passing ID
+      description: Verify that the system rejects creating a VID when the API is called with the VID type field missing for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_39
       role: idrepo
       restMethod: post
@@ -826,7 +826,7 @@ CreateVID:
 
   IdRepository_CreateVID_withValidParameters_Smoke_Perpetual_sid:
       endPoint: /idrepository/v1/vid
-      description: Create Perpetual VID passing valid parameters
+      description: Verify that the system successfully creates a VID when the API is called with valid parameters for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_40
       role: idrepo
       restMethod: post
@@ -845,7 +845,7 @@ CreateVID:
 
   IdRepository_CreateVID_withValidParameters_Smoke_Onetime_sid:
       endPoint: /idrepository/v1/vid
-      description: Create Perpetual VID passing valid parameters
+      description: Verify that the system successfully creates a VID when the API is called with valid parameters for one-time use VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_41
       role: idrepo
       restMethod: post
@@ -864,7 +864,7 @@ CreateVID:
 
   IdRepository_CreateVID_withValidParameters_Smoke_Temp1_sid:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID passing valid parameters
+      description: Verify that the system successfully creates a VID when the API is called with valid parameters
       uniqueIdentifier: TC_IDRepo_CreateVID_42
       role: idrepo
       restMethod: post
@@ -883,7 +883,7 @@ CreateVID:
 
   IdRepository_CreateVID_withValidParameters_Smoke_Temp2_sid:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID passing valid parameters
+      description: Verify that the system successfully creates a VID when the API is called with valid parameters
       uniqueIdentifier: TC_IDRepo_CreateVID_43
       role: idrepo
       restMethod: post
@@ -902,7 +902,7 @@ CreateVID:
 
   IdRepository_CreateVID_withValidParameters_Smoke_Temp3_sid:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID passing valid parameters
+      description: Verify that the system successfully creates a VID when the API is called with valid parameters
       uniqueIdentifier: TC_IDRepo_CreateVID_44
       role: idrepo
       restMethod: post
@@ -921,7 +921,7 @@ CreateVID:
 
   IdRepository_CreateVID_withValidParameters_AuthStatus_Smoke_Perpetual_sid:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID passing valid parameters
+      description: Verify that the system successfully creates a VID when the API is called with valid parameters for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_45
       role: idrepo
       restMethod: post
@@ -940,7 +940,7 @@ CreateVID:
 
   IdRepository_CreateVID_withValidParameters_AuthStatus_S2_Smoke_Perpetual_sid:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID passing valid parameters
+      description: Verify that the system successfully creates a VID when the API is called with valid parameters for Perpetual VID type
       uniqueIdentifier: TC_IDRepo_CreateVID_46
       role: idrepo
       restMethod: post
@@ -959,7 +959,7 @@ CreateVID:
 
   IdRepository_CreateVID_UpdateCount_Smoke_Perpetual_sid:
       endPoint: /idrepository/v1/vid
-      description: Create Temporary VID passing valid parameters
+      description: Verify that the system successfully creates a VID when the API is called with valid parameters for update count scenario
       uniqueIdentifier: TC_IDRepo_CreateVID_47
       role: idrepo
       restMethod: post
@@ -978,7 +978,7 @@ CreateVID:
 
   IdRepository_CreateVID_With_InvalidUIN_Neg:
       endPoint: /idrepository/v1/vid
-      description: Create a Temporary VID passing Invalid UIN
+      description: Verify that the system rejects creating a VID when the API is called with an invalid UIN
       uniqueIdentifier: TC_IDRepo_CreateVID_48
       role: idrepo
       restMethod: post
@@ -1001,7 +1001,7 @@ CreateVID:
 
   IdRepository_CreateVID_With_ValidUIN_But_Not_In_DB_Neg:
       endPoint: /idrepository/v1/vid
-      description: Create a Temporary VID passing valid UIN but not present in DB
+      description: Verify that the system rejects creating a VID when the API is called with a valid UIN not present in the database
       uniqueIdentifier: TC_IDRepo_CreateVID_49
       role: idrepo
       restMethod: post

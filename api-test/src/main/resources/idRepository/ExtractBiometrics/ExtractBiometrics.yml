@@ -1,7 +1,7 @@
 ExtractBiometrics:
   IdRepository_ExtractBiometrics_all_valid_smoke:
       endPoint: /idrepository/v1/identity/draft/extractbiometrics/{registrationId}
-      description: Extract biometrics passing registrationId
+      description: Verify that the system successfully extracts biometrics when the API is called with a valid registration ID
       uniqueIdentifier: TC_IDRepo_extractbiometrics_01
       role: idrepo
       restMethod: put
@@ -15,7 +15,7 @@ ExtractBiometrics:
 }'
   IdRepository_ExtractBiometrics_forIris_valid_smoke:
       endPoint: /idrepository/v1/identity/draft/extractbiometrics/{registrationId}?irisExtractionFormat=mock-1.1
-      description: Extract biometrics with only iris
+      description: Verify that the system successfully extracts iris biometrics when the API is called with valid input details
       uniqueIdentifier: TC_IDRepo_extractbiometrics_02
       role: idrepo
       restMethod: put
@@ -29,7 +29,7 @@ ExtractBiometrics:
 }'
   IdRepository_ExtractBiometrics_forFinger_valid_smoke:
       endPoint: /idrepository/v1/identity/draft/extractbiometrics/{registrationId}?fingerExtractionFormat=mock-1.1
-      description: Extract biometrics with only finger
+      description: Verify that the system successfully extracts finger biometrics when the API is called with valid input details
       uniqueIdentifier: TC_IDRepo_extractbiometrics_03
       role: idrepo
       restMethod: put
@@ -43,7 +43,7 @@ ExtractBiometrics:
 }'
   IdRepository_ExtractBiometrics_forFace_valid_smoke:
       endPoint: /idrepository/v1/identity/draft/extractbiometrics/{registrationId}?faceExtractionFormat=mock-1.1
-      description: Extract biometrics with only face
+      description: Verify that the system successfully extracts face biometrics when the API is called with valid input details
       uniqueIdentifier: TC_IDRepo_extractbiometrics_04
       role: idrepo
       restMethod: put
@@ -57,7 +57,7 @@ ExtractBiometrics:
 }'
   IdRepository_ExtractBiometrics_forFaceIrisFinger_valid_smoke:
       endPoint: /idrepository/v1/identity/draft/extractbiometrics/{registrationId}?faceExtractionFormat=mock-1.1?fingerExtractionFormat=mock-1.1?irisExtractionFormat=mock-1.1
-      description: Extract biometrics with face ,iris and finger
+      description: Verify that the system successfully extracts face, iris and finger biometrics when the API is called with valid input details
       uniqueIdentifier: TC_IDRepo_extractbiometrics_05
       role: idrepo
       restMethod: put

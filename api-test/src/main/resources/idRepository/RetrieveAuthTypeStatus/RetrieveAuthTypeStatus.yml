@@ -1,7 +1,7 @@
 RetrieveAuthTypeStatus:
   IdRepository_RetrieveAuthTypeStatus_Uin_Active_smoke:
       endPoint: /idrepository/v1/identity/authtypes/status/{ID}
-      description: Retrieve Auth type status passing valid ID
+      description: Verify that the system successfully retrieves auth type status when the API is called with a valid UIN
       uniqueIdentifier: TC_IDRepo_RetrieveAuthTypeStatus_01
       role: idrepo
       checkErrorsOnlyInResponse: true
@@ -19,7 +19,7 @@ RetrieveAuthTypeStatus:
 
   IdRepository_RetrieveAuthTypeStatus_Vid_Active_smoke:
       endPoint: /idrepository/v1/identity/authtypes/status/{ID}
-      description: Retrieve Auth status passing valid VID
+      description: Verify that the system successfully retrieves auth type status when the API is called with a valid VID
       uniqueIdentifier: TC_IDRepo_RetrieveAuthTypeStatus_02
       role: idrepo
       checkErrorsOnlyInResponse: true
@@ -38,7 +38,7 @@ RetrieveAuthTypeStatus:
 
   IdRepository_RetrieveAuthTypeStatus_Uin_Invalid_Id_Neg:
       endPoint: /idrepository/v1/identity/authtypes/status/{ID}
-      description: Retrieve Auth type status passing Invalid UIN
+      description: Verify that the system rejects retrieve auth type status when the API is called with an invalid UIN
       uniqueIdentifier: TC_IDRepo_RetrieveAuthTypeStatus_03
       role: idrepo
       restMethod: get
@@ -57,7 +57,7 @@ RetrieveAuthTypeStatus:
 
   IdRepository_RetrieveAuthTypeStatus_Uin_Empty_Id_Neg:
       endPoint: /idrepository/v1/identity/authtypes/status/{ID}
-      description: Retrieve Auth type status passing empty UIN
+      description: Verify that the system rejects retrieve auth type status when the API is called with an empty UIN
       uniqueIdentifier: TC_IDRepo_RetrieveAuthTypeStatus_04
       role: idrepo
       restMethod: get
@@ -76,7 +76,7 @@ RetrieveAuthTypeStatus:
 
   IdRepository_RetrieveAuthTypeStatus_Uin_SpaceVal_Id_Neg:
       endPoint: /idrepository/v1/identity/authtypes/status/{ID}
-      description: Retrieve Auth type status passing space in UIN field
+      description: Verify that the system rejects retrieve auth type status when the API is called with a space value in UIN
       uniqueIdentifier: TC_IDRepo_RetrieveAuthTypeStatus_05
       role: idrepo
       restMethod: get
@@ -95,7 +95,7 @@ RetrieveAuthTypeStatus:
 
   IdRepository_RetrieveAuthTypeStatus_Vid_Invalid_Id_Neg:
       endPoint: /idrepository/v1/identity/authtypes/status/{ID}
-      description: Retrieve Auth type status passing invalid VID
+      description: Verify that the system rejects retrieve auth type status when the API is called with an invalid VID
       uniqueIdentifier: TC_IDRepo_RetrieveAuthTypeStatus_06
       role: idrepo
       restMethod: get
@@ -114,7 +114,7 @@ RetrieveAuthTypeStatus:
 
   IdRepository_RetrieveAuthTypeStatus_Vid_Empty_Id_Neg:
       endPoint: /idrepository/v1/identity/authtypes/status/{ID}
-      description: Retrieve Auth type status passing empty VID
+      description: Verify that the system rejects retrieve auth type status when the API is called with an empty VID
       uniqueIdentifier: TC_IDRepo_RetrieveAuthTypeStatus_07
       role: idrepo
       restMethod: get
@@ -133,7 +133,7 @@ RetrieveAuthTypeStatus:
 
   IdRepository_RetrieveAuthTypeStatus_Vid_SpaceVal_Id_Neg:
       endPoint: /idrepository/v1/identity/authtypes/status/{ID}
-      description: Retrieve Auth type status passing space in VID field
+      description: Verify that the system rejects retrieve auth type status when the API is called with a space value in VID
       uniqueIdentifier: TC_IDRepo_RetrieveAuthTypeStatus_08
       role: idrepo
       restMethod: get

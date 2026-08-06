@@ -1,7 +1,7 @@
 Retrieve_VID_pos:
   IdRepository_Retrieve_VID_pos_perpetual_Active_smoke:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing perpetual VID
+      description: Verify that the system successfully retrieves a UIN by VID when the API is called with an active perpetual VID
       uniqueIdentifier: TC_IDRepo_RetrieveVID_01
       role: idrepo
       checkErrorsOnlyInResponse: true
@@ -17,7 +17,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_pos_Temp_Active_smoke:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing perpetual VID
+      description: Verify that the system successfully retrieves a UIN by VID when the API is called with an active temporary VID
       uniqueIdentifier: TC_IDRepo_RetrieveVID_02
       role: idrepo
       checkErrorsOnlyInResponse: true
@@ -33,7 +33,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_pos_Onetimeuse_Active_smoke:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing onetimeuse VID
+      description: Verify that the system successfully retrieves a UIN by VID when the API is called with an active one-time use VID
       uniqueIdentifier: TC_IDRepo_RetrieveVID_03
       role: idrepo
       checkErrorsOnlyInResponse: true
@@ -49,7 +49,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_pos_perpetual_DEACTIVATED:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing Deactivated perpetual VID
+      description: Verify that the system rejects retrieving a UIN by VID when the API is called with a deactivated perpetual VID
       uniqueIdentifier: TC_IDRepo_RetrieveVID_04
       role: idrepo
       restMethod: get
@@ -68,7 +68,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_pos_Onetimeuse_DEACTIVATED:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing Deactivated onetimeuse VID
+      description: Verify that the system rejects retrieving a UIN by VID when the API is called with a deactivated one-time use VID
       uniqueIdentifier: TC_IDRepo_RetrieveVID_05
       role: idrepo
       restMethod: get
@@ -87,7 +87,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_pos_perpetual_Expired:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passsing Expired perpetual VID
+      description: Verify that the system rejects retrieving a UIN by VID when the API is called with an expired perpetual VID
       uniqueIdentifier: TC_IDRepo_RetrieveVID_06
       role: idrepo
       restMethod: get
@@ -105,7 +105,7 @@ Retrieve_VID_pos:
 }'
   IdRepository_Retrieve_VID_pos_perpetual_Revoked:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing Revoked perpetual VID
+      description: Verify that the system rejects retrieving a UIN by VID when the API is called with a revoked perpetual VID
       uniqueIdentifier: TC_IDRepo_RetrieveVID_07
       role: idrepo
       restMethod: get
@@ -123,7 +123,7 @@ Retrieve_VID_pos:
 }'
   IdRepository_Retrieve_VID_pos_Temperory_DEACTIVATED:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing Deactivated temporary VID
+      description: Verify that the system rejects retrieving a UIN by VID when the API is called with a deactivated temporary VID
       uniqueIdentifier: TC_IDRepo_RetrieveVID_08
       role: idrepo
       restMethod: get
@@ -141,7 +141,7 @@ Retrieve_VID_pos:
 }'
   IdRepository_Retrieve_VID_pos_Temperory_Revoked:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing revoked temporary VID
+      description: Verify that the system rejects retrieving a UIN by VID when the API is called with a revoked temporary VID
       uniqueIdentifier: TC_IDRepo_RetrieveVID_09
       role: idrepo
       restMethod: get
@@ -160,7 +160,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_PVID_with_invalid_vid_data:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing invalid VID data
+      description: Verify that the system rejects retrieving a UIN by VID when the API is called with an invalid VID
       uniqueIdentifier: TC_IDRepo_RetrieveVID_10
       role: idrepo
       restMethod: get
@@ -179,7 +179,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_PVID_with_Empty_vid:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing empty VID
+      description: Verify that the system rejects retrieving a UIN by VID when the API is called with an empty VID
       uniqueIdentifier: TC_IDRepo_RetrieveVID_11
       role: idrepo
       restMethod: get
@@ -198,7 +198,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_PVID_with_SpaceVal_vid_data:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing space in the VID field
+      description: Verify that the system rejects retrieving a UIN by VID when the API is called with a space value in the VID field
       uniqueIdentifier: TC_IDRepo_RetrieveVID_12
       role: idrepo
       restMethod: get
@@ -217,7 +217,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_with_invalid_vid_data:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing invalid vid data
+      description: Verify that the system rejects retrieving a UIN by VID when the API is called with an invalid VID
       uniqueIdentifier: TC_IDRepo_RetrieveVID_13
       role: idrepo
       restMethod: get
@@ -236,7 +236,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_Temp_Empty_vid:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing empty VID
+      description: Verify that the system rejects retrieving a UIN by VID when the API is called with an empty VID
       uniqueIdentifier: TC_IDRepo_RetrieveVID_14
       role: idrepo
       restMethod: get
@@ -255,7 +255,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_with_SpaceVal_vid_data:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing Space Value in vid data
+      description: Verify that the system rejects retrieving a UIN by VID when the API is called with a space value in the VID field
       uniqueIdentifier: TC_IDRepo_RetrieveVID_15
       role: idrepo
       restMethod: get
@@ -274,7 +274,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_with_Invalid_vid:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing Invalid vid
+      description: Verify that the system rejects retrieving a UIN by VID when the API is called with an invalid VID
       uniqueIdentifier: TC_IDRepo_RetrieveVID_16
       role: idrepo
       restMethod: get
@@ -293,7 +293,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_with_Empty_vid:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing empty VID
+      description: Verify that the system rejects retrieving a UIN by VID when the API is called with an empty VID
       uniqueIdentifier: TC_IDRepo_RetrieveVID_17
       role: idrepo
       restMethod: get
@@ -312,7 +312,7 @@ Retrieve_VID_pos:
 
   IdRepository_Retrieve_VID_with_SpaceVal_vid:
       endPoint: /idrepository/v1/vid/{VID}
-      description: Retrieve UIN passing space value in VID field
+      description: Verify that the system rejects retrieving a UIN by VID when the API is called with a space value in the VID field
       uniqueIdentifier: TC_IDRepo_RetrieveVID_18
       role: idrepo
       restMethod: get
