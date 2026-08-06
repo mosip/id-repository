@@ -13,7 +13,6 @@ import io.mosip.idrepository.identity.entity.UinDocumentDraft;
  */
 public interface UinDocumentDraftRepo extends JpaRepository<UinDocumentDraft, String> {
 
-	@Modifying
 	@Transactional
 	void deleteByRegId(String regId);
 }

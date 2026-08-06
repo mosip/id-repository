@@ -13,7 +13,7 @@ import io.mosip.idrepository.identity.entity.UinBiometricDraft;
  */
 public interface UinBiometricDraftRepo extends JpaRepository<UinBiometricDraft, String> {
 
-	@Modifying
+
 	@Transactional
 	void deleteByRegId(String regId);
 }

@@ -57,6 +57,9 @@ public enum IdRepoErrorConstants {
 	/** The record exists. */
 	HANDLE_RECORD_EXISTS("IDR-IDC-014", "%s : Handle record already exists in DB"),
 
+	/** UIN details not found in draft. */
+	DRAFT_UIN_DETAILS_NOT_FOUND("IDR-IDC-015", "UIN details not found in draft"),
+
 	// Identity Service
 	
 	/** The identity mismatch. */

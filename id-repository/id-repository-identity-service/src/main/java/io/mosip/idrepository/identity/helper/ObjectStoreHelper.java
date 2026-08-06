@@ -130,30 +130,34 @@ public class ObjectStoreHelper {
 
 	public void deleteDraftBiometricObject(String pathPrefix, String fileRefId) {
 		String objectName = buildDraftObjectName(pathPrefix, true, fileRefId);
-		if (objectStore.exists(objectStoreAccountName, objectStoreBucketName, null, null, objectName)) {
+		try {
 			objectStore.deleteObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
+		} catch (Exception e) {
+			mosipLogger.debug("Draft biometric object not found or already deleted, skipping: {}", objectName);
 		}
 	}
 
 	public void deleteDraftDemographicObject(String pathPrefix, String fileRefId) {
 		String objectName = buildDraftObjectName(pathPrefix, false, fileRefId);
-		if (objectStore.exists(objectStoreAccountName, objectStoreBucketName, null, null, objectName)) {
+		try {
 			objectStore.deleteObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
+		} catch (Exception e) {
+			mosipLogger.debug("Draft demographic object not found or already deleted, skipping: {}", objectName);
 		}
 	}
 
-	public void copyAndReplaceBiometricDraftToLive(String srcPrefix, String destPrefix, String fileRefId)
+	public void moveBiometricDraftToLive(String srcPrefix, String destPrefix, String fileRefId)
 			throws IdRepoAppException {
 		String srcKey = buildDraftObjectName(srcPrefix, true, fileRefId);
 		String destKey = buildObjectName(destPrefix, true, fileRefId);
-		copyRaw(srcKey, destKey, true);
+		moveRaw(srcKey, destKey);
 	}
 
-	public void copyAndReplaceDemographicDraftToLive(String srcPrefix, String destPrefix, String fileRefId)
+	public void moveDemographicDraftToLive(String srcPrefix, String destPrefix, String fileRefId)
 			throws IdRepoAppException {
 		String srcKey = buildDraftObjectName(srcPrefix, false, fileRefId);
 		String destKey = buildObjectName(destPrefix, false, fileRefId);
-		copyRaw(srcKey, destKey, true);
+		moveRaw(srcKey, destKey);
 	}
 
 	// Copies live biometric/demographic files into the draft path so that
@@ -284,6 +288,22 @@ public class ObjectStoreHelper {
 	 * move. Pass false when copying live data into the draft path (live→draft) to
 	 * preserve the live record for authentication and failure recovery.
 	 */
+	private void moveRaw(String srcKey, String destKey) throws IdRepoAppException {
+		ObjectStoreReference src = new ObjectStoreReference(
+				objectStoreAccountName, objectStoreBucketName, null, null, srcKey);
+		ObjectStoreReference dst = new ObjectStoreReference(
+				objectStoreAccountName, objectStoreBucketName, null, null, destKey);
+		try {
+			boolean moved = objectStore.moveObject(src, dst, true);
+			if (!moved) {
+				mosipLogger.debug("Draft object not found, skipping move: {}", srcKey);
+			}
+		} catch (ObjectStoreAdapterException e) {
+			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
+					"Failed to move object: " + srcKey + " -> " + destKey, e);
+		}
+	}
+
 	private void copyRaw(String srcKey, String destKey, boolean deleteSourceAfterCopy) throws IdRepoAppException {
 		ObjectStoreReference src = new ObjectStoreReference(
 				objectStoreAccountName, objectStoreBucketName, null, null, srcKey);

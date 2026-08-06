@@ -1,6 +1,5 @@
 package io.mosip.idrepository.identity.repository;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -67,7 +66,6 @@ public interface UinDraftRepo extends JpaRepository<UinDraft, String> {
 	 *
 	 * @param regId the registration id
 	 */
-	@Modifying
 	@Transactional
 	void deleteByRegId(String regId);
 
@@ -78,19 +76,5 @@ public interface UinDraftRepo extends JpaRepository<UinDraft, String> {
 	 * @return true, if successful.
 	 */
 	boolean existsByUinHash(String uinHash);
-
-	/**
-	 * Stamps the UIN on a LOST draft. Uses a bulk-update to bypass isNew()=true
-	 * which would otherwise cause save(entity) to call em.persist() (a no-op for
-	 * managed entities) instead of generating the UPDATE SQL.
-	 */
-	@Modifying
-	@Transactional
-	@Query("UPDATE UinDraft SET uin = :uin, uinHash = :uinHash, updatedBy = :updatedBy, updatedDateTime = :updatedDateTime WHERE regId = :regId")
-	int updateUinByRegId(@Param("regId") String regId,
-	                     @Param("uin") String uin,
-	                     @Param("uinHash") String uinHash,
-	                     @Param("updatedBy") String updatedBy,
-	                     @Param("updatedDateTime") LocalDateTime updatedDateTime);
 
 }
