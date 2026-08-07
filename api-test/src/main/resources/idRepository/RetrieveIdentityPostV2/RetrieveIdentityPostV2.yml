@@ -269,3 +269,23 @@ RetrieveIdentityPostV2:
       }
     ]
 }'
+
+  IdRepository_RetrieveIdentityPostV2_WithInvalidClaimFilteredOut_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Confirmed against qa-country — after Add succeeds (status ACTIVATED) with an invalid/unknown claim (not part of the IdSchema) submitted alone in a claims list, verifiedAttributes is persisted as an empty array, not the entry that was submitted. verifiedAttributes is deliberately NOT asserted below, despite that finding — this framework's JSON-path output comparison (JsonPrecondtion.readArray) never emits a comparable path for a zero-length array on either side, so there is no way to express "field is an empty array" here. Any attempt either false-fails (a literal null does generate a path but never matches an actual empty array) or silently no-ops (a literal empty array generates no path on the expected side either, so nothing gets compared). Only status is checked here; verifiedAttributes emptiness would need a custom assertion outside the standard YAML-driven comparison to verify.
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_13
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2VerifiedAttributesResult
+      input: '{
+    "id": "$ID:AddIdentityV2_WithInvalidClaim_Pos_UIN$",
+    "type": "all",
+    "idType": "UIN",
+    "fingerExtractionFormat": "",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+    "status": "ACTIVATED"
+}'
