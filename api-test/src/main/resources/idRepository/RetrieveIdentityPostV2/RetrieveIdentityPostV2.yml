@@ -429,3 +429,4 @@ RetrieveIdentityPostV2:
 
   # TC_IDRepo_UpdateIdentityV2_41 is not verified here: its UIN is shared by 30+ other Update tests, so its final state can't be pinned down.
   # TC_IDRepo_UpdateIdentityV2_46/_47 are not verified here: both append to the same UIN sequentially, so the resulting array order is unverified.
+  # _47 specifically also can't be asserted at all: its claim is the schema-resolved $OPTIONALSCHEMAFIELD$ token, which only resolves on the Update input path (UpdateIdentity.java) and has no equivalent on this Retrieve test's expected-output path.
