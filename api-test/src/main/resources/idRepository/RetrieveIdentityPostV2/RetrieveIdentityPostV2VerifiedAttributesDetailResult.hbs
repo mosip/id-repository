@@ -1,0 +1,29 @@
+{
+  "response": {
+    "status": "{{status}}",
+    "verifiedAttributes": [
+      {{#each verifiedAttributes}}
+      {
+        "trustFramework": "{{trustFramework}}",
+        "verificationProcess": "{{verificationProcess}}",
+        "claims": [
+          {{#each claims}}"{{this}}"{{#unless @last}},{{/unless}}{{/each}}
+        ],
+        "metadata": {
+          "trust_framework": "{{metadata.trust_framework}}",
+          "verification_process": "{{metadata.verification_process}}",
+          "assurance_level": "{{metadata.assurance_level}}"
+          {{#if metadata.assurance_process}}
+          ,"assurance_process": {
+            "level": "{{metadata.assurance_process.level}}",
+            "policy": "{{metadata.assurance_process.policy}}",
+            "procedure": "{{metadata.assurance_process.procedure}}"
+          }
+          {{/if}}
+        }
+      }
+      {{#unless @last}},{{/unless}}
+      {{/each}}
+    ]
+  }
+}
