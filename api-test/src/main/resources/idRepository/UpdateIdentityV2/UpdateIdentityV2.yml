@@ -687,9 +687,9 @@ UpdateIdentityV2:
     output: '{
         "status": "ACTIVATED"
     }'
-  IdRepository_UpdateIdentityV2_WithClaimNameNotInIdSchema_Neg:
+  IdRepository_UpdateIdentityV2_WithClaimNameNotInIdSchema_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Update Identity V2 silently accepts a claim/fieldId not in the IdSchema (update still succeeds) — inconsistent with strict validation (IDR-IDC-016) elsewhere on this endpoint.
+    description: Update Identity V2 accepts a claim/fieldId not in the IdSchema; the claim itself is not persisted, but the update still succeeds (ACTIVATED).
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_18
     role: testrig
     restMethod: patch

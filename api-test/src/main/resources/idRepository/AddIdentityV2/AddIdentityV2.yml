@@ -767,7 +767,7 @@ AddIdentityV2:
 }'
   IdRepository_AddIdentityV2_WithInvalidClaim_Pos:
       endPoint: /idrepository/v1/identity/v2
-      description: Add Identity V2 silently accepts an unknown claim/fieldId not in the IdSchema (identity still created) — inconsistent with strict validation (IDR-IDC-016) elsewhere on this endpoint.
+      description: Add Identity V2 accepts an unknown claim/fieldId not in the IdSchema; the claim itself is not persisted, but the identity is still created (ACTIVATED).
       uniqueIdentifier: TC_IDRepo_AddIdentityV2_16
       role: testrig
       restMethod: post
