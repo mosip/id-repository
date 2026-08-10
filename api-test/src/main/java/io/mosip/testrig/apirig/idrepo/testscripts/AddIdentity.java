@@ -170,9 +170,7 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 		// Resolve $HANDLEVALUE tokens before IdRepoArrayHandle runs so its mutations see real values.
 		inputJson = IdRepoUtil.resolveGenericHandleValueTokens(inputJson);
 
-		// V1 handling for verifiedAttribute (plain list of fieldId strings, e.g. ["fullName","address"]).
-		// V1 requests are schema-driven with no verifiedAttribute placeholder, so it is injected as a fixed
-		// top-level request field here, mirroring how verifiedAttributes is handled for V2 (see wrapV2()).
+		// V1's schema-driven template has no verifiedAttribute placeholder, so inject it as a fixed top-level field.
 		if (!testCaseDTO.getEndPoint().contains(GlobalConstants.ADD_IDENTITY_V2_ENDPOINT)) {
 			JSONObject originalAddInput = new JSONObject(jsonInput);
 			if (originalAddInput.has("verifiedAttribute")) {

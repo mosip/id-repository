@@ -767,7 +767,7 @@ AddIdentityV2:
 }'
   IdRepository_AddIdentityV2_WithInvalidClaim_Pos:
       endPoint: /idrepository/v1/identity/v2
-      description: Validate that Add Identity API silently ignores an invalid/unknown claim (not part of the IdSchema) in the verifiedAttributes claims section, confirmed against qa-country — identity is still created (no rejection). Named "_Neg" because it feeds an invalid claim value, but the confirmed behavior is acceptance, not an error; flagged as worth a product/backend review since strict validation (IDR-IDC-016 style) elsewhere on this same endpoint makes silent acceptance here look like an inconsistency rather than a deliberate design choice.
+      description: Add Identity V2 silently accepts an unknown claim/fieldId not in the IdSchema (identity still created) — inconsistent with strict validation (IDR-IDC-016) elsewhere on this endpoint.
       uniqueIdentifier: TC_IDRepo_AddIdentityV2_16
       role: testrig
       restMethod: post

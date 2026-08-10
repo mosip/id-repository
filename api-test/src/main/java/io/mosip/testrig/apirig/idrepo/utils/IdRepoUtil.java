@@ -230,14 +230,7 @@ public class IdRepoUtil extends AdminTestUtil {
 		return Boolean.TRUE.equals(AdminTestUtil.globalIdentityAdditionalProperties);
 	}
 
-	/**
-	 * First schema field that is claimable as a verifiedAttributes fieldId but NOT in the schema's
-	 * "required" array — i.e. a field genuinely absent from a normal Add request unless explicitly
-	 * supplied. Which fields are optional varies by IdSchema/environment, so this is resolved from the
-	 * live schema rather than a hardcoded field name (schema-driven, no field names, like
-	 * {@link #resolveHandleOfType(String)}). Excludes handle fields and complex $ref types
-	 * (documentType/biometricsType/hashType/TaggedListType) to keep the result a plain claimable field.
-	 */
+	/** First schema field that's claimable but not required — resolved from the live schema, excluding handles and complex $ref types. */
 	public static String resolveOptionalClaimableField() {
 		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
 		for (String fieldName : props.keySet()) {

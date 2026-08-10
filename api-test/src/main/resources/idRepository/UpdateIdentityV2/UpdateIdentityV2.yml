@@ -689,7 +689,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithClaimNameNotInIdSchema_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 silently ignores a claim/fieldId not defined in the IdSchema, confirmed against qa-country — update still succeeds (no rejection). Named "_Neg" because it feeds an invalid claim value, but the confirmed behavior is acceptance, not an error; flagged as worth a product/backend review since strict validation (IDR-IDC-016 style) elsewhere on this same endpoint makes silent acceptance here look like an inconsistency rather than a deliberate design choice.
+    description: Update Identity V2 silently accepts a claim/fieldId not in the IdSchema (update still succeeds) — inconsistent with strict validation (IDR-IDC-016) elsewhere on this endpoint.
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_18
     role: testrig
     restMethod: patch
@@ -1793,7 +1793,7 @@ UpdateIdentityV2:
 }'
   IdRepository_UpdateIdentityV2_optionalFieldNotInAdd_AddVerifiedAttributesForNewFieldId_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 successfully adds verifiedAttributes for a fieldId that was neither part of verifiedAttributes nor part of normal identity during Add. The fieldId is resolved dynamically from the live IdSchema's non-required properties (see resolveOptionalClaimableField), since which fields are optional varies by schema/environment; the test is skipped when the schema has no such field.
+    description: Update Identity V2 adds verifiedAttributes for a fieldId absent from the original Add; fieldId is resolved from the live schema's optional fields, skips if none exist.
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_47
     role: testrig
     restMethod: patch
