@@ -132,8 +132,8 @@ public class ObjectStoreHelper {
 		String objectName = buildDraftObjectName(pathPrefix, true, fileRefId);
 		try {
 			objectStore.deleteObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
-		} catch (Exception e) {
-			mosipLogger.debug("Draft biometric object not found or already deleted, skipping: {}", objectName);
+		} catch (ObjectStoreAdapterException e) {
+			mosipLogger.warn("Failed to delete draft biometric object: {} | error={}", objectName, e.getMessage());
 		}
 	}
 

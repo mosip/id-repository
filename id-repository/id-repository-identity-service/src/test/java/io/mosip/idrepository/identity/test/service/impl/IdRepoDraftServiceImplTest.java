@@ -63,6 +63,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -1348,6 +1349,92 @@ public class IdRepoDraftServiceImplTest {
 		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
 				idRepoServiceImpl.extractBiometricsV2("REG123", formats));
 		assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), thrown.getErrorCode());
+	}
+
+	// ── publishDraftV2 success-path ──────────────────────────────────────────
+
+	private void stubPublishDraftV2(UinDraft draft) throws IdRepoAppException {
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(draft));
+		when(uinEncryptSaltRepo.getOne(anyInt())).thenReturn(uinEncryptSalt);
+		when(uinEncryptSalt.getSalt()).thenReturn("dGVzdA==");
+		when(securityManager.decryptWithSalt(any(), any(), any())).thenReturn("274390482564".getBytes());
+		when(securityManager.getSaltKeyForId(anyString())).thenReturn(123);
+		when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("hashSalt");
+		when(securityManager.hashwithSalt(any(), any()))
+				.thenReturn("5B72C3B57A72C6497461289FCA7B1F865ED6FB0596B446FEA1F92AF931A5D4B7");
+		ReflectionTestUtils.setField(idRepoServiceImpl, "activeStatus", "ACTIVATED");
+		when(uinEncryptSaltRepo.retrieveSaltById(anyInt())).thenReturn("encSalt");
+		when(securityManager.hash(any())).thenReturn("DATAHASH");
+		Uin savedUin = new Uin();
+		savedUin.setUinRefId("ref-id-123");
+		savedUin.setUin("encrypted-uin");
+		savedUin.setUinData("{}".getBytes());
+		savedUin.setStatusCode("ACTIVATED");
+		when(uinRepo.save(any())).thenReturn(savedUin);
+		when(securityManager.getIdHashWithSaltModuloByPlainIdHash(anyString(), any())).thenReturn("IDHASH");
+		when(anonymousProfileHelper.setRegId(anyString())).thenReturn(anonymousProfileHelper);
+		when(objectStoreHelper.getRidHash(anyString())).thenReturn("RID_HASH_TEST");
+	}
+
+	@Test
+	public void should_publishDraftV2_moveBiometricAndDemographic_with_ridHashSrc_and_uinHashDest()
+			throws IdRepoAppException, IOException {
+		UinDraft draft = buildMinimalDraft();
+		draft.setUin("1_YWJj");
+		stubPublishDraftV2(draft);
+
+		IdResponseDTO response = idRepoServiceImpl.publishDraftV2("1234567890");
+
+		assertNotNull(response);
+		String expectedDest = "5B72C3B57A72C6497461289FCA7B1F865ED6FB0596B446FEA1F92AF931A5D4B7";
+		verify(objectStoreHelper).moveBiometricDraftToLive("RID_HASH_TEST", expectedDest, "1234");
+		verify(objectStoreHelper).moveDemographicDraftToLive("RID_HASH_TEST", expectedDest, "1236");
+	}
+
+	@Test
+	public void should_publishDraftV2_deleteDbRecords_before_file_moves()
+			throws IdRepoAppException, IOException {
+		UinDraft draft = buildMinimalDraft();
+		draft.setUin("1_YWJj");
+		stubPublishDraftV2(draft);
+
+		idRepoServiceImpl.publishDraftV2("1234567890");
+
+		InOrder inOrder = inOrder(uinBiometricDraftRepo, uinDocumentDraftRepo, uinDraftRepo, objectStoreHelper);
+		inOrder.verify(uinBiometricDraftRepo).deleteByRegId("1234567890");
+		inOrder.verify(uinDocumentDraftRepo).deleteByRegId("1234567890");
+		inOrder.verify(uinDraftRepo).deleteByRegId("1234567890");
+		inOrder.verify(objectStoreHelper, atLeastOnce())
+				.moveBiometricDraftToLive(anyString(), anyString(), anyString());
+	}
+
+	@Test
+	public void should_publishDraftV2_propagateException_when_objectMoveFails()
+			throws IOException, IdRepoAppException {
+		UinDraft draft = buildMinimalDraft();
+		draft.setUin("1_YWJj");
+		stubPublishDraftV2(draft);
+		doThrow(new RuntimeException("storage error"))
+				.when(objectStoreHelper).moveBiometricDraftToLive(anyString(), anyString(), anyString());
+
+		assertThrows(RuntimeException.class, () -> idRepoServiceImpl.publishDraftV2("1234567890"));
+	}
+
+	// ── extractBiometricsV2 success-path ─────────────────────────────────────
+
+	@Test
+	public void should_extractBiometricsV2_readFromDraftPath_using_ridHash()
+			throws IdRepoAppException, IOException {
+		Map<String, String> formats = new HashMap<>();
+		formats.put(FINGER_EXTRACTION_FORMAT, "fingerFormat");
+		UinDraft draft = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(draft));
+		when(objectStoreHelper.getRidHash(anyString())).thenReturn("RID_HASH_TEST");
+
+		idRepoServiceImpl.extractBiometricsV2("1234567890", formats);
+
+		verify(objectStoreHelper).getDraftBiometricObject("RID_HASH_TEST", "1234");
+		verify(objectStoreHelper, never()).getBiometricObject(anyString(), anyString());
 	}
 
 	private Uin buildUinEntity() throws IOException, NoSuchAlgorithmException {

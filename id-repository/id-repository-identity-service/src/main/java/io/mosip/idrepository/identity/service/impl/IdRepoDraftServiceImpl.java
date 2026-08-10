@@ -642,7 +642,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 					idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 							CREATE_DRAFT, "Discarding stale draft | old regId=" + staleDraft.getRegId()
 									+ " | new regId=" + registrationId);
-					cleanupDraft(staleDraft.getRegId(), staleDraft);
+					cleanupDraft(staleDraft);
 					uinDraftRepo.flush();
 				}
 				Uin uinObject = uinObjectOptional.get();
@@ -705,7 +705,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 					idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 							CREATE_DRAFT, "Discarding stale draft | old regId=" + staleDraft.getRegId()
 									+ " | new regId=" + registrationId);
-					cleanupDraft(staleDraft.getRegId(), staleDraft);
+					cleanupDraft(staleDraft);
 					uinDraftRepo.flush();
 				}
 				Uin uinObject = uinObjectOptional.get();
@@ -952,9 +952,9 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	 * Full V2 cleanup: deletes object-store draft files then DB records.
 	 * Used by {@link #publishDraftV2} and {@link #createDraftWithUin} stale cleanup.
 	 */
-	public void cleanupDraft(String regId, UinDraft draft) throws IdRepoAppException {
+	public void cleanupDraft(UinDraft draft) throws IdRepoAppException {
 		String ridHash = objectStoreHelper.getRidHash(draft.getRegId());
-		deleteDraftDbRecords(regId);
+		deleteDraftDbRecords(draft.getRegId());
 		if (draft.getBiometrics() != null) {
 			for (UinBiometricDraft bio : draft.getBiometrics()) {
 				objectStoreHelper.deleteDraftBiometricObject(ridHash, bio.getBioFileId());
@@ -1066,7 +1066,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 
 		Uin uinObject = mapper.convertValue(draftToUpdate, Uin.class);
 		String ridHash = objectStoreHelper.getRidHash(draftToUpdate.getRegId());
-		uinObject.setUinHash("0_" + ridHash);
+		uinObject.setUinHash("_" + ridHash);
 		super.updateDocuments(ridHash, uinObject, requestDTO, true);
 		updateBiometricAndDocumentDrafts(requestDTO.getRegistrationId(), draftToUpdate, uinObject);
 
