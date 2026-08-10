@@ -65,7 +65,7 @@
 		</classes>
 	</test>
 
-	<!-- Runs after UpdateIdentityArrayHandle: reuses an email value freed by TC_IDRepo_UpdateIdentityArrayHandle_36 in a brand-new Add Identity call. -->
+	<!-- Reuses the email freed by TC_IDRepo_UpdateIdentityArrayHandle_36 in a new Add Identity call. -->
 	<test name="AddIdentityArrayHandlePostUpdate">
 		<parameter name="ymlFile"
 			value="idRepository/AddIdentity/AddIdentityArrayHandlePostUpdate.yml" />
@@ -281,7 +281,7 @@
 		</classes>
 	</test>
 
-	<!-- BLOCKED is a one-way UIN status transition (not reverted like DEACTIVATED/ACTIVATED elsewhere in this suite), so this whole flow runs last, against its own dedicated throwaway identity, so it can't affect any earlier test's assumptions. -->
+	<!-- BLOCKED is a one-way transition; runs last against its own throwaway identity to avoid affecting earlier tests. -->
 	<test name="AddIdentityForBlockedHandleCheck">
 		<parameter name="ymlFile"
 			value="idRepository/AddIdentity/AddIdentityForBlockedHandleCheck.yml" />

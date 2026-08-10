@@ -120,9 +120,7 @@ public class IdRepoArrayHandle {
 			applySavedHandleValues(identity);
 			return jsonObj.toString();
 		}
-		// Replays only the previously saved email value (not other saved handles) onto a brand-new
-		// identity, so a still-active handle on another field (e.g. phone) on the original identity
-		// cannot cause an unrelated IDR-IDC-014 collision here.
+		// Replays only the saved email value, avoiding a false IDR-IDC-014 collision from other active handles.
 		if (testCaseName.contains("_withReusableEmailAfterRemoval")) {
 			applySavedEmailValueOnly(identity);
 			return jsonObj.toString();
@@ -163,8 +161,7 @@ public class IdRepoArrayHandle {
 			applyDeleteHandleFromRecord(identity);
 			return jsonObj.toString();
 		}
-		// Removes only the email handle (value + selectedHandles entry), leaving any other handle
-		// (e.g. phone) untouched, so a later identity can safely reuse just the freed email value.
+		// Removes only the email handle, leaving other handles untouched, so its value can be reused later.
 		if (testCaseName.contains("_removeSavedEmailHandle")) {
 			removeHandleFromIdentity(identity, emailFieldName);
 			return jsonObj.toString();
@@ -532,14 +529,17 @@ public class IdRepoArrayHandle {
 		}
 	}
 
-	/** Replays only the saved email value onto this identity - used to prove a handle value becomes
-	 * reusable once its original holder's association with it (and only it) is removed. */
+	/** Replays only the saved email value onto this identity, to prove a freed handle value is reusable. */
 	private static void applySavedEmailValueOnly(JSONObject identity) {
 		String emailField = resolveEmailFieldName();
 		String savedEmail = savedHandleValues.get(emailField);
-		if (savedEmail != null && identity.has(emailField)) {
-			writeHandleValue(identity, emailField, savedEmail);
+		if (savedEmail == null) {
+			throw new IllegalStateException("No saved email handle value is available for reuse");
 		}
+		if (!identity.has(emailField)) {
+			throw new IllegalStateException("Email handle field is absent from the identity");
+		}
+		writeHandleValue(identity, emailField, savedEmail);
 	}
 
 	private static String resolveEmailFieldName() {
@@ -557,9 +557,7 @@ public class IdRepoArrayHandle {
 		}
 	}
 
-	/** Appends two more untagged, validator-satisfying values to an existing array-typed handle
-	 * (field-agnostic — targets whichever handle IdRepoUtil.resolveHandleOfType("array") resolves to).
-	 * Used to prove that handle status is driven by selectedHandles membership, not per-item tags. */
+	/** Appends two more untagged values to an existing array-typed handle, to prove tags don't gate status. */
 	private static void applyAppendUntaggedValues(JSONArray handleArray, String handle) {
 		JSONObject second = new JSONObject();
 		second.put("value", IdRepoUtil.generateSchemaFieldValue(handle));

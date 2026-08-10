@@ -1,7 +1,7 @@
 AddIdentity:
    IdRepository_AddIdentity_forBlockedHandleCheck_smoke_Pos:
       endPoint: /idrepository/v1/identity/
-      description: Dedicated throwaway identity (with email as a selected handle) used only to verify that blocking the UIN cascades a DELETE_REQUESTED status onto its handle(s) in idrepo.handle
+      description: Throwaway identity (email as a selected handle), used solely as setup for the BLOCKED status update in UpdateIdentityBlockedHandleCheck
       uniqueIdentifier: TC_IDRepo_AddIdentityForBlockedHandleCheck_01
       requiredHandleFields: [email]
       role: testrig
