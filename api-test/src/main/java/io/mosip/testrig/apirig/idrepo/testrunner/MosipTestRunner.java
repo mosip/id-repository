@@ -112,19 +112,20 @@ public class MosipTestRunner {
 			startTestRunner();
 		} catch (Exception e) {
 			LOGGER.error("Exception", e);
+			throw new RuntimeException(e);
 		} catch (Error e) {
 			LOGGER.fatal("Fatal error during test run", e);
 			throw e;
+		} finally {
+			IdRepoUtil.dbCleanUp();
+			KeycloakUserManager.removeUser();
+			KeycloakUserManager.closeKeycloakInstance();
+
+			OTPListener.bTerminate = true;
+
+			HealthChecker.bTerminate = true;
 		}
-		
-		IdRepoUtil.dbCleanUp();
-		KeycloakUserManager.removeUser();
-		KeycloakUserManager.closeKeycloakInstance();
 
-		OTPListener.bTerminate = true;
-
-		HealthChecker.bTerminate = true;
-		
 		// Used for generating the test case interdependency JSON file
 		// AdminTestUtil.generateTestCaseInterDependencies(getGlobalResourcePath() + "/config/testCaseInterDependency.json");
 		System.exit(0);

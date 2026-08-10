@@ -90,8 +90,16 @@ public class IdRepoUtil extends AdminTestUtil {
 			throw new SkipException(
 					"No array-typed handle in the current IdSchema — " + GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
+		if (testCaseName.contains("_appendUntaggedValuesToArrayHandle") && !schemaHasHandleOfType("array")) {
+			throw new SkipException(
+					"No array-typed handle in the current IdSchema — " + GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
+		}
 		if (testCaseName.contains("_extraNonSchemaField") && schemaAllowsAdditionalProperties()) {
 			throw new SkipException("Schema permits additional properties, unknown-field rejection not applicable — "
+					+ GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
+		}
+		if (testCaseName.contains("_optionalFieldNotInAdd") && !schemaHasOptionalClaimableField()) {
+			throw new SkipException("No optional (non-required) claimable field in the current IdSchema — "
 					+ GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
 
@@ -220,6 +228,42 @@ public class IdRepoUtil extends AdminTestUtil {
 	public static boolean schemaAllowsAdditionalProperties() {
 		AdminTestUtil.getIdentitySchemaProperties(); // ensure the flag is populated
 		return Boolean.TRUE.equals(AdminTestUtil.globalIdentityAdditionalProperties);
+	}
+
+	/**
+	 * First schema field that is claimable as a verifiedAttributes fieldId but NOT in the schema's
+	 * "required" array — i.e. a field genuinely absent from a normal Add request unless explicitly
+	 * supplied. Which fields are optional varies by IdSchema/environment, so this is resolved from the
+	 * live schema rather than a hardcoded field name (schema-driven, no field names, like
+	 * {@link #resolveHandleOfType(String)}). Excludes handle fields and complex $ref types
+	 * (documentType/biometricsType/hashType/TaggedListType) to keep the result a plain claimable field.
+	 */
+	public static String resolveOptionalClaimableField() {
+		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
+		for (String fieldName : props.keySet()) {
+			if (isElementPresent(globalRequiredFields, fieldName)) {
+				continue;
+			}
+			JSONObject fieldDef = props.getJSONObject(fieldName);
+			if (fieldDef.optBoolean("handle", false)) {
+				continue;
+			}
+			String ref = fieldDef.optString("$ref", "");
+			if (ref.contains("documentType") || ref.contains("biometricsType") || ref.contains("hashType")
+					|| ref.contains("TaggedListType")) {
+				continue;
+			}
+			if (fieldName.equals("selectedHandles") || fieldName.equals("IDSchemaVersion")) {
+				continue;
+			}
+			return fieldName;
+		}
+		return null;
+	}
+
+	/** True when the schema has at least one field {@link #resolveOptionalClaimableField()} would return. */
+	public static boolean schemaHasOptionalClaimableField() {
+		return resolveOptionalClaimableField() != null;
 	}
 
 }

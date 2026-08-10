@@ -31,7 +31,7 @@ UpdateIdentityV2:
         }
       ],
       "requesttime":"$TIMESTAMP$",
-      "version":"v2"
+      "version":"v1"
 }'
     output: '{
       "status":"ACTIVATED"
@@ -69,7 +69,7 @@ UpdateIdentityV2:
         }
       ],
       "requesttime":"$TIMESTAMP$",
-      "version":"v2"
+      "version":"v1"
 }'
     output: '{
       "responseCode": "500"
@@ -106,7 +106,7 @@ UpdateIdentityV2:
         }
       ],
       "requesttime":"$TIMESTAMP$",
-      "version":"v2"
+      "version":"v1"
 }'
     output: '{
       "errors": [
@@ -188,7 +188,7 @@ UpdateIdentityV2:
         }
       ],
       "requesttime":"$T",
-      "version":"v2"
+      "version":"v1"
 }'
     output: '{
       "errors": [
@@ -229,7 +229,7 @@ UpdateIdentityV2:
         }
       ],
       "requesttime":"$TIMESTAMP$",
-      "version":"v2"
+      "version":"v1"
 }'
     output: '{
       "errors": [
@@ -271,7 +271,7 @@ UpdateIdentityV2:
         }
       ],
       "requesttime":"$TIMESTAMP$",
-      "version":"v2"
+      "version":"v1"
 }'
     output: '{
       "errors": [
@@ -318,7 +318,7 @@ UpdateIdentityV2:
         }
       ],
       "requesttime":"$TIMESTAMP$",
-      "version":"v2"
+      "version":"v1"
 }'
     output: '{
       "errors": [
@@ -365,7 +365,7 @@ UpdateIdentityV2:
         }
       ],
       "requesttime":"$TIMESTAMP$",
-      "version":"v2"
+      "version":"v1"
 }'
     output: '{
       "errors": [
@@ -406,7 +406,7 @@ UpdateIdentityV2:
         }
       ],
       "requesttime":"$TIMESTAMP$",
-      "version":"v2"
+      "version":"v1"
 }'
     output: '{
       "errors": [
@@ -447,7 +447,7 @@ UpdateIdentityV2:
         }
       ],
       "requesttime":"$TIMESTAMP$",
-      "version":"v2"
+      "version":"v1"
 }'
     output: '{
   "errors": [
@@ -488,7 +488,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
         "errors": [
@@ -529,7 +529,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
       "status":"ACTIVATED"
@@ -566,7 +566,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
       "status":"ACTIVATED"
@@ -603,7 +603,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
         "errors": [
@@ -644,7 +644,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
       "status": "ACTIVATED"
@@ -682,14 +682,14 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
         "status": "ACTIVATED"
     }'
   IdRepository_UpdateIdentityV2_WithClaimNameNotInIdSchema_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 successfully updates identity when a claim not defined in the IdSchema is provided in verifiedAttributes
+    description: Validate that Update Identity V2 silently ignores a claim/fieldId not defined in the IdSchema, confirmed against qa-country — update still succeeds (no rejection). Named "_Neg" because it feeds an invalid claim value, but the confirmed behavior is acceptance, not an error; flagged as worth a product/backend review since strict validation (IDR-IDC-016 style) elsewhere on this same endpoint makes silent acceptance here look like an inconsistency rather than a deliberate design choice.
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_18
     role: testrig
     restMethod: patch
@@ -719,7 +719,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
        "status": "ACTIVATED"
@@ -756,7 +756,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
         "status": "ACTIVATED"
@@ -793,7 +793,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
       "status": "ACTIVATED"
@@ -828,7 +828,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
       "errors": [
@@ -866,7 +866,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
       "errors": [
@@ -907,7 +907,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
         "status": "ACTIVATED"
@@ -944,7 +944,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
       "status": "ACTIVATED"
@@ -981,7 +981,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
       "status": "ACTIVATED"
@@ -1017,7 +1017,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
       "status": "ACTIVATED"
@@ -1059,7 +1059,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
         "status": "ACTIVATED"
@@ -1101,7 +1101,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
       "status": "ACTIVATED"
@@ -1143,7 +1143,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
       "status": "ACTIVATED"
@@ -1181,7 +1181,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
         "status": "ACTIVATED"
@@ -1218,7 +1218,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
         "status": "ACTIVATED"
@@ -1255,7 +1255,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
         "errors": [
@@ -1296,7 +1296,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
         "errors": [
@@ -1331,7 +1331,7 @@ UpdateIdentityV2:
           }
         ],
         "requesttime": "$TIMESTAMP$",
-        "version": "v2"
+        "version": "v1"
     }'
     output: '{
         "status": "ACTIVATED"
@@ -1368,7 +1368,7 @@ UpdateIdentityV2:
 	      }
 	    ],
 	    "requesttime":"$TIMESTAMP$",
-	    "version":"v2"
+	    "version":"v1"
 }'
     output: '{
       "status":"ACTIVATED"
@@ -1406,7 +1406,7 @@ UpdateIdentityV2:
 	      }
 	    ],
 	    "requesttime":"$TIMESTAMP$",
-	    "version":"v2"
+	    "version":"v1"
 }'
     output: '{
       "errors": [
@@ -1447,7 +1447,7 @@ UpdateIdentityV2:
 	      }
 	    ],
 	    "requesttime":"$TIMESTAMP$",
-	    "version":"v2"
+	    "version":"v1"
 }'
     output: '{
       "status":"ACTIVATED"
@@ -1485,7 +1485,7 @@ UpdateIdentityV2:
 	      }
 	    ],
 	    "requesttime":"$TIMESTAMP$",
-	    "version":"v2"
+	    "version":"v1"
 }'
     output: '{
       "errors": [
@@ -1526,7 +1526,7 @@ UpdateIdentityV2:
 	      }
 	    ],
 	    "requesttime":"$TIMESTAMP$",
-	    "version":"v2"
+	    "version":"v1"
 }'
     output: '{
       "errors": [
@@ -1534,4 +1534,297 @@ UpdateIdentityV2:
            "errorCode": "IDR-IDC-002"
         }
     ]
+}'
+  IdRepository_UpdateIdentityV2_WithVerifiedAttributesAsMap_Neg:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 rejects the request when verifiedAttributes is provided as a map (key as fieldId, value as verification details) instead of the required list/array structure
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_40
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/error
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+      "verifiedAttributes":{
+        "phone": {
+          "trustFramework": "internal",
+          "verificationProcess": "otp_verified",
+          "metadata": {
+            "trust_framework": "internal",
+            "verification_process": "otp_verified",
+            "assurance_level": "Home",
+            "time": "2025-07-01T06:10:00.000Z"
+          }
+        }
+      },
+      "requesttime":"$TIMESTAMP$",
+      "version":"v1"
+}'
+    output: '{
+      "errors": [
+        {
+           "errorCode": "IDR-IDC-003"
+        }
+      ]
+}'
+  IdRepository_UpdateIdentityV2_UpdateFieldIdWithSameVerificationDetails_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 successfully updates a fieldId with the same verification details it already has
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_41
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework": "internal",
+          "verificationProcess": "otp_verified",
+          "claims": [
+            "phone"
+          ],
+          "metadata": {
+            "trust_framework": "internal",
+            "verification_process": "otp_verified",
+            "assurance_level": "Home",
+            "time": "2025-07-01T06:10:00.000Z"
+          }
+        }
+      ],
+      "requesttime":"$TIMESTAMP$",
+      "version":"v1"
+}'
+    output: '{
+      "status":"ACTIVATED"
+}'
+  IdRepository_UpdateIdentityV2_UpdateFieldIdWithNewVerificationDetails_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 replaces a fieldId's verification details when the fieldId is updated with a completely new trustFramework and verificationProcess
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_42
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_ForUpdateNewVerificationDetails_Base_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_ForUpdateNewVerificationDetails_Base_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework": "kyc",
+          "verificationProcess": "online_video",
+          "claims": [
+            "phone"
+          ],
+          "metadata": {
+            "trust_framework": "kyc",
+            "verification_process": "online_video",
+            "assurance_level": "Land",
+            "time": "2025-07-01T07:00:00.000Z"
+          }
+        }
+      ],
+      "requesttime":"$TIMESTAMP$",
+      "version":"v1"
+}'
+    output: '{
+      "status":"ACTIVATED"
+}'
+  IdRepository_UpdateIdentityV2_UpdateOptionalAttributeForExistingVerificationDetails_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 replaces a fieldId's verification details when only an optional attribute (assurance_level/assurance_process) is changed while trustFramework and verificationProcess stay the same
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_43
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_ForUpdateOptionalAttribute_Base_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_ForUpdateOptionalAttribute_Base_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework": "internal",
+          "verificationProcess": "otp_verified",
+          "claims": [
+            "phone"
+          ],
+          "metadata": {
+            "trust_framework": "internal",
+            "verification_process": "otp_verified",
+            "assurance_level": "Land",
+            "time": "2025-07-01T08:00:00.000Z",
+            "assurance_process": {
+              "level": "Land",
+              "policy": "internal-policy",
+              "procedure": "otp-verification"
+            }
+          }
+        }
+      ],
+      "requesttime":"$TIMESTAMP$",
+      "version":"v1"
+}'
+    output: '{
+      "status":"ACTIVATED"
+}'
+  IdRepository_UpdateIdentityV2_UpdateRequiredAttributeForExistingVerificationDetails_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 replaces (not appends) a fieldId's verification details when only one required attribute (verificationProcess) is changed while the other (trustFramework) stays the same
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_44
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_ForUpdateRequiredAttribute_Base_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_ForUpdateRequiredAttribute_Base_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework": "internal",
+          "verificationProcess": "online_video",
+          "claims": [
+            "phone"
+          ],
+          "metadata": {
+            "trust_framework": "internal",
+            "verification_process": "online_video",
+            "assurance_level": "Home",
+            "time": "2025-07-01T09:00:00.000Z"
+          }
+        }
+      ],
+      "requesttime":"$TIMESTAMP$",
+      "version":"v1"
+}'
+    output: '{
+      "status":"ACTIVATED"
+}'
+  IdRepository_UpdateIdentityV2_UpdateFieldIdValueWithoutVerifiedAttributes_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 successfully updates a fieldId's (fullName) identity value without sending verifiedAttributes at all in the update request, when that fieldId was verified during Add
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_45
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithFullNameVerified_Base_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_WithFullNameVerified_Base_Pos_PHONE$",
+      "fullName": [
+        {
+          "language": "$1STLANG$",
+          "value": "UpdatedFullNameValue"
+        }
+      ],
+      "requesttime":"$TIMESTAMP$",
+      "version":"v1"
+}'
+    output: '{
+      "status":"ACTIVATED"
+}'
+  IdRepository_UpdateIdentityV2_AddVerifiedAttributesForFieldIdNotInAddRequest_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 successfully adds verifiedAttributes for a fieldId (fullName) that was part of normal identity but was not part of verifiedAttributes during Add
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_46
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithOutVerifiedAttributes_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_WithOutVerifiedAttributes_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework": "internal",
+          "verificationProcess": "otp_verified",
+          "claims": [
+            "fullName"
+          ],
+          "metadata": {
+            "trust_framework": "internal",
+            "verification_process": "otp_verified",
+            "assurance_level": "Home",
+            "time": "2025-07-01T06:10:00.000Z"
+          }
+        }
+      ],
+      "requesttime":"$TIMESTAMP$",
+      "version":"v1"
+}'
+    output: '{
+      "status":"ACTIVATED"
+}'
+  IdRepository_UpdateIdentityV2_optionalFieldNotInAdd_AddVerifiedAttributesForNewFieldId_Pos:
+    endPoint: /idrepository/v1/identity/v2
+    description: Validate that Update Identity V2 successfully adds verifiedAttributes for a fieldId that was neither part of verifiedAttributes nor part of normal identity during Add. The fieldId is resolved dynamically from the live IdSchema's non-required properties (see resolveOptionalClaimableField), since which fields are optional varies by schema/environment; the test is skipped when the schema has no such field.
+    uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_47
+    role: testrig
+    restMethod: patch
+    inputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2
+    outputTemplate: idRepository/UpdateIdentityV2/UpdateIdentityV2Result
+    input: '{
+      "id":"mosip.id.update",
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentityV2_WithOutVerifiedAttributes_Pos_UIN$",
+      "status":"ACTIVATED",
+      "dateOfBirth":"1992/04/15",
+      "email":"$EMAILVALUE$",
+      "phone":"$ID:AddIdentityV2_WithOutVerifiedAttributes_Pos_PHONE$",
+      "verifiedAttributes":[
+        {
+          "trustFramework": "internal",
+          "verificationProcess": "otp_verified",
+          "claims": [
+            "$OPTIONALSCHEMAFIELD$"
+          ],
+          "metadata": {
+            "trust_framework": "internal",
+            "verification_process": "otp_verified",
+            "assurance_level": "Home",
+            "time": "2025-07-01T06:10:00.000Z"
+          }
+        }
+      ],
+      "requesttime":"$TIMESTAMP$",
+      "version":"v1"
+}'
+    output: '{
+      "status":"ACTIVATED"
 }'

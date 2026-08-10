@@ -120,6 +120,11 @@ public class IdRepoArrayHandle {
 			applySavedHandleValues(identity);
 			return jsonObj.toString();
 		}
+		// Replays only the saved email value, avoiding a false IDR-IDC-014 collision from other active handles.
+		if (testCaseName.contains("_withReusableEmailAfterRemoval")) {
+			applySavedEmailValueOnly(identity);
+			return jsonObj.toString();
+		}
 
 		JSONArray selectedHandles = identity.getJSONArray("selectedHandles");
 		for (int i = 0; i < selectedHandles.length(); i++) {
@@ -154,6 +159,11 @@ public class IdRepoArrayHandle {
 		// More-specific patterns checked before substrings they contain.
 		if (testCaseName.contains("_withdeletehandlefromrecord")) {
 			applyDeleteHandleFromRecord(identity);
+			return jsonObj.toString();
+		}
+		// Removes only the email handle, leaving other handles untouched, so its value can be reused later.
+		if (testCaseName.contains("_removeSavedEmailHandle")) {
+			removeHandleFromIdentity(identity, emailFieldName);
 			return jsonObj.toString();
 		}
 		if (testCaseName.contains("_withemptyhandles")) {
@@ -337,6 +347,9 @@ public class IdRepoArrayHandle {
 			applyWithUpdateValues(handleArray, handle, resolveEmailFieldName());
 		} else if (testCaseName.contains("_withmultiplevalues")) {
 			putMultipleValues(handleArray);
+		} else if (testCaseName.contains("_appendUntaggedValuesToArrayHandle")
+				&& handle.equals(IdRepoUtil.resolveHandleOfType("array"))) {
+			applyAppendUntaggedValues(handleArray, handle);
 		} else if (testCaseName.contains("_withupdatetagsandhandles")) {
 			applyWithUpdateTagsAndHandles(handleArray);
 		} else if (testCaseName.contains("_withupdatetags")) {
@@ -516,6 +529,19 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/** Replays only the saved email value onto this identity, to prove a freed handle value is reusable. */
+	private static void applySavedEmailValueOnly(JSONObject identity) {
+		String emailField = resolveEmailFieldName();
+		String savedEmail = savedHandleValues.get(emailField);
+		if (savedEmail == null) {
+			throw new IllegalStateException("No saved email handle value is available for reuse");
+		}
+		if (!identity.has(emailField)) {
+			throw new IllegalStateException("Email handle field is absent from the identity");
+		}
+		writeHandleValue(identity, emailField, savedEmail);
+	}
+
 	private static String resolveEmailFieldName() {
 		String email = AdminTestUtil.getValueFromAuthActuator("json-property", "emailId");
 		return email.replaceAll("\\[\"|\"]", "");
@@ -529,6 +555,16 @@ public class IdRepoArrayHandle {
 		for (int j = 0; j < handleArray.length(); j++) {
 			handleArray.getJSONObject(j).put("values", valuesArray);
 		}
+	}
+
+	/** Appends two more untagged values to an existing array-typed handle, to prove tags don't gate status. */
+	private static void applyAppendUntaggedValues(JSONArray handleArray, String handle) {
+		JSONObject second = new JSONObject();
+		second.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+		JSONObject third = new JSONObject();
+		third.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+		handleArray.put(second);
+		handleArray.put(third);
 	}
 
 	// ===== AddIdentity Private Handlers =====

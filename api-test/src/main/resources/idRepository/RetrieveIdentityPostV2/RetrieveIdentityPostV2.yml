@@ -269,3 +269,164 @@ RetrieveIdentityPostV2:
       }
     ]
 }'
+
+  IdRepository_RetrieveIdentityPostV2_WithInvalidClaimFilteredOut_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Confirmed against qa-country — after Add succeeds (status ACTIVATED) with an invalid/unknown claim (not part of the IdSchema) submitted alone in a claims list, verifiedAttributes is persisted as an empty array, not the entry that was submitted. verifiedAttributes is deliberately NOT asserted below, despite that finding — this framework's JSON-path output comparison (JsonPrecondtion.readArray) never emits a comparable path for a zero-length array on either side, so there is no way to express "field is an empty array" here. Any attempt either false-fails (a literal null does generate a path but never matches an actual empty array) or silently no-ops (a literal empty array generates no path on the expected side either, so nothing gets compared). Only status is checked here; verifiedAttributes emptiness would need a custom assertion outside the standard YAML-driven comparison to verify.
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_13
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2VerifiedAttributesResult
+      input: '{
+    "id": "$ID:AddIdentityV2_WithInvalidClaim_Pos_UIN$",
+    "type": "all",
+    "idType": "UIN",
+    "fingerExtractionFormat": "",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+    "status": "ACTIVATED"
+}'
+
+  # Verifies persisted verifiedAttributes[0] for TC_IDRepo_UpdateIdentityV2_42 (replaced with new trustFramework/verificationProcess).
+  IdRepository_RetrieveIdentityPostV2_VerifyUpdateFieldIdWithNewVerificationDetails_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Verify that after Update Identity V2 replaces a fieldId's verification details with a completely new trustFramework/verificationProcess (TC_IDRepo_UpdateIdentityV2_42), Retrieve Identity V2 returns only the new verification details.
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_14
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2VerifiedAttributesDetailResult
+      input: '{
+    "id": "$ID:AddIdentityV2_ForUpdateNewVerificationDetails_Base_Pos_UIN$",
+    "type": "all",
+    "idType": "UIN",
+    "fingerExtractionFormat": "",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+    "status": "ACTIVATED",
+    "verifiedAttributes": [
+      {
+        "trustFramework": "kyc",
+        "verificationProcess": "online_video",
+        "claims": ["phone"],
+        "metadata": {
+          "trust_framework": "kyc",
+          "verification_process": "online_video",
+          "assurance_level": "Land"
+        }
+      }
+    ]
+}'
+
+  # Verifies persisted verifiedAttributes[0] for TC_IDRepo_UpdateIdentityV2_43 (optional attribute changed).
+  IdRepository_RetrieveIdentityPostV2_VerifyUpdateOptionalAttributeForExistingVerificationDetails_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Verify that after Update Identity V2 replaces a fieldId's verification details when only an optional attribute (assurance_level/assurance_process) is changed (TC_IDRepo_UpdateIdentityV2_43), Retrieve Identity V2 returns the updated optional attributes.
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_15
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2VerifiedAttributesDetailResult
+      input: '{
+    "id": "$ID:AddIdentityV2_ForUpdateOptionalAttribute_Base_Pos_UIN$",
+    "type": "all",
+    "idType": "UIN",
+    "fingerExtractionFormat": "",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+    "status": "ACTIVATED",
+    "verifiedAttributes": [
+      {
+        "trustFramework": "internal",
+        "verificationProcess": "otp_verified",
+        "claims": ["phone"],
+        "metadata": {
+          "trust_framework": "internal",
+          "verification_process": "otp_verified",
+          "assurance_level": "Land",
+          "assurance_process": {
+            "level": "Land",
+            "policy": "internal-policy",
+            "procedure": "otp-verification"
+          }
+        }
+      }
+    ]
+}'
+
+  # Verifies persisted verifiedAttributes[0] for TC_IDRepo_UpdateIdentityV2_44 (required attribute replaced, not appended).
+  IdRepository_RetrieveIdentityPostV2_VerifyUpdateRequiredAttributeForExistingVerificationDetails_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Verify that after Update Identity V2 replaces (not appends) a fieldId's verification details when only one required attribute (verificationProcess) is changed (TC_IDRepo_UpdateIdentityV2_44), Retrieve Identity V2 returns only the new verificationProcess at index 0.
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_16
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2VerifiedAttributesDetailResult
+      input: '{
+    "id": "$ID:AddIdentityV2_ForUpdateRequiredAttribute_Base_Pos_UIN$",
+    "type": "all",
+    "idType": "UIN",
+    "fingerExtractionFormat": "",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+    "status": "ACTIVATED",
+    "verifiedAttributes": [
+      {
+        "trustFramework": "internal",
+        "verificationProcess": "online_video",
+        "claims": ["phone"],
+        "metadata": {
+          "trust_framework": "internal",
+          "verification_process": "online_video",
+          "assurance_level": "Home"
+        }
+      }
+    ]
+}'
+
+  # Verifies persisted verifiedAttributes[0] for TC_IDRepo_UpdateIdentityV2_45 (untouched when omitted from the update).
+  IdRepository_RetrieveIdentityPostV2_VerifyUpdateFieldIdValueWithoutVerifiedAttributes_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Verify that after Update Identity V2 updates a fieldId's (fullName) identity value without sending verifiedAttributes at all (TC_IDRepo_UpdateIdentityV2_45), Retrieve Identity V2 shows the original verification details untouched.
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_17
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2VerifiedAttributesDetailResult
+      input: '{
+    "id": "$ID:AddIdentityV2_WithFullNameVerified_Base_Pos_UIN$",
+    "type": "all",
+    "idType": "UIN",
+    "fingerExtractionFormat": "",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+    "status": "ACTIVATED",
+    "verifiedAttributes": [
+      {
+        "trustFramework": "internal",
+        "verificationProcess": "otp_verified",
+        "claims": ["fullName"],
+        "metadata": {
+          "trust_framework": "internal",
+          "verification_process": "otp_verified",
+          "assurance_level": "Home"
+        }
+      }
+    ]
+}'
+
+  # TC_IDRepo_UpdateIdentityV2_41 is not verified here: its UIN is shared by 30+ other Update tests, so its final state can't be pinned down.
+  # TC_IDRepo_UpdateIdentityV2_46/_47 are not verified here: both append to the same UIN sequentially, so the resulting array order is unverified.
+  # _47 specifically also can't be asserted at all: its claim is the schema-resolved $OPTIONALSCHEMAFIELD$ token, which only resolves on the Update input path (UpdateIdentity.java) and has no equivalent on this Retrieve test's expected-output path.
