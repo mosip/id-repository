@@ -1,6 +1,7 @@
 package io.mosip.testrig.apirig.idrepo.utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -198,7 +199,9 @@ public class IdRepoUtil extends AdminTestUtil {
 	/** First handle field of the given schema "type", or null if none — schema-driven, no field names. */
 	public static String resolveHandleOfType(String type) {
 		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
-		for (String fieldName : props.keySet()) {
+		List<String> fieldNames = new ArrayList<>(props.keySet());
+		Collections.sort(fieldNames);
+		for (String fieldName : fieldNames) {
 			JSONObject fieldDef = props.getJSONObject(fieldName);
 			if (fieldDef.optBoolean("handle", false) && type.equals(fieldDef.optString("type", "string"))) {
 				return fieldName;
@@ -215,7 +218,9 @@ public class IdRepoUtil extends AdminTestUtil {
 	/** First handle field that is also required, or null if none. */
 	public static String resolveRequiredHandle() {
 		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
-		for (String fieldName : props.keySet()) {
+		List<String> fieldNames = new ArrayList<>(props.keySet());
+		Collections.sort(fieldNames);
+		for (String fieldName : fieldNames) {
 			if (props.getJSONObject(fieldName).optBoolean("handle", false)
 					&& isElementPresent(globalRequiredFields, fieldName)) {
 				return fieldName;
@@ -233,7 +238,9 @@ public class IdRepoUtil extends AdminTestUtil {
 	/** First schema field that's claimable but not required — resolved from the live schema, excluding handles and complex $ref types. */
 	public static String resolveOptionalClaimableField() {
 		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
-		for (String fieldName : props.keySet()) {
+		List<String> fieldNames = new ArrayList<>(props.keySet());
+		Collections.sort(fieldNames);
+		for (String fieldName : fieldNames) {
 			if (isElementPresent(globalRequiredFields, fieldName)) {
 				continue;
 			}

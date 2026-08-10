@@ -1584,11 +1584,11 @@ UpdateIdentityV2:
     input: '{
       "id":"mosip.id.update",
       "registrationId":"$RID$",
-      "UIN":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_UIN$",
+      "UIN":"$ID:AddIdentityV2_ForUpdateSameVerificationDetails_Base_Pos_UIN$",
       "status":"ACTIVATED",
       "dateOfBirth":"1992/04/15",
       "email":"$EMAILVALUE$",
-      "phone":"$ID:AddIdentityV2_WithSingleValidVerifiedAttributes_Smoke_Pos_PHONE$",
+      "phone":"$ID:AddIdentityV2_ForUpdateSameVerificationDetails_Base_Pos_PHONE$",
       "verifiedAttributes":[
         {
           "trustFramework": "internal",
