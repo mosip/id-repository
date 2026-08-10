@@ -257,7 +257,3 @@ GenerateUIN:
       output: '{
   "status":"ACTIVATED"
 }'
-
-
-
-

@@ -1,7 +1,7 @@
 RegenerateVid:
   IdRepository_RegenerateVid_Smoke_Pos:
       endPoint: /idrepository/v1/vid/{VID}/regenerate
-      description: Verify that the system successfully regenerates a VID when the API is called with a valid UIN
+      description: Verify that the system successfully regenerates a VID when the API is called with a valid VID
       uniqueIdentifier: TC_IDRepo_RegenerateVID_01
       role: resident
       checkErrorsOnlyInResponse: true
