@@ -761,7 +761,13 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
 			UinDraft draft = uinDraftOpt.get();
-			draft.setUin(super.getUinToEncrypt(uin));
+			// onFlushDirty only encrypts uinData, not the uin field. Encrypt manually here
+			// to match the format produced by the onSave interceptor so decryptUin works.
+			int saltId = securityManager.getSaltKeyForId(uin);
+			String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(saltId);
+			byte[] encryptedUinBytes = securityManager.encryptWithSalt(
+					uin.getBytes(), CryptoUtil.decodePlainBase64(encryptSalt), uinRefId);
+			draft.setUin(saltId + SPLITTER + new String(encryptedUinBytes));
 			draft.setUinHash(super.getUinHash(uin));
 			draft.setUpdatedBy(IdRepoSecurityManager.getUser());
 			draft.setUpdatedDateTime(DateUtils2.getUTCCurrentDateTime());
