@@ -65,8 +65,7 @@
 		</classes>
 	</test>
 
-	<!-- Runs after UpdateIdentityArrayHandle: reuses an email value freed by
-	     TC_IDRepo_UpdateIdentityArrayHandle_36 in a brand-new Add Identity call. -->
+	<!-- Runs after UpdateIdentityArrayHandle: reuses an email value freed by TC_IDRepo_UpdateIdentityArrayHandle_36 in a brand-new Add Identity call. -->
 	<test name="AddIdentityArrayHandlePostUpdate">
 		<parameter name="ymlFile"
 			value="idRepository/AddIdentity/AddIdentityArrayHandlePostUpdate.yml" />
@@ -279,6 +278,24 @@
 			value="idRepository/AuthInternalUnlock/AuthInternalUnlock.yml" />
 		<classes>
 			<class name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePost" />
+		</classes>
+	</test>
+
+	<!-- BLOCKED is a one-way UIN status transition (not reverted like DEACTIVATED/ACTIVATED elsewhere in this suite), so this whole flow runs last, against its own dedicated throwaway identity, so it can't affect any earlier test's assumptions. -->
+	<test name="AddIdentityForBlockedHandleCheck">
+		<parameter name="ymlFile"
+			value="idRepository/AddIdentity/AddIdentityForBlockedHandleCheck.yml" />
+		<classes>
+			<class name="io.mosip.testrig.apirig.idrepo.testscripts.AddIdentity" />
+		</classes>
+	</test>
+
+	<test name="UpdateIdentityBlockedHandleCheck">
+		<parameter name="ymlFile"
+			value="idRepository/UpdateIdentity/UpdateIdentityBlockedHandleCheck.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.UpdateIdentity" />
 		</classes>
 	</test>
 

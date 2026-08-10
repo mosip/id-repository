@@ -1,0 +1,22 @@
+UpdateIdentity:
+  IdRepository_UpdateIdentity_BLOCKED_forHandleCheck_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      description: Block the throwaway identity from AddIdentityForBlockedHandleCheck.yml. Confirms the Update Identity API accepts status=BLOCKED (a valid value per mosip.idrepo.identity.uin-status) and echoes it back. Per CredentialServiceManager.sendUINEventToIDA this should also cascade all of this UIN's handles to DELETE_REQUESTED in idrepo.handle, but that downstream effect is NOT asserted here - a DB-level check for it was deliberately removed as an unreliable weak signal on a shared live environment (see git history). Intentionally not reverted back to ACTIVATED - this identity is throwaway and BLOCKED is not expected to be a reversible transition.
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityBlockedHandleCheck_01
+      requiredHandleFields: [email]
+      additionalDependencies: TC_IDRepo_AddIdentityForBlockedHandleCheck_01
+      role: testrig
+      restMethod: patch
+      inputTemplate: idRepository/UpdateIdentity/updateIdentity
+      outputTemplate: idRepository/UpdateIdentity/updateIdentityResult
+      input: '{
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentity_forBlockedHandleCheck_smoke_Pos_UIN$",
+      "status": "BLOCKED",
+      "dateOfBirth": "1992/04/15",
+      "requesttime": "$TIMESTAMP$",
+      "version": "v1"
+      }'
+      output: '{
+    "status": "BLOCKED"
+}'
