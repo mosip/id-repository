@@ -1,6 +1,7 @@
 package io.mosip.testrig.apirig.idrepo.utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -90,8 +91,16 @@ public class IdRepoUtil extends AdminTestUtil {
 			throw new SkipException(
 					"No array-typed handle in the current IdSchema — " + GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
+		if (testCaseName.contains("_appendUntaggedValuesToArrayHandle") && !schemaHasHandleOfType("array")) {
+			throw new SkipException(
+					"No array-typed handle in the current IdSchema — " + GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
+		}
 		if (testCaseName.contains("_extraNonSchemaField") && schemaAllowsAdditionalProperties()) {
 			throw new SkipException("Schema permits additional properties, unknown-field rejection not applicable — "
+					+ GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
+		}
+		if (testCaseName.contains("_optionalFieldNotInAdd") && !schemaHasOptionalClaimableField()) {
+			throw new SkipException("No optional (non-required) claimable field in the current IdSchema — "
 					+ GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
 
@@ -190,7 +199,9 @@ public class IdRepoUtil extends AdminTestUtil {
 	/** First handle field of the given schema "type", or null if none — schema-driven, no field names. */
 	public static String resolveHandleOfType(String type) {
 		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
-		for (String fieldName : props.keySet()) {
+		List<String> fieldNames = new ArrayList<>(props.keySet());
+		Collections.sort(fieldNames);
+		for (String fieldName : fieldNames) {
 			JSONObject fieldDef = props.getJSONObject(fieldName);
 			if (fieldDef.optBoolean("handle", false) && type.equals(fieldDef.optString("type", "string"))) {
 				return fieldName;
@@ -207,7 +218,9 @@ public class IdRepoUtil extends AdminTestUtil {
 	/** First handle field that is also required, or null if none. */
 	public static String resolveRequiredHandle() {
 		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
-		for (String fieldName : props.keySet()) {
+		List<String> fieldNames = new ArrayList<>(props.keySet());
+		Collections.sort(fieldNames);
+		for (String fieldName : fieldNames) {
 			if (props.getJSONObject(fieldName).optBoolean("handle", false)
 					&& isElementPresent(globalRequiredFields, fieldName)) {
 				return fieldName;
@@ -220,6 +233,37 @@ public class IdRepoUtil extends AdminTestUtil {
 	public static boolean schemaAllowsAdditionalProperties() {
 		AdminTestUtil.getIdentitySchemaProperties(); // ensure the flag is populated
 		return Boolean.TRUE.equals(AdminTestUtil.globalIdentityAdditionalProperties);
+	}
+
+	/** First schema field that's claimable but not required — resolved from the live schema, excluding handles and complex $ref types. */
+	public static String resolveOptionalClaimableField() {
+		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
+		List<String> fieldNames = new ArrayList<>(props.keySet());
+		Collections.sort(fieldNames);
+		for (String fieldName : fieldNames) {
+			if (isElementPresent(globalRequiredFields, fieldName)) {
+				continue;
+			}
+			JSONObject fieldDef = props.getJSONObject(fieldName);
+			if (fieldDef.optBoolean("handle", false)) {
+				continue;
+			}
+			String ref = fieldDef.optString("$ref", "");
+			if (ref.contains("documentType") || ref.contains("biometricsType") || ref.contains("hashType")
+					|| ref.contains("TaggedListType")) {
+				continue;
+			}
+			if (fieldName.equals("selectedHandles") || fieldName.equals("IDSchemaVersion")) {
+				continue;
+			}
+			return fieldName;
+		}
+		return null;
+	}
+
+	/** True when the schema has at least one field {@link #resolveOptionalClaimableField()} would return. */
+	public static boolean schemaHasOptionalClaimableField() {
+		return resolveOptionalClaimableField() != null;
 	}
 
 }
