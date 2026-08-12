@@ -405,3 +405,24 @@ UpdateIdentity:
       output: '{
     "status": "DEACTIVATED"
 }'
+
+  IdRepository_UpdateIdentity_WithVerifiedAttributeAsListOfString_Pos:
+      endPoint: /idrepository/v1/identity/
+      description: Validate that Update Identity V1 successfully updates the verifiedAttribute fieldId list, e.g. from ["fullName","address"] to ["address"]
+      uniqueIdentifier: TC_IDRepo_UpdateIdentity_18
+      role: testrig
+      restMethod: patch
+      inputTemplate: idRepository/UpdateIdentity/updateIdentity
+      outputTemplate: idRepository/UpdateIdentity/updateIdentityResult
+      input: '{
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentity_WithVerifiedAttributeAsListOfString_Pos_UIN$",
+      "status": "ACTIVATED",
+      "dateOfBirth": "1992/04/15",
+      "verifiedAttribute": ["address"],
+      "requesttime": "$TIMESTAMP$",
+      "version": "v1"
+      }'
+      output: '{
+    "status": "ACTIVATED"
+}'

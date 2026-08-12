@@ -38,7 +38,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -107,7 +107,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -159,7 +159,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -214,7 +214,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -249,7 +249,7 @@ AddIdentityV2:
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": [],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -284,7 +284,7 @@ AddIdentityV2:
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": "$REMOVE$",
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -319,7 +319,7 @@ AddIdentityV2:
   "referenceIdentityNumber": "6789545678878",
   "verifiedAttributes": {},
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -372,7 +372,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -425,7 +425,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -477,7 +477,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -531,7 +531,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -585,7 +585,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -639,7 +639,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -751,7 +751,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -765,7 +765,7 @@ AddIdentityV2:
     }
   ]
 }'
-  IdRepository_AddIdentityV2_WithInvalidClaim_Neg:
+  IdRepository_AddIdentityV2_WithInvalidClaim_Pos:
       endPoint: /idrepository/v1/identity/v2
       description: Add Identity V2 accepts an unknown claim/fieldId not in the IdSchema; the claim itself is not persisted, but the identity is still created (ACTIVATED)
       uniqueIdentifier: TC_IDRepo_AddIdentityV2_16
@@ -779,11 +779,11 @@ AddIdentityV2:
   "registrationId": "$RID$",
   "addressCopy": "Y",
   "biometricReferenceId": "23452353",
- 
+
    "UIN": "$UIN$",
-   
+
   "dateOfBirth": "1992/04/15",
-   
+
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
   "phone": "$PHONENUMBERFORIDENTITY$",
@@ -803,11 +803,11 @@ AddIdentityV2:
       }
     }
   ],
-  
-  "version": "v2",
+
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
-   
+
    "category": "individualBiometrics",
    "requesttime": "$TIMESTAMP$"
 }'
@@ -851,7 +851,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -923,7 +923,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -971,7 +971,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1022,7 +1022,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1073,7 +1073,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1120,7 +1120,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1166,7 +1166,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1219,7 +1219,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1272,7 +1272,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1320,7 +1320,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1371,7 +1371,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1425,7 +1425,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1479,7 +1479,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1533,7 +1533,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1587,7 +1587,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1641,7 +1641,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1694,7 +1694,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1747,7 +1747,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1797,7 +1797,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1846,7 +1846,7 @@ AddIdentityV2:
       }
     ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1901,7 +1901,7 @@ AddIdentityV2:
       }
     ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -1954,7 +1954,7 @@ AddIdentityV2:
       }
     ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -2006,7 +2006,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -2059,7 +2059,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -2108,7 +2108,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -2157,7 +2157,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -2206,7 +2206,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -2256,7 +2256,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -2305,7 +2305,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -2355,7 +2355,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -2404,7 +2404,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -2473,7 +2473,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -2542,7 +2542,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -2607,7 +2607,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -2656,7 +2656,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -2709,7 +2709,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -2759,7 +2759,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -2815,7 +2815,7 @@ AddIdentityV2:
     }
   ],
   
-  "version": "v2",
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
    
@@ -2886,11 +2886,11 @@ AddIdentityV2:
       }
     }
   ],
-  
-  "version": "v2",
+
+  "version": "v1",
   "introducerRID": "212124324784879",
   "introducerUIN": "212124324784879",
-   
+
    "category": "individualBiometrics",
    "requesttime": "$TIMESTAMP$"
 }'
@@ -2900,4 +2900,667 @@ AddIdentityV2:
        "errorCode": "IDR-IDC-015"
     }
   ]
+}'
+  IdRepository_AddIdentityV2_WithMultipleVerificationDetailsForSingleFieldId_Pos:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate that Add Identity V2 successfully creates identity when a single fieldId has multiple verification details under verifiedAttributes
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_56
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+
+   "UIN": "$UIN$",
+
+  "dateOfBirth": "1992/04/15",
+
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "otp_verified",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    },
+    {
+      "trustFramework": "kyc",
+      "verificationProcess": "online_video",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "kyc",
+        "verification_process": "online_video",
+        "assurance_level": "Land",
+        "time": "2025-07-01T06:20:00.000Z"
+      }
+    }
+  ],
+
+  "version": "v1",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_WithMultipleFieldIdsAndMultipleVerificationDetails_Pos:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate that Add Identity V2 successfully creates identity when multiple fieldIds each have multiple verification details under verifiedAttributes
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_57
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+
+   "UIN": "$UIN$",
+
+  "dateOfBirth": "1992/04/15",
+
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "otp_verified",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    },
+    {
+      "trustFramework": "kyc",
+      "verificationProcess": "online_video",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "kyc",
+        "verification_process": "online_video",
+        "assurance_level": "Land",
+        "time": "2025-07-01T06:20:00.000Z"
+      }
+    },
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "video_verified",
+      "claims": [
+        "email"
+      ],
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "video_verified",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:30:00.000Z"
+      }
+    },
+    {
+      "trustFramework": "kyc",
+      "verificationProcess": "document_verified",
+      "claims": [
+        "email"
+      ],
+      "metadata": {
+        "trust_framework": "kyc",
+        "verification_process": "document_verified",
+        "assurance_level": "Land",
+        "time": "2025-07-01T06:40:00.000Z"
+      }
+    }
+  ],
+
+  "version": "v1",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_WithVerifiedAttributesAsMap_Neg:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate that Add Identity V2 rejects the request when verifiedAttributes is provided as a map (key as fieldId, value as verification details) instead of the required list/array structure
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_58
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+
+   "UIN": "$UIN$",
+
+  "dateOfBirth": "1992/04/15",
+
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": {
+    "phone": {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "otp_verified",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    },
+    "email": {
+      "trustFramework": "kyc",
+      "verificationProcess": "online_video",
+      "metadata": {
+        "trust_framework": "kyc",
+        "verification_process": "online_video",
+        "assurance_level": "Land",
+        "time": "2025-07-01T06:20:00.000Z"
+      }
+    }
+  },
+
+  "version": "v1",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "errors": [
+    {
+       "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+  IdRepository_AddIdentityV2_WithOnlyRequiredVerificationDetails_Pos:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate that Add Identity V2 successfully creates identity when only the required verification details (trustFramework, verificationProcess, metadata trust_framework/verification_process/time) are provided for a fieldId in verifiedAttributes
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_59
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+
+   "UIN": "$UIN$",
+
+  "dateOfBirth": "1992/04/15",
+
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "otp_verified",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+
+  "version": "v1",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_WithRequiredAndOptionalVerificationDetails_Pos:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate that Add Identity V2 successfully creates identity when both required and optional (assurance_level, assurance_process) verification details are provided for a fieldId in verifiedAttributes
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_60
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+
+   "UIN": "$UIN$",
+
+  "dateOfBirth": "1992/04/15",
+
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "kyc",
+      "verificationProcess": "online_video",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "kyc",
+        "verification_process": "online_video",
+        "assurance_level": "Land",
+        "time": "2025-07-01T06:03:22.339Z",
+        "assurance_process": {
+          "level": "Land",
+          "policy": "kyc-policy",
+          "procedure": "video-identification"
+        }
+      }
+    }
+  ],
+
+  "version": "v1",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_WithOnlyOptionalVerificationDetails_Neg:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate that Add Identity V2 throws a missing input parameter error when only optional verification details (assurance_level, assurance_process) are provided for a fieldId in verifiedAttributes without the required trustFramework/verificationProcess
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_61
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+
+   "UIN": "$UIN$",
+
+  "dateOfBirth": "1992/04/15",
+
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "assurance_level": "Land",
+        "assurance_process": {
+          "level": "Land",
+          "policy": "kyc-policy",
+          "procedure": "video-identification"
+        }
+      }
+    }
+  ],
+
+  "version": "v1",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+     {
+        "errorCode": "IDR-IDC-016"
+     }
+   ]
+}'
+  IdRepository_AddIdentityV2_ForUpdateNewVerificationDetails_Base_Pos:
+      endPoint: /idrepository/v1/identity/v2
+      description: Prerequisite identity (phone verified via trustFramework A) used to validate that updating a fieldId with a completely new trustFramework/verificationProcess replaces its verification details
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_62
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+
+   "UIN": "$UIN$",
+
+  "dateOfBirth": "1992/04/15",
+
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "otp_verified",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+
+  "version": "v1",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_ForUpdateOptionalAttribute_Base_Pos:
+      endPoint: /idrepository/v1/identity/v2
+      description: Prerequisite identity (phone verified via trustFramework A) used to validate that updating only an optional attribute for a fieldId's existing verification details replaces them
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_63
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+
+   "UIN": "$UIN$",
+
+  "dateOfBirth": "1992/04/15",
+
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "otp_verified",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+
+  "version": "v1",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_ForUpdateRequiredAttribute_Base_Pos:
+      endPoint: /idrepository/v1/identity/v2
+      description: Prerequisite identity (phone verified via trustFramework A) used to validate that updating only one required attribute (trustFramework or verificationProcess) for a fieldId's existing verification details replaces them
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_64
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+
+   "UIN": "$UIN$",
+
+  "dateOfBirth": "1992/04/15",
+
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "otp_verified",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+
+  "version": "v1",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_WithFullNameVerified_Base_Pos:
+      endPoint: /idrepository/v1/identity/v2
+      description: Prerequisite identity with fullName verified via trustFramework/verificationProcess, used to validate that updating fullName's identity value without sending verifiedAttributes leaves its verification details untouched
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_65
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+
+   "UIN": "$UIN$",
+
+  "dateOfBirth": "1992/04/15",
+
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "fullName"
+      ],
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "otp_verified",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+
+  "version": "v1",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_ForUpdateSameVerificationDetails_Base_Pos:
+      endPoint: /idrepository/v1/identity/v2
+      description: Prerequisite identity (phone verified via internal/otp_verified) used to validate that resubmitting the same verification details for a fieldId is accepted
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_67
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentityV2/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+
+   "UIN": "$UIN$",
+
+  "dateOfBirth": "1992/04/15",
+
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "otp_verified",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+
+  "version": "v1",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+  IdRepository_AddIdentityV2_WithTrustFrameworkAndVerificationProcessKeyButNoValue_Neg:
+      endPoint: /idrepository/v1/identity/v2
+      description: Validate that Add Identity V2 throws a missing input parameter error when trustFramework/verificationProcess (required per mosip-config) are provided as keys with empty values for a fieldId in verifiedAttributes
+      uniqueIdentifier: TC_IDRepo_AddIdentityV2_66
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/error
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+
+   "UIN": "$UIN$",
+
+  "dateOfBirth": "1992/04/15",
+
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "",
+      "verificationProcess": "",
+      "claims": [
+        "phone"
+      ],
+      "metadata": {
+        "trust_framework": "",
+        "verification_process": "",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ],
+
+  "version": "v1",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+     {
+        "errorCode": "IDR-IDC-016"
+     }
+   ]
 }'

@@ -1623,7 +1623,7 @@ AddIdentity:
       output: '{
    "errors": [
     {
-      "errorCode": "IDR-IDC-002"
+      "errorCode": "IDR-IDC-001"
     }
   ]
 }'

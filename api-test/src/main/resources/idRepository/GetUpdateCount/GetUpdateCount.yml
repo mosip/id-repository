@@ -177,7 +177,7 @@ GetUpdateCount:
   ]
 }'
 
-   IdRepository_GetUpdateCount_Uinn_StatusCode_Invalid_Token:
+   IdRepository_GetUpdateCount_Vid_StatusCode_Invalid_Token:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
       description: Verify that the system rejects getting the update count when the API is called with an invalid token
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_10

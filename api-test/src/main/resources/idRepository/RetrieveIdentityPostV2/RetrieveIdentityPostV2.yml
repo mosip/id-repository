@@ -269,3 +269,156 @@ RetrieveIdentityPostV2:
       }
     ]
 }'
+
+  IdRepository_RetrieveIdentityPostV2_WithInvalidClaimFilteredOut_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: After Add with an unknown claim, verifiedAttributes persists as an empty array; only status is asserted here, as the framework can't express an empty-array comparison.
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_13
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2VerifiedAttributesResult
+      input: '{
+    "id": "$ID:AddIdentityV2_WithInvalidClaim_Pos_UIN$",
+    "type": "all",
+    "idType": "UIN",
+    "fingerExtractionFormat": "",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+    "status": "ACTIVATED"
+}'
+
+  IdRepository_RetrieveIdentityPostV2_VerifyUpdateFieldIdWithNewVerificationDetails_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: After Update replaces a fieldId's verification details with a new trustFramework/verificationProcess, Retrieve returns only the new details.
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_14
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2VerifiedAttributesDetailResult
+      input: '{
+    "id": "$ID:AddIdentityV2_ForUpdateNewVerificationDetails_Base_Pos_UIN$",
+    "type": "all",
+    "idType": "UIN",
+    "fingerExtractionFormat": "",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+    "status": "ACTIVATED",
+    "verifiedAttributes": [
+      {
+        "trustFramework": "kyc",
+        "verificationProcess": "online_video",
+        "claims": ["phone"],
+        "metadata": {
+          "trust_framework": "kyc",
+          "verification_process": "online_video",
+          "assurance_level": "Land"
+        }
+      }
+    ]
+}'
+
+  IdRepository_RetrieveIdentityPostV2_VerifyUpdateOptionalAttributeForExistingVerificationDetails_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: After Update replaces a fieldId's verification details for an optional-attribute-only change, Retrieve returns the updated optional attributes.
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_15
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2VerifiedAttributesDetailResult
+      input: '{
+    "id": "$ID:AddIdentityV2_ForUpdateOptionalAttribute_Base_Pos_UIN$",
+    "type": "all",
+    "idType": "UIN",
+    "fingerExtractionFormat": "",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+    "status": "ACTIVATED",
+    "verifiedAttributes": [
+      {
+        "trustFramework": "internal",
+        "verificationProcess": "otp_verified",
+        "claims": ["phone"],
+        "metadata": {
+          "trust_framework": "internal",
+          "verification_process": "otp_verified",
+          "assurance_level": "Land",
+          "assurance_process": {
+            "level": "Land",
+            "policy": "internal-policy",
+            "procedure": "otp-verification"
+          }
+        }
+      }
+    ]
+}'
+
+  IdRepository_RetrieveIdentityPostV2_VerifyUpdateRequiredAttributeForExistingVerificationDetails_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: After Update replaces (not appends) a fieldId's verification details for a required-attribute-only change, Retrieve returns only the new verificationProcess at index 0.
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_16
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2VerifiedAttributesDetailResult
+      input: '{
+    "id": "$ID:AddIdentityV2_ForUpdateRequiredAttribute_Base_Pos_UIN$",
+    "type": "all",
+    "idType": "UIN",
+    "fingerExtractionFormat": "",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+    "status": "ACTIVATED",
+    "verifiedAttributes": [
+      {
+        "trustFramework": "internal",
+        "verificationProcess": "online_video",
+        "claims": ["phone"],
+        "metadata": {
+          "trust_framework": "internal",
+          "verification_process": "online_video",
+          "assurance_level": "Home"
+        }
+      }
+    ]
+}'
+
+  IdRepository_RetrieveIdentityPostV2_VerifyUpdateFieldIdValueWithoutVerifiedAttributes_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: After Update changes fullName's identity value without sending verifiedAttributes, Retrieve shows the original verification details untouched.
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_17
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2VerifiedAttributesDetailResult
+      input: '{
+    "id": "$ID:AddIdentityV2_WithFullNameVerified_Base_Pos_UIN$",
+    "type": "all",
+    "idType": "UIN",
+    "fingerExtractionFormat": "",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+    "status": "ACTIVATED",
+    "verifiedAttributes": [
+      {
+        "trustFramework": "internal",
+        "verificationProcess": "otp_verified",
+        "claims": ["fullName"],
+        "metadata": {
+          "trust_framework": "internal",
+          "verification_process": "otp_verified",
+          "assurance_level": "Home"
+        }
+      }
+    ]
+}'

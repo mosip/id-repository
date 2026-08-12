@@ -1,0 +1,37 @@
+AddIdentity:
+   IdRepository_AddIdentity_withReusableEmailAfterRemoval:
+      endPoint: /idrepository/v1/identity/
+      description: After user1's email handle was removed via update (TC_IDRepo_UpdateIdentityArrayHandle_36), a new identity maps the same freed email value as a handle - must be accepted, not rejected as a duplicate
+      uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandlePostUpdate_01
+      requiredHandleFields: [email]
+      additionalDependencies: TC_IDRepo_UpdateIdentityArrayHandle_36
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+
+   "UIN": "$UIN$",
+
+  "dateOfBirth": "1992/04/15",
+
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'

@@ -1,0 +1,22 @@
+UpdateIdentity:
+  IdRepository_UpdateIdentity_BLOCKED_forHandleCheck_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      description: Blocks the throwaway identity; confirms status=BLOCKED is accepted and echoed back.
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityBlockedHandleCheck_01
+      requiredHandleFields: [email]
+      additionalDependencies: TC_IDRepo_AddIdentityForBlockedHandleCheck_01
+      role: testrig
+      restMethod: patch
+      inputTemplate: idRepository/UpdateIdentity/updateIdentity
+      outputTemplate: idRepository/UpdateIdentity/updateIdentityResult
+      input: '{
+      "registrationId":"$RID$",
+      "UIN":"$ID:AddIdentity_forBlockedHandleCheck_smoke_Pos_UIN$",
+      "status": "BLOCKED",
+      "dateOfBirth": "1992/04/15",
+      "requesttime": "$TIMESTAMP$",
+      "version": "v1"
+      }'
+      output: '{
+    "status": "BLOCKED"
+}'
