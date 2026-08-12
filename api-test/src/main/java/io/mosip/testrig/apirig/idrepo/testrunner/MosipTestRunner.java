@@ -95,11 +95,26 @@ public class MosipTestRunner {
 			BaseTestCase.getLanguageList();
 			AdminTestUtil.getLocationData();
 			
-			// Generate device certificates to be consumed by Mock-MDS
-			PartnerRegistration.deleteCertificates();
-			PartnerRegistration.deviceGeneration();
+			// Skip only when explicitly requested. Local compose now has mosip-pms-client + PMS stubs.
+			boolean skipPartnerSetup = Boolean.parseBoolean(
+					System.getProperty("idrepo.skipPartnerSetup", "false"));
+			if (skipPartnerSetup) {
+				LOGGER.warn("Skipping PartnerRegistration.deviceGeneration() "
+						+ "(-Didrepo.skipPartnerSetup=true).");
+			} else {
+				PartnerRegistration.deleteCertificates();
+				PartnerRegistration.deviceGeneration();
+			}
 
-			BiometricDataProvider.generateBiometricTestData("Registration");
+			try {
+				BiometricDataProvider.generateBiometricTestData("Registration");
+			} catch (Exception bioEx) {
+				if (skipPartnerSetup) {
+					LOGGER.warn("Biometric test data generation skipped/failed in local mode: " + bioEx.getMessage());
+				} else {
+					throw bioEx;
+				}
+			}
 			
 			String testCasesToExecuteString = IdRepoConfigManager.getproperty("testCasesToExecute");
 			
@@ -146,6 +161,9 @@ public class MosipTestRunner {
 		else
 			LOGGER.info("Test Framework for Mosip api Initialized");
 		BaseTestCase.initialize();
+		// apitest-commons 1.7.0 KeyMgrUtility replaces ':' on Windows; BiometricDataProvider
+		// still uses BaseTestCase.domain as a folder name (localhost:8082 is illegal on Windows).
+		sanitizeCertDomainForWindows();
 		LOGGER.info("Done with BeforeSuite and test case setup! su TEST EXECUTION!\n\n");
 
 		if (!runType.equalsIgnoreCase("JAR")) {
@@ -158,6 +176,20 @@ public class MosipTestRunner {
 		AdminTestUtil.copyIdrepoTestResource();
 		BaseTestCase.otpListener = new OTPListener();
 		BaseTestCase.otpListener.run();
+	}
+
+	/**
+	 * Same Windows path rule as apitest-commons 1.7.0 {@code KeyMgrUtility.getKeysDirPath}:
+	 * {@code localhost:8082} cannot be a folder name.
+	 */
+	static void sanitizeCertDomainForWindows() {
+		if (BaseTestCase.domain != null
+				&& System.getProperty("os.name").toLowerCase().contains("windows")
+				&& BaseTestCase.domain.contains(":")) {
+			String sanitized = BaseTestCase.domain.replace(":", "_");
+			LOGGER.info("Windows certs folder: BaseTestCase.domain " + BaseTestCase.domain + " -> " + sanitized);
+			BaseTestCase.domain = sanitized;
+		}
 	}
 
 	private static void setLogLevels() {
