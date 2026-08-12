@@ -1,0 +1,2 @@
+# Placeholder so the directory is tracked. Run prepare-biosdk-mock-lib.sh/.bat
+# to download mock-sdk.zip into this folder before starting biosdk-service.

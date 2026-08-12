@@ -1,7 +1,8 @@
 # AGENTS.md — Maven Parent (`id-repository/`)
 
 > Java application code for consolidated MOSIP ID-Repository (JDK 21, Spring Boot 2.0.2).  
-> For **database, Helm, deploy, and api-test** work, see the [repo root `AGENTS.md`](../AGENTS.md) and folder guides: [`db_scripts`](../db_scripts/AGENTS.md), [`db_upgrade_scripts`](../db_upgrade_scripts/AGENTS.md), [`db_release_scripts`](../db_release_scripts/AGENTS.md), [`helm`](../helm/AGENTS.md), [`deploy`](../deploy/AGENTS.md).
+> For **local docker-compose**, see [`local-dev-setup/AGENTS.md`](local-dev-setup/AGENTS.md) (human guide: [`LOCAL-DEV-SETUP.md`](local-dev-setup/LOCAL-DEV-SETUP.md)).  
+> For **database, Helm, deploy, and api-test** work, see the [repo root `AGENTS.md`](../AGENTS.md) and folder guides: [`db_scripts`](../db_scripts/AGENTS.md), [`db_upgrade_scripts`](../db_upgrade_scripts/AGENTS.md), [`db_release_scripts`](../db_release_scripts/AGENTS.md), [`helm`](../helm/AGENTS.md), [`deploy`](../deploy/AGENTS.md), [`api-test`](../api-test/AGENTS.md).
 
 ---
 

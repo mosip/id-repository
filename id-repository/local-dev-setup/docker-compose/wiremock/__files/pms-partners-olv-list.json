@@ -1,0 +1,29 @@
+{
+  "id": "mosip.partnermanagement.partners.retrieve",
+  "version": "1.0",
+  "responsetime": "2026-08-06T10:31:48.297Z",
+  "metadata": null,
+  "response": {
+    "partners": [
+      {
+        "partnerID": "mpartner-default-auth",
+        "status": "active",
+        "organizationName": "IITB",
+        "contactNumber": "9232121212",
+        "emailId": "info@mosip.io",
+        "address": "mpartner-default-auth",
+        "partnerType": "Online_Verification_Partner"
+      },
+      {
+        "partnerID": "newpartnerf",
+        "status": "De-active",
+        "organizationName": "MOSIP",
+        "contactNumber": "6897889123",
+        "emailId": "chetankumar.h.239@gmail.com",
+        "address": "Blr",
+        "partnerType": "Online_Verification_Partner"
+      }
+    ]
+  },
+  "errors": []
+}

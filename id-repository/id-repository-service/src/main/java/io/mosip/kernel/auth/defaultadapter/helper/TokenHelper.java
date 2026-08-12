@@ -269,7 +269,7 @@ public class TokenHelper {
 				StringUtils.hasText(clientSecret), clientSecret != null ? clientSecret.length() : 0);
 		if (StringUtils.hasText(clientId) && clientId.contains(".") && !clientId.contains("-")) {
 			LOGGER.warn(
-					"Self-token clientId '{}' looks wrong — use Keycloak client id e.g. mosip-idmanagement-client (hyphens), not a property key",
+					"Self-token clientId '{}' looks wrong — use Keycloak client id e.g. mosip-idrepo-client (hyphens), not a property key",
 					clientId);
 		}
 	}
@@ -282,7 +282,7 @@ public class TokenHelper {
 		if (body != null && body.contains("invalid_client")) {
 			LOGGER.warn(
 					"Keycloak invalid_client for clientId='{}' — fix mosip.iam.adapter.clientid / mosip.iam.adapter.clientsecret "
-							+ "(local: set MOSIP_IAM_ADAPTER_CLIENTID=mosip-idmanagement-client and MOSIP_IAM_ADAPTER_CLIENTSECRET from config server)",
+							+ "(local: set MOSIP_IAM_ADAPTER_CLIENTID=mosip-idrepo-client and MOSIP_IAM_ADAPTER_CLIENTSECRET from config server)",
 					clientId);
 		}
 	}

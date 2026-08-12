@@ -83,7 +83,9 @@ public class AnonymousProfileHelperTest {
 		IdentityIssuanceProfileBuilder.setIdentityMapping(identityMapping);
 		IdentityIssuanceProfileBuilder.setDateFormat(EnvUtil.getIovDateFormat());
 		ReflectionTestUtils.setField(anonymousProfileHelper, "mapper", mapper);
-		ReflectionTestUtils.setField(anonymousProfileHelper, "self", anonymousProfileHelper);
+		// Run async handoff inline so unit tests can verify save() without a Spring executor.
+		ReflectionTestUtils.setField(anonymousProfileHelper, "anonymousProfileExecutor",
+				(java.util.concurrent.Executor) Runnable::run);
 		ReflectionTestUtils.setField(anonymousProfileHelper, "identityMappingJson", "dummy-url");
 	}
 

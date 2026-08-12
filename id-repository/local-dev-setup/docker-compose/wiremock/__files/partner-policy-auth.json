@@ -1,0 +1,182 @@
+{
+  "id": null,
+  "version": null,
+  "responsetime": "2026-08-04T07:13:57.349Z",
+  "response": {
+    "policyId": "mpolicy-default-auth",
+    "policyName": "mpolicy-default-auth",
+    "policyDesc": "mpolicy-default-auth",
+    "policyType": "DataShare",
+    "publishDate": "2026-07-23T19:06:37.359011",
+    "validTill": "2226-07-23T19:06:37.359011",
+    "status": "PUBLISHED",
+    "version": "1",
+    "schema": "https://schemas.mosip.io/v1/auth-policy",
+    "is_Active": true,
+    "cr_by": "admin",
+    "cr_dtimes": "2026-07-23T19:06:37.359011",
+    "up_by": "admin",
+    "upd_dtimes": "2026-07-29T15:01:38.592612",
+    "policies": {
+      "shareableAttributes": [
+        {
+          "encrypted": true,
+          "attributeName": "fullName",
+          "source": [
+            {
+              "attribute": "fullName"
+            }
+          ]
+        },
+        {
+          "encrypted": true,
+          "attributeName": "dateOfBirth",
+          "source": [
+            {
+              "attribute": "dateOfBirth"
+            }
+          ]
+        },
+        {
+          "encrypted": true,
+          "attributeName": "gender",
+          "source": [
+            {
+              "attribute": "gender"
+            }
+          ]
+        },
+        {
+          "encrypted": true,
+          "attributeName": "phone",
+          "source": [
+            {
+              "attribute": "phone"
+            }
+          ]
+        },
+        {
+          "encrypted": true,
+          "attributeName": "email",
+          "source": [
+            {
+              "attribute": "email"
+            }
+          ]
+        },
+        {
+          "encrypted": true,
+          "attributeName": "addressLine1",
+          "source": [
+            {
+              "attribute": "addressLine1"
+            }
+          ]
+        },
+        {
+          "encrypted": true,
+          "attributeName": "addressLine2",
+          "source": [
+            {
+              "attribute": "addressLine2"
+            }
+          ]
+        },
+        {
+          "encrypted": true,
+          "attributeName": "addressLine3",
+          "source": [
+            {
+              "attribute": "addressLine3"
+            }
+          ]
+        },
+        {
+          "encrypted": true,
+          "attributeName": "region",
+          "source": [
+            {
+              "attribute": "region"
+            }
+          ]
+        },
+        {
+          "encrypted": true,
+          "attributeName": "province",
+          "source": [
+            {
+              "attribute": "province"
+            }
+          ]
+        },
+        {
+          "encrypted": true,
+          "attributeName": "city",
+          "source": [
+            {
+              "attribute": "city"
+            }
+          ]
+        },
+        {
+          "encrypted": true,
+          "attributeName": "postalCode",
+          "source": [
+            {
+              "attribute": "postalCode"
+            }
+          ]
+        },
+        {
+          "encrypted": true,
+          "attributeName": "zone",
+          "source": [
+            {
+              "attribute": "zone"
+            }
+          ]
+        },
+        {
+          "encrypted": false,
+          "attributeName": "preferredLang",
+          "source": [
+            {
+              "attribute": "preferredLang"
+            }
+          ]
+        },
+        {
+          "encrypted": true,
+          "format": "extraction",
+          "attributeName": "individualBiometrics",
+          "source": [
+            {
+              "attribute": "individualBiometrics"
+            }
+          ],
+          "group": "CBEFF"
+        },
+        {
+          "encrypted": true,
+          "attributeName": "declaredAsDeceased",
+          "source": [
+            {
+              "attribute": "declaredAsDeceased"
+            }
+          ]
+        }
+      ],
+      "dataSharePolicies": {
+        "typeOfShare": "Data Share",
+        "transactionsAllowed": "2",
+        "shareDomain": "datashare-service",
+        "encryptionType": "none",
+        "source": "ID Repository",
+        "validForInMinutes": "30"
+      }
+    },
+    "partnerId": "mpartner-default-auth",
+    "credentialType": "auth"
+  },
+  "errors": null
+}

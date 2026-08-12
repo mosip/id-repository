@@ -80,6 +80,22 @@
 			<groupId>io.mosip.testrig.apitest.commons</groupId>
 			<artifactId>apitest-commons</artifactId>
 			<version>1.7.0-SNAPSHOT</version>
+			<exclusions>
+				<!-- kernel-keymanager-service pulls Hibernate 6 hikaricp; DBManager uses Hibernate 5.3 -->
+				<exclusion>
+					<groupId>org.hibernate.orm</groupId>
+					<artifactId>hibernate-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.hibernate.orm</groupId>
+					<artifactId>hibernate-hikaricp</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<version>5.3.20.Final</version>
 		</dependency>
 	</dependencies>
 	<distributionManagement>

@@ -98,13 +98,13 @@ Chart: `helm/identity` (repo root).
 
 ## 7. Local run
 
-```bash
-cd id-repository
-mvn install -pl id-repository-service -am -DskipTests=true
-java -jar id-repository-service/target/id-repository-service-*.jar
-```
+Use docker-compose (full stack including this service):
 
-Requires `kernel-auth-adapter.jar` on classpath for auth. See `bootstrap.properties` for config server.
+1. Build jar: `mvn -pl id-repository-service -am package -DskipTests -Dgpg.skip=true`
+2. Follow [`../local-dev-setup/AGENTS.md`](../local-dev-setup/AGENTS.md) / [`LOCAL-DEV-SETUP.md`](../local-dev-setup/LOCAL-DEV-SETUP.md)
+3. `cd local-dev-setup/docker-compose && docker compose up -d` (or `restart-idrepo.bat` / `.sh`)
+
+Service listens on **8090**.
 
 ---
 
@@ -138,4 +138,4 @@ Requires `kernel-auth-adapter.jar` on classpath for auth. See `bootstrap.propert
 
 ---
 
-*Last updated: 2026-07-07.*
+*Last updated: 2026-08-07.*

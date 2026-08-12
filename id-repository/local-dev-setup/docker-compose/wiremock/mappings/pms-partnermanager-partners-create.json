@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/v1/partnermanager/partners"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "id": "string",
+      "version": "1.0",
+      "responsetime": "2026-01-01T00:00:00.000Z",
+      "metadata": null,
+      "response": {
+        "partnerId": "{{jsonPath request.body '$.request.partnerId'}}",
+        "status": "approved"
+      },
+      "errors": null
+    },
+    "transformers": ["response-template"]
+  }
+}

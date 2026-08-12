@@ -1,0 +1,13 @@
+﻿app_id,key_validity_duration,is_active,cr_by,cr_dtimes,pre_expire_days,access_allowed
+PRE_REGISTRATION,3650,TRUE,mosipadmin,now(),60,NA
+REGISTRATION,3650,TRUE,mosipadmin,now(),60,NA
+REGISTRATION_PROCESSOR,3650,TRUE,mosipadmin,now(),60,NA
+ID_REPO,3650,TRUE,mosipadmin,now(),60,NA
+KERNEL,3650,TRUE,mosipadmin,now(),60,NA
+ROOT,3650,TRUE,mosipadmin,now(),1125,NA
+BASE,3650,TRUE,mosipadmin,now(),30,NA
+PMS,3650,TRUE,mosipadmin,now(),395,NA
+RESIDENT,3650,TRUE,mosipadmin,now(),60,NA
+ADMIN_SERVICES,3650,TRUE,mosipadmin,now(),60,NA
+DIGITAL_CARD,3650,TRUE,mosipadmin,now(),60,NA
+COMPLIANCE_TOOLKIT,3650,TRUE,mosipadmin,now(),60,NA

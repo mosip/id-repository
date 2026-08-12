@@ -1,0 +1,978 @@
+{
+	"identity": [
+		{
+			"attributeName": "fullName",
+			"label": {
+				"eng": "Name",
+				"ara": "اسم",
+				"fra": "Nom",
+				"hin": "नाम",
+				"tam": "பெயர்",
+				"kan": "ಹೆಸರು",
+				"spa": "Nombre"
+			},
+			"placeHolder": {
+				"eng": "Enter new name",
+				"ara": "أدخل الاسم الجديد",
+				"fra": "Entrez un nouveau nom",
+				"hin": "नया नाम दर्ज करें",
+				"tam": "புதிய பெயரை உள்ளிடவும்",
+				"kan": "ಹೊಸ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
+				"spa": "Introduce un nuevo nombre"
+			},
+			"description": "",
+			"labelName": {
+				"eng": [
+					"Current Name",
+					"New Name"
+				],
+				"ara": [
+					"الاسم الحالي",
+					"اسم جديد"
+				],
+				"fra": [
+					"Nom actuel",
+					"Nouveau nom"
+				],
+				"hin": [
+					"वर्तमान नाम",
+					"नया नाम"
+				],
+				"tam": [
+					"தற்போதைய பெயர்",
+					"புதிய பெயர்"
+				],
+				"kan": [
+					"ಪ್ರಸ್ತುತ ಹೆಸರು",
+					"ಹೊಸ ಹೆಸರು"
+				],
+				"spa": [
+					"Nombre actual",
+					"Nuevo nombre"
+				]
+			},
+			"controlType": "textbox",
+			"tabgroup": "identity",
+			"dataType": "notString"
+		},
+		{
+			"attributeName": "dateOfBirth",
+			"label": {
+				"eng": "DOB",
+				"ara": "DOB",
+				"fra": "DOB",
+				"hin": "DOB",
+				"tam": "DOB",
+				"kan": "DOB",
+				"spa": "DOB"
+			},
+			"placeHolder": {
+				"eng": "DOB",
+				"ara": "DOB",
+				"fra": "DOB",
+				"hin": "DOB",
+				"tam": "DOB",
+				"kan": "DOB",
+				"spa": "DOB"
+			},
+			"description": "",
+			"labelName": {
+				"eng": [
+					"Current Date of birth",
+					"New Date of birth"
+				],
+				"ara": [
+					"تاريخ الميلاد الحالي",
+					"تاريخ الميلاد الجديد"
+				],
+				"fra": [
+					"Date de naissance actuelle",
+					"Nouvelle date de naissance"
+				],
+				"hin": [
+					"वर्तमान जन्मतिथि",
+					"नई जन्मतिथि"
+				],
+				"tam": [
+					"தற்போதைய பிறந்த தேதி",
+					"புதிய பிறந்த தேதி"
+				],
+				"kan": [
+					"ಪ್ರಸ್ತುತ ಜನ್ಮ ದಿನಾಂಕ",
+					"ಹೊಸ ಜನ್ಮ ದಿನಾಂಕ"
+				],
+				"spa": [
+					"Fecha de nacimiento actual",
+					"nuevo nacimiento"
+				]
+			},
+			"controlType": "calendar",
+			"tabgroup": "identity",
+			"dataType": "string"
+		},
+		{
+			"attributeName": "gender",
+			"label": {
+				"eng": "Gender",
+				"ara": "جنس",
+				"fra": "Genre",
+				"hin": "लिंग",
+				"tam": "பாலினம்",
+				"kan": "ಲಿಂಗ",
+				"spa": "Género"
+			},
+			"placeHolder": {
+				"eng": "Enter gender",
+				"ara": "أدخل الجنس",
+				"fra": "Entrez le sexe",
+				"hin": "लिंग दर्ज करें",
+				"tam": "பாலினத்தை உள்ளிடவும்",
+				"kan": "ಲಿಂಗವನ್ನು ನಮೂದಿಸಿ",
+				"spa": "Introduce el género"
+			},
+			"description": "",
+			"labelName": {
+				"eng": [
+					"Current Gender",
+					"New Gender"
+				],
+				"ara": [
+					"الجنس الحالي",
+					"جنس جديد"
+				],
+				"fra": [
+					"Sexe actuel",
+					"Nouveau genre"
+				],
+				"hin": [
+					"वर्तमान लिंग",
+					"नया लिंग"
+				],
+				"tam": [
+					"தற்போதைய பாலினம்",
+					"புதிய பாலினம்"
+				],
+				"kan": [
+					"ಪ್ರಸ್ತುತ ಲಿಂಗ",
+					"ಹೊಸ ಲಿಂಗ"
+				],
+				"spa": [
+					"Género actual",
+					"Nuevo género"
+				]
+			},
+			"controlType": "dropdown",
+			"tabgroup": "identity",
+			"dataType": "notString"
+		},
+		{
+			"attributeName": "proofOfIdentity",
+			"label": {
+				"eng": "Proof Of Identity",
+				"ara": "إثبات الهوية",
+				"fra": "Preuve d'identité",
+				"hin": "सबूत की पहचान",
+				"tam": "அடையாள சான்று",
+				"kan": "ಗುರುತಿನ ಆಧಾರ",
+				"spa": "Prueba de identidad"
+			},
+			"placeHolder": {
+				"eng": "Proof Of Identity",
+				"ara": "إثبات الهوية",
+				"fra": "Preuve d'identité",
+				"hin": "सबूत की पहचान",
+				"tam": "அடையாள சான்று",
+				"kan": "ಗುರುತಿನ ಆಧಾರ",
+				"spa": "Prueba de identidad"
+			},
+			"description": "",
+			"labelName": {
+				"eng": [
+					"Identity Proof",
+					"Document Type",
+					"Document Reference ID",
+					"Proof Of Document",
+					"Allowed File types: pdf, jpeg, png, jpg",
+					"Allowed File size: 2 MB"
+				],
+				"ara": [
+					"إثبات الهوية",
+					"نوع الوثيقة",
+					"معرّف مرجع المستند",
+					"إثبات المستند",
+					"أنواع الملفات المسموح بها: pdf، jpeg، png، jpg",
+					"حجم الملف المسموح به: MB 2"
+				],
+				"fra": [
+					"Preuve d'identité",
+					"Type de document",
+					"Identifiant de référence du document",
+					"Preuve de document",
+					"Types de fichiers autorisés : pdf, jpeg, png, jpg",
+					"Taille de fichier autorisée : 2 MB"
+				],
+				"hin": [
+					"पहचान प्रमाण पत्र",
+					"दस्तावेज़ का प्रकार",
+					"दस्तावेज़ संदर्भ ID",
+					"दस्तावेज़ का प्रमाण",
+					"अनुमत फ़ाइल प्रकार: pdf, jpeg, png, jpg",
+					"अनुमत फ़ाइल आकार: 2 MB"
+				],
+				"tam": [
+					"அடையாளச் சான்று",
+					"ஆவண வகை",
+					"ஆவண குறிப்பு ID",
+					"ஆவண ஆதாரம்",
+					"அனுமதிக்கப்பட்ட கோப்பு வகைகள்: pdf, jpeg, png, jpg",
+					"அனுமதிக்கப்பட்ட கோப்பு அளவு: 2 MB"
+				],
+				"kan": [
+					"ಗುರುತಿನ ಪುರಾವೆ",
+					"ಡಾಕ್ಯುಮೆಂಟ್ ಪ್ರಕಾರ",
+					"ಡಾಕ್ಯುಮೆಂಟ್ ರೆಫರೆನ್ಸ್ ID",
+					"ಡಾಕ್ಯುಮೆಂಟ್ ಪುರಾವೆ",
+					"ಅನುಮತಿಸಲಾದ ಫೈಲ್ ಪ್ರಕಾರಗಳು: pdf, jpeg, png, jpg",
+					"ಅನುಮತಿಸಲಾದ ಫೈಲ್ ಗಾತ್ರ: 2 MB"
+				],
+				"spa": [
+					"Prueba de identidad",
+					"Tipo de Documento",
+					"ID de referencia del documento",
+					"Prueba de Documento",
+					"Tipos de archivos permitidos: pdf, jpeg, png, jpg",
+					"Tamaño de archivo permitido: 2 MB"
+				]
+			},
+			"controlType": "fileupload",
+			"tabgroup": "identity",
+			"dataType": "notString"
+		},
+		{
+			"attributeName": "addressLine1",
+			"label": {
+				"eng": "Address line1",
+				"ara": "العنوان سطر 1",
+				"fra": "Adresse 1",
+				"hin": "पता पंक्ति 1",
+				"tam": "முகவரி வரி 1",
+				"kan": "ವಿಳಾಸ ಸಾಲು 1",
+				"spa": "Dirección Línea 1"
+			},
+			"placeHolder": {
+				"eng": "Enter Address line1",
+				"ara": "أدخل سطر العنوان1",
+				"fra": "Entrez l'adresse ligne1",
+				"hin": "पता पंक्ति 1 दर्ज करें",
+				"tam": "முகவரி வரி 1 ஐ உள்ளிடவும்",
+				"kan": "ವಿಳಾಸ ಸಾಲು 1 ಅನ್ನು ನಮೂದಿಸಿ",
+				"spa": "Introducir dirección línea 1"
+			},
+			"description": "",
+			"labelName": {
+				"eng": [
+					"Current Address Line1",
+					"New Address Line1"
+				],
+				"ara": [
+					"سطر العنوان الحالي 1",
+					"سطر العنوان الجديد 1"
+				],
+				"fra": [
+					"Ligne d'adresse actuelle1",
+					"Nouvelle ligne d'adresse1"
+				],
+				"hin": [
+					"वर्तमान पता पंक्ति1",
+					"नया पता पंक्ति1"
+				],
+				"tam": [
+					"தற்போதைய முகவரி வரி 1",
+					"புதிய முகவரி வரி 1"
+				],
+				"kan": [
+					"ಪ್ರಸ್ತುತ ವಿಳಾಸ ಸಾಲು 1",
+					"ಹೊಸ ವಿಳಾಸ ಸಾಲು 1"
+				],
+				"spa": [
+					"Línea 1 de dirección actual",
+					"Nueva línea de dirección 1"
+				]
+			},
+			"controlType": "textbox",
+			"tabgroup": "address",
+			"dataType": "notString"
+		},
+		{
+			"attributeName": "addressLine2",
+			"label": {
+				"eng": "Address line2",
+				"ara": "سطر العنوان 2",
+				"fra": "Adresse 2",
+				"hin": "पता पंक्ति 2",
+				"tam": "முகவரி வரி 2",
+				"kan": "ವಿಳಾಸ ಸಾಲು 2",
+				"spa": "Dirección Línea 2"
+			},
+			"placeHolder": {
+				"eng": "Enter Address line2",
+				"ara": "أدخل سطر العنوان2",
+				"fra": "Entrez l'adresse ligne2",
+				"hin": "पता पंक्ति 2 दर्ज करें",
+				"tam": "முகவரி வரி 2 ஐ உள்ளிடவும்",
+				"kan": "ವಿಳಾಸ ಸಾಲು 2 ಅನ್ನು ನಮೂದಿಸಿ",
+				"spa": "Introducir dirección línea 2"
+			},
+			"description": "",
+			"labelName": {
+				"eng": [
+					"Current Address Line2",
+					"New Address Line2"
+				],
+				"ara": [
+					"سطر العنوان الحالي2",
+					"سطر العنوان الجديد2"
+				],
+				"fra": [
+					"Ligne d'adresse actuelle2",
+					"Nouvelle ligne d'adresse2"
+				],
+				"hin": [
+					"वर्तमान पता पंक्ति2",
+					"नया पता पंक्ति2"
+				],
+				"tam": [
+					"தற்போதைய முகவரி வரி 2",
+					"புதிய முகவரி வரி 2"
+				],
+				"kan": [
+					"ಪ್ರಸ್ತುತ ವಿಳಾಸ ಸಾಲು 2",
+					"ಹೊಸ ವಿಳಾಸ ಸಾಲು 2"
+				],
+				"spa": [
+					"Línea 2 de dirección actual",
+					"Nueva línea de dirección 2"
+				]
+			},
+			"controlType": "textbox",
+			"tabgroup": "address",
+			"dataType": "notString"
+		},
+		{
+			"attributeName": "addressLine3",
+			"label": {
+				"eng": "Address line3",
+				"ara": "سطر العنوان3",
+				"fra": "Adresse 3",
+				"hin": "पता पंक्ति 3",
+				"tam": "முகவரி வரி 3",
+				"kan": "ವಿಳಾಸ ಸಾಲು 3",
+				"spa": "Dirección Línea 3"
+			},
+			"placeHolder": {
+				"eng": "Enter Address line3",
+				"ara": "أدخل سطر العنوان3",
+				"fra": "Entrez l'adresse ligne3",
+				"hin": "पता पंक्ति 3 दर्ज करें",
+				"tam": "முகவரி வரி 3 ஐ உள்ளிடவும்",
+				"kan": "ವಿಳಾಸ ಸಾಲು 3 ಅನ್ನು ನಮೂದಿಸಿ",
+				"spa": "Introducir dirección línea 3"
+			},
+			"description": "",
+			"labelName": {
+				"eng": [
+					"Current Address Line3",
+					"New Address Line3"
+				],
+				"ara": [
+					"سطر العنوان الحالي3",
+					"سطر العنوان الجديد3"
+				],
+				"fra": [
+					"Ligne d'adresse actuelle3",
+					"Nouvelle ligne d'adresse3"
+				],
+				"hin": [
+					"वर्तमान पता पंक्ति3",
+					"नया पता पंक्ति3"
+				],
+				"tam": [
+					"தற்போதைய முகவரி வரி 3",
+					"புதிய முகவரி வரி 3"
+				],
+				"kan": [
+					"ಪ್ರಸ್ತುತ ವಿಳಾಸ ಸಾಲು 3",
+					"ಹೊಸ ವಿಳಾಸ ಸಾಲು 3"
+				],
+				"spa": [
+					"Línea 3 de dirección actual",
+					"Nueva línea de dirección 3"
+				]
+			},
+			"controlType": "textbox",
+			"tabgroup": "address",
+			"dataType": "notString"
+		},
+		{
+			"attributeName": "region",
+			"label": {
+				"eng": "Region",
+				"ara": "منطقة",
+				"fra": "Région",
+				"hin": "क्षेत्र",
+				"tam": "பிராந்தியம்",
+				"kan": "ಪ್ರದೇಶ",
+				"spa": "Región"
+			},
+			"placeHolder": {
+				"eng": "Select Region",
+				"ara": "اختر المنطقة",
+				"fra": "Choisissez une région",
+				"hin": "प्रदेश का चयन करें",
+				"tam": "பகுதியை உள்ளிடவும்",
+				"kan": "ಪ್ರದೇಶವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+				"spa": "Seleccione la región"
+			},
+			"name": "Region",
+			"description": "",
+			"labelName": {
+				"eng": [
+					"Current Region",
+					"New Region"
+				],
+				"ara": [
+					"المنطقة الحالية",
+					"منطقة جديدة"
+				],
+				"fra": [
+					"Région actuelle",
+					"Nouvelle région"
+				],
+				"hin": [
+					"वर्तमान प्रदेश",
+					"नया प्रदेश"
+				],
+				"tam": [
+					"தற்போதைய பிராந்தியம்",
+					"புதிய பிராந்தியம்"
+				],
+				"kan": [
+					"ಪ್ರಸ್ತುತ ಪ್ರದೇಶ",
+					"ಹೊಸ ಪ್ರದೇಶ"
+				],
+				"spa": [
+					"Región Actual",
+					"Nueva Región"
+				]
+			},
+			"controlType": "dropdown",
+			"tabgroup": "address",
+			"locationHierarchyLevel": 1,
+			"dataType": "notString"
+		},
+		{
+			"attributeName": "province",
+			"label": {
+				"eng": "Province",
+				"ara": "مقاطعة",
+				"fra": "Province",
+				"hin": "प्रांत",
+				"tam": "மாகாணம்",
+				"kan": "ಪ್ರಾಂತ್ಯ",
+				"spa": "Provincia"
+			},
+			"placeHolder": {
+				"eng": "Select Province",
+				"ara": "اختر المقاطعة",
+				"fra": "Sélectionnez une province",
+				"hin": "प्रांत चुनें",
+				"tam": "ஒரு மாகாணத்தைத் தேர்ந்தெடுக்கவும்",
+				"kan": "ಒಂದು ಪ್ರಾಂತ್ಯವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+				"spa": "Seleccione una provincia"
+			},
+			"name": "Province",
+			"description": "",
+			"labelName": {
+				"eng": [
+					"Current Province",
+					"New Province"
+				],
+				"ara": [
+					"المقاطعة الحالية",
+					"مقاطعة جديدة"
+				],
+				"fra": [
+					"Province actuelle",
+					"Nouvelle Province"
+				],
+				"hin": [
+					"वर्तमान प्रांत",
+					"नया प्रांत"
+				],
+				"tam": [
+					"தற்போதைய மாகாணம்",
+					"புதிய மாகாணம்"
+				],
+				"kan": [
+					"ಪ್ರಸ್ತುತ ಪ್ರಾಂತ್ಯ",
+					"ಹೊಸ ಪ್ರಾಂತ್ಯ"
+				],
+				"spa": [
+					"Provincia Actual",
+					"Nueva Provincia"
+				]
+			},
+			"controlType": "dropdown",
+			"tabgroup": "address",
+			"locationHierarchyLevel": 2,
+			"dataType": "notString"
+		},
+		{
+			"attributeName": "city",
+			"label": {
+				"eng": "City",
+				"ara": "مدينة",
+				"fra": "Ville",
+				"hin": "शहर",
+				"tam": "நகரம்",
+				"kan": "ನಗರ",
+				"spa": "Ciudad"
+			},
+			"placeHolder": {
+				"eng": "Select City",
+				"ara": "اختر مدينة",
+				"fra": "Sélectionnez une ville",
+				"hin": "शहर चुनें",
+				"tam": "நகரத்தைத் தேர்ந்தெடுக்கவும்",
+				"kan": "ನಗರವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+				"spa": "Ciudad selecta"
+			},
+			"name": "City",
+			"description": "",
+			"labelName": {
+				"eng": [
+					"Current City",
+					"New City"
+				],
+				"ara": [
+					"المدينة الحالية",
+					"مدينة جديدة"
+				],
+				"fra": [
+					"Ville actuelle",
+					"Nouvelle ville"
+				],
+				"hin": [
+					"वर्तमान शहर",
+					"नया शहर"
+				],
+				"tam": [
+					"தற்போதைய நகரம்",
+					"புதிய நகரம்"
+				],
+				"kan": [
+					"ಪ್ರಸ್ತುತ ನಗರ",
+					"ಹೊಸ ನಗರ"
+				],
+				"spa": [
+					"Ciudad Actual",
+					"Ciudad Nueva"
+				]
+			},
+			"controlType": "dropdown",
+			"tabgroup": "address",
+			"locationHierarchyLevel": 3,
+			"dataType": "notString"
+		},
+		{
+			"attributeName": "zone",
+			"label": {
+				"eng": "Zone",
+				"ara": "منطقة",
+				"fra": "Zone",
+				"hin": "क्षेत्र",
+				"tam": "மண்டலம்",
+				"kan": "ವಲಯ",
+				"spa": "Zona"
+			},
+			"placeHolder": {
+				"eng": "Select Zone",
+				"ara": "حدد المنطقة",
+				"fra": "Sélectionnez une zone",
+				"hin": "जोन चुनें",
+				"tam": "மண்டலத்தைத் தேர்ந்தெடுக்கவும்",
+				"kan": "ವಲಯವನ್ನು ನಮೂದಿಸಿ",
+				"spa": "Seleccione una zona"
+			},
+			"name": "Zone",
+			"description": "",
+			"labelName": {
+				"eng": [
+					"Current Zone",
+					"New Zone"
+				],
+				"ara": [
+					"المنطقة الحالية",
+					"منطقة جديدة"
+				],
+				"fra": [
+					"Zone actuelle",
+					"Nouvelle zone"
+				],
+				"hin": [
+					"वर्तमान क्षेत्र",
+					"नया क्षेत्र"
+				],
+				"tam": [
+					"தற்போதைய மண்டலம்",
+					"புதிய மண்டலம்"
+				],
+				"kan": [
+					"ಪ್ರಸ್ತುತ ವಲಯ",
+					"ಹೊಸ ವಲಯ"
+				],
+				"spa": [
+					"Zona Actual",
+					"Nueva Zona"
+				]
+			},
+			"controlType": "dropdown",
+			"tabgroup": "address",
+			"locationHierarchyLevel": 4,
+			"dataType": "string"
+		},
+		{
+			"attributeName": "postalCode",
+			"label": {
+				"eng": "Postal Code",
+				"ara": "رمز بريدي",
+				"fra": "Code Postal",
+				"hin": "डाक कोड",
+				"tam": "குறியீடு",
+				"kan": "ಕೋಡ್",
+				"spa": "Código Postal"
+			},
+			"placeHolder": {
+				"eng": "Select Postal Code",
+				"ara": "حدد الرمز البريدي",
+				"fra": "Sélectionnez le code postal",
+				"hin": "पोस्टल कोड चुनें",
+				"tam": "அஞ்சல் குறியீட்டைத் தேர்ந்தெடுக்கவும்",
+				"kan": "ಪೋಸ್ಟಲ್ ಕೋಡ್ ಆಯ್ಕೆಮಾಡಿ",
+				"spa": "Seleccione Código Postal"
+			},
+			"name": "Postal Code",
+			"description": "",
+			"labelName": {
+				"eng": [
+					"Current Postal Code",
+					"New Postal Code"
+				],
+				"ara": [
+					"الرمز البريدي الحالي",
+					"رمز بريدي جديد"
+				],
+				"fra": [
+					"Code postal actuel",
+					"Nouveau code postal"
+				],
+				"hin": [
+					"वर्तमान पोस्टल कोड",
+					"नया पोस्टल कोड"
+				],
+				"tam": [
+					"தற்போதைய அஞ்சல் குறியீடு",
+					"புதிய அஞ்சல் குறியீடு"
+				],
+				"kan": [
+					"ಪ್ರಸ್ತುತ ಪೋಸ್ಟಲ್ ಕೋಡ್",
+					"ಹೊಸ ಪೋಸ್ಟಲ್ ಕೋಡ್"
+				],
+				"spa": [
+					"Código Postal Actual",
+					"Nuevo código postal"
+				]
+			},
+			"controlType": "dropdown",
+			"tabgroup": "address",
+			"locationHierarchyLevel": 5,
+			"dataType": "notString"
+		},
+		{
+			"attributeName": "proofOfAddress",
+			"label": {
+				"eng": "Proof Of Address",
+				"ara": "إثبات العنوان",
+				"fra": "Un justificatif de domicile",
+				"hin": "पते का प्रमाण",
+				"tam": "முகவரி சான்று",
+				"kan": "ವಿಳಾಸದ ಪುರಾವೆ",
+				"spa": "Comprobante de domicilio"
+			},
+			"placeHolder": {
+				"eng": "Proof Of Address",
+				"ara": "إثبات العنوان",
+				"fra": "Un justificatif de domicile",
+				"hin": "पते का प्रमाण",
+				"tam": "முகவரி சான்று",
+				"kan": "ವಿಳಾಸದ ಪುರಾವೆ",
+				"spa": "Comprobante de domicilio"
+			},
+			"description": "",
+			"labelName": {
+				"eng": [
+					"Address Proof",
+					"Document Type",
+					"Document Reference ID",
+					"Proof Of Document",
+					"Allowed File types: pdf, jpeg, png, jpg",
+					"Allowed File size: 2 MB"
+				],
+				"ara": [
+					"إثبات العنوان",
+					"نوع المستند",
+					"معرف مرجع المستند",
+					"إثبات المستند",
+					"أنواع الملفات المسموح بها: pdf، jpeg، png، jpg",
+					"حجم الملف المسموح به: MB 2"
+				],
+				"fra": [
+					"Épreuve d'adresse",
+					"Type de document",
+					"ID de référence du document",
+					"Preuve de document",
+					"Types de fichiers autorisés : pdf, jpeg, png, jpg",
+					"Taille de fichier autorisée : 2 MB"
+				],
+				"hin": [
+					"पता प्रमाण पत्र",
+					"दस्तावेज़ प्रकार",
+					"दस्तावेज़ संदर्भ ID",
+					"दस्तावेज़ का प्रमाण",
+					"अनुमत फ़ाइल प्रकार: pdf, jpeg, png, jpg",
+					"अनुमत फ़ाइल आकार: 2 MB"
+				],
+				"tam": [
+					"முகவரிச் சான்று",
+					"ஆவண வகை",
+					"ஆவணக் குறிப்பு ID",
+					"ஆவண ஆதாரம்",
+					"அனுமதிக்கப்பட்ட கோப்பு வகைகள்: pdf, jpeg, png, jpg",
+					"அனுமதிக்கப்பட்ட கோப்பு அளவு: 2 MB"
+				],
+				"kan": [
+					"ವಿಳಾಸ ಪುರಾವೆ",
+					"ಡಾಕ್ಯುಮೆಂಟ್ ಪ್ರಕಾರ",
+					"ಡಾಕ್ಯುಮೆಂಟ್ ರೆಫರೆನ್ಸ್ ID",
+					"ಡಾಕ್ಯುಮೆಂಟ್ ಪುರಾವೆ",
+					"ಅನುಮತಿಸಲಾದ ಫೈಲ್ ಪ್ರಕಾರಗಳು: pdf, jpeg, png, jpg",
+					"ಅನುಮತಿಸಲಾದ ಫೈಲ್ ಗಾತ್ರ: 2 MB"
+				],
+				"spa": [
+					"Prueba de dirección",
+					"Tipo de documento",
+					"ID de referencia del documento",
+					"Prueba de Documento",
+					"Tipos de archivos permitidos: pdf, jpeg, png, jpg",
+					"Tamaño de archivo permitido: 2 MB"
+				]
+			},
+			"controlType": "fileupload",
+			"tabgroup": "address",
+			"dataType": "notString"
+		},
+		{
+			"attributeName": "email",
+			"label": {
+				"eng": "Email ID",
+				"ara": "عنوان الايميل",
+				"fra": "Identifiant de messagerie",
+				"hin": "ईमेल ID",
+				"tam": "மின்னஞ்சல் முகவரி",
+				"kan": "ಇಮೇಲ್ ID",
+				"spa": "Identificación de correo"
+			},
+			"placeHolder": {
+				"eng": "Enter email ID",
+				"ara": "أدخل معرف البريد الإلكتروني",
+				"fra": "Entrez l'identifiant de messagerie",
+				"hin": "ईमेल ID दर्ज करें",
+				"tam": "மின்னஞ்சல் ID-ஐ உள்ளிடவும்",
+				"kan": "ಇಮೇಲ್ ID ನಮೂದಿಸಿ",
+				"spa": "Ingrese su ID de correo electrónico"
+			},
+			"description": "",
+			"labelName": {
+				"eng": [
+					"Current email ID",
+					"New email ID",
+					"Confirm New email ID",
+					"Send OTP"
+				],
+				"ara": [
+					"معرف البريد الإلكتروني الحالي",
+					"معرف البريد الإلكتروني الجديد",
+					"تأكيد معرف البريد الإلكتروني الجديد",
+					"إرسال OTP"
+				],
+				"fra": [
+					"Identifiant de messagerie actuel",
+					"Nouvel identifiant de messagerie",
+					"Confirmer le nouvel identifiant de messagerie",
+					"Envoyer OTP"
+				],
+				"hin": [
+					"वर्तमान ईमेल ID",
+					"नई ईमेल ID",
+					"नई ईमेल ID की पुष्टि करें",
+					"OTP भेजें"
+				],
+				"tam": [
+					"தற்போதைய மின்னஞ்சல் ID",
+					"புதிய மின்னஞ்சல் ID",
+					"புதிய மின்னஞ்சல் ID-ஐ உறுதிப்படுத்தவும்",
+					"OTP ஐ அனுப்பு"
+				],
+				"kan": [
+					"ಪ್ರಸ್ತುತ ಇಮೇಲ್ ID",
+					"ಹೊಸ ಇಮೇಲ್ ID",
+					"ಹೊಸ ಇಮೇಲ್ ID ದೃಢೀಕರಿಸಿ",
+					"OTP ಕಳುಹಿಸಿ"
+				],
+				"spa": [
+					"ID de correo electrónico actual",
+					"Nueva identificación de correo electrónico",
+					"Confirmar nuevo ID de correo electrónico",
+					"Enviar OTP"
+				]
+			},
+			"controlType": "textbox",
+			"tabgroup": "contact",
+			"dataType": "string"
+		},
+		{
+			"attributeName": "phone",
+			"label": {
+				"eng": "Phone Number",
+				"ara": "رقم التليفون",
+				"fra": "Numéro de téléphone",
+				"hin": "फ़ोन नंबर",
+				"tam": "தொலைபேசி எண்",
+				"kan": "ದೂರವಾಣಿ ಸಂಖ್ಯೆ",
+				"spa": "Número de teléfono"
+			},
+			"placeHolder": {
+				"eng": "Enter Phone Number",
+				"ara": "أدخل رقم الهاتف",
+				"fra": "Entrez le numéro de téléphone",
+				"hin": "फोन नंबर दर्ज",
+				"tam": "தொலைபேசி எண்ணை உள்ளிடவும்",
+				"kan": "ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ",
+				"spa": "Ingresa número telefónico"
+			},
+			"description": "",
+			"labelName": {
+				"eng": [
+					"Current Phone Number",
+					"New Phone Number",
+					"Confirm New Phone Number",
+					"Send OTP"
+				],
+				"ara": [
+					"رقم الهاتف الحالي",
+					"رقم الهاتف الجديد",
+					"تأكيد رقم الهاتف الجديد",
+					"إرسال OTP"
+				],
+				"fra": [
+					"Numéro de téléphone actuel",
+					"Nouveau numéro de téléphone",
+					"Confirmer le nouveau numéro de téléphone",
+					"Envoyer OTP"
+				],
+				"hin": [
+					"वर्तमान फ़ोन नंबर",
+					"नया फ़ोन नंबर",
+					"नए फ़ोन नंबर की पुष्टि करें",
+					"OTP भेजें"
+				],
+				"tam": [
+					"தற்போதைய தொலைபேசி எண்",
+					"புதிய தொலைபேசி எண்",
+					"புதிய தொலைபேசி எண்ணை உறுதிப்படுத்தவும்",
+					"OTP ஐ அனுப்பு"
+				],
+				"kan": [
+					"ಪ್ರಸ್ತುತ ಫೋನ್ ಸಂಖ್ಯೆ",
+					"ಹೊಸ ಫೋನ್ ಸಂಖ್ಯೆ",
+					"ಹೊಸ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ದೃಢೀಕರಿಸಿ",
+					"OTP ಕಳುಹಿಸಿ"
+				],
+				"spa": [
+					"Número de teléfono actual",
+					"Nuevo número de teléfono",
+					"Confirmar nuevo número de teléfono",
+					"Enviar OTP"
+				]
+			},
+			"controlType": "textbox",
+			"tabgroup": "contact",
+			"dataType": "string"
+		},
+		{
+			"attributeName": "preferredLang",
+			"label": {
+				"eng": "Preferred Language",
+				"ara": "اللغة المفضلة",
+				"fra": "langue préférée",
+				"hin": "पसंदीदा भाषा",
+				"tam": "விருப்ப மொழி",
+				"kan": "ಆದ್ಯತೆಯ ಭಾಷೆ",
+				"spa": "Idioma preferido"
+			},
+			"placeHolder": {
+				"eng": "Select Preferred Language",
+				"ara": "اختر اللغة المفضلة",
+				"fra": "Sélectionner la langue préférée",
+				"hin": "पसंदीदा भाषा चुनें",
+				"tam": "விருப்ப மொழியைத் தேர்ந்தெடுக்கவும்.",
+				"kan": "ಆಯ್ಕೆಯಾದ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+				"spa": "Seleccionar Idioma Preferido"
+			},
+			"description": "",
+			"labelName": {
+				"eng": [
+					"Current Notification Language",
+					"New Notification Language"
+				],
+				"ara": [
+					"لغة الإخطار الحالية",
+					"لغة الإعلام الجديدة"
+				],
+				"fra": [
+					"Langue de notification actuelle",
+					"Nouvelle langue de notification"
+				],
+				"hin": [
+					"वर्तमान अधिसूचना भाषा",
+					"नई अधिसूचना भाषा"
+				],
+				"tam": [
+					"தற்போதைய அறிவிப்பு மொழி",
+					"புதிய அறிவிப்பு மொழி"
+				],
+				"kan": [
+					"ಪ್ರಸ್ತುತ ಅಧಿಸೂಚನೆ ಭಾಷೆ",
+					"ಹೊಸ ಅಧಿಸೂಚನೆ ಭಾಷೆ"
+				],
+				"spa": [
+					"Idioma de notificación actual",
+					"Nuevo idioma de notificación"
+				]
+			},
+			"controlType": "dropdown",
+			"tabgroup": "notificationLanguage",
+			"dataType": "string"
+		}
+	]
+}

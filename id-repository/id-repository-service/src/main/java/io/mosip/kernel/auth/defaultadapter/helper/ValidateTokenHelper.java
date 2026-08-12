@@ -165,15 +165,16 @@ public class ValidateTokenHelper {
 	}
 
 	private boolean validateAudience(DecodedJWT decodedJWT) {
+		if (!validateAudClaim) {
+			return true;
+		}
 		boolean matchFound = false;
-		if (validateAudClaim) {
-			List<String> tokenAudience = decodedJWT.getAudience();
-			matchFound = tokenAudience.stream().anyMatch(allowedAudience::contains);
+		List<String> tokenAudience = decodedJWT.getAudience();
+		matchFound = tokenAudience.stream().anyMatch(allowedAudience::contains);
 
-			String azp = decodedJWT.getClaim(AuthAdapterConstant.AZP).asString();
-			if (!matchFound) {
-				matchFound = allowedAudience.stream().anyMatch(azp::equalsIgnoreCase);
-			}
+		String azp = decodedJWT.getClaim(AuthAdapterConstant.AZP).asString();
+		if (!matchFound) {
+			matchFound = allowedAudience.stream().anyMatch(azp::equalsIgnoreCase);
 		}
 		return matchFound;
 	}

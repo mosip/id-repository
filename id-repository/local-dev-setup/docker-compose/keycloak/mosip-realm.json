@@ -1,0 +1,167 @@
+{
+  "realm": "mosip",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "accessTokenLifespan": 315360000,
+  "accessTokenLifespanForImplicitFlow": 315360000,
+  "ssoSessionIdleTimeout": 315360000,
+  "ssoSessionMaxLifespan": 315360000,
+  "offlineSessionIdleTimeout": 315360000,
+  "clientSessionIdleTimeout": 315360000,
+  "clientSessionMaxLifespan": 315360000,
+  "accessCodeLifespan": 60,
+  "accessCodeLifespanUserAction": 300,
+  "accessCodeLifespanLogin": 1800,
+  "actionTokenGeneratedByAdminLifespan": 43200,
+  "actionTokenGeneratedByUserLifespan": 300,
+  "roles": {
+    "realm": [
+      { "name": "ID_REPOSITORY", "description": "ID Repository service role" },
+      { "name": "CREATE_SHARE", "description": "DataShare create role" },
+      { "name": "CREDENTIAL_REQUEST", "description": "Credential request role" },
+      { "name": "CREDENTIAL_ISSUANCE", "description": "Credential issuance role" },
+      { "name": "REGISTRATION_PROCESSOR", "description": "Regproc role" },
+      { "name": "POLICYMANAGER", "description": "Policy manager role" },
+      { "name": "PUBLISH_IDENTITY_CREATED_GENERAL" },
+      { "name": "PUBLISH_IDENTITY_UPDATED_GENERAL" },
+      { "name": "PUBLISH_ACTIVATE_ID_ALL_INDIVIDUAL" },
+      { "name": "PUBLISH_DEACTIVATE_ID_ALL_INDIVIDUAL" },
+      { "name": "PUBLISH_REMOVE_ID_ALL_INDIVIDUAL" },
+      { "name": "PUBLISH_AUTH_TYPE_STATUS_UPDATE_ALL_INDIVIDUAL" },
+      { "name": "PUBLISH_CREDENTIAL_ISSUED_ALL_INDIVIDUAL" },
+      { "name": "PUBLISH_VID_CRED_STATUS_UPDATE_GENERAL" },
+      { "name": "PUBLISH_AUTHENTICATION_TRANSACTION_STATUS_GENERAL" },
+      { "name": "SUBSCRIBE_CREDENTIAL_STATUS_UPDATE_GENERAL" },
+      { "name": "SUBSCRIBE_VID_CRED_STATUS_UPDATE_GENERAL" },
+      { "name": "SUBSCRIBE_REMOVE_ID_STATUS_GENERAL" },
+      { "name": "offline_access" },
+      { "name": "uma_authorization" },
+      { "name": "default-roles-mosip" }
+    ]
+  },
+  "defaultRoles": ["default-roles-mosip", "offline_access", "uma_authorization"],
+  "clients": [
+    {
+      "clientId": "mosip-idrepo-client",
+      "name": "MOSIP ID-Repository local client",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "QTGizTYN4US0XHOU",
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true,
+      "attributes": {
+        "access.token.lifespan": "315360000",
+        "client_credentials.use_refresh_token": "false"
+      },
+      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "email"],
+      "optionalClientScopes": ["address", "phone", "offline_access", "microprofile-jwt"]
+    },
+    {
+      "clientId": "mosip-datsha-client",
+      "name": "MOSIP DataShare local client",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "nA8DF7lnUSw8zWS6",
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true,
+      "attributes": {
+        "access.token.lifespan": "315360000"
+      }
+    },
+    {
+      "clientId": "mosip-crereq-client",
+      "name": "MOSIP Credential Request local client",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "Cd63IMonG2G9RHjS",
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true,
+      "attributes": {
+        "access.token.lifespan": "315360000"
+      }
+    },
+    {
+      "clientId": "mosip-creser-client",
+      "name": "MOSIP Credential Service local client",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "H5aL9iWnju1fxhwv",
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true,
+      "attributes": {
+        "access.token.lifespan": "315360000"
+      }
+    },
+    {
+      "clientId": "mosip-admin-client",
+      "name": "MOSIP Admin local client",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "local-dev-secret",
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true,
+      "attributes": {
+        "access.token.lifespan": "315360000"
+      }
+    },
+    {
+      "clientId": "mosip-pms-client",
+      "name": "MOSIP PMS local client",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "local-dev-secret",
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true,
+      "attributes": {
+        "access.token.lifespan": "315360000"
+      }
+    },
+    {
+      "clientId": "mosip-partner-client",
+      "name": "MOSIP Partner local client",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "local-dev-secret",
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true,
+      "attributes": {
+        "access.token.lifespan": "315360000"
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "priority": 5,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/v1/masterdata/actuator/env"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "activeProfiles": ["default"],
+      "propertySources": [
+        {
+          "name": "Config resource 'file [/home/mosip/config/mosip-config/application-default.properties]' via location 'optional:file:/home/mosip/config/mosip-config/'",
+          "properties": {
+            "mosip.mandatory-languages": { "value": "eng" },
+            "mosip.optional-languages": { "value": "" },
+            "mosip.supported-languages": { "value": "eng" },
+            "mosip.recommended.centers.locCode": { "value": "5" }
+          }
+        }
+      ]
+    }
+  }
+}

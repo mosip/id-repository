@@ -1,0 +1,9 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPathPattern": "/v1/authmanager/authenticate/clientidsecretkey"
+  },
+  "response": {
+    "proxyBaseUrl": "http://auth-token-bridge:8086"
+  }
+}

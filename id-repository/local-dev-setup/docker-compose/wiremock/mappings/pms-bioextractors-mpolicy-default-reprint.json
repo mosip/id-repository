@@ -1,0 +1,14 @@
+{
+  "priority": 5,
+  "request": {
+    "method": "GET",
+    "urlPath": "/v1/partnermanager/partners/mpartner-default-print/bioextractors/mpolicy-default-reprint"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "pms-bioextractors-mock.json"
+  }
+}

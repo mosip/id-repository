@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "ANY",
+    "urlPathPattern": "/v1/datashare/.*"
+  },
+  "response": {
+    "proxyBaseUrl": "http://datashare-service:8097"
+  },
+  "priority": 5
+}

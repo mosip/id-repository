@@ -19,7 +19,6 @@ logs/
 *.swp
 *~.nib
 local.properties
-local-run.env.bat
 .loadpath
 .DS_Store
 test.txt

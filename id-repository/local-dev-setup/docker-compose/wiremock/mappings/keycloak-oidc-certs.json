@@ -1,0 +1,9 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/auth/realms/.*/protocol/openid-connect/certs"
+  },
+  "response": {
+    "proxyBaseUrl": "http://keycloak:8080"
+  }
+}

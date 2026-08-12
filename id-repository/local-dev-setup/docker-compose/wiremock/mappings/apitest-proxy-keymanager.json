@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "ANY",
+    "urlPathPattern": "/v1/keymanager/.*"
+  },
+  "response": {
+    "proxyBaseUrl": "http://keymanager-service:8088"
+  },
+  "priority": 5
+}

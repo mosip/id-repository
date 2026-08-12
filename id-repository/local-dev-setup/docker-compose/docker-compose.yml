@@ -1,0 +1,730 @@
+services:
+
+  database:
+    image: 'postgres:bookworm'
+    ports:
+      - 5455:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mosip123
+    volumes:
+      # IDA-style single init.sql (+ helper DDL mounts)
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./keymgr:/keymgr:ro
+      - ../../../db_scripts:/db_scripts:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  config-server:
+    image: mosipid/config-server:latest
+    container_name: my_config_server
+    ports:
+      - "51001:51000"
+    volumes:
+      # Bundled config (no host absolute path). Edit ./mosip-config/* for local overrides.
+      - ./mosip-config:/mosip-config:ro
+    environment:
+       # Spring profile & config location
+      - SPRING_PROFILES_ACTIVE=native
+      - SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS=file:/mosip-config
+      - SPRING_CLOUD_CONFIG_SERVER_ACCEPT_EMPTY=true
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_FORCE_PULL=false
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_CLONEONSTART=false
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_REFRESHRATE=0
+      - SERVER_PORT=51000
+      # Expose all actuator endpoints
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=*
+      - MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=always
+      # Disable security if the image has spring-security on classpath
+      - MANAGEMENT_SECURITY_ENABLED=false
+      - SPRING_SECURITY_ENABLED=false
+    healthcheck:
+      # actuator/health returns 404 in this image; config endpoint proves server is ready
+      test: ["CMD-SHELL", "curl -f http://localhost:51000/config/application/default || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  # Timestamp + Verhoeff UIN generator (WireMock proxies /v1/idgenerator/uin here)
+  uin-generator:
+    image: python:3.12-alpine
+    container_name: local_uin_generator
+    volumes:
+      - ./wiremock/uin-generator:/app:ro
+    working_dir: /app
+    command: ["python", "server.py"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8084/health')",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  # MOSIP WebSub hub mock: subscribe + signed deliver to notifyStatus (fixes KER-WSC-106 locally)
+  websub-mock:
+    image: python:3.12-alpine
+    container_name: local_websub_mock
+    ports:
+      - "8085:8085"
+    volumes:
+      - ./wiremock/websub-mock:/app:ro
+    working_dir: /app
+    command: ["python", "server.py"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8085/health')",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  # Live authmanager bridge: WireMock proxies clientidsecretkey here → Keycloak client_credentials
+  auth-token-bridge:
+    image: python:3.12-alpine
+    container_name: local_auth_token_bridge
+    volumes:
+      - ./wiremock/auth-token-bridge:/app:ro
+    working_dir: /app
+    # Host :8086 bypasses WireMock/Jetty, which always rewrites set-cookie → Set-Cookie.
+    ports:
+      - "8086:8086"
+    environment:
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: mosip
+      DEFAULT_CLIENT_ID: mosip-idrepo-client
+      DEFAULT_CLIENT_SECRET: QTGizTYN4US0XHOU
+      IDREPO_CLIENT_SECRET: QTGizTYN4US0XHOU
+      PORT: "8086"
+    command: ["python", "server.py"]
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      keycloak-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8086/health')",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+
+  # Local Keycloak (MOSIP realm + mosip-idrepo-client, ~10y access tokens).
+  # Admin UI: http://localhost:8081/auth  (admin / admin)
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.5
+    container_name: local_keycloak
+    ports:
+      - "8081:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_RELATIVE_PATH: /auth
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_PROXY: edge
+    volumes:
+      - ./keycloak/mosip-realm.json:/opt/keycloak/data/import/mosip-realm.json:ro
+    command: ["start-dev", "--import-realm", "--http-port=8080"]
+    healthcheck:
+      # Response JSON contains "realm":"master" (lowercase). Image has no curl; use /dev/tcp.
+      test:
+        [
+          "CMD-SHELL",
+          "exec 3<>/dev/tcp/127.0.0.1/8080; printf 'GET /auth/realms/master HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3; cat <&3 | grep -qi '\"realm\"'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 45s
+
+  # Assign service-account roles + set ~10y token lifespan (no hardcoded JWT stubs)
+  keycloak-init:
+    image: python:3.12-alpine
+    container_name: local_keycloak_init
+    volumes:
+      - ./keycloak:/work/keycloak:ro
+    working_dir: /work
+    environment:
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      COMPOSE_DIR: /work
+      TOKEN_LIFESPAN_SECS: "315360000"
+      WRITE_WIREMOCK_STUBS: "false"
+    command: ["python", "/work/keycloak/bootstrap_and_mint_token.py"]
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+  mock-service:
+    image: wiremock/wiremock:latest
+    container_name: master_data_mock_service
+    # Host :8082 is published by mock-gateway (preserves set-cookie casing on auth mint).
+    # Other containers still reach WireMock at mock-service:8082 on the compose network.
+    environment:
+      - JAVA_OPTS=-Xms256m -Xmx512m
+    volumes:
+      - ./wiremock/mappings:/home/wiremock/mappings   # stub JSON files
+      - ./wiremock/__files:/home/wiremock/__files
+    command: --verbose --port 8082 --local-response-templating --max-template-cache-entries 10 --no-request-journal
+    depends_on:
+      uin-generator:
+        condition: service_healthy
+      websub-mock:
+        condition: service_healthy
+      keycloak-init:
+        condition: service_completed_successfully
+      auth-token-bridge:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8082/__admin/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Host gateway: auth mint → auth-token-bridge (lowercase set-cookie); else → WireMock.
+  mock-gateway:
+    image: python:3.12-alpine
+    container_name: local_mock_gateway
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./wiremock/mock-gateway:/app:ro
+    working_dir: /app
+    environment:
+      PORT: "8082"
+      WIREMOCK_URL: http://mock-service:8082
+      AUTH_BRIDGE_URL: http://auth-token-bridge:8086
+    command: ["python", "server.py"]
+    depends_on:
+      mock-service:
+        condition: service_healthy
+      auth-token-bridge:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8082/health')",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+
+  # Object store for datashare (and optional id-repo packet store)
+  minio:
+    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+    container_name: local_minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: local_minio_init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 admin minioadmin &&
+      mc mb --ignore-existing local/datashare &&
+      mc mb --ignore-existing local/idrepo &&
+      exit 0
+      "
+
+  biosdk-service:
+    image: mosipid/biosdk-server:1.3.0
+    container_name: biosdk_service
+    ports:
+      - "8083:9099"
+    environment:
+      biosdk_zip_file_path: http://mock-service:8082/downloads/mock-sdk.zip
+      biosdk_bioapi_impl: io.mosip.mock.sdk.impl.SampleSDKV2
+    depends_on:
+      mock-service:
+        condition: service_healthy   # waits until wiremock is fully up
+    # Image configure_biosdk.sh uses plain `unzip` (interactive on restart).
+    # Clear prior extract + force overwrite so restarts are non-interactive.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        cd /home/mosip
+        rm -rf "$${biosdk_local_dir_name:-biosdk-client}" mock-sdk.zip
+        mkdir -p /tmp/bin
+        printf '%s\n' '#!/bin/sh' 'exec /usr/bin/unzip -o "$$@"' > /tmp/bin/unzip
+        chmod +x /tmp/bin/unzip
+        export PATH=/tmp/bin:$$PATH
+        exec ./configure_biosdk.sh java \
+          -XX:-UseG1GC -XX:-UseParallelGC -XX:-UseShenandoahGC \
+          -XX:+ExplicitGCInvokesConcurrent -XX:+UseZGC -XX:+ZGenerational \
+          -XX:+UnlockExperimentalVMOptions -XX:+UseStringDeduplication \
+          -XX:+HeapDumpOnOutOfMemoryError -XX:+UseCompressedOops \
+          -XX:MaxGCPauseMillis=200 -Dfile.encoding=UTF-8 \
+          -Dloader.path="$${loader_path_env}" \
+          -Dserver.servlet.context-path="$${server_servlet_context_path_env}" \
+          -Dspring.cloud.config.label="$${spring_config_label_env}" \
+          -Dspring.profiles.active="$${active_profile_env}" \
+          -Dspring.cloud.config.uri="$${spring_config_url_env}" \
+          -Dspring.application.name="$${spring_application_name_env}" \
+          -Dspring.cloud.config.name="$${spring_cloud_config_name_env}" \
+          --add-modules=ALL-SYSTEM \
+          --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED \
+          --add-opens java.base/java.lang.reflect=ALL-UNNAMED \
+          --add-opens java.base/java.lang.stream=ALL-UNNAMED \
+          --add-opens java.base/java.time=ALL-UNNAMED \
+          --add-opens java.base/java.time.LocalDate=ALL-UNNAMED \
+          --add-opens java.base/java.time.LocalDateTime=ALL-UNNAMED \
+          --add-opens java.base/java.time.LocalDateTime.date=ALL-UNNAMED \
+          --add-opens java.base/jdk.internal.reflect.DirectMethodHandleAccessor=ALL-UNNAMED \
+          -jar biosdk-services.jar
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9099/biosdk-service/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  # Key Manager — encrypt/decrypt for id-repo (PKCS12, no SoftHSM)
+  # Skips image configure_start.sh (SoftHSM client download) and runs the jar directly.
+  # Must start AFTER keys-generator: IDENTITY_CACHE is a SecretKeyEntry written to the same
+  # PKCS12 file; keymanager loads the keystore once at startup (KER-KMA-004 if stale).
+  keymanager-service:
+    image: mosipid/kernel-keymanager-service:1.3.0
+    container_name: keymanager_service
+    ports:
+      - "8088:8088"
+    volumes:
+      # Local PKCS12 keystores (see ../keys/README.md)
+      - ../keys:/home/mosip/config:rw
+    depends_on:
+      database:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      keys-generator-expiry:
+        condition: service_completed_successfully
+    environment:
+      # Config label for native file search (bundled ./mosip-config)
+      SPRING_CLOUD_CONFIG_LABEL: develop
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - >
+        set -e;
+        JAR=$$(ls ./kernel-keymanager-service*.jar | head -n 1);
+        java -XX:+UseZGC -Dfile.encoding=UTF-8
+        -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration
+        -Dspring.cloud.config.uri=http://config-server:51000/config
+        -Dspring.cloud.config.label=$${SPRING_CLOUD_CONFIG_LABEL}
+        -Dspring.profiles.active=default
+        -Dspring.cloud.config.name=keymanager,kernel
+        -Dmosip.kernel.database.hostname=database
+        -Dmosip.kernel.database.port=5432
+        -Ddb.dbuser.password=mosip123
+        -Dkeymanager_database_url=jdbc:postgresql://database:5432/mosip_keymgr
+        -Dkeymanager_database_username=keymgruser
+        -Dkeymanager_database_password=mosip123
+        -Dmosip.kernel.keymanager.hsm.keystore-type=PKCS12
+        -Dmosip.kernel.keymanager.hsm.config-path=/home/mosip/config/mosip-idrepo-ks.p12
+        -Dmosip.kernel.keymanager.hsm.keystore-pass=qwerty@1234
+        -Dmosip.kernel.authmanager.url=http://mock-service:8082
+        -Dauth.server.validate.url=http://mock-service:8082/v1/authmanager/authorize/admin/validateToken
+        -Dauth.server.admin.validate.url=http://mock-service:8082/v1/authmanager/authorize/admin/validateToken
+        -Dauth.server.admin.offline.comp.token.validate=false
+        -Dmosip.auth.filter_disable=true
+        -Dmosip.admin.client.secret=local-dev-secret
+        -Dmosip.iam.adapter.appid=admin
+        -Dmosip.iam.adapter.clientid=mosip-admin-client
+        -Dmosip.iam.adapter.clientsecret=local-dev-secret
+        -Dmosip.authmanager.client-token-endpoint=http://mock-service:8082/v1/authmanager/authenticate/clientidsecretkey
+        -Dmosip.iam.adapter.self-token-renewal-enable=false
+        -Dmosip.security.csrf-enable=false
+        -Dspring.security.csrf.enabled=false
+        -Dkeycloak.internal.url=http://keycloak:8080
+        -Dkeycloak.external.url=http://keycloak:8080
+        -Dauth.server.admin.issuer.internal.uri=http://keycloak:8080/auth/realms/
+        -Dauth.server.admin.issuer.uri=http://keycloak:8080/auth/realms/
+        -Dauth.server.admin.audience.claim.validate=false
+        -Dauth.server.admin.issuer.domain.validate=false
+        -Dspring.cloud.loadbalancer.enabled=false
+        -jar "$$JAR"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8088/v1/keymanager/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  # One-shot: generate ROOT + ID_REPO keys after keymanager is up (fixes KER-KMS-012 on first encrypt)
+  keymanager-init:
+    image: curlimages/curl:8.5.0
+    container_name: keymanager_init
+    depends_on:
+      keymanager-service:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        KM_URL="http://keymanager-service:8088"
+        NOW="$$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+        gen_key() {
+          APP_ID="$$1"; REF_ID="$${2:-}"
+          echo "Generating master key for $$APP_ID ref=$${REF_ID:-empty}"
+          CODE=$$(curl -s -o /tmp/km.out -w "%{http_code}" -X POST "$$KM_URL/v1/keymanager/generateMasterKey/certificate" \
+            -H "Content-Type: application/json" \
+            -d "{\"id\":\"mosip.keymanager.generate\",\"version\":\"v1\",\"requesttime\":\"$$NOW\",\"request\":{\"applicationId\":\"$$APP_ID\",\"createNewCertifcate\":true,\"referenceId\":\"$$REF_ID\",\"commonName\":\"www.mosip.io\",\"organizationUnit\":\"MOSIP-TECH-CENTER\",\"organization\":\"IITB\",\"location\":\"BANGALORE\",\"state\":\"KA\",\"country\":\"IN\"}}")
+          echo "HTTP $$CODE"; cat /tmp/km.out; echo
+        }
+        gen_key ROOT ""
+        gen_key ID_REPO ""
+        gen_key ID_REPO identity_data
+        # ZK encrypt wraps random keys with IDA:PUBLIC_KEY (kernel zkcrypto.publickey.*)
+        gen_key IDA ""
+        echo "Ensuring IDA:PUBLIC_KEY base key (auto-created by getCertificate)..."
+        curl -s -o /tmp/km-ida-pub.out -w "HTTP %{http_code}\n" \
+          "$$KM_URL/v1/keymanager/getCertificate?applicationId=IDA&referenceId=PUBLIC_KEY"
+        cat /tmp/km-ida-pub.out; echo
+        echo done
+
+  # One-shot: MOSIP keys-generator — fills keymgr.data_encrypt_keystore (≥1000 Active keys)
+  # See https://github.com/mosip/keymanager/tree/v1.4.1-rc.1/kernel/keys-generator
+  # Runs BEFORE keymanager-service so PKCS12 IDENTITY_CACHE SecretKey is present at KM startup.
+  keys-generator:
+    image: mosipid/keys-generator:1.3.0
+    container_name: keys_generator
+    volumes:
+      - ../keys:/home/mosip/config:rw
+    depends_on:
+      database:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    environment:
+      SPRING_CLOUD_CONFIG_LABEL: develop
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -e
+        echo "Running keys-generator (KERNEL:IDENTITY_CACHE + zkcrypto random keys)..."
+        java -XX:+UseZGC -Dfile.encoding=UTF-8 \
+          -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration \
+          -Dspring.cloud.config.uri=http://config-server:51000/config \
+          -Dspring.cloud.config.label=$${SPRING_CLOUD_CONFIG_LABEL} \
+          -Dspring.profiles.active=default \
+          -Dspring.cloud.config.name=keymanager,kernel \
+          -Dmosip.kernel.database.hostname=database \
+          -Dmosip.kernel.database.port=5432 \
+          -Ddb.dbuser.password=mosip123 \
+          -Dkeymanager_database_url=jdbc:postgresql://database:5432/mosip_keymgr \
+          -Dkeymanager_database_username=keymgruser \
+          -Dkeymanager_database_password=mosip123 \
+          -Dmosip.kernel.keymanager.hsm.keystore-type=PKCS12 \
+          -Dmosip.kernel.keymanager.hsm.config-path=/home/mosip/config/mosip-idrepo-ks.p12 \
+          -Dmosip.kernel.keymanager.hsm.keystore-pass=qwerty@1234 \
+          -Dmosip.kernel.keymanager.autogen.appids.list=ROOT,KERNEL:SIGN,ID_REPO,KERNEL:IDENTITY_CACHE,IDA \
+          -Dmosip.kernel.keymanager.autogen.basekeys.list=IDA:PUBLIC_KEY \
+          -Dzkcrypto.random.key.generate.count=1000 \
+          -Dmosip.auth.filter_disable=true \
+          -Dspring.security.csrf.enabled=false \
+          -Dspring.cloud.loadbalancer.enabled=false \
+          -jar /home/mosip/keys-generator.jar
+        echo "keys-generator finished"
+
+  # Extend IDENTITY_CACHE / policy validity to 10 years (keys-generator hardcodes +1825d for ZK master)
+  keys-generator-expiry:
+    image: postgres:bookworm
+    container_name: keys_generator_expiry
+    depends_on:
+      keys-generator:
+        condition: service_completed_successfully
+      database:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: mosip123
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -e
+        psql -h database -U keymgruser -d mosip_keymgr -v ON_ERROR_STOP=1 <<'SQL'
+        -- 10-year policy for local apps (3650 days)
+        UPDATE keymgr.key_policy_def
+           SET key_validity_duration = 3650,
+               upd_by = 'local-dev',
+               upd_dtimes = NOW()
+         WHERE app_id IN ('ROOT','KERNEL','ID_REPO','BASE','PMS','RESIDENT','IDA');
+
+        -- IDENTITY_CACHE master alias: 10 years from generation time
+        UPDATE keymgr.key_alias
+           SET key_expire_dtimes = key_gen_dtimes + INTERVAL '10 years',
+               upd_by = 'local-dev',
+               upd_dtimes = NOW()
+         WHERE app_id = 'KERNEL'
+           AND ref_id = 'IDENTITY_CACHE'
+           AND COALESCE(is_deleted, FALSE) = FALSE;
+
+        -- Also stretch ID_REPO / ROOT / IDA aliases used by id-repo encrypt + zkEncrypt
+        UPDATE keymgr.key_alias
+           SET key_expire_dtimes = key_gen_dtimes + INTERVAL '10 years',
+               upd_by = 'local-dev',
+               upd_dtimes = NOW()
+         WHERE app_id IN ('ROOT','ID_REPO','IDA')
+           AND COALESCE(is_deleted, FALSE) = FALSE;
+
+        SELECT 'data_encrypt_keystore' AS tbl, count(*) AS cnt,
+               count(*) FILTER (WHERE lower(key_status)='active') AS active_cnt
+          FROM keymgr.data_encrypt_keystore;
+        SELECT app_id, ref_id, key_gen_dtimes, key_expire_dtimes
+          FROM keymgr.key_alias
+         WHERE app_id IN ('KERNEL','ROOT','ID_REPO')
+           AND COALESCE(is_deleted, FALSE) = FALSE
+         ORDER BY app_id, ref_id;
+        SQL
+        echo "keys-generator-expiry done"
+
+  # Data Share — credential payload upload/download (uses MinIO + keymanager)
+  # Auth beans (selfTokenRestTemplate) come from kernel-auth-adapter on loader.path
+  # (image entrypoint normally wget's it; we mount a local copy instead).
+  datashare-service:
+    image: mosipid/data-share-service:1.3.0
+    container_name: datashare_service
+    ports:
+      - "8097:8097"
+    volumes:
+      - ./additional_jars:/home/mosip/additional_jars:ro
+    environment:
+      SPRING_CLOUD_CONFIG_LABEL: develop
+    depends_on:
+      config-server:
+        condition: service_healthy
+      keymanager-service:
+        condition: service_healthy
+      keymanager-init:
+        condition: service_completed_successfully
+      keys-generator-expiry:
+        condition: service_completed_successfully
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+      mock-service:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >
+        set -e;
+        JAR=$$(ls ./*data-share*.jar ./data-share-service*.jar 2>/dev/null | head -n 1);
+        if [ ! -f /home/mosip/additional_jars/kernel-auth-adapter.jar ]; then
+          echo "ERROR: missing /home/mosip/additional_jars/kernel-auth-adapter.jar";
+          echo "Copy kernel-auth-adapter into local-dev-setup/docker-compose/additional_jars/";
+          exit 1;
+        fi;
+        java -XX:+UseZGC -Dfile.encoding=UTF-8
+        -Dloader.path=/home/mosip/additional_jars/
+        -Dspring.cloud.config.uri=http://config-server:51000/config
+        -Dspring.cloud.config.label=$${SPRING_CLOUD_CONFIG_LABEL}
+        -Dspring.profiles.active=default
+        -Dspring.cloud.config.name=data-share
+        -Dmosip.kernel.keymanager.url=http://keymanager-service:8088
+        -Dmosip.datashare.url=http://datashare-service:8097
+        -Dmosip.pms.policymanager.url=http://mock-service:8082
+        -Dmosip.pms.partnermanager.url=http://mock-service:8082
+        -Dmosip.kernel.authmanager.url=http://mock-service:8082
+        -Dkeycloak.internal.url=http://keycloak:8080
+        -Dkeycloak.external.url=http://keycloak:8080
+        -Dauth.server.validate.url=http://mock-service:8082/v1/authmanager/authorize/admin/validateToken
+        -Dauth.server.admin.validate.url=http://mock-service:8082/v1/authmanager/authorize/admin/validateToken
+        -Dauth.server.admin.offline.comp.token.validate=false
+        -Dauth.server.admin.audience.claim.validate=true
+        -Dauth.server.admin.issuer.domain.validate=false
+        -Dauth.server.admin.issuer.internal.uri=http://keycloak:8080/auth/realms/
+        -Dauth.server.admin.issuer.uri=http://keycloak:8080/auth/realms/
+        -Dauth.server.admin.oidc.userinfo.url=http://auth-token-bridge:8086/v1/oidc/userinfo
+        -Dauth.server.admin.allowed.audience=mosip-idrepo-client,account,mosip-crereq-client,mosip-creser-client,mosip-datsha-client,mpartner-default-auth,mosip-ida-client,mosip-admin-client
+        -Dmosip.authmanager.client-token-endpoint=http://mock-service:8082/v1/authmanager/authenticate/clientidsecretkey
+        -Dmosip.iam.adapter.appid=datsha
+        -Dmosip.iam.adapter.clientid=mosip-datsha-client
+        -Dmosip.iam.adapter.clientsecret=nA8DF7lnUSw8zWS6
+        -Dmosip.datsha.client.secret=nA8DF7lnUSw8zWS6
+        -Dobject.store.s3.url=http://minio:9000
+        -Ds3.accesskey=admin
+        -Ds3.secretkey=minioadmin
+        -Ds3.region=us-east-1
+        -Dobject.store.s3.accesskey=admin
+        -Dobject.store.s3.secretkey=minioadmin
+        -Dobject.store.s3.region=us-east-1
+        -Dmosip.auth.filter_disable=true
+        -Dmosip.iam.adapter.self-token-renewal-enable=true
+        -Dspring.cloud.loadbalancer.enabled=false
+        -jar "$$JAR"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8097/v1/datashare/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  # Consolidated ID-Repository (identity + VID + credential). Build the jar first:
+  #   cd ../../ && mvn -pl id-repository-service -am clean package -DskipTests -Dgpg.skip=true
+  id-repository-service:
+    image: eclipse-temurin:21-jre-jammy
+    container_name: id_repository_service
+    ports:
+      - "8090:8090"
+    volumes:
+      - ../../id-repository-service/target:/app/target:ro
+    working_dir: /app
+    environment:
+      SPRING_CLOUD_CONFIG_LABEL: develop
+      JAVA_OPTS: -Xms512m -Xmx1536m
+    depends_on:
+      database:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      mock-service:
+        condition: service_healthy
+      websub-mock:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+      keymanager-service:
+        condition: service_healthy
+      keymanager-init:
+        condition: service_completed_successfully
+      keys-generator-expiry:
+        condition: service_completed_successfully
+      datashare-service:
+        condition: service_healthy
+      biosdk-service:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - >
+        set -e;
+        JAR=$$(ls ./target/id-repository-service-*.jar 2>/dev/null | grep -vE 'sources|javadoc|tests' | head -n 1 || true);
+        if [ -z "$$JAR" ]; then
+          echo "ERROR: id-repository-service jar not found under id-repository-service/target.";
+          echo "Build first: cd id-repository && mvn -pl id-repository-service -am package -DskipTests -Dgpg.skip=true";
+          exit 1;
+        fi;
+        echo "Waiting for config-server...";
+        for i in $$(seq 1 60); do
+          if curl -sf "http://config-server:51000/config/id-repository/default" >/dev/null; then
+            echo "config-server is ready";
+            break;
+          fi;
+          if [ "$$i" -eq 60 ]; then
+            echo "ERROR: config-server not reachable at http://config-server:51000/config";
+            exit 1;
+          fi;
+          sleep 2;
+        done;
+        java $$JAVA_OPTS
+        -Dfile.encoding=UTF-8
+        --add-opens java.base/java.lang=ALL-UNNAMED
+        --add-opens java.base/java.lang.reflect=ALL-UNNAMED
+        --add-opens java.base/java.io=ALL-UNNAMED
+        -Dspring.cloud.config.uri=http://config-server:51000/config
+        -Dspring.config.import=configserver:http://config-server:51000/config
+        -Dspring.cloud.config.label=$${SPRING_CLOUD_CONFIG_LABEL}
+        -Dspring.cloud.config.name=application,id-repository,credential-service,credential-request
+        -Dspring.application.name=id-repository
+        -Dspring.profiles.active=default
+        -Dspring.cloud.loadbalancer.enabled=false
+        -Dserver.port=8090
+        -Dmosip.idrepo.identity.db.url=jdbc:postgresql://database:5432/mosip_idrepo
+        -Dmosip.idrepo.identity.db.username=idrepouser
+        -Dmosip.idrepo.identity.db.password=mosip123
+        -Dmosip.idrepo.vid.db.url=jdbc:postgresql://database:5432/mosip_idmap
+        -Dmosip.idrepo.vid.db.username=idmapuser
+        -Dmosip.idrepo.vid.db.password=mosip123
+        -Dmosip.credential.service.jdbc.url=jdbc:postgresql://database:5432/mosip_credential
+        -Dmosip.credential.service.jdbc.user=credentialuser
+        -Dmosip.credential.service.jdbc.password=mosip123
+        -Dmosip.kernel.keymanager.url=http://keymanager-service:8088
+        -Dmosip.idrepo.encryptor.rest.uri=http://keymanager-service:8088/v1/keymanager/encrypt
+        -Dmosip.idrepo.decryptor.rest.uri=http://keymanager-service:8088/v1/keymanager/decrypt
+        -Dmosip.pms.partnermanager.url=http://mock-service:8082
+        -Dmosip.pms.policymanager.url=http://mock-service:8082
+        -Dmosip.kernel.authmanager.url=http://mock-service:8082
+        -Dmosip.authmanager.client-token-endpoint=http://mock-service:8082/v1/authmanager/authenticate/clientidsecretkey
+        -DKEYBASEDTOKENAPI=http://mock-service:8082/v1/authmanager/authenticate/clientidsecretkey
+        -Dmosip.idrepo.client.secret=QTGizTYN4US0XHOU
+        -Dmosip.idrepo.auth.secret-key=QTGizTYN4US0XHOU
+        -Dmosip.idrepo.auth.client-id=mosip-idrepo-client
+        -Dmosip.idrepo.auth.app-id=idrepo
+        -Dkeycloak.internal.url=http://keycloak:8080
+        -Dkeycloak.external.url=http://keycloak:8080
+        -Dauth.server.admin.issuer.internal.uri=http://keycloak:8080/auth/realms/
+        -Dauth.server.admin.issuer.uri=http://keycloak:8080/auth/realms/
+        -Dauth.server.admin.oidc.userinfo.url=http://auth-token-bridge:8086/v1/oidc/userinfo
+        -Dauth.server.admin.audience.claim.validate=true
+        -Dauth.server.admin.allowed.audience=mosip-idrepo-client,account
+        -Dauth.server.admin.issuer.domain.validate=false
+        -Dmosip.kernel.auditmanager.url=http://mock-service:8082
+        -Dmosip.websub.url=http://websub-mock:8085
+        -Dwebsub.hub.url=http://websub-mock:8085/hub/
+        -Dwebsub.publish.url=http://websub-mock:8085/hub/
+        -Dmosip.biosdk.default.service.url=http://biosdk-service:9099/biosdk-service
+        -Dmosip.idrepo.biosdk.url=http://biosdk-service:9099
+        -Dmosip.api.internal.host=datashare-service
+        -Dmosip.data.share.protocol=http
+        -Dmosip.data.share.internal.domain.name=datashare-service
+        -DCREATEDATASHARE=http://datashare-service:8097/v1/datashare/create
+        -Dobject.store.s3.url=http://minio:9000
+        -Dobject.store.s3.accesskey=admin
+        -Dobject.store.s3.secretkey=minioadmin
+        -Dauth.server.admin.offline.comp.token.validate=false
+        -Dmosip.auth.filter_disable=true
+        -Dmosip.idrepo.policy.local-source=false
+        -Didrepo.websub.vid.credential.update.secret=local-websub-secret
+        -Dmosip.idrepo.websub.vid-credential-update.secret=local-websub-secret
+        -jar "$$JAR"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8090/actuator/health || curl -f http://localhost:8090/idrepository/v1/actuator/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 30
+      start_period: 120s

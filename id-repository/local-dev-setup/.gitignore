@@ -1,0 +1,5 @@
+# Generated BioSDK zip (too large for git) — create via prepare-biosdk-mock-lib.sh/.bat
+docker-compose/wiremock/__files/mock-sdk.zip
+
+# PKCS12 keystores (local only — see keys/README.md)
+keys/*.p12

@@ -1,0 +1,68 @@
+2026-08-06 19:21:31,242 INFO o.a.j.u.JMeterUtils: Setting Locale to en_EN
+2026-08-06 19:21:31,255 INFO o.a.j.JMeter: Loading user properties from: E:\Software\Java\apache-jmeter-5.6.3\bin\user.properties
+2026-08-06 19:21:31,255 INFO o.a.j.JMeter: Loading system properties from: E:\Software\Java\apache-jmeter-5.6.3\bin\system.properties
+2026-08-06 19:21:31,259 INFO o.a.j.JMeter: Copyright (c) 1998-2024 The Apache Software Foundation
+2026-08-06 19:21:31,259 INFO o.a.j.JMeter: Version 5.6.3
+2026-08-06 19:21:31,260 INFO o.a.j.JMeter: java.version=21.0.3
+2026-08-06 19:21:31,260 INFO o.a.j.JMeter: java.vm.name=Java HotSpot(TM) 64-Bit Server VM
+2026-08-06 19:21:31,260 INFO o.a.j.JMeter: os.name=Windows 11
+2026-08-06 19:21:31,260 INFO o.a.j.JMeter: os.arch=amd64
+2026-08-06 19:21:31,260 INFO o.a.j.JMeter: os.version=10.0
+2026-08-06 19:21:31,260 INFO o.a.j.JMeter: file.encoding=UTF-8
+2026-08-06 19:21:31,260 INFO o.a.j.JMeter: java.awt.headless=true
+2026-08-06 19:21:31,260 INFO o.a.j.JMeter: Max memory     =4294967296
+2026-08-06 19:21:31,260 INFO o.a.j.JMeter: Available Processors =32
+2026-08-06 19:21:31,266 INFO o.a.j.JMeter: Default Locale=English (EN)
+2026-08-06 19:21:31,266 INFO o.a.j.JMeter: JMeter  Locale=English (EN)
+2026-08-06 19:21:31,266 INFO o.a.j.JMeter: JMeterHome=E:\Software\Java\apache-jmeter-5.6.3
+2026-08-06 19:21:31,266 INFO o.a.j.JMeter: user.dir  =D:\Project\Mosip\id-repository\id-repository\local-dev-setup\docker-compose
+2026-08-06 19:21:31,266 INFO o.a.j.JMeter: PWD       =D:\Project\Mosip\id-repository\id-repository\local-dev-setup\docker-compose
+2026-08-06 19:21:31,267 INFO o.a.j.JMeter: IP: 10.200.0.202 Name: DESKTOP-R99TOPN FullName: DESKTOP-R99TOPN
+2026-08-06 19:21:31,276 INFO o.a.j.s.FileServer: Default base='D:\Project\Mosip\id-repository\id-repository\local-dev-setup\docker-compose'
+2026-08-06 19:21:31,277 INFO o.a.j.s.FileServer: Set new base='E:\Software\Java\apache-jmeter-5.6.3\Scripts\IDRepo'
+2026-08-06 19:21:31,379 INFO o.a.j.s.SaveService: Testplan (JMX) version: 2.2. Testlog (JTL) version: 2.2
+2026-08-06 19:21:31,404 INFO o.a.j.s.SaveService: Using SaveService properties version 5.0
+2026-08-06 19:21:31,408 INFO o.a.j.s.SaveService: Using SaveService properties file encoding UTF-8
+2026-08-06 19:21:31,410 INFO o.a.j.s.SaveService: Loading file: E:\Software\Java\apache-jmeter-5.6.3\Scripts\IDRepo\IDRepo_Test_Script_v0.1_local_sanity.jmx
+2026-08-06 19:21:31,453 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/html is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-08-06 19:21:31,453 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xhtml+xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-08-06 19:21:31,453 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-08-06 19:21:31,453 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-08-06 19:21:31,453 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/vnd.wap.wml is org.apache.jmeter.protocol.http.parser.RegexpHTMLParser
+2026-08-06 19:21:31,453 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/css is org.apache.jmeter.protocol.http.parser.CssParser
+2026-08-06 19:21:31,562 INFO o.a.j.JMeter: Creating summariser <summary>
+2026-08-06 19:21:31,570 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-08-06 19:21:31,570 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-08-06 19:21:31,570 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-08-06 19:21:31,573 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must contain the string: '.functions.'
+2026-08-06 19:21:31,573 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must not contain the string: '.gui.'
+2026-08-06 19:21:31,596 INFO o.a.j.r.ClassFinder: Will scan jar E:\Software\Java\apache-jmeter-5.6.3\lib\ext\jmeter-plugins-manager-1.11.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.functions.Function], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-08-06 19:21:31,655 INFO o.a.j.r.ClassFinder: Will scan jar E:\Software\Java\apache-jmeter-5.6.3\lib\ext\jmeter-plugins-graphs-dist-2.0.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.functions.Function], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-08-06 19:21:31,658 INFO o.a.j.r.ClassFinder: Will scan jar E:\Software\Java\apache-jmeter-5.6.3\lib\ext\jmeter-plugins-graphs-vs-2.0.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.functions.Function], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-08-06 19:21:31,658 INFO o.a.j.r.ClassFinder: Will scan jar E:\Software\Java\apache-jmeter-5.6.3\lib\ext\jmeter-plugins-filterresults-2.2.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.functions.Function], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-08-06 19:21:31,660 INFO o.a.j.r.ClassFinder: Will scan jar E:\Software\Java\apache-jmeter-5.6.3\lib\ext\jmeter-plugins-synthesis-2.2.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.functions.Function], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-08-06 19:21:31,661 INFO o.a.j.r.ClassFinder: Will scan jar E:\Software\Java\apache-jmeter-5.6.3\lib\ext\jmeter-plugins-graphs-basic-2.0.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.functions.Function], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-08-06 19:21:31,806 INFO o.a.j.JMeter: Running test (1786024291806)
+2026-08-06 19:21:31,817 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Id Repository (Execution)
+2026-08-06 19:21:31,817 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Id Repository (Execution).
+2026-08-06 19:21:31,817 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-08-06 19:21:31,817 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=10 delayedStart=false
+2026-08-06 19:21:31,828 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-08-06 19:21:31,829 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-08-06 19:21:31,835 INFO o.a.j.s.SampleResult: Note: Sample TimeStamps are START times
+2026-08-06 19:21:31,835 INFO o.a.j.s.SampleResult: sampleresult.default.encoding is set to UTF-8
+2026-08-06 19:21:31,835 INFO o.a.j.s.SampleResult: sampleresult.useNanoTime=true
+2026-08-06 19:21:31,835 INFO o.a.j.s.SampleResult: sampleresult.nanoThreadSleep=5000
+2026-08-06 19:21:31,836 INFO o.a.j.t.JMeterThread: Thread started: Id Repository (Execution) 1-1
+2026-08-06 19:21:31,837 INFO o.a.j.s.FileServer: Stored: E:\Software\Java\apache-jmeter-5.6.3\Scripts\IDRepo\runtime-files/idRepo_authorizationToken.txt
+2026-08-06 19:21:31,844 INFO o.a.j.s.FileServer: Stored: E:\Software\Java\apache-jmeter-5.6.3\Scripts\IDRepo\support-files/addIdentityRequestDetails.csv
+2026-08-06 19:21:31,853 INFO o.a.j.p.h.s.HTTPHCAbstractImpl: Local host = DESKTOP-R99TOPN
+2026-08-06 19:21:31,857 INFO o.a.j.p.h.s.HTTPHC4Impl: HTTP request retry count = 0
+2026-08-06 19:21:31,948 INFO o.a.j.r.Summariser: summary +      1 in 00:00:00 =    7.1/s Avg:    21 Min:    21 Max:    21 Err:     0 (0.00%) Active: 1 Started: 1 Finished: 0
+2026-08-06 19:21:34,405 INFO o.a.j.t.JMeterThread: Thread is done: Id Repository (Execution) 1-1
+2026-08-06 19:21:34,405 INFO o.a.j.t.JMeterThread: Thread finished: Id Repository (Execution) 1-1
+2026-08-06 19:21:34,406 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-08-06 19:21:34,406 INFO o.a.j.s.FileServer: Close: E:\Software\Java\apache-jmeter-5.6.3\Scripts\IDRepo\support-files/addIdentityRequestDetails.csv
+2026-08-06 19:21:34,407 INFO o.a.j.s.FileServer: Close: E:\Software\Java\apache-jmeter-5.6.3\Scripts\IDRepo\runtime-files/idRepo_authorizationToken.txt
+2026-08-06 19:21:34,409 INFO o.a.j.r.Summariser: summary +     14 in 00:00:02 =    5.7/s Avg:   132 Min:    11 Max:   854 Err:     0 (0.00%) Active: 0 Started: 1 Finished: 1
+2026-08-06 19:21:34,409 INFO o.a.j.r.Summariser: summary =     15 in 00:00:03 =    5.8/s Avg:   124 Min:    11 Max:   854 Err:     0 (0.00%)

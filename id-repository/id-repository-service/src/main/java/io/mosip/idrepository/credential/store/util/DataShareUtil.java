@@ -157,7 +157,11 @@ public class DataShareUtil {
 				url = dataShareUrl.toString().replaceAll("[\\[\\]]", "");
 			}
 			LOGGER.info(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"data share POST url host=" + new URL(url).getHost());
+					"data share POST url host=" + new URL(url).getHost()
+							+ " — Authorization Bearer comes from selfTokenRestTemplate "
+							+ "(TokenHelper OIDC client_credentials for mosip.iam.adapter.clientid.*, "
+							+ "NOT from DataShareUtil headers). Datashare create requires audience allow-list match "
+							+ "and role CREATE_SHARE (durian @PreAuthorize).");
 			String responseString = restUtil.postApi(url, pathsegments, "", "",
 					MediaType.MULTIPART_FORM_DATA, requestEntity, String.class);
 
@@ -201,10 +205,7 @@ public class DataShareUtil {
 			} else {
 				throw new DataShareException(e);
 			}
-
 		}
-
-
 	}
 
 	/**
@@ -231,5 +232,4 @@ public class DataShareUtil {
 				|| h.endsWith(".svc.cluster.local")
 				|| h.endsWith(".cluster.local");
 	}
-
 }

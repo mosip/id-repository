@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "ANY",
+    "urlPathPattern": "/v1/auditmanager/.*"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "id": null,
+      "version": null,
+      "responsetime": "2026-01-01T00:00:00.000Z",
+      "response": true,
+      "errors": null
+    }
+  }
+}

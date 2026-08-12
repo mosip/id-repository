@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/v1/partnermanager/partners/certificate/upload"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\"id\":\"string\",\"version\":\"1.0\",\"responsetime\":\"2026-01-01T00:00:00.000Z\",\"metadata\":null,\"response\":{\"signedCertificateData\":{{toJson (jsonPath request.body '$.request.certificateData')}},\"certificateId\":\"local-dev-partner-cert\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"},\"errors\":null}",
+    "transformers": ["response-template"]
+  }
+}

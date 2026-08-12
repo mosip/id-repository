@@ -1,0 +1,9 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/v1/idgenerator/vid.*"
+  },
+  "response": {
+    "proxyBaseUrl": "http://uin-generator:8084"
+  }
+}

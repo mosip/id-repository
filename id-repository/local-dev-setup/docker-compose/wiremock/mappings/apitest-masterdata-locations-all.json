@@ -1,0 +1,51 @@
+{
+  "priority": 5,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/v1/masterdata/locations/all"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "id": "mosip.masterdata.locations",
+      "version": "1.0",
+      "responsetime": "2026-01-01T00:00:00.000Z",
+      "metadata": null,
+      "response": {
+        "data": [
+          {
+            "code": "KTA",
+            "name": "Kenitra",
+            "hierarchyLevel": 5,
+            "hierarchyName": "City",
+            "parentLocCode": "RBA",
+            "langCode": "eng",
+            "isActive": true
+          },
+          {
+            "code": "KTA",
+            "name": "Kenitra",
+            "hierarchyLevel": 5,
+            "hierarchyName": "City",
+            "parentLocCode": "RBA",
+            "langCode": "fra",
+            "isActive": true
+          },
+          {
+            "code": "RBA",
+            "name": "Rabat",
+            "hierarchyLevel": 4,
+            "hierarchyName": "Province",
+            "parentLocCode": "MOR",
+            "langCode": "eng",
+            "isActive": true
+          }
+        ]
+      },
+      "errors": null
+    }
+  }
+}

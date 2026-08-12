@@ -10,12 +10,13 @@
 | Area | Path | Guide |
 |------|------|-------|
 | **Java / Maven** (core, service, salt-gen) | `id-repository/` | [`id-repository/AGENTS.md`](id-repository/AGENTS.md) |
+| **Local docker-compose** (IDA-style) | `id-repository/local-dev-setup/` | [`local-dev-setup/AGENTS.md`](id-repository/local-dev-setup/AGENTS.md) |
 | Fresh DB install (DDL) | `db_scripts/` | [`db_scripts/AGENTS.md`](db_scripts/AGENTS.md) |
 | Version upgrade SQL | `db_upgrade_scripts/` | [`db_upgrade_scripts/AGENTS.md`](db_upgrade_scripts/AGENTS.md) |
 | Point-in-time release SQL | `db_release_scripts/` | [`db_release_scripts/AGENTS.md`](db_release_scripts/AGENTS.md) |
 | K8s Helm charts | `helm/` | [`helm/AGENTS.md`](helm/AGENTS.md) |
 | Cluster install scripts | `deploy/` | [`deploy/AGENTS.md`](deploy/AGENTS.md) |
-| Functional API tests | `api-test/` | [§ api-test](#api-test) |
+| Functional API tests | `api-test/` | [`api-test/AGENTS.md`](api-test/AGENTS.md) |
 | OpenAPI specs | `api-docs/` | [§ api-docs](#api-docs) |
 
 **Java build:** `cd id-repository && mvn clean install` (JDK 21, Maven 3.9+).
@@ -27,12 +28,13 @@
 ```
 id-repository/                    # git repo root (this AGENTS.md)
 ├── id-repository/                # Maven parent → see id-repository/AGENTS.md
+│   └── local-dev-setup/          # Local docker-compose → local-dev-setup/AGENTS.md
 ├── db_scripts/                   # Greenfield DB create → db_scripts/AGENTS.md
 ├── db_upgrade_scripts/           # Incremental upgrades → db_upgrade_scripts/AGENTS.md
 ├── db_release_scripts/           # Release / revoke DDL → db_release_scripts/AGENTS.md
 ├── helm/                         # Kubernetes Helm charts → helm/AGENTS.md
 ├── deploy/                       # Shell installers → deploy/AGENTS.md
-├── api-test/                     # End-to-end API test rig
+├── api-test/                     # E2E API test rig → api-test/AGENTS.md
 ├── api-docs/                     # OpenAPI YAML
 └── contrib/                      # Reference configs (e.g. kernel auth BeanConfig)
 ```
@@ -165,14 +167,15 @@ deploy/
 
 ## `api-test`
 
-Functional end-to-end tests (Karate-style resources under `src/main/resources/idRepository/`).
+Functional end-to-end tests (REST Assured / TestNG). Full agent guide: [`api-test/AGENTS.md`](api-test/AGENTS.md).
 
-### Agent rules
+### Agent rules (summary)
 
 - Run after service deploy to validate external contracts (identity, VID, credential paths).
 - Config: `api-test/src/main/resources/config/Idrepo.properties`.
-- Install rig via `deploy/idrepo-apitestrig/install.sh` on cluster, or run locally per `api-test/README.md`.
+- Install rig via `deploy/idrepo-apitestrig/install.sh` on cluster, or run locally per `api-test/README.md` / `api-test/AGENTS.md`.
 - Do not change request/response shapes that IDA or partners depend on without updating tests.
+- Handle / HBS / duplicate-chain details: [`api-test/CLAUDE.md`](api-test/CLAUDE.md).
 
 ---
 
@@ -197,6 +200,8 @@ Reference implementations not shipped in main artifacts — e.g. `contrib/kernel
 3. Keep Helm values aligned with consolidated single-image deployable (`id-repository-service`).
 4. Point Java work to [`id-repository/AGENTS.md`](id-repository/AGENTS.md).
 5. Point cluster install work to [`deploy/AGENTS.md`](deploy/AGENTS.md).
+6. Point local docker-compose / WireMock / laptop stack work to [`id-repository/local-dev-setup/AGENTS.md`](id-repository/local-dev-setup/AGENTS.md).
+7. Point functional API test work to [`api-test/AGENTS.md`](api-test/AGENTS.md).
 
 ### Do not
 
@@ -204,6 +209,7 @@ Reference implementations not shipped in main artifacts — e.g. `contrib/kernel
 2. Deploy salt-generator as a scaled Deployment.
 3. Skip rollback scripts for upgrade/release changes.
 4. Change REST paths or WebSub topics without updating `api-test` and documenting in Java AGENTS.
+5. Use `docker compose restart id-repository-service` alone when deps must be healthy first — use `local-dev-setup/docker-compose/restart-idrepo.bat` (or `.sh`) / `docker compose up -d` instead.
 
 ---
 
@@ -213,4 +219,4 @@ IDA does **not** use id-repo salt tables. IDA schema is separate (`ida.uin_hash_
 
 ---
 
-*Last updated: 2026-07-28.*
+*Last updated: 2026-08-11.*

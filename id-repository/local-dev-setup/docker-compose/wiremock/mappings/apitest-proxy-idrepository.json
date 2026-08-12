@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "ANY",
+    "urlPathPattern": "/idrepository/.*"
+  },
+  "response": {
+    "proxyBaseUrl": "http://id-repository-service:8090"
+  },
+  "priority": 5
+}

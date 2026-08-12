@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPathPattern": "/v1/authmanager/authorize/admin/validateToken"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "id": "mosip.local.validate",
+      "version": "1.0",
+      "responsetime": "2026-01-01T00:00:00.000Z",
+      "response": {
+        "userId": "local-dev",
+        "token": "local-token",
+        "expiryTime": "2099-01-01T00:00:00.000Z",
+        "roles": ["GLOBAL_ADMIN", "ZONAL_ADMIN", "REGISTRATION_PROCESSOR", "CREDENTIAL_ISSUANCE", "CREDENTIAL_REQUEST", "ID_REPOSITORY", "CREATE_SHARE", "POLICYMANAGER"]
+      },
+      "errors": null
+    }
+  }
+}

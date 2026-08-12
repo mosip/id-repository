@@ -1,0 +1,16 @@
+{
+    "abis": [{
+        "name": "ABIS",
+        "host": "",
+        "port": "",
+        "brokerUrl": "tcp://${activemq.host}:${activemq.core.port}?reconnectSupported=true&startupMaxReconnectAttempts=100&warnAfterReconnectAttempts=2&maxReconnectDelay=30000&maxReconnectAttempts=1000",
+        "inboundQueueName": "mosip-to-abis",
+        "outboundQueueName": "abis-to-mosip",
+        "pingInboundQueueName": "",
+        "pingOutboundQueueName": "",
+        "userName": "artemis",
+        "password": "${activemq.password}",
+        "typeOfQueue": "ACTIVEMQ",
+        "inboundMessageTTL": 2700
+    }]
+}

@@ -15,7 +15,7 @@ mvn install -pl id-repository-salt-generator -am -DskipTests=true
 java -jar id-repository-salt-generator/target/id-repository-salt-generator-*.jar
 ```
 
-Windows: `run-id-repository-saltgen-local.bat` from repo root (uses `local-run.env.bat`).
+**Local laptop:** salts are seeded by `local-dev-setup/docker-compose/init.sql` — do not run this Job locally. See [`../local-dev-setup/AGENTS.md`](../local-dev-setup/AGENTS.md).
 
 ## Docker
 

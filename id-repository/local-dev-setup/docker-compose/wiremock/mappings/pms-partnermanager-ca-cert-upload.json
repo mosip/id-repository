@@ -1,0 +1,23 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/v1/partnermanager/partners/certificate/ca/upload"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "id": "string",
+      "version": "1.0",
+      "responsetime": "2026-01-01T00:00:00.000Z",
+      "metadata": null,
+      "response": {
+        "status": "success",
+        "message": "CA certificate uploaded"
+      },
+      "errors": null
+    }
+  }
+}

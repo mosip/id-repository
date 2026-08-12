@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/v1/partnermanager/partners",
+    "queryParameters": {
+      "partnerType": {
+        "equalTo": "Online_Verification_Partner"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "pms-partners-olv-list.json"
+  }
+}

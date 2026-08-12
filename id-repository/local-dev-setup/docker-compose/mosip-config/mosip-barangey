@@ -1,0 +1,22 @@
+{
+  "@context": {
+    "schema": "https://schema.org/",
+    "mosip": "https://raw.githubusercontent.com/mosip/mosip-config/develop-v3/mosip-barangey#"
+  },
+  "@type": "rdfs:Class",
+  "@id": "mosip:Barangey",
+  "rdfs:subClassOf": {
+    "@type": "rdfs:Class",
+    "@id": "schema:Place"
+  },
+  "mosip:allowedValues": {
+    "@id": "https://api.dev1.mosip.net/v1/masterdata/barangey/all",
+    "@type" : "@id",
+    "rdfs:domain": "mosip:Barangey",
+    "rdfs:range": {
+      "@list": {
+        "@type": "rdf:langString"
+      }
+    }
+  }
+}

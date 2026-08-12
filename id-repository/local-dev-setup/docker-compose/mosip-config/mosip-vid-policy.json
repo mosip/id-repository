@@ -1,0 +1,33 @@
+{
+    "vidPolicies": [{
+            "vidType": "Perpetual",
+            "vidPolicy": {
+                "validForInMinutes": null,
+                "transactionsAllowed": null,
+                "instancesAllowed": 2,
+                "autoRestoreAllowed": true,
+                "restoreOnAction": "REVOKED"
+            }
+        },
+        {
+            "vidType": "Temporary",
+            "vidPolicy": {
+                "validForInMinutes": 30,
+                "transactionsAllowed": 1,
+                "instancesAllowed": 20,
+                "autoRestoreAllowed": false,
+                "restoreOnAction": "REGENERATE"
+            }
+        },
+        {
+            "vidType": "OneTimeUse",
+            "vidPolicy": {
+                "validForInMinutes": null,
+                "transactionsAllowed": 1,
+                "instancesAllowed": 20,
+                "autoRestoreAllowed": false,
+                "restoreOnAction": "REVOKED"
+            }
+        }
+    ]
+}

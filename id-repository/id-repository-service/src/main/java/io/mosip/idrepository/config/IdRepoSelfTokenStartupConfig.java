@@ -118,7 +118,7 @@ public class IdRepoSelfTokenStartupConfig {
 		} else {
 			LOGGER.error(
 					"Self-token pre-fetch failed — see TokenHelper logs above (invalid_client = wrong id/secret). "
-							+ "Local fix: set MOSIP_IAM_ADAPTER_CLIENTID=mosip-idmanagement-client and "
+							+ "Local fix: set MOSIP_IAM_ADAPTER_CLIENTID=mosip-idrepo-client and "
 							+ "MOSIP_IAM_ADAPTER_CLIENTSECRET from config server id-repository properties.");
 		}
 	}

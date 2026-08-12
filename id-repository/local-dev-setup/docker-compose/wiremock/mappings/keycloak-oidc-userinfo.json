@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/auth/realms/.*/protocol/openid-connect/userinfo"
+  },
+  "response": {
+    "proxyBaseUrl": "http://keycloak:8080",
+    "transformers": ["response-template"],
+    "additionalProxyRequestHeaders": {
+      "Authorization": "{{request.headers.Authorization}}"
+    }
+  }
+}

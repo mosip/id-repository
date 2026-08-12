@@ -34,8 +34,8 @@ import io.mosip.idrepository.saltgenerator.config.SaltGeneratorConfiguration;
  * <h2>Consumers</h2>
  * <ul>
  *   <li>Ops / Helm after fresh DB deploy or salt-table DDL changes</li>
- *   <li>Local: {@code run-id-repository-saltgen-local.bat} or
- *       {@code java -jar id-repository-salt-generator-*.jar}</li>
+ *   <li>Local docker-compose: salts seeded in {@code init.sql} (no Job);
+ *       otherwise {@code java -jar id-repository-salt-generator-*.jar}</li>
  * </ul>
  *
  * @author MOSIP

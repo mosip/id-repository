@@ -15,21 +15,13 @@ id-repository-core.jar    ← library (services, jobs, entities, batch, pipeline
 id-repository-service.jar ← deployable (controllers + boot only)
 ```
 
-## Local development (Windows)
+## Local development
 
-From the repository root:
+Use docker-compose under `id-repository/local-dev-setup/` (Postgres, config-server, WireMock, BioSDK, keymanager, datashare, and this service).
 
-```bat
-copy local-run.env.example.bat local-run.env.bat
-REM Edit DB_HOST, DB_USER, DB_PASSWORD, CONFIG_URI in local-run.env.bat
-run-id-repository-local.bat
-```
+See [`../local-dev-setup/LOCAL-DEV-SETUP.md`](../local-dev-setup/LOCAL-DEV-SETUP.md) and [`../local-dev-setup/AGENTS.md`](../local-dev-setup/AGENTS.md).
 
-- **Default database mode:** three PostgreSQL databases (`mosip_idrepo`, `mosip_idmap`, `mosip_credential`) on `DB_HOST`
-- **Config server:** MOSIP Spring Cloud Config (`CONFIG_URI`) supplies kernel URLs, Keycloak, etc.
-- **Salt job:** `run-id-repository-saltgen-local.bat` (same `local-run.env.bat`)
-
-Requires JDK 21, Maven 3.9+, network access to config server and PostgreSQL.
+Requires JDK 21, Maven 3.9+, Docker.
 
 ## Build
 
@@ -60,14 +52,7 @@ Gate with `mosip.idrepo.jobs.enabled=true` (false on HTTP-only HPA pods).
 
 ## Salt generator (separate module)
 
-Salt population is **not** part of this HTTP service. Use the dedicated module:
+Salt population is **not** part of this HTTP service.
 
-```bash
-cd id-repository
-mvn install -pl id-repository-salt-generator -am -DskipTests=true
-java -jar id-repository-salt-generator/target/id-repository-salt-generator-*.jar
-```
-
-Local Windows: `run-id-repository-saltgen-local.bat` from repo root.
-
-Deployed as a **Kubernetes Job** via `helm/idrepo-saltgen` with image `id-repository-salt-generator` (not `id-repository-service`).
+- **Local docker-compose:** salts are seeded in `local-dev-setup/docker-compose/init.sql` (no salt-gen Job).
+- **Cluster:** Kubernetes Job via `helm/idrepo-saltgen` with image `id-repository-salt-generator` (not `id-repository-service`).

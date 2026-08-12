@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/downloads/mock-sdk.zip"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/zip"
+    },
+    "bodyFileName": "mock-sdk.zip"
+  }
+}

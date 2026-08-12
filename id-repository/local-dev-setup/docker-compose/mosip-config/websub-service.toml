@@ -1,0 +1,105 @@
+[kafkaHub.config]
+# Flag to check whether to enable/disable security
+SECURITY_ON = true
+
+# Server ID is is used to uniquely identify each server
+# Each server must have a unique ID
+SERVER_ID = "server-1"
+
+# IP and Port of the Kafka bootstrap node
+KAFKA_BOOTSTRAP_NODE = "kafka.${kafka.profile}:${kafka.port}"
+
+# Kafka topic which will get notified for websub topic registration/deregistration
+# All the hubs must be pointed to the same Kafka topic to notify websub topic registration/deregistration
+REGISTERED_WEBSUB_TOPICS_TOPIC = "registered-websub-topics"
+
+# Kafka topic which stores consolidated websub topics for the hub
+CONSOLIDATED_WEBSUB_TOPICS_TOPIC = "consolidated-websub-topics"
+
+# Kafka topic which will get notified for websub subscription/unsubscription
+# All the hubs must be pointed to the same Kafka topic to notify websub subscription/unsubscription
+WEBSUB_SUBSCRIBERS_TOPIC = "registered-websub-subscribers"
+
+# Kafka topic which is stores consolidated websub subscribers for this server
+CONSOLIDATED_WEBSUB_SUBSCRIBERS_TOPIC = "consolidated-websub-subscribers"
+
+# The interval in which Kafka consumers wait for new messages
+POLLING_INTERVAL = 10.0
+
+# The period in which Kafka close method waits to complete
+GRACEFUL_CLOSE_PERIOD = 5.0
+
+# The port that is used to start the hub
+HUB_PORT = 9191
+
+# The period between retry requests
+MESSAGE_DELIVERY_RETRY_INTERVAL = 3.0
+
+# The maximum retry count
+MESSAGE_DELIVERY_COUNT = 3
+
+# The maximum retry count
+KAFKA_CONSUMER_MAX_POLL_RECORDS = 3
+
+# The message delivery timeout
+MESSAGE_DELIVERY_TIMEOUT = 30.0
+
+# The base URL of IDP
+MOSIP_AUTH_BASE_URL = "${mosip.kernel.authmanager.url}/v1/authmanager"
+
+
+# The token validation URL of IDP
+MOSIP_AUTH_VALIDATE_TOKEN_URL = "/authorize/admin/validateToken"
+
+#Encryption key that will be used to encrypt / decrypt the hub secret
+HUB_SECRET_ENCRYPTION_KEY = "${hub.secret.encryption.key}"
+
+# Below config will allow base64-encoded-bytes / alpha-numeric.
+# Recommended to use base64-encoded-bytes since alpha-numeric is considered less secure. This is just given to ensure the backward compatiblity
+HUB_SECRET_ENCRYPTION_KEY_FORMAT = "alpha-numeric"
+
+[ballerina.http.accessLogConfig]
+# Enable printing access logs in console
+console = true              # Default is false
+
+[ballerina.http.traceLogAdvancedConfig]
+# Enable printing trace logs in console
+console = false              # Default is false
+
+
+# The token validation URL of IDP
+DISK_SPACE_THRESHOLD = 10485760
+
+# The token validation URL of IDP
+PARTNER_USER_ID_PREFIX = "service-account-"
+
+
+# The period between retry requests
+INTENT_VERIFICATION_RETRY_INTERVAL = 3.0
+
+# The maximum retry count
+INTENT_VERIFICATION_COUNT = 3
+
+# The period between retry requests
+INTENT_VERIFICATION_BACKOFF_FACTOR = 2.0
+
+# The maximum retry count
+INTENT_VERIFICATION_MAX_INTERVAL = 20.0
+
+# The maximum retry count
+KAFKA_CONSUMER_MAX_POLL_RECORDS = 50
+
+# The maximum retry count
+KAFKA_CONSUMER_FETCH_MAX_BYTES = 3145728
+
+# The maximum retry count
+KAFKA_CONSUMER_MAX_PARTITION_FETCH_BYTES = 524288
+
+# Kafka topic which is stores consolidated websub subscribers for this server
+META_TOPICS = "registered-websub-topics,consolidated-websub-topics,registered-websub-subscribers,consolidated-websub-subscribers"
+
+# consolidator base url
+CONSOLIDATOR_BASE_URL = "${mosip.consolidator.url}"
+
+# consolidator health endpoint
+CONSOLIDATOR_HEALTH_ENDPOINT = "/consolidator/actuator/health"

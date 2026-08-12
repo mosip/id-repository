@@ -78,7 +78,7 @@ mvn package -pl id-repository-salt-generator -am -DskipTests=true
 docker build -t id-repository-salt-generator id-repository-salt-generator
 ```
 
-Windows: `run-id-repository-saltgen-local.bat` from repo root.
+**Local laptop:** do not run this Job — `local-dev-setup/docker-compose` seeds salts in `init.sql` (0–999). See [`../local-dev-setup/AGENTS.md`](../local-dev-setup/AGENTS.md).
 
 ---
 
@@ -117,4 +117,4 @@ Chart: `helm/idrepo-saltgen` (repo root). Deploy as Job, not Deployment. Do not 
 
 ---
 
-*Last updated: 2026-07-07.*
+*Last updated: 2026-08-07.*

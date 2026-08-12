@@ -1,0 +1,47 @@
+{
+  "priority": 5,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/idauthentication/v1(/internal|/otp)?/actuator/env"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "activeProfiles": ["default"],
+      "propertySources": [
+        {
+          "name": "Config resource 'file [/home/mosip/config/mosip-config/id-authentication-mapping.json]' via location 'optional:file:/home/mosip/config/mosip-config/' (json-property)",
+          "properties": {
+            "dob": { "value": "[\"dateOfBirth\"]" },
+            "emailId": { "value": "[\"email\"]" },
+            "phone_number": { "value": "[\"phone\"]" },
+            "name": { "value": "[\"fullName\"]" },
+            "gender": { "value": "[\"gender\"]" },
+            "addressLine1": { "value": "[\"addressLine1\"]" },
+            "postalCode": { "value": "[\"postalCode\"]" }
+          }
+        },
+        {
+          "name": "Config resource 'file [/home/mosip/config/mosip-config/id-authentication-default.properties]' via location 'optional:file:/home/mosip/config/mosip-config/'",
+          "properties": {
+            "mosip.ida.auth.types.allowed": { "value": "demo,bio-Finger,bio-Iris,bio-Face,otp,pin" },
+            "request.idtypes.allowed": { "value": "UIN,VID" },
+            "ida-supported-id-types": { "value": "UIN,VID" },
+            "mosip.ida.auth.idtypes": { "value": "UIN,VID" }
+          }
+        },
+        {
+          "name": "Config resource 'file [/home/mosip/config/mosip-config/application-default.properties]' via location 'optional:file:/home/mosip/config/mosip-config/'",
+          "properties": {
+            "mosip.mandatory-languages": { "value": "eng" },
+            "mosip.optional-languages": { "value": "" },
+            "mosip.recommended.centers.locCode": { "value": "5" }
+          }
+        }
+      ]
+    }
+  }
+}
