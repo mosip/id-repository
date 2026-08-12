@@ -853,7 +853,7 @@ UpdateIdentity:
 }'
   IdRepository_UpdateIdentity_withValidParams_smoke_Post_handle_value_withusedhandlevaluewithoutselectedhandles:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects update identity with array handle values when the API is called reusing another identity's handle values without selectedHandles
+      description: Update Identity reusing another identity's handle values while omitting selectedHandles must succeed (handle uniqueness isn't enforced here)
       uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_31
       role: testrig
       additionalDependencies: TC_IDRepo_AddIdentityArrayHandle_38
