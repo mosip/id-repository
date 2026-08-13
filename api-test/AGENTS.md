@@ -24,7 +24,7 @@ Covers only **public** id-repo HTTP contracts — not internal beans or DB unit 
 
 ## 2. Layout
 
-```
+```text
 api-test/
 ├── README.md
 ├── CLAUDE.md                         # Deep notes: HBS, handles, IdRepoArrayHandle
@@ -91,7 +91,8 @@ cd id-repository/local-dev-setup/docker-compose
 docker compose up -d --force-recreate --no-deps mock-service auth-token-bridge
 python keycloak/bootstrap_and_mint_token.py   # ensures mosip-testrig-client + realm-management roles
 
-# 2) Build + run (secrets via env in the script)
+# 2) Copy run-local.env.example to .env.local and fill local-dev secrets
+# 3) Build + run
 cd ../../../api-test
 ./run-local-smoke.sh                      # default: smokeAndRegression
 ./run-local-smoke.sh smoke                # smoke only
@@ -104,7 +105,7 @@ Manual equivalent:
 ```bash
 cd api-test
 mvn clean install -Dgpg.skip=true -Dmaven.gitcommitid.skip=true
-# export local-dev client secrets (see run-local-smoke.sh), then:
+# export local-dev client secrets (or use .env.local from run-local.env.example), then:
 java -Didrepo.propertiesFile=Idrepo-local.properties \
   -Dmodules=idrepo \
   -Denv.user=api-internal.local \

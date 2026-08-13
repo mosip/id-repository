@@ -1,0 +1,103 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "maven: install apitest-commons",
+            "type": "shell",
+            "command": "mvn",
+            "args": [
+                "install",
+                "--define",
+                "gpg.skip=true",
+                "--define",
+                "maven.gitcommitid.skip=true",
+                "--define",
+                "maven.javadoc.skip=true",
+                "--define",
+                "skipTests=true"
+            ],
+            "options": {
+                "cwd": "${env:APITEST_COMMONS_HOME}"
+            },
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "focus": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "maven: package api-test",
+            "type": "shell",
+            "command": "mvn",
+            "args": [
+                "package",
+                "--define",
+                "gpg.skip=true",
+                "--define",
+                "maven.gitcommitid.skip=true",
+                "--define",
+                "maven.javadoc.skip=true",
+                "--define",
+                "skipTests=true"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "focus": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "maven: compile api-test",
+            "type": "shell",
+            "command": "mvn",
+            "args": [
+                "compile",
+                "--define",
+                "gpg.skip=true",
+                "--define",
+                "maven.gitcommitid.skip=true",
+                "--define",
+                "maven.javadoc.skip=true",
+                "--define",
+                "skipTests=true"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared",
+                "focus": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "maven: install apitest-commons + package api-test",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "maven: install apitest-commons",
+                "maven: package api-test"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "maven: install apitest-commons + compile api-test",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "maven: install apitest-commons",
+                "maven: compile api-test"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}

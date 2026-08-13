@@ -172,9 +172,9 @@ public class IdRepoUtil extends AdminTestUtil {
 	private static void runCleanup(String schema, Runnable cleanup) {
 		try {
 			cleanup.run();
-		} catch (Throwable t) {
-			logger.error("DB cleanup skipped for " + schema + ": " + t.getClass().getSimpleName() + " - "
-					+ t.getMessage());
+		} catch (Exception e) {
+			logger.error("DB cleanup skipped for " + schema + ": " + e.getClass().getSimpleName() + " - "
+					+ e.getMessage());
 		}
 	}
 	

@@ -95,15 +95,24 @@ public class MosipTestRunner {
 			BaseTestCase.getLanguageList();
 			AdminTestUtil.getLocationData();
 			
-			// Skip only when explicitly requested. Local compose now has mosip-pms-client + PMS stubs.
-			boolean skipPartnerSetup = Boolean.parseBoolean(
-					System.getProperty("idrepo.skipPartnerSetup", "false"));
+			// Skip partner/device cert folders for local compose, or when asked.
+			// Windows cannot use http://localhost:8082 as a directory name (Illegal char ':').
+			boolean skipPartnerSetup = shouldSkipPartnerSetup();
 			if (skipPartnerSetup) {
 				LOGGER.warn("Skipping PartnerRegistration.deviceGeneration() "
-						+ "(-Didrepo.skipPartnerSetup=true).");
+						+ "(idrepo.skipPartnerSetup or local endpoint).");
 			} else {
-				PartnerRegistration.deleteCertificates();
-				PartnerRegistration.deviceGeneration();
+				try {
+					PartnerRegistration.deleteCertificates();
+					PartnerRegistration.deviceGeneration();
+				} catch (Exception partnerEx) {
+					LOGGER.error("PartnerRegistration failed", partnerEx);
+					if (isLocalEndpoint()) {
+						LOGGER.warn("Continuing local run without partner/device certs.");
+					} else {
+						throw partnerEx;
+					}
+				}
 			}
 
 			try {
@@ -190,6 +199,19 @@ public class MosipTestRunner {
 			LOGGER.info("Windows certs folder: BaseTestCase.domain " + BaseTestCase.domain + " -> " + sanitized);
 			BaseTestCase.domain = sanitized;
 		}
+	}
+
+	static boolean shouldSkipPartnerSetup() {
+		String flag = System.getProperty("idrepo.skipPartnerSetup");
+		if (flag != null && !flag.isBlank()) {
+			return Boolean.parseBoolean(flag);
+		}
+		return isLocalEndpoint();
+	}
+
+	static boolean isLocalEndpoint() {
+		String endpoint = System.getProperty("env.endpoint", "");
+		return endpoint.contains("localhost") || endpoint.contains("127.0.0.1");
 	}
 
 	private static void setLogLevels() {

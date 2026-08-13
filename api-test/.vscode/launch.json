@@ -1,0 +1,93 @@
+{
+    "version": "2.0.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "MosipTestRunner - IDE (local smoke)",
+            "request": "launch",
+            "mainClass": "io.mosip.testrig.apirig.idrepo.testrunner.MosipTestRunner",
+            "projectName": "apitest-idrepo",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "shortenCommandLine": "argfile",
+            "preLaunchTask": "maven: compile api-test",
+            "envFile": "${workspaceFolder}/.env.local",
+            "vmArgs": [
+                "-Didrepo.propertiesFile=Idrepo-local.properties",
+                "-Didrepo.skipPartnerSetup=true",
+                "-Dmodules=idrepo",
+                "-Denv.user=api-internal.local",
+                "-Denv.endpoint=http://localhost:8082",
+                "-Denv.keycloak=http://localhost:8081",
+                "-Denv.testLevel=smoke"
+            ]
+        },
+        {
+            "type": "java",
+            "name": "MosipTestRunner - IDE (local full)",
+            "request": "launch",
+            "mainClass": "io.mosip.testrig.apirig.idrepo.testrunner.MosipTestRunner",
+            "projectName": "apitest-idrepo",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "shortenCommandLine": "argfile",
+            "preLaunchTask": "maven: compile api-test",
+            "envFile": "${workspaceFolder}/.env.local",
+            "vmArgs": [
+                "-Didrepo.propertiesFile=Idrepo-local.properties",
+                "-Didrepo.skipPartnerSetup=true",
+                "-Dmodules=idrepo",
+                "-Denv.user=api-internal.local",
+                "-Denv.endpoint=http://localhost:8082",
+                "-Denv.keycloak=http://localhost:8081",
+                "-Denv.testLevel=smokeAndRegression"
+            ]
+        },
+        {
+            "type": "java",
+            "name": "MosipTestRunner - jar (local smoke)",
+            "request": "launch",
+            "mainClass": "io.mosip.testrig.apirig.idrepo.testrunner.MosipTestRunner",
+            "classPaths": [
+                "${workspaceFolder}/target/apitest-idrepo-1.4.0-SNAPSHOT-jar-with-dependencies.jar"
+            ],
+            "modulePaths": [],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "preLaunchTask": "maven: package api-test",
+            "envFile": "${workspaceFolder}/.env.local",
+            "vmArgs": [
+                "-Didrepo.propertiesFile=Idrepo-local.properties",
+                "-Didrepo.skipPartnerSetup=true",
+                "-Dmodules=idrepo",
+                "-Denv.user=api-internal.local",
+                "-Denv.endpoint=http://localhost:8082",
+                "-Denv.keycloak=http://localhost:8081",
+                "-Denv.testLevel=smoke"
+            ]
+        },
+        {
+            "type": "java",
+            "name": "MosipTestRunner - jar (local full)",
+            "request": "launch",
+            "mainClass": "io.mosip.testrig.apirig.idrepo.testrunner.MosipTestRunner",
+            "classPaths": [
+                "${workspaceFolder}/target/apitest-idrepo-1.4.0-SNAPSHOT-jar-with-dependencies.jar"
+            ],
+            "modulePaths": [],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "preLaunchTask": "maven: package api-test",
+            "envFile": "${workspaceFolder}/.env.local",
+            "vmArgs": [
+                "-Didrepo.propertiesFile=Idrepo-local.properties",
+                "-Didrepo.skipPartnerSetup=true",
+                "-Dmodules=idrepo",
+                "-Denv.user=api-internal.local",
+                "-Denv.endpoint=http://localhost:8082",
+                "-Denv.keycloak=http://localhost:8081",
+                "-Denv.testLevel=smokeAndRegression"
+            ]
+        }
+    ]
+}

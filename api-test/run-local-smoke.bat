@@ -4,6 +4,7 @@ REM Usage: run-local-smoke.bat [smoke|smokeAndRegression]
 REM   default: smokeAndRegression
 REM Output: console + logs\run-local-<testLevel>-<timestamp>.log
 REM Prereqs: local-dev-setup stack healthy; WireMock mappings for apitest-proxy-* loaded.
+REM Secrets: set env vars, or copy run-local.env.example to .env.local (gitignored).
 setlocal EnableExtensions EnableDelayedExpansion
 
 set "API_TEST_DIR=%~dp0"
@@ -12,21 +13,37 @@ cd /d "%API_TEST_DIR%"
 set "TEST_LEVEL=%~1"
 if "%TEST_LEVEL%"=="" set "TEST_LEVEL=smokeAndRegression"
 
-REM --- local-dev secrets as env (ConfigManager prefers getenv over properties file) ---
-set "postgres-password=mosip123"
-set "keycloak_Password=admin"
-set "mosip_idrepo_client_secret=QTGizTYN4US0XHOU"
-set "mosip_admin_client_secret=local-dev-secret"
-set "mosip_testrig_client_secret=local-dev-testrig-secret"
-set "mosip_partner_client_secret=local-dev-secret"
-set "mosip_pms_client_secret=local-dev-secret"
-set "mosip_resident_client_secret=local-dev-secret"
-set "mosip_reg_client_secret=local-dev-secret"
-set "mosip_hotlist_client_secret=local-dev-secret"
-set "mosip_regproc_client_secret=local-dev-secret"
-set "mpartner_default_mobile_secret=local-dev-secret"
-set "AuthClientSecret=local-dev-secret"
-set "mosip_crvs1_client_secret=local-dev-secret"
+if exist "%API_TEST_DIR%.env.local" (
+  for /f "usebackq eol=# tokens=1,* delims==" %%A in ("%API_TEST_DIR%.env.local") do (
+    if not "%%A"=="" if not defined %%A set "%%A=%%B"
+  )
+)
+
+set "MISSING="
+for %%K in (
+  postgres-password
+  keycloak_Password
+  mosip_idrepo_client_secret
+  mosip_admin_client_secret
+  mosip_testrig_client_secret
+  mosip_partner_client_secret
+  mosip_pms_client_secret
+  mosip_resident_client_secret
+  mosip_reg_client_secret
+  mosip_hotlist_client_secret
+  mosip_regproc_client_secret
+  mpartner_default_mobile_secret
+  AuthClientSecret
+  mosip_crvs1_client_secret
+) do (
+  if not defined %%K set "MISSING=!MISSING! %%K"
+)
+
+if defined MISSING (
+  echo ERROR: missing required local-run secrets:!MISSING!
+  echo Set them in the environment, or copy run-local.env.example to .env.local and fill values from README ^(Local secrets^).
+  exit /b 1
+)
 
 set "authCertsPath=%API_TEST_DIR%target\local-authcerts"
 if not exist "%authCertsPath%" mkdir "%authCertsPath%"
@@ -70,7 +87,6 @@ if exist "%EXTRACTED_PROPS%" (
 type "%LOG_FILE%"
 
 REM Tee java stdout/stderr to console and append to log; preserve java exit code.
-REM Pass paths via env so quoting stays simple inside PowerShell.
 set "LOG_FILE=%LOG_FILE%"
 set "JAR=%JAR%"
 set "TEST_LEVEL=%TEST_LEVEL%"
