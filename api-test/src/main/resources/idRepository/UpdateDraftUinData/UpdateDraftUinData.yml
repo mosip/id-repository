@@ -1,0 +1,147 @@
+UpdateDraftUinData:
+  IdRepository_UpdateDraftUinData_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
+      description: NOTE - this endpoint has no local source at all (unlike every other endpoint automated this session); every assertion in this file is extrapolated from the pattern shared by sibling draft endpoints, not verified against real code. Stamp the ABIS-resolved UIN onto an existing LOST draft, completing the workflow createDraftV2's own description points to. DEPENDS ON SUITE ORDER - reuses $RIDV2LOST$, drafted with generateUin false (no uin) by IdRepository_CreateDraftV2_LostPacketGenerateUinFalse_Smoke_Pos in CreateDraftV2.yml, and must run after GetDraftV2.yml's IdRepository_GetDraftV2_VerifyUinNotAllocated_LostPacket_Neg which depends on this RID having no UIN yet. Status DRAFTED is a guess - this is still a pre-publish draft mutation, matching every other draft create/update endpoint's response, not confirmed against source
+      uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_01
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateDraftUinData/updateDraftUinData
+      outputTemplate: idRepository/GetDraft/getDraftResult
+      input: '{
+      "registrationId":"$RIDV2LOST$",
+      "uin": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'
+
+  IdRepository_UpdateDraftUinData_NoDraftExists_Neg:
+      endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
+      description: Stamp a UIN on a registrationId that has no draft at all. IDR-IDC-007 is the one guess in this file with real cross-endpoint backing - every draft endpoint tested this session (create/update/get/publish/extract, all with real source) uses the identical findByRegId-empty check. No ordering dependency by design - $RIDV2FRESH$ is a fresh, never-drafted RID
+      uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_02
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateDraftUinData/updateDraftUinData
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RIDV2FRESH$",
+      "uin": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+
+  IdRepository_UpdateDraftUinData_UinNotFound_Neg:
+      endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
+      description: Stamp a well-formed uin that does not exist in the ID repository, against a draft that does exist ($RIDV2NEW$, so any failure is clearly about the uin and not the RID). Assumption - guessing this mirrors createDraftV2's own uin-existence check (IDR-IDC-007), unconfirmed
+      uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_03
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateDraftUinData/updateDraftUinData
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RIDV2NEW$",
+      "uin": "9999999999999"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+
+  IdRepository_UpdateDraftUinData_InvalidUinFormat_Neg:
+      endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
+      description: Stamp a uin that does not conform to the UIN format, against a draft that does exist ($RIDV2NEW$). Assumption - guessing this mirrors createDraftV2's uin format validation (IDR-IDC-002), unconfirmed
+      uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_04
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateDraftUinData/updateDraftUinData
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RIDV2NEW$",
+      "uin": "abc123"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+
+  IdRepository_UpdateDraftUinData_BlankUin_Neg:
+      endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
+      description: Stamp a blank uin, against a draft that does exist ($RIDV2NEW$). Assumption - guessing this mirrors createDraftV2's blank-registrationId behavior (IDR-IDC-003), unconfirmed
+      uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_05
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateDraftUinData/updateDraftUinData
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RIDV2NEW$",
+      "uin": ""
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+  IdRepository_UpdateDraftUinData_BlankRid_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
+      description: Stamp a UIN passing a blank registrationId. Assumption - same reasoning as every other draft endpoint's blank-RID test this session, a blank path segment likely never routes to this method at all (genuine HTTP 404), unconfirmed
+      uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_06
+      role: idrepo
+      restMethod: patch
+      checkOnlyStatusCodeInResponse: true
+      inputTemplate: idRepository/UpdateDraftUinData/updateDraftUinData
+      outputTemplate: idRepository/responseCode
+      input: '{
+      "registrationId":"",
+      "uin": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$"
+      }'
+      output: '{
+   "responseCode": "404"
+}'
+
+  IdRepository_UpdateDraftUinData_WithInvalidToken_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
+      description: Stamp a UIN using an invalid/unauthenticated auth token. Reuses $RIDV2NEW$ but the RID is incidental here - auth is expected to be rejected before the draft is looked up
+      uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_07
+      role: invalid
+      restMethod: patch
+      checkOnlyStatusCodeInResponse: true
+      inputTemplate: idRepository/UpdateDraftUinData/updateDraftUinData
+      outputTemplate: idRepository/responseCode
+      input: '{
+      "registrationId":"$RIDV2NEW$",
+      "uin": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$"
+      }'
+      output: '{
+   "responseCode": "401"
+}'
+
+  IdRepository_UpdateDraftUinData_WithUnauthorizedRole_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
+      description: Stamp a UIN using a valid token that does not carry the role required for this API. Reuses $RIDV2NEW$ but the RID is incidental here - authorization is expected to be rejected before the draft is looked up
+      uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_08
+      role: resident
+      restMethod: patch
+      checkOnlyStatusCodeInResponse: true
+      inputTemplate: idRepository/UpdateDraftUinData/updateDraftUinData
+      outputTemplate: idRepository/responseCode
+      input: '{
+      "registrationId":"$RIDV2NEW$",
+      "uin": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$"
+      }'
+      output: '{
+   "responseCode": "403"
+}'

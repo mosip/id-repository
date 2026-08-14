@@ -3,6 +3,8 @@ package io.mosip.testrig.apirig.idrepo.testscripts;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONObject;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.testng.ITest;
@@ -31,6 +33,11 @@ import io.mosip.testrig.apirig.utils.ReportUtil;
 import io.mosip.testrig.apirig.utils.SecurityXSSException;
 import io.restassured.response.Response;
 
+// PATCH .../draft/update/{registrationId} and .../draft/v2/update/{registrationId} - same request
+// schema on both, so one class serves both YAML files; endpoint is purely YAML-driven, same as
+// UpdateIdentity.java already does for AddIdentity/AddIdentityV2.
+// Omit inputTemplate for the normal schema-driven body; name a real .hbs path only to override
+// it with a curated static payload (needed for negative tests like an invalid email).
 public class UpdateDraft extends IdRepoUtil implements ITest {
 	private static final Logger logger = Logger.getLogger(UpdateDraft.class);
 	protected String testCaseName = "";
@@ -45,19 +52,13 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 			logger.setLevel(Level.ERROR);
 	}
 
-	/**
-	 * get current testcaseName
-	 */
+	/** get current testcaseName */
 	@Override
 	public String getTestName() {
 		return testCaseName;
 	}
 
-	/**
-	 * Data provider class provides test case list
-	 * 
-	 * @return object of data provider
-	 */
+	/** Data provider class provides test case list */
 	@DataProvider(name = "testcaselist")
 	public Object[] getTestCaseList(ITestContext context) {
 		String ymlFile = context.getCurrentXmlTest().getLocalParameters().get("ymlFile");
@@ -66,19 +67,10 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 		return getYmlTestData(ymlFile);
 	}
 
-	/**
-	 * 
-	 * @param objTestParameters
-	 * @param testScenario
-	 * @param testcaseName
-	 * @throws AuthenticationTestException
-	 * @throws AdminTestException
-	 */
 	@Test(dataProvider = "testcaselist")
 	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
 		testCaseName = testCaseDTO.getTestCaseName();
 		testCaseName = IdRepoUtil.isTestCaseValidForExecution(testCaseDTO);
-		testCaseDTO.setInputTemplate(AdminTestUtil.generateHbsForUpdateDraft());
 		if (HealthChecker.signalTerminateExecution) {
 			throw new SkipException(
 					GlobalConstants.TARGET_ENV_HEALTH_CHECK_FAILED + HealthChecker.healthCheckFailureMapS);
@@ -91,7 +83,32 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 			}
 		}
 		String jsonInput = testCaseDTO.getInput();
-		String inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
+		String inputJson;
+		String declaredTemplate = testCaseDTO.getInputTemplate();
+		if (declaredTemplate == null || declaredTemplate.isEmpty()) {
+			testCaseDTO.setInputTemplate(AdminTestUtil.generateHbsForUpdateDraft());
+			inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
+			// No verifiedAttributes placeholder in the generated template - inject it if supplied.
+			JSONObject originalInput = new JSONObject(jsonInput);
+			if (originalInput.has("verifiedAttributes")) {
+				JSONObject requestJson = new JSONObject(inputJson);
+				requestJson.getJSONObject("request").put("verifiedAttributes",
+						originalInput.get("verifiedAttributes"));
+				inputJson = requestJson.toString();
+			}
+		} else {
+			inputJson = getJsonFromTemplate(jsonInput, declaredTemplate);
+			// Retarget hardcoded "email"/"phone" keys onto the live schema's actual field names.
+			String actualPhoneField = getValueFromAuthActuator("json-property", "phone_number")
+					.replaceAll("\\[\"|\"]", "");
+			String actualEmailField = getValueFromAuthActuator("json-property", "emailId")
+					.replaceAll("\\[\"|\"]", "");
+			inputJson = inputJson.replace("\"phone\":", "\"" + actualPhoneField + "\":");
+			inputJson = inputJson.replace("\"email\":", "\"" + actualEmailField + "\":");
+		}
+
+		if (inputJson.contains("$SCHEMAVERSION$"))
+			inputJson = replaceKeywordWithValue(inputJson, "$SCHEMAVERSION$", generateLatestSchemaVersion());
 
 		String phoneNumber = "";
 		String email = testCaseName + "_" + BaseTestCase.runContext + "@mosip.net";
@@ -107,6 +124,8 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", email);
 		}
 
+		inputJson = inputStringKeyWordHandeler(inputJson, testCaseName);
+
 		response = patchWithPathParamsBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 				testCaseDTO.getRole(), testCaseDTO.getTestCaseName(), pathParams);
 
@@ -120,11 +139,7 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 
 	}
 
-	/**
-	 * The method ser current test name to result
-	 * 
-	 * @param result
-	 */
+	/** Sets current test name to result */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {
 		result.setAttribute("TestCaseName", testCaseName);

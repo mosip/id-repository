@@ -140,6 +140,12 @@ public class GetWithParam extends IdRepoUtil implements ITest {
 
 				ouputValid = new HashMap<>();
 				ouputValid.put(GlobalConstants.EXPECTED_VS_ACTUAL, List.of(customResponse));
+			} else if (testCaseName.contains("UinNotAllocated")) {
+
+				OutputValidationDto customResponse = assertDraftUinNotAllocated(response);
+
+				ouputValid = new HashMap<>();
+				ouputValid.put(GlobalConstants.EXPECTED_VS_ACTUAL, List.of(customResponse));
 			} else {
 				ouputValid = OutputValidationUtil.doJsonOutputValidation(response.asString(),
 						getJsonFromTemplate(testCaseDTO.getOutput(), testCaseDTO.getOutputTemplate()), testCaseDTO,

@@ -1,0 +1,120 @@
+PublishDraftV2:
+  IdRepository_PublishDraftV2_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
+      description: Publish a fully-drafted registrationId (created then updated with a full identity) to the ID Repository. Status ACTIVATED matches V1's own PublishDraft.yml precedent. DEPENDS ON SUITE ORDER - reuses $RIDV2UPDATEA$, created by IdRepository_CreateDraftV2_UpdatePacketWithUin_Smoke_Pos (CreateDraftV2.yml) and updated by IdRepository_UpdateDraftV2_UpdatePacketDraftWithUin_Smoke_Pos (UpdateDraftV2.yml). Publish deletes the draft record on success, so $RIDV2UPDATEA$ must not be referenced by any test after this one - verified nothing downstream does
+      uniqueIdentifier: TC_IDRepo_PublishDraftV2_01
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/PublishDraft/publishDraft
+      outputTemplate: idRepository/PublishDraft/publishDraftResult
+      input: '{
+      "registrationId":"$RIDV2UPDATEA$"
+      }'
+      output: '{
+      "status": "ACTIVATED"
+}'
+
+  IdRepository_RePublishDraftV2_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
+      description: Publish the same registrationId a second time - the draft was deleted by the first successful publish, so this must be rejected as no record found. Proves the "full cleanup" the v2 description promises actually removes the draft, not just a partial no-op. Must run immediately after IdRepository_PublishDraftV2_Smoke_Pos in this file (same $RIDV2UPDATEA$)
+      uniqueIdentifier: TC_IDRepo_PublishDraftV2_02
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/PublishDraft/publishDraft
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RIDV2UPDATEA$"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+
+  IdRepository_PublishDraftV2_NoDraftExists_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
+      description: Publish a registrationId that never had a draft at all - must be rejected as no record found. No ordering dependency by design - $RIDV2FRESH$ is a fresh, never-drafted RID
+      uniqueIdentifier: TC_IDRepo_PublishDraftV2_03
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/PublishDraft/publishDraft
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RIDV2FRESH$"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+
+  IdRepository_PublishDraftV2_InvalidRidFormat_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
+      description: Publish a registrationId containing special/URL-sensitive characters. publishDraft has no dedicated format-validation branch (unlike createDraft's ridCompiledPattern check) so the business logic should treat this the same as any not-found RID (IDR-IDC-007) - but that's only true once the request actually reaches the controller. Special characters like "#" can be interpreted by URL routing/encoding before that point, the same way a blank RID turned out to behave differently from a well-formed-but-unknown one. Assumption - unconfirmed against a live run, worth watching closely on first execution
+      uniqueIdentifier: TC_IDRepo_PublishDraftV2_04
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/PublishDraft/publishDraft
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RUNCONTEXT$ajajaj@gddb#$"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+
+  IdRepository_PublishDraftV2_BlankRid_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
+      description: Publish a blank registrationId. Unlike a well-formed-but-unknown RID (which reaches the service and returns IDR-IDC-007 in a 200 response), a blank path segment likely never routes to this method at all, producing a genuine HTTP 404 - same reasoning as GetDraftV2's blank-RID test. Assumption - unconfirmed against a live run
+      uniqueIdentifier: TC_IDRepo_PublishDraftV2_05
+      role: idrepo
+      restMethod: get
+      checkOnlyStatusCodeInResponse: true
+      inputTemplate: idRepository/PublishDraft/publishDraft
+      outputTemplate: idRepository/responseCode
+      input: '{
+      "registrationId":""
+      }'
+      output: '{
+   "responseCode": "404"
+}'
+
+  IdRepository_PublishDraftV2_WithInvalidToken_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
+      description: Publish using an invalid/unauthenticated auth token. Reuses $RIDV2NEW$ but the RID is incidental here - auth is expected to be rejected before the draft is looked up
+      uniqueIdentifier: TC_IDRepo_PublishDraftV2_06
+      role: invalid
+      restMethod: get
+      checkOnlyStatusCodeInResponse: true
+      inputTemplate: idRepository/PublishDraft/publishDraft
+      outputTemplate: idRepository/responseCode
+      input: '{
+      "registrationId":"$RIDV2NEW$"
+      }'
+      output: '{
+   "responseCode": "401"
+}'
+
+  IdRepository_PublishDraftV2_WithUnauthorizedRole_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
+      description: Publish using a valid token that does not carry the role required for this API. Reuses $RIDV2NEW$ but the RID is incidental here - authorization is expected to be rejected before the draft is looked up
+      uniqueIdentifier: TC_IDRepo_PublishDraftV2_07
+      role: resident
+      restMethod: get
+      checkOnlyStatusCodeInResponse: true
+      inputTemplate: idRepository/PublishDraft/publishDraft
+      outputTemplate: idRepository/responseCode
+      input: '{
+      "registrationId":"$RIDV2NEW$"
+      }'
+      output: '{
+   "responseCode": "403"
+}'

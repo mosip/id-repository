@@ -1,0 +1,141 @@
+ExtractBiometricsV2:
+  IdRepository_ExtractBiometricsV2_NoFormats_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}
+      description: Extract biometrics with no extraction-format query params at all. Per the actual service source (extractionFormats.isEmpty() short-circuits to a DRAFTED response before the draft is even looked up), this succeeds unconditionally regardless of draft state. DEPENDS ON SUITE ORDER - reuses $RIDV2EXT$, drafted by IdRepository_CreateDraftV2_ForExtraction_Smoke_Pos in CreateDraftV2.yml
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_01
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
+      input: '{
+      "registrationId":"$RIDV2EXT$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'
+
+  IdRepository_ExtractBiometricsV2_NoFormats_NonExistentRid_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}
+      description: Extract biometrics with no format params, against a registrationId that has never had a draft at all. Deliberately proves the early-return quirk from source - with extractionFormats empty, the service returns DRAFTED before ever calling findByRegId, so even a nonexistent RID succeeds here. Contrast with IdRepository_ExtractBiometricsV2_WithFormat_NonExistentRid_Neg below, where supplying a format param does trigger the existence check. No ordering dependency by design - $RIDV2FRESH$ is a fresh, never-drafted RID
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_02
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
+      input: '{
+      "registrationId":"$RIDV2FRESH$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'
+
+  IdRepository_ExtractBiometricsV2_ForFinger_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?fingerExtractionFormat=mock-1.1
+      description: Extract biometrics with only fingerExtractionFormat. DEPENDS ON SUITE ORDER - reuses $RIDV2EXT$ from CreateDraftV2.yml
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_03
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
+      input: '{
+      "registrationId":"$RIDV2EXT$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'
+
+  IdRepository_ExtractBiometricsV2_ForIris_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?irisExtractionFormat=mock-1.1
+      description: Extract biometrics with only irisExtractionFormat. DEPENDS ON SUITE ORDER - reuses $RIDV2EXT$ from CreateDraftV2.yml
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_04
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
+      input: '{
+      "registrationId":"$RIDV2EXT$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'
+
+  IdRepository_ExtractBiometricsV2_ForFace_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?faceExtractionFormat=mock-1.1
+      description: Extract biometrics with only faceExtractionFormat. DEPENDS ON SUITE ORDER - reuses $RIDV2EXT$ from CreateDraftV2.yml
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_05
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
+      input: '{
+      "registrationId":"$RIDV2EXT$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'
+
+  IdRepository_ExtractBiometricsV2_ForFaceIrisFinger_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?faceExtractionFormat=mock-1.1&fingerExtractionFormat=mock-1.1&irisExtractionFormat=mock-1.1
+      description: Extract biometrics with all three formats together, correctly "&"-joined. NOTE - V1's ExtractBiometrics.yml equivalent test chains the three query params with "?" instead of "&" (IdRepository_ExtractBiometrics_forFaceIrisFinger_valid_smoke), which is a pre-existing bug there (only the first param is actually parsed by a real HTTP client); not replicated here. DEPENDS ON SUITE ORDER - reuses $RIDV2EXT$ from CreateDraftV2.yml
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_06
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
+      input: '{
+      "registrationId":"$RIDV2EXT$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'
+
+  IdRepository_ExtractBiometricsV2_WithFormat_NonExistentRid_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?fingerExtractionFormat=mock-1.1
+      description: Extract biometrics passing a format param against a registrationId that has never had a draft. Unlike the no-format-params case, supplying at least one format param means the service does call findByRegId first, so this must be rejected as no record found. No ordering dependency by design - $RIDV2FRESH$ is a fresh, never-drafted RID
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_07
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RIDV2FRESH$"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+
+  IdRepository_ExtractBiometricsV2_WithInvalidToken_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}
+      description: Extract biometrics using an invalid/unauthenticated auth token. Reuses $RIDV2EXT$ but the RID is incidental here - auth is expected to be rejected before the draft is looked up
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_08
+      role: invalid
+      restMethod: put
+      checkOnlyStatusCodeInResponse: true
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/responseCode
+      input: '{
+      "registrationId":"$RIDV2EXT$"
+      }'
+      output: '{
+   "responseCode": "401"
+}'
+
+  IdRepository_ExtractBiometricsV2_WithUnauthorizedRole_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}
+      description: Extract biometrics using a valid token that does not carry the role required for this API. Reuses $RIDV2EXT$ but the RID is incidental here - authorization is expected to be rejected before the draft is looked up
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_09
+      role: resident
+      restMethod: put
+      checkOnlyStatusCodeInResponse: true
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/responseCode
+      input: '{
+      "registrationId":"$RIDV2EXT$"
+      }'
+      output: '{
+   "responseCode": "403"
+}'
