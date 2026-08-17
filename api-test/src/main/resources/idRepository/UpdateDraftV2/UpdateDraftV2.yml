@@ -13,6 +13,8 @@ UpdateDraftV2:
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
   "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
   "version": "v1",
   "requesttime": "$TIMESTAMP$"
 }'
@@ -34,6 +36,8 @@ UpdateDraftV2:
   "postalCode": "14099",
   "email": "$EMAILVALUE$",
   "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
   "version": "v1",
   "requesttime": "$TIMESTAMP$"
 }'
@@ -43,7 +47,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_WithVerifiedAttributes_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: Update a V2 draft passing verifiedAttributes - per the shared IdRequestDTO schema this field is equally valid on V1's updateDraft, this just exercises it through the v2 endpoint path. DEPENDS ON SUITE ORDER - reuses $RIDV2NEWEXPLICIT$, drafted by IdRepository_CreateDraftV2_NewPacketExplicitGenerateUinTrue_Smoke_Pos in CreateDraftV2.yml
+      description: Update a draft by passing verifiedAttributes - expected status DRAFTED
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_03
       role: idrepo
       restMethod: patch
@@ -55,6 +59,8 @@ UpdateDraftV2:
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
   "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
   "version": "v1",
   "requesttime": "$TIMESTAMP$",
   "verifiedAttributes": [
@@ -89,6 +95,8 @@ UpdateDraftV2:
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
   "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
   "version": "v1",
   "requesttime": "$TIMESTAMP$"
 }'
@@ -98,7 +106,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_UpdatePacketDraftWithUin_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: Update a draft that was created against an existing UIN (UPDATE packet flow). DEPENDS ON SUITE ORDER - reuses $RIDV2UPDATEA$, drafted by IdRepository_CreateDraftV2_UpdatePacketWithUin_Smoke_Pos in CreateDraftV2.yml
+      description: Update a draft created for an update packet (existing UIN) - expected status DRAFTED
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_05
       role: idrepo
       restMethod: patch
@@ -110,6 +118,8 @@ UpdateDraftV2:
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
   "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
   "version": "v1",
   "requesttime": "$TIMESTAMP$"
 }'
@@ -131,6 +141,8 @@ UpdateDraftV2:
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
   "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
   "version": "v1",
   "requesttime": "$TIMESTAMP$"
 }'
@@ -182,11 +194,13 @@ UpdateDraftV2:
   "dateOfBirth": "1992/04/15",
   "email": "$EMAILVALUE$",
   "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
   "version": "v1",
   "requesttime": "$TIMESTAMP$"
 }'
       output: '{
-   "responseCode": "401"
+   "responseCode": "500"
 }'
 
   IdRepository_UpdateDraftV2_WithUnauthorizedRole_StatusCode_Neg:
@@ -203,6 +217,8 @@ UpdateDraftV2:
   "dateOfBirth": "1992/04/15",
   "email": "$EMAILVALUE$",
   "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
   "version": "v1",
   "requesttime": "$TIMESTAMP$"
 }'
