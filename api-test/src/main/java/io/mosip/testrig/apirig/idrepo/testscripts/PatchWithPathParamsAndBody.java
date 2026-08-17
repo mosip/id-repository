@@ -92,6 +92,7 @@ public class PatchWithPathParamsAndBody extends IdRepoUtil implements ITest {
 
 		testCaseDTO = AdminTestUtil.filterHbs(testCaseDTO);
 		String inputJson = filterInputHbs(testCaseDTO);
+		inputJson = inputStringKeyWordHandeler(inputJson, testCaseName);
 
 		response = patchWithPathParamsBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 				testCaseDTO.getRole(), testCaseDTO.getTestCaseName(), pathParams);
