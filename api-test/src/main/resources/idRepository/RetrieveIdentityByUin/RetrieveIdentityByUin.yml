@@ -1,7 +1,7 @@
 RetrieveIdentity:
   IdRepository_RetrieveIdentity_With_Valid_UIN_Smoke_Pos:
       endPoint: /idrepository/v1/identity/idvid/{id}
-      description: Retrieve Identity passing valid UIN
+      description: Verify that the system successfully retrieves an identity when the API is called with a valid UIN
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_01
       role: idrepo
       checkErrorsOnlyInResponse: true
@@ -17,7 +17,7 @@ RetrieveIdentity:
 
   IdRepository_RetrieveIdentity_With_Valid_UIN_Smoke_Pos_with_handle_value:
       endPoint: /idrepository/v1/identity/idvid/{id}
-      description: Retrieve Identity passing valid UIN
+      description: Verify that the system successfully retrieves an identity with handle value when the API is called with a valid UIN
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_02
       role: idrepo
       checkErrorsOnlyInResponse: true
@@ -33,7 +33,7 @@ RetrieveIdentity:
 
   IdRepository_RetrieveIdentity_With_Deactivated_UIN_Smoke_Pos:
       endPoint: /idrepository/v1/identity/idvid/{id}
-      description: Retrieve Identity passing deactivated UIN
+      description: Verify that the system successfully retrieves an identity when the API is called with a deactivated UIN
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_03
       role: idrepo
       checkErrorsOnlyInResponse: true
@@ -50,7 +50,7 @@ RetrieveIdentity:
 
   IdRepository_RetrieveIdentity_With_Valid_Vid_Smoke_Pos:
       endPoint: /idrepository/v1/identity/idvid/{id}
-      description: Retrieve Identity passing valid UIN
+      description: Verify that the system successfully retrieves an identity when the API is called with a valid VID
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_04
       role: idrepo
       checkErrorsOnlyInResponse: true
@@ -67,7 +67,7 @@ RetrieveIdentity:
 
   IdRepository_RetrieveIdentity_With_Invalid_UIN:
       endPoint: /idrepository/v1/identity/idvid/{id}
-      description: Retrieve Identity passing invalid UIN
+      description: Verify that the system rejects retrieve identity when the API is called with an invalid UIN
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_05
       role: idrepo
       restMethod: get
@@ -86,7 +86,7 @@ RetrieveIdentity:
 
   IdRepository_RetrieveIdentity_With_Invalid_Vid:
       endPoint: /idrepository/v1/identity/idvid/{id}
-      description: Retrieve Identity passing Invalid ID
+      description: Verify that the system rejects retrieve identity when the API is called with an invalid VID
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_07
       role: idrepo
       restMethod: get
@@ -105,7 +105,7 @@ RetrieveIdentity:
 
   IdRepository_RetrieveIdentity_With_SpaceVal_UIN:
       endPoint: /idrepository/v1/identity/idvid/{id}
-      description: Retrieve Identity passing space
+      description: Verify that the system rejects retrieve identity when the API is called with a space value in UIN
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_09
       role: idrepo
       restMethod: get
@@ -124,7 +124,7 @@ RetrieveIdentity:
 
   IdRepository_RetrieveIdentity_With_SpaceVal_Vid:
       endPoint: /idrepository/v1/identity/idvid/{id}
-      description: Retrieve Identity passing space
+      description: Verify that the system rejects retrieve identity when the API is called with a space value in VID
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_10
       role: idrepo
       restMethod: get
@@ -143,7 +143,7 @@ RetrieveIdentity:
 
   IdRepository_RetrieveIdentity_With_deactivated_VID:
       endPoint: /idrepository/v1/identity/idvid/{id}
-      description: Retrieve Identity passing deactivated VID
+      description: Verify that the system rejects retrieve identity when the API is called with a deactivated VID
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_11
       role: idrepo
       restMethod: get
@@ -162,7 +162,7 @@ RetrieveIdentity:
 }'
   IdRepository_RetrieveIdentity_With_deactivated_VID_which_is_restored:
       endPoint: /idrepository/v1/identity/idvid/{id}
-      description: Retrieve Identity passing deactivated VID
+      description: Verify that the system successfully retrieves an identity when the API is called with a restored deactivated VID
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_12
       role: idrepo
       restMethod: get
@@ -181,7 +181,7 @@ RetrieveIdentity:
 }'
   IdRepository_RetrieveIdentity_With_deactivated_VID_Deactivate:
       endPoint: /idrepository/v1/identity/idvid/{id}
-      description: Retrieve Identity passing deactivated VID
+      description: Verify that the system rejects retrieve identity when the API is called with a deactivated VID for deactivate scenario
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_13
       role: idrepo
       restMethod: get

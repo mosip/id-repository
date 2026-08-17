@@ -1,7 +1,7 @@
 UpdateIdentityV2:
   IdRepository_UpdateIdentityV2_WithSingleVerifiedAttribute_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 successfully updates an existing identity with a single valid verifiedAttributes entry.
+    description: Verify that the system successfully updates an identity using Update Identity V2 when the API is called with a single valid verifiedAttributes entry
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_01
     role: testrig
     restMethod: patch
@@ -38,7 +38,7 @@ UpdateIdentityV2:
 }'
   IdRepository_UpdateIdentityV2_WithInvalidAccessToken_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 returns an error response when the request is submitted with an invalid access token.
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with an invalid access token
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_02
     role: invalid
     restMethod: patch
@@ -76,7 +76,7 @@ UpdateIdentityV2:
 }'
   IdRepository_UpdateIdentityV2_WithInvalid_Id_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 returns the error response when an invalid request ID is provided.
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with an invalid request id
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_03
     role: testrig
     restMethod: patch
@@ -117,7 +117,7 @@ UpdateIdentityV2:
 }'
   IdRepository_UpdateIdentityV2_WithInvalid_Version_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 returns the error response when an invalid version is provided in the request.
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with an invalid version
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_04
     role: testrig
     restMethod: patch
@@ -158,7 +158,7 @@ UpdateIdentityV2:
 }'
   IdRepository_UpdateIdentityV2_WithInvalid_RequestTime_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 returns the error response when an invalid request time is provided
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with an invalid request time
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_05
     role: testrig
     restMethod: patch
@@ -199,7 +199,7 @@ UpdateIdentityV2:
 }'
   IdRepository_UpdateIdentityV2_WithInvalid_Status_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 returns the error response when an invalid status is provided
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with an invalid status
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_06
     role: testrig
     restMethod: patch
@@ -240,7 +240,7 @@ UpdateIdentityV2:
 }'
   IdRepository_UpdateIdentityV2_WithInvalid_Identity_DOB_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 returns error response when an invalid date of birth is provided in the identity information.
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with an invalid date of birth
     requiredSchemaFields: [dateOfBirth]
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_07
     role: testrig
@@ -282,7 +282,7 @@ UpdateIdentityV2:
 }'
   IdRepository_UpdateIdentityV2_WithInvalid_Document_Category_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 returns error response when an invalid document category is provided.
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with an invalid document category
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_08
     role: testrig
     restMethod: patch
@@ -329,7 +329,7 @@ UpdateIdentityV2:
 }'
   IdRepository_UpdateIdentityV2_WithInvalid_Document_Value_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 returns error response when an invalid document value is provided.
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with an invalid document value
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_09
     role: testrig
     restMethod: patch
@@ -376,7 +376,7 @@ UpdateIdentityV2:
 }'
   IdRepository_UpdateIdentityV2_WithInvalid_UIN_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 returns error response when an invalid UIN is provided.
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with an invalid UIN
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_10
     role: testrig
     restMethod: patch
@@ -417,7 +417,7 @@ UpdateIdentityV2:
 }'
   IdRepository_UpdateIdentityV2_WithInvalid_RID_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 returns error response when an invalid registration ID is provided.
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with an invalid registration ID
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_11
     role: testrig
     restMethod: patch
@@ -458,7 +458,7 @@ UpdateIdentityV2:
 }'
   IdRepository_UpdateIdentityV2_WithEmptyTrustFrameworkInVerifiedAttributes_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 returns the expected error response when the trustFramework field in verifiedAttributes is empty.
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with an empty trustFramework in verifiedAttributes
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_12
     role: testrig
     restMethod: patch
@@ -499,7 +499,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithRandomTrustFrameworkInVerifiedAttributes_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 successfully updates identity when a non-standard trustFramework value is provided in verifiedAttributes
+    description: Verify that the system successfully updates an identity using Update Identity V2 when the API is called with a non-standard trustFramework in verifiedAttributes
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_13
     role: testrig
     restMethod: patch
@@ -536,7 +536,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithRandomVerificationProcessInVerifiedAttributes_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 successfully updates identity when a non-standard verificationProcess value is provided in verifiedAttributes.
+    description: Verify that the system successfully updates an identity using Update Identity V2 when the API is called with a non-standard verificationProcess in verifiedAttributes
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_14
     role: testrig
     restMethod: patch
@@ -573,7 +573,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithEmptyVerificationProcessInVerifiedAttributes_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 returns the expected error response when the verificationProcess field in verifiedAttributes is empty.
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with an empty verificationProcess in verifiedAttributes
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_15
     role: testrig
     restMethod: patch
@@ -614,7 +614,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithOnlineVideoVerificationProcessInVerifiedAttributes_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 successfully updates identity with online_video as the verificationProcess in verifiedAttributes
+    description: Verify that the system successfully updates an identity using Update Identity V2 when the API is called with online_video as the verificationProcess in verifiedAttributes
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_16
     role: testrig
     restMethod: patch
@@ -651,7 +651,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithPhoneAndEmailClaimsInVerifiedAttributes_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 successfully updates identity with phone and email claims in verifiedAttributes.
+    description: Verify that the system successfully updates an identity using Update Identity V2 when the API is called with phone and email claims in verifiedAttributes
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_17
     role: testrig
     restMethod: patch
@@ -689,7 +689,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithClaimNameNotInIdSchema_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Update Identity V2 accepts a claim/fieldId not in the IdSchema; the claim itself is not persisted, but the update still succeeds (ACTIVATED).
+    description: Update Identity V2 accepts a claim/fieldId not in the IdSchema; the claim itself is not persisted, but the update still succeeds (ACTIVATED)
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_18
     role: testrig
     restMethod: patch
@@ -726,7 +726,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithValidFullNameClaimInVerifiedAttributes_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify updating valid claims in verifiedAttributes such as fullName
+    description: Verify that the system successfully updates an identity using Update Identity V2 when the API is called with a valid fullName claim in verifiedAttributes
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_19
     role: testrig
     restMethod: patch
@@ -763,7 +763,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithInvalidClaimInVerifiedAttributes_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify updating invalid claims in verifiedAttributes
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with invalid claims in verifiedAttributes
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_20
     role: testrig
     restMethod: patch
@@ -800,7 +800,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithEmptyClaimsInVerifiedAttributes_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify updating empty claims in verifiedAttributes
+    description: Verify that the system successfully updates an identity using Update Identity V2 when the API is called with empty claims in verifiedAttributes
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_21
     role: testrig
     restMethod: patch
@@ -839,7 +839,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithoutClaimsFieldInVerifiedAttributes_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify updating without claims field in verifiedAttributes
+    description: Verify that the system successfully updates an identity using Update Identity V2 when the API is called without the claims field in verifiedAttributes
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_22
     role: testrig
     restMethod: patch
@@ -877,7 +877,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithValidAssuranceLevelLandInMetadata_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify updating valid data in the assurance_level field in metadata
+    description: Verify that the system successfully updates an identity using Update Identity V2 when the API is called with a valid assuranceLevel in metadata
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_23
     role: testrig
     restMethod: patch
@@ -914,7 +914,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithInvalidAssuranceLevelInMetadata_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify updating invalid data in the assurance_level field in metadata
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with an invalid assuranceLevel in metadata
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_24
     role: testrig
     restMethod: patch
@@ -951,7 +951,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithEmptyAssuranceLevelInMetadata_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify updating empty data in the assurance_level field in metadata
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with an empty assuranceLevel in metadata
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_25
     role: testrig
     restMethod: patch
@@ -988,7 +988,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithoutAssuranceLevelInMetadata_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify updating without assurance_level field in metadata
+    description: Verify that the system successfully updates an identity using Update Identity V2 when the API is called without assuranceLevel in metadata
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_26
     role: testrig
     restMethod: patch
@@ -1024,7 +1024,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithValidAssuranceProcessInMetadata_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify updating valid level policy and procedure in the assurance_process field
+    description: Verify that the system successfully updates an identity using Update Identity V2 when the API is called with valid level, policy, and procedure in assuranceProcess metadata
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_27
     role: testrig
     restMethod: patch
@@ -1066,7 +1066,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithInvalidAssuranceProcessInMetadata_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify updating invalid level policy and procedure in the assurance_process field
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with invalid level, policy, and procedure in assuranceProcess metadata
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_28
     role: testrig
     restMethod: patch
@@ -1108,7 +1108,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithEmptyAssuranceProcessInMetadata_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify updating empty level policy and procedure in the assurance_process field
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with empty level, policy, and procedure in assuranceProcess metadata
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_29
     role: testrig
     restMethod: patch
@@ -1150,7 +1150,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithoutAssuranceProcessParametersInMetadata_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify updating without level policy and procedure parameters in the assurance_process field
+    description: Verify that the system successfully updates an identity using Update Identity V2 when the API is called without level, policy, and procedure parameters in assuranceProcess metadata
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_30
     role: testrig
     restMethod: patch
@@ -1188,7 +1188,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithValidMetadataParameters_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify updating valid trust_framework verification_process and assurance_level in metadata
+    description: Verify that the system successfully updates an identity using Update Identity V2 when the API is called with valid trustFramework, verificationProcess, and assuranceLevel in metadata
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_31
     role: testrig
     restMethod: patch
@@ -1225,7 +1225,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithInvalidMetadataParameters_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify updating invalid trust_framework verification_process and assurance_level in metadata
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with invalid trustFramework, verificationProcess, and assuranceLevel in metadata
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_32
     role: testrig
     restMethod: patch
@@ -1266,7 +1266,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithEmptyMetadataParameters_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify updating empty trust_framework verification_process and assurance_level in metadata
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with empty trustFramework, verificationProcess, and assuranceLevel in metadata
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_33
     role: testrig
     restMethod: patch
@@ -1307,7 +1307,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_WithoutMetadataParameters_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify updating identity without metadata field.
+    description: Verify that the system successfully updates an identity using Update Identity V2 when the API is called without the metadata field
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_34
     role: testrig
     restMethod: patch
@@ -1338,7 +1338,7 @@ UpdateIdentityV2:
     }'
   IdRepository_UpdateIdentityV2_For_Phone_Number_sid:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 successfully updates the phone number with a valid verifiedAttributes entry.
+    description: Verify that the system successfully updates an identity using Update Identity V2 when the API is called with a valid phone number in verifiedAttributes
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_35
     role: testrig
     restMethod: patch
@@ -1375,7 +1375,7 @@ UpdateIdentityV2:
 }'
   IdRepository_UpdateIdentityV2_With_Phone_Which_Is_NotHandle_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 returns error response when updating identity with a phone number which is not selected as handle.
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with a phone number that is not selected as a handle
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_36
     requiredHandleFields: [phone]
     role: testrig
@@ -1417,7 +1417,7 @@ UpdateIdentityV2:
 }'
   IdRepository_UpdateIdentityV2_For_Email_Number:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 successfully updates the email address with a valid verifiedAttributes entry
+    description: Verify that the system successfully updates an identity using Update Identity V2 when the API is called with a valid email address in verifiedAttributes
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_37
     role: testrig
     restMethod: patch
@@ -1454,7 +1454,7 @@ UpdateIdentityV2:
 }'
   IdRepository_UpdateIdentityV2_With_Email_Is_NotHandle_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Update Identity V2 returns error response when updating identity with a email which is not selected as handle.
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with an email that is not selected as a handle
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_38
     requiredHandleFields: [email]
     role: testrig
@@ -1496,7 +1496,7 @@ UpdateIdentityV2:
 }'
   IdRepository_UpdateIdentityV2_With_Mismatched_TrustFramework_And_VerificationProcess_In_Metadata_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate Identity Update Fails When Trust Framework and Verification Process in Metadata Do Not Match Verified Attributes
+    description: Verify that the system rejects update identity using Update Identity V2 when the API is called with mismatched trustFramework and verificationProcess between metadata and verifiedAttributes
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2_39
     role: testrig
     restMethod: patch

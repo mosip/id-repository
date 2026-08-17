@@ -1,7 +1,7 @@
 DeleteDraft:
   IdRepository_DeleteDraft_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/discard/{registrationId}
-      description: Delete draft passing registrationId
+      description: Verify that the system successfully deletes a draft when the API is called with a valid registration ID
       uniqueIdentifier: TC_IDRepo_DeleteDraft_01
       role: idrepo
       restMethod: delete

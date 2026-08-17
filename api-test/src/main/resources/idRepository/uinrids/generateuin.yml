@@ -1,7 +1,7 @@
 GenerateUIN:
    Idrepo_GenerateUIN_All_Valid_Smoke:
       endPoint: /idrepository/v1/identity/
-      description: Generate UIN passing valid parameters
+      description: Verify that the system successfully generates a UIN when the API is called with valid parameters
       uniqueIdentifier: TC_IDRepo_GenerateUIN_01
       role: regproc
       restMethod: post
@@ -17,7 +17,7 @@ GenerateUIN:
 }'
    Idrepo_GenerateUIN_Valid:
       endPoint: /idrepository/v1/identity/
-      description: Generate UIN passing valid parameters
+      description: Verify that the system successfully generates a UIN when the API is called with valid parameters
       uniqueIdentifier: TC_IDRepo_GenerateUIN_02
       role: regproc
       restMethod: post
@@ -34,7 +34,7 @@ GenerateUIN:
 
    Idrepo_GenerateUIN_Exception_with_LeftThumb:
       endPoint: /idrepository/v1/identity/
-      description: Generate UIN making the Left thumb exception
+      description: Verify that the system successfully generates a UIN when the API is called with left thumb exception
       uniqueIdentifier: TC_IDRepo_GenerateUIN_03
       role: regproc
       restMethod: post
@@ -51,7 +51,7 @@ GenerateUIN:
 
    Idrepo_GenerateUIN_Exception_with_RightThumb:
       endPoint: /idrepository/v1/identity/
-      description: Generate UIN making Right Thumb exception
+      description: Verify that the system successfully generates a UIN when the API is called with right thumb exception
       uniqueIdentifier: TC_IDRepo_GenerateUIN_04
       role: regproc
       restMethod: post
@@ -68,7 +68,7 @@ GenerateUIN:
 
    Idrepo_GenerateUIN_Exception_with_LeftRingFinger:
       endPoint: /idrepository/v1/identity/
-      description: Generate UIN making left ring finger exception
+      description: Verify that the system successfully generates a UIN when the API is called with left ring finger exception
       uniqueIdentifier: TC_IDRepo_GenerateUIN_05
       role: regproc
       restMethod: post
@@ -85,7 +85,7 @@ GenerateUIN:
 
    Idrepo_GenerateUIN_Exception_with_LeftIndexFinger:
       endPoint: /idrepository/v1/identity/
-      description: Generate UIN making left index finger exception
+      description: Verify that the system successfully generates a UIN when the API is called with left index finger exception
       uniqueIdentifier: TC_IDRepo_GenerateUIN_06
       role: regproc
       restMethod: post
@@ -102,7 +102,7 @@ GenerateUIN:
 
    Idrepo_GenerateUIN_Exception_with_LeftMiddleFinger:
       endPoint: /idrepository/v1/identity/
-      description: Generate UIN making left middle finger exception
+      description: Verify that the system successfully generates a UIN when the API is called with left middle finger exception
       uniqueIdentifier: TC_IDRepo_GenerateUIN_07
       role: regproc
       restMethod: post
@@ -119,7 +119,7 @@ GenerateUIN:
 
    Idrepo_GenerateUIN_Exception_with_LeftLittleFinger:
       endPoint: /idrepository/v1/identity/
-      description: Generate UIN making left little finger exception
+      description: Verify that the system successfully generates a UIN when the API is called with left little finger exception
       uniqueIdentifier: TC_IDRepo_GenerateUIN_08
       role: regproc
       restMethod: post
@@ -137,7 +137,7 @@ GenerateUIN:
 
    Idrepo_GenerateUIN_Exception_with_RightIndexFinger:
       endPoint: /idrepository/v1/identity/
-      description: Generate UIN making Right index finger exception
+      description: Verify that the system successfully generates a UIN when the API is called with right index finger exception
       uniqueIdentifier: TC_IDRepo_GenerateUIN_09
       role: regproc
       restMethod: post
@@ -155,7 +155,7 @@ GenerateUIN:
 
    Idrepo_GenerateUIN_Exception_with_RightRingFinger:
       endPoint: /idrepository/v1/identity/
-      description: Generate UIN making Right ring finger exception
+      description: Verify that the system successfully generates a UIN when the API is called with right ring finger exception
       uniqueIdentifier: TC_IDRepo_GenerateUIN_10
       role: regproc
       restMethod: post
@@ -173,7 +173,7 @@ GenerateUIN:
 
    Idrepo_GenerateUIN_Exception_with_RightMiddleFinger:
       endPoint: /idrepository/v1/identity/
-      description: Generate UIN making Right middle finger exception
+      description: Verify that the system successfully generates a UIN when the API is called with right middle finger exception
       uniqueIdentifier: TC_IDRepo_GenerateUIN_11
       role: regproc
       restMethod: post
@@ -191,7 +191,7 @@ GenerateUIN:
 
    Idrepo_GenerateUIN_Exception_with_RightLittleFinger:
       endPoint: /idrepository/v1/identity/
-      description: Generate UIN making Right little finger exception
+      description: Verify that the system successfully generates a UIN when the API is called with right little finger exception
       uniqueIdentifier: TC_IDRepo_GenerateUIN_12
       role: regproc
       restMethod: post
@@ -208,7 +208,7 @@ GenerateUIN:
 
    Idrepo_GenerateUIN_Exception_with_IrisRight:
       endPoint: /idrepository/v1/identity/
-      description: Generate UIN making Right iris exception
+      description: Verify that the system successfully generates a UIN when the API is called with right iris exception
       uniqueIdentifier: TC_IDRepo_GenerateUIN_13
       role: regproc
       restMethod: post
@@ -226,7 +226,7 @@ GenerateUIN:
 
    Idrepo_GenerateUIN_Exception_with_IrisLeft:
       endPoint: /idrepository/v1/identity/
-      description: Generate UIN making left iris exception
+      description: Verify that the system successfully generates a UIN when the API is called with left iris exception
       uniqueIdentifier: TC_IDRepo_GenerateUIN_14
       role: regproc
       restMethod: post
@@ -243,7 +243,7 @@ GenerateUIN:
 
    Idrepo_GenerateUIN_With_Child_FR:
       endPoint: /idrepository/v1/identity/
-      description: Generate UIN for child packet
+      description: Verify that the system successfully generates a UIN when the API is called with a child packet
       uniqueIdentifier: TC_IDRepo_GenerateUIN_15
       role: regproc
       restMethod: post
