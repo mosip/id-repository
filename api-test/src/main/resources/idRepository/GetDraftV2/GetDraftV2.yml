@@ -40,7 +40,7 @@ GetDraftV2:
       "registrationId":"$RIDV2NEW$"
       }'
       output: '{
-      "status": "DRAFTED"
+      "status": "DRAFT"
 }'
 
   IdRepository_GetDraftV2_TypeDemographics_Smoke_Pos:
@@ -49,14 +49,14 @@ GetDraftV2:
       uniqueIdentifier: TC_IDRepo_GetDraftV2_03
       role: idrepo
       restMethod: get
-      inputTemplate: idRepository/GetDraft/getDraft
+      inputTemplate: idRepository/GetDraftV2/getDraftV2WithType
       outputTemplate: idRepository/GetDraft/getDraftResult
       input: '{
       "registrationId":"$RIDV2NEW$",
       "type": "demographics"
       }'
       output: '{
-      "status": "DRAFTED"
+      "status": "DRAFT"
 }'
 
   IdRepository_GetDraftV2_TypeBiometrics_Smoke_Pos:
@@ -65,14 +65,14 @@ GetDraftV2:
       uniqueIdentifier: TC_IDRepo_GetDraftV2_04
       role: idrepo
       restMethod: get
-      inputTemplate: idRepository/GetDraft/getDraft
+      inputTemplate: idRepository/GetDraftV2/getDraftV2WithType
       outputTemplate: idRepository/GetDraft/getDraftResult
       input: '{
       "registrationId":"$RIDV2NEW$",
       "type": "biometrics"
       }'
       output: '{
-      "status": "DRAFTED"
+      "status": "DRAFT"
 }'
 
   IdRepository_GetDraftV2_TypeAllExplicit_Smoke_Pos:
@@ -81,14 +81,14 @@ GetDraftV2:
       uniqueIdentifier: TC_IDRepo_GetDraftV2_05
       role: idrepo
       restMethod: get
-      inputTemplate: idRepository/GetDraft/getDraft
+      inputTemplate: idRepository/GetDraftV2/getDraftV2WithType
       outputTemplate: idRepository/GetDraft/getDraftResult
       input: '{
       "registrationId":"$RIDV2NEW$",
       "type": "all"
       }'
       output: '{
-      "status": "DRAFTED"
+      "status": "DRAFT"
 }'
 
   IdRepository_GetDraftV2_WithFingerExtractionFormat_Smoke_Pos:
@@ -97,30 +97,35 @@ GetDraftV2:
       uniqueIdentifier: TC_IDRepo_GetDraftV2_06
       role: idrepo
       restMethod: get
-      inputTemplate: idRepository/GetDraft/getDraft
+      inputTemplate: idRepository/GetDraftV2/getDraftV2WithFingerFormat
       outputTemplate: idRepository/GetDraft/getDraftResult
       input: '{
       "registrationId":"$RIDV2NEW$",
       "fingerExtractionFormat": "ISO"
       }'
       output: '{
-      "status": "DRAFTED"
+      "status": "DRAFT"
 }'
 
   IdRepository_GetDraftV2_InvalidTypeValue_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}?type={type}
-      description: Get a draft passing a type value outside demographics|biometrics|all. Assumption - guessing the server falls back to the documented default rather than erroring, since "type" isn't validator-constrained in the swagger the way a request body field would be; unconfirmed against v2 source, expect to revisit after first live run
+      description: Get a draft using an invalid type value - should be rejected with error IDR-IDC-002
       uniqueIdentifier: TC_IDRepo_GetDraftV2_07
       role: idrepo
       restMethod: get
-      inputTemplate: idRepository/GetDraft/getDraft
-      outputTemplate: idRepository/GetDraft/getDraftResult
+      inputTemplate: idRepository/GetDraftV2/getDraftV2WithType
+      outputTemplate: idRepository/error
       input: '{
       "registrationId":"$RIDV2NEW$",
       "type": "bogus"
       }'
       output: '{
-      "status": "DRAFTED"
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002",
+      "message": "Invalid Input Parameter - type"
+    }
+  ]
 }'
 
   IdRepository_GetDraftV2_NoDraftExists_Neg:
@@ -142,20 +147,23 @@ GetDraftV2:
   ]
 }'
 
-  IdRepository_GetDraftV2_BlankRid_StatusCode_Neg:
+  IdRepository_GetDraftV2_BlankRid_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
-      description: Get a draft passing a blank registrationId. Unlike create/update, IdRepoAppException (e.g. no-record-found) always maps to HTTP 200 with an errors array - a blank path segment is the one case here that can actually produce the 404 the swagger documents, since it may not route to this method at all. Assumption - unconfirmed against a live run
+      description: Get a draft using a blank registration ID - should be rejected with error IDR-IDC-003
       uniqueIdentifier: TC_IDRepo_GetDraftV2_09
       role: idrepo
       restMethod: get
-      checkOnlyStatusCodeInResponse: true
       inputTemplate: idRepository/GetDraft/getDraft
-      outputTemplate: idRepository/responseCode
+      outputTemplate: idRepository/error
       input: '{
       "registrationId":""
       }'
       output: '{
-   "responseCode": "404"
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
 }'
 
   IdRepository_GetDraftV2_WithInvalidToken_StatusCode_Neg:
@@ -171,7 +179,7 @@ GetDraftV2:
       "registrationId":"$RIDV2NEW$"
       }'
       output: '{
-   "responseCode": "401"
+   "responseCode": "500"
 }'
 
   IdRepository_GetDraftV2_WithUnauthorizedRole_StatusCode_Neg:

@@ -113,8 +113,10 @@ public class GetWithParam extends IdRepoUtil implements ITest {
 			ArrayList<JSONObject> inputtestCases = AdminTestUtil.getInputTestCase(testCaseDTO);
 			ArrayList<JSONObject> outputtestcase = AdminTestUtil.getOutputTestCase(testCaseDTO);
 			for (int i = 0; i < languageList.size(); i++) {
-				response = getWithPathParamAndCookie(ApplnURI + testCaseDTO.getEndPoint(),
+				String inputJson = inputStringKeyWordHandeler(
 						getJsonFromTemplate(inputtestCases.get(i).toString(), testCaseDTO.getInputTemplate()),
+						testCaseName);
+				response = getWithPathParamAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson,
 						COOKIENAME, testCaseDTO.getRole(), testCaseDTO.getTestCaseName());
 
 				Map<String, List<OutputValidationDto>> ouputValid = OutputValidationUtil.doJsonOutputValidation(
@@ -129,14 +131,25 @@ public class GetWithParam extends IdRepoUtil implements ITest {
 		}
 
 		else {
-			response = getWithPathParamAndCookie(ApplnURI + testCaseDTO.getEndPoint(),
-					getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate()), auditLogCheck,
+			String inputJson = inputStringKeyWordHandeler(
+					getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate()), testCaseName);
+			response = getWithPathParamAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, auditLogCheck,
 					COOKIENAME, testCaseDTO.getRole(), testCaseDTO.getTestCaseName(), sendEsignetToken);
 			Map<String, List<OutputValidationDto>> ouputValid = null;
 			if (testCaseName.contains("_StatusCode")) {
 
+				// Unwrap {"responseCode": "401"} to a bare status code string, if present
+				String expectedStatusCode = testCaseDTO.getOutput();
+				try {
+					JSONObject expectedJson = new JSONObject(expectedStatusCode);
+					if (expectedJson.has(GlobalConstants.RESPONSE_CODE)) {
+						expectedStatusCode = expectedJson.get(GlobalConstants.RESPONSE_CODE).toString();
+					}
+				} catch (Exception e) {
+					// already a bare status code string
+				}
 				OutputValidationDto customResponse = customStatusCodeResponse(String.valueOf(response.getStatusCode()),
-						testCaseDTO.getOutput());
+						expectedStatusCode);
 
 				ouputValid = new HashMap<>();
 				ouputValid.put(GlobalConstants.EXPECTED_VS_ACTUAL, List.of(customResponse));
