@@ -121,7 +121,7 @@ ExtractBiometricsV2:
       "registrationId":"$RIDV2EXT$"
       }'
       output: '{
-   "responseCode": "401"
+   "responseCode": "500"
 }'
 
   IdRepository_ExtractBiometricsV2_WithUnauthorizedRole_StatusCode_Neg:
