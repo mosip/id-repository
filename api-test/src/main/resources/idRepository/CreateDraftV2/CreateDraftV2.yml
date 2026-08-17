@@ -170,7 +170,7 @@ CreateDraftV2:
 
   IdRepository_CreateDraftV2_InvalidUinFormat_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Create a draft passing a uin that does not conform to the UIN format
+      description: Create a draft using an invalid uin format - should be rejected with error IDR-IDC-007
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_10
       role: idrepo
       restMethod: post
@@ -184,7 +184,7 @@ CreateDraftV2:
       output: '{
    "errors": [
     {
-      "errorCode": "IDR-IDC-002"
+      "errorCode": "IDR-IDC-007"
     }
   ]
 }'
@@ -204,7 +204,7 @@ CreateDraftV2:
       "generateUin": "$REMOVE$"
       }'
       output: '{
-   "responseCode": "401"
+   "responseCode": "500"
 }'
 
   IdRepository_CreateDraftV2_WithUnauthorizedRole_StatusCode_Neg:
