@@ -272,7 +272,7 @@ RetrieveIdentityPostV2:
 
   IdRepository_RetrieveIdentityPostV2_WithInvalidClaimFilteredOut_Pos:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: After Add with an unknown claim, verifiedAttributes persists as an empty array; only status is asserted here, as the framework can't express an empty-array comparison.
+      description: Verify that the system successfully retrieves identity V2 details when the API is called after add with an unknown claim and verifiedAttributes is empty
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_13
       role: idrepo
       restMethod: post
@@ -292,7 +292,7 @@ RetrieveIdentityPostV2:
 
   IdRepository_RetrieveIdentityPostV2_VerifyUpdateFieldIdWithNewVerificationDetails_Pos:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: After Update replaces a fieldId's verification details with a new trustFramework/verificationProcess, Retrieve returns only the new details.
+      description: Verify that the system successfully retrieves identity V2 details when the API is called after update replaces a fieldId verification details with a new trustFramework and verificationProcess
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_14
       role: idrepo
       restMethod: post
@@ -324,7 +324,7 @@ RetrieveIdentityPostV2:
 
   IdRepository_RetrieveIdentityPostV2_VerifyUpdateOptionalAttributeForExistingVerificationDetails_Pos:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: After Update replaces a fieldId's verification details for an optional-attribute-only change, Retrieve returns the updated optional attributes.
+      description: Verify that the system successfully retrieves identity V2 details when the API is called after update replaces verification details for an optional-attribute-only change
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_15
       role: idrepo
       restMethod: post
@@ -361,7 +361,7 @@ RetrieveIdentityPostV2:
 
   IdRepository_RetrieveIdentityPostV2_VerifyUpdateRequiredAttributeForExistingVerificationDetails_Pos:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: After Update replaces (not appends) a fieldId's verification details for a required-attribute-only change, Retrieve returns only the new verificationProcess at index 0.
+      description: Verify that the system successfully retrieves identity V2 details when the API is called after update replaces verification details for a required-attribute-only change
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_16
       role: idrepo
       restMethod: post
@@ -393,7 +393,7 @@ RetrieveIdentityPostV2:
 
   IdRepository_RetrieveIdentityPostV2_VerifyUpdateFieldIdValueWithoutVerifiedAttributes_Pos:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: After Update changes fullName's identity value without sending verifiedAttributes, Retrieve shows the original verification details untouched.
+      description: Verify that the system successfully retrieves identity V2 details when the API is called after update changes fullName without sending verifiedAttributes
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_17
       role: idrepo
       restMethod: post
