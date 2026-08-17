@@ -1464,7 +1464,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_Pos_withoutselectedhandles:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity with array handle values when the API is called without selected handles
+      description: Verify that the system successfully adds an identity with array handle values when the API is called without selected handles for a subsequent update scenario
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_45
       role: testrig
       restMethod: post
