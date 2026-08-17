@@ -759,27 +759,27 @@ AddIdentity:
   "registrationId": "$RID$",
   "addressCopy": "Y",
   "biometricReferenceId": "23452353",
- 
+
    "UIN": "$UIN$",
-  
+
   "dateOfBirth": "1992/04/15",
-    
+
   "postalCode": "14022",
   "email": "$REMOVE$",
   "phone": "$PHONENUMBERFORIDENTITY$",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
- 
+
    "introducerRID": "212124324784879",
    "introducerUIN": "212124324784879",
-  
+
    "category": "individualBiometrics",
    "requesttime": "$TIMESTAMP$"
 }'
       output: '{
    "errors": [
     {
-      "errorCode": "IDR-IDC-002"
+      "errorCode": "IDR-IDC-001"
     }
   ]
 }'
@@ -908,7 +908,6 @@ AddIdentity:
       description: Creating UIN in Add Identity passing invalid past timestamp
       uniqueIdentifier: TC_IDRepo_AddIdentity_25
       role: testrig
-      checkErrorsOnlyInResponse: true
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
       outputTemplate: idRepository/error
@@ -1536,20 +1535,55 @@ AddIdentity:
   "registrationId": "$RID$",
   "addressCopy": "Y",
   "biometricReferenceId": "23452353",
- 
+
    "UIN": "$VALID_UIN_NOTIN_DB$",
-   
+
   "dateOfBirth": "1992/04/15",
-   
+
   "postalCode": "14022",
   "email": "$EMAILVALUE$",
   "phone": "$PHONENUMBERFORIDENTITY$",
   "referenceIdentityNumber": "6789545678878",
   "version": "v1",
- 
+
    "introducerRID": "212124324784879",
    "introducerUIN": "212124324784879",
-   
+
+   "category": "individualBiometrics",
+   "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "status":"ACTIVATED"
+}'
+   IdRepository_AddIdentity_WithVerifiedAttributeAsListOfString_Pos:
+      endPoint: /idrepository/v1/identity/
+      description: Validate that Add Identity V1 successfully creates identity when verifiedAttribute is provided as a list of fieldId strings
+      uniqueIdentifier: TC_IDRepo_AddIdentity_43
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+
+   "UIN": "$UIN$",
+
+  "dateOfBirth": "1992/04/15",
+
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "verifiedAttribute": ["fullName", "address"],
+  "version": "v1",
+
+   "introducerRID": "212124324784879",
+   "introducerUIN": "212124324784879",
+
    "category": "individualBiometrics",
    "requesttime": "$TIMESTAMP$"
 }'

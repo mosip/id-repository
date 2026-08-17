@@ -29,6 +29,7 @@ import io.mosip.testrig.apirig.dto.TestCaseDTO;
 import io.mosip.testrig.apirig.idrepo.utils.IdRepoArrayHandle;
 import io.mosip.testrig.apirig.idrepo.utils.IdRepoConfigManager;
 import io.mosip.testrig.apirig.idrepo.utils.IdRepoUtil;
+import io.mosip.testrig.apirig.utils.SchemaBasedIdentityTemplateBuilder;
 import io.mosip.testrig.apirig.testrunner.BaseTestCase;
 import io.mosip.testrig.apirig.testrunner.HealthChecker;
 import io.mosip.testrig.apirig.testrunner.JsonPrecondtion;
@@ -95,11 +96,15 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 			throw new SkipException(
 					GlobalConstants.TARGET_ENV_HEALTH_CHECK_FAILED + HealthChecker.healthCheckFailureMapS);
 		}
+		// modifySchemaGenerateHbs is called only to populate schema globals used below; its template is replaced.
 		if(testCaseDTO.getEndPoint().contains(GlobalConstants.ADD_IDENTITY_V2_ENDPOINT)) {
-			testCaseDTO.setInputTemplate(AdminTestUtil.modifySchemaGenerateHbsV2(testCaseDTO.isRegenerateHbs()));
+			AdminTestUtil.modifySchemaGenerateHbsV2(testCaseDTO.isRegenerateHbs());
+			testCaseDTO.setInputTemplate(SchemaBasedIdentityTemplateBuilder.buildAddIdentityTemplateV2());
 		} else {
-			testCaseDTO.setInputTemplate(AdminTestUtil.modifySchemaGenerateHbs(testCaseDTO.isRegenerateHbs()));
+			AdminTestUtil.modifySchemaGenerateHbs(testCaseDTO.isRegenerateHbs());
+			testCaseDTO.setInputTemplate(SchemaBasedIdentityTemplateBuilder.buildAddIdentityTemplate());
 		}
+
 		String jsonInput = testCaseDTO.getInput();
 
 		String inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
@@ -162,11 +167,27 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 		if (inputJson.contains("$EMAILVALUE$")) {
 			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", email);
 		}
-		// Replace handle-array tokens before manipulating handle values so that
-		// applyWithDuplicateValue saves/restores the actual resolved values, not tokens.
+		// Resolve $HANDLEVALUE tokens before IdRepoArrayHandle runs so its mutations see real values.
+		inputJson = IdRepoUtil.resolveGenericHandleValueTokens(inputJson);
+
+		// V1's schema-driven template has no verifiedAttribute placeholder, so inject it as a fixed top-level field.
+		if (!testCaseDTO.getEndPoint().contains(GlobalConstants.ADD_IDENTITY_V2_ENDPOINT)) {
+			JSONObject originalAddInput = new JSONObject(jsonInput);
+			if (originalAddInput.has("verifiedAttribute")) {
+				JSONObject requestJsonForVerifiedAttribute = new JSONObject(inputJson);
+				requestJsonForVerifiedAttribute.getJSONObject("request").put("verifiedAttribute",
+						originalAddInput.getJSONArray("verifiedAttribute"));
+				inputJson = requestJsonForVerifiedAttribute.toString();
+			}
+		}
+
 		JSONObject jsonString = new JSONObject(inputJson);
 		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {
 			inputJson = IdRepoArrayHandle.replaceArrayHandleValues(inputJson, testCaseName);
+		}
+		// Done here (not the handle dispatch) so it also runs on schemas with no handles.
+		if (testCaseName.contains("_extraNonSchemaField")) {
+			inputJson = IdRepoArrayHandle.injectExtraNonSchemaField(inputJson);
 		}
 
 		response = postWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,

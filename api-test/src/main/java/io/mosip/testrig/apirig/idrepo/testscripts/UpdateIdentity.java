@@ -143,16 +143,16 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 		if (inputJson.contains("$SCHEMAVERSION$"))
 			inputJson = replaceKeywordWithValue(inputJson, "$SCHEMAVERSION$", generateLatestSchemaVersion());
 		
-		// V2 specific handling for verifiedAttributes and documents
+		// V2 specific handling for verifiedAttributes, documents and fullName
 		if (testCaseDTO.getEndPoint().contains(GlobalConstants.ADD_IDENTITY_V2_ENDPOINT)) {
 
 		    JSONObject originalInput = new JSONObject(testCaseDTO.getInput());
 		    JSONObject requestJson = new JSONObject(inputJson);
 
 		    if (originalInput.has("verifiedAttributes")) {
+		        // Generic Object getter, since verifiedAttributes may be a list or a map.
 		        requestJson.getJSONObject("request")
-		                .put("verifiedAttributes",
-		                        originalInput.getJSONArray("verifiedAttributes"));
+		                .put("verifiedAttributes", originalInput.get("verifiedAttributes"));
 		    }
 
 		    if (originalInput.has("documents")) {
@@ -161,7 +161,22 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 		                        originalInput.getJSONArray("documents"));
 		    }
 
+		    if (originalInput.has("fullName")) {
+		        // fullName isn't in the static V2 template, so inject it here like verifiedAttributes/documents.
+		        requestJson.getJSONObject("request").getJSONObject("identity")
+		                .put("fullName", originalInput.get("fullName"));
+		    }
+
 		    inputJson = requestJson.toString();
+		} else {
+			// V1's static template has no verifiedAttribute placeholder, so inject it as a fixed top-level field.
+			JSONObject originalInput = new JSONObject(testCaseDTO.getInput());
+			if (originalInput.has("verifiedAttribute")) {
+				JSONObject requestJson = new JSONObject(inputJson);
+				requestJson.getJSONObject("request").put("verifiedAttribute",
+						originalInput.getJSONArray("verifiedAttribute"));
+				inputJson = requestJson.toString();
+			}
 		}
 
 		String phone = getValueFromAuthActuator("json-property", "phone_number");
@@ -177,6 +192,16 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 		inputJson = inputJson.replace("\"email\":", "\"" + emailResult + "\":");
 
 		inputJson = inputJson.replace("$RID$", genRid);
+
+		if (inputJson.contains("$OPTIONALSCHEMAFIELD$")) {
+			// Resolved from the live schema; isTestCaseValidForExecution already skips if none exists, so this is just a fallback.
+			String optionalField = resolveOptionalClaimableField();
+			if (optionalField == null) {
+				throw new SkipException("No optional (non-required) claimable field in the current IdSchema — "
+						+ GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
+			}
+			inputJson = inputJson.replace("$OPTIONALSCHEMAFIELD$", optionalField);
+		}
 
 		if ((testCaseName.startsWith("IdRepository_") || testCaseName.startsWith("Auth_"))
 				&& inputJson.contains("dateOfBirth") && (!isElementPresent(globalRequiredFields, dob))) {

@@ -54,7 +54,7 @@ GetUpdateCount:
       output: '{
   "errors": [
     {
-      "errorCode": "IDR-IDC-003"
+      "errorCode": "IDR-IDC-002"
     }
   ]
 }'
@@ -75,7 +75,7 @@ GetUpdateCount:
       output: '{
   "errors": [
     {
-      "errorCode": "IDR-IDC-004"
+      "errorCode": "IDR-IDC-002"
     }
   ]
 }'
@@ -177,7 +177,7 @@ GetUpdateCount:
   ]
 }'
 
-   IdRepository_GetUpdateCount_Uinn_StatusCode_Invalid_Token:
+   IdRepository_GetUpdateCount_Vid_StatusCode_Invalid_Token:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
       description: Get update count by passing invalid token
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_10

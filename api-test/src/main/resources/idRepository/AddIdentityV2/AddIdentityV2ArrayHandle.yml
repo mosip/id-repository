@@ -47,6 +47,7 @@ AddIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validate that Add Identity V2 successfully creates an identity with multiple email entries where one email is tagged as handle.
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_02
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -91,6 +92,7 @@ AddIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validate Add Identity V2 with multiple email entries and no email tagged as handle.
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_03
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -179,6 +181,7 @@ AddIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Verify Add Identity V2 with multiple email entries tagged as handle.
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_05
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -223,6 +226,7 @@ AddIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validate Add Identity V2 with email having both handle and notification tags.
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_06
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -311,6 +315,7 @@ AddIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validate Add Identity V2 with selectedHandles order variation.
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_08
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -399,6 +404,7 @@ AddIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validate Add Identity V2 with email having only notification tag.
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_10
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -443,6 +449,7 @@ AddIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validate Add Identity V2 with a lengthy email array.
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_11
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -487,6 +494,7 @@ AddIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Verify Add Identity V2 with multiple email handles from different domains.
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_12
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -847,6 +855,7 @@ AddIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validates that Add Identity V2 API accepts requests when duplicate selected handles are present and successfully creates the identity.
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_20
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -891,6 +900,7 @@ AddIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validates that Add Identity V2 API ignores case mismatches in selected handles with verifiedAttributes.
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_21
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -935,6 +945,7 @@ AddIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Validates that Add Identity V2 API ignores selected handles with leading/trailing spaces with verifiedAttributes.
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_22
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
