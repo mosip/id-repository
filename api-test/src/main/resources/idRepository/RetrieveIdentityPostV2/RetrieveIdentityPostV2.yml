@@ -390,7 +390,6 @@ RetrieveIdentityPostV2:
       }
     ]
 }'
-
   IdRepository_RetrieveIdentityPostV2_VerifyUpdateFieldIdValueWithoutVerifiedAttributes_Pos:
       endPoint: /idrepository/v1/identity/idvid/v2
       description: Verify that the system successfully retrieves identity V2 details when the API is called after update changes fullName without sending verifiedAttributes
