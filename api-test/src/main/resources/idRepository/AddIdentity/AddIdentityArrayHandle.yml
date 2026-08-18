@@ -1,7 +1,7 @@
 AddIdentity:
    IdRepository_AddIdentity_array_handle_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with valid input details
+      description: Add identity array handle with positive value
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_01
       role: testrig
       restMethod: post
@@ -35,7 +35,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_wth_duplicate_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with handle values that already exist
+      description: Add identity array handle with those value which already have been created
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_02
       role: testrig
       restMethod: post
@@ -69,7 +69,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_onlywithtags:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity with array handle values when the API is called with only tags and no values
+      description: Add identity array handle with only tags
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_03
       role: testrig
       restMethod: post
@@ -107,7 +107,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_withouttags:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity with array handle values when the API is called without tags
+      description: Add identity array handle with positive values and withouts tags
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_04
       role: testrig
       restMethod: post
@@ -141,7 +141,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_withoutselectedhandles:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity with array handle values when the API is called without selected handles
+      description: Add identity array handle without selected handles
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_05
       role: testrig
       restMethod: post
@@ -175,7 +175,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_withtagwithoutselectedhandles:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity with array handle values when the API is called with tags but without selected handles
+      description: Add identity array handle with tags and without slected handles
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_06
       role: testrig
       restMethod: post
@@ -209,7 +209,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_withinvalidtag:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity with array handle values when the API is called with an invalid tag
+      description: Add identity array handle with positive value and invalid tag
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_07
       role: testrig
       restMethod: post
@@ -243,7 +243,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_withmultiplevalues:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with multiple valid values
+      description: Add identity array handle with multiple positive values
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_08
       role: testrig
       restMethod: post
@@ -281,7 +281,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_withmultiplevaluesandwithouttags:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity with array handle values when the API is called with multiple values and without tags
+      description: Add identity array handle with multiple positive value and without tag
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_09
       role: testrig
       restMethod: post
@@ -319,7 +319,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_single_handle_valuee_array_handle_withouttags:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity with a single handle value when the API is called without tags
+      description: Add identity single handle with positive value without tag
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_10
       role: testrig
       restMethod: post
@@ -353,7 +353,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_single_handle_value_array_handle_value_withemptyselecthandles:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity with a single handle value when the API is called with empty selected handles
+      description: Add identity single handle with empty select handles
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_12
       role: testrig
       restMethod: post
@@ -387,7 +387,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_single_handle_value_array_handle_value_withmultiplehandleswithoutvalue:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity with a single handle value when the API is called with multiple handles without values
+      description: Add identity single handle with multiple handles without value
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_13
       role: testrig
       restMethod: post
@@ -425,7 +425,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withfunctionalIds:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with functional IDs as selected handles
+      description: Add identity array handle with functionalids as selected handles
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_14
       requiredHandleFields: [functionalId]
       role: testrig
@@ -460,7 +460,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withfunctionalidsusedfirsttwovalue:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with functional IDs using the first two values
+      description: Add identity array handle with functionalids using first two value
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_15
       requiredHandleFields: [functionalId]
       role: testrig
@@ -495,7 +495,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withfunctionalidsandphonewithouttags:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with functional IDs and phone as selected handles without tags
+      description: Add identity array handle with functionalids and phone as selected handles without tag
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_16
       requiredHandleFields: [functionalId, phone]
       role: testrig
@@ -530,7 +530,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withfunctionalidsusedfirstTwovalueoutoffive:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with functional IDs using the first two values out of five
+      description: Add identity array handle with functionalids as selected handles using first two value out of five
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_17
       requiredHandleFields: [functionalId]
       role: testrig
@@ -565,7 +565,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_withonehandle:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with one handle and valid values
+      description: Add identity array handle with one handles positive value
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_18
       role: testrig
       restMethod: post
@@ -599,7 +599,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_removeexceptfirsthandle:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called after removing all selected handles except the first
+      description: Add identity array handle while remove excepted first selectedHandles
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_19
       role: testrig
       restMethod: post
@@ -633,7 +633,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_withValidParameters_smoke_Post_array_handle_value_valid:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with valid input details
+      description: Add identity array handle with positive value
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_20
       role: testrig
       restMethod: post
@@ -667,7 +667,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_smoke_withinvaliddemofield_inupdate:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity with array handle values when the API is called with an invalid demographic field
+      description: Add identity array handle with positive value and invalid demo field
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_21
       role: testrig
       restMethod: post
@@ -701,7 +701,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_smoke_withoutselectedhandlesandattri:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity with array handle values when the API is called without selected handles and attribute
+      description: Add identity array handle without selected handles and attribute
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_22
       role: testrig
       restMethod: post
@@ -735,7 +735,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_smoke_withonedemofield:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with only one demographic field
+      description: Add identity array handle with positive value and without demo field
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_23
       role: testrig
       restMethod: post
@@ -769,7 +769,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_smoke_withcasesensitivehandles:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with case-sensitive selected handles
+      description: Add identity array handle with case sensitive selected handles
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_25
       role: testrig
       restMethod: post
@@ -803,7 +803,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_update_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with updated handle values
+      description: Add identity array handle with positive values
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_26
       role: testrig
       restMethod: post
@@ -837,7 +837,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_update_valueandtag_smoke_Pos:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with updated handle values and tags
+      description: Add identity array handle with positive values and tag
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_27
       role: testrig
       restMethod: post
@@ -871,7 +871,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_update_post_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with post-update handle values
+      description: Add identity array handle with positive values
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_28
       role: testrig
       restMethod: post
@@ -905,7 +905,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_update_post_valuetags_smoke_Pos:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with post-update handle values and tags
+      description: Add identity array handle with positive values
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_29
       role: testrig
       restMethod: post
@@ -939,7 +939,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_update_valuetags_smoke_Pos:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with updated handle values and tags
+      description: Add identity array handle with positive values
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_30
       role: testrig
       restMethod: post
@@ -973,7 +973,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_post_update_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with post-update handle values
+      description: Add identity array handle with positive values
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_31
       role: testrig
       restMethod: post
@@ -1007,7 +1007,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_post_updateselectedhandles_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with post-update selected handles and values
+      description: Add identity array handle with positive values
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_32
       role: testrig
       restMethod: post
@@ -1041,7 +1041,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_handle_array_updatehandles_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with updated handle array values
+      description: Add identity array handle with positive values
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_33
       role: testrig
       restMethod: post
@@ -1075,7 +1075,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_updateselectedhandles_value_smoke_Pos:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with updated selected handles and values
+      description: Add identity array handle with positive values
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_34
       role: testrig
       restMethod: post
@@ -1109,7 +1109,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_updateselectedhandles_value_Pos_replaceselectedhandles:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with replaced selected handles using only email
+      description: Add identity with only email as selected handle
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_35
       requiredHandleFields: [email]
       role: testrig
@@ -1144,7 +1144,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_handle_array_updateselectedhandles_value_Pos_onlywithemail:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with only email as selected handle and updates phone and email
+      description: Add identity with only email as selected handle and update with phone and email in update identity
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_36
       requiredHandleFields: [email]
       role: testrig
@@ -1179,7 +1179,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_updateselectedhandles_value_Pos_withoutselectedhandlesinidentity:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when selected handles are omitted from the identity payload
+      description: Add identity without selected handle
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_37
       role: testrig
       restMethod: post
@@ -1213,7 +1213,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_smoke_Pos_save_withdublicatevalue:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called to save a handle value for duplicate testing
+      description: Add identity array handle with add value
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_38
       role: testrig
       restMethod: post
@@ -1247,7 +1247,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_smoke_Pos_withdublicatevalue:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity with array handle values when the API is called with a duplicate handle value
+      description: Add identity array handle with same value again
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_39
       role: testrig
       restMethod: post
@@ -1285,7 +1285,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_smoke_Pos_withmultipledublicatevalue:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity with array handle values when the API is called with multiple duplicate handle values
+      description: Add identity array handle with multiple dublicate value
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_40
       role: testrig
       restMethod: post
@@ -1323,7 +1323,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_removevalueaddexistingvalue:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity with array handle values when the API is called after removing a value and re-adding an existing handle value
+      description: Add identity array handle with existing value
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_41
       role: testrig
       restMethod: post
@@ -1361,7 +1361,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_smoke_Pos_withphonenumber:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with a valid phone number handle value
+      description: Add identity array handle with positive value phone number
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_42
       role: testrig
       restMethod: post
@@ -1395,7 +1395,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_smoke_Pos_withoutselectedhandles:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called without selected handles
+      description: Add identity array handle without selected handles
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_43
       role: testrig
       restMethod: post
@@ -1429,7 +1429,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_smoke_Pos_withselectedhandlephone:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with phone as the selected handle
+      description: Add identity array handle with selected handle as phone
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_44
       requiredHandleFields: [phone]
       role: testrig
@@ -1464,7 +1464,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_Pos_withoutselectedhandles:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called without selected handles for a subsequent update scenario
+      description: Add identity array handle without selected handles
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_45
       role: testrig
       restMethod: post
@@ -1498,7 +1498,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_update_smoke_Pos_withselectedhandlephone:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called with phone as the selected handle during update
+      description: Add identity array handle with selected handle as phone
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_46
       requiredHandleFields: [phone]
       role: testrig
@@ -1533,7 +1533,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_value_smoke_Pos_removealltagshandles:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity with array handle values when the API is called after removing all handle tags
+      description: Add identity with removing all tags with positive value
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_47
       role: testrig
       restMethod: post
@@ -1567,7 +1567,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_allHandlesValid_smoke_Pos:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system successfully adds an identity when the API is called with valid values for every schema-declared handle
+      description: Create identity populating every schema-declared handle with valid values - all handles accepted
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_48
       role: testrig
       restMethod: post
@@ -1596,7 +1596,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_missingRequiredHandle_Neg:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity when the API is called omitting a required handle field from the live schema
+      description: Create identity omitting a required handle field (resolved from the live schema) - server must reject
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_49
       role: testrig
       restMethod: post
@@ -1629,7 +1629,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_invalidStringHandleValue_Neg:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity when the API is called with an invalid value on a string-typed handle
+      description: Create identity with an invalid value on a string-typed handle (resolved from schema) - server must reject
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_50
       role: testrig
       restMethod: post
@@ -1662,7 +1662,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_array_handle_invalidArrayHandleValue_Neg:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity when the API is called with an invalid value on an array-typed handle
+      description: Create identity with an invalid value on an array-typed handle (resolved from schema) - server must reject
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_51
       role: testrig
       restMethod: post
@@ -1695,7 +1695,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_extraNonSchemaField_Neg:
       endPoint: /idrepository/v1/identity/
-      description: Verify that the system rejects add identity when the API is called with an extra field not defined in the schema
+      description: Create identity including a field the schema does not define - strict schema must reject (skipped when schema allows additional properties)
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_52
       role: testrig
       restMethod: post

@@ -444,6 +444,7 @@ UpdateIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully updates an identity with array handle values using Update Identity V2 when the API is called with empty selected handles
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2ArrayHandle_11
+    requiredHandleFields: [email]
     role: testrig
     restMethod: patch
     inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
@@ -534,6 +535,7 @@ UpdateIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully updates an identity with array handle values using Update Identity V2 when the API is called with selected handles containing leading or trailing spaces
     uniqueIdentifier: TC_IDRepo_UpdateIdentityV2ArrayHandle_13
+    requiredHandleFields: [email]
     role: testrig
     restMethod: patch
     inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle

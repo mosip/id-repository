@@ -33,11 +33,7 @@ import io.mosip.testrig.apirig.utils.ReportUtil;
 import io.mosip.testrig.apirig.utils.SecurityXSSException;
 import io.restassured.response.Response;
 
-// PATCH .../draft/update/{registrationId} and .../draft/v2/update/{registrationId} - same request
-// schema on both, so one class serves both YAML files; endpoint is purely YAML-driven, same as
-// UpdateIdentity.java already does for AddIdentity/AddIdentityV2.
-// Omit inputTemplate for the normal schema-driven body; name a real .hbs path only to override
-// it with a curated static payload (needed for negative tests like an invalid email).
+// Generic PATCH script shared by draft/update/{registrationId} and draft/v2/update/{registrationId}
 public class UpdateDraft extends IdRepoUtil implements ITest {
 	private static final Logger logger = Logger.getLogger(UpdateDraft.class);
 	protected String testCaseName = "";

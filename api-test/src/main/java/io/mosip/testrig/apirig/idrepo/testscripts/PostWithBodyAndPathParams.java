@@ -28,9 +28,7 @@ import io.mosip.testrig.apirig.utils.ReportUtil;
 import io.mosip.testrig.apirig.utils.SecurityXSSException;
 import io.restassured.response.Response;
 
-// Generic POST script for endpoints with both a path param and a JSON body (e.g. createDraftV2).
-// "pathParams" (comma separated, from suite XML) names which YAML input fields become path
-// params; the rest of the fields are sent as the request body.
+// Generic POST script for endpoints with both a path param and a JSON body (e.g. createDraftV2)
 public class PostWithBodyAndPathParams extends IdRepoUtil implements ITest {
 	private static final Logger logger = Logger.getLogger(PostWithBodyAndPathParams.class);
 	protected String testCaseName = "";
@@ -71,10 +69,7 @@ public class PostWithBodyAndPathParams extends IdRepoUtil implements ITest {
 
 		String inputJson = getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate());
 		inputJson = inputStringKeyWordHandeler(inputJson, testCaseName);
-		// generateUin is a real boolean on the wire; the template quotes it (so "$REMOVE$" stays
-		// valid JSON when the field is omitted), so unquote real true/false values back to JSON
-		// booleans here. $REMOVE$ itself is untouched and gets stripped by inputJsonKeyWordHandeler
-		// inside postWithPathParamsBodyAndCookie below.
+		// generateUin is a real boolean on the wire; unquote it back from the template's string form
 		inputJson = inputJson.replace("\"generateUin\": \"true\"", "\"generateUin\": true");
 		inputJson = inputJson.replace("\"generateUin\": \"false\"", "\"generateUin\": false");
 

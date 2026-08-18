@@ -271,6 +271,7 @@ AddIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called and selectedHandles matches the tagged email
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_07
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -360,6 +361,7 @@ AddIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with one email in the array
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_09
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -675,6 +677,7 @@ AddIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with empty selected handles
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_16
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -767,6 +770,7 @@ AddIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with not applicable selected handles
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_18
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -811,6 +815,7 @@ AddIdentityV2ArrayHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with unknown selected handles
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_19
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$

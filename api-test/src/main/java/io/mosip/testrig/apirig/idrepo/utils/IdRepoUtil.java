@@ -83,8 +83,7 @@ public class IdRepoUtil extends AdminTestUtil {
 			throw new SkipException(GlobalConstants.KNOWN_ISSUES);
 		}
 
-		// The schema-conditional skips below use FEATURE_NOT_SUPPORTED_MESSAGE so EmailableReport routes
-		// them to the Ignored bucket (it matches on that phrase), not Skipped.
+		// FEATURE_NOT_SUPPORTED_MESSAGE routes these schema-conditional skips to EmailableReport's Ignored bucket
 		if (testCaseDTO.getRequiredSchemaFields() != null && testCaseDTO.getRequiredSchemaFields().length > 0) {
 			for (String field : testCaseDTO.getRequiredSchemaFields()) {
 				String trimmed = field.trim();
@@ -107,8 +106,7 @@ public class IdRepoUtil extends AdminTestUtil {
 			}
 		}
 
-		// Schema-capability skips for the generic (field-name-agnostic) handle scenarios. Each test
-		// declares the capability it needs via its name; if the live schema can't support it, skip.
+		// Schema-capability skips for the generic (field-name-agnostic) handle scenarios
 		if (testCaseName.contains("_missingRequiredHandle") && !schemaHasRequiredHandle()) {
 			throw new SkipException(
 					"No required handle field in the current IdSchema — " + GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
@@ -144,7 +142,8 @@ public class IdRepoUtil extends AdminTestUtil {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
 
-		if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("_handle")
+		// Case-insensitive: V1 names use "_handle" (lowercase), V2 names use camelCase ("ArrayHandle", "SelectedHandles").
+		if (testCaseName.startsWith("IdRepository_") && testCaseName.toLowerCase().contains("handle")
 				&& !schemaHasAnyHandle()) {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
@@ -207,9 +206,7 @@ public class IdRepoUtil extends AdminTestUtil {
 		return jsonString;
 	}
 
-	// Asserts a getDraft(V2) response has no allocated UIN yet - mirrors AdminTestUtil#customStatusCodeResponse's
-	// shape, for the same reason: this is a check doJsonOutputValidation can't express declaratively (no
-	// "field must be absent" keyword). Callers trigger it via a "_UinNotAllocated" testCaseName convention.
+	// Asserts a getDraft(V2) response has no allocated UIN yet - used by "_UinNotAllocated" test cases
 	public OutputValidationDto assertDraftUinNotAllocated(Response response) {
 		String actualUin = extractDraftUin(response.asString());
 		boolean uinAbsentOrBlank = actualUin == null || actualUin.isBlank();
