@@ -15,9 +15,10 @@ UpdateDraftUinData:
       "status": "DRAFTED"
 }'
 
+  # No ordering dependency by design - $RIDV2FRESH$ is a fresh, never-drafted RID. IDR-IDC-007 matches the identical findByRegId-empty check used by every other draft endpoint.
   IdRepository_UpdateDraftUinData_NoDraftExists_Neg:
       endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
-      description: Stamp a UIN on a registrationId that has no draft at all. IDR-IDC-007 is the one guess in this file with real cross-endpoint backing - every draft endpoint tested this session (create/update/get/publish/extract, all with real source) uses the identical findByRegId-empty check. No ordering dependency by design - $RIDV2FRESH$ is a fresh, never-drafted RID
+      description: Stamp a UIN on a registrationId that has no draft at all - must be rejected as no record found (IDR-IDC-007).
       uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_02
       role: idrepo
       restMethod: patch
@@ -115,9 +116,10 @@ UpdateDraftUinData:
   ]
 }'
 
+  # Reuses $RIDV2NEW$ incidentally.
   IdRepository_UpdateDraftUinData_WithInvalidToken_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
-      description: Stamp a UIN using an invalid/unauthenticated auth token. Reuses $RIDV2NEW$ but the RID is incidental here - auth is expected to be rejected before the draft is looked up
+      description: Stamp a UIN using an invalid/unauthenticated auth token - must be rejected before the draft is looked up.
       uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_07
       role: invalid
       restMethod: patch
@@ -132,9 +134,10 @@ UpdateDraftUinData:
    "responseCode": "500"
 }'
 
+  # Reuses $RIDV2NEW$ incidentally.
   IdRepository_UpdateDraftUinData_WithUnauthorizedRole_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
-      description: Stamp a UIN using a valid token that does not carry the role required for this API. Reuses $RIDV2NEW$ but the RID is incidental here - authorization is expected to be rejected before the draft is looked up
+      description: Stamp a UIN using a valid token that lacks the required role - must be rejected before the draft is looked up.
       uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_08
       role: resident
       restMethod: patch

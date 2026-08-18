@@ -1,7 +1,8 @@
 GetDraftV2:
+  # DEPENDS ON SUITE ORDER - reuses $RIDV2NEW$, drafted by IdRepository_CreateDraftV2_NewPacketDefault_Smoke_Pos in CreateDraftV2.yml.
   IdRepository_GetDraftV2_VerifyUinAllocated_NewPacket_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
-      description: getDraftV2 chain proving createDraftV2's default (generateUin true, no uin) NEW-packet draft actually has a UIN allocated. DEPENDS ON SUITE ORDER - reuses $RIDV2NEW$, drafted by IdRepository_CreateDraftV2_NewPacketDefault_Smoke_Pos in CreateDraftV2.yml
+      description: Get a draft to confirm the default NEW-packet draft (from CreateDraftV2) actually has a UIN allocated.
       uniqueIdentifier: TC_IDRepo_GetDraftV2_01
       role: idrepo
       restMethod: get
@@ -14,10 +15,11 @@ GetDraftV2:
     "UIN": "$REGEXP:^[0-9]+$"
 }'
 
+  # The "UinNotAllocated" name routes GetWithParam to assertDraftUinNotAllocated() instead of the declarative diff. DEPENDS ON SUITE ORDER - reuses $RIDV2LOST$, drafted by IdRepository_CreateDraftV2_LostPacketGenerateUinFalse_Smoke_Pos in CreateDraftV2.yml.
   IdRepository_GetDraftV2_VerifyUinNotAllocated_LostPacket_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
-      description: getDraftV2 chain proving createDraftV2's generateUin false LOST-packet draft has NOT had a UIN allocated yet - the one direction $REGEXP can't express, so this test case name's "UinNotAllocated" convention routes GetWithParam to the assertDraftUinNotAllocated() utility instead of the declarative diff. DEPENDS ON SUITE ORDER - reuses $RIDV2LOST$, drafted by IdRepository_CreateDraftV2_LostPacketGenerateUinFalse_Smoke_Pos in CreateDraftV2.yml
-      uniqueIdentifier: TC_IDRepo_CreateDraftV2_14
+      description: Get a draft to confirm the LOST-packet draft (generateUin false) has NOT had a UIN allocated yet.
+      uniqueIdentifier: TC_IDRepo_GetDraftV2_12
       role: idrepo
       restMethod: get
       inputTemplate: idRepository/GetDraft/getDraft
@@ -28,9 +30,10 @@ GetDraftV2:
       output: '{
 }'
 
+  # DEPENDS ON SUITE ORDER - reuses $RIDV2NEW$, drafted by IdRepository_CreateDraftV2_NewPacketDefault_Smoke_Pos in CreateDraftV2.yml. GET is non-mutating, so this RID is safely reused read-only across this file.
   IdRepository_GetDraftV2_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
-      description: Get a draft by registrationId with no query params (type defaults to "all" per the swagger description). DEPENDS ON SUITE ORDER - reuses $RIDV2NEW$, drafted by IdRepository_CreateDraftV2_NewPacketDefault_Smoke_Pos in CreateDraftV2.yml. GET is non-mutating so this RID is safely reused read-only across every test case in this file
+      description: Get a draft by registrationId with no query params - type defaults to "all" per the swagger description.
       uniqueIdentifier: TC_IDRepo_GetDraftV2_02
       role: idrepo
       restMethod: get
@@ -43,9 +46,10 @@ GetDraftV2:
       "status": "DRAFT"
 }'
 
+  # Assumption - inferred from the param name/swagger description only, not confirmed against v2 controller/service source (not present in this local checkout).
   IdRepository_GetDraftV2_TypeDemographics_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}?type={type}
-      description: Get a draft passing type=demographics - the granular-retrieval query param that's the one genuinely V2-specific addition on this endpoint (getDraft v1 has no "type" param at all). Assumption - inferred from the param name/swagger description only, not confirmed against the v2 controller/service source (not present in this local checkout)
+      description: Get a draft passing type=demographics - the one genuinely V2-specific query param addition on this endpoint.
       uniqueIdentifier: TC_IDRepo_GetDraftV2_03
       role: idrepo
       restMethod: get
@@ -75,9 +79,10 @@ GetDraftV2:
       "status": "DRAFT"
 }'
 
+  # Same result as TC_IDRepo_GetDraftV2_02, which omits type.
   IdRepository_GetDraftV2_TypeAllExplicit_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}?type={type}
-      description: Get a draft passing type=all explicitly - same result as omitting it (TC_IDRepo_GetDraftV2_02), just exercising the explicit value rather than relying on the documented default
+      description: Get a draft passing type=all explicitly - same result as omitting it, just exercises the explicit value.
       uniqueIdentifier: TC_IDRepo_GetDraftV2_05
       role: idrepo
       restMethod: get
@@ -91,9 +96,10 @@ GetDraftV2:
       "status": "DRAFT"
 }'
 
+  # Only one of the three identical-pattern params is exercised, to avoid near-duplicate test cases.
   IdRepository_GetDraftV2_WithFingerExtractionFormat_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}?fingerExtractionFormat={fingerExtractionFormat}
-      description: Get a draft passing fingerExtractionFormat - representative of the three parallel extraction-format params (finger/iris/face), which all follow the same identical pattern, so only one is exercised rather than three near-duplicate test cases
+      description: Get a draft passing fingerExtractionFormat, representative of the three parallel extraction-format params (finger/iris/face).
       uniqueIdentifier: TC_IDRepo_GetDraftV2_06
       role: idrepo
       restMethod: get
@@ -128,9 +134,10 @@ GetDraftV2:
   ]
 }'
 
+  # No ordering dependency by design - $RIDV2FRESH$ is a fresh, never-drafted RID.
   IdRepository_GetDraftV2_NoDraftExists_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
-      description: Get a registrationId that has no draft at all - must be rejected as no record found. No ordering dependency by design - $RIDV2FRESH$ is a fresh, never-drafted RID
+      description: Get a registrationId that has no draft at all - must be rejected as no record found.
       uniqueIdentifier: TC_IDRepo_GetDraftV2_08
       role: idrepo
       restMethod: get
@@ -166,9 +173,10 @@ GetDraftV2:
   ]
 }'
 
+  # Reuses $RIDV2NEW$ incidentally.
   IdRepository_GetDraftV2_WithInvalidToken_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
-      description: Get a draft using an invalid/unauthenticated auth token. Reuses $RIDV2NEW$ but the RID is incidental here - auth is expected to be rejected before the draft is looked up
+      description: Get a draft using an invalid/unauthenticated auth token - must be rejected before the draft is looked up.
       uniqueIdentifier: TC_IDRepo_GetDraftV2_10
       role: invalid
       restMethod: get
@@ -182,9 +190,10 @@ GetDraftV2:
    "responseCode": "500"
 }'
 
+  # Reuses $RIDV2NEW$ incidentally.
   IdRepository_GetDraftV2_WithUnauthorizedRole_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
-      description: Get a draft using a valid token that does not carry the role required for this API. Reuses $RIDV2NEW$ but the RID is incidental here - authorization is expected to be rejected before the draft is looked up
+      description: Get a draft using a valid token that lacks the required role - must be rejected before the draft is looked up.
       uniqueIdentifier: TC_IDRepo_GetDraftV2_11
       role: resident
       restMethod: get

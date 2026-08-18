@@ -1,7 +1,8 @@
 CreateDraftV2:
+  # $RIDV2NEW$ is reused by IdRepository_CreateDraftV2_DuplicateRid_Neg (this file), UpdateDraftV2.yml, and GetDraftV2.yml - those depend on this running first.
   IdRepository_CreateDraftV2_NewPacketDefault_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Create a draft for a NEW packet with no request body fields - uin omitted so a fresh UIN is auto-generated, generateUin omitted so it defaults to true. $RIDV2NEW$ is reused later by IdRepository_CreateDraftV2_DuplicateRid_Neg (this file), by UpdateDraftV2.yml, and by GetDraftV2.yml - those depend on this test case running first
+      description: Create a draft for a NEW packet with no request body fields - UIN and generateUin both default, so a fresh UIN is auto-generated.
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_01
       role: idrepo
       restMethod: post
@@ -33,9 +34,10 @@ CreateDraftV2:
     "status": "DRAFTED"
 }'
 
+  # Depends on AddIdentity.yml's IdRepository_AddIdentity_For_NewScen_smoke_Pos having run (uses its UIN). $RIDV2UPDATEA$ is reused by UpdateDraftV2.yml.
   IdRepository_CreateDraftV2_UpdatePacketWithUin_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Create a draft for an UPDATE packet by passing an existing valid UIN, generateUin omitted so it defaults to true. Depends on suite order - $ID:AddIdentity_For_NewScen_smoke_Pos_UIN$ requires AddIdentity.yml's IdRepository_AddIdentity_For_NewScen_smoke_Pos to have run earlier. $RIDV2UPDATEA$ is reused later by UpdateDraftV2.yml
+      description: Create a draft for an UPDATE packet using an existing valid UIN, generateUin omitted so it defaults to true.
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_03
       role: idrepo
       restMethod: post
@@ -67,9 +69,10 @@ CreateDraftV2:
     "status": "DRAFTED"
 }'
 
+  # $RIDV2LOST$ is reused by UpdateDraftV2.yml and GetDraftV2.yml - those depend on this running first.
   IdRepository_CreateDraftV2_LostPacketGenerateUinFalse_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Create a draft for a LOST packet with generateUin false and no uin - UIN allocation is skipped and resolved later via updateDraftUinData after ABIS. $RIDV2LOST$ is reused later by UpdateDraftV2.yml and by GetDraftV2.yml - those depend on this test case running first
+      description: Create a draft for a LOST packet with generateUin false and no uin - UIN allocation is deferred until updateDraftUinData runs after ABIS.
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_05
       role: idrepo
       restMethod: post
@@ -84,9 +87,10 @@ CreateDraftV2:
     "status": "DRAFTED"
 }'
 
+  # Must run after IdRepository_CreateDraftV2_NewPacketDefault_Smoke_Pos in this file.
   IdRepository_CreateDraftV2_DuplicateRid_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Re-create a draft for a registrationId that already has a draft - must be rejected as a duplicate record. Depends on IdRepository_CreateDraftV2_NewPacketDefault_Smoke_Pos having run first in this file
+      description: Re-create a draft for a registrationId that already has a draft - must be rejected as a duplicate record.
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_06
       role: idrepo
       restMethod: post
@@ -189,9 +193,10 @@ CreateDraftV2:
   ]
 }'
 
+  # Reuses $RIDV2NEW$ incidentally; does not depend on IdRepository_CreateDraftV2_NewPacketDefault_Smoke_Pos having run.
   IdRepository_CreateDraftV2_WithInvalidToken_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Create a draft using an invalid/unauthenticated auth token. Reuses $RIDV2NEW$ but the RID is incidental here - auth is expected to be rejected before the RID is looked up, so this does not depend on IdRepository_CreateDraftV2_NewPacketDefault_Smoke_Pos having run
+      description: Create a draft using an invalid/unauthenticated auth token - must be rejected before the RID is looked up.
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_11
       role: invalid
       restMethod: post
@@ -207,9 +212,10 @@ CreateDraftV2:
    "responseCode": "500"
 }'
 
+  # Reuses $RIDV2NEW$ incidentally; does not depend on IdRepository_CreateDraftV2_NewPacketDefault_Smoke_Pos having run.
   IdRepository_CreateDraftV2_WithUnauthorizedRole_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Create a draft using a valid token that does not carry the registration-processor role required for this API. Reuses $RIDV2NEW$ but the RID is incidental here - authorization is expected to be rejected before the RID is looked up, so this does not depend on IdRepository_CreateDraftV2_NewPacketDefault_Smoke_Pos having run
+      description: Create a draft using a valid token that lacks the registration-processor role - must be rejected before the RID is looked up.
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_12
       role: resident
       restMethod: post
@@ -225,9 +231,10 @@ CreateDraftV2:
    "responseCode": "403"
 }'
 
+  # Mirrors V1's dedicated $RIDEXT$ pattern in CreateDraft.yml. $RIDV2EXT$ is reused by ExtractBiometricsV2.yml, which depends on this running first.
   IdRepository_CreateDraftV2_ForExtraction_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Create a draft dedicated to ExtractBiometricsV2.yml - kept isolated from the main $RIDV2NEW$ lifecycle chain since extraction gets called repeatedly across several sub-tests there, mirroring V1's own dedicated $RIDEXT$ pattern in CreateDraft.yml. $RIDV2EXT$ is reused later by ExtractBiometricsV2.yml, which depends on this test case running first
+      description: Create a draft dedicated to ExtractBiometricsV2.yml, kept isolated from the main $RIDV2NEW$ lifecycle chain.
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_13
       role: idrepo
       restMethod: post
