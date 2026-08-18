@@ -1,5 +1,4 @@
 UpdateDraftV2:
-  # DEPENDS ON SUITE ORDER - reuses $RIDV2NEW$, drafted by IdRepository_CreateDraftV2_NewPacketDefault_Smoke_Pos in CreateDraftV2.yml, which must run earlier (see IdrepositorySuite.xml ordering).
   IdRepository_UpdateDraftV2_FirstUpdate_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
       description: First update on a freshly created NEW-packet V2 draft - sets the full identity for the first time.
@@ -23,7 +22,6 @@ UpdateDraftV2:
     "status": "DRAFTED"
 }'
 
-  # Must run after IdRepository_UpdateDraftV2_FirstUpdate_Smoke_Pos in this file (same $RIDV2NEW$), and transitively after CreateDraftV2.yml.
   IdRepository_UpdateDraftV2_SubsequentUpdate_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
       description: Second update on the same V2 draft - exercises the merge/patch path over previously stored draft data.
@@ -83,7 +81,6 @@ UpdateDraftV2:
     "status": "DRAFTED"
 }'
 
-  # DEPENDS ON SUITE ORDER - reuses $RIDV2LOST$, drafted by IdRepository_CreateDraftV2_LostPacketGenerateUinFalse_Smoke_Pos in CreateDraftV2.yml.
   IdRepository_UpdateDraftV2_LostPacketDraft_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
       description: Update a draft created as a LOST packet (generateUin false, no UIN yet) - identity/biometric data can still be recorded before the UIN is resolved.
@@ -130,7 +127,6 @@ UpdateDraftV2:
     "status": "DRAFTED"
 }'
 
-  # No ordering dependency by design - uses a fresh RID that no create call has ever touched.
   IdRepository_UpdateDraftV2_NoDraftExists_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
       description: Update a registrationId that has no prior draft - must be rejected as no record found.
@@ -184,7 +180,6 @@ UpdateDraftV2:
   ]
 }'
 
-  # Reuses $RIDV2NEW$ incidentally; does not depend on CreateDraftV2.yml having run.
   IdRepository_UpdateDraftV2_WithInvalidToken_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
       description: Update a draft using an invalid/unauthenticated auth token - must be rejected before the draft is looked up.
@@ -208,7 +203,6 @@ UpdateDraftV2:
    "responseCode": "500"
 }'
 
-  # Reuses $RIDV2NEW$ incidentally; does not depend on CreateDraftV2.yml having run.
   IdRepository_UpdateDraftV2_WithUnauthorizedRole_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
       description: Update a draft using a valid token that lacks the registration-processor role - must be rejected before the draft is looked up.

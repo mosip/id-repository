@@ -14,7 +14,6 @@ PublishDraftV2:
       "status": "ACTIVATED"
 }'
 
-  # Proves publish's "full cleanup" actually removes the draft, not just a partial no-op. Must run immediately after IdRepository_PublishDraftV2_Smoke_Pos in this file (same $RIDV2UPDATEA$).
   IdRepository_RePublishDraftV2_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
       description: Publish the same registrationId a second time - the draft was deleted by the first publish, so this must be rejected as no record found.
@@ -34,7 +33,6 @@ PublishDraftV2:
   ]
 }'
 
-  # No ordering dependency by design - $RIDV2FRESH$ is a fresh, never-drafted RID.
   IdRepository_PublishDraftV2_NoDraftExists_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
       description: Publish a registrationId that never had a draft at all - must be rejected as no record found.
@@ -54,7 +52,6 @@ PublishDraftV2:
   ]
 }'
 
-  # publishDraft has no dedicated format-validation branch (unlike createDraft's ridCompiledPattern check), but URL routing/encoding may intercept characters like "#" before the controller - same caveat as blank RID behaving differently from well-formed-but-unknown. Assumption - unconfirmed against a live run, worth watching on first execution.
   IdRepository_PublishDraftV2_InvalidRidFormat_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
       description: Publish a registrationId containing special/URL-sensitive characters - expected to be rejected the same as any not-found RID (IDR-IDC-007).
@@ -93,7 +90,6 @@ PublishDraftV2:
   ]
 }'
 
-  # Reuses $RIDV2NEW$ incidentally.
   IdRepository_PublishDraftV2_WithInvalidToken_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
       description: Publish using an invalid/unauthenticated auth token - must be rejected before the draft is looked up.
@@ -110,7 +106,6 @@ PublishDraftV2:
    "responseCode": "500"
 }'
 
-  # Reuses $RIDV2NEW$ incidentally.
   IdRepository_PublishDraftV2_WithUnauthorizedRole_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
       description: Publish using a valid token that lacks the required role - must be rejected before the draft is looked up.

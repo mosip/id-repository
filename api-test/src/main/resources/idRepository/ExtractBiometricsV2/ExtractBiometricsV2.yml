@@ -1,5 +1,4 @@
 ExtractBiometricsV2:
-  # Per source, extractionFormats.isEmpty() short-circuits to DRAFTED before the draft is even looked up. DEPENDS ON SUITE ORDER - reuses $RIDV2EXT$, drafted by IdRepository_CreateDraftV2_ForExtraction_Smoke_Pos in CreateDraftV2.yml.
   IdRepository_ExtractBiometricsV2_NoFormats_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}
       description: Extract biometrics with no extraction-format query params at all - succeeds unconditionally regardless of draft state.
@@ -15,7 +14,6 @@ ExtractBiometricsV2:
       "status": "DRAFTED"
 }'
 
-  # Contrast with IdRepository_ExtractBiometricsV2_WithFormat_NonExistentRid_Neg below, where a format param does trigger the existence check. No ordering dependency by design - $RIDV2FRESH$ is a fresh, never-drafted RID.
   IdRepository_ExtractBiometricsV2_NoFormats_NonExistentRid_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}
       description: Extract biometrics with no format params against a registrationId that never had a draft - succeeds anyway, since empty extractionFormats short-circuits before findByRegId.
@@ -31,7 +29,6 @@ ExtractBiometricsV2:
       "status": "DRAFTED"
 }'
 
-  # DEPENDS ON SUITE ORDER - reuses $RIDV2EXT$ from CreateDraftV2.yml.
   IdRepository_ExtractBiometricsV2_ForFinger_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?fingerExtractionFormat=mock-1.1
       description: Extract biometrics with only fingerExtractionFormat.
@@ -47,7 +44,6 @@ ExtractBiometricsV2:
       "status": "DRAFTED"
 }'
 
-  # DEPENDS ON SUITE ORDER - reuses $RIDV2EXT$ from CreateDraftV2.yml.
   IdRepository_ExtractBiometricsV2_ForIris_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?irisExtractionFormat=mock-1.1
       description: Extract biometrics with only irisExtractionFormat.
@@ -63,7 +59,6 @@ ExtractBiometricsV2:
       "status": "DRAFTED"
 }'
 
-  # DEPENDS ON SUITE ORDER - reuses $RIDV2EXT$ from CreateDraftV2.yml.
   IdRepository_ExtractBiometricsV2_ForFace_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?faceExtractionFormat=mock-1.1
       description: Extract biometrics with only faceExtractionFormat.
@@ -79,7 +74,6 @@ ExtractBiometricsV2:
       "status": "DRAFTED"
 }'
 
-  # NOTE - V1's equivalent test (IdRepository_ExtractBiometrics_forFaceIrisFinger_valid_smoke) chains params with "?" instead of "&", a pre-existing bug there (only the first param is parsed); not replicated here. DEPENDS ON SUITE ORDER - reuses $RIDV2EXT$ from CreateDraftV2.yml.
   IdRepository_ExtractBiometricsV2_ForFaceIrisFinger_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?faceExtractionFormat=mock-1.1&fingerExtractionFormat=mock-1.1&irisExtractionFormat=mock-1.1
       description: Extract biometrics with all three formats together, correctly "&"-joined.
@@ -95,7 +89,6 @@ ExtractBiometricsV2:
       "status": "DRAFTED"
 }'
 
-  # Unlike the no-format-params case, a format param means findByRegId is called first. No ordering dependency by design - $RIDV2FRESH$ is a fresh, never-drafted RID.
   IdRepository_ExtractBiometricsV2_WithFormat_NonExistentRid_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?fingerExtractionFormat=mock-1.1
       description: Extract biometrics passing a format param against a registrationId that never had a draft - must be rejected as no record found.
@@ -115,7 +108,6 @@ ExtractBiometricsV2:
   ]
 }'
 
-  # Reuses $RIDV2EXT$ incidentally.
   IdRepository_ExtractBiometricsV2_WithInvalidToken_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}
       description: Extract biometrics using an invalid/unauthenticated auth token - must be rejected before the draft is looked up.
@@ -132,7 +124,6 @@ ExtractBiometricsV2:
    "responseCode": "500"
 }'
 
-  # Reuses $RIDV2EXT$ incidentally.
   IdRepository_ExtractBiometricsV2_WithUnauthorizedRole_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}
       description: Extract biometrics using a valid token that lacks the required role - must be rejected before the draft is looked up.
