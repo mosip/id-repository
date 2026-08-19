@@ -18,14 +18,9 @@ public class IdRepoConfigManager extends ConfigManager{
 		configManagerLogger.setLevel(Level.WARN);
 		
 		Map<String, Object> moduleSpecificPropertiesMap = new HashMap<>();
-		// Default Idrepo.properties; override with -Didrepo.propertiesFile=Idrepo-local.properties
+		// Load scope specific properties
 		try {
-			String propertiesFile = System.getProperty("idrepo.propertiesFile", "Idrepo.properties");
-			if (propertiesFile == null || propertiesFile.isBlank()) {
-				propertiesFile = "Idrepo.properties";
-			}
-			String path = MosipTestRunner.getGlobalResourcePath() + "/config/" + propertiesFile;
-			LOGGER.info("Loading idrepo properties from: " + path);
+			String path = MosipTestRunner.getGlobalResourcePath() + "/config/Idrepo.properties";
 			Properties props = getproperties(path);
 			// Convert Properties to Map and add to moduleSpecificPropertiesMap
 			for (String key : props.stringPropertyNames()) {
