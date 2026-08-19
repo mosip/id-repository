@@ -677,7 +677,7 @@ AddIdentity:
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
-      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      outputTemplate: idRepository/error
       input: '{
   "value": "$BIOVALUE$",
   "id": "mosip.id.create",
@@ -702,7 +702,12 @@ AddIdentity:
    "requesttime": "$TIMESTAMP$"
 }'
       output: '{
-  "status":"ACTIVATED"
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-001",
+      "message": "Missing Input Parameter - identity/phone"
+    }
+  ]
 }'
 
    IdRepository_AddIdentity_with_invalid_Email:
