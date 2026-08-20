@@ -1,0 +1,394 @@
+openapi: 3.0.1
+info:
+  title: Id Repo Vid Service
+  description: Id Repo Vid Service
+  license:
+    name: Mosip
+    url: https://docs.mosip.io/platform/license
+  version: '1.0'
+servers:
+  - url: https://api-internal.collab.mosip.net/idrepository/v1
+    description: Id Repo Vid Service
+tags:
+  - name: vid-controller
+    description: Vid Controller
+paths:
+  /draft/vid:
+    post:
+      tags:
+        - vid-controller
+      summary: createDraftVid
+      description: createDraftVid
+      operationId: createDraftVid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestWrapperVidRequestDTO'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseWrapperVidResponseDTO'
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /vid:
+    post:
+      tags:
+        - vid-controller
+      summary: createVid
+      description: createVid
+      operationId: createVid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestWrapperVidRequestDTO'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseWrapperVidResponseDTO'
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /vid/{VID}:
+    get:
+      tags:
+        - vid-controller
+      summary: retrieveUinByVid
+      description: retrieveUinByVid
+      operationId: retrieveUinByVid
+      parameters:
+        - name: VID
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Virtual ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseWrapperVidResponseDTO'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+    patch:
+      tags:
+        - vid-controller
+      summary: updateVidStatus
+      description: updateVidStatus
+      operationId: updateVidStatus
+      parameters:
+        - name: VID
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Virtual ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestWrapperVidRequestDTO'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseWrapperVidResponseDTO'
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  /vid/{VID}/regenerate:
+    post:
+      tags:
+        - vid-controller
+      summary: regenerateVid
+      description: regenerateVid
+      operationId: regenerateVid
+      parameters:
+        - name: VID
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Virtual ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseWrapperVidResponseDTO'
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /vid/deactivate:
+    post:
+      tags:
+        - vid-controller
+      summary: deactivateVIDsForUIN
+      description: deactivateVIDsForUIN
+      operationId: deactivateVIDsForUIN
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestWrapperVidRequestDTO'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseWrapperVidResponseDTO'
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found      
+  /vid/reactivate:
+    post:
+      tags:
+        - vid-controller
+      summary: reactivateVIDsForUIN
+      description: reactivateVIDsForUIN
+      operationId: reactivateVIDsForUIN
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestWrapperVidRequestDTO'
+           
+        required: true
+        
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseWrapperVidResponseDTO'
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /vid/uin/{UIN}:
+    get:
+      tags:
+        - vid-controller
+      summary: retrieveVidsByUin
+      description: retrieveVidsByUin
+      operationId: retrieveVidsByUin
+      parameters:
+        - name: UIN
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique Identification Number of the individual
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseWrapperListVidInfoDTO'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+
+
+components:
+  schemas:
+    RequestWrapperVidRequestDTO:
+      required:
+        - request
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for this API request, used for tracking.
+        version:
+          type: string
+          description: Version of the API being used by the client.
+        requesttime:
+          type: string
+          format: date-time
+          description: Timestamp at which the request was initiated.
+        metadata:
+          type: object
+          description: Additional metadata related to the request, if any.
+        request:
+          $ref: '#/components/schemas/VidRequestDTO'
+          description: Actual request payload containing VID creation/update info.
+
+    VidRequestDTO:
+      type: object
+      properties:
+        vidStatus:
+          type: string
+          description: Desired status of the VID. Example 
+        vidType:
+          type: string
+          description: Type of Virtual ID being generated (e.g., TEMPORARY, PERMANENT).
+        UIN:
+          type: string
+          description: Unique Identification Number to which the VID is associated.
+
+    ResponseWrapperVidResponseDTO:
+      required:
+        - response
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the response.
+        version:
+          type: string
+          description: Version of the API that processed the response.
+        responsetime:
+          type: string
+          format: date-time
+          description: Timestamp when the response was generated.
+        metadata:
+          type: object
+          description: Additional metadata about the response, if applicable.
+        response:
+          $ref: '#/components/schemas/VidResponseDTO'
+          description: Payload containing VID details in response.
+        errors:
+          type: array
+          description: List of service-level errors, if any occurred.
+          items:
+            $ref: '#/components/schemas/ServiceError'
+
+    ServiceError:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          description: Code representing the type of error encountered.
+        message:
+          type: string
+          description: Human-readable description of the error.
+
+    VidResponseDTO:
+      type: object
+      properties:
+        vidStatus:
+          type: string
+          description: Current status of the Virtual ID (e.g., ACTIVE, EXPIRED).
+        restoredVid:
+          $ref: '#/components/schemas/VidResponseDTO'
+          description: Nested object containing the regenerated VID details, if applicable.
+        UIN:
+          type: string
+          description: Unique Identification Number linked with the VID.
+        VID:
+          type: string
+          description: The actual Virtual ID value issued to the individual.
+
+    ResponseWrapperListVidInfoDTO:
+      required:
+        - response
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the response object.
+        version:
+          type: string
+          description: Version of the API used for the response.
+        responsetime:
+          type: string
+          format: date-time
+          description: Time when the response was sent back.
+        metadata:
+          type: object
+          description: Additional metadata related to the list response.
+        response:
+          type: array
+          description: List of VID information objects associated with a UIN.
+          items:
+            $ref: '#/components/schemas/VidInfoDTO'
+        errors:
+          type: array
+          description: Any errors that occurred during processing.
+          items:
+            $ref: '#/components/schemas/ServiceError'
+
+    VidInfoDTO:
+      type: object
+      properties:
+        vid:
+          type: string
+          description: The Virtual ID string issued to a resident.
+        vidType:
+          type: string
+          description: Type of the VID (e.g., PERMANENT, TEMPORARY).
+        expiryTimestamp:
+          type: string
+          format: date-time
+          description: The date and time when this VID will expire.
+        genratedOnTimestamp:
+          type: string
+          format: date-time
+          description: The date and time when the VID was generated.
+        transactionLimit:
+          type: integer
+          format: int32
+          description: Maximum number of authentication transactions allowed with this VID.
+        hashAttributes:
+          type: object
+          description: Key-value pairs of hashed demographic or metadata attributes.
+          additionalProperties:
+            type: string
