@@ -1,6 +1,7 @@
 package io.mosip.idrepository.identity.repository;
-
+import java.util.List;
 import java.util.Optional;
+
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -63,4 +64,9 @@ public interface UinRepo extends JpaRepository<Uin, String> {
 
 	@Query("select regId from Uin where uinHash = :uinHash")
 	String getRidByUinHash(@Param("uinHash") String uinHash);
+	// Add to existing UinRepo interface
+@Query(value = "SELECT u.* FROM idrepo.uin u " +
+               "WHERE CAST(u.uin_data AS TEXT) ILIKE CONCAT('%', :email, '%')",
+       nativeQuery = true)
+List<Uin> findByEmailInIdentityData(@Param("email") String email);
 }

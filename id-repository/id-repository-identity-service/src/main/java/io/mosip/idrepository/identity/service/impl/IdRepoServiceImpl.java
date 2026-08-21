@@ -1028,6 +1028,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				handleRepo.save(handleEntity);
 				mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY_HANDLE,
 						"Record successfully saved in db");
+
+
+					// deacrivate identaity 
+					
 			}
 		}
 	}
