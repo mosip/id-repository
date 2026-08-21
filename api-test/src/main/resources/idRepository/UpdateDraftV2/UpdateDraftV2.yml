@@ -1,0 +1,227 @@
+UpdateDraftV2:
+  IdRepository_UpdateDraftV2_FirstUpdate_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
+      description: First update on a freshly created NEW-packet V2 draft - sets the full identity for the first time.
+      uniqueIdentifier: TC_IDRepo_UpdateDraftV2_01
+      role: idrepo
+      restMethod: patch
+      outputTemplate: idRepository/UpdateDraft/updateDraftResult
+      input: '{
+  "id": "mosip.id.create",
+  "registrationId": "$RIDV2NEW$",
+  "dateOfBirth": "1992/04/15",
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
+  "version": "v1",
+  "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+    "status": "DRAFTED"
+}'
+
+  IdRepository_UpdateDraftV2_SubsequentUpdate_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
+      description: Second update on the same V2 draft - exercises the merge/patch path over previously stored draft data.
+      uniqueIdentifier: TC_IDRepo_UpdateDraftV2_02
+      role: idrepo
+      restMethod: patch
+      outputTemplate: idRepository/UpdateDraft/updateDraftResult
+      input: '{
+  "id": "mosip.id.create",
+  "registrationId": "$RIDV2NEW$",
+  "dateOfBirth": "1993/07/21",
+  "postalCode": "14099",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
+  "version": "v1",
+  "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+    "status": "DRAFTED"
+}'
+
+  IdRepository_UpdateDraftV2_WithVerifiedAttributes_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
+      description: Update a draft by passing verifiedAttributes - expected status DRAFTED
+      uniqueIdentifier: TC_IDRepo_UpdateDraftV2_03
+      role: idrepo
+      restMethod: patch
+      outputTemplate: idRepository/UpdateDraft/updateDraftResult
+      input: '{
+  "id": "mosip.id.create",
+  "registrationId": "$RIDV2NEWEXPLICIT$",
+  "dateOfBirth": "1992/04/15",
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
+  "version": "v1",
+  "requesttime": "$TIMESTAMP$",
+  "verifiedAttributes": [
+    {
+      "trustFramework": "internal",
+      "verificationProcess": "otp_verified",
+      "claims": ["phone"],
+      "metadata": {
+        "trust_framework": "internal",
+        "verification_process": "otp_verified",
+        "assurance_level": "Home",
+        "time": "2025-07-01T06:10:00.000Z"
+      }
+    }
+  ]
+}'
+      output: '{
+    "status": "DRAFTED"
+}'
+
+  IdRepository_UpdateDraftV2_LostPacketDraft_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
+      description: Update a draft created as a LOST packet (generateUin false, no UIN yet) - identity/biometric data can still be recorded before the UIN is resolved.
+      uniqueIdentifier: TC_IDRepo_UpdateDraftV2_04
+      role: idrepo
+      restMethod: patch
+      outputTemplate: idRepository/UpdateDraft/updateDraftResult
+      input: '{
+  "id": "mosip.id.create",
+  "registrationId": "$RIDV2LOST$",
+  "dateOfBirth": "1992/04/15",
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
+  "version": "v1",
+  "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+    "status": "DRAFTED"
+}'
+
+  IdRepository_UpdateDraftV2_UpdatePacketDraftWithUin_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
+      description: Update a draft created for an update packet (existing UIN) - expected status DRAFTED
+      uniqueIdentifier: TC_IDRepo_UpdateDraftV2_05
+      role: idrepo
+      restMethod: patch
+      outputTemplate: idRepository/UpdateDraft/updateDraftResult
+      input: '{
+  "id": "mosip.id.create",
+  "registrationId": "$RIDV2UPDATEA$",
+  "dateOfBirth": "1992/04/15",
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
+  "version": "v1",
+  "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+    "status": "DRAFTED"
+}'
+
+  IdRepository_UpdateDraftV2_NoDraftExists_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
+      description: Update a registrationId that has no prior draft - must be rejected as no record found.
+      uniqueIdentifier: TC_IDRepo_UpdateDraftV2_06
+      role: idrepo
+      restMethod: patch
+      outputTemplate: idRepository/error
+      input: '{
+  "id": "mosip.id.create",
+  "registrationId": "$RIDV2FRESH$",
+  "dateOfBirth": "1992/04/15",
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
+  "version": "v1",
+  "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+
+  IdRepository_UpdateDraftV2_InvalidEmail_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
+      description: Update a draft passing an invalid email - validated before the draft-existence check, so no prior draft is required
+      uniqueIdentifier: TC_IDRepo_UpdateDraftV2_07
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateDraftV2/updateDraftV2
+      outputTemplate: idRepository/error
+      input: '{
+  "id": "mosip.id.create",
+  "registrationId": "$RIDV2FRESH$",
+  "dateOfBirth": "1992/04/15",
+  "email": "us####@@@@$%%^^^^%%ator.com",
+  "phone": "8249742850",
+  "version": "v1",
+  "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "errors": [
+    {
+      "errorCode": "IDR-IDC-002",
+      "message": "Invalid Input Parameter - identity/email"
+    }
+  ]
+}'
+
+  IdRepository_UpdateDraftV2_WithInvalidToken_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
+      description: Update a draft using an invalid/unauthenticated auth token - must be rejected before the draft is looked up.
+      uniqueIdentifier: TC_IDRepo_UpdateDraftV2_08
+      role: invalid
+      restMethod: patch
+      checkOnlyStatusCodeInResponse: true
+      outputTemplate: idRepository/responseCode
+      input: '{
+  "id": "mosip.id.create",
+  "registrationId": "$RIDV2NEW$",
+  "dateOfBirth": "1992/04/15",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
+  "version": "v1",
+  "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "responseCode": "500"
+}'
+
+  IdRepository_UpdateDraftV2_WithUnauthorizedRole_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
+      description: Update a draft using a valid token that lacks the registration-processor role - must be rejected before the draft is looked up.
+      uniqueIdentifier: TC_IDRepo_UpdateDraftV2_09
+      role: resident
+      restMethod: patch
+      checkOnlyStatusCodeInResponse: true
+      outputTemplate: idRepository/responseCode
+      input: '{
+  "id": "mosip.id.create",
+  "registrationId": "$RIDV2NEW$",
+  "dateOfBirth": "1992/04/15",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
+  "version": "v1",
+  "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+   "responseCode": "403"
+}'

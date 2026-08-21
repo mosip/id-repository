@@ -181,10 +181,8 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 			}
 		}
 
-		JSONObject jsonString = new JSONObject(inputJson);
-		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {
-			inputJson = IdRepoArrayHandle.replaceArrayHandleValues(inputJson, testCaseName);
-		}
+		// Always call — replaceArrayHandleValues itself no-ops if selectedHandles is absent.
+		inputJson = IdRepoArrayHandle.replaceArrayHandleValues(inputJson, testCaseName);
 		// Done here (not the handle dispatch) so it also runs on schemas with no handles.
 		if (testCaseName.contains("_extraNonSchemaField")) {
 			inputJson = IdRepoArrayHandle.injectExtraNonSchemaField(inputJson);

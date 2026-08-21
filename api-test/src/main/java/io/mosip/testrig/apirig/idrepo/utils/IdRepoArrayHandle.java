@@ -146,6 +146,11 @@ public class IdRepoArrayHandle {
 			return jsonObj.toString();
 		}
 
+		// Only the per-handle loop below needs a pre-existing selectedHandles.
+		if (!identity.has("selectedHandles")) {
+			return jsonObj.toString();
+		}
+
 		JSONArray selectedHandles = identity.getJSONArray("selectedHandles");
 		for (int i = 0; i < selectedHandles.length(); i++) {
 			String handle = selectedHandles.getString(i);
@@ -286,6 +291,11 @@ public class IdRepoArrayHandle {
 		}
 		if (testCaseName.contains("_withusedhandlevalue")) {
 			applySavedHandleValues(identity);
+			return jsonObj.toString();
+		}
+
+		// Only the per-handle loop below needs a pre-existing selectedHandles.
+		if (!identity.has("selectedHandles")) {
 			return jsonObj.toString();
 		}
 
@@ -463,7 +473,7 @@ public class IdRepoArrayHandle {
 		return fieldDef.optBoolean("handle", false) && "array".equals(fieldDef.optString("type", "string"));
 	}
 
-	/** A schema field that exists but is NOT a handle (for the not-applicable-selectedHandle test). */
+	/** A schema field that exists but is NOT a handle (for the not-applicable-selectedHandle test); excludes document/biometric fields, which selectedHandles can't reference either. */
 	private static String resolveNonHandleSchemaField() {
 		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
 		for (String fieldName : props.keySet()) {
@@ -471,9 +481,16 @@ public class IdRepoArrayHandle {
 					|| fieldName.equals("IDSchemaVersion")) {
 				continue;
 			}
-			if (!props.getJSONObject(fieldName).optBoolean("handle", false)) {
-				return fieldName;
+			JSONObject fieldDef = props.getJSONObject(fieldName);
+			if (fieldDef.optBoolean("handle", false)) {
+				continue;
 			}
+			String ref = fieldDef.optString("$ref", "");
+			if (ref.contains("documentType") || ref.contains("biometricsType") || ref.contains("hashType")
+					|| ref.contains("TaggedListType")) {
+				continue;
+			}
+			return fieldName;
 		}
 		return "fullName";
 	}
