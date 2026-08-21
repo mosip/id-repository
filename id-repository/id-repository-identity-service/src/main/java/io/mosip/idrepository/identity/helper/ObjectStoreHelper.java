@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 import io.mosip.commons.khazana.dto.ObjectStoreReference;
 import io.mosip.commons.khazana.exception.ObjectStoreAdapterException;
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
@@ -62,11 +64,12 @@ public class ObjectStoreHelper {
 	@Autowired
 	private IdRepoSecurityManager securityManager;
 
-	public String getRidHash(String registrationId) {
+	public String getRidHash(String registrationId) throws IdRepoAppException {
 		try {
 			return HMACUtils2.digestAsPlainText(registrationId.getBytes());
 		} catch (Exception e) {
-			throw new RuntimeException("Failed to compute rid hash for: " + registrationId, e);
+			throw new IdRepoAppException(UNKNOWN_ERROR.getErrorCode(),
+					"Failed to compute rid hash for regId=" + registrationId, e);
 		}
 	}
 
@@ -170,6 +173,61 @@ public class ObjectStoreHelper {
 	public void copyDemographicLiveToDraft(String livePrefix, String ridHash, String fileRefId)
 			throws IdRepoAppException {
 		copyRaw(buildObjectName(livePrefix, false, fileRefId), buildDraftObjectName(ridHash, false, fileRefId), false);
+	}
+
+	// Moves an extracted file that landed at {ridHash}/Biometrics/{fileRefId} (live bucket,
+	// wrong prefix) into the correct draft path _draft/{ridHash}/Biometrics/{fileRefId}.
+	public void relocateExtractedToDraft(String ridHash, String fileRefId) throws IdRepoAppException {
+		String srcKey = buildObjectName(ridHash, true, fileRefId);
+		String destKey = buildDraftObjectName(ridHash, true, fileRefId);
+		moveRaw(srcKey, destKey);
+	}
+
+	// Moves every object under _draft/{ridHash}/Biometrics/ to {uinHash}/Biometrics/.
+	// Uses listObjectsByPrefix to get full S3 keys (getAllObjects returns truncated names).
+	public void moveAllDraftBiometricsToLive(String ridHash, String uinHash) throws IdRepoAppException {
+		String draftBioPrefix = DRAFT + SLASH + ridHash + SLASH + BIOMETRICS + SLASH;
+		try {
+			List<String> keys = objectStore.listObjectsByPrefix(objectStoreAccountName, objectStoreBucketName, draftBioPrefix);
+			for (String srcKey : keys) {
+				String fileRefId = srcKey.substring(draftBioPrefix.length());
+				if (fileRefId.isEmpty() || fileRefId.contains(SLASH)) {
+					continue;
+				}
+				String destKey = buildObjectName(uinHash, true, fileRefId);
+				try {
+					moveRaw(srcKey, destKey);
+				} catch (Exception e) {
+					mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
+							"moveAllDraftBiometricsToLive",
+							"Failed to move draft bio file (non-fatal) | src=" + srcKey + " | error=" + e.getMessage());
+				}
+			}
+		} catch (Exception e) {
+			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
+					"Failed to move all draft biometrics to live for ridHash=" + ridHash, e);
+		}
+	}
+
+	// Deletes every object under _draft/{ridHash}/Biometrics/ — used when discarding a draft.
+	public void deleteAllDraftBiometrics(String ridHash) {
+		String draftBioPrefix = DRAFT + SLASH + ridHash + SLASH + BIOMETRICS + SLASH;
+		try {
+			List<String> keys = objectStore.listObjectsByPrefix(objectStoreAccountName, objectStoreBucketName, draftBioPrefix);
+			for (String key : keys) {
+				try {
+					objectStore.deleteObject(objectStoreAccountName, objectStoreBucketName, null, null, key);
+				} catch (Exception e) {
+					mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
+							"deleteAllDraftBiometrics",
+							"Failed to delete draft bio file (non-fatal) | key=" + key + " | error=" + e.getMessage());
+				}
+			}
+		} catch (Exception e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
+					"deleteAllDraftBiometrics",
+					"Failed to list draft biometrics for ridHash=" + ridHash + " | error=" + e.getMessage());
+		}
 	}
 
 	private boolean exists(String uinHash, boolean isBio, String fileRefId) {

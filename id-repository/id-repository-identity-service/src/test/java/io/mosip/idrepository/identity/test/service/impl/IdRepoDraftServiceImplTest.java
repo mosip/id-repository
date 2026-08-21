@@ -179,6 +179,9 @@ public class IdRepoDraftServiceImplTest {
 	@Mock
 	private UinDraftRepo uinDraftRepo;
 
+	@Mock
+	private org.springframework.transaction.support.TransactionTemplate transactionTemplate;
+
 	/** The uin history repo. */
 	@Mock
 	private UinHistoryRepo uinHistoryRepo;
@@ -1213,10 +1216,44 @@ public class IdRepoDraftServiceImplTest {
 
 	@Test
 	public void should_throwDatabaseAccessError_when_createDraftWithUin_jdbcException() {
-		when(uinHistoryRepo.existsByRegId(any())).thenThrow(JDBCConnectionException.class);
+		when(uinDraftRepo.existsByRegId(any())).thenThrow(JDBCConnectionException.class);
 		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
 				idRepoServiceImpl.createDraftV2("REG123", "274390482564", true));
 		assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_reuseExistingUin_when_uinIsNull_and_ridAlreadyCommitted() throws Exception {
+		// Reprocess of a previously committed NEW packet: uin=null but uin_h has an entry.
+		when(uinDraftRepo.existsByRegId(any())).thenReturn(false);
+		when(uinHistoryRepo.existsByRegId(any())).thenReturn(true);
+
+		// proxyService returns the existing identity with the committed UIN.
+		io.mosip.idrepository.core.dto.ResponseDTO responseDTO = new io.mosip.idrepository.core.dto.ResponseDTO();
+		responseDTO.setStatus("ACTIVATED");
+		java.util.LinkedHashMap<String, Object> identityMap = new java.util.LinkedHashMap<>();
+		identityMap.put("UIN", "274390482564");
+		responseDTO.setIdentity(identityMap);
+		io.mosip.idrepository.core.dto.IdResponseDTO existingIdentityResp = new io.mosip.idrepository.core.dto.IdResponseDTO();
+		existingIdentityResp.setResponse(responseDTO);
+		when(proxyService.retrieveIdentityByRid(anyString(), any(), any())).thenReturn(existingIdentityResp);
+
+		Uin uinEntity = buildUinEntity();
+		when(uinRepo.findByUinHash(any())).thenReturn(Optional.of(uinEntity));
+		when(uinDraftRepo.findByUinHash(any())).thenReturn(null);
+		when(securityManager.getSaltKeyForId(anyString())).thenReturn(1234);
+		when(uinEncryptSaltRepo.retrieveSaltById(anyInt())).thenReturn("YWJj");
+		when(securityManager.encryptWithSalt(any(), any(), any())).thenReturn("encrypted".getBytes());
+		when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("hashSalt");
+		when(securityManager.hashwithSalt(any(), any())).thenReturn("some-hash");
+
+		IdResponseDTO response = idRepoServiceImpl.createDraftV2("REG123", null, true);
+
+		assertNotNull(response);
+		// UIN generator must NOT have been called — reprocess reuses the existing UIN.
+		verify(idRepoServiceHelper, never()).generateUin();
+		// Proxy service must have been called to retrieve the existing identity.
+		verify(proxyService).retrieveIdentityByRid(eq("REG123"), isNull(), isNull());
 	}
 
 	// ── updateDraftUinData — success ─────────────────────────────────────────
@@ -1374,6 +1411,12 @@ public class IdRepoDraftServiceImplTest {
 		when(securityManager.getIdHashWithSaltModuloByPlainIdHash(anyString(), any())).thenReturn("IDHASH");
 		when(anonymousProfileHelper.setRegId(anyString())).thenReturn(anonymousProfileHelper);
 		when(objectStoreHelper.getRidHash(anyString())).thenReturn("RID_HASH_TEST");
+		// Make TransactionTemplate actually invoke the consumer so deleteByRegId calls run.
+		doAnswer(invocation -> {
+			java.util.function.Consumer<org.springframework.transaction.TransactionStatus> action = invocation.getArgument(0);
+			action.accept(null);
+			return null;
+		}).when(transactionTemplate).executeWithoutResult(any());
 	}
 
 	@Test
@@ -1387,12 +1430,12 @@ public class IdRepoDraftServiceImplTest {
 
 		assertNotNull(response);
 		String expectedDest = "5B72C3B57A72C6497461289FCA7B1F865ED6FB0596B446FEA1F92AF931A5D4B7";
-		verify(objectStoreHelper).moveBiometricDraftToLive("RID_HASH_TEST", expectedDest, "1234");
+		verify(objectStoreHelper).moveAllDraftBiometricsToLive("RID_HASH_TEST", expectedDest);
 		verify(objectStoreHelper).moveDemographicDraftToLive("RID_HASH_TEST", expectedDest, "1236");
 	}
 
 	@Test
-	public void should_publishDraftV2_deleteDbRecords_before_file_moves()
+	public void should_publishDraftV2_moveFiles_before_deleteDbRecords()
 			throws IdRepoAppException, IOException {
 		UinDraft draft = buildMinimalDraft();
 		draft.setUin("1_YWJj");
@@ -1400,12 +1443,13 @@ public class IdRepoDraftServiceImplTest {
 
 		idRepoServiceImpl.publishDraftV2("1234567890");
 
-		InOrder inOrder = inOrder(uinBiometricDraftRepo, uinDocumentDraftRepo, uinDraftRepo, objectStoreHelper);
+		// Files must move BEFORE DB records are deleted so a storage failure leaves
+		// the draft DB row intact and the draft is still recoverable.
+		InOrder inOrder = inOrder(objectStoreHelper, uinBiometricDraftRepo, uinDocumentDraftRepo, uinDraftRepo);
+		inOrder.verify(objectStoreHelper).moveAllDraftBiometricsToLive(anyString(), anyString());
 		inOrder.verify(uinBiometricDraftRepo).deleteByRegId("1234567890");
 		inOrder.verify(uinDocumentDraftRepo).deleteByRegId("1234567890");
 		inOrder.verify(uinDraftRepo).deleteByRegId("1234567890");
-		inOrder.verify(objectStoreHelper, atLeastOnce())
-				.moveBiometricDraftToLive(anyString(), anyString(), anyString());
 	}
 
 	@Test
@@ -1415,7 +1459,7 @@ public class IdRepoDraftServiceImplTest {
 		draft.setUin("1_YWJj");
 		stubPublishDraftV2(draft);
 		doThrow(new RuntimeException("storage error"))
-				.when(objectStoreHelper).moveBiometricDraftToLive(anyString(), anyString(), anyString());
+				.when(objectStoreHelper).moveAllDraftBiometricsToLive(anyString(), anyString());
 
 		assertThrows(RuntimeException.class, () -> idRepoServiceImpl.publishDraftV2("1234567890"));
 	}

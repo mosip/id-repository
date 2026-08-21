@@ -388,4 +388,80 @@ public class IdRepoDraftControllerTest {
 		}
 	}
 
+	@Test
+	public void testUpdateDraftV2() throws IdRepoAppException {
+		IdResponseDTO responseDTO = new IdResponseDTO();
+		when(draftService.updateDraftV2(any(), any())).thenReturn(responseDTO);
+		IdRequestDTO idRequest = new IdRequestDTO();
+		idRequest.setRequest(new RequestDTO());
+		ResponseEntity<IdResponseDTO> response = controller.updateDraftV2("10001100770000320200720094735", idRequest, errors);
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(responseDTO, response.getBody());
+	}
+
+	@Test
+	public void testUpdateDraftV2Exception() throws IdRepoAppException {
+		when(draftService.updateDraftV2(any(), any()))
+				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
+		try {
+			IdRequestDTO idRequest = new IdRequestDTO();
+			idRequest.setRequest(new RequestDTO());
+			controller.updateDraftV2("10001100770000320200720094735", idRequest, errors);
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
+		}
+	}
+
+	@Test
+	public void testPublishDraftV2() throws IdRepoAppException {
+		IdResponseDTO responseDTO = new IdResponseDTO();
+		when(draftService.publishDraftV2(any())).thenReturn(responseDTO);
+		ResponseEntity<IdResponseDTO> response = controller.publishDraftV2("10001100770000320200720094735");
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(responseDTO, response.getBody());
+	}
+
+	@Test
+	public void testPublishDraftV2Exception() throws IdRepoAppException {
+		when(draftService.publishDraftV2(any()))
+				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
+		try {
+			controller.publishDraftV2("10001100770000320200720094735");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
+		}
+	}
+
+	@Test
+	public void testExtractBiometricsV2WithoutExtractionFormats() throws IdRepoAppException {
+		IdResponseDTO responseDTO = new IdResponseDTO();
+		when(draftService.extractBiometricsV2(any(), any())).thenReturn(responseDTO);
+		ResponseEntity<IdResponseDTO> response = controller.extractBiometricsV2("10001100770000320200720094735", null, null, null);
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(responseDTO, response.getBody());
+	}
+
+	@Test
+	public void testExtractBiometricsV2WithExtractionFormats() throws IdRepoAppException {
+		IdResponseDTO responseDTO = new IdResponseDTO();
+		when(draftService.extractBiometricsV2(any(), any())).thenReturn(responseDTO);
+		ResponseEntity<IdResponseDTO> response = controller.extractBiometricsV2("10001100770000320200720094735", "format", "format", "format");
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(responseDTO, response.getBody());
+	}
+
+	@Test
+	public void testExtractBiometricsV2Exception() throws IdRepoAppException {
+		when(draftService.extractBiometricsV2(any(), any()))
+				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
+		try {
+			controller.extractBiometricsV2("10001100770000320200720094735", null, null, null);
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
+		}
+	}
+
 }

@@ -191,7 +191,7 @@ public class ObjectStoreHelperTest {
 	// ── getRidHash ───────────────────────────────────────────────────────────
 
 	@Test
-	public void testGetRidHash() {
+	public void testGetRidHash() throws Exception {
 		String hash = helper.getRidHash("1234567890");
 		assertNotNull(hash);
 		assertTrue(hash.length() > 0);

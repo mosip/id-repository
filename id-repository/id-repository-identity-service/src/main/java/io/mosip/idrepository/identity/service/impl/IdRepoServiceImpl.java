@@ -24,6 +24,7 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.InvalidJsonException;
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
@@ -542,7 +543,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected void updateVerifiedAttributes(RequestDTO requestDTO, DocumentContext inputData, DocumentContext dbData) {
-		List dbVerifiedAttributes = (List) dbData.read(".verifiedAttributes");
+		List dbVerifiedAttributes;
+		try {
+			dbVerifiedAttributes = (List) dbData.read(".verifiedAttributes");
+		} catch (com.jayway.jsonpath.PathNotFoundException e) {
+			dbVerifiedAttributes = new ArrayList<>();
+		}
 		dbVerifiedAttributes.remove(null);
 		if (dbVerifiedAttributes.isEmpty()) {
 			dbVerifiedAttributes.add(new ArrayList<>());
