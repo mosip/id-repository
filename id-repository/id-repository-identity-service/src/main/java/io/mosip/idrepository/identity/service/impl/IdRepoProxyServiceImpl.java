@@ -316,7 +316,7 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		try {
 			String uinHash = uinRepo.getUinHashByRid(rid);
 			if (Objects.isNull(uinHash)) {
-				uinHash = uinHistoryRepo.getUinHashByRid(rid);
+				uinHash = uinHistoryRepo.getUinHashByRid(rid).stream().findFirst().orElse(null);
 			}
 			if (Objects.nonNull(uinHash)) {
 				return retrieveIdentityByUinHash(type, uinHash, extractionFormats);
@@ -526,9 +526,14 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 				if (uinRepo.existsByRegId(regId)
 						|| uinDraftRepo.existsByRegId(request.getRequest().getRegistrationId())
 						|| uinHistoryRepo.existsByRegId(request.getRequest().getRegistrationId())) {
-					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
-							RECORD_EXISTS.getErrorMessage());
-					throw new IdRepoAppException(RECORD_EXISTS);
+					List<String> latestRegIds = uinHistoryRepo.getLatestRegIdByUinHash(uinHash);
+					String latestRegId = latestRegIds.isEmpty() ? null : latestRegIds.get(0);
+					if (!regId.equals(latestRegId)) {
+						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, GET_FILES,
+								RECORD_EXISTS.getErrorMessage());
+						throw new IdRepoAppException(RECORD_EXISTS);
+					}
+					mosipLogger.info("Reprocess detected for regId: " + regId + " — allowing update");
 				}
 				Uin uinObject=service.updateIdentity(request, uin);
 				mosipLogger.info("Uin updated");
