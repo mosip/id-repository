@@ -56,7 +56,7 @@ ExtractBiometrics:
       "status": "DRAFTED"
 }'
   IdRepository_ExtractBiometrics_forFaceIrisFinger_valid_smoke:
-      endPoint: /idrepository/v1/identity/draft/extractbiometrics/{registrationId}?faceExtractionFormat=mock-1.1?fingerExtractionFormat=mock-1.1?irisExtractionFormat=mock-1.1
+      endPoint: /idrepository/v1/identity/draft/extractbiometrics/{registrationId}?faceExtractionFormat=mock-1.1&fingerExtractionFormat=mock-1.1&irisExtractionFormat=mock-1.1
       description: Verify that the system successfully extracts face, iris and finger biometrics when the API is called with valid input details
       uniqueIdentifier: TC_IDRepo_extractbiometrics_05
       role: idrepo
