@@ -132,10 +132,18 @@ public class IdRepoUtil extends AdminTestUtil {
 					+ GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
 
-		JSONArray dobArray = new JSONArray(getValueFromAuthActuator("json-property", "dob"));
-		String dob = dobArray.getString(0);
-		JSONArray emailArray = new JSONArray(getValueFromAuthActuator("json-property", "emailId"));
-		String email = emailArray.getString(0);
+		JSONArray dobArray = null;
+		JSONArray emailArray = null;
+		String dobActuator = getValueFromAuthActuator("json-property", "dob");
+		String emailActuator = getValueFromAuthActuator("json-property", "emailId");
+		if (dobActuator != null && !dobActuator.isBlank()) {
+			dobArray = new JSONArray(dobActuator);
+		}
+		if (emailActuator != null && !emailActuator.isBlank()) {
+			emailArray = new JSONArray(emailActuator);
+		}
+		String dob = (dobArray != null && dobArray.length() > 0) ? dobArray.getString(0) : "dateOfBirth";
+		String email = (emailArray != null && emailArray.length() > 0) ? emailArray.getString(0) : "email";
 
 		if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("DOB")
 				&& (!isElementPresent(globalRequiredFields, dob))) {
@@ -173,19 +181,30 @@ public class IdRepoUtil extends AdminTestUtil {
 	}
 
 	public static void dbCleanUp() {
-		DBManager.executeDBQueries(IdRepoConfigManager.getKMDbUrl(), IdRepoConfigManager.getKMDbUser(),
-				IdRepoConfigManager.getKMDbPass(), IdRepoConfigManager.getKMDbSchema(),
-				getGlobalResourcePath() + "/" + "config/keyManagerCertDataDeleteQueries.txt");
-		DBManager.executeDBQueries(IdRepoConfigManager.getIdaDbUrl(), IdRepoConfigManager.getIdaDbUser(),
-				IdRepoConfigManager.getPMSDbPass(), IdRepoConfigManager.getIdaDbSchema(),
-				getGlobalResourcePath() + "/" + "config/idaCertDataDeleteQueries.txt");
-		DBManager.executeDBQueries(IdRepoConfigManager.getMASTERDbUrl(), IdRepoConfigManager.getMasterDbUser(),
-				IdRepoConfigManager.getMasterDbPass(), IdRepoConfigManager.getMasterDbSchema(),
-				getGlobalResourcePath() + "/" + "config/masterDataCertDataDeleteQueries.txt");
+		runCleanup("keymgr", () -> DBManager.executeDBQueries(IdRepoConfigManager.getKMDbUrl(),
+				IdRepoConfigManager.getKMDbUser(), IdRepoConfigManager.getKMDbPass(),
+				IdRepoConfigManager.getKMDbSchema(),
+				getGlobalResourcePath() + "/" + "config/keyManagerCertDataDeleteQueries.txt"));
+		runCleanup("ida", () -> DBManager.executeDBQueries(IdRepoConfigManager.getIdaDbUrl(),
+				IdRepoConfigManager.getIdaDbUser(), IdRepoConfigManager.getPMSDbPass(),
+				IdRepoConfigManager.getIdaDbSchema(),
+				getGlobalResourcePath() + "/" + "config/idaCertDataDeleteQueries.txt"));
+		runCleanup("master", () -> DBManager.executeDBQueries(IdRepoConfigManager.getMASTERDbUrl(),
+				IdRepoConfigManager.getMasterDbUser(), IdRepoConfigManager.getMasterDbPass(),
+				IdRepoConfigManager.getMasterDbSchema(),
+				getGlobalResourcePath() + "/" + "config/masterDataCertDataDeleteQueries.txt"));
+		runCleanup("idrepo", () -> DBManager.executeDBQueries(IdRepoConfigManager.getIdRepoDbUrl(),
+				IdRepoConfigManager.getIdRepoDbUser(), IdRepoConfigManager.getPMSDbPass(), "idrepo",
+				getGlobalResourcePath() + "/" + "config/idrepoDeleteQueries.txt"));
+	}
 
-		DBManager.executeDBQueries(IdRepoConfigManager.getIdRepoDbUrl(), IdRepoConfigManager.getIdRepoDbUser(),
-				IdRepoConfigManager.getPMSDbPass(), "idrepo",
-				getGlobalResourcePath() + "/" + "config/idrepoDeleteQueries.txt");
+	private static void runCleanup(String schema, Runnable cleanup) {
+		try {
+			cleanup.run();
+		} catch (Exception e) {
+			logger.error("DB cleanup skipped for " + schema + ": " + e.getClass().getSimpleName() + " - "
+					+ e.getMessage());
+		}
 	}
 	
 	public static String inputStringKeyWordHandeler(String jsonString, String testCaseName) {

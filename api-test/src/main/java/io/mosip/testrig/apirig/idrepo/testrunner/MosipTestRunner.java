@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.URI;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -72,20 +73,36 @@ public class MosipTestRunner {
 			healthcheck.setCurrentRunningModule(GlobalConstants.IDREPO);
 			Thread trigger = new Thread(healthcheck);
 			trigger.start();
-			
-			KeycloakUserManager.removeUser();
-			KeycloakUserManager.createUsers();
-			KeycloakUserManager.closeKeycloakInstance();
+
+			boolean skipPartnerSetup = shouldSkipPartnerSetup();
+			if (skipPartnerSetup) {
+				LOGGER.warn("Skipping Keycloak user setup (local endpoint has no Keycloak Admin API).");
+			} else {
+				KeycloakUserManager.removeUser();
+				KeycloakUserManager.createUsers();
+				KeycloakUserManager.closeKeycloakInstance();
+			}
 			AdminTestUtil.getRequiredField();
 
 			BaseTestCase.getLanguageList();
 			AdminTestUtil.getLocationData();
-			
-			// Generate device certificates to be consumed by Mock-MDS
-			PartnerRegistration.deleteCertificates();
-			PartnerRegistration.deviceGeneration();
 
-			BiometricDataProvider.generateBiometricTestData("Registration");
+			if (skipPartnerSetup) {
+				LOGGER.warn("Skipping PartnerRegistration.deviceGeneration() on local endpoint.");
+			} else {
+				PartnerRegistration.deleteCertificates();
+				PartnerRegistration.deviceGeneration();
+			}
+
+			try {
+				BiometricDataProvider.generateBiometricTestData("Registration");
+			} catch (Exception bioEx) {
+				if (skipPartnerSetup) {
+					LOGGER.warn("Biometric test data generation skipped/failed in local mode: " + bioEx.getMessage());
+				} else {
+					throw bioEx;
+				}
+			}
 			
 			String testCasesToExecuteString = IdRepoConfigManager.getproperty("testCasesToExecute");
 			
@@ -111,12 +128,14 @@ public class MosipTestRunner {
 			} catch (Exception cleanupEx) {
 				LOGGER.error("DB cleanup failed", cleanupEx);
 			}
-			try {
-				KeycloakUserManager.removeUser();
-			} catch (Exception cleanupEx) {
-				LOGGER.error("Keycloak user removal failed", cleanupEx);
-			} finally {
-				KeycloakUserManager.closeKeycloakInstance();
+			if (!shouldSkipPartnerSetup()) {
+				try {
+					KeycloakUserManager.removeUser();
+				} catch (Exception cleanupEx) {
+					LOGGER.error("Keycloak user removal failed", cleanupEx);
+				} finally {
+					KeycloakUserManager.closeKeycloakInstance();
+				}
 			}
 		}
 
@@ -132,6 +151,7 @@ public class MosipTestRunner {
 		else
 			LOGGER.info("Test Framework for Mosip api Initialized");
 		BaseTestCase.initialize();
+		sanitizeCertDomainForWindows();
 		LOGGER.info("Done with BeforeSuite and test case setup! su TEST EXECUTION!\n\n");
 
 		if (!runType.equalsIgnoreCase("JAR")) {
@@ -144,6 +164,40 @@ public class MosipTestRunner {
 		AdminTestUtil.copyIdrepoTestResource();
 		BaseTestCase.otpListener = new OTPListener();
 		BaseTestCase.otpListener.run();
+	}
+
+	/**
+	 * Windows cannot use {@code localhost:8082} as a folder name (illegal ':').
+	 */
+	static void sanitizeCertDomainForWindows() {
+		if (BaseTestCase.domain != null
+				&& System.getProperty("os.name").toLowerCase().contains("windows")
+				&& BaseTestCase.domain.contains(":")) {
+			String sanitized = BaseTestCase.domain.replace(":", "_");
+			LOGGER.info("Windows certs folder: BaseTestCase.domain " + BaseTestCase.domain + " -> " + sanitized);
+			BaseTestCase.domain = sanitized;
+		}
+	}
+
+	static boolean shouldSkipPartnerSetup() {
+		String flag = System.getProperty("idrepo.skipPartnerSetup");
+		if (flag != null && !flag.isBlank()) {
+			return Boolean.parseBoolean(flag);
+		}
+		return isLocalEndpoint();
+	}
+
+	static boolean isLocalEndpoint() {
+		String endpoint = System.getProperty("env.endpoint", "");
+		if (endpoint == null || endpoint.isBlank()) {
+			return false;
+		}
+		try {
+			String host = URI.create(endpoint).getHost();
+			return "localhost".equalsIgnoreCase(host) || "127.0.0.1".equals(host);
+		} catch (IllegalArgumentException ex) {
+			return false;
+		}
 	}
 
 	private static void setLogLevels() {
