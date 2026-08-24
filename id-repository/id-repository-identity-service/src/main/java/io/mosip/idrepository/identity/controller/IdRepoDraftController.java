@@ -469,7 +469,7 @@ public class IdRepoDraftController {
 	@GetMapping(path = "/v2/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(
 			summary = "getDraftV2",
-			description = "Granular draft retrieval at V2 path. Optional ?type=demographics|biometrics|all (default: all).",
+			description = "Granular draft retrieval at V2 path. Optional ?type=demographics|supportingdocuments|biometrics|all (default: all).",
 			tags = { "id-repo-draft-controller" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK"),

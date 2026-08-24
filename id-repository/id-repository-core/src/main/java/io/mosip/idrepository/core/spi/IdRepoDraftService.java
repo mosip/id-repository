@@ -51,7 +51,7 @@ public interface IdRepoDraftService<REQUEST, RESPONSE> {
 	public RESPONSE updateDraftUinData(String registrationId, String uin) throws IdRepoAppException;
 
 	/**
-	 * Updates draft identity/biometric data (V2 — same behaviour as V1 currently).
+	 * Updates draft identity/biometric data
 	 */
 	public RESPONSE updateDraftV2(String registrationId, REQUEST request) throws IdRepoAppException;
 
@@ -63,13 +63,13 @@ public interface IdRepoDraftService<REQUEST, RESPONSE> {
 
 	/**
 	 * Granular draft retrieval.
-	 * Supports {@code type=demographics|biometrics|all} (default: all).
+	 * Supports {@code type=demographics|biometrics|supportingdocuments|all} (default: all).
 	 */
 	public RESPONSE getDraftV2(String registrationId, Map<String, String> extractionFormats, String type)
 			throws IdRepoAppException;
 
 	/**
-	 * Extracts biometrics for a draft (V2 — same behaviour as V1 currently).
+	 * Extracts biometrics for a draft.
 	 */
 	public RESPONSE extractBiometricsV2(String registrationId, Map<String, String> extractionFormats) throws IdRepoAppException;
 
