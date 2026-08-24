@@ -1,0 +1,150 @@
+UpdateDraftUinData:
+  IdRepository_UpdateDraftUinData_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
+      description: Update a lost packet draft with its resolved uin - expected status DRAFTED
+      uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_01
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateDraftUinData/updateDraftUinData
+      outputTemplate: idRepository/GetDraft/getDraftResult
+      input: '{
+      "registrationId":"$RIDV2LOST$",
+      "uin": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'
+
+  IdRepository_UpdateDraftUinData_NoDraftExists_Neg:
+      endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
+      description: Stamp a UIN on a registrationId that has no draft at all - must be rejected as no record found (IDR-IDC-007).
+      uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_02
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateDraftUinData/updateDraftUinData
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RIDV2FRESH$",
+      "uin": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+
+  IdRepository_UpdateDraftUinData_UinNotFound_Neg:
+      endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
+      description: Update a draft with a uin that does not exist - should be rejected with error IDR-IDC-004
+      uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_03
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateDraftUinData/updateDraftUinData
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RIDV2NEW$",
+      "uin": "9999999999999"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-004"
+    }
+  ]
+}'
+
+  IdRepository_UpdateDraftUinData_InvalidUinFormat_Neg:
+      endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
+      description: Update a draft with an invalid uin format - should be rejected with error IDR-IDC-004
+      uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_04
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateDraftUinData/updateDraftUinData
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RIDV2NEW$",
+      "uin": "abc123"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-004"
+    }
+  ]
+}'
+
+  IdRepository_UpdateDraftUinData_BlankUin_Neg:
+      endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
+      description: Update a draft with a blank uin - should be rejected with error IDR-IDC-004
+      uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_05
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateDraftUinData/updateDraftUinData
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RIDV2NEW$",
+      "uin": ""
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-004"
+    }
+  ]
+}'
+
+  IdRepository_UpdateDraftUinData_BlankRid_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
+      description: Update a draft using a blank registration ID - should be rejected with error IDR-IDC-003
+      uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_06
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateDraftUinData/updateDraftUinData
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"",
+      "uin": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+  IdRepository_UpdateDraftUinData_WithInvalidToken_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
+      description: Stamp a UIN using an invalid/unauthenticated auth token - must be rejected before the draft is looked up.
+      uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_07
+      role: invalid
+      restMethod: patch
+      checkOnlyStatusCodeInResponse: true
+      inputTemplate: idRepository/UpdateDraftUinData/updateDraftUinData
+      outputTemplate: idRepository/responseCode
+      input: '{
+      "registrationId":"$RIDV2NEW$",
+      "uin": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$"
+      }'
+      output: '{
+   "responseCode": "500"
+}'
+
+  IdRepository_UpdateDraftUinData_WithUnauthorizedRole_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
+      description: Stamp a UIN using a valid token that lacks the required role - must be rejected before the draft is looked up.
+      uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_08
+      role: resident
+      restMethod: patch
+      checkOnlyStatusCodeInResponse: true
+      inputTemplate: idRepository/UpdateDraftUinData/updateDraftUinData
+      outputTemplate: idRepository/responseCode
+      input: '{
+      "registrationId":"$RIDV2NEW$",
+      "uin": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$"
+      }'
+      output: '{
+   "responseCode": "403"
+}'

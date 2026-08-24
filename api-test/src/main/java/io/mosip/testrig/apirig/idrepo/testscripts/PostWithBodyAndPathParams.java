@@ -19,10 +19,8 @@ import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
 import io.mosip.testrig.apirig.idrepo.utils.IdRepoConfigManager;
 import io.mosip.testrig.apirig.idrepo.utils.IdRepoUtil;
-import io.mosip.testrig.apirig.testrunner.BaseTestCase;
 import io.mosip.testrig.apirig.testrunner.HealthChecker;
 import io.mosip.testrig.apirig.utils.AdminTestException;
-import io.mosip.testrig.apirig.utils.AdminTestUtil;
 import io.mosip.testrig.apirig.utils.AuthenticationTestException;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
 import io.mosip.testrig.apirig.utils.OutputValidationUtil;
@@ -30,8 +28,9 @@ import io.mosip.testrig.apirig.utils.ReportUtil;
 import io.mosip.testrig.apirig.utils.SecurityXSSException;
 import io.restassured.response.Response;
 
-public class PatchWithPathParamsAndBody extends IdRepoUtil implements ITest {
-	private static final Logger logger = Logger.getLogger(PatchWithPathParamsAndBody.class);
+// Generic POST script for endpoints with both a path param and a JSON body (e.g. createDraftV2)
+public class PostWithBodyAndPathParams extends IdRepoUtil implements ITest {
+	private static final Logger logger = Logger.getLogger(PostWithBodyAndPathParams.class);
 	protected String testCaseName = "";
 	String pathParams = null;
 	public Response response = null;
@@ -44,19 +43,13 @@ public class PatchWithPathParamsAndBody extends IdRepoUtil implements ITest {
 			logger.setLevel(Level.ERROR);
 	}
 
-	/**
-	 * get current testcaseName
-	 */
+	/** get current testcaseName */
 	@Override
 	public String getTestName() {
 		return testCaseName;
 	}
 
-	/**
-	 * Data provider class provides test case list
-	 * 
-	 * @return object of data provider
-	 */
+	/** Data provider class provides test case list */
 	@DataProvider(name = "testcaselist")
 	public Object[] getTestCaseList(ITestContext context) {
 		String ymlFile = context.getCurrentXmlTest().getLocalParameters().get("ymlFile");
@@ -65,17 +58,8 @@ public class PatchWithPathParamsAndBody extends IdRepoUtil implements ITest {
 		return getYmlTestData(ymlFile);
 	}
 
-	/**
-	 * Test method for OTP Generation execution
-	 * 
-	 * @param objTestParameters
-	 * @param testScenario
-	 * @param testcaseName
-	 * @throws AuthenticationTestException
-	 * @throws AdminTestException
-	 */
 	@Test(dataProvider = "testcaselist")
-	public void test(TestCaseDTO testCaseDTO) throws AdminTestException, SecurityXSSException {
+	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
 		testCaseName = testCaseDTO.getTestCaseName();
 		testCaseName = IdRepoUtil.isTestCaseValidForExecution(testCaseDTO);
 		if (HealthChecker.signalTerminateExecution) {
@@ -83,18 +67,13 @@ public class PatchWithPathParamsAndBody extends IdRepoUtil implements ITest {
 					GlobalConstants.TARGET_ENV_HEALTH_CHECK_FAILED + HealthChecker.healthCheckFailureMapS);
 		}
 
-		if (testCaseDTO.getTestCaseName().contains("VID") || testCaseDTO.getTestCaseName().contains("Vid")) {
-			if (!BaseTestCase.getSupportedIdTypesValueFromActuator().contains("VID")
-					&& !BaseTestCase.getSupportedIdTypesValueFromActuator().contains("vid")) {
-				throw new SkipException(GlobalConstants.VID_FEATURE_NOT_SUPPORTED);
-			}
-		}
-
-		testCaseDTO = AdminTestUtil.filterHbs(testCaseDTO);
-		String inputJson = filterInputHbs(testCaseDTO);
+		String inputJson = getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate());
 		inputJson = inputStringKeyWordHandeler(inputJson, testCaseName);
+		// generateUin is a real boolean on the wire; unquote it back from the template's string form
+		inputJson = inputJson.replace("\"generateUin\": \"true\"", "\"generateUin\": true");
+		inputJson = inputJson.replace("\"generateUin\": \"false\"", "\"generateUin\": false");
 
-		response = patchWithPathParamsBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
+		response = postWithPathParamsBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 				testCaseDTO.getRole(), testCaseDTO.getTestCaseName(), pathParams);
 
 		Map<String, List<OutputValidationDto>> ouputValid = OutputValidationUtil.doJsonOutputValidation(
@@ -104,27 +83,9 @@ public class PatchWithPathParamsAndBody extends IdRepoUtil implements ITest {
 
 		if (!OutputValidationUtil.publishOutputResult(ouputValid))
 			throw new AdminTestException("Failed at output validation");
-
 	}
 
-	private String filterInputHbs(TestCaseDTO testCaseDTO) {
-		String inputJson = getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate());
-
-		if (inputJson.contains(GlobalConstants.$1STLANG$))
-			inputJson = inputJson.replace(GlobalConstants.$1STLANG$, BaseTestCase.languageList.get(0));
-		if (inputJson.contains(GlobalConstants.$2STLANG$))
-			inputJson = inputJson.replace(GlobalConstants.$2STLANG$, BaseTestCase.languageList.get(1));
-		if (inputJson.contains(GlobalConstants.$3STLANG$))
-			inputJson = inputJson.replace(GlobalConstants.$3STLANG$, BaseTestCase.languageList.get(2));
-
-		return inputJson;
-	}
-
-	/**
-	 * The method ser current test name to result
-	 * 
-	 * @param result
-	 */
+	/** Sets current test name to result */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {
 		result.setAttribute("TestCaseName", testCaseName);

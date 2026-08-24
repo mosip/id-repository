@@ -1,0 +1,141 @@
+ExtractBiometricsV2:
+  IdRepository_ExtractBiometricsV2_NoFormats_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}
+      description: Extract biometrics with no extraction-format query params at all - succeeds unconditionally regardless of draft state.
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_01
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
+      input: '{
+      "registrationId":"$RIDV2EXT$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'
+
+  IdRepository_ExtractBiometricsV2_NoFormats_NonExistentRid_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}
+      description: Extract biometrics with no format params against a registrationId that never had a draft - succeeds anyway, since empty extractionFormats short-circuits before findByRegId.
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_02
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
+      input: '{
+      "registrationId":"$RIDV2FRESH$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'
+
+  IdRepository_ExtractBiometricsV2_ForFinger_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?fingerExtractionFormat=mock-1.1
+      description: Extract biometrics with only fingerExtractionFormat.
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_03
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
+      input: '{
+      "registrationId":"$RIDV2EXT$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'
+
+  IdRepository_ExtractBiometricsV2_ForIris_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?irisExtractionFormat=mock-1.1
+      description: Extract biometrics with only irisExtractionFormat.
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_04
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
+      input: '{
+      "registrationId":"$RIDV2EXT$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'
+
+  IdRepository_ExtractBiometricsV2_ForFace_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?faceExtractionFormat=mock-1.1
+      description: Extract biometrics with only faceExtractionFormat.
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_05
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
+      input: '{
+      "registrationId":"$RIDV2EXT$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'
+
+  IdRepository_ExtractBiometricsV2_ForFaceIrisFinger_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?faceExtractionFormat=mock-1.1&fingerExtractionFormat=mock-1.1&irisExtractionFormat=mock-1.1
+      description: Extract biometrics with all three formats together, correctly "&"-joined.
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_06
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
+      input: '{
+      "registrationId":"$RIDV2EXT$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'
+
+  IdRepository_ExtractBiometricsV2_WithFormat_NonExistentRid_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?fingerExtractionFormat=mock-1.1
+      description: Extract biometrics passing a format param against a registrationId that never had a draft - must be rejected as no record found.
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_07
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RIDV2FRESH$"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+
+  IdRepository_ExtractBiometricsV2_WithInvalidToken_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}
+      description: Extract biometrics using an invalid/unauthenticated auth token - must be rejected before the draft is looked up.
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_08
+      role: invalid
+      restMethod: put
+      checkOnlyStatusCodeInResponse: true
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/responseCode
+      input: '{
+      "registrationId":"$RIDV2EXT$"
+      }'
+      output: '{
+   "responseCode": "500"
+}'
+
+  IdRepository_ExtractBiometricsV2_WithUnauthorizedRole_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}
+      description: Extract biometrics using a valid token that lacks the required role - must be rejected before the draft is looked up.
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_09
+      role: resident
+      restMethod: put
+      checkOnlyStatusCodeInResponse: true
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/responseCode
+      input: '{
+      "registrationId":"$RIDV2EXT$"
+      }'
+      output: '{
+   "responseCode": "403"
+}'

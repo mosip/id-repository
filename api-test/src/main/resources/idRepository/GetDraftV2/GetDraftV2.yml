@@ -1,0 +1,199 @@
+GetDraftV2:
+  IdRepository_GetDraftV2_VerifyUinAllocated_NewPacket_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
+      description: Get a draft to confirm the default NEW-packet draft (from CreateDraftV2) actually has a UIN allocated.
+      uniqueIdentifier: TC_IDRepo_GetDraftV2_01
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/GetDraft/getDraft
+      outputTemplate: idRepository/GetDraftV2/getDraftV2UinResult
+      input: '{
+      "registrationId":"$RIDV2NEW$"
+      }'
+      output: '{
+    "UIN": "$REGEXP:^[0-9]+$"
+}'
+
+  IdRepository_GetDraftV2_VerifyUinNotAllocated_LostPacket_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
+      description: Get a draft to confirm the LOST-packet draft (generateUin false) has NOT had a UIN allocated yet.
+      uniqueIdentifier: TC_IDRepo_GetDraftV2_12
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/GetDraft/getDraft
+      outputTemplate: idRepository/GetDraftV2/getDraftV2UinResult
+      input: '{
+      "registrationId":"$RIDV2LOST$"
+      }'
+      output: '{
+}'
+
+  IdRepository_GetDraftV2_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
+      description: Get a draft by registrationId with no query params - type defaults to "all" per the swagger description.
+      uniqueIdentifier: TC_IDRepo_GetDraftV2_02
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/GetDraft/getDraft
+      outputTemplate: idRepository/GetDraft/getDraftResult
+      input: '{
+      "registrationId":"$RIDV2NEW$"
+      }'
+      output: '{
+      "status": "DRAFT"
+}'
+
+  IdRepository_GetDraftV2_TypeDemographics_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/{registrationId}?type={type}
+      description: Get a draft passing type=demographics - the one genuinely V2-specific query param addition on this endpoint.
+      uniqueIdentifier: TC_IDRepo_GetDraftV2_03
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/GetDraftV2/getDraftV2WithType
+      outputTemplate: idRepository/GetDraft/getDraftResult
+      input: '{
+      "registrationId":"$RIDV2NEW$",
+      "type": "demographics"
+      }'
+      output: '{
+      "status": "DRAFT"
+}'
+
+  IdRepository_GetDraftV2_TypeBiometrics_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/{registrationId}?type={type}
+      description: Get a draft passing type=biometrics. Same assumption as TypeDemographics - inferred from swagger, not confirmed against v2 source
+      uniqueIdentifier: TC_IDRepo_GetDraftV2_04
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/GetDraftV2/getDraftV2WithType
+      outputTemplate: idRepository/GetDraft/getDraftResult
+      input: '{
+      "registrationId":"$RIDV2NEW$",
+      "type": "biometrics"
+      }'
+      output: '{
+      "status": "DRAFT"
+}'
+
+  IdRepository_GetDraftV2_TypeAllExplicit_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/{registrationId}?type={type}
+      description: Get a draft passing type=all explicitly - same result as omitting it, just exercises the explicit value.
+      uniqueIdentifier: TC_IDRepo_GetDraftV2_05
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/GetDraftV2/getDraftV2WithType
+      outputTemplate: idRepository/GetDraft/getDraftResult
+      input: '{
+      "registrationId":"$RIDV2NEW$",
+      "type": "all"
+      }'
+      output: '{
+      "status": "DRAFT"
+}'
+
+  IdRepository_GetDraftV2_WithFingerExtractionFormat_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/{registrationId}?fingerExtractionFormat={fingerExtractionFormat}
+      description: Get a draft passing fingerExtractionFormat, representative of the three parallel extraction-format params (finger/iris/face).
+      uniqueIdentifier: TC_IDRepo_GetDraftV2_06
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/GetDraftV2/getDraftV2WithFingerFormat
+      outputTemplate: idRepository/GetDraft/getDraftResult
+      input: '{
+      "registrationId":"$RIDV2NEW$",
+      "fingerExtractionFormat": "ISO"
+      }'
+      output: '{
+      "status": "DRAFT"
+}'
+
+  IdRepository_GetDraftV2_InvalidTypeValue_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/{registrationId}?type={type}
+      description: Get a draft using an invalid type value - should be rejected with error IDR-IDC-002
+      uniqueIdentifier: TC_IDRepo_GetDraftV2_07
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/GetDraftV2/getDraftV2WithType
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RIDV2NEW$",
+      "type": "bogus"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002",
+      "message": "Invalid Input Parameter - type"
+    }
+  ]
+}'
+
+  IdRepository_GetDraftV2_NoDraftExists_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
+      description: Get a registrationId that has no draft at all - must be rejected as no record found.
+      uniqueIdentifier: TC_IDRepo_GetDraftV2_08
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/GetDraft/getDraft
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RIDV2FRESH$"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+
+  IdRepository_GetDraftV2_BlankRid_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
+      description: Get a draft using a blank registration ID - should be rejected with error IDR-IDC-003
+      uniqueIdentifier: TC_IDRepo_GetDraftV2_09
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/GetDraft/getDraft
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":""
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'
+
+  IdRepository_GetDraftV2_WithInvalidToken_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
+      description: Get a draft using an invalid/unauthenticated auth token - must be rejected before the draft is looked up.
+      uniqueIdentifier: TC_IDRepo_GetDraftV2_10
+      role: invalid
+      restMethod: get
+      checkOnlyStatusCodeInResponse: true
+      inputTemplate: idRepository/GetDraft/getDraft
+      outputTemplate: idRepository/responseCode
+      input: '{
+      "registrationId":"$RIDV2NEW$"
+      }'
+      output: '{
+   "responseCode": "500"
+}'
+
+  IdRepository_GetDraftV2_WithUnauthorizedRole_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
+      description: Get a draft using a valid token that lacks the required role - must be rejected before the draft is looked up.
+      uniqueIdentifier: TC_IDRepo_GetDraftV2_11
+      role: resident
+      restMethod: get
+      checkOnlyStatusCodeInResponse: true
+      inputTemplate: idRepository/GetDraft/getDraft
+      outputTemplate: idRepository/responseCode
+      input: '{
+      "registrationId":"$RIDV2NEW$"
+      }'
+      output: '{
+   "responseCode": "403"
+}'

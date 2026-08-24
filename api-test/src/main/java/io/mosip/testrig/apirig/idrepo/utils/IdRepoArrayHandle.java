@@ -60,6 +60,26 @@ public class IdRepoArrayHandle {
 		    identity.put("selectedHandles", selectedHandles);
 		    return jsonObj.toString();
 		}
+		if (testCaseName.contains("_withTaggedListTypeNotInSchema")) {
+		    String nonHandleField = "fullName";
+		    if (identity.has(nonHandleField)) {
+		        JSONObject entry = new JSONObject();
+		        entry.put("value", "InvalidTaggedValue_" + RANDOM_ID);
+		        entry.put("tags", new JSONArray().put("handle"));
+		        identity.put(nonHandleField, new JSONArray().put(entry));
+		    }
+		    return jsonObj.toString();
+		}
+		if (testCaseName.contains("_withArrayOfStringNotInSchema")) {
+		    String nonSimpleTypeField = "postalCode";
+		    if (identity.has(nonSimpleTypeField)) {
+		        JSONArray stringArray = new JSONArray();
+		        stringArray.put("140221");
+		        stringArray.put("140222");
+		        identity.put(nonSimpleTypeField, stringArray);
+		    }
+		    return jsonObj.toString();
+		}
 		if (testCaseName.contains("_withSelectedHandlesCaseMismatch")) {
 		    JSONArray selectedHandles = new JSONArray();
 		    selectedHandles.put(resolveEmailFieldName().toUpperCase());
@@ -123,6 +143,11 @@ public class IdRepoArrayHandle {
 		// Replays only the saved email value, avoiding a false IDR-IDC-014 collision from other active handles.
 		if (testCaseName.contains("_withReusableEmailAfterRemoval")) {
 			applySavedEmailValueOnly(identity);
+			return jsonObj.toString();
+		}
+
+		// Only the per-handle loop below needs a pre-existing selectedHandles.
+		if (!identity.has("selectedHandles")) {
 			return jsonObj.toString();
 		}
 
@@ -234,6 +259,26 @@ public class IdRepoArrayHandle {
 			// $ID: tokens put here would not be resolved by the framework at this stage.
 			return jsonObj.toString();
 		}
+		if (testCaseName.contains("_withTaggedListTypeNotInSchema")) {
+		    String nonHandleField = "fullName";
+		    if (identity.has(nonHandleField)) {
+		        JSONObject entry = new JSONObject();
+		        entry.put("value", "InvalidTaggedValue_" + RANDOM_ID);
+		        entry.put("tags", new JSONArray().put("handle"));
+		        identity.put(nonHandleField, new JSONArray().put(entry));
+		    }
+		    return jsonObj.toString();
+		}
+		if (testCaseName.contains("_withArrayOfStringNotInSchema")) {
+		    String taggedListTypeField = emailFieldName;
+		    if (identity.has(taggedListTypeField)) {
+		        JSONArray stringArray = new JSONArray();
+		        stringArray.put("invalidStringValue1_" + RANDOM_ID);
+		        stringArray.put("invalidStringValue2_" + RANDOM_ID);
+		        identity.put(taggedListTypeField, stringArray);
+		    }
+		    return jsonObj.toString();
+		}
 		// Replays the handle values of the identity created by the "_save_" AddIdentity test onto
 		// this (different) identity, so every schema-declared handle collides with an existing one
 		// and the server must reject the update with IDR-IDC-014. Runs outside the per-handle loop
@@ -246,6 +291,11 @@ public class IdRepoArrayHandle {
 		}
 		if (testCaseName.contains("_withusedhandlevalue")) {
 			applySavedHandleValues(identity);
+			return jsonObj.toString();
+		}
+
+		// Only the per-handle loop below needs a pre-existing selectedHandles.
+		if (!identity.has("selectedHandles")) {
 			return jsonObj.toString();
 		}
 
@@ -423,7 +473,7 @@ public class IdRepoArrayHandle {
 		return fieldDef.optBoolean("handle", false) && "array".equals(fieldDef.optString("type", "string"));
 	}
 
-	/** A schema field that exists but is NOT a handle (for the not-applicable-selectedHandle test). */
+	/** A schema field that exists but is NOT a handle (for the not-applicable-selectedHandle test); excludes document/biometric fields, which selectedHandles can't reference either. */
 	private static String resolveNonHandleSchemaField() {
 		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
 		for (String fieldName : props.keySet()) {
@@ -431,9 +481,16 @@ public class IdRepoArrayHandle {
 					|| fieldName.equals("IDSchemaVersion")) {
 				continue;
 			}
-			if (!props.getJSONObject(fieldName).optBoolean("handle", false)) {
-				return fieldName;
+			JSONObject fieldDef = props.getJSONObject(fieldName);
+			if (fieldDef.optBoolean("handle", false)) {
+				continue;
 			}
+			String ref = fieldDef.optString("$ref", "");
+			if (ref.contains("documentType") || ref.contains("biometricsType") || ref.contains("hashType")
+					|| ref.contains("TaggedListType")) {
+				continue;
+			}
+			return fieldName;
 		}
 		return "fullName";
 	}

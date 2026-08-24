@@ -2,7 +2,9 @@ package io.mosip.testrig.apirig.idrepo.utils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -10,16 +12,44 @@ import org.json.JSONObject;
 import org.testng.SkipException;
 
 import io.mosip.testrig.apirig.dbaccess.DBManager;
+import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
 import io.mosip.testrig.apirig.utils.AdminTestUtil;
 import io.mosip.testrig.apirig.utils.ConfigManager;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
 import io.mosip.testrig.apirig.utils.SkipTestCaseHandler;
+import io.restassured.response.Response;
 
 public class IdRepoUtil extends AdminTestUtil {
 
 	private static final Logger logger = Logger.getLogger(IdRepoUtil.class);
 	public static String genRidExt = "23456" + generateRandomNumberString(10);
+
+	// RIDs another test case/file must resolve to the same value later (cross-file lookup).
+	public static String genRidV2New = "45671" + generateRandomNumberString(10);
+	public static String genRidV2NewExplicit = "45672" + generateRandomNumberString(10);
+	public static String genRidV2UpdateA = "45673" + generateRandomNumberString(10);
+	public static String genRidV2Lost = "45675" + generateRandomNumberString(10);
+	public static String genRidV2Ext = "45680" + generateRandomNumberString(10);
+
+	// Shared token for RIDs used once, never looked up elsewhere - resolved fresh per call, not cached.
+	public static final String RIDV2FRESH_TOKEN = "$RIDV2FRESH$";
+
+	private static String freshRidV2() {
+		return "45674" + generateRandomNumberString(10);
+	}
+
+	// Fixed-value token lookup; add an entry only if it's genuinely reused across test cases.
+	private static final Map<String, String> RID_TOKENS = new LinkedHashMap<>();
+	static {
+		RID_TOKENS.put("$RIDEXT$", genRidExt);
+		RID_TOKENS.put("$RIDV2NEW$", genRidV2New);
+		RID_TOKENS.put("$RIDV2NEWEXPLICIT$", genRidV2NewExplicit);
+		RID_TOKENS.put("$RIDV2UPDATEA$", genRidV2UpdateA);
+		RID_TOKENS.put("$RIDV2LOST$", genRidV2Lost);
+		RID_TOKENS.put("$RIDV2EXT$", genRidV2Ext);
+	}
+
 	public static List<String> testCasesInRunScope = new ArrayList<>();
 	
 	public static void setLogLevel() {
@@ -53,8 +83,7 @@ public class IdRepoUtil extends AdminTestUtil {
 			throw new SkipException(GlobalConstants.KNOWN_ISSUES);
 		}
 
-		// The schema-conditional skips below use FEATURE_NOT_SUPPORTED_MESSAGE so EmailableReport routes
-		// them to the Ignored bucket (it matches on that phrase), not Skipped.
+		// FEATURE_NOT_SUPPORTED_MESSAGE routes these schema-conditional skips to EmailableReport's Ignored bucket
 		if (testCaseDTO.getRequiredSchemaFields() != null && testCaseDTO.getRequiredSchemaFields().length > 0) {
 			for (String field : testCaseDTO.getRequiredSchemaFields()) {
 				String trimmed = field.trim();
@@ -77,8 +106,7 @@ public class IdRepoUtil extends AdminTestUtil {
 			}
 		}
 
-		// Schema-capability skips for the generic (field-name-agnostic) handle scenarios. Each test
-		// declares the capability it needs via its name; if the live schema can't support it, skip.
+		// Schema-capability skips for the generic (field-name-agnostic) handle scenarios
 		if (testCaseName.contains("_missingRequiredHandle") && !schemaHasRequiredHandle()) {
 			throw new SkipException(
 					"No required handle field in the current IdSchema — " + GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
@@ -122,7 +150,8 @@ public class IdRepoUtil extends AdminTestUtil {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
 
-		if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("_handle")
+		// Case-insensitive: V1 names use "_handle" (lowercase), V2 names use camelCase ("ArrayHandle", "SelectedHandles").
+		if (testCaseName.startsWith("IdRepository_") && testCaseName.toLowerCase().contains("handle")
 				&& !schemaHasAnyHandle()) {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
@@ -184,9 +213,56 @@ public class IdRepoUtil extends AdminTestUtil {
 			return jsonString;
 		}
 
-		if (jsonString.contains("$RIDEXT$"))
-			jsonString = replaceKeywordWithValue(jsonString, "$RIDEXT$", genRidExt);
+		for (Map.Entry<String, String> token : RID_TOKENS.entrySet()) {
+			if (jsonString.contains(token.getKey())) {
+				jsonString = replaceKeywordWithValue(jsonString, token.getKey(), token.getValue());
+			}
+		}
+		// Fresh value per call, so safe to reuse across test cases.
+		if (jsonString.contains(RIDV2FRESH_TOKEN)) {
+			jsonString = replaceKeywordWithValue(jsonString, RIDV2FRESH_TOKEN, freshRidV2());
+		}
 		return jsonString;
+	}
+
+	// Asserts a getDraft(V2) response has no allocated UIN yet - used by "_UinNotAllocated" test cases
+	public OutputValidationDto assertDraftUinNotAllocated(Response response) {
+		String actualUin = extractDraftUin(response.asString());
+		boolean uinAbsentOrBlank = actualUin == null || actualUin.isBlank();
+		OutputValidationDto result = new OutputValidationDto();
+		result.setFieldName("response.identity.UIN");
+		result.setFieldHierarchy("response.identity.UIN");
+		result.setExpValue("absent/blank (no UIN allocated yet)");
+		result.setActualValue(uinAbsentOrBlank ? "NOT ALLOCATED (as expected)" : actualUin);
+		result.setStatus(uinAbsentOrBlank ? "PASS" : GlobalConstants.FAIL_STRING);
+		return result;
+	}
+
+	// Pulls response.identity.UIN out of a getDraft response; null if absent/blank at any level.
+	private String extractDraftUin(String responseBody) {
+		try {
+			JSONObject responseJson = new JSONObject(responseBody);
+			if (!responseJson.has(GlobalConstants.RESPONSE) || responseJson.isNull(GlobalConstants.RESPONSE)) {
+				return null;
+			}
+			JSONObject respBody = responseJson.getJSONObject(GlobalConstants.RESPONSE);
+			if (!respBody.has(GlobalConstants.IDENTITY) || respBody.isNull(GlobalConstants.IDENTITY)) {
+				return null;
+			}
+			Object identityObj = respBody.get(GlobalConstants.IDENTITY);
+			if (!(identityObj instanceof JSONObject)) {
+				return null;
+			}
+			JSONObject identity = (JSONObject) identityObj;
+			if (!identity.has("UIN") || identity.isNull("UIN")) {
+				return null;
+			}
+			String uin = identity.optString("UIN", "").trim();
+			return uin.isEmpty() ? null : uin;
+		} catch (Exception e) {
+			logger.error("Could not parse getDraft response while checking UIN allocation: " + e.getMessage());
+			return null;
+		}
 	}
 
 	/** Resolves $HANDLEVALUE:&lt;field&gt;$ tokens; delegates to {@link AdminTestUtil}. */

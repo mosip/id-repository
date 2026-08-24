@@ -1031,3 +1031,95 @@ UpdateIdentity:
       output: '{
     "status": "ACTIVATED"
 }'
+  IdRepository_UpdateIdentity_handle_value_value_withDemoFieldNoLongerSelectedHandle:
+      endPoint: /idrepository/v1/identity/
+      description: Update Identity for a demo field (postalCode) that is not part of the current schema's selected handles; the new value should be applied as a plain identity value, not handle logic
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_37
+      role: testrig
+      restMethod: patch
+      inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
+      outputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandleResult
+      input: '{
+	    "registrationId": "$RID$",
+        "id": "mosip.id.update",
+		"status": "ACTIVATED",
+	    "addressCopy": "Y",
+	    "UIN": "$ID:AddIdentity_array_handle_value_smoke_Pos_UIN$",
+	    "dateOfBirth": "1992/04/15",
+	    "postalCode": "56001",
+	    "email": "$EMAILVALUE$",
+	    "phone": "$PHONENUMBERFORIDENTITY$",
+	    "referenceIdentityNumber": "6789545678878",
+	    "version": "v1",
+	    "introducerRID": "212124324784879",
+	    "introducerUIN": "212124324784879",
+	    "category": "individualBiometrics",
+	    "requesttime": "$TIMESTAMP$"
+	  }'
+      output: '{
+    "status": "ACTIVATED"
+}'
+  IdRepository_UpdateIdentity_handle_value_value_withTaggedListTypeNotInSchema:
+      endPoint: /idrepository/v1/identity/
+      description: Update a demo field (fullName) with a list of values and tags (TaggedListType) when only simpleType is selected for that field id in the schema
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_38
+      role: testrig
+      restMethod: patch
+      inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
+      outputTemplate: idRepository/error
+      input: '{
+	    "registrationId": "$RID$",
+        "id": "mosip.id.update",
+		"status": "ACTIVATED",
+	    "addressCopy": "Y",
+	    "UIN": "$ID:AddIdentity_array_handle_value_smoke_Pos_UIN$",
+	    "dateOfBirth": "1992/04/15",
+	    "postalCode": "14022",
+	    "email": "$EMAILVALUE$",
+	    "phone": "$PHONENUMBERFORIDENTITY$",
+	    "referenceIdentityNumber": "6789545678878",
+	    "version": "v1",
+	    "introducerRID": "212124324784879",
+	    "introducerUIN": "212124324784879",
+	    "category": "individualBiometrics",
+	    "requesttime": "$TIMESTAMP$"
+	  }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'
+  IdRepository_UpdateIdentity_handle_value_value_withArrayOfStringNotInSchema:
+      endPoint: /idrepository/v1/identity/
+      description: Update a demo field (email) with an array of plain strings (simpleType/default shape) when only TaggedListType is selected for that field id in the schema
+      uniqueIdentifier: TC_IDRepo_UpdateIdentityArrayHandle_39
+      role: testrig
+      restMethod: patch
+      inputTemplate: idRepository/UpdateIdentityArrayHandle/updateIdentityArrayHandle
+      outputTemplate: idRepository/error
+      input: '{
+	    "registrationId": "$RID$",
+        "id": "mosip.id.update",
+		"status": "ACTIVATED",
+	    "addressCopy": "Y",
+	    "UIN": "$ID:AddIdentity_array_handle_value_smoke_Pos_UIN$",
+	    "dateOfBirth": "1992/04/15",
+	    "postalCode": "14022",
+	    "email": "$EMAILVALUE$",
+	    "phone": "$PHONENUMBERFORIDENTITY$",
+	    "referenceIdentityNumber": "6789545678878",
+	    "version": "v1",
+	    "introducerRID": "212124324784879",
+	    "introducerUIN": "212124324784879",
+	    "category": "individualBiometrics",
+	    "requesttime": "$TIMESTAMP$"
+	  }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-002"
+    }
+  ]
+}'

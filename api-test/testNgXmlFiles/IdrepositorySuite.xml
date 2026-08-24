@@ -200,6 +200,25 @@
 		</classes>
 	</test>
 
+	<test name="CreateDraftV2">
+		<parameter name="ymlFile"
+			value="idRepository/CreateDraftV2/CreateDraftV2.yml" />
+		<parameter name="pathParams" value="registrationId" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.PostWithBodyAndPathParams" />
+		</classes>
+	</test>
+
+	<test name="GetDraftV2">
+		<parameter name="ymlFile"
+			value="idRepository/GetDraftV2/GetDraftV2.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
+		</classes>
+	</test>
+
 	<test name="GetDraft">
 		<parameter name="ymlFile" value="idRepository/GetDraft/GetDraft.yml" />
 		<parameter name="idKeyName" value="UIN" />
@@ -228,6 +247,33 @@
 		</classes>
 	</test>
 
+	<test name="UpdateDraftV2">
+		<parameter name="ymlFile"
+			value="idRepository/UpdateDraftV2/UpdateDraftV2.yml" />
+		<parameter name="pathParams" value="registrationId" />
+		<classes>
+			<class name="io.mosip.testrig.apirig.idrepo.testscripts.UpdateDraft" />
+		</classes>
+	</test>
+
+	<test name="UpdateDraftUinData">
+		<parameter name="ymlFile"
+			value="idRepository/UpdateDraftUinData/UpdateDraftUinData.yml" />
+		<parameter name="pathParams" value="registrationId" />
+		<classes>
+			<class name="io.mosip.testrig.apirig.idrepo.testscripts.PatchWithPathParamsAndBody" />
+		</classes>
+	</test>
+
+	<test name="PublishDraftV2">
+		<parameter name="ymlFile"
+			value="idRepository/PublishDraftV2/PublishDraftV2.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
+		</classes>
+	</test>
+
 	<test name="PublishDraft">
 		<parameter name="ymlFile"
 			value="idRepository/PublishDraft/PublishDraft.yml" />
@@ -241,6 +287,15 @@
 		<parameter name="ymlFile"
 			value="idRepository/ExtractBiometrics/ExtractBiometrics.yml" />
 		<parameter name="pathParams" value="registrationId" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.PutWithPathParam" />
+		</classes>
+	</test>
+
+	<test name="ExtractBiometricsV2">
+		<parameter name="ymlFile"
+			value="idRepository/ExtractBiometricsV2/ExtractBiometricsV2.yml" />
 		<classes>
 			<class
 				name="io.mosip.testrig.apirig.idrepo.testscripts.PutWithPathParam" />

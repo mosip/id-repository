@@ -5,7 +5,6 @@ UpdateDraft:
       uniqueIdentifier: TC_IDRepo_UpdateDraft_01
       role: idrepo
       restMethod: patch
-      inputTemplate: idRepository/UpdateDraft/updateDraft_$LANGNUMBER$
       outputTemplate: idRepository/UpdateDraft/updateDraftResult
       input: '{
   "value": "$BIOVALUE$",

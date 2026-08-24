@@ -1,5 +1,21 @@
 package io.mosip.testrig.apirig.idrepo.testrunner;
 
+import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.RSAKey;
+import io.mosip.testrig.apirig.dataprovider.BiometricDataProvider;
+import io.mosip.testrig.apirig.dbaccess.DBManager;
+import io.mosip.testrig.apirig.idrepo.utils.IdRepoConfigManager;
+import io.mosip.testrig.apirig.idrepo.utils.IdRepoUtil;
+import io.mosip.testrig.apirig.testrunner.BaseTestCase;
+import io.mosip.testrig.apirig.testrunner.ExtractResource;
+import io.mosip.testrig.apirig.testrunner.HealthChecker;
+import io.mosip.testrig.apirig.testrunner.OTPListener;
+import io.mosip.testrig.apirig.utils.*;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+import org.testng.TestNG;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -12,39 +28,9 @@ import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.List;
-//import java.util.Map;
 import java.util.Properties;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import io.mosip.testrig.apirig.utils.DependencyResolver;
-import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
-import org.testng.TestNG;
-
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.RSAKey;
-
-import io.mosip.testrig.apirig.dataprovider.BiometricDataProvider;
-import io.mosip.testrig.apirig.dbaccess.DBManager;
-import io.mosip.testrig.apirig.idrepo.utils.IdRepoConfigManager;
-import io.mosip.testrig.apirig.idrepo.utils.IdRepoUtil;
-import io.mosip.testrig.apirig.testrunner.BaseTestCase;
-import io.mosip.testrig.apirig.testrunner.ExtractResource;
-import io.mosip.testrig.apirig.testrunner.HealthChecker;
-import io.mosip.testrig.apirig.testrunner.OTPListener;
-import io.mosip.testrig.apirig.utils.AdminTestUtil;
-import io.mosip.testrig.apirig.utils.AuthTestsUtil;
-import io.mosip.testrig.apirig.utils.CertsUtil;
-import io.mosip.testrig.apirig.utils.GlobalConstants;
-import io.mosip.testrig.apirig.utils.GlobalMethods;
-import io.mosip.testrig.apirig.utils.JWKKeyUtil;
-import io.mosip.testrig.apirig.utils.KernelAuthentication;
-import io.mosip.testrig.apirig.utils.KeyCloakUserAndAPIKeyGeneration;
-import io.mosip.testrig.apirig.utils.KeycloakUserManager;
-import io.mosip.testrig.apirig.utils.MispPartnerAndLicenseKeyGeneration;
-import io.mosip.testrig.apirig.utils.OutputValidationUtil;
-import io.mosip.testrig.apirig.utils.PartnerRegistration;
-import io.mosip.testrig.apirig.utils.SkipTestCaseHandler;
+//import java.util.Map;
 
 /**
  * Class to initiate mosip api test execution
