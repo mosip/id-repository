@@ -3,7 +3,7 @@
 
 <suite name="Idrepository API Test Rig Master Suite">
 	<listeners>
-		<listener class-name="io.mosip.testrig.apirig.report.EmailableReport" />
+		<listener class-name="io.mosip.testrig.apirig.idrepo.report.IdRepoEmailableReport" />
 	</listeners>
 	<suite-files>
 		<suite-file path="IdrepositorySuite.xml" />
