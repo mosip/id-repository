@@ -846,6 +846,47 @@ public class IdRepoDraftServiceImplTest {
 		}
 	}
 
+	// ── discardDraftV2 ────────────────────────────────────────────────────── //
+
+	@Test
+	public void should_discardDraftV2_deleteObjectStoreFilesAndDbRecords_when_draftExists()
+			throws IdRepoAppException, IOException {
+		UinDraft draft = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(draft));
+		when(objectStoreHelper.getRidHash(anyString())).thenReturn("RID_HASH_TEST");
+		doAnswer(invocation -> {
+			java.util.function.Consumer<org.springframework.transaction.TransactionStatus> action = invocation.getArgument(0);
+			action.accept(null);
+			return null;
+		}).when(transactionTemplate).executeWithoutResult(any());
+
+		IdResponseDTO response = idRepoServiceImpl.discardDraftV2("1234567890");
+
+		assertNotNull(response);
+		verify(objectStoreHelper).deleteAllDraftBiometrics("RID_HASH_TEST");
+		verify(objectStoreHelper).deleteDraftDemographicObject("RID_HASH_TEST", "1236");
+		verify(uinBiometricDraftRepo).deleteByRegId("1234567890");
+		verify(uinDocumentDraftRepo).deleteByRegId("1234567890");
+		verify(uinDraftRepo).deleteByRegId("1234567890");
+	}
+
+	@Test(expected = IdRepoAppException.class)
+	public void should_throwNoRecordFound_when_discardDraftV2_ridDoesNotExist() throws IdRepoAppException {
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.empty());
+		idRepoServiceImpl.discardDraftV2("1234567890");
+	}
+
+	@Test
+	public void testDiscardDraftV2JDBCConnectionException() throws IdRepoAppException {
+		try {
+			when(uinDraftRepo.findByRegId(Mockito.any())).thenThrow(JDBCConnectionException.class);
+			IdResponseDTO response = idRepoServiceImpl.discardDraftV2("123567890");
+			assertNotNull(response);
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
+		}
+	}
+
 	@Test
 	public void testHasDraftJDBCConnectionException() throws IdRepoAppException {
 		try {

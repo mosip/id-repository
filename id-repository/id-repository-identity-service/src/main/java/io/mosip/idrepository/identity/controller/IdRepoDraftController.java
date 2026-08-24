@@ -252,13 +252,11 @@ public class IdRepoDraftController {
 	public ResponseEntity<IdResponseDTO> getDraft(@PathVariable String registrationId,
 			@RequestParam(name = FINGER_EXTRACTION_FORMAT, required = false) @Nullable String fingerExtractionFormat,
 			@RequestParam(name = IRIS_EXTRACTION_FORMAT, required = false) @Nullable String irisExtractionFormat,
-			@RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat,
-			@RequestParam(name = "type", required = false) @Nullable String type)
+			@RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat)
 			throws IdRepoAppException {
 		try {
 			return new ResponseEntity<>(draftService.getDraft(registrationId,
-					buildExtractionFormatMap(fingerExtractionFormat, irisExtractionFormat, faceExtractionFormat),
-					type),
+					buildExtractionFormatMap(fingerExtractionFormat, irisExtractionFormat, faceExtractionFormat)),
 					HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_DRAFT_REQUEST_RESPONSE, registrationId,
@@ -267,10 +265,10 @@ public class IdRepoDraftController {
 			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} finally {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_DRAFT_REQUEST_RESPONSE, registrationId,
-					IdType.ID, "Get draft requested");
+					IdType.ID, "Publish draft requested");
 		}
 	}
-
+	
 	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getPutdraftextractbiometricsregistrationId())")
 	@PutMapping(path = "/extractbiometrics/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -283,15 +281,29 @@ public class IdRepoDraftController {
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true))),
 	})
 	public ResponseEntity<IdResponseDTO> extractBiometrics(@PathVariable String registrationId,
-			@RequestParam(name = FINGER_EXTRACTION_FORMAT, required = false) @Nullable String fingerExtractionFormat,
-			@RequestParam(name = IRIS_EXTRACTION_FORMAT, required = false) @Nullable String irisExtractionFormat,
-			@RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat)
-			throws IdRepoAppException {
+														   @RequestParam(name = FINGER_EXTRACTION_FORMAT, required = false) @Nullable String fingerExtractionFormat,
+														   @RequestParam(name = IRIS_EXTRACTION_FORMAT, required = false) @Nullable String irisExtractionFormat,
+														   @RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat) throws IdRepoAppException {
+
+		long startTime = System.currentTimeMillis();
+		mosipLogger.info("START - extractBiometrics API called for registrationId: " + registrationId + " at: " + startTime + " ms");
+
 		try {
-			return new ResponseEntity<>(draftService.extractBiometrics(registrationId,
-					buildExtractionFormatMap(fingerExtractionFormat, irisExtractionFormat, faceExtractionFormat)),
+			ResponseEntity<IdResponseDTO> response = new ResponseEntity<>(
+					draftService.extractBiometrics(registrationId,
+							buildExtractionFormatMap(fingerExtractionFormat, irisExtractionFormat, faceExtractionFormat)),
 					HttpStatus.OK);
+
+			long endTime = System.currentTimeMillis();
+			mosipLogger.info("END - extractBiometrics API completed for registrationId: " + registrationId + " at: " + endTime + " ms");
+			mosipLogger.info("TOTAL TIME - extractBiometrics took: " + (endTime - startTime) + " ms for registrationId: " + registrationId);
+
+			return response;
 		} catch (IdRepoAppException e) {
+			long endTime = System.currentTimeMillis();
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "extractBiometrics",
+					"ERROR - extractBiometrics failed for registrationId: " + registrationId + " | Total time before failure: " + (endTime - startTime) + " ms | Error: " + e.getMessage());
+
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.EXTRACT_BIOMETRICS_DRAFT_REQUEST_RESPONSE, registrationId,
 					IdType.ID, e);
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "extractBiometrics", e.getMessage());
@@ -514,6 +526,29 @@ public class IdRepoDraftController {
 		} finally {
 			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.EXTRACT_BIOMETRICS_DRAFT_REQUEST_RESPONSE, registrationId,
 					IdType.ID, "Extract Biometrics draft v2 requested");
+		}
+	}
+
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getDeletedraftdiscardregistrationId())")
+	@DeleteMapping(path = "/v2/discard/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "discardDraftV2", description = "discardDraftV2 (V2)", tags = { "id-repo-draft-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "204", description = "No Content" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
+	public ResponseEntity<IdResponseDTO> discardDraftV2(@PathVariable String registrationId) throws IdRepoAppException {
+		try {
+			return new ResponseEntity<>(draftService.discardDraftV2(registrationId), HttpStatus.OK);
+		} catch (IdRepoAppException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.DISCARD_DRAFT_REQUEST_RESPONSE, registrationId,
+					IdType.ID, e);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "discardDraftV2", e.getMessage());
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		} finally {
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.DISCARD_DRAFT_REQUEST_RESPONSE, registrationId,
+					IdType.ID, "Discard draft v2 requested");
 		}
 	}
 

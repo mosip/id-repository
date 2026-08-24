@@ -13,29 +13,18 @@ import io.mosip.idrepository.core.exception.IdRepoAppException;
  */
 public interface IdRepoDraftService<REQUEST, RESPONSE> {
 
-	// ── V1 methods — behaviour identical to upstream/develop ─────────────── //
-
 	public RESPONSE createDraft(String registrationId, String uin) throws IdRepoAppException;
-
+	
 	public RESPONSE updateDraft(String registrationId, REQUEST request) throws IdRepoAppException;
-
+	
 	public RESPONSE publishDraft(String registrationId) throws IdRepoAppException;
-
+	
 	public RESPONSE discardDraft(String registrationId) throws IdRepoAppException;
-
+	
 	public boolean hasDraft(String registrationId) throws IdRepoAppException;
-
+	
 	public RESPONSE getDraft(String registrationId, Map<String, String> extractionFormats) throws IdRepoAppException;
-
-	/**
-	 * Granular draft retrieval.
-	 *
-	 * @param type one of {@code "demographics"}, {@code "biometrics"}, {@code "all"},
-	 *             or {@code null}/empty (defaults to {@code "all"}).
-	 */
-	public RESPONSE getDraft(String registrationId, Map<String, String> extractionFormats, String type)
-			throws IdRepoAppException;
-
+	
 	public RESPONSE extractBiometrics(String registrationId, Map<String, String> extractionFormats) throws IdRepoAppException;
 
 	public DraftResponseDto getDraftUin(String uin) throws IdRepoAppException;
@@ -73,7 +62,7 @@ public interface IdRepoDraftService<REQUEST, RESPONSE> {
 	public RESPONSE publishDraftV2(String registrationId) throws IdRepoAppException;
 
 	/**
-	 * Granular draft retrieval — V2 endpoint path alias for {@link #getDraft(String, Map, String)}.
+	 * Granular draft retrieval.
 	 * Supports {@code type=demographics|biometrics|all} (default: all).
 	 */
 	public RESPONSE getDraftV2(String registrationId, Map<String, String> extractionFormats, String type)
@@ -83,4 +72,10 @@ public interface IdRepoDraftService<REQUEST, RESPONSE> {
 	 * Extracts biometrics for a draft (V2 — same behaviour as V1 currently).
 	 */
 	public RESPONSE extractBiometricsV2(String registrationId, Map<String, String> extractionFormats) throws IdRepoAppException;
+
+	/**
+	 * Discards a draft (V2 — deletes ridHash object-store draft files in
+	 * addition to the DB records removed by {@link #discardDraft}).
+	 */
+	public RESPONSE discardDraftV2(String registrationId) throws IdRepoAppException;
 }

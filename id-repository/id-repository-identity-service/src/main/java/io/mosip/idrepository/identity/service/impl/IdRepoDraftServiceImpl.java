@@ -332,7 +332,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 					: null;
 
 			anonymousProfileHelper.setNewCbeff(
-					draft.getUinHash().split(SPLITTER)[1],
+					draft.getUinHash().split("_")[1],
 					!anonymousProfileHelper.isNewCbeffPresent() ? lastBioFileId : null);
 
 			IdRequestDTO idRequest = buildRequest(regId, draft);
@@ -388,6 +388,24 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	}
 
 	@Override
+	public IdResponseDTO discardDraftV2(String regId) throws IdRepoAppException {
+		try {
+			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
+			if (uinDraft.isEmpty()) {
+				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+						DISCARD_DRAFT, "RID NOT FOUND IN DB | regId=" + regId);
+				throw new IdRepoAppException(NO_RECORD_FOUND);
+			}
+			cleanupDraft(uinDraft.get());
+			return constructIdResponse(null, "DISCARDED", null, null);
+		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+					DISCARD_DRAFT, e.getMessage());
+			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
+		}
+	}
+
+	@Override
 	public boolean hasDraft(String regId) throws IdRepoAppException {
 		try {
 			return uinDraftRepo.existsByRegId(regId);
@@ -426,56 +444,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 			}
 
 			return constructIdResponse(draft.getUinData(), draft.getStatusCode(), documents, null);
-
-		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
-			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-					GET_DRAFT, e.getMessage());
-			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
-		}
-	}
-
-	/**
-	 * V1 getDraft — reads from uinHash path (upstream/develop storage approach).
-	 * Supports optional type filtering (demographics|biometrics|all).
-	 */
-	@Override
-	public IdResponseDTO getDraft(String regId, Map<String, String> extractionFormats, String type)
-			throws IdRepoAppException {
-		final String requestedType = normalizeType(type);
-		try {
-			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
-			if (uinDraft.isEmpty()) {
-				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-						GET_DRAFT, DRAFT_RECORD_NOT_FOUND + " | regId=" + regId);
-				throw new IdRepoAppException(NO_RECORD_FOUND);
-			}
-
-			UinDraft draft = uinDraft.get();
-			String uinHash = draft.getUinHash().split(SPLITTER)[1];
-			List<DocumentsDTO> documents = new ArrayList<>();
-
-			final boolean includeBiometrics = "biometrics".equals(requestedType) || "all".equals(requestedType);
-			final boolean includeSupportingDocuments = "supportingdocuments".equals(requestedType) || "all".equals(requestedType);
-			final boolean includeIdentity = "demographics".equals(requestedType) || "all".equals(requestedType);
-
-			if (includeBiometrics && draft.getBiometrics() != null) {
-				for (UinBiometricDraft bioDraft : draft.getBiometrics()) {
-					byte[] cbeff = extractAndGetCombinedCbeff(uinHash, bioDraft.getBioFileId(), extractionFormats);
-					documents.add(new DocumentsDTO(bioDraft.getBiometricFileType(),
-							CryptoUtil.encodeToURLSafeBase64(cbeff)));
-				}
-			}
-			if (includeSupportingDocuments && draft.getDocuments() != null) {
-				for (UinDocumentDraft docDraft : draft.getDocuments()) {
-					byte[] docBytes = objectStoreHelper.getDemographicObject(uinHash, docDraft.getDocId());
-					documents.add(new DocumentsDTO(docDraft.getDoccatCode(),
-							CryptoUtil.encodeToURLSafeBase64(docBytes)));
-				}
-			}
-
-			byte[] identityPayload = includeIdentity ? draft.getUinData() : null;
-			List<DocumentsDTO> documentsPayload = documents.isEmpty() ? null : documents;
-			return constructIdResponse(identityPayload, draft.getStatusCode(), documentsPayload, null);
 
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
@@ -598,10 +566,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 		}
 		return draftResponseDto;
 	}
-
-	// ════════════════════════════════════════════════════════════════════════════
-	// V2 methods — enhanced/new behaviour introduced by MOSIP-082
-	// ════════════════════════════════════════════════════════════════════════════
 
 	/**
 	 * Creates a draft with optional UIN allocation.
@@ -1337,7 +1301,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	private void extractBiometricsDraft(Map<String, String> extractionFormats, UinDraft draft)
 			throws IdRepoAppException {
 		try {
-			String uinHash = draft.getUinHash().split(SPLITTER)[1];
+			String uinHash = draft.getUinHash().split("_")[1];
 			for (UinBiometricDraft bioDraft : draft.getBiometrics()) {
 				try {
 					deleteExistingExtractedBioData(extractionFormats, uinHash, bioDraft);

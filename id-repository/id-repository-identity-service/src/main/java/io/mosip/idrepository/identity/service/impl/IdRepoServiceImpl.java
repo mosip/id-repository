@@ -24,7 +24,6 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.InvalidJsonException;
 import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
@@ -344,8 +343,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		String fileRefId = getFileRefId(docType);
 
 		data = CryptoUtil.decodeURLSafeBase64(doc.getValue());
+		//print doc.getvalue
+		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "addBiometricDocuments", "Document Value: " + doc.getValue());
 		try {
 			cbeffUtil.validateXML(data);
+			//print data
+			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "addBiometricDocuments", "Data: " + new String(data));
 		} catch (Exception e) {
 			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "addBiometricDocuments", e.getMessage());
 			throw new IdRepoAppUncheckedException(INVALID_INPUT_PARAMETER.getErrorCode(),

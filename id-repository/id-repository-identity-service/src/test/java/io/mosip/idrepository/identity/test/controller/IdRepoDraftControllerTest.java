@@ -168,6 +168,27 @@ public class IdRepoDraftControllerTest {
 	}
 
 	@Test
+	public void testDiscardDraftV2() throws IdRepoAppException {
+		IdResponseDTO responseDTO = new IdResponseDTO();
+		when(draftService.discardDraftV2(any())).thenReturn(responseDTO);
+		ResponseEntity<IdResponseDTO> createDraftResponse = controller.discardDraftV2("");
+		assertEquals(HttpStatus.OK, createDraftResponse.getStatusCode());
+		assertEquals(responseDTO, createDraftResponse.getBody());
+	}
+
+	@Test
+	public void testDiscardDraftV2Exception() throws IdRepoAppException {
+		when(draftService.discardDraftV2(any()))
+				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
+		try {
+			controller.discardDraftV2("");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
+		}
+	}
+
+	@Test
 	public void testHasDraft() throws IdRepoAppException {
 		when(draftService.hasDraft(any())).thenReturn(Boolean.TRUE);
 		ResponseEntity<Void> createDraftResponse = controller.hasDraft("");
@@ -196,8 +217,8 @@ public class IdRepoDraftControllerTest {
 	@Test
 	public void testGetDraftWithoutExtractionFormats() throws IdRepoAppException {
 		IdResponseDTO responseDTO = new IdResponseDTO();
-		when(draftService.getDraft(any(), any(), any())).thenReturn(responseDTO);
-		ResponseEntity<IdResponseDTO> createDraftResponse = controller.getDraft("", null, null, null, null);
+		when(draftService.getDraft(any(), any())).thenReturn(responseDTO);
+		ResponseEntity<IdResponseDTO> createDraftResponse = controller.getDraft("", null, null, null);
 		assertEquals(HttpStatus.OK, createDraftResponse.getStatusCode());
 		assertEquals(responseDTO, createDraftResponse.getBody());
 	}
@@ -205,27 +226,18 @@ public class IdRepoDraftControllerTest {
 	@Test
 	public void testGetDraftWithExtractionFormats() throws IdRepoAppException {
 		IdResponseDTO responseDTO = new IdResponseDTO();
-		when(draftService.getDraft(any(), any(), any())).thenReturn(responseDTO);
-		ResponseEntity<IdResponseDTO> createDraftResponse = controller.getDraft("", "format", "format", "format", null);
-		assertEquals(HttpStatus.OK, createDraftResponse.getStatusCode());
-		assertEquals(responseDTO, createDraftResponse.getBody());
-	}
-
-	@Test
-	public void testGetDraftWithType() throws IdRepoAppException {
-		IdResponseDTO responseDTO = new IdResponseDTO();
-		when(draftService.getDraft(any(), any(), any())).thenReturn(responseDTO);
-		ResponseEntity<IdResponseDTO> createDraftResponse = controller.getDraft("", null, null, null, "demographics");
+		when(draftService.getDraft(any(), any())).thenReturn(responseDTO);
+		ResponseEntity<IdResponseDTO> createDraftResponse = controller.getDraft("", "format", "format", "format");
 		assertEquals(HttpStatus.OK, createDraftResponse.getStatusCode());
 		assertEquals(responseDTO, createDraftResponse.getBody());
 	}
 
 	@Test
 	public void testGetDraftException() throws IdRepoAppException {
-		when(draftService.getDraft(any(), any(), any()))
+		when(draftService.getDraft(any(), any()))
 				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
 		try {
-			controller.getDraft("", null, null, null, null);
+			controller.getDraft("", null, null, null);
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
