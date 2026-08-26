@@ -20,8 +20,6 @@ logs/
 *.swp
 *~.nib
 local.properties
-# Local-only Mock SBI BioValue fallback (do not commit; regenerate via RefreshBioValueProperties if needed)
-src/main/resources/config/bioValue.properties
 .loadpath
 .DS_Store
 test.txt
