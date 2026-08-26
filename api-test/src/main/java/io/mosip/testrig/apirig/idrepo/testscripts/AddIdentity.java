@@ -181,12 +181,18 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 			}
 		}
 
-		// Always call — replaceArrayHandleValues itself no-ops if selectedHandles is absent.
-		inputJson = IdRepoArrayHandle.replaceArrayHandleValues(inputJson, testCaseName);
+		JSONObject jsonString = new JSONObject(inputJson);
+		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {
+			inputJson = IdRepoArrayHandle.replaceArrayHandleValues(inputJson, testCaseName);
+		}
 		// Done here (not the handle dispatch) so it also runs on schemas with no handles.
 		if (testCaseName.contains("_extraNonSchemaField")) {
 			inputJson = IdRepoArrayHandle.injectExtraNonSchemaField(inputJson);
 		}
+
+		// Schema identity includes proofOf* metadata but documents[] is usually bio-only;
+		// add demographic binaries so id-repo persists uin_document / uin_document_h (JMeter parity).
+		inputJson = IdRepoUtil.ensureDemographicDocumentsInRequest(inputJson);
 
 		response = postWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 				testCaseDTO.getRole(), testCaseDTO.getTestCaseName());

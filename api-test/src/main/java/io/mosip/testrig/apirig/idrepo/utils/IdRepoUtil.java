@@ -83,7 +83,8 @@ public class IdRepoUtil extends AdminTestUtil {
 			throw new SkipException(GlobalConstants.KNOWN_ISSUES);
 		}
 
-		// FEATURE_NOT_SUPPORTED_MESSAGE routes these schema-conditional skips to EmailableReport's Ignored bucket
+		// The schema-conditional skips below use FEATURE_NOT_SUPPORTED_MESSAGE so EmailableReport routes
+		// them to the Ignored bucket (it matches on that phrase), not Skipped.
 		if (testCaseDTO.getRequiredSchemaFields() != null && testCaseDTO.getRequiredSchemaFields().length > 0) {
 			for (String field : testCaseDTO.getRequiredSchemaFields()) {
 				String trimmed = field.trim();
@@ -106,7 +107,8 @@ public class IdRepoUtil extends AdminTestUtil {
 			}
 		}
 
-		// Schema-capability skips for the generic (field-name-agnostic) handle scenarios
+		// Schema-capability skips for the generic (field-name-agnostic) handle scenarios. Each test
+		// declares the capability it needs via its name; if the live schema can't support it, skip.
 		if (testCaseName.contains("_missingRequiredHandle") && !schemaHasRequiredHandle()) {
 			throw new SkipException(
 					"No required handle field in the current IdSchema — " + GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
@@ -142,8 +144,8 @@ public class IdRepoUtil extends AdminTestUtil {
 		if (emailActuator != null && !emailActuator.isBlank()) {
 			emailArray = new JSONArray(emailActuator);
 		}
-		String dob = (dobArray != null && dobArray.length() > 0) ? dobArray.getString(0) : "dateOfBirth";
-		String email = (emailArray != null && emailArray.length() > 0) ? emailArray.getString(0) : "email";
+		String dob = (dobArray != null && !dobArray.isEmpty()) ? dobArray.getString(0) : "dateOfBirth";
+		String email = (emailArray != null && !emailArray.isEmpty()) ? emailArray.getString(0) : "email";
 
 		if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("DOB")
 				&& (!isElementPresent(globalRequiredFields, dob))) {
@@ -359,6 +361,82 @@ public class IdRepoUtil extends AdminTestUtil {
 	/** True when the schema has at least one field {@link #resolveOptionalClaimableField()} would return. */
 	public static boolean schemaHasOptionalClaimableField() {
 		return resolveOptionalClaimableField() != null;
+	}
+
+	/**
+	 * Schema-driven AddIdentity templates put {@code documentType} metadata on {@code identity}
+	 * (e.g. proofOfIdentity) but often only put {@code individualBiometrics} in {@code documents}.
+	 * Id-repo writes {@code uin_document} / {@code uin_document_h} only for non-bio categories that
+	 * appear in {@code request.documents} (same pattern as the local JMeter script).
+	 * <p>
+	 * For each identity field whose schema {@code $ref} is {@code documentType}, ensure a matching
+	 * {@code documents[]} entry exists with a small URL-safe Base64 payload.
+	 *
+	 * @param inputJson rendered Add/Update Identity request body
+	 * @return body with demographic document binaries added when missing
+	 */
+	public static String ensureDemographicDocumentsInRequest(String inputJson) {
+		if (inputJson == null || inputJson.isBlank()) {
+			return inputJson;
+		}
+		try {
+			JSONObject root = new JSONObject(inputJson);
+			if (!root.has("request")) {
+				return inputJson;
+			}
+			JSONObject request = root.getJSONObject("request");
+			if (!request.has("identity")) {
+				return inputJson;
+			}
+			JSONObject identity = request.getJSONObject("identity");
+			JSONArray documents = request.optJSONArray("documents");
+			if (documents == null) {
+				documents = new JSONArray();
+				request.put("documents", documents);
+			}
+
+			java.util.Set<String> existingCategories = new java.util.HashSet<>();
+			for (int i = 0; i < documents.length(); i++) {
+				existingCategories.add(documents.getJSONObject(i).optString("category", ""));
+			}
+
+			JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
+			if (props == null) {
+				return inputJson;
+			}
+
+			// Same placeholder bytes JMeter uses for proof docs (decoded: test_doc)
+			final String demoDocValue = "dGVzdF9kb2M";
+			int added = 0;
+			List<String> fieldNames = new ArrayList<>(props.keySet());
+			Collections.sort(fieldNames);
+			for (String fieldName : fieldNames) {
+				JSONObject fieldDef = props.optJSONObject(fieldName);
+				if (fieldDef == null) {
+					continue;
+				}
+				String ref = fieldDef.optString("$ref", "");
+				if (!ref.contains("documentType")) {
+					continue;
+				}
+				if (!identity.has(fieldName) || existingCategories.contains(fieldName)) {
+					continue;
+				}
+				JSONObject doc = new JSONObject();
+				doc.put("category", fieldName);
+				doc.put("value", demoDocValue);
+				documents.put(doc);
+				existingCategories.add(fieldName);
+				added++;
+			}
+			if (added > 0) {
+				logger.info("Added " + added + " demographic document(s) to request.documents for uin_document coverage");
+			}
+			return root.toString();
+		} catch (Exception e) {
+			logger.warn("ensureDemographicDocumentsInRequest skipped: " + e.getMessage());
+			return inputJson;
+		}
 	}
 
 }
