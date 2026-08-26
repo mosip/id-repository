@@ -95,23 +95,10 @@ public class MosipTestRunner {
 			}
 
 			try {
-				// Local stacks often get empty Face capture from Mock SBI (Index 0 / length 0).
-				// MDS still returns a long finger-only CBEFF that fails idrepo cbeffUtil.validateXML
-				// as IDR-IDC-002 documents/0/value — force known-good bundled BioValue instead.
-				if (skipPartnerSetup) {
-					LOGGER.warn("Local mode: loading bundled bioValue.properties (Mock SBI Face capture unreliable).");
-					loadBundledBioValueProperties();
-				} else {
-					Boolean generated = BiometricDataProvider.generateBiometricTestData("Registration");
-					if (!Boolean.TRUE.equals(generated) || !hasUsableBioValue()) {
-						LOGGER.warn("Mock SBI biometric generation incomplete; loading bundled bioValue.properties.");
-						loadBundledBioValueProperties();
-					}
-				}
+				BiometricDataProvider.generateBiometricTestData("Registration");
 			} catch (Exception bioEx) {
 				if (skipPartnerSetup) {
 					LOGGER.warn("Biometric test data generation skipped/failed in local mode: " + bioEx.getMessage());
-					loadBundledBioValueProperties();
 				} else {
 					throw bioEx;
 				}
@@ -156,40 +143,6 @@ public class MosipTestRunner {
 		// AdminTestUtil.generateTestCaseInterDependencies(getGlobalResourcePath() + "/config/testCaseInterDependency.json");
 		System.exit(0);
 
-	}
-
-	/** Load BioValue keys from config/bioValue.properties when Mock SBI cannot run locally. */
-	private static void loadBundledBioValueProperties() throws IOException {
-		String path = getGlobalResourcePath() + "/config/bioValue.properties";
-		File file = new File(path);
-		if (!file.isFile()) {
-			LOGGER.warn("Bundled bioValue.properties not found at " + path);
-			return;
-		}
-		Properties props = new Properties();
-		try (FileInputStream in = new FileInputStream(file)) {
-			props.load(in);
-		}
-		int loaded = 0;
-		for (String key : props.stringPropertyNames()) {
-			String value = props.getProperty(key);
-			if (value != null && !value.isBlank()) {
-				BiometricDataProvider.addToBiometricMap(key, value);
-				loaded++;
-			}
-		}
-		LOGGER.info("Loaded " + loaded + " biometric value(s) from " + path);
-	}
-
-	/**
-	 * Mock SBI can "succeed" while Face capture is empty (buildBirFace fails with Index 0).
-	 * FaceBioValue is only written when a Face BIR is actually built — require it, not just a
-	 * long finger-only CBEFF that fails idrepo validateXML (IDR-IDC-002 documents/0/value).
-	 */
-	private static boolean hasUsableBioValue() {
-		String bio = BiometricDataProvider.getFromBiometricMap("BioValue");
-		String face = BiometricDataProvider.getFromBiometricMap("FaceBioValue");
-		return bio != null && bio.length() > 100 && face != null && !face.isBlank();
 	}
 	
 	public static void suiteSetup(String runType) {
