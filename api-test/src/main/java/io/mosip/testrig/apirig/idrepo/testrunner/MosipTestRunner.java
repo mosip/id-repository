@@ -95,10 +95,22 @@ public class MosipTestRunner {
 			}
 
 			try {
-				BiometricDataProvider.generateBiometricTestData("Registration");
+				// Local Mock SBI Face capture is often incomplete (empty Face BIR → IDR-IDC-002).
+				// Prefer optional local-only config/bioValue.properties (gitignored; not shipped).
+				if (skipPartnerSetup) {
+					LOGGER.warn("Local mode: loading optional bioValue.properties when present.");
+					loadBundledBioValueProperties();
+					if (!hasUsableBioValue()) {
+						LOGGER.warn("No usable bundled BioValue; attempting Mock SBI generation.");
+						BiometricDataProvider.generateBiometricTestData("Registration");
+					}
+				} else {
+					BiometricDataProvider.generateBiometricTestData("Registration");
+				}
 			} catch (Exception bioEx) {
 				if (skipPartnerSetup) {
 					LOGGER.warn("Biometric test data generation skipped/failed in local mode: " + bioEx.getMessage());
+					loadBundledBioValueProperties();
 				} else {
 					throw bioEx;
 				}
@@ -143,6 +155,38 @@ public class MosipTestRunner {
 		// AdminTestUtil.generateTestCaseInterDependencies(getGlobalResourcePath() + "/config/testCaseInterDependency.json");
 		System.exit(0);
 
+	}
+
+	/**
+	 * Optional local fallback. File is gitignored and not part of the shipped api-test jar;
+	 * missing file is a no-op (CI/QA rely on Mock SBI).
+	 */
+	private static void loadBundledBioValueProperties() throws IOException {
+		String path = getGlobalResourcePath() + "/config/bioValue.properties";
+		File file = new File(path);
+		if (!file.isFile()) {
+			LOGGER.warn("Optional bioValue.properties not found at " + path);
+			return;
+		}
+		Properties props = new Properties();
+		try (FileInputStream in = new FileInputStream(file)) {
+			props.load(in);
+		}
+		int loaded = 0;
+		for (String key : props.stringPropertyNames()) {
+			String value = props.getProperty(key);
+			if (value != null && !value.isBlank()) {
+				BiometricDataProvider.addToBiometricMap(key, value);
+				loaded++;
+			}
+		}
+		LOGGER.info("Loaded " + loaded + " biometric value(s) from " + path);
+	}
+
+	private static boolean hasUsableBioValue() {
+		String bio = BiometricDataProvider.getFromBiometricMap("BioValue");
+		String face = BiometricDataProvider.getFromBiometricMap("FaceBioValue");
+		return bio != null && bio.length() > 100 && face != null && !face.isBlank();
 	}
 	
 	public static void suiteSetup(String runType) {
