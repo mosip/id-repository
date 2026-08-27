@@ -21,7 +21,7 @@
 		<powermock.beta.version>2.0.7</powermock.beta.version>
 		<mockito.version>2.28.2</mockito.version>
 		<springdoc.version>1.5.10</springdoc.version>
-		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
+		<central.publishing.maven.plugin.version>0.11.0</central.publishing.maven.plugin.version>
 
         <!-- Mosip -->
         <kernel.core.version>1.2.0.2</kernel.core.version>
