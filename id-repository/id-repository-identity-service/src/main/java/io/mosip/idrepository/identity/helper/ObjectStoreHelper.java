@@ -25,6 +25,7 @@ import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.HMACUtils2;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Component
 public class ObjectStoreHelper {
@@ -175,16 +176,12 @@ public class ObjectStoreHelper {
 		copyRaw(buildObjectName(livePrefix, false, fileRefId), buildDraftObjectName(ridHash, false, fileRefId), false);
 	}
 
-	// Moves an extracted file that landed at {ridHash}/Biometrics/{fileRefId} (live bucket,
-	// wrong prefix) into the correct draft path _draft/{ridHash}/Biometrics/{fileRefId}.
-	public void relocateExtractedToDraft(String ridHash, String fileRefId) throws IdRepoAppException {
-		String srcKey = buildObjectName(ridHash, true, fileRefId);
-		String destKey = buildDraftObjectName(ridHash, true, fileRefId);
-		moveRaw(srcKey, destKey);
-	}
-
 	// Moves every object under _draft/{ridHash}/Biometrics/ to {uinHash}/Biometrics/.
 	// Uses listObjectsByPrefix to get full S3 keys (getAllObjects returns truncated names).
+	// A per-file move failure must propagate rather than being swallowed: publishDraftV2
+	// deletes the draft DB record and sweeps remaining draft objects right after this call
+	// returns, so a silently skipped file would be left neither in the draft nor the live
+	// path — permanent, unrecoverable biometric data loss.
 	public void moveAllDraftBiometricsToLive(String ridHash, String uinHash) throws IdRepoAppException {
 		String draftBioPrefix = DRAFT + SLASH + ridHash + SLASH + BIOMETRICS + SLASH;
 		try {
@@ -195,13 +192,7 @@ public class ObjectStoreHelper {
 					continue;
 				}
 				String destKey = buildObjectName(uinHash, true, fileRefId);
-				try {
-					moveRaw(srcKey, destKey);
-				} catch (Exception e) {
-					mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
-							"moveAllDraftBiometricsToLive",
-							"Failed to move draft bio file (non-fatal) | src=" + srcKey + " | error=" + e.getMessage());
-				}
+				moveRaw(srcKey, destKey);
 			}
 		} catch (Exception e) {
 			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
@@ -215,18 +206,27 @@ public class ObjectStoreHelper {
 		try {
 			List<String> keys = objectStore.listObjectsByPrefix(objectStoreAccountName, objectStoreBucketName, draftBioPrefix);
 			for (String key : keys) {
-				try {
-					objectStore.deleteObject(objectStoreAccountName, objectStoreBucketName, null, null, key);
-				} catch (Exception e) {
-					mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
-							"deleteAllDraftBiometrics",
-							"Failed to delete draft bio file (non-fatal) | key=" + key + " | error=" + e.getMessage());
-				}
+				objectStore.deleteObject(objectStoreAccountName, objectStoreBucketName, null, null, key);
 			}
 		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
+			mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
 					"deleteAllDraftBiometrics",
-					"Failed to list draft biometrics for ridHash=" + ridHash + " | error=" + e.getMessage());
+					"Failed to delete draft biometrics for ridHash=" + ridHash + " | error=" + e.getMessage());
+		}
+	}
+
+	// Deletes every object under _draft/{ridHash}/Demographics/ — used when discarding a draft.
+	public void deleteAllDraftDemographics(String ridHash) {
+		String draftDemoPrefix = DRAFT + SLASH + ridHash + SLASH + DEMOGRAPHICS + SLASH;
+		try {
+			List<String> keys = objectStore.listObjectsByPrefix(objectStoreAccountName, objectStoreBucketName, draftDemoPrefix);
+			for (String key : keys) {
+				objectStore.deleteObject(objectStoreAccountName, objectStoreBucketName, null, null, key);
+			}
+		} catch (Exception e) {
+			mosipLogger.warn(IdRepoSecurityManager.getUser(), this.getClass().getSimpleName(),
+					"deleteAllDraftDemographics",
+					"Failed to delete draft demographics for ridHash=" + ridHash + " | error=" + e.getMessage());
 		}
 	}
 
@@ -352,14 +352,34 @@ public class ObjectStoreHelper {
 		ObjectStoreReference dst = new ObjectStoreReference(
 				objectStoreAccountName, objectStoreBucketName, null, null, destKey);
 		try {
-			boolean moved = objectStore.moveObject(src, dst, true);
-			if (!moved) {
-				mosipLogger.debug("Draft object not found, skipping move: {}", srcKey);
-			}
+			// S3Adapter.moveObject never returns false for a missing source key — it throws
+			// ObjectStoreAdapterException (wrapping a NoSuchKey S3Exception) instead, so the
+			// return value is not checked here.
+			objectStore.moveObject(src, dst, true);
 		} catch (ObjectStoreAdapterException e) {
+			// A retried publish can legitimately find the source already gone because an
+			// earlier attempt already moved it (S3 copy+delete succeeded) before a later step
+			// in that same attempt failed. That case must not surface as an error — it would
+			// block the retry forever. Any other object-store failure still propagates so the
+			// draft is marked FAILED and retried.
+			if (isMissingSourceKey(e)) {
+				mosipLogger.debug("Draft object not found (already moved), skipping move: {} | error={}",
+						srcKey, e.getMessage());
+				return;
+			}
 			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
 					"Failed to move object: " + srcKey + " -> " + destKey, e);
 		}
+	}
+
+	private boolean isMissingSourceKey(ObjectStoreAdapterException e) {
+		Throwable cause = e.getCause();
+		if (!(cause instanceof S3Exception)) {
+			return false;
+		}
+		S3Exception s3Exception = (S3Exception) cause;
+		return s3Exception.statusCode() == 404 && s3Exception.awsErrorDetails() != null
+				&& "NoSuchKey".equalsIgnoreCase(s3Exception.awsErrorDetails().errorCode());
 	}
 
 	private void copyRaw(String srcKey, String destKey, boolean deleteSourceAfterCopy) throws IdRepoAppException {

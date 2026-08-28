@@ -61,19 +61,12 @@ import io.mosip.kernel.core.logger.spi.Logger;
 @Service
 public class BiometricExtractionServiceImpl implements BiometricExtractionService {
 
-	// ------------------------------------------------------------------ //
-	//  Constants                                                           //
-	// ------------------------------------------------------------------ //
 
 	private static final String EXTRACT_TEMPLATE   = "extractTemplate";
 	private static final String FORMAT_FLAG_SUFFIX = ".format";
 
 	private static final Logger mosipLogger =
 			IdRepoLogger.getLogger(BiometricExtractionServiceImpl.class);
-
-	// ------------------------------------------------------------------ //
-	//  Dependencies                                                        //
-	// ------------------------------------------------------------------ //
 
 	@Autowired
 	private ObjectStoreHelper objectStoreHelper;
@@ -83,14 +76,6 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 
 	@Autowired
 	private CbeffUtil cbeffUtil;
-
-	// ------------------------------------------------------------------ //
-	//  Configuration                                                       //
-	// ------------------------------------------------------------------ //
-
-	// ------------------------------------------------------------------ //
-	//  Stampede guard                                                      //
-	// ------------------------------------------------------------------ //
 
 	/**
 	 * In-flight extractions keyed by {@code "<uinHash>|<extractionFileName>"}.
@@ -102,10 +87,6 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	 */
 	private final ConcurrentHashMap<String, CompletableFuture<List<BIR>>> inFlight =
 			new ConcurrentHashMap<>();
-
-	// ------------------------------------------------------------------ //
-	//  Public API                                                          //
-	// ------------------------------------------------------------------ //
 
 	/**
 	 * Extracts or retrieves a biometric template for the given modality/format.
@@ -177,6 +158,76 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 		try {
 			List<BIR> extracted = runExtractionWithTimeout(extractionType, extractionFormat, birsForModality);
 			persistToObjectStore(uinHash, extractionFileName, extracted);
+			future.complete(extracted);
+			return future;
+		} catch (IdRepoAppException e) {
+			future.completeExceptionally(e);
+			throw e;
+		} catch (Exception e) {
+			IdRepoAppException wrapped = new IdRepoAppException(UNKNOWN_ERROR, e);
+			future.completeExceptionally(wrapped);
+			throw wrapped;
+		}
+	}
+
+	/**
+	 * V2: same as {@link #extractTemplate}, but persists to and reads from the
+	 * draft object-store path ({@code _draft/{ridHash}/Biometrics/...}) instead
+	 * of the live path, so the extracted file lands where publishDraftV2 expects
+	 * it without needing a separate relocate step.
+	 *
+	 * @param ridHash           the rid hash (used as the draft object-store path prefix)
+	 * @param fileName          base biometric file name (e.g. {@code "Finger.xml"})
+	 * @param extractionType    format query-param key (e.g. {@code "finger.extractionFormat"})
+	 * @param extractionFormat  target format value (e.g. {@code "ISO19794_4_2011"})
+	 * @param birsForModality   source BIR list for this modality
+	 * @return a {@link CompletableFuture} that resolves to the extracted BIR list
+	 * @throws IdRepoAppException on biometric-extraction failure or unexpected error
+	 */
+	@Override
+	@Async("withSecurityContext")
+	public CompletableFuture<List<BIR>> extractTemplateDraft(
+			String ridHash,
+			String fileName,
+			String extractionType,
+			String extractionFormat,
+			List<BIR> birsForModality) throws IdRepoAppException {
+
+		final String extractionFileName = buildExtractionFileName(fileName, extractionType, extractionFormat);
+		final String inFlightKey        = "D|" + ridHash + "|" + extractionFileName;
+
+		// ── 1. Return cached result from the draft object-store path if available ─ //
+		List<BIR> stored = tryReadFromObjectStoreDraft(ridHash, extractionFileName);
+		if (stored != null) {
+			return CompletableFuture.completedFuture(stored);
+		}
+
+		// ── 2. Attach to an existing in-flight extraction if present ──────── //
+		CompletableFuture<List<BIR>> existing = inFlight.get(inFlightKey);
+		if (existing != null) {
+			mosipLogger.info(IdRepoSecurityManager.getUser(),
+					this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
+					"Joining in-flight extraction | key=" + inFlightKey);
+			return existing;
+		}
+
+		// ── 3. Start a new extraction ──────────────────────────────────────── //
+		CompletableFuture<List<BIR>> future = new CompletableFuture<>();
+
+		CompletableFuture<List<BIR>> winner = inFlight.putIfAbsent(inFlightKey, future);
+		if (winner != null) {
+			mosipLogger.info(IdRepoSecurityManager.getUser(),
+					this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
+					"Lost race for key, joining winner | key=" + inFlightKey);
+			return winner;
+		}
+
+		// This thread owns the extraction — clean up the map when done.
+		future.whenComplete((result, ex) -> inFlight.remove(inFlightKey));
+
+		try {
+			List<BIR> extracted = runExtractionWithTimeout(extractionType, extractionFormat, birsForModality);
+			persistToObjectStoreDraft(ridHash, extractionFileName, extracted);
 			future.complete(extracted);
 			return future;
 		} catch (IdRepoAppException e) {
@@ -264,6 +315,48 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	}
 
 	/**
+	 * V2: same as {@link #tryReadFromObjectStore}, but reads from the draft
+	 * object-store path instead of the live path.
+	 *
+	 * @return the deserialised BIR list, or {@code null} if the object does not
+	 *         exist or the store raised an exception
+	 */
+	private List<BIR> tryReadFromObjectStoreDraft(String ridHash, String extractionFileName) {
+		try {
+			if (!objectStoreHelper.draftBiometricObjectExists(ridHash, extractionFileName)) {
+				return null;
+			}
+
+			mosipLogger.info(IdRepoSecurityManager.getUser(),
+					this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
+					"Cache hit in draft object store | file=" + extractionFileName);
+
+			byte[] xmlBytes = objectStoreHelper.getDraftBiometricObject(ridHash, extractionFileName);
+			try {
+				return cbeffUtil.getBIRDataFromXML(xmlBytes);
+			} finally {
+				// Release the large byte array as soon as we have the BIR objects.
+				xmlBytes = null; // NOSONAR – intentional early GC hint
+			}
+
+		} catch (ObjectStoreAdapterException e) {
+			// A transient store error must not prevent extraction from proceeding.
+			mosipLogger.warn(IdRepoSecurityManager.getUser(),
+					this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
+					"Draft object-store read failed (will extract fresh) | file=" + extractionFileName
+							+ " | error=" + e.getMessage());
+			return null;
+		} catch (Exception e) {
+			// Treat any unexpected deserialization error the same way.
+			mosipLogger.warn(IdRepoSecurityManager.getUser(),
+					this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
+					"Unexpected error reading from draft object store (will extract fresh) | file=" + extractionFileName
+							+ " | error=" + e.getMessage());
+			return null;
+		}
+	}
+
+	/**
 	 * Calls the biometric extractor directly on the current managed async thread.
 	 *
 	 * <p>The previous implementation wrapped the call in {@code CompletableFuture.supplyAsync()}
@@ -332,6 +425,38 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 			mosipLogger.error(IdRepoSecurityManager.getUser(),
 					this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
 					"Failed to persist extraction result (non-fatal) | file=" + extractionFileName
+							+ " | error=" + e.getMessage());
+		}
+	}
+
+	/**
+	 * V2: same as {@link #persistToObjectStore}, but persists to the draft
+	 * object-store path instead of the live path.
+	 *
+	 * @param ridHash            draft object-store path prefix
+	 * @param extractionFileName derived file name for this extraction result
+	 * @param extractedBiometrics BIRs to persist
+	 */
+	private void persistToObjectStoreDraft(String ridHash, String extractionFileName, List<BIR> extractedBiometrics) {
+		if (extractedBiometrics == null || extractedBiometrics.isEmpty()) {
+			mosipLogger.warn(IdRepoSecurityManager.getUser(),
+					this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
+					"Skipping persist – empty extraction result | file=" + extractionFileName);
+			return;
+		}
+
+		try {
+			byte[] xmlBytes = cbeffUtil.createXML(extractedBiometrics);
+			objectStoreHelper.putDraftBiometricObject(ridHash, extractionFileName, xmlBytes);
+			mosipLogger.info(IdRepoSecurityManager.getUser(),
+					this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
+					"Persisted extraction result to draft path | file=" + extractionFileName
+							+ " | birCount=" + extractedBiometrics.size());
+		} catch (Exception e) {
+			// Soft failure: caller already has the extracted BIRs.
+			mosipLogger.error(IdRepoSecurityManager.getUser(),
+					this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
+					"Failed to persist extraction result to draft path (non-fatal) | file=" + extractionFileName
 							+ " | error=" + e.getMessage());
 		}
 	}

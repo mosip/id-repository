@@ -43,6 +43,7 @@ import io.mosip.idrepository.identity.dto.UpdateDraftUinDataRequestDto;
 
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -96,6 +97,20 @@ public class IdRepoDraftControllerTest {
 		ResponseEntity<IdResponseDTO> createDraftResponse = controller.createDraft("", null);
 		assertEquals(HttpStatus.OK, createDraftResponse.getStatusCode());
 		assertEquals(responseDTO, createDraftResponse.getBody());
+	}
+
+	@Test
+	public void testCreateDraft_InvalidRegistrationIdPattern() {
+		ReflectionTestUtils.setField(controller, "ridPattern", "\\d*");
+		controller.compilePattern();
+		IdRepoAppException ex = assertThrows(IdRepoAppException.class, () -> {
+			controller.createDraft("abc", null);
+		});
+		assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), ex.getErrorCode());
+		assertEquals(
+				String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id"),
+				ex.getErrorText()
+		);
 	}
 
 	@Test
@@ -321,6 +336,7 @@ public class IdRepoDraftControllerTest {
 	@Test
 	public void testUpdateDraftUinData() throws IdRepoAppException {
 		IdResponseDTO responseDTO = new IdResponseDTO();
+		when(validator.validateUin(Mockito.anyString())).thenReturn(true);
 		when(draftService.updateDraftUinData(any(), any())).thenReturn(responseDTO);
 		UpdateDraftUinDataRequestDto request = new UpdateDraftUinDataRequestDto();
 		request.setUin("274390482564");
@@ -331,6 +347,7 @@ public class IdRepoDraftControllerTest {
 
 	@Test
 	public void testUpdateDraftUinDataException() throws IdRepoAppException {
+		when(validator.validateUin(Mockito.anyString())).thenReturn(true);
 		when(draftService.updateDraftUinData(any(), any()))
 				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
 		try {
@@ -475,5 +492,4 @@ public class IdRepoDraftControllerTest {
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
 		}
 	}
-
 }

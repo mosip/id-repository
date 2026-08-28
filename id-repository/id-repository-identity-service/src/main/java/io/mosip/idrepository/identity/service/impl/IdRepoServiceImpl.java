@@ -546,12 +546,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected void updateVerifiedAttributes(RequestDTO requestDTO, DocumentContext inputData, DocumentContext dbData) {
-		List dbVerifiedAttributes;
-		try {
-			dbVerifiedAttributes = (List) dbData.read(".verifiedAttributes");
-		} catch (com.jayway.jsonpath.PathNotFoundException e) {
-			dbVerifiedAttributes = new ArrayList<>();
-		}
+		List dbVerifiedAttributes = (List) dbData.read(".verifiedAttributes");
 		dbVerifiedAttributes.remove(null);
 		if (dbVerifiedAttributes.isEmpty()) {
 			dbVerifiedAttributes.add(new ArrayList<>());

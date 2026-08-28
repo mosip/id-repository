@@ -60,6 +60,9 @@ public enum IdRepoErrorConstants {
 	/** UIN details not found in draft. */
 	DRAFT_UIN_DETAILS_NOT_FOUND("IDR-IDC-015", "UIN details not found in draft"),
 
+	/** The requested RID is older than the latest processed RID for this UIN. */
+	RID_OLDER_THAN_LATEST_PROCESSED("IDR-IDC-016", "The requested RID is older than the latest processed RID"),
+
 	// Identity Service
 	
 	/** The identity mismatch. */

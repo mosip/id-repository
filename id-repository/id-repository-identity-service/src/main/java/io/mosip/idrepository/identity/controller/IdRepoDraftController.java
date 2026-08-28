@@ -402,6 +402,12 @@ public class IdRepoDraftController {
 	public ResponseEntity<IdResponseDTO> updateDraftUinData(@PathVariable String registrationId,
 			@RequestBody UpdateDraftUinDataRequestDto request) throws IdRepoAppException {
 		try {
+			if (!validator.validateUin(request.getUin())) {
+				throw new IdRepoAppException(
+						IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), IdType.UIN)
+				);
+			}
 			return new ResponseEntity<>(draftService.updateDraftUinData(registrationId, request.getUin()), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_DRAFT_REQUEST_RESPONSE,

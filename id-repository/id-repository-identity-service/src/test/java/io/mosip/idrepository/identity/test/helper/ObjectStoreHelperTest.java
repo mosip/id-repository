@@ -13,6 +13,8 @@ import java.io.ByteArrayInputStream;
 
 import io.mosip.commons.khazana.exception.ObjectStoreAdapterException;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -351,6 +353,34 @@ public class ObjectStoreHelperTest {
 	public void testMoveBiometricDraftToLive_Exception() {
 		when(adapter.moveObject(any(), any(), anyBoolean()))
 				.thenThrow(new ObjectStoreAdapterException("ERR", "move failed"));
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				helper.moveBiometricDraftToLive("srcHash", "destHash", "fileRefId"));
+		assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorCode(), thrown.getErrorCode());
+	}
+
+	// A retried publish can find the source already gone because an earlier attempt already
+	// moved it — S3Adapter.moveObject throws NoSuchKey (404) for this instead of returning
+	// false, and that specific case must be swallowed rather than failing the retry.
+	@Test
+	public void testMoveBiometricDraftToLive_MissingSourceKey_SkipsSilently() throws IdRepoAppException {
+		S3Exception noSuchKey = (S3Exception) S3Exception.builder()
+				.statusCode(404)
+				.awsErrorDetails(AwsErrorDetails.builder().errorCode("NoSuchKey").build())
+				.build();
+		when(adapter.moveObject(any(), any(), anyBoolean()))
+				.thenThrow(new ObjectStoreAdapterException("ERR", "not found", noSuchKey));
+		helper.moveBiometricDraftToLive("srcHash", "destHash", "fileRefId");
+		verify(adapter).moveObject(any(), any(), eq(true));
+	}
+
+	@Test
+	public void testMoveBiometricDraftToLive_OtherS3Error_StillThrows() {
+		S3Exception accessDenied = (S3Exception) S3Exception.builder()
+				.statusCode(403)
+				.awsErrorDetails(AwsErrorDetails.builder().errorCode("AccessDenied").build())
+				.build();
+		when(adapter.moveObject(any(), any(), anyBoolean()))
+				.thenThrow(new ObjectStoreAdapterException("ERR", "access denied", accessDenied));
 		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
 				helper.moveBiometricDraftToLive("srcHash", "destHash", "fileRefId"));
 		assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorCode(), thrown.getErrorCode());
