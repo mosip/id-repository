@@ -23,7 +23,7 @@
 		<lombok.version>1.18.32</lombok.version>
 		<postgresql.version>42.2.2</postgresql.version>
 		<powermock.version>2.0.9</powermock.version>
-		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
+		<central.publishing.maven.plugin.version>0.11.0</central.publishing.maven.plugin.version>
 	</properties>
 	<dependencies>
 		<dependency>

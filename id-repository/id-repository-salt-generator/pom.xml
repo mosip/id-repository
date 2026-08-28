@@ -29,7 +29,7 @@
 		<!-- <maven.sonar.plugin.version>3.7.0.1746</maven.sonar.plugin.version> -->
 		<maven.javadoc.version>3.2.0</maven.javadoc.version>
 		<maven-shade-plugin.version>2.3</maven-shade-plugin.version>
-		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
+		<central.publishing.maven.plugin.version>0.11.0</central.publishing.maven.plugin.version>
 
 		<!-- spring -->
 		<spring.security.test.version>5.0.5.RELEASE</spring.security.test.version>
@@ -120,7 +120,6 @@
 		<jacoco.maven.plugin.version>0.8.11</jacoco.maven.plugin.version>
 		<com.fasterxml.jackson.core.version>2.12.0</com.fasterxml.jackson.core.version>
 		<postgresql.version>42.2.2</postgresql.version>
-        <central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
 		<maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
 	</properties>
 	<dependencies>
