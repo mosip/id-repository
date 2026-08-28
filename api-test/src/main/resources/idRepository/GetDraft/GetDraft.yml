@@ -1,7 +1,7 @@
 GetDraft:
   IdRepository_GetDraft_all_valid_smoke_sid:
       endPoint: /idrepository/v1/identity/draft/{registrationId}
-      description: Get Identity draft
+      description: Verify that the system successfully retrieves an identity draft when the API is called with valid input details
       uniqueIdentifier: TC_IDRepo_GetDraft_01
       role: idrepo
       restMethod: get

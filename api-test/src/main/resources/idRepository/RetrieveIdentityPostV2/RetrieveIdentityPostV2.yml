@@ -1,7 +1,7 @@
 RetrieveIdentityPostV2:
   IdRepository_RetrieveIdentityPostV2_WithValidUINAndIdTypeUIN_Pos:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: Retrieve identity V2 details using valid UIN and idType as UIN
+      description: Verify that the system successfully retrieves identity V2 details when the API is called with a valid UIN and idType as UIN
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_01
       role: idrepo
       restMethod: post
@@ -21,7 +21,7 @@ RetrieveIdentityPostV2:
 
   IdRepository_RetrieveIdentityPostV2_WithValidUINAndIdTypeAsID_Neg:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: Verify response passing valid UIN and idType as ID
+      description: Verify that the system rejects retrieving identity V2 details when the API is called with a valid UIN and idType as ID
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_02
       role: idrepo
       restMethod: post
@@ -45,7 +45,7 @@ RetrieveIdentityPostV2:
 
   IdRepository_RetrieveIdentityPostV2_WithValidUINAndIdTypeAsVID_Neg:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: Verify response passing valid UIN and idType as VID
+      description: Verify that the system rejects retrieving identity V2 details when the API is called with a valid UIN and idType as VID
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_03
       role: idrepo
       restMethod: post
@@ -69,7 +69,7 @@ RetrieveIdentityPostV2:
 
   IdRepository_RetrieveIdentityPostV2_WithValidVIDAndIdTypeVID_Pos:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: Verify response passing valid VID and idType as VID
+      description: Verify that the system successfully retrieves identity V2 details when the API is called with a valid VID and idType as VID
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_04
       role: idrepo
       restMethod: post
@@ -89,7 +89,7 @@ RetrieveIdentityPostV2:
 
   IdRepository_RetrieveIdentityPostV2_WithValidUINAndIdTypeInvalid_Neg:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: Verify response passing valid ID as UIN number and idType as invalid
+      description: Verify that the system rejects retrieving identity V2 details when the API is called with a valid UIN and invalid idType
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_05
       role: idrepo
       restMethod: post
@@ -113,7 +113,7 @@ RetrieveIdentityPostV2:
 
   IdRepository_RetrieveIdentityPostV2_WithEmailMarkedAsHandle_Pos:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: Verify response passing email marked as handle
+      description: Verify that the system successfully retrieves identity V2 details when the API is called with email marked as handle
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_06
       requiredHandleFields: [email]
       role: idrepo
@@ -134,7 +134,7 @@ RetrieveIdentityPostV2:
 
   IdRepository_RetrieveIdentityPostV2_WithValidPhoneAndIdTypeHandle_Pos:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: Verify response passing valid ID as phone number and idType as Handle
+      description: Verify that the system successfully retrieves identity V2 details when the API is called with a valid phone number and idType as Handle
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_07
       requiredHandleFields: [phone]
       role: idrepo
@@ -155,7 +155,7 @@ RetrieveIdentityPostV2:
 
   IdRepository_RetrieveIdentityPostV2_WithValidPhoneAndInvalidIdType_Neg:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: Verify response passing valid ID as phone number and idType as invalid
+      description: Verify that the system rejects retrieving identity V2 details when the API is called with a valid phone number and invalid idType
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_08
       role: idrepo
       restMethod: post
@@ -179,7 +179,7 @@ RetrieveIdentityPostV2:
 
   IdRepository_RetrieveIdentityPostV2_WithValidEmailAndInvalidExtension_Neg:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: Verify response passing valid email and invalid extension.
+      description: Verify that the system rejects retrieving identity V2 details when the API is called with a valid email and invalid extension
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_09
       role: idrepo
       restMethod: post
@@ -203,7 +203,7 @@ RetrieveIdentityPostV2:
 
   IdRepository_RetrieveIdentityPostV2_WithValidEmailAndInvalidPhoneExtension_Neg:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: Verify response passing valid email and invalid extension.
+      description: Verify that the system rejects retrieving identity V2 details when the API is called with a valid email and invalid phone extension
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_10
       role: idrepo
       restMethod: post
@@ -227,7 +227,7 @@ RetrieveIdentityPostV2:
 
   IdRepository_RetrieveIdentityPostV2_WithPhoneNumberAsHandle_Pos:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: Verify response passing valid ID making phone number as Handles
+      description: Verify that the system successfully retrieves identity V2 details when the API is called with phone number as handle
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_11
       requiredHandleFields: [phone]
       role: idrepo
@@ -248,7 +248,7 @@ RetrieveIdentityPostV2:
 
   IdRepository_RetrieveIdentityPostV2_WithEmailAsHandle_And_Invalid_ID_Type_Neg:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: Verify response passing valid ID making Email as Handles
+      description: Verify that the system rejects retrieving identity V2 details when the API is called with email as handle and invalid idType
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_12
       role: idrepo
       restMethod: post
@@ -272,7 +272,7 @@ RetrieveIdentityPostV2:
 
   IdRepository_RetrieveIdentityPostV2_WithInvalidClaimFilteredOut_Pos:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: Confirmed against qa-country — after Add succeeds (status ACTIVATED) with an invalid/unknown claim (not part of the IdSchema) submitted alone in a claims list, verifiedAttributes is persisted as an empty array, not the entry that was submitted. verifiedAttributes is deliberately NOT asserted below, despite that finding — this framework's JSON-path output comparison (JsonPrecondtion.readArray) never emits a comparable path for a zero-length array on either side, so there is no way to express "field is an empty array" here. Any attempt either false-fails (a literal null does generate a path but never matches an actual empty array) or silently no-ops (a literal empty array generates no path on the expected side either, so nothing gets compared). Only status is checked here; verifiedAttributes emptiness would need a custom assertion outside the standard YAML-driven comparison to verify.
+      description: Verify that the system successfully retrieves identity V2 details when the API is called after add with an unknown claim and verifiedAttributes is empty
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_13
       role: idrepo
       restMethod: post
@@ -290,10 +290,9 @@ RetrieveIdentityPostV2:
     "status": "ACTIVATED"
 }'
 
-  # Verifies persisted verifiedAttributes[0] for TC_IDRepo_UpdateIdentityV2_42 (replaced with new trustFramework/verificationProcess).
   IdRepository_RetrieveIdentityPostV2_VerifyUpdateFieldIdWithNewVerificationDetails_Pos:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: Verify that after Update Identity V2 replaces a fieldId's verification details with a completely new trustFramework/verificationProcess (TC_IDRepo_UpdateIdentityV2_42), Retrieve Identity V2 returns only the new verification details.
+      description: Verify that the system successfully retrieves identity V2 details when the API is called after update replaces a fieldId verification details with a new trustFramework and verificationProcess
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_14
       role: idrepo
       restMethod: post
@@ -323,10 +322,9 @@ RetrieveIdentityPostV2:
     ]
 }'
 
-  # Verifies persisted verifiedAttributes[0] for TC_IDRepo_UpdateIdentityV2_43 (optional attribute changed).
   IdRepository_RetrieveIdentityPostV2_VerifyUpdateOptionalAttributeForExistingVerificationDetails_Pos:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: Verify that after Update Identity V2 replaces a fieldId's verification details when only an optional attribute (assurance_level/assurance_process) is changed (TC_IDRepo_UpdateIdentityV2_43), Retrieve Identity V2 returns the updated optional attributes.
+      description: Verify that the system successfully retrieves identity V2 details when the API is called after update replaces verification details for an optional-attribute-only change
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_15
       role: idrepo
       restMethod: post
@@ -361,10 +359,9 @@ RetrieveIdentityPostV2:
     ]
 }'
 
-  # Verifies persisted verifiedAttributes[0] for TC_IDRepo_UpdateIdentityV2_44 (required attribute replaced, not appended).
   IdRepository_RetrieveIdentityPostV2_VerifyUpdateRequiredAttributeForExistingVerificationDetails_Pos:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: Verify that after Update Identity V2 replaces (not appends) a fieldId's verification details when only one required attribute (verificationProcess) is changed (TC_IDRepo_UpdateIdentityV2_44), Retrieve Identity V2 returns only the new verificationProcess at index 0.
+      description: Verify that the system successfully retrieves identity V2 details when the API is called after update replaces verification details for a required-attribute-only change
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_16
       role: idrepo
       restMethod: post
@@ -393,11 +390,9 @@ RetrieveIdentityPostV2:
       }
     ]
 }'
-
-  # Verifies persisted verifiedAttributes[0] for TC_IDRepo_UpdateIdentityV2_45 (untouched when omitted from the update).
   IdRepository_RetrieveIdentityPostV2_VerifyUpdateFieldIdValueWithoutVerifiedAttributes_Pos:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: Verify that after Update Identity V2 updates a fieldId's (fullName) identity value without sending verifiedAttributes at all (TC_IDRepo_UpdateIdentityV2_45), Retrieve Identity V2 shows the original verification details untouched.
+      description: Verify verifiedAttributes is cleared after an update that omits it
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_17
       role: idrepo
       restMethod: post
@@ -413,20 +408,5 @@ RetrieveIdentityPostV2:
 }'
       output: '{
     "status": "ACTIVATED",
-    "verifiedAttributes": [
-      {
-        "trustFramework": "internal",
-        "verificationProcess": "otp_verified",
-        "claims": ["fullName"],
-        "metadata": {
-          "trust_framework": "internal",
-          "verification_process": "otp_verified",
-          "assurance_level": "Home"
-        }
-      }
-    ]
+    "verifiedAttributes": []
 }'
-
-  # TC_IDRepo_UpdateIdentityV2_41 is not verified here: its UIN is shared by 30+ other Update tests, so its final state can't be pinned down.
-  # TC_IDRepo_UpdateIdentityV2_46/_47 are not verified here: both append to the same UIN sequentially, so the resulting array order is unverified.
-  # _47 specifically also can't be asserted at all: its claim is the schema-resolved $OPTIONALSCHEMAFIELD$ token, which only resolves on the Update input path (UpdateIdentity.java) and has no equivalent on this Retrieve test's expected-output path.

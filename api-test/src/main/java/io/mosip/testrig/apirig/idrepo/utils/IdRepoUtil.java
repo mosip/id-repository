@@ -1,6 +1,7 @@
 package io.mosip.testrig.apirig.idrepo.utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -19,6 +20,7 @@ public class IdRepoUtil extends AdminTestUtil {
 
 	private static final Logger logger = Logger.getLogger(IdRepoUtil.class);
 	public static String genRidExt = "23456" + generateRandomNumberString(10);
+
 	public static List<String> testCasesInRunScope = new ArrayList<>();
 	
 	public static void setLogLevel() {
@@ -52,8 +54,7 @@ public class IdRepoUtil extends AdminTestUtil {
 			throw new SkipException(GlobalConstants.KNOWN_ISSUES);
 		}
 
-		// The schema-conditional skips below use FEATURE_NOT_SUPPORTED_MESSAGE so EmailableReport routes
-		// them to the Ignored bucket (it matches on that phrase), not Skipped.
+		// FEATURE_NOT_SUPPORTED_MESSAGE routes these schema-conditional skips to EmailableReport's Ignored bucket
 		if (testCaseDTO.getRequiredSchemaFields() != null && testCaseDTO.getRequiredSchemaFields().length > 0) {
 			for (String field : testCaseDTO.getRequiredSchemaFields()) {
 				String trimmed = field.trim();
@@ -76,8 +77,7 @@ public class IdRepoUtil extends AdminTestUtil {
 			}
 		}
 
-		// Schema-capability skips for the generic (field-name-agnostic) handle scenarios. Each test
-		// declares the capability it needs via its name; if the live schema can't support it, skip.
+		// Schema-capability skips for the generic (field-name-agnostic) handle scenarios
 		if (testCaseName.contains("_missingRequiredHandle") && !schemaHasRequiredHandle()) {
 			throw new SkipException(
 					"No required handle field in the current IdSchema — " + GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
@@ -103,17 +103,26 @@ public class IdRepoUtil extends AdminTestUtil {
 					+ GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
 
-		JSONArray dobArray = new JSONArray(getValueFromAuthActuator("json-property", "dob"));
-		String dob = dobArray.getString(0);
-		JSONArray emailArray = new JSONArray(getValueFromAuthActuator("json-property", "emailId"));
-		String email = emailArray.getString(0);
+		JSONArray dobArray = null;
+		JSONArray emailArray = null;
+		String dobActuator = getValueFromAuthActuator("json-property", "dob");
+		String emailActuator = getValueFromAuthActuator("json-property", "emailId");
+		if (dobActuator != null && !dobActuator.isBlank()) {
+			dobArray = new JSONArray(dobActuator);
+		}
+		if (emailActuator != null && !emailActuator.isBlank()) {
+			emailArray = new JSONArray(emailActuator);
+		}
+		String dob = (dobArray != null && dobArray.length() > 0) ? dobArray.getString(0) : "dateOfBirth";
+		String email = (emailArray != null && emailArray.length() > 0) ? emailArray.getString(0) : "email";
 
 		if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("DOB")
 				&& (!isElementPresent(globalRequiredFields, dob))) {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
 
-		if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("_handle")
+		// Case-insensitive: V1 names use "_handle" (lowercase), V2 names use camelCase ("ArrayHandle", "SelectedHandles").
+		if (testCaseName.startsWith("IdRepository_") && testCaseName.toLowerCase().contains("handle")
 				&& !schemaHasAnyHandle()) {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
@@ -143,19 +152,30 @@ public class IdRepoUtil extends AdminTestUtil {
 	}
 
 	public static void dbCleanUp() {
-		DBManager.executeDBQueries(IdRepoConfigManager.getKMDbUrl(), IdRepoConfigManager.getKMDbUser(),
-				IdRepoConfigManager.getKMDbPass(), IdRepoConfigManager.getKMDbSchema(),
-				getGlobalResourcePath() + "/" + "config/keyManagerCertDataDeleteQueries.txt");
-		DBManager.executeDBQueries(IdRepoConfigManager.getIdaDbUrl(), IdRepoConfigManager.getIdaDbUser(),
-				IdRepoConfigManager.getPMSDbPass(), IdRepoConfigManager.getIdaDbSchema(),
-				getGlobalResourcePath() + "/" + "config/idaCertDataDeleteQueries.txt");
-		DBManager.executeDBQueries(IdRepoConfigManager.getMASTERDbUrl(), IdRepoConfigManager.getMasterDbUser(),
-				IdRepoConfigManager.getMasterDbPass(), IdRepoConfigManager.getMasterDbSchema(),
-				getGlobalResourcePath() + "/" + "config/masterDataCertDataDeleteQueries.txt");
+		runCleanup("keymgr", () -> DBManager.executeDBQueries(IdRepoConfigManager.getKMDbUrl(),
+				IdRepoConfigManager.getKMDbUser(), IdRepoConfigManager.getKMDbPass(),
+				IdRepoConfigManager.getKMDbSchema(),
+				getGlobalResourcePath() + "/" + "config/keyManagerCertDataDeleteQueries.txt"));
+		runCleanup("ida", () -> DBManager.executeDBQueries(IdRepoConfigManager.getIdaDbUrl(),
+				IdRepoConfigManager.getIdaDbUser(), IdRepoConfigManager.getPMSDbPass(),
+				IdRepoConfigManager.getIdaDbSchema(),
+				getGlobalResourcePath() + "/" + "config/idaCertDataDeleteQueries.txt"));
+		runCleanup("master", () -> DBManager.executeDBQueries(IdRepoConfigManager.getMASTERDbUrl(),
+				IdRepoConfigManager.getMasterDbUser(), IdRepoConfigManager.getMasterDbPass(),
+				IdRepoConfigManager.getMasterDbSchema(),
+				getGlobalResourcePath() + "/" + "config/masterDataCertDataDeleteQueries.txt"));
+		runCleanup("idrepo", () -> DBManager.executeDBQueries(IdRepoConfigManager.getIdRepoDbUrl(),
+				IdRepoConfigManager.getIdRepoDbUser(), IdRepoConfigManager.getPMSDbPass(), "idrepo",
+				getGlobalResourcePath() + "/" + "config/idrepoDeleteQueries.txt"));
+	}
 
-		DBManager.executeDBQueries(IdRepoConfigManager.getIdRepoDbUrl(), IdRepoConfigManager.getIdRepoDbUser(),
-				IdRepoConfigManager.getPMSDbPass(), "idrepo",
-				getGlobalResourcePath() + "/" + "config/idrepoDeleteQueries.txt");
+	private static void runCleanup(String schema, Runnable cleanup) {
+		try {
+			cleanup.run();
+		} catch (Exception e) {
+			logger.error("DB cleanup skipped for " + schema + ": " + e.getClass().getSimpleName() + " - "
+					+ e.getMessage());
+		}
 	}
 	
 	public static String inputStringKeyWordHandeler(String jsonString, String testCaseName) {
@@ -198,7 +218,9 @@ public class IdRepoUtil extends AdminTestUtil {
 	/** First handle field of the given schema "type", or null if none — schema-driven, no field names. */
 	public static String resolveHandleOfType(String type) {
 		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
-		for (String fieldName : props.keySet()) {
+		List<String> fieldNames = new ArrayList<>(props.keySet());
+		Collections.sort(fieldNames);
+		for (String fieldName : fieldNames) {
 			JSONObject fieldDef = props.getJSONObject(fieldName);
 			if (fieldDef.optBoolean("handle", false) && type.equals(fieldDef.optString("type", "string"))) {
 				return fieldName;
@@ -215,7 +237,9 @@ public class IdRepoUtil extends AdminTestUtil {
 	/** First handle field that is also required, or null if none. */
 	public static String resolveRequiredHandle() {
 		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
-		for (String fieldName : props.keySet()) {
+		List<String> fieldNames = new ArrayList<>(props.keySet());
+		Collections.sort(fieldNames);
+		for (String fieldName : fieldNames) {
 			if (props.getJSONObject(fieldName).optBoolean("handle", false)
 					&& isElementPresent(globalRequiredFields, fieldName)) {
 				return fieldName;
@@ -230,17 +254,12 @@ public class IdRepoUtil extends AdminTestUtil {
 		return Boolean.TRUE.equals(AdminTestUtil.globalIdentityAdditionalProperties);
 	}
 
-	/**
-	 * First schema field that is claimable as a verifiedAttributes fieldId but NOT in the schema's
-	 * "required" array — i.e. a field genuinely absent from a normal Add request unless explicitly
-	 * supplied. Which fields are optional varies by IdSchema/environment, so this is resolved from the
-	 * live schema rather than a hardcoded field name (schema-driven, no field names, like
-	 * {@link #resolveHandleOfType(String)}). Excludes handle fields and complex $ref types
-	 * (documentType/biometricsType/hashType/TaggedListType) to keep the result a plain claimable field.
-	 */
+	/** First schema field that's claimable but not required — resolved from the live schema, excluding handles and complex $ref types. */
 	public static String resolveOptionalClaimableField() {
 		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
-		for (String fieldName : props.keySet()) {
+		List<String> fieldNames = new ArrayList<>(props.keySet());
+		Collections.sort(fieldNames);
+		for (String fieldName : fieldNames) {
 			if (isElementPresent(globalRequiredFields, fieldName)) {
 				continue;
 			}

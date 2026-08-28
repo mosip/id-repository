@@ -14,3 +14,4 @@ MOSIP-41854------IdRepository_AuthInternalUnlock_Uin_Empty_version
 MOSIP-41854------IdRepository_AuthInternalUnlock_Vid_Empty_id
 MOSIP-41854------IdRepository_AuthInternalUnlock_Vid_Empty_requestTime
 MOSIP-41854------IdRepository_AuthInternalUnlock_Vid_Empty_version
+MOSIP-45517------IdRepository_AddIdentity_withReusableEmailAfterRemoval

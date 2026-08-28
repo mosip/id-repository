@@ -1,7 +1,7 @@
 GetUpdateCount:
    IdRepository_GetUpdateCount_Uin_Valid_Smoke:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: Get update count passing valid UIN
+      description: Verify that the system successfully gets the update count when the API is called with a valid UIN
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_01
       role: resident
       checkErrorsOnlyInResponse: true
@@ -19,7 +19,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Uin_Invalid_IndivualId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: Get update count by passing invalid individual ID
+      description: Verify that the system rejects getting the update count when the API is called with an invalid individual ID
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_02
       role: resident
       restMethod: get
@@ -33,14 +33,15 @@ GetUpdateCount:
       output: '{
   "errors": [
     {
-      "errorCode": "IDR-IDC-004"
+      "errorCode": "IDR-IDC-004",
+      "message": "Unknown error occurred"
     }
   ]
 }'
 
    IdRepository_GetUpdateCount_Uin_Empty_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: Get update count by passing empty individual ID
+      description: Verify that the system rejects getting the update count when the API is called with an empty individual ID
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_03
       role: resident
       restMethod: get
@@ -61,7 +62,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Uin_SpaceVal_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: Get update count passing space value in individual id
+      description: Verify that the system rejects getting the update count when the API is called with a space value in the individual ID field
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_04
       role: resident
       restMethod: get
@@ -82,7 +83,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Uin_StatusCode_Invalid_Token:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: Get update count passing invalid token
+      description: Verify that the system rejects getting the update count when the API is called with an invalid token
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_05
       role: invalid
       restMethod: get
@@ -97,7 +98,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Vid_Valid_Smoke:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: Get update count by passing valid VID
+      description: Verify that the system successfully gets the update count when the API is called with a valid VID
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_06
       role: resident
       checkErrorsOnlyInResponse: true
@@ -116,7 +117,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Uin_Invalid_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: Get update count by passing invalid UIN
+      description: Verify that the system rejects getting the update count when the API is called with an invalid individual ID
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_07
       role: resident
       restMethod: get
@@ -137,7 +138,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Uin_StaatusCode_Empty_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: Get update count by passing empty space in individual id
+      description: Verify that the system rejects getting the update count when the API is called with an empty individual ID
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_08
       role: resident
       restMethod: get
@@ -158,7 +159,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Uin_SppaceVal_IndivId:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: Get update count by passing space in individual id
+      description: Verify that the system rejects getting the update count when the API is called with a space value in the individual ID field
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_09
       role: resident
       restMethod: get
@@ -179,7 +180,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Vid_StatusCode_Invalid_Token:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: Get update count by passing invalid token
+      description: Verify that the system rejects getting the update count when the API is called with an invalid token
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_10
       role: invalid
       restMethod: get
@@ -195,7 +196,7 @@ GetUpdateCount:
       
    IdRepository_GetUpdateCount_Uin_Invalid_idType:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: Get update count by passing invalid idtype
+      description: Verify that the system rejects getting the update count when the API is called with an invalid idType
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_11
       role: resident
       restMethod: get
@@ -216,7 +217,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Uin_Empty_idType:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: Get update count by passing empty Id type
+      description: Verify that the system rejects getting the update count when the API is called with an empty idType
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_12
       role: resident
       restMethod: get
@@ -237,7 +238,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Uin_Spaceval_idType:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: Get update count by passing space in id type
+      description: Verify that the system rejects getting the update count when the API is called with a space value in idType
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_13
       role: resident
       restMethod: get
@@ -258,7 +259,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Vid_Invalid_idType:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: Get update count by passing invalid id type
+      description: Verify that the system rejects getting the update count when the API is called with an invalid idType
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_14
       role: resident
       restMethod: get
@@ -280,7 +281,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Vid_Empty_idType:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: Get update count by passing invalid idtype
+      description: Verify that the system rejects getting the update count when the API is called with an empty idType
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_15
       role: resident
       restMethod: get
@@ -303,7 +304,7 @@ GetUpdateCount:
 
    IdRepository_GetUpdateCount_Vid_Spaceval_idType:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
-      description: Get update count by passing space value in idtype
+      description: Verify that the system rejects getting the update count when the API is called with a space value in idType
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_16
       role: resident
       restMethod: get

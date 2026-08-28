@@ -1,7 +1,7 @@
 CreateDraft:
   IdRepository_CreateDraft_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/create/{registrationId}
-      description: Create a draft passing valid registrationID
+      description: Verify that the system successfully creates a draft when the API is called with a valid registration ID
       uniqueIdentifier: TC_IDRepo_CreateDraft_01
       role: idrepo
       checkErrorsOnlyInResponse: true
@@ -16,7 +16,7 @@ CreateDraft:
 }'
   IdRepository_Verify_UIN_Only_One_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/create/{registrationId}
-      description: Verify UIN passing valid registration ID
+      description: Verify that the system successfully verifies a UIN when the API is called with a valid registration ID
       uniqueIdentifier: TC_IDRepo_CreateDraft_02
       role: idrepo
       restMethod: post
@@ -34,7 +34,7 @@ CreateDraft:
 }'
   IdRepository_CreateDraft_delete_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/create/{registrationId}
-      description: Delete a draft passing valid registartionId
+      description: Verify that the system successfully creates a draft for delete scenario when the API is called with a valid registration ID
       uniqueIdentifier: TC_IDRepo_CreateDraft_03
       role: idrepo
       restMethod: post
@@ -48,7 +48,7 @@ CreateDraft:
 }'
   IdRepository_CreateDraft_invalid_rid:
       endPoint: /idrepository/v1/identity/draft/create/{registrationId}
-      description: Create a draft passing invalid RID
+      description: Verify that the system rejects create draft when the API is called with an invalid RID
       uniqueIdentifier: TC_IDRepo_CreateDraft_01
       role: idrepo
       restMethod: post
@@ -66,7 +66,7 @@ CreateDraft:
 }'
   IdRepository_CreateDraft_blank_rid:
       endPoint: /idrepository/v1/identity/draft/create/{registrationId}
-      description: Create a draft passing blank RID
+      description: Verify that the system rejects create draft when the API is called with a blank RID
       uniqueIdentifier: TC_IDRepo_CreateDraft_06
       role: idrepo
       restMethod: post
@@ -84,7 +84,7 @@ CreateDraft:
 }'
   IdRepository_CreateDraft_forExtractionSmoke_Pos:
       endPoint: /idrepository/v1/identity/draft/create/{registrationId}
-      description: Create a draft passing valid registrationID use for extraction
+      description: Verify that the system successfully creates a draft for biometric extraction when the API is called with a valid registration ID
       uniqueIdentifier: TC_IDRepo_CreateDraft_07
       role: idrepo
       checkErrorsOnlyInResponse: true

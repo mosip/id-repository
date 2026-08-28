@@ -1,28 +1,7 @@
 package io.mosip.testrig.apirig.idrepo.testrunner;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
-import java.security.interfaces.RSAPublicKey;
-import java.util.ArrayList;
-import java.util.List;
-//import java.util.Map;
-import java.util.Properties;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import io.mosip.testrig.apirig.utils.DependencyResolver;
-import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
-import org.testng.TestNG;
-
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
-
 import io.mosip.testrig.apirig.dataprovider.BiometricDataProvider;
 import io.mosip.testrig.apirig.dbaccess.DBManager;
 import io.mosip.testrig.apirig.idrepo.utils.IdRepoConfigManager;
@@ -31,19 +10,27 @@ import io.mosip.testrig.apirig.testrunner.BaseTestCase;
 import io.mosip.testrig.apirig.testrunner.ExtractResource;
 import io.mosip.testrig.apirig.testrunner.HealthChecker;
 import io.mosip.testrig.apirig.testrunner.OTPListener;
-import io.mosip.testrig.apirig.utils.AdminTestUtil;
-import io.mosip.testrig.apirig.utils.AuthTestsUtil;
-import io.mosip.testrig.apirig.utils.CertsUtil;
-import io.mosip.testrig.apirig.utils.GlobalConstants;
-import io.mosip.testrig.apirig.utils.GlobalMethods;
-import io.mosip.testrig.apirig.utils.JWKKeyUtil;
-import io.mosip.testrig.apirig.utils.KernelAuthentication;
-import io.mosip.testrig.apirig.utils.KeyCloakUserAndAPIKeyGeneration;
-import io.mosip.testrig.apirig.utils.KeycloakUserManager;
-import io.mosip.testrig.apirig.utils.MispPartnerAndLicenseKeyGeneration;
-import io.mosip.testrig.apirig.utils.OutputValidationUtil;
-import io.mosip.testrig.apirig.utils.PartnerRegistration;
-import io.mosip.testrig.apirig.utils.SkipTestCaseHandler;
+import io.mosip.testrig.apirig.utils.*;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+import org.testng.TestNG;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.net.URI;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.interfaces.RSAPublicKey;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
+//import java.util.Map;
 
 /**
  * Class to initiate mosip api test execution
@@ -86,20 +73,36 @@ public class MosipTestRunner {
 			healthcheck.setCurrentRunningModule(GlobalConstants.IDREPO);
 			Thread trigger = new Thread(healthcheck);
 			trigger.start();
-			
-			KeycloakUserManager.removeUser();
-			KeycloakUserManager.createUsers();
-			KeycloakUserManager.closeKeycloakInstance();
+
+			boolean skipPartnerSetup = shouldSkipPartnerSetup();
+			if (skipPartnerSetup) {
+				LOGGER.warn("Skipping Keycloak user setup (local endpoint has no Keycloak Admin API).");
+			} else {
+				KeycloakUserManager.removeUser();
+				KeycloakUserManager.createUsers();
+				KeycloakUserManager.closeKeycloakInstance();
+			}
 			AdminTestUtil.getRequiredField();
 
 			BaseTestCase.getLanguageList();
 			AdminTestUtil.getLocationData();
-			
-			// Generate device certificates to be consumed by Mock-MDS
-			PartnerRegistration.deleteCertificates();
-			PartnerRegistration.deviceGeneration();
 
-			BiometricDataProvider.generateBiometricTestData("Registration");
+			if (skipPartnerSetup) {
+				LOGGER.warn("Skipping PartnerRegistration.deviceGeneration() on local endpoint.");
+			} else {
+				PartnerRegistration.deleteCertificates();
+				PartnerRegistration.deviceGeneration();
+			}
+
+			try {
+				BiometricDataProvider.generateBiometricTestData("Registration");
+			} catch (Exception bioEx) {
+				if (skipPartnerSetup) {
+					LOGGER.warn("Biometric test data generation skipped/failed in local mode: " + bioEx.getMessage());
+				} else {
+					throw bioEx;
+				}
+			}
 			
 			String testCasesToExecuteString = IdRepoConfigManager.getproperty("testCasesToExecute");
 			
@@ -117,13 +120,23 @@ public class MosipTestRunner {
 			LOGGER.fatal("Fatal error during test run", e);
 			throw e;
 		} finally {
-			IdRepoUtil.dbCleanUp();
-			KeycloakUserManager.removeUser();
-			KeycloakUserManager.closeKeycloakInstance();
-
 			OTPListener.bTerminate = true;
-
 			HealthChecker.bTerminate = true;
+
+			try {
+				IdRepoUtil.dbCleanUp();
+			} catch (Exception cleanupEx) {
+				LOGGER.error("DB cleanup failed", cleanupEx);
+			}
+			if (!shouldSkipPartnerSetup()) {
+				try {
+					KeycloakUserManager.removeUser();
+				} catch (Exception cleanupEx) {
+					LOGGER.error("Keycloak user removal failed", cleanupEx);
+				} finally {
+					KeycloakUserManager.closeKeycloakInstance();
+				}
+			}
 		}
 
 		// Used for generating the test case interdependency JSON file
@@ -138,6 +151,7 @@ public class MosipTestRunner {
 		else
 			LOGGER.info("Test Framework for Mosip api Initialized");
 		BaseTestCase.initialize();
+		sanitizeCertDomainForWindows();
 		LOGGER.info("Done with BeforeSuite and test case setup! su TEST EXECUTION!\n\n");
 
 		if (!runType.equalsIgnoreCase("JAR")) {
@@ -150,6 +164,40 @@ public class MosipTestRunner {
 		AdminTestUtil.copyIdrepoTestResource();
 		BaseTestCase.otpListener = new OTPListener();
 		BaseTestCase.otpListener.run();
+	}
+
+	/**
+	 * Windows cannot use {@code localhost:8082} as a folder name (illegal ':').
+	 */
+	static void sanitizeCertDomainForWindows() {
+		if (BaseTestCase.domain != null
+				&& System.getProperty("os.name").toLowerCase().contains("windows")
+				&& BaseTestCase.domain.contains(":")) {
+			String sanitized = BaseTestCase.domain.replace(":", "_");
+			LOGGER.info("Windows certs folder: BaseTestCase.domain " + BaseTestCase.domain + " -> " + sanitized);
+			BaseTestCase.domain = sanitized;
+		}
+	}
+
+	static boolean shouldSkipPartnerSetup() {
+		String flag = System.getProperty("idrepo.skipPartnerSetup");
+		if (flag != null && !flag.isBlank()) {
+			return Boolean.parseBoolean(flag);
+		}
+		return isLocalEndpoint();
+	}
+
+	static boolean isLocalEndpoint() {
+		String endpoint = System.getProperty("env.endpoint", "");
+		if (endpoint == null || endpoint.isBlank()) {
+			return false;
+		}
+		try {
+			String host = URI.create(endpoint).getHost();
+			return "localhost".equalsIgnoreCase(host) || "127.0.0.1".equals(host);
+		} catch (IllegalArgumentException ex) {
+			return false;
+		}
 	}
 
 	private static void setLogLevels() {

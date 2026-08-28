@@ -1,7 +1,7 @@
 ReactivateVIDs:
   IdRepository_ReactivateVIDs_Smoke_Pos:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID for valid UIN
+      description: Verify that the system successfully reactivates VIDs for a UIN when the API is called with a valid UIN
       uniqueIdentifier: TC_IDRepo_ReactivateVID_01
       role: resident
       restMethod: post
@@ -19,7 +19,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Deactivated_Uin:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID on passing deactivated UIN
+      description: Verify that the system successfully reactivates VIDs for a UIN when the API is called with a deactivated UIN
       uniqueIdentifier: TC_IDRepo_ReactivateVID_02
       role: resident
       checkErrorsOnlyInResponse: true
@@ -43,7 +43,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Onetime_Smoke_Pos:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate onetimeuse VID for a valid UIN
+      description: Verify that the system successfully reactivates VIDs for a UIN when the API is called with a valid UIN for one-time use VID
       uniqueIdentifier: TC_IDRepo_ReactivateVID_03
       role: resident
       restMethod: post
@@ -62,7 +62,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Invalid_ID_Neg:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID passing invalid ID
+      description: Verify that the system rejects reactivating VIDs for a UIN when the API is called with an invalid ID
       uniqueIdentifier: TC_IDRepo_ReactivateVID_04
       role: resident
       restMethod: post
@@ -84,7 +84,7 @@ ReactivateVIDs:
 }'
   IdRepository_ReactivateVIDs_Missing_ID_Neg:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID removing ID field
+      description: Verify that the system rejects reactivating VIDs for a UIN when the API is called with the ID field missing
       uniqueIdentifier: TC_IDRepo_ReactivateVID_05
       role: resident
       restMethod: post
@@ -107,7 +107,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Empty_ID_Neg:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID passing empty ID
+      description: Verify that the system rejects reactivating VIDs for a UIN when the API is called with an empty ID
       uniqueIdentifier: TC_IDRepo_ReactivateVID_06
       role: resident
       restMethod: post
@@ -130,7 +130,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Spaceval_ID_Neg:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID passing space value in ID field
+      description: Verify that the system rejects reactivating VIDs for a UIN when the API is called with a space value in the ID field
       uniqueIdentifier: TC_IDRepo_ReactivateVID_07
       role: resident
       restMethod: post
@@ -153,7 +153,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Missing_UIN_Neg:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID removing UIN field
+      description: Verify that the system rejects reactivating VIDs for a UIN when the API is called with the UIN field missing
       uniqueIdentifier: TC_IDRepo_ReactivateVID_08
       role: resident
       restMethod: post
@@ -175,7 +175,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Invalid_UIN_Neg:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID passing invalid UIN
+      description: Verify that the system rejects reactivating VIDs for a UIN when the API is called with an invalid UIN
       uniqueIdentifier: TC_IDRepo_ReactivateVID_09
       role: resident
       restMethod: post
@@ -197,7 +197,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Empty_UIN_Neg:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID passing empty UIN
+      description: Verify that the system rejects reactivating VIDs for a UIN when the API is called with an empty UIN
       uniqueIdentifier: TC_IDRepo_ReactivateVID_10
       role: resident
       restMethod: post
@@ -219,7 +219,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_SpaceVal_UIN_Neg:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID passing space value in UIN field
+      description: Verify that the system rejects reactivating VIDs for a UIN when the API is called with a space value in the UIN field
       uniqueIdentifier: TC_IDRepo_ReactivateVID_11
       role: resident
       restMethod: post
@@ -241,7 +241,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Invalid_Timestamp_Neg:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID passing invalid Timestamp
+      description: Verify that the system rejects reactivating VIDs for a UIN when the API is called with an invalid timestamp
       uniqueIdentifier: TC_IDRepo_ReactivateVID_12
       role: resident
       restMethod: post
@@ -263,7 +263,7 @@ ReactivateVIDs:
 }'
   IdRepository_ReactivateVIDs_Missing_Timestamp_Neg:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID removing Timestamp
+      description: Verify that the system rejects reactivating VIDs for a UIN when the API is called with the timestamp field missing
       uniqueIdentifier: TC_IDRepo_ReactivateVID_13
       role: resident
       restMethod: post
@@ -286,7 +286,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_with_Past_Timestamp_Neg:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID passing past timestamp
+      description: Verify that the system rejects reactivating VIDs for a UIN when the API is called with a past timestamp
       uniqueIdentifier: TC_IDRepo_ReactivateVID_14
       role: resident
       restMethod: post
@@ -309,7 +309,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Future_Timestamp_Neg:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID passing Future timestamp value
+      description: Verify that the system rejects reactivating VIDs for a UIN when the API is called with a future timestamp
       uniqueIdentifier: TC_IDRepo_ReactivateVID_15
       role: resident
       restMethod: post
@@ -332,7 +332,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Empty_Timestamp_Neg:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID passing empty value in timestamp field
+      description: Verify that the system rejects reactivating VIDs for a UIN when the API is called with an empty timestamp
       uniqueIdentifier: TC_IDRepo_ReactivateVID_16
       role: resident
       restMethod: post
@@ -355,7 +355,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Spaceval_Timestamp_Neg:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID passing space value in timestamp
+      description: Verify that the system rejects reactivating VIDs for a UIN when the API is called with a space value in the timestamp field
       uniqueIdentifier: TC_IDRepo_ReactivateVID_17
       role: resident
       restMethod: post
@@ -378,7 +378,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Invalid_version_Neg:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID passing invalid version
+      description: Verify that the system rejects reactivating VIDs for a UIN when the API is called with an invalid version
       uniqueIdentifier: TC_IDRepo_ReactivateVID_18
       role: resident
       restMethod: post
@@ -400,7 +400,7 @@ ReactivateVIDs:
 }'
   IdRepository_ReactivateVIDs_Missing_version_Neg:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID removing version field
+      description: Verify that the system rejects reactivating VIDs for a UIN when the API is called with the version field missing
       uniqueIdentifier: TC_IDRepo_ReactivateVID_19
       role: resident
       restMethod: post
@@ -423,7 +423,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Empty_version_Neg:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID passing empty version
+      description: Verify that the system rejects reactivating VIDs for a UIN when the API is called with an empty version
       uniqueIdentifier: TC_IDRepo_ReactivateVID_20
       role: resident
       restMethod: post
@@ -446,7 +446,7 @@ ReactivateVIDs:
 
   IdRepository_ReactivateVIDs_Spaceval_version_Neg:
       endPoint: /idrepository/v1/vid/reactivate
-      description: Reactivate VID passing space value in version
+      description: Verify that the system rejects reactivating VIDs for a UIN when the API is called with a space value in the version field
       uniqueIdentifier: TC_IDRepo_ReactivateVID_21
       role: resident
       restMethod: post

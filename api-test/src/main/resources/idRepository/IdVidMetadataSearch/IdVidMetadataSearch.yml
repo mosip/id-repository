@@ -2,7 +2,7 @@ IdVidMetadataSearch:
   IdRepository_IdVidMetadataSearch_With_UIN_all_Valid_Smoke:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
     uniqueIdentifier: TC_IdVidMetadataSearch_01      
-    description: Validate that IdVid metadata is successfully retrieved when a valid Individual ID (UIN) is provided      
+    description: Verify that the system successfully searches IdVid metadata when the API is called with a valid individual ID (UIN)
     role: idrepo
     restMethod: post
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
@@ -20,7 +20,7 @@ IdVidMetadataSearch:
   IdRepository_IdVidMetadataSearch_With_VID_all_Valid_Smoke:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
     uniqueIdentifier: TC_IdVidMetadataSearch_02     
-    description: Validate that IdVid metadata is successfully retrieved when a valid Individual ID (VID) is provided      
+    description: Verify that the system successfully searches IdVid metadata when the API is called with a valid individual ID (VID)
     role: idrepo
     restMethod: post
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
@@ -38,7 +38,7 @@ IdVidMetadataSearch:
   IdRepository_IdVidMetadataSearch_With_Required_Details:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
     uniqueIdentifier: TC_IdVidMetadataSearch_03  
-    description: Validate that IdVid metadata is successfully retrieved when a valid Individual ID is provided without idType parameter      
+    description: Verify that the system successfully searches IdVid metadata when the API is called with a valid individual ID without idType parameter
     role: idrepo
     restMethod: post
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
@@ -56,7 +56,7 @@ IdVidMetadataSearch:
   IdRepository_IdVidMetadataSearch_With_RID_As_IndividualId:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
     uniqueIdentifier: TC_IdVidMetadataSearch_04
-    description: Validate that IdVid metadata is successfully retrieved when valid IndividualId (RID) and idType are provided in the request      
+    description: Verify that the system successfully searches IdVid metadata when the API is called with a valid individual ID (RID) and idType
     role: idrepo
     restMethod: post
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
@@ -74,7 +74,7 @@ IdVidMetadataSearch:
   IdRepository_IdVidMetadataSearchNegTC_With_Invalid_Token_Neg:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
     uniqueIdentifier: TC_IdVidMetadataSearchNegTC_01      
-    description: Validate that the IdVid metadata search API returns an authorization error for requests made using an invalid token     
+    description: Verify that the system rejects searching IdVid metadata when the API is called with an invalid token
     role: invalidtoken
     restMethod: post
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
@@ -96,7 +96,7 @@ IdVidMetadataSearch:
   IdRepository_IdVidMetadataSearchNegTC_With_Invalid_IndividualId_Neg:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
     uniqueIdentifier: TC_IdVidMetadataSearchNegTC_02    
-    description: Validate that the IdVid metadata search API returns an error when an Invalid IndividualId is provided     
+    description: Verify that the system rejects searching IdVid metadata when the API is called with an invalid individual ID
     role: idrepo
     restMethod: post
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
@@ -118,7 +118,7 @@ IdVidMetadataSearch:
   IdRepository_IdVidMetadataSearchNegTC_With_Empty_IndividualId_Neg:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
     uniqueIdentifier: TC_IdVidMetadataSearchNegTC_03
-    description: Validate that the IdVid metadata search API returns an error when IndividualId is empty in the request     
+    description: Verify that the system rejects searching IdVid metadata when the API is called with an empty individual ID
     role: idrepo
     restMethod: post
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
@@ -140,7 +140,7 @@ IdVidMetadataSearch:
   IdRepository_IdVidMetadataSearchNegTC_With_Negative_IndividualId_Neg:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
     uniqueIdentifier: TC_IdVidMetadataSearchNegTC_04
-    description: Validate that the IdVid metadata search API returns an error when a negative IndividualId is provided     
+    description: Verify that the system rejects searching IdVid metadata when the API is called with a negative individual ID
     role: idrepo
     restMethod: post
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
@@ -162,7 +162,7 @@ IdVidMetadataSearch:
   IdRepository_IdVidMetadataSearchNegTC_With_SpecialCharacter_IndividualId_Neg:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
     uniqueIdentifier: TC_IdVidMetadataSearchNegTC_05
-    description: Validate that the IdVid metadata search API returns an error when IndividualId contains special characters     
+    description: Verify that the system rejects searching IdVid metadata when the API is called with special characters in individual ID
     role: idrepo
     restMethod: post
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
@@ -184,7 +184,7 @@ IdVidMetadataSearch:
   IdRepository_IdVidMetadataSearchNegTC_With_InvalidLength_IndividualId_Neg:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
     uniqueIdentifier: TC_IdVidMetadataSearchNegTC_06
-    description: Validate that the IdVid metadata search API returns an error when IndividualId exceeds the valid length     
+    description: Verify that the system rejects searching IdVid metadata when the API is called with an invalid individual ID
     role: idrepo
     restMethod: post
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
@@ -206,7 +206,7 @@ IdVidMetadataSearch:
   IdRepository_IdVidMetadataSearchNegTC_With_Blank_IndividualId_Neg:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
     uniqueIdentifier: TC_IdVidMetadataSearchNegTC_07
-    description: Validate that the IdVid metadata search API returns an error when IndividualId contains a blank value     
+    description: Verify that the system rejects searching IdVid metadata when the API is called with a blank individual ID
     role: idrepo
     restMethod: post
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
@@ -228,7 +228,7 @@ IdVidMetadataSearch:
   IdRepository_IdVidMetadataSearchNegTC_With_IdType_Mismatch_Neg:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
     uniqueIdentifier: TC_IdVidMetadataSearchNegTC_08
-    description: Validate that the IdVid metadata search API returns an error when IndividualId and idType do not match     
+    description: Verify that the system rejects searching IdVid metadata when the API is called with mismatched individual ID and idType
     role: idrepo
     restMethod: post
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
@@ -250,7 +250,7 @@ IdVidMetadataSearch:
   IdRepository_IdVidMetadataSearchNegTC_With_Invalid_IdType_Neg:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
     uniqueIdentifier: TC_IdVidMetadataSearchNegTC_09
-    description: Validate that the IdVid metadata search API returns an error when an invalid idType is provided     
+    description: Verify that the system rejects searching IdVid metadata when the API is called with an invalid idType
     role: idrepo
     restMethod: post
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
@@ -272,7 +272,7 @@ IdVidMetadataSearch:
   IdRepository_IdVidMetadataSearch_Without_IndividualId_Neg:
     endPoint: /idrepository/v1/identity/idvid-metadata/search
     uniqueIdentifier: TC_IdVidMetadataSearchNegTC_10
-    description: Validate that the IdVid metadata search API returns an error when IndividualId is not provided in the request      
+    description: Verify that the system rejects searching IdVid metadata when the API is called with individual ID not provided
     role: idrepo
     restMethod: post
     inputTemplate: idRepository/IdVidMetadataSearch/IdVidMetadataSearch
