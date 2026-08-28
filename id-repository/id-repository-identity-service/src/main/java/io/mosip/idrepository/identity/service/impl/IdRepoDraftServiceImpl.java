@@ -771,9 +771,11 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 					uinRefId);
 			draft.setUin(saltId + SPLITTER + new String(encryptedUinBytes));
 			draft.setUinHash(super.getUinHash(uin));
-			// Do NOT set draft.setUinData(...)/generateIdentityObject(uin) here: that builds a
-			// fresh identity object and would overwrite the real uinData already populated by
-			// updateDraftV2 (or wipe it out for a draft that hasn't been updated yet).
+			// Backfill demographic fields the LOST packet never submitted (e.g. addressLine1)
+			// from the matched resident's live identity. The draft's own data (already set by
+			// CreateDraftStage from the LOST packet's own submission) always wins on conflict,
+			// so a resident-submitted update is never clobbered by the older value on file.
+			backfillDraftIdentityFromLiveUin(draft, super.uinRepo.findByUinHash(super.getUinHash(uin)).get());
 			draft.setUpdatedBy(IdRepoSecurityManager.getUser());
 			draft.setUpdatedDateTime(DateUtils2.getUTCCurrentDateTime());
 			// Use flush() so the SQL UPDATE runs inside this try-catch; save() with isNew()=true
@@ -793,11 +795,45 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
 		} catch (IdRepoAppException e) {
 			throw e;
+		} catch (JSONException | IOException | InvalidJsonException e) {
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+					UPDATE_DRAFT, e.getMessage());
+			throw new IdRepoAppException(UNKNOWN_ERROR, e);
 		} catch (RuntimeException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 					UPDATE_DRAFT, e.getMessage());
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);
 		}
+	}
+
+	/**
+	 * Backfills {@code draft}'s demographic data with fields from the matched resident's
+	 * live identity, without disturbing anything the draft already has. Reuses
+	 * {@link #updateJsonObject} the same way {@link #updateDemographicData} does, except
+	 * with the roles reversed: the draft is passed as "input" (so its values always win on
+	 * conflict) and the live identity as "db" (so it only supplies fields the draft lacks).
+	 */
+	private void backfillDraftIdentityFromLiveUin(UinDraft draft, Uin liveUin)
+			throws JSONException, IOException, IdRepoAppException {
+		if (Objects.isNull(liveUin.getUinData())) {
+			return;
+		}
+		Configuration cfg = Configuration.builder()
+				.jsonProvider(new JacksonJsonProvider())
+				.mappingProvider(new JacksonMappingProvider())
+				.build();
+		DocumentContext inputData = JsonPath.using(cfg).parse(new String(draft.getUinData()));
+		DocumentContext dbData    = JsonPath.using(cfg).parse(new String(liveUin.getUinData()));
+
+		JSONCompareResult diff = JSONCompare.compareJSON(
+				inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
+		if (diff.failed()) {
+			super.updateJsonObject(draft.getUinHash(), inputData, dbData, diff, false);
+		}
+
+		draft.setUinData(convertToBytes(
+				mapper.readValue(dbData.jsonString().getBytes(), new TypeReference<Map<String, Object>>() {})));
+		draft.setUinDataHash(securityManager.hash(draft.getUinData()));
 	}
 
 	@Override

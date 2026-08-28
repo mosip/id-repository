@@ -2,6 +2,7 @@ package io.mosip.idrepository.identity.test.service.impl;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -1309,6 +1310,7 @@ public class IdRepoDraftServiceImplTest {
 		draft.setUinHash("1234_some-hash");
 		when(uinDraftRepo.findByRegId(anyString())).thenReturn(Optional.of(draft));
 		when(uinRepo.existsByUinHash(any())).thenReturn(true);
+		when(uinRepo.findByUinHash(any())).thenReturn(Optional.of(buildLiveUin()));
 		when(securityManager.getSaltKeyForId(anyString())).thenReturn(1234);
 		when(uinEncryptSaltRepo.retrieveSaltById(anyInt())).thenReturn("YWJj");
 		when(securityManager.encryptWithSalt(any(), any(), any())).thenReturn("encrypted".getBytes());
@@ -1328,6 +1330,7 @@ public class IdRepoDraftServiceImplTest {
 		draft.setUinHash(null);
 		when(uinDraftRepo.findByRegId(anyString())).thenReturn(Optional.of(draft));
 		when(uinRepo.existsByUinHash(any())).thenReturn(true);
+		when(uinRepo.findByUinHash(any())).thenReturn(Optional.of(buildLiveUin()));
 		when(securityManager.getSaltKeyForId(anyString())).thenReturn(1234);
 		when(uinEncryptSaltRepo.retrieveSaltById(anyInt())).thenReturn("YWJj");
 		when(securityManager.encryptWithSalt(any(), any(), any())).thenReturn("encrypted".getBytes());
@@ -1338,6 +1341,38 @@ public class IdRepoDraftServiceImplTest {
 
 		assertNotNull(response);
 		assertEquals("1234_some-hash", draft.getUinHash());
+	}
+
+	// Regression for the LOST-packet IDR-IDC-001 publish failure: when the ABIS-matched
+	// resident's UIN is stamped onto the draft, missing demographic fields (e.g.
+	// addressLine1) must be backfilled from the live Uin, while any field already present
+	// on the draft (the resident's own submitted data) must be preserved on conflict.
+	@Test
+	public void should_backfillMissingFields_and_preserveDraftValues_onConflict_when_stampingUin()
+			throws IdRepoAppException, IOException {
+		UinDraft draft = buildMinimalDraft();
+		draft.setUinHash(null);
+		draft.setUinData("{\"UIN\":\"274390482564\",\"email\":\"draft@mosip.net\"}".getBytes());
+		when(uinDraftRepo.findByRegId(anyString())).thenReturn(Optional.of(draft));
+		when(uinRepo.existsByUinHash(any())).thenReturn(true);
+
+		Uin liveUin = new Uin();
+		liveUin.setUinData(
+				"{\"UIN\":\"274390482564\",\"email\":\"live@mosip.net\",\"addressLine1\":\"live-address\"}"
+						.getBytes());
+		when(uinRepo.findByUinHash(any())).thenReturn(Optional.of(liveUin));
+
+		when(securityManager.getSaltKeyForId(anyString())).thenReturn(1234);
+		when(uinEncryptSaltRepo.retrieveSaltById(anyInt())).thenReturn("YWJj");
+		when(securityManager.encryptWithSalt(any(), any(), any())).thenReturn("encrypted".getBytes());
+		when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("hashSalt");
+		when(securityManager.hashwithSalt(any(), any())).thenReturn("some-hash");
+
+		idRepoServiceImpl.updateDraftUinData("REG123", "274390482564");
+
+		Map<String, Object> mergedData = mapper.readValue(draft.getUinData(), new TypeReference<Map<String, Object>>() {});
+		assertEquals("draft@mosip.net", mergedData.get("email"));
+		assertEquals("live-address", mergedData.get("addressLine1"));
 	}
 
 	// ── updateDraftV2 ────────────────────────────────────────────────────────
@@ -1672,6 +1707,16 @@ public class IdRepoDraftServiceImplTest {
 		document.setDocId("1236");
 		document.setDocName("name");
 		uin.setDocuments(Collections.singletonList(document));
+		return uin;
+	}
+
+	// Live Uin match backing updateDraftUinData's backfill merge — same identity data as the
+	// draft's own, so the merge is a no-op and existing assertions stay unaffected.
+	private Uin buildLiveUin() throws IOException {
+		Uin uin = new Uin();
+		String identityData = IOUtils.toString(
+				this.getClass().getClassLoader().getResourceAsStream("identity-data.json"), StandardCharsets.UTF_8);
+		uin.setUinData(identityData.getBytes());
 		return uin;
 	}
 }
