@@ -44,7 +44,7 @@ Both appear in `selectedHandles`. The body structure difference is entirely sche
 
 ## Email Token Flow
 
-```
+```text
 YAML input:  "email": "$EMAILVALUE$"
     ↓ Handlebars rendering (getJsonFromTemplate)
 HBS template: {{email}} → "$EMAILVALUE$"   (the token passes through as a string)
@@ -53,6 +53,7 @@ Request body: "email": [{"value": "TestCaseName_runContext@mosip.net", "tags": [
 ```
 
 **Negative email tests** skip `$EMAILVALUE$` entirely — they provide the bad value directly in YAML:
+
 ```yaml
 "email": "notanemail"    # no @, server rejects
 "email": ""              # empty, server rejects
@@ -83,7 +84,7 @@ Implemented in `IdRepoUtil.isTestCaseValidForExecution`, checked against `AdminT
 
 `replaceArrayHandleValues` (AddIdentity) and `replaceArrayHandleValuesForUpdateIdentity` (UpdateIdentity) both follow the same structure:
 
-```
+```text
 1. Pre-loop early returns — global operations that modify selectedHandles or exit immediately
    (e.g. _withoutselectedhandles, _removealltagshandles, _replaceselectedhandles)
 
@@ -109,12 +110,12 @@ These four tests in `AddIdentityArrayHandle.yml` form a chain:
 
 | TC | Test case name suffix | Purpose |
 |---|---|---|
-| TC_38 | `_save_withdublicatevalue` | Creates identity; saves the resolved email handle value into `selectedHandlesValue` static field |
+| TC_38 | `_save_withdublicatevalue` | Creates identity; saves the resolved email handle value into `savedHandleValues` |
 | TC_39 | `_withdublicatevalue` | Sends TC_38's saved email as the handle → duplicate → IDR-IDC-014 |
-| TC_40 | `_withmultipledublicatevalue` | Adds a second array entry using `selectedHandlesValue` → duplicate → IDR-IDC-014 |
-| TC_41 | `_removevalueaddexistingvalue` | Removes value then re-adds `selectedHandlesValue` → duplicate → IDR-IDC-014 |
+| TC_40 | `_withmultipledublicatevalue` | Adds a second array entry using `savedHandleValues` → duplicate → IDR-IDC-014 |
+| TC_41 | `_removevalueaddexistingvalue` | Removes value then re-adds from `savedHandleValues` → duplicate → IDR-IDC-014 |
 
-`selectedHandlesValue` is a `private static String` in `IdRepoArrayHandle`. TC_38 saves into it; TC_39/40/41 read from it. If TC_38 fails or runs out of order, TC_39/40/41 get null or a stale value → server accepts as unique → tests fail with ACTIVATED instead of IDR-IDC-014.
+`savedHandleValues` is a `private static final Map<String, String>` in `IdRepoArrayHandle`. TC_38 saves into it; TC_39/40/41 read from it. If TC_38 fails or runs out of order, TC_39/40/41 get null or a stale value → server accepts as unique → tests fail with ACTIVATED instead of IDR-IDC-014.
 
 ## UpdateIdentity Array Handle Fixes
 

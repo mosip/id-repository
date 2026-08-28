@@ -170,10 +170,8 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 
 		// Resolve $HANDLEVALUE tokens before IdRepoArrayHandle runs so its mutations see real values.
 		inputJson = IdRepoUtil.resolveGenericHandleValueTokens(inputJson);
-		JSONObject jsonString = new JSONObject(inputJson);
-		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {
-			inputJson = IdRepoArrayHandle.replaceArrayHandleValuesForUpdateIdentity(inputJson,testCaseName);
-		}
+		// Always call — replaceArrayHandleValuesForUpdateIdentity itself no-ops if selectedHandles is absent.
+		inputJson = IdRepoArrayHandle.replaceArrayHandleValuesForUpdateIdentity(inputJson, testCaseName);
 
 		Response response = patchWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 				testCaseDTO.getRole(), testCaseDTO.getTestCaseName());

@@ -1,11 +1,10 @@
 UpdateDraft:
   IdRepository_UpdateDraft_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/update/{registrationId}
-      description: Update draft packet for valid registrationId
+      description: Verify that the system successfully updates a draft when the API is called with a valid registration ID
       uniqueIdentifier: TC_IDRepo_UpdateDraft_01
       role: idrepo
       restMethod: patch
-      inputTemplate: idRepository/UpdateDraft/updateDraft_$LANGNUMBER$
       outputTemplate: idRepository/UpdateDraft/updateDraftResult
       input: '{
   "value": "$BIOVALUE$",

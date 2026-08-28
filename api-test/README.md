@@ -67,6 +67,56 @@ You can access the test automation code using either of the following methods:
 2. Open the file in your preferred editor
 3. Update the client secret values and other required credentials as per your environment
 
+Do **not** commit local secrets or localhost URLs in `Idrepo.properties`.
+
+---
+
+## Run against localhost
+
+Use this when ID Repository is running on your machine (service on port `8090`, typically with a local gateway on `8082`).
+
+### 1. Point `Idrepo.properties` at localhost
+
+Edit `api-test/src/main/resources/config/Idrepo.properties` locally (do not push these values):
+
+```properties
+keycloak-external-url = http://localhost:8082
+audit_url = jdbc:postgresql://localhost:5455/mosip_idrepo
+partner_url = jdbc:postgresql://localhost:5455/mosip_idrepo
+db-server = localhost
+db-port = 5455
+postgres-password = <local postgres password>
+authCertsPath = target/local-authcerts
+mosip_components_base_urls = idrepository=localhost:8082;authmanager=localhost:8082;masterdata=localhost:8082;idgenerator=localhost:8082;keymanager=localhost:8082;auditmanager=localhost:8082;datashare=localhost:8082;partnermanager=localhost:8082;policymanager=localhost:8082;credentialservice=localhost:8082;credentialrequest=localhost:8082
+```
+
+Fill client secrets and `keycloak_Password` for your local IAM. `ConfigManager` also reads matching environment variables, so you can leave secrets blank in the file and export them in the shell instead.
+
+When `env.endpoint` is `localhost` or `127.0.0.1`, the runner skips Keycloak admin user setup and partner/device cert generation, and it sanitizes Windows cert folder names that contain `:`.
+
+### 2. Build and run
+
+```sh
+cd api-test
+mvn clean install -Dgpg.skip=true -Dmaven.gitcommitid.skip=true
+```
+
+```sh
+java -Dmodules=idrepo \
+  -Denv.user=api-internal.local \
+  -Denv.endpoint=http://localhost:8082 \
+  -Denv.testLevel=smoke \
+  -jar target/apitest-idrepo-*-jar-with-dependencies.jar
+```
+
+Eclipse / VS Code VM arguments:
+
+```
+-Dmodules=idrepo -Denv.user=api-internal.local -Denv.endpoint=http://localhost:8082 -Denv.testLevel=smoke
+```
+
+Use `env.testLevel=smokeAndRegression` for the full suite. `env.endpoint` should be the local gateway (`http://localhost:8082`), not the ID Repository process on `:8090`.
+
 ---
 
 ## Build Test Automation Code
@@ -102,7 +152,7 @@ To execute the tests using Jar, use the following steps:
 
 2. Run the automation test suite JAR file:
    ```
-   java -jar -Dmodules=idrepo -Denv.user=api-internal.<env_name> -Denv.endpoint=<base_env> -Denv.testLevel=smokeAndRegression -jar apitest-idrepo-1.2.4.0-jar-with-dependencies.jar
+   java -jar -Dmodules=idrepo -Denv.user=api-internal.<env_name> -Denv.endpoint=<base_env> -Denv.testLevel=smokeAndRegression -jar apitest-idrepo-1.2.1-jar-with-dependencies.jar
    ```
    
 # Using Eclipse IDE
@@ -179,7 +229,7 @@ This section describes the meaning of each column in the test report:
 - **env.user**: Replace `<env_name>` with the appropriate environment name (e.g., `dev`, `qa`, etc.).
 - **env.endpoint**: The environment where the application under test is deployed. Replace `<base_env>` with the correct base URL for the environment (e.g., `https://api-internal.<env_name>.mosip.net`).
 - **env.testLevel**: Set this to `smoke` to run only smoke test cases, or `smokeAndRegression` to run both smoke and regression tests.
-- **jar**: Specify the name of the JAR file to execute. The version will change according to the development code version. For example, the current version may look like `apitest-idrepo-1.2.4.0-jar-with-dependencies.jar`.
+- **jar**: Specify the name of the JAR file to execute. The version will change according to the development code version. For example, the current version may look like `apitest-idrepo-1.2.1-jar-with-dependencies.jar`.
 
 ### Build and Run Info
 

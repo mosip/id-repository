@@ -1,7 +1,7 @@
 CreateDraftVID:
   IdRepository_CreateDraftVID_Smoke_Pos:
       endPoint: /idrepository/v1/draft/vid
-      description: create a draft VID passing invalid parameter in UIN field
+      description: Verify that the system successfully creates a draft VID when the API is called with valid input details
       uniqueIdentifier: TC_IDRepo_CreateDraftVID_01
       role: idrepo
       restMethod: post
@@ -16,7 +16,7 @@ CreateDraftVID:
 }'
   IdRepository_CreateDraftVID_invalid_vidtype:
       endPoint: /idrepository/v1/draft/vid
-      description: create a draft VID passing invalid vid type
+      description: Verify that the system rejects create draft VID when the API is called with an invalid VID type
       uniqueIdentifier: TC_IDRepo_CreateDraftVID_02
       role: idrepo
       restMethod: post
@@ -35,7 +35,7 @@ CreateDraftVID:
 }'
   IdRepository_CreateDraftVID_blank_vidtype:
       endPoint: /idrepository/v1/draft/vid
-      description: create a draft vid passing blank value in vidtype
+      description: Verify that the system rejects create draft VID when the API is called with a blank VID type
       uniqueIdentifier: TC_IDRepo_CreateDraftVID_03
       role: idrepo
       restMethod: post
@@ -54,7 +54,7 @@ CreateDraftVID:
 }'
   IdRepository_CreateDraftVID_missing_vidtype:
       endPoint: /idrepository/v1/draft/vid
-      description: create a draft VID removing vid type field
+      description: Verify that the system rejects create draft VID when the API is called without the VID type field
       uniqueIdentifier: TC_IDRepo_CreateDraftVID_04
       role: idrepo
       restMethod: post
@@ -73,7 +73,7 @@ CreateDraftVID:
 }'
   IdRepository_CreateDraftVID_Invalid_UIN:
       endPoint: /idrepository/v1/draft/vid
-      description: Create a draft VID passing invalid UIN
+      description: Verify that the system rejects create draft VID when the API is called with an invalid UIN
       uniqueIdentifier: TC_IDRepo_CreateDraftVID_05
       role: idrepo
       restMethod: post

@@ -150,8 +150,7 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 		    JSONObject requestJson = new JSONObject(inputJson);
 
 		    if (originalInput.has("verifiedAttributes")) {
-		        // Use the generic Object getter (not getJSONArray): verifiedAttributes can be sent either
-		        // as a list of entries or as a map (key = fieldId, value = verification detail(s)).
+		        // Generic Object getter, since verifiedAttributes may be a list or a map.
 		        requestJson.getJSONObject("request")
 		                .put("verifiedAttributes", originalInput.get("verifiedAttributes"));
 		    }
@@ -163,18 +162,14 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 		    }
 
 		    if (originalInput.has("fullName")) {
-		        // fullName is not wired into the static UpdateIdentityV2 template (only UIN/dateOfBirth/phone
-		        // are), so it is injected here the same way verifiedAttributes/documents are. YAML supplies
-		        // the full multi-language array shape, e.g. [{"language":"$1STLANG$","value":"..."}].
+		        // fullName isn't in the static V2 template, so inject it here like verifiedAttributes/documents.
 		        requestJson.getJSONObject("request").getJSONObject("identity")
 		                .put("fullName", originalInput.get("fullName"));
 		    }
 
 		    inputJson = requestJson.toString();
 		} else {
-			// V1 handling for verifiedAttribute (plain list of fieldId strings, e.g. ["fullName","address"]).
-			// V1 requests are built from a static/schema-driven template with no verifiedAttribute placeholder,
-			// so it is injected as a fixed top-level request field here, mirroring the V2 verifiedAttributes handling above.
+			// V1's static template has no verifiedAttribute placeholder, so inject it as a fixed top-level field.
 			JSONObject originalInput = new JSONObject(testCaseDTO.getInput());
 			if (originalInput.has("verifiedAttribute")) {
 				JSONObject requestJson = new JSONObject(inputJson);
@@ -199,9 +194,7 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 		inputJson = inputJson.replace("$RID$", genRid);
 
 		if (inputJson.contains("$OPTIONALSCHEMAFIELD$")) {
-			// Resolved from the live IdSchema rather than a fixed name: which fields are optional
-			// varies by schema/environment. isTestCaseValidForExecution already skips the test up front
-			// when the schema has none, so this null-guard is just a defensive fallback.
+			// Resolved from the live schema; isTestCaseValidForExecution already skips if none exists, so this is just a fallback.
 			String optionalField = resolveOptionalClaimableField();
 			if (optionalField == null) {
 				throw new SkipException("No optional (non-required) claimable field in the current IdSchema — "
