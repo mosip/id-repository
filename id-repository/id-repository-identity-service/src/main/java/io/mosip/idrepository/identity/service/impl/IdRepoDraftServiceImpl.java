@@ -20,11 +20,13 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.VERIFIED_ATTRI
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DRAFT_UIN_DETAILS_NOT_FOUND;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DRAFT_UIN_HASH_MISMATCH;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RECORD_EXISTS;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.RID_OLDER_THAN_LATEST_PROCESSED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_GENERATION_FAILED;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_HASH_MISMATCH;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_NOT_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
 
 import java.io.IOException;
@@ -591,19 +593,23 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 		return createDraftWithUin(registrationId, uin);
 	}
 
-	// Only ever called with an unknown UIN (see createDraftV2) — creates a bare draft.
-	// Demo/bio data for LOST packets is populated afterwards by CreateDraftStage's
-	// follow-up idrepoUpdateDraft call using the packet's own submitted data; the UIN
-	// is stamped later via updateDraftUinData once ABIS resolves the match.
 	private IdResponseDTO createLostDraft(String registrationId) throws IdRepoAppException {
 		try {
-			// Consistent with createDraftWithUin: we deliberately do NOT check uinHistoryRepo
-			// here — a LOST packet already published to history must still be allowed to
-			// reprocess (re-create its bare draft) rather than being permanently blocked.
 			if (uinDraftRepo.existsByRegId(registrationId)) {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 						CREATE_DRAFT, "RID ALREADY EXIST | regId=" + registrationId);
 				throw new IdRepoAppException(RECORD_EXISTS);
+			}
+
+			// If RID is there in UIN history then the RID is already processed.
+			// But it may not be latest RID. To check the same we need to check in the UIN table as well.
+			// If it is not the latest, reprocessing is not allowed.
+			if (super.uinHistoryRepo.existsByRegId(registrationId)) {
+				if (!super.uinRepo.existsByRegId(registrationId)) {
+					idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+							CREATE_DRAFT, "REQUESTED RID IS OLDER THAN THE LATEST PROCESSED RID | regId=" + registrationId);
+					throw new IdRepoAppException(RID_OLDER_THAN_LATEST_PROCESSED);
+				}
 			}
 
 			UinDraft newDraft = new UinDraft();
@@ -638,11 +644,9 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 			UinDraft newDraft;
 
 			if (Objects.isNull(uin) && super.uinHistoryRepo.existsByRegId(registrationId)) {
-				// Guard: this RID must still be the latest one for its UIN, i.e. present on the
-				// live Uin table — not just in history. retrieveIdentityByRid falls back to
-				// uinHistoryRepo when uinRepo has no match, so without this check a stale RID
-				// (superseded by a later UPDATE under a different RID) would silently resolve
-				// via history and let this reprocess resurrect the older identity state.
+				// If RID is there in UIN history then the RID is already processed.
+				// But it may not be latest RID. To check the same we need to check in the UIN table as well.
+				// If it is not the latest, reprocessing is not allowed.
 				if (!super.uinRepo.existsByRegId(registrationId)) {
 					idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 							CREATE_DRAFT, "REQUESTED RID IS OLDER THAN THE LATEST PROCESSED RID | regId=" + registrationId);
@@ -724,7 +728,18 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);
 		}
 	}
-
+	/**
+	 * Stamps the ABIS-matched UIN on a LOST draft and completes its demographic data for publish.
+	 *
+	 * <p>After encrypting and setting {@code uin}/{@code uinHash}, merges missing demographic fields
+	 * from the matched live identity into the draft via {@link #backfillDraftIdentityFromLiveUin}.
+	 * That step updates {@code uinData} only; it does not copy or modify biometrics, supporting
+	 * documents, or object-store files — those are handled by {@link #updateDraftV2} and
+	 * {@link #publishDraftV2}.
+	 *
+	 * <p>Draft demographics from the LOST packet (allowed update fields) are preserved on conflict;
+	 * attribute update-count limits are enforced at publish, not here.
+	 */
 	@Override
 	public IdResponseDTO updateDraftUinData(String registrationId, String uin) throws IdRepoAppException {
 		try {
@@ -736,13 +751,11 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 			}
 			UinDraft draft = uinDraftOpt.get();
 
-			// This UIN is expected to already belong to an existing identity (ABIS resolved
-			// this LOST packet to a prior registration) — we are stamping it as-is from the
-			// request, so verify it actually exists rather than trusting the caller blindly.
+			// Verify whether the UIN to be stamped exists in the IDREPO UIN table.
 			if (!super.uinRepo.existsByUinHash(super.getUinHash(uin))) {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 						UPDATE_DRAFT, "UIN NOT FOUND | regId=" + registrationId);
-				throw new IdRepoAppException(NO_RECORD_FOUND);
+				throw new IdRepoAppException(UIN_NOT_FOUND);
 			}
 
 			// A draft is only "already stamped" once uinHash itself has been set (by a
@@ -753,28 +766,20 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 			if (draft.getUinHash() != null && !draft.getUinHash().equals(super.getUinHash(uin))) {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 						UPDATE_DRAFT, "ATTEMPT TO RESTAMP DRAFT WITH A DIFFERENT UIN | regId=" + registrationId);
-				throw new IdRepoAppException(UIN_HASH_MISMATCH);
+				throw new IdRepoAppException(DRAFT_UIN_HASH_MISMATCH);
 			}
 
 			// onFlushDirty only encrypts uinData, not the uin field. Encrypt manually here
 			// to match the format produced by the onSave interceptor so decryptUin works.
 			int saltId = securityManager.getSaltKeyForId(uin);
 			String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(saltId);
-			if (encryptSalt == null) {
-				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-						UPDATE_DRAFT, "No UIN encrypt salt found for saltId=" + saltId + " | regId=" + registrationId);
-				throw new IdRepoAppException(UNKNOWN_ERROR,
-						new IllegalStateException("No UIN encrypt salt for saltId=" + saltId));
-			}
 			byte[] encryptedUinBytes = securityManager.encryptWithSalt(
 					uin.getBytes(), CryptoUtil.decodePlainBase64(encryptSalt),
 					uinRefId);
 			draft.setUin(saltId + SPLITTER + new String(encryptedUinBytes));
 			draft.setUinHash(super.getUinHash(uin));
-			// Backfill demographic fields the LOST packet never submitted (e.g. addressLine1)
-			// from the matched resident's live identity. The draft's own data (already set by
-			// CreateDraftStage from the LOST packet's own submission) always wins on conflict,
-			// so a resident-submitted update is never clobbered by the older value on file.
+			// Build a complete draft identity before publish: backfill missing fields from live,
+			// without overwriting demographics already set by the LOST packet update.
 			backfillDraftIdentityFromLiveUin(draft, super.uinRepo.findByUinHash(super.getUinHash(uin)).get());
 			draft.setUpdatedBy(IdRepoSecurityManager.getUser());
 			draft.setUpdatedDateTime(DateUtils2.getUTCCurrentDateTime());
@@ -807,11 +812,11 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	}
 
 	/**
-	 * Backfills {@code draft}'s demographic data with fields from the matched resident's
-	 * live identity, without disturbing anything the draft already has. Reuses
-	 * {@link #updateJsonObject} the same way {@link #updateDemographicData} does, except
-	 * with the roles reversed: the draft is passed as "input" (so its values always win on
-	 * conflict) and the live identity as "db" (so it only supplies fields the draft lacks).
+	 * Backfills draft {@code uinData} from the matched live identity (demographics only).
+	 *
+	 * <p>Does not touch biometrics, supporting documents, or object-store paths — only
+	 * merges the identity JSON. Draft values take precedence; live fills missing fields.
+	 * Update-count limits are not applied here; they are enforced at publish.
 	 */
 	private void backfillDraftIdentityFromLiveUin(UinDraft draft, Uin liveUin)
 			throws JSONException, IOException, IdRepoAppException {
@@ -929,11 +934,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 			String srcPrefix = objectStoreHelper.getRidHash(draft.getRegId());
 			String destPrefix = draft.getUinHash().split(SPLITTER)[1];
 			objectStoreHelper.moveAllDraftBiometricsToLive(srcPrefix, destPrefix);
-			if (draft.getDocuments() != null) {
-				for (UinDocumentDraft doc : draft.getDocuments()) {
-					objectStoreHelper.moveDemographicDraftToLive(srcPrefix, destPrefix, doc.getDocId());
-				}
-			}
+			objectStoreHelper.moveAllDraftDemographicsToLive(srcPrefix, destPrefix);
 
 			deleteDraftDbRecords(regId);
 
@@ -1010,24 +1011,6 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 		deleteDraftDbRecords(draft.getRegId());
 	}
 
-	/**
-	 * Called after publishDraftV2 has already moved files draft→live.
-	 * Deletes any residual draft objects not moved (safety sweep).
-	 */
-	private void cleanupDraftObjects(UinDraft draft) {
-		String ridHash;
-		try {
-			ridHash = objectStoreHelper.getRidHash(draft.getRegId());
-		} catch (Exception e) {
-			idrepoDraftLogger.warn(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-					"cleanupDraftObjects", "Failed to compute rid hash for cleanup (non-fatal) | regId=" + draft.getRegId());
-			return;
-		}
-		// Sweep all remaining draft biometric and demographic files in one call each.
-		objectStoreHelper.deleteAllDraftBiometrics(ridHash);
-		objectStoreHelper.deleteAllDraftDemographics(ridHash);
-	}
-
 	private void deleteDraftDbRecords(String regId) {
 		// Delete all three draft tables in one transaction (all succeed or all roll back).
 		// Uses TransactionTemplate because @Transactional on a private method is ignored.
@@ -1098,21 +1081,11 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 			return;
 		}
 
-		Set<String> oldDocIds = draftToUpdate.getDocuments() != null
-				? draftToUpdate.getDocuments().stream().map(UinDocumentDraft::getDocId).collect(Collectors.toSet())
-				: Collections.emptySet();
-
 		Uin uinObject = mapper.convertValue(draftToUpdate, Uin.class);
 		String ridHash = objectStoreHelper.getRidHash(draftToUpdate.getRegId());
 		uinObject.setUinHash("_" + ridHash);
 		super.updateDocuments(ridHash, uinObject, requestDTO, true);
 		updateBiometricAndDocumentDrafts(requestDTO.getRegistrationId(), draftToUpdate, uinObject);
-
-		Set<String> newDocIds = draftToUpdate.getDocuments() != null
-				? draftToUpdate.getDocuments().stream().map(UinDocumentDraft::getDocId).collect(Collectors.toSet())
-				: Collections.emptySet();
-		oldDocIds.stream().filter(id -> !newDocIds.contains(id))
-				.forEach(id -> objectStoreHelper.deleteDraftDemographicObject(ridHash, id));
 	}
 
 	/**
@@ -1311,9 +1284,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 		}
 	}
 
-	// V2: reads from draft path (MOSIP-082 behaviour). extractAndGetCombinedCbeffDraft
-	// persists any newly extracted derivative files directly back to the draft path
-	// (via extractTemplateDraft), so no relocate step is needed here.
+	// Reads biometric files from the draft path and extracts templates.
+	// Extracted files are written back to the same draft path.
 	private void extractBiometricsDraftV2(Map<String, String> extractionFormats, UinDraft draft)
 			throws IdRepoAppException {
 		String ridHash = objectStoreHelper.getRidHash(draft.getRegId());
@@ -1387,8 +1359,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 				super.objectStoreHelper.getBiometricObject(uinHash, bioFileId));
 	}
 
-	// V2: reads from ridHash draft path (MOSIP-082 behaviour), and persists any newly
-	// extracted derivative files straight back to the draft path (no relocate needed).
+	// Reads the biometric from the draft path and extracts templates.
+	// Extracted files are written back to the same draft path.
 	private byte[] extractAndGetCombinedCbeffDraft(String ridHash, String bioFileId,
 												   Map<String, String> extractionFormats) throws IdRepoAppException {
 		return proxyService.getBiometricsForRequestedFormatsDraft(ridHash, bioFileId, extractionFormats,

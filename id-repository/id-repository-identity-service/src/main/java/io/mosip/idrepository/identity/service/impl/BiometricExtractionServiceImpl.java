@@ -34,10 +34,11 @@ import io.mosip.kernel.core.logger.spi.Logger;
  *
  * <p>Key improvements over the baseline:
  * <ul>
- *   <li><b>Stampede prevention</b> – a {@link ConcurrentHashMap} of in-flight
- *       {@link CompletableFuture}s ensures that N concurrent requests for the
- *       same (uinHash, extractionFileName) pair share one extraction rather than
- *       triggering N parallel calls to the biometric extractor.</li>
+ *   <li><b>Stampede prevention</b> – separate {@link ConcurrentHashMap}s of
+ *       in-flight {@link CompletableFuture}s for live and draft paths ensure
+ *       that N concurrent requests for the same (hash, extractionFileName)
+ *       pair share one extraction. Both maps use the same key shape; isolation
+ *       is by map, not by a key prefix.</li>
  *   <li><b>Extraction timeout</b> – the call to the external biometric extractor
  *       is bounded by a configurable timeout so that a slow or hung extractor
  *       cannot exhaust the async thread pool.</li>
@@ -78,14 +79,21 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	private CbeffUtil cbeffUtil;
 
 	/**
-	 * In-flight extractions keyed by {@code "<uinHash>|<extractionFileName>"}.
+	 * In-flight live extractions keyed by {@code "<uinHash>|<extractionFileName>"}.
 	 *
 	 * <p>A thread that finds an entry here will attach itself to the existing
 	 * future rather than starting a parallel extraction for the same payload.
 	 * The entry is removed (regardless of outcome) in a {@code whenComplete}
 	 * handler so that transient failures do not permanently poison the map.
 	 */
-	private final ConcurrentHashMap<String, CompletableFuture<List<BIR>>> inFlight =
+	private final ConcurrentHashMap<String, CompletableFuture<List<BIR>>> inFlightLive =
+			new ConcurrentHashMap<>();
+
+	/**
+	 * In-flight draft extractions keyed by {@code "<ridHash>|<extractionFileName>"}.
+	 * Same key shape as {@link #inFlightLive}; isolation comes from the map, not a prefix.
+	 */
+	private final ConcurrentHashMap<String, CompletableFuture<List<BIR>>> inFlightDraft =
 			new ConcurrentHashMap<>();
 
 	/**
@@ -128,7 +136,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 		}
 
 		// ── 2. Attach to an existing in-flight extraction if present ──────── //
-		CompletableFuture<List<BIR>> existing = inFlight.get(inFlightKey);
+		CompletableFuture<List<BIR>> existing = inFlightLive.get(inFlightKey);
 		if (existing != null) {
 			mosipLogger.info(IdRepoSecurityManager.getUser(),
 					this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
@@ -144,7 +152,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 		 * returns the future registered by the winning thread, which we return
 		 * directly — same stampede-prevention path as check #2 above.
 		 */
-		CompletableFuture<List<BIR>> winner = inFlight.putIfAbsent(inFlightKey, future);
+		CompletableFuture<List<BIR>> winner = inFlightLive.putIfAbsent(inFlightKey, future);
 		if (winner != null) {
 			mosipLogger.info(IdRepoSecurityManager.getUser(),
 					this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
@@ -153,7 +161,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 		}
 
 		// This thread owns the extraction — clean up the map when done.
-		future.whenComplete((result, ex) -> inFlight.remove(inFlightKey));
+		future.whenComplete((result, ex) -> inFlightLive.remove(inFlightKey));
 
 		try {
 			List<BIR> extracted = runExtractionWithTimeout(extractionType, extractionFormat, birsForModality);
@@ -194,7 +202,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 			List<BIR> birsForModality) throws IdRepoAppException {
 
 		final String extractionFileName = buildExtractionFileName(fileName, extractionType, extractionFormat);
-		final String inFlightKey        = "D|" + ridHash + "|" + extractionFileName;
+		final String inFlightKey        = ridHash + "|" + extractionFileName;
 
 		// ── 1. Return cached result from the draft object-store path if available ─ //
 		List<BIR> stored = tryReadFromObjectStoreDraft(ridHash, extractionFileName);
@@ -203,7 +211,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 		}
 
 		// ── 2. Attach to an existing in-flight extraction if present ──────── //
-		CompletableFuture<List<BIR>> existing = inFlight.get(inFlightKey);
+		CompletableFuture<List<BIR>> existing = inFlightDraft.get(inFlightKey);
 		if (existing != null) {
 			mosipLogger.info(IdRepoSecurityManager.getUser(),
 					this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
@@ -214,7 +222,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 		// ── 3. Start a new extraction ──────────────────────────────────────── //
 		CompletableFuture<List<BIR>> future = new CompletableFuture<>();
 
-		CompletableFuture<List<BIR>> winner = inFlight.putIfAbsent(inFlightKey, future);
+		CompletableFuture<List<BIR>> winner = inFlightDraft.putIfAbsent(inFlightKey, future);
 		if (winner != null) {
 			mosipLogger.info(IdRepoSecurityManager.getUser(),
 					this.getClass().getSimpleName(), EXTRACT_TEMPLATE,
@@ -223,7 +231,7 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 		}
 
 		// This thread owns the extraction — clean up the map when done.
-		future.whenComplete((result, ex) -> inFlight.remove(inFlightKey));
+		future.whenComplete((result, ex) -> inFlightDraft.remove(inFlightKey));
 
 		try {
 			List<BIR> extracted = runExtractionWithTimeout(extractionType, extractionFormat, birsForModality);
@@ -252,9 +260,11 @@ public class BiometricExtractionServiceImpl implements BiometricExtractionServic
 	public void onShutdown() {
 		mosipLogger.info(IdRepoSecurityManager.getUser(),
 				this.getClass().getSimpleName(), "onShutdown",
-				"Cancelling " + inFlight.size() + " in-flight extractions");
-		inFlight.values().forEach(f -> f.cancel(true));
-		inFlight.clear();
+				"Cancelling " + (inFlightLive.size() + inFlightDraft.size()) + " in-flight extractions");
+		inFlightLive.values().forEach(f -> f.cancel(true));
+		inFlightDraft.values().forEach(f -> f.cancel(true));
+		inFlightLive.clear();
+		inFlightDraft.clear();
 	}
 
 	// ------------------------------------------------------------------ //

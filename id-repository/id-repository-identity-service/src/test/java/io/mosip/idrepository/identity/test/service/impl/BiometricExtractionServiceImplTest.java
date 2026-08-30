@@ -247,8 +247,8 @@ public class BiometricExtractionServiceImplTest {
 	@Test
 	public void testExtractTemplateDraftAndLiveKeysAreIndependent() throws Exception {
 		// Same fileName/type/format but different path (draft vs live) must not
-		// share the same in-flight/cache key: reading a live cache hit must not
-		// short-circuit a draft call for the same logical file, and vice versa.
+		// share in-flight state: live and draft use separate maps with the same
+		// key shape, so a live extraction must not short-circuit a draft call.
 		when(objectStoreHelper.biometricObjectExists(any(), any())).thenReturn(false);
 		when(objectStoreHelper.draftBiometricObjectExists(any(), any())).thenReturn(false);
 		String cbeff = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("test-cbeff.xml"),

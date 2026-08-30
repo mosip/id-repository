@@ -93,20 +93,13 @@ public class VidDraftHelperTest {
     @Test(expected = Exception.class)
     public void activeDraftVidExceptionTest() throws IdRepoAppException {
         String uin = "1122";
-
-        VidRequestDTO vidUpdationRequest = new VidRequestDTO();
-        vidUpdationRequest.setVidStatus(EnvUtil.getVidActiveStatus());
-        RequestWrapper<VidRequestDTO> request = new RequestWrapper<>();
-        request.setId(EnvUtil.getUpdatedVidId());
-        request.setVersion(EnvUtil.getVidAppVersion());
-        request.setRequesttime(DateUtils2.getUTCCurrentDateTime());
-        request.setRequest(vidUpdationRequest);
-
         RestRequestDTO restRequest = new RestRequestDTO();
         restRequest.setUri("{vid}");
 
-        Mockito.when(restBuilder.buildRequest(RestServicesConstants.VID_UPDATE_SERVICE,
-                request, ResponseWrapper.class)).thenReturn(restRequest);
+        Mockito.when(restBuilder.buildRequest(Mockito.eq(RestServicesConstants.VID_UPDATE_SERVICE),
+                Mockito.any(), Mockito.eq(ResponseWrapper.class))).thenReturn(restRequest);
+        Mockito.when(restHelper.requestSync(Mockito.any()))
+                .thenThrow(new RuntimeException("VID update failed"));
         vidDraftHelper.activateDraftVid(uin);
     }
 

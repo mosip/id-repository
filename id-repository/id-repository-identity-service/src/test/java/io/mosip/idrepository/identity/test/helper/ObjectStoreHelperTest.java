@@ -14,6 +14,7 @@ import java.io.ByteArrayInputStream;
 import io.mosip.commons.khazana.exception.ObjectStoreAdapterException;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import org.junit.Before;
 import org.junit.Test;
@@ -199,7 +200,7 @@ public class ObjectStoreHelperTest {
 		assertTrue(hash.length() > 0);
 	}
 
-	// ── draft biometric / demographic exists ─────────────────────────────────
+	// ── draft biometric exists ───────────────────────────────────────────────
 
 	@Test
 	public void testDraftBiometricObjectExists_True() {
@@ -211,18 +212,6 @@ public class ObjectStoreHelperTest {
 	public void testDraftBiometricObjectExists_False() {
 		when(adapter.exists(any(), any(), any(), any(), any())).thenReturn(Boolean.FALSE);
 		assertFalse(helper.draftBiometricObjectExists("ridHash", "fileRefId"));
-	}
-
-	@Test
-	public void testDraftDemographicObjectExists_True() {
-		when(adapter.exists(any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
-		assertTrue(helper.draftDemographicObjectExists("ridHash", "fileRefId"));
-	}
-
-	@Test
-	public void testDraftDemographicObjectExists_False() {
-		when(adapter.exists(any(), any(), any(), any(), any())).thenReturn(Boolean.FALSE);
-		assertFalse(helper.draftDemographicObjectExists("ridHash", "fileRefId"));
 	}
 
 	// ── putDraftBiometricObject / putDraftDemographicObject ──────────────────
@@ -329,81 +318,164 @@ public class ObjectStoreHelperTest {
 		verify(adapter).deleteObject(any(), any(), any(), any(), any());
 	}
 
-	// ── moveBiometricDraftToLive / moveDemographicDraftToLive
-
 	@Test
-	public void testMoveBiometricDraftToLive_Success() throws IdRepoAppException {
+	public void testMoveAllDraftBiometricsToLive_Success() throws IdRepoAppException {
+		when(adapter.listObjectsByPrefix(any(), any(), any()))
+				.thenReturn(java.util.Collections.singletonList("_draft/ridHash/Biometrics/fileRefId"));
 		when(adapter.moveObject(any(), any(), anyBoolean())).thenReturn(Boolean.TRUE);
-		helper.moveBiometricDraftToLive("srcHash", "destHash", "fileRefId");
+		helper.moveAllDraftBiometricsToLive("ridHash", "uinHash");
 		ArgumentCaptor<ObjectStoreReference> srcCaptor = ArgumentCaptor.forClass(ObjectStoreReference.class);
 		ArgumentCaptor<ObjectStoreReference> dstCaptor = ArgumentCaptor.forClass(ObjectStoreReference.class);
 		verify(adapter).moveObject(srcCaptor.capture(), dstCaptor.capture(), eq(true));
-		assertEquals("_draft/srcHash/Biometrics/fileRefId", srcCaptor.getValue().getObjectName());
-		assertEquals("destHash/Biometrics/fileRefId", dstCaptor.getValue().getObjectName());
+		assertEquals("_draft/ridHash/Biometrics/fileRefId", srcCaptor.getValue().getObjectName());
+		assertEquals("uinHash/Biometrics/fileRefId", dstCaptor.getValue().getObjectName());
 	}
 
 	@Test
-	public void testMoveBiometricDraftToLive_ReturnsFalse_SkipsSilently() throws IdRepoAppException {
-		when(adapter.moveObject(any(), any(), anyBoolean())).thenReturn(Boolean.FALSE);
-		helper.moveBiometricDraftToLive("srcHash", "destHash", "fileRefId");
-		verify(adapter).moveObject(any(), any(), eq(true));
-	}
-
-	@Test
-	public void testMoveBiometricDraftToLive_Exception() {
-		when(adapter.moveObject(any(), any(), anyBoolean()))
-				.thenThrow(new ObjectStoreAdapterException("ERR", "move failed"));
-		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
-				helper.moveBiometricDraftToLive("srcHash", "destHash", "fileRefId"));
-		assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorCode(), thrown.getErrorCode());
-	}
-
-	// A retried publish can find the source already gone because an earlier attempt already
-	// moved it — S3Adapter.moveObject throws NoSuchKey (404) for this instead of returning
-	// false, and that specific case must be swallowed rather than failing the retry.
-	@Test
-	public void testMoveBiometricDraftToLive_MissingSourceKey_SkipsSilently() throws IdRepoAppException {
+	public void testMoveAllDraftBiometricsToLive_MissingSourceKey_SkipsSilently() throws IdRepoAppException {
 		S3Exception noSuchKey = (S3Exception) S3Exception.builder()
 				.statusCode(404)
 				.awsErrorDetails(AwsErrorDetails.builder().errorCode("NoSuchKey").build())
 				.build();
+		when(adapter.listObjectsByPrefix(any(), any(), any()))
+				.thenReturn(java.util.Collections.singletonList("_draft/ridHash/Biometrics/fileRefId"));
 		when(adapter.moveObject(any(), any(), anyBoolean()))
 				.thenThrow(new ObjectStoreAdapterException("ERR", "not found", noSuchKey));
-		helper.moveBiometricDraftToLive("srcHash", "destHash", "fileRefId");
+		helper.moveAllDraftBiometricsToLive("ridHash", "uinHash");
 		verify(adapter).moveObject(any(), any(), eq(true));
 	}
 
 	@Test
-	public void testMoveBiometricDraftToLive_OtherS3Error_StillThrows() {
+	public void testMoveAllDraftBiometricsToLive_NoSuchKeyException_SkipsSilently() throws IdRepoAppException {
+		NoSuchKeyException noSuchKey = (NoSuchKeyException) NoSuchKeyException.builder()
+				.statusCode(404)
+				.build();
+		when(adapter.listObjectsByPrefix(any(), any(), any()))
+				.thenReturn(java.util.Collections.singletonList("_draft/ridHash/Biometrics/fileRefId"));
+		when(adapter.moveObject(any(), any(), anyBoolean()))
+				.thenThrow(new ObjectStoreAdapterException("ERR", "not found", noSuchKey));
+		helper.moveAllDraftBiometricsToLive("ridHash", "uinHash");
+		verify(adapter).moveObject(any(), any(), eq(true));
+	}
+
+	@Test
+	public void testMoveAllDraftBiometricsToLive_S3NotFoundWithoutErrorCode_SkipsSilently() throws IdRepoAppException {
+		S3Exception notFound = (S3Exception) S3Exception.builder()
+				.statusCode(404)
+				.build();
+		when(adapter.listObjectsByPrefix(any(), any(), any()))
+				.thenReturn(java.util.Collections.singletonList("_draft/ridHash/Biometrics/fileRefId"));
+		when(adapter.moveObject(any(), any(), anyBoolean()))
+				.thenThrow(new ObjectStoreAdapterException("ERR", "not found", notFound));
+		helper.moveAllDraftBiometricsToLive("ridHash", "uinHash");
+		verify(adapter).moveObject(any(), any(), eq(true));
+	}
+
+	@Test
+	public void testMoveAllDraftBiometricsToLive_OtherS3Error_StillThrows() {
 		S3Exception accessDenied = (S3Exception) S3Exception.builder()
 				.statusCode(403)
 				.awsErrorDetails(AwsErrorDetails.builder().errorCode("AccessDenied").build())
 				.build();
+		when(adapter.listObjectsByPrefix(any(), any(), any()))
+				.thenReturn(java.util.Collections.singletonList("_draft/ridHash/Biometrics/fileRefId"));
 		when(adapter.moveObject(any(), any(), anyBoolean()))
 				.thenThrow(new ObjectStoreAdapterException("ERR", "access denied", accessDenied));
 		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
-				helper.moveBiometricDraftToLive("srcHash", "destHash", "fileRefId"));
-		assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorCode(), thrown.getErrorCode());
+				helper.moveAllDraftBiometricsToLive("ridHash", "uinHash"));
+		assertEquals(IdRepoErrorConstants.DRAFT_OBJECT_MOVE_FAILED.getErrorCode(), thrown.getErrorCode());
 	}
 
 	@Test
-	public void testMoveDemographicDraftToLive_Success() throws IdRepoAppException {
-		when(adapter.moveObject(any(), any(), anyBoolean())).thenReturn(Boolean.TRUE);
-		helper.moveDemographicDraftToLive("srcHash", "destHash", "fileRefId");
-		ArgumentCaptor<ObjectStoreReference> srcCaptor = ArgumentCaptor.forClass(ObjectStoreReference.class);
-		ArgumentCaptor<ObjectStoreReference> dstCaptor = ArgumentCaptor.forClass(ObjectStoreReference.class);
-		verify(adapter).moveObject(srcCaptor.capture(), dstCaptor.capture(), eq(true));
-		assertEquals("_draft/srcHash/Demographics/fileRefId", srcCaptor.getValue().getObjectName());
-		assertEquals("destHash/Demographics/fileRefId", dstCaptor.getValue().getObjectName());
+	public void testMoveAllDraftBiometricsToLive_ListFails_ThrowsDraftObjectMoveFailed() {
+		when(adapter.listObjectsByPrefix(any(), any(), any()))
+				.thenThrow(new ObjectStoreAdapterException("ERR", "list failed"));
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				helper.moveAllDraftBiometricsToLive("ridHash", "uinHash"));
+		assertEquals(IdRepoErrorConstants.DRAFT_OBJECT_MOVE_FAILED.getErrorCode(), thrown.getErrorCode());
+		assertEquals(String.format(IdRepoErrorConstants.DRAFT_OBJECT_MOVE_FAILED.getErrorMessage(), "ridHash=ridHash"),
+				thrown.getErrorText());
 	}
 
 	@Test
-	public void testMoveDemographicDraftToLive_Exception() {
+	public void testMoveAllDraftBiometricsToLive_PerFileFails_ThrowsDraftObjectMoveFailed() {
+		when(adapter.listObjectsByPrefix(any(), any(), any()))
+				.thenReturn(java.util.Collections.singletonList("_draft/ridHash/Biometrics/fileRefId"));
 		when(adapter.moveObject(any(), any(), anyBoolean()))
 				.thenThrow(new ObjectStoreAdapterException("ERR", "move failed"));
 		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
-				helper.moveDemographicDraftToLive("srcHash", "destHash", "fileRefId"));
-		assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorCode(), thrown.getErrorCode());
+				helper.moveAllDraftBiometricsToLive("ridHash", "uinHash"));
+		assertEquals(IdRepoErrorConstants.DRAFT_OBJECT_MOVE_FAILED.getErrorCode(), thrown.getErrorCode());
+		assertEquals(String.format(IdRepoErrorConstants.DRAFT_OBJECT_MOVE_FAILED.getErrorMessage(),
+				"_draft/ridHash/Biometrics/fileRefId -> uinHash/Biometrics/fileRefId"), thrown.getErrorText());
+	}
+
+	@Test
+	public void testMoveAllDraftDemographicsToLive_Success() throws IdRepoAppException {
+		when(adapter.listObjectsByPrefix(any(), any(), any()))
+				.thenReturn(java.util.Collections.singletonList("_draft/ridHash/Demographics/fileRefId"));
+		when(adapter.moveObject(any(), any(), anyBoolean())).thenReturn(Boolean.TRUE);
+		helper.moveAllDraftDemographicsToLive("ridHash", "uinHash");
+		ArgumentCaptor<ObjectStoreReference> srcCaptor = ArgumentCaptor.forClass(ObjectStoreReference.class);
+		ArgumentCaptor<ObjectStoreReference> dstCaptor = ArgumentCaptor.forClass(ObjectStoreReference.class);
+		verify(adapter).moveObject(srcCaptor.capture(), dstCaptor.capture(), eq(true));
+		assertEquals("_draft/ridHash/Demographics/fileRefId", srcCaptor.getValue().getObjectName());
+		assertEquals("uinHash/Demographics/fileRefId", dstCaptor.getValue().getObjectName());
+	}
+
+	@Test
+	public void testMoveAllDraftDemographicsToLive_ListFails_ThrowsDraftObjectMoveFailed() {
+		when(adapter.listObjectsByPrefix(any(), any(), any()))
+				.thenThrow(new ObjectStoreAdapterException("ERR", "list failed"));
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				helper.moveAllDraftDemographicsToLive("ridHash", "uinHash"));
+		assertEquals(IdRepoErrorConstants.DRAFT_OBJECT_MOVE_FAILED.getErrorCode(), thrown.getErrorCode());
+		assertEquals(String.format(IdRepoErrorConstants.DRAFT_OBJECT_MOVE_FAILED.getErrorMessage(), "ridHash=ridHash"),
+				thrown.getErrorText());
+	}
+
+	@Test
+	public void testMoveAllDraftDemographicsToLive_PerFileFails_ThrowsDraftObjectMoveFailed() {
+		when(adapter.listObjectsByPrefix(any(), any(), any()))
+				.thenReturn(java.util.Collections.singletonList("_draft/ridHash/Demographics/fileRefId"));
+		when(adapter.moveObject(any(), any(), anyBoolean()))
+				.thenThrow(new ObjectStoreAdapterException("ERR", "move failed"));
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				helper.moveAllDraftDemographicsToLive("ridHash", "uinHash"));
+		assertEquals(IdRepoErrorConstants.DRAFT_OBJECT_MOVE_FAILED.getErrorCode(), thrown.getErrorCode());
+		assertEquals(String.format(IdRepoErrorConstants.DRAFT_OBJECT_MOVE_FAILED.getErrorMessage(),
+				"_draft/ridHash/Demographics/fileRefId -> uinHash/Demographics/fileRefId"), thrown.getErrorText());
+	}
+
+	@Test
+	public void testDeleteAllDraftBiometrics_Success() throws IdRepoAppException {
+		when(adapter.listObjectsByPrefix(any(), any(), any()))
+				.thenReturn(java.util.Collections.singletonList("_draft/ridHash/Biometrics/fileRefId"));
+		when(adapter.deleteObject(any(), any(), any(), any(), any())).thenReturn(Boolean.TRUE);
+		helper.deleteAllDraftBiometrics("ridHash");
+		verify(adapter).deleteObject(any(), any(), any(), any(), eq("_draft/ridHash/Biometrics/fileRefId"));
+	}
+
+	@Test
+	public void testDeleteAllDraftBiometrics_ListFails_ThrowsDraftObjectDeleteFailed() {
+		when(adapter.listObjectsByPrefix(any(), any(), any()))
+				.thenThrow(new ObjectStoreAdapterException("ERR", "list failed"));
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				helper.deleteAllDraftBiometrics("ridHash"));
+		assertEquals(IdRepoErrorConstants.DRAFT_OBJECT_DELETE_FAILED.getErrorCode(), thrown.getErrorCode());
+		assertEquals(String.format(IdRepoErrorConstants.DRAFT_OBJECT_DELETE_FAILED.getErrorMessage(), "ridHash=ridHash"),
+				thrown.getErrorText());
+	}
+
+	@Test
+	public void testDeleteAllDraftDemographics_ListFails_ThrowsDraftObjectDeleteFailed() {
+		when(adapter.listObjectsByPrefix(any(), any(), any()))
+				.thenThrow(new ObjectStoreAdapterException("ERR", "list failed"));
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				helper.deleteAllDraftDemographics("ridHash"));
+		assertEquals(IdRepoErrorConstants.DRAFT_OBJECT_DELETE_FAILED.getErrorCode(), thrown.getErrorCode());
+		assertEquals(String.format(IdRepoErrorConstants.DRAFT_OBJECT_DELETE_FAILED.getErrorMessage(), "ridHash=ridHash"),
+				thrown.getErrorText());
 	}
 
 	// ── copyBiometricLiveToDraft / copyDemographicLiveToDraft ────────────────
