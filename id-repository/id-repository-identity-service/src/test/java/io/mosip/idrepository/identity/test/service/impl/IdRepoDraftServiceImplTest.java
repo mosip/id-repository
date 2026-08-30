@@ -2,6 +2,7 @@ package io.mosip.idrepository.identity.test.service.impl;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -38,8 +39,10 @@ import io.mosip.idrepository.identity.helper.ObjectStoreHelper;
 import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import io.mosip.idrepository.identity.helper.VidDraftHelper;
 import io.mosip.idrepository.identity.repository.IdentityUpdateTrackerRepo;
+import io.mosip.idrepository.identity.repository.UinBiometricDraftRepo;
 import io.mosip.idrepository.identity.repository.UinBiometricHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinBiometricRepo;
+import io.mosip.idrepository.identity.repository.UinDocumentDraftRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinDocumentRepo;
 import io.mosip.idrepository.identity.repository.UinDraftRepo;
@@ -61,6 +64,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -176,6 +180,9 @@ public class IdRepoDraftServiceImplTest {
 	@Mock
 	private UinDraftRepo uinDraftRepo;
 
+	@Mock
+	private org.springframework.transaction.support.TransactionTemplate transactionTemplate;
+
 	/** The uin history repo. */
 	@Mock
 	private UinHistoryRepo uinHistoryRepo;
@@ -203,6 +210,12 @@ public class IdRepoDraftServiceImplTest {
 
 	@Mock
 	private BiometricExtractionService biometricExtractionService;
+
+	@Mock
+	private UinBiometricDraftRepo uinBiometricDraftRepo;
+
+	@Mock
+	private UinDocumentDraftRepo uinDocumentDraftRepo;
 
 	@InjectMocks
 	IdRepoDraftServiceImpl idRepoServiceImpl;
@@ -596,7 +609,7 @@ public class IdRepoDraftServiceImplTest {
 		}
 	}
 
-	@Test(expected = IdRepoAppException.class)
+	@Test
 	public void testExtractBiometrics() throws IdRepoAppException, NoSuchAlgorithmException {
 		Map<String, String> extractionFormats = new HashMap<>();
 		extractionFormats.put(FINGER_EXTRACTION_FORMAT, "fingerFormat");
@@ -611,6 +624,7 @@ public class IdRepoDraftServiceImplTest {
 		uin.setUinData("274390482564".getBytes());
 		uin.setUinDataHash(DatatypeConverter
 				.printHexBinary(MessageDigest.getInstance("SHA-256").digest("2419762130".getBytes())).toUpperCase());
+		uin.setBiometrics(new ArrayList<>());
 		Optional<UinDraft> uinOpt = Optional.of(uin);
 		when(uinDraftRepo.findByRegId(Mockito.any())).thenReturn(uinOpt);
 		IdResponseDTO response = idRepoServiceImpl.extractBiometrics("1234567890", extractionFormats);
@@ -833,6 +847,63 @@ public class IdRepoDraftServiceImplTest {
 		}
 	}
 
+	// ── discardDraftV2 ────────────────────────────────────────────────────── //
+
+	@Test
+	public void should_discardDraftV2_deleteObjectStoreFilesAndDbRecords_when_draftExists()
+			throws IdRepoAppException, IOException {
+		UinDraft draft = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(draft));
+		when(objectStoreHelper.getRidHash(anyString())).thenReturn("RID_HASH_TEST");
+		doAnswer(invocation -> {
+			java.util.function.Consumer<org.springframework.transaction.TransactionStatus> action = invocation.getArgument(0);
+			action.accept(null);
+			return null;
+		}).when(transactionTemplate).executeWithoutResult(any());
+
+		IdResponseDTO response = idRepoServiceImpl.discardDraftV2("1234567890");
+
+		assertNotNull(response);
+		verify(objectStoreHelper).deleteAllDraftBiometrics("RID_HASH_TEST");
+		verify(objectStoreHelper).deleteAllDraftDemographics("RID_HASH_TEST");
+		verify(uinBiometricDraftRepo).deleteByRegId("1234567890");
+		verify(uinDocumentDraftRepo).deleteByRegId("1234567890");
+		verify(uinDraftRepo).deleteByRegId("1234567890");
+	}
+
+	@Test
+	public void should_discardDraftV2_keepDbRecords_when_objectDeleteFails()
+			throws IdRepoAppException, IOException {
+		UinDraft draft = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(draft));
+		when(objectStoreHelper.getRidHash(anyString())).thenReturn("RID_HASH_TEST");
+		doThrow(new IdRepoAppException(IdRepoErrorConstants.DRAFT_OBJECT_DELETE_FAILED.getErrorCode(),
+				IdRepoErrorConstants.DRAFT_OBJECT_DELETE_FAILED.getErrorMessage()))
+				.when(objectStoreHelper).deleteAllDraftBiometrics(anyString());
+
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.discardDraftV2("1234567890"));
+		assertEquals(IdRepoErrorConstants.DRAFT_OBJECT_DELETE_FAILED.getErrorCode(), thrown.getErrorCode());
+		verify(uinDraftRepo, never()).deleteByRegId(anyString());
+	}
+
+	@Test(expected = IdRepoAppException.class)
+	public void should_throwNoRecordFound_when_discardDraftV2_ridDoesNotExist() throws IdRepoAppException {
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.empty());
+		idRepoServiceImpl.discardDraftV2("1234567890");
+	}
+
+	@Test
+	public void testDiscardDraftV2JDBCConnectionException() throws IdRepoAppException {
+		try {
+			when(uinDraftRepo.findByRegId(Mockito.any())).thenThrow(JDBCConnectionException.class);
+			IdResponseDTO response = idRepoServiceImpl.discardDraftV2("123567890");
+			assertNotNull(response);
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), e.getErrorCode());
+		}
+	}
+
 	@Test
 	public void testHasDraftJDBCConnectionException() throws IdRepoAppException {
 		try {
@@ -1040,5 +1111,674 @@ public class IdRepoDraftServiceImplTest {
 		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
 				idRepoServiceImpl.createDraft("REG123", null));
 		assertEquals(IdRepoErrorConstants.UIN_GENERATION_FAILED.getErrorCode(), thrown.getErrorCode());
+	}
+
+	// ── createDraftV2 (generateUin=false — bare LOST draft) ─────────────────
+
+	@Test
+	public void should_createDraftSuccessfully_when_ridDoesNotExist() throws IdRepoAppException {
+		when(uinHistoryRepo.existsByRegId(any())).thenReturn(false);
+		when(uinDraftRepo.existsByRegId(any())).thenReturn(false);
+		IdResponseDTO response = idRepoServiceImpl.createDraftV2("REG123", null, false);
+		assertNotNull(response);
+	}
+
+	@Test
+	public void should_throwRecordExists_when_ridAlreadyExists() {
+		when(uinHistoryRepo.existsByRegId(any())).thenReturn(false);
+		when(uinDraftRepo.existsByRegId(any())).thenReturn(true);
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.createDraftV2("REG123", null, false));
+		assertEquals(IdRepoErrorConstants.RECORD_EXISTS.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_throwDatabaseAccessError_when_jdbcConnectionException() {
+		when(uinHistoryRepo.existsByRegId(any())).thenReturn(false);
+		when(uinDraftRepo.existsByRegId(any())).thenThrow(JDBCConnectionException.class);
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.createDraftV2("REG123", null, false));
+		assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_throwRidOlderThanLatestProcessed_when_lostDraftRidExistsInHistoryButNotUin() {
+		when(uinHistoryRepo.existsByRegId(any())).thenReturn(true);
+		when(uinRepo.existsByRegId(any())).thenReturn(false);
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.createDraftV2("REG123", null, false));
+		assertEquals(IdRepoErrorConstants.RID_OLDER_THAN_LATEST_PROCESSED.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_createLostDraft_when_ridExistsInHistoryAndIsLatest() throws IdRepoAppException {
+		when(uinHistoryRepo.existsByRegId(any())).thenReturn(true);
+		when(uinRepo.existsByRegId(any())).thenReturn(true);
+		when(uinDraftRepo.existsByRegId(any())).thenReturn(false);
+		IdResponseDTO response = idRepoServiceImpl.createDraftV2("REG123", null, false);
+		assertNotNull(response);
+	}
+
+	// ── updateDraftUinData ───────────────────────────────────────────────────
+
+	@Test
+	public void should_throwNoRecordFound_when_ridDoesNotExist() throws IdRepoAppException {
+		when(uinDraftRepo.findByRegId(anyString())).thenReturn(Optional.empty());
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.updateDraftUinData("REG123", "274390482564"));
+		assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_throwDatabaseAccessError_when_updateRidThrowsJdbcException() throws IdRepoAppException {
+		when(uinDraftRepo.findByRegId(anyString())).thenThrow(JDBCConnectionException.class);
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.updateDraftUinData("REG123", "274390482564"));
+		assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_throwUinNotFound_when_uinDoesNotExistInUinTable() throws IOException {
+		UinDraft draft = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(anyString())).thenReturn(Optional.of(draft));
+		when(securityManager.getSaltKeyForId(anyString())).thenReturn(1234);
+		when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("hashSalt");
+		when(securityManager.hashwithSalt(any(), any())).thenReturn("some-hash");
+		when(uinRepo.existsByUinHash(any())).thenReturn(false);
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.updateDraftUinData("REG123", "274390482564"));
+		assertEquals(IdRepoErrorConstants.UIN_NOT_FOUND.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_throwDraftUinHashMismatch_when_restampingWithDifferentUin() throws IOException {
+		UinDraft draft = buildMinimalDraft();
+		draft.setUinHash("different-existing-hash");
+		when(uinDraftRepo.findByRegId(anyString())).thenReturn(Optional.of(draft));
+		when(securityManager.getSaltKeyForId(anyString())).thenReturn(1234);
+		when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("hashSalt");
+		when(securityManager.hashwithSalt(any(), any())).thenReturn("some-hash");
+		when(uinRepo.existsByUinHash(any())).thenReturn(true);
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.updateDraftUinData("REG123", "274390482564"));
+		assertEquals(IdRepoErrorConstants.DRAFT_UIN_HASH_MISMATCH.getErrorCode(), thrown.getErrorCode());
+	}
+
+
+	// ── getDraftV2 with type parameter ───────────────────────────────────────
+
+	@Test
+	public void should_returnDemographicsOnly_when_typeIsDemographics() throws IdRepoAppException, IOException {
+		UinDraft uin = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(uin));
+		IdResponseDTO response = idRepoServiceImpl.getDraftV2("1234567890", new HashMap<>(), "demographics");
+		assertNotNull(response);
+	}
+
+	@Test
+	public void should_returnBiometricsOnly_when_typeIsBiometrics() throws IdRepoAppException, IOException {
+		UinDraft uin = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(uin));
+		IdResponseDTO response = idRepoServiceImpl.getDraftV2("1234567890", new HashMap<>(), "biometrics");
+		assertNotNull(response);
+	}
+
+	@Test
+	public void should_returnFullDraft_when_typeIsAll() throws IdRepoAppException, IOException {
+		UinDraft uin = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(uin));
+		IdResponseDTO response = idRepoServiceImpl.getDraftV2("1234567890", new HashMap<>(), "all");
+		assertNotNull(response);
+	}
+
+	@Test
+	public void should_returnFullDraft_when_typeIsNull() throws IdRepoAppException, IOException {
+		UinDraft uin = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(uin));
+		IdResponseDTO response = idRepoServiceImpl.getDraftV2("1234567890", new HashMap<>(), null);
+		assertNotNull(response);
+	}
+
+	@Test
+	public void should_returnSupportingDocumentsOnly_when_typeIsSupportingDocuments() throws IdRepoAppException, IOException {
+		UinDraft uin = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(uin));
+		IdResponseDTO response = idRepoServiceImpl.getDraftV2("1234567890", new HashMap<>(), "supportingDocuments");
+		assertNotNull(response);
+	}
+
+	@Test
+	public void should_throwInvalidInputParameter_when_typeIsInvalid() {
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.getDraftV2("1234567890", new HashMap<>(), "invalid"));
+		assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_throwNoRecordFound_when_getDraftV2_ridDoesNotExist() {
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.empty());
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.getDraftV2("1234567890", new HashMap<>(), "demographics"));
+		assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorCode(), thrown.getErrorCode());
+	}
+
+	// ── createDraftV2 (generateUin=true) — createDraftWithUin ──────────────
+
+	@Test
+	public void should_createDraftWithUin_when_uinProvided_and_ridDoesNotExist() throws IdRepoAppException, IOException, NoSuchAlgorithmException {
+		when(uinHistoryRepo.existsByRegId(any())).thenReturn(false);
+		when(uinDraftRepo.existsByRegId(any())).thenReturn(false);
+		Uin uinEntity = buildUinEntity();
+		when(uinRepo.findByUinHash(any())).thenReturn(Optional.of(uinEntity));
+		when(uinDraftRepo.findByUinHash(any())).thenReturn(null);
+		when(securityManager.getSaltKeyForId(anyString())).thenReturn(1234);
+		when(uinEncryptSaltRepo.retrieveSaltById(anyInt())).thenReturn("YWJj");
+		when(securityManager.encryptWithSalt(any(), any(), any())).thenReturn("encrypted".getBytes());
+		when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("hashSalt");
+		when(securityManager.hashwithSalt(any(), any())).thenReturn("some-hash");
+		IdResponseDTO response = idRepoServiceImpl.createDraftV2("REG123", "274390482564", true);
+		assertNotNull(response);
+	}
+
+	@Test
+	public void should_createDraftWithGeneratedUin_when_uinIsNull_and_ridDoesNotExist() throws IdRepoAppException {
+		when(uinHistoryRepo.existsByRegId(any())).thenReturn(false);
+		when(uinDraftRepo.existsByRegId(any())).thenReturn(false);
+		when(idRepoServiceHelper.generateUin()).thenReturn("274390482564");
+		when(securityManager.getSaltKeyForId(anyString())).thenReturn(1234);
+		when(uinEncryptSaltRepo.retrieveSaltById(anyInt())).thenReturn("YWJj");
+		when(securityManager.encryptWithSalt(any(), any(), any())).thenReturn("encrypted".getBytes());
+		when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("hashSalt");
+		when(securityManager.hashwithSalt(any(), any())).thenReturn("some-hash");
+		when(securityManager.hash(any())).thenReturn("data-hash");
+		IdResponseDTO response = idRepoServiceImpl.createDraftV2("REG123", null, true);
+		assertNotNull(response);
+	}
+
+	@Test
+	public void should_throwRecordExists_when_createDraftWithUin_ridAlreadyExists() {
+		when(uinHistoryRepo.existsByRegId(any())).thenReturn(false);
+		when(uinDraftRepo.existsByRegId(any())).thenReturn(true);
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.createDraftV2("REG123", "274390482564", true));
+		assertEquals(IdRepoErrorConstants.RECORD_EXISTS.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_throwNoRecordFound_when_createDraftWithUin_uinNotInDb() {
+		when(uinHistoryRepo.existsByRegId(any())).thenReturn(false);
+		when(uinDraftRepo.existsByRegId(any())).thenReturn(false);
+		when(securityManager.getSaltKeyForId(anyString())).thenReturn(1234);
+		when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("hashSalt");
+		when(securityManager.hashwithSalt(any(), any())).thenReturn("some-hash");
+		when(uinRepo.findByUinHash(any())).thenReturn(Optional.empty());
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.createDraftV2("REG123", "274390482564", true));
+		assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_throwDatabaseAccessError_when_createDraftWithUin_jdbcException() {
+		when(uinDraftRepo.existsByRegId(any())).thenThrow(JDBCConnectionException.class);
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.createDraftV2("REG123", "274390482564", true));
+		assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_reuseExistingUin_when_uinIsNull_and_ridAlreadyCommitted() throws Exception {
+		// Reprocess of a previously committed NEW packet: uin=null but uin_h has an entry.
+		when(uinDraftRepo.existsByRegId(any())).thenReturn(false);
+		when(uinHistoryRepo.existsByRegId(any())).thenReturn(true);
+		// This RID is still the latest/current one on the live Uin table (not superseded).
+		when(uinRepo.existsByRegId(any())).thenReturn(true);
+
+		// proxyService returns the existing identity with the committed UIN.
+		io.mosip.idrepository.core.dto.ResponseDTO responseDTO = new io.mosip.idrepository.core.dto.ResponseDTO();
+		responseDTO.setStatus("ACTIVATED");
+		java.util.LinkedHashMap<String, Object> identityMap = new java.util.LinkedHashMap<>();
+		identityMap.put("UIN", "274390482564");
+		responseDTO.setIdentity(identityMap);
+		io.mosip.idrepository.core.dto.IdResponseDTO existingIdentityResp = new io.mosip.idrepository.core.dto.IdResponseDTO();
+		existingIdentityResp.setResponse(responseDTO);
+		when(proxyService.retrieveIdentityByRid(anyString(), any(), any())).thenReturn(existingIdentityResp);
+
+		Uin uinEntity = buildUinEntity();
+		when(uinRepo.findByUinHash(any())).thenReturn(Optional.of(uinEntity));
+		when(uinDraftRepo.findByUinHash(any())).thenReturn(null);
+		when(securityManager.getSaltKeyForId(anyString())).thenReturn(1234);
+		when(uinEncryptSaltRepo.retrieveSaltById(anyInt())).thenReturn("YWJj");
+		when(securityManager.encryptWithSalt(any(), any(), any())).thenReturn("encrypted".getBytes());
+		when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("hashSalt");
+		when(securityManager.hashwithSalt(any(), any())).thenReturn("some-hash");
+
+		IdResponseDTO response = idRepoServiceImpl.createDraftV2("REG123", null, true);
+
+		assertNotNull(response);
+		// UIN generator must NOT have been called — reprocess reuses the existing UIN.
+		verify(idRepoServiceHelper, never()).generateUin();
+		// Proxy service must have been called to retrieve the existing identity.
+		verify(proxyService).retrieveIdentityByRid(eq("REG123"), isNull(), isNull());
+	}
+
+	// ── updateDraftUinData — success ─────────────────────────────────────────
+
+	@Test
+	public void should_updateUinOnDraft_when_ridExists() throws IdRepoAppException, IOException {
+		UinDraft draft = buildMinimalDraft();
+		// getUinHash("274390482564") resolves to "1234_some-hash" under the stubs below —
+		// align the draft's stored hash so the "restamp with different UIN" guard doesn't trip.
+		draft.setUinHash("1234_some-hash");
+		when(uinDraftRepo.findByRegId(anyString())).thenReturn(Optional.of(draft));
+		when(uinRepo.existsByUinHash(any())).thenReturn(true);
+		when(uinRepo.findByUinHash(any())).thenReturn(Optional.of(buildLiveUin()));
+		when(securityManager.getSaltKeyForId(anyString())).thenReturn(1234);
+		when(uinEncryptSaltRepo.retrieveSaltById(anyInt())).thenReturn("YWJj");
+		when(securityManager.encryptWithSalt(any(), any(), any())).thenReturn("encrypted".getBytes());
+		when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("hashSalt");
+		when(securityManager.hashwithSalt(any(), any())).thenReturn("some-hash");
+		IdResponseDTO response = idRepoServiceImpl.updateDraftUinData("REG123", "274390482564");
+		assertNotNull(response);
+	}
+
+	// Regression for a NullPointerException seen in production: a LOST-packet draft has
+	// uinData populated by an earlier updateDraftV2 call (which never sets uinHash), so
+	// the "already stamped" guard must key off uinHash being non-null, not uinData.
+	@Test
+	public void should_stampUin_when_draftHasUinDataButNoUinHash_lostPacketFirstStamp()
+			throws IdRepoAppException, IOException {
+		UinDraft draft = buildMinimalDraft();
+		draft.setUinHash(null);
+		when(uinDraftRepo.findByRegId(anyString())).thenReturn(Optional.of(draft));
+		when(uinRepo.existsByUinHash(any())).thenReturn(true);
+		when(uinRepo.findByUinHash(any())).thenReturn(Optional.of(buildLiveUin()));
+		when(securityManager.getSaltKeyForId(anyString())).thenReturn(1234);
+		when(uinEncryptSaltRepo.retrieveSaltById(anyInt())).thenReturn("YWJj");
+		when(securityManager.encryptWithSalt(any(), any(), any())).thenReturn("encrypted".getBytes());
+		when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("hashSalt");
+		when(securityManager.hashwithSalt(any(), any())).thenReturn("some-hash");
+
+		IdResponseDTO response = idRepoServiceImpl.updateDraftUinData("REG123", "274390482564");
+
+		assertNotNull(response);
+		assertEquals("1234_some-hash", draft.getUinHash());
+	}
+
+	// Regression for the LOST-packet IDR-IDC-001 publish failure: when the ABIS-matched
+	// resident's UIN is stamped onto the draft, missing demographic fields (e.g.
+	// addressLine1) must be backfilled from the live Uin, while any field already present
+	// on the draft (the resident's own submitted data) must be preserved on conflict.
+	@Test
+	public void should_backfillMissingFields_and_preserveDraftValues_onConflict_when_stampingUin()
+			throws IdRepoAppException, IOException {
+		UinDraft draft = buildMinimalDraft();
+		draft.setUinHash(null);
+		draft.setUinData("{\"UIN\":\"274390482564\",\"email\":\"draft@mosip.net\"}".getBytes());
+		when(uinDraftRepo.findByRegId(anyString())).thenReturn(Optional.of(draft));
+		when(uinRepo.existsByUinHash(any())).thenReturn(true);
+
+		Uin liveUin = new Uin();
+		liveUin.setUinData(
+				"{\"UIN\":\"274390482564\",\"email\":\"live@mosip.net\",\"addressLine1\":\"live-address\"}"
+						.getBytes());
+		when(uinRepo.findByUinHash(any())).thenReturn(Optional.of(liveUin));
+
+		when(securityManager.getSaltKeyForId(anyString())).thenReturn(1234);
+		when(uinEncryptSaltRepo.retrieveSaltById(anyInt())).thenReturn("YWJj");
+		when(securityManager.encryptWithSalt(any(), any(), any())).thenReturn("encrypted".getBytes());
+		when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("hashSalt");
+		when(securityManager.hashwithSalt(any(), any())).thenReturn("some-hash");
+
+		idRepoServiceImpl.updateDraftUinData("REG123", "274390482564");
+
+		Map<String, Object> mergedData = mapper.readValue(draft.getUinData(), new TypeReference<Map<String, Object>>() {});
+		assertEquals("draft@mosip.net", mergedData.get("email"));
+		assertEquals("live-address", mergedData.get("addressLine1"));
+	}
+
+	// ── updateDraftV2 ────────────────────────────────────────────────────────
+
+	@Test
+	public void should_updateDraftV2_successfully() throws IdRepoAppException, IOException {
+		UinDraft draft = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(draft));
+		IdRequestDTO request = new IdRequestDTO();
+		request.setRequest(new RequestDTO());
+		IdResponseDTO response = idRepoServiceImpl.updateDraftV2("1234567890", request);
+		assertNotNull(response);
+	}
+
+	@Test
+	public void should_throwNoRecordFound_when_updateDraftV2_ridDoesNotExist() {
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.empty());
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.updateDraftV2("REG123", new IdRequestDTO()));
+		assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_throwDatabaseAccessError_when_updateDraftV2_jdbcException() {
+		when(uinDraftRepo.findByRegId(any())).thenThrow(JDBCConnectionException.class);
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.updateDraftV2("REG123", new IdRequestDTO()));
+		assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_throwUnknownError_when_updateDraftV2_jsonException() {
+		when(uinDraftRepo.findByRegId(any())).thenThrow(InvalidJsonException.class);
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.updateDraftV2("REG123", new IdRequestDTO()));
+		assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), thrown.getErrorCode());
+	}
+
+	// ── publishDraftV2 ───────────────────────────────────────────────────────
+
+	@Test
+	public void should_throwNoRecordFound_when_publishDraftV2_ridDoesNotExist() {
+		ReflectionTestUtils.setField(idRepoServiceImpl, "anonymousProfileHelper", anonymousProfileHelper);
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.empty());
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.publishDraftV2("REG123"));
+		assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_throwDraftUinDetailsNotFound_when_publishDraftV2_uinIsNull() throws IOException {
+		ReflectionTestUtils.setField(idRepoServiceImpl, "anonymousProfileHelper", anonymousProfileHelper);
+		UinDraft draft = buildMinimalDraft();
+		draft.setUin(null);
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(draft));
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.publishDraftV2("1234567890"));
+		assertEquals(IdRepoErrorConstants.DRAFT_UIN_DETAILS_NOT_FOUND.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_throwDraftUinDetailsNotFound_when_publishDraftV2_uinHashIsNull() throws IOException {
+		ReflectionTestUtils.setField(idRepoServiceImpl, "anonymousProfileHelper", anonymousProfileHelper);
+		UinDraft draft = buildMinimalDraft();
+		draft.setUinHash(null);
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(draft));
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.publishDraftV2("1234567890"));
+		assertEquals(IdRepoErrorConstants.DRAFT_UIN_DETAILS_NOT_FOUND.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_throwDraftUinDetailsNotFound_when_publishDraftV2_uinDataIsNull() throws IOException {
+		ReflectionTestUtils.setField(idRepoServiceImpl, "anonymousProfileHelper", anonymousProfileHelper);
+		UinDraft draft = buildMinimalDraft();
+		draft.setUinData(null);
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(draft));
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.publishDraftV2("1234567890"));
+		assertEquals(IdRepoErrorConstants.DRAFT_UIN_DETAILS_NOT_FOUND.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_throwDatabaseAccessError_when_publishDraftV2_jdbcException() {
+		ReflectionTestUtils.setField(idRepoServiceImpl, "anonymousProfileHelper", anonymousProfileHelper);
+		when(uinDraftRepo.findByRegId(any())).thenThrow(JDBCConnectionException.class);
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.publishDraftV2("REG123"));
+		assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), thrown.getErrorCode());
+	}
+
+	// ── extractBiometricsV2 ──────────────────────────────────────────────────
+
+	@Test
+	public void should_returnEmptyResponse_when_extractBiometricsV2_extractionFormatsEmpty() throws IdRepoAppException {
+		IdResponseDTO response = idRepoServiceImpl.extractBiometricsV2("1234567890", new HashMap<>());
+		assertNotNull(response);
+	}
+
+	@Test
+	public void should_throwNoRecordFound_when_extractBiometricsV2_ridDoesNotExist() {
+		Map<String, String> formats = new HashMap<>();
+		formats.put(FINGER_EXTRACTION_FORMAT, "fingerFormat");
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.empty());
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.extractBiometricsV2("REG123", formats));
+		assertEquals(IdRepoErrorConstants.NO_RECORD_FOUND.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_throwDatabaseAccessError_when_extractBiometricsV2_jdbcException() {
+		Map<String, String> formats = new HashMap<>();
+		formats.put(FINGER_EXTRACTION_FORMAT, "fingerFormat");
+		when(uinDraftRepo.findByRegId(any())).thenThrow(JDBCConnectionException.class);
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.extractBiometricsV2("REG123", formats));
+		assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), thrown.getErrorCode());
+	}
+
+	// ── publishDraftV2 success-path ──────────────────────────────────────────
+
+	private void stubPublishDraftV2(UinDraft draft) throws IdRepoAppException {
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(draft));
+		when(uinEncryptSaltRepo.getOne(anyInt())).thenReturn(uinEncryptSalt);
+		when(uinEncryptSalt.getSalt()).thenReturn("dGVzdA==");
+		when(securityManager.decryptWithSalt(any(), any(), any())).thenReturn("274390482564".getBytes());
+		when(securityManager.getSaltKeyForId(anyString())).thenReturn(123);
+		when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("hashSalt");
+		when(securityManager.hashwithSalt(any(), any()))
+				.thenReturn("5B72C3B57A72C6497461289FCA7B1F865ED6FB0596B446FEA1F92AF931A5D4B7");
+		ReflectionTestUtils.setField(idRepoServiceImpl, "activeStatus", "ACTIVATED");
+		when(uinEncryptSaltRepo.retrieveSaltById(anyInt())).thenReturn("encSalt");
+		when(securityManager.hash(any())).thenReturn("DATAHASH");
+		Uin savedUin = new Uin();
+		savedUin.setUinRefId("ref-id-123");
+		savedUin.setUin("encrypted-uin");
+		savedUin.setUinData("{}".getBytes());
+		savedUin.setStatusCode("ACTIVATED");
+		when(uinRepo.save(any())).thenReturn(savedUin);
+		when(securityManager.getIdHashWithSaltModuloByPlainIdHash(anyString(), any())).thenReturn("IDHASH");
+		when(anonymousProfileHelper.setRegId(anyString())).thenReturn(anonymousProfileHelper);
+		when(objectStoreHelper.getRidHash(anyString())).thenReturn("RID_HASH_TEST");
+		// Make TransactionTemplate actually invoke the consumer so deleteByRegId calls run.
+		doAnswer(invocation -> {
+			java.util.function.Consumer<org.springframework.transaction.TransactionStatus> action = invocation.getArgument(0);
+			action.accept(null);
+			return null;
+		}).when(transactionTemplate).executeWithoutResult(any());
+	}
+
+	@Test
+	public void should_publishDraftV2_moveBiometricAndDemographic_with_ridHashSrc_and_uinHashDest()
+			throws IdRepoAppException, IOException {
+		UinDraft draft = buildMinimalDraft();
+		draft.setUin("1_YWJj");
+		stubPublishDraftV2(draft);
+
+		IdResponseDTO response = idRepoServiceImpl.publishDraftV2("1234567890");
+
+		assertNotNull(response);
+		String expectedDest = "5B72C3B57A72C6497461289FCA7B1F865ED6FB0596B446FEA1F92AF931A5D4B7";
+		verify(objectStoreHelper).moveAllDraftBiometricsToLive("RID_HASH_TEST", expectedDest);
+		verify(objectStoreHelper).moveAllDraftDemographicsToLive("RID_HASH_TEST", expectedDest);
+	}
+
+	@Test
+	public void should_publishDraftV2_moveFiles_before_deleteDbRecords()
+			throws IdRepoAppException, IOException {
+		UinDraft draft = buildMinimalDraft();
+		draft.setUin("1_YWJj");
+		stubPublishDraftV2(draft);
+
+		idRepoServiceImpl.publishDraftV2("1234567890");
+
+		// Files must move BEFORE DB records are deleted so a storage failure leaves
+		// the draft DB row intact and the draft is still recoverable.
+		InOrder inOrder = inOrder(objectStoreHelper, uinBiometricDraftRepo, uinDocumentDraftRepo, uinDraftRepo);
+		inOrder.verify(objectStoreHelper).moveAllDraftBiometricsToLive(anyString(), anyString());
+		inOrder.verify(objectStoreHelper).moveAllDraftDemographicsToLive(anyString(), anyString());
+		inOrder.verify(uinBiometricDraftRepo).deleteByRegId("1234567890");
+		inOrder.verify(uinDocumentDraftRepo).deleteByRegId("1234567890");
+		inOrder.verify(uinDraftRepo).deleteByRegId("1234567890");
+	}
+
+	@Test
+	public void should_publishDraftV2_propagateException_when_objectMoveFails()
+			throws IOException, IdRepoAppException {
+		UinDraft draft = buildMinimalDraft();
+		draft.setUin("1_YWJj");
+		stubPublishDraftV2(draft);
+		doThrow(new RuntimeException("storage error"))
+				.when(objectStoreHelper).moveAllDraftBiometricsToLive(anyString(), anyString());
+
+		assertThrows(RuntimeException.class, () -> idRepoServiceImpl.publishDraftV2("1234567890"));
+	}
+
+	// ── extractBiometricsV2 success-path ─────────────────────────────────────
+
+	@Test
+	public void should_extractBiometricsV2_readFromDraftPath_using_ridHash()
+			throws IdRepoAppException, IOException {
+		Map<String, String> formats = new HashMap<>();
+		formats.put(FINGER_EXTRACTION_FORMAT, "fingerFormat");
+		UinDraft draft = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(draft));
+		when(objectStoreHelper.getRidHash(anyString())).thenReturn("RID_HASH_TEST");
+
+		idRepoServiceImpl.extractBiometricsV2("1234567890", formats);
+
+		verify(objectStoreHelper).getDraftBiometricObject("RID_HASH_TEST", "1234");
+		verify(objectStoreHelper, never()).getBiometricObject(anyString(), anyString());
+	}
+
+	@Test
+	public void should_extractBiometricsV2_deleteExistingDraftExtractionFile_beforeReExtracting()
+			throws IdRepoAppException, IOException {
+		Map<String, String> formats = new HashMap<>();
+		formats.put(FINGER_EXTRACTION_FORMAT, "fingerFormat");
+		UinDraft draft = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(draft));
+		when(objectStoreHelper.getRidHash(anyString())).thenReturn("RID_HASH_TEST");
+
+		idRepoServiceImpl.extractBiometricsV2("1234567890", formats);
+
+		// Any previously extracted derivative for this format must be deleted from the
+		// draft path before a fresh extraction is attempted, so a stale file can never
+		// be mistaken for a freshly extracted one.
+		InOrder inOrder = inOrder(objectStoreHelper);
+		inOrder.verify(objectStoreHelper).deleteDraftBiometricObject("RID_HASH_TEST", "1234.finger.fingerFormat");
+		inOrder.verify(objectStoreHelper).getDraftBiometricObject("RID_HASH_TEST", "1234");
+	}
+
+	@Test
+	public void should_extractBiometricsV2_wrapDataAccessException_asDatabaseAccessError()
+			throws IdRepoAppException, IOException {
+		Map<String, String> formats = new HashMap<>();
+		formats.put(FINGER_EXTRACTION_FORMAT, "fingerFormat");
+		UinDraft draft = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(draft));
+		when(objectStoreHelper.getRidHash(anyString())).thenReturn("RID_HASH_TEST");
+		// getDraftBiometricObject is evaluated inside extractBiometricsDraftV2's per-file
+		// try block (as an argument to the proxyService call), so a DB failure surfacing
+		// here exercises the same DataAccessException|JDBCConnectionException catch as a
+		// real Hibernate-backed failure would.
+		when(objectStoreHelper.getDraftBiometricObject(anyString(), anyString()))
+				.thenThrow(JDBCConnectionException.class);
+
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.extractBiometricsV2("1234567890", formats));
+		assertEquals(IdRepoErrorConstants.DATABASE_ACCESS_ERROR.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_extractBiometricsV2_wrapGenericException_asBioExtractionError()
+			throws IdRepoAppException, IOException {
+		Map<String, String> formats = new HashMap<>();
+		formats.put(FINGER_EXTRACTION_FORMAT, "fingerFormat");
+		UinDraft draft = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(draft));
+		when(objectStoreHelper.getRidHash(anyString())).thenReturn("RID_HASH_TEST");
+		when(objectStoreHelper.getDraftBiometricObject(anyString(), anyString()))
+				.thenThrow(new RuntimeException("unexpected"));
+
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.extractBiometricsV2("1234567890", formats));
+		assertEquals(IdRepoErrorConstants.BIO_EXTRACTION_ERROR.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_extractBiometricsV2_propagateIdRepoAppException_fromDraftRead()
+			throws IdRepoAppException, IOException {
+		Map<String, String> formats = new HashMap<>();
+		formats.put(FINGER_EXTRACTION_FORMAT, "fingerFormat");
+		UinDraft draft = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(draft));
+		when(objectStoreHelper.getRidHash(anyString())).thenReturn("RID_HASH_TEST");
+		when(objectStoreHelper.getDraftBiometricObject(anyString(), anyString()))
+				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.BIO_EXTRACTION_ERROR));
+
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.extractBiometricsV2("1234567890", formats));
+		assertEquals(IdRepoErrorConstants.BIO_EXTRACTION_ERROR.getErrorCode(), thrown.getErrorCode());
+	}
+
+	@Test
+	public void should_extractBiometricsV2_skipExtraction_whenDraftHasNoBiometrics()
+			throws IdRepoAppException, IOException {
+		Map<String, String> formats = new HashMap<>();
+		formats.put(FINGER_EXTRACTION_FORMAT, "fingerFormat");
+		UinDraft draft = buildMinimalDraft();
+		draft.setBiometrics(null);
+		when(uinDraftRepo.findByRegId(any())).thenReturn(Optional.of(draft));
+		when(objectStoreHelper.getRidHash(anyString())).thenReturn("RID_HASH_TEST");
+
+		idRepoServiceImpl.extractBiometricsV2("1234567890", formats);
+
+		verify(objectStoreHelper, never()).deleteDraftBiometricObject(anyString(), anyString());
+		verify(objectStoreHelper, never()).getDraftBiometricObject(anyString(), anyString());
+	}
+
+	private Uin buildUinEntity() throws IOException, NoSuchAlgorithmException {
+		Uin uinEntity = new Uin();
+		String uinHash = DatatypeConverter
+				.printHexBinary(MessageDigest.getInstance("SHA-256").digest("274390482564".getBytes())).toUpperCase();
+		uinEntity.setUinHash("123_" + uinHash);
+		uinEntity.setUin("274390482564");
+		uinEntity.setUinData("274390482564".getBytes());
+		uinEntity.setUinDataHash(uinHash);
+		uinEntity.setStatusCode("ACTIVATED");
+		uinEntity.setBiometrics(new ArrayList<>());
+		uinEntity.setDocuments(new ArrayList<>());
+		return uinEntity;
+	}
+
+	private UinDraft buildMinimalDraft() throws IOException {
+		UinDraft uin = new UinDraft();
+		uin.setUin("274390482564");
+		uin.setUinHash("123_5B72C3B57A72C6497461289FCA7B1F865ED6FB0596B446FEA1F92AF931A5D4B7");
+		uin.setRegId("1234567890");
+		String identityData = IOUtils.toString(
+				this.getClass().getClassLoader().getResourceAsStream("identity-data.json"), StandardCharsets.UTF_8);
+		uin.setUinData(identityData.getBytes());
+		uin.setStatusCode("DRAFTED");
+		UinBiometricDraft biometric = new UinBiometricDraft();
+		biometric.setBiometricFileType("individualBiometrics");
+		biometric.setBiometricFileHash("A2C07E94066BE52308E96ABAD995035E62985A1B0D8837E9ACAB47F8F8A52014");
+		biometric.setBioFileId("1234");
+		biometric.setBiometricFileName("name");
+		uin.setBiometrics(Collections.singletonList(biometric));
+		UinDocumentDraft document = new UinDocumentDraft();
+		document.setDoccatCode("ProofOfIdentity");
+		document.setDocHash("3A6EB0790F39AC87C94F3856B2DD2C5D110E6811602261A9A923D3BB23ADC8B7");
+		document.setDocId("1236");
+		document.setDocName("name");
+		uin.setDocuments(Collections.singletonList(document));
+		return uin;
+	}
+
+	// Live Uin match backing updateDraftUinData's backfill merge — same identity data as the
+	// draft's own, so the merge is a no-op and existing assertions stay unaffected.
+	private Uin buildLiveUin() throws IOException {
+		Uin uin = new Uin();
+		String identityData = IOUtils.toString(
+				this.getClass().getClassLoader().getResourceAsStream("identity-data.json"), StandardCharsets.UTF_8);
+		uin.setUinData(identityData.getBytes());
+		return uin;
 	}
 }

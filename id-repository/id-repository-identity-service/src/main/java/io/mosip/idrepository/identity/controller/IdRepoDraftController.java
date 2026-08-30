@@ -1,12 +1,10 @@
 package io.mosip.idrepository.identity.controller;
 
-import jakarta.annotation.PostConstruct;
 import io.mosip.idrepository.core.constant.AuditEvents;
 import io.mosip.idrepository.core.constant.AuditModules;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
-import org.springframework.beans.factory.annotation.Value;
 import io.mosip.idrepository.core.dto.DraftResponseDto;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
@@ -16,6 +14,8 @@ import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.idrepository.core.spi.IdRepoDraftService;
 import io.mosip.idrepository.core.util.DataValidationUtil;
+import io.mosip.idrepository.identity.dto.CreateDraftV2RequestDto;
+import io.mosip.idrepository.identity.dto.UpdateDraftUinDataRequestDto;
 import io.mosip.idrepository.identity.validator.IdRequestValidator;
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.http.ResponseWrapper;
@@ -27,7 +27,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -101,9 +103,11 @@ public class IdRepoDraftController {
 
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
-		binder.addValidators(validator);
+		if (binder.getTarget() != null && validator.supports(binder.getTarget().getClass())) {
+			binder.addValidators(validator);
+		}
 	}
-	
+
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostdraftcreateregistrationId())")
 	//@PreAuthorize("hasAnyRole('REGISTRATION_PROCESSOR')")
 	@PostMapping(path = "/create/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -310,22 +314,6 @@ public class IdRepoDraftController {
 		}
 	}
 
-	private Map<String, String> buildExtractionFormatMap(String fingerExtractionFormat, String irisExtractionFormat,
-			String faceExtractionFormat) {
-		Map<String, String> extractionFormats = new HashMap<>();
-		if(Objects.nonNull(fingerExtractionFormat)) {
-			extractionFormats.put(FINGER_EXTRACTION_FORMAT, fingerExtractionFormat);
-		}
-		if(Objects.nonNull(irisExtractionFormat)) {
-			extractionFormats.put(IRIS_EXTRACTION_FORMAT, irisExtractionFormat);
-		}
-		if(Objects.nonNull(faceExtractionFormat)) {
-			extractionFormats.put(FACE_EXTRACTION_FORMAT, faceExtractionFormat);
-		}
-		extractionFormats.remove(null);
-		return extractionFormats;
-	}
-
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetdraftUIN())")
 	@GetMapping(path = "/uin/{UIN}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "getDraftUIN", description = "getDraft", tags = { "id-repo-draft-controller" })
@@ -363,5 +351,226 @@ public class IdRepoDraftController {
 					IdType.ID, "Get Draft UIN requested");
 		}
 	}
-	
+
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostdraftcreateregistrationId())")
+	@PostMapping(path = "/v2/create/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(
+			summary = "createDraftV2",
+			description = "Creates a draft for NEW, UPDATE, or LOST packets. " +
+					"Set generateUin=true (default) to allocate a UIN immediately (NEW/UPDATE). " +
+					"Set generateUin=false to skip UIN allocation (LOST packets — UIN is resolved via updateDraftUinData after ABIS).",
+			tags = { "id-repo-draft-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
+	public ResponseEntity<IdResponseDTO> createDraftV2(@PathVariable String registrationId,
+			@RequestBody CreateDraftV2RequestDto request) throws IdRepoAppException {
+		try {
+			if (!ridCompiledPattern.matcher(registrationId).matches()) {
+				throw new IdRepoAppException(
+						IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "Registration Id")
+				);
+			}
+			return new ResponseEntity<>(
+					draftService.createDraftV2(registrationId, request.getUin(), request.isGenerateUin()),
+					HttpStatus.OK);
+		} catch (IdRepoAppException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_DRAFT_REQUEST_RESPONSE,
+					registrationId, IdType.ID, e);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "createDraftV2", e.getMessage());
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		} finally {
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_DRAFT_REQUEST_RESPONSE,
+					registrationId, IdType.ID, "Create draft v2 requested");
+		}
+	}
+
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPatchdraftupdateregistrationId())")
+	@PatchMapping(path = "/uindata/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(
+			summary = "updateDraftUinData",
+			description = "Stamps a UIN on an existing LOST draft after ABIS resolves the matched registration's UIN.",
+			tags = { "id-repo-draft-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
+	public ResponseEntity<IdResponseDTO> updateDraftUinData(@PathVariable String registrationId,
+			@RequestBody UpdateDraftUinDataRequestDto request) throws IdRepoAppException {
+		try {
+			if (!validator.validateUin(request.getUin())) {
+				throw new IdRepoAppException(
+						IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), IdType.UIN)
+				);
+			}
+			return new ResponseEntity<>(draftService.updateDraftUinData(registrationId, request.getUin()), HttpStatus.OK);
+		} catch (IdRepoAppException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_DRAFT_REQUEST_RESPONSE,
+					registrationId, IdType.ID, e);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "updateDraftUinData", e.getMessage());
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		} finally {
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_DRAFT_REQUEST_RESPONSE,
+					registrationId, IdType.ID, "Update draft UIN data requested");
+		}
+	}
+
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPatchdraftupdateregistrationId())")
+	@PatchMapping(path = "/v2/update/{registrationId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "updateDraftV2", description = "updateDraftV2 — updates draft identity/biometric data (V2).", tags = { "id-repo-draft-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
+	public ResponseEntity<IdResponseDTO> updateDraftV2(@PathVariable String registrationId,
+			@RequestBody IdRequestDTO request, @ApiIgnore Errors errors) throws IdRepoAppException {
+		try {
+			request.getRequest().setRegistrationId(registrationId);
+			validator.validateRequest(request.getRequest(), errors, "update");
+			DataValidationUtil.validate(errors);
+			return new ResponseEntity<>(draftService.updateDraftV2(registrationId, request), HttpStatus.OK);
+		} catch (IdRepoAppException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_DRAFT_REQUEST_RESPONSE,
+					registrationId, IdType.ID, e);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "updateDraftV2", e.getMessage());
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		} finally {
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_DRAFT_REQUEST_RESPONSE,
+					registrationId, IdType.ID, "Update draft v2 requested");
+		}
+	}
+
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetdraftpublishregistrationId())")
+	@GetMapping(path = "/v2/publish/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(
+			summary = "publishDraftV2",
+			description = "Publishes a draft to the ID Repository (V2 — with object-store draft-to-live copy and full cleanup).",
+			tags = { "id-repo-draft-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
+	public ResponseEntity<IdResponseDTO> publishDraftV2(@PathVariable String registrationId) throws IdRepoAppException {
+		try {
+			return new ResponseEntity<>(draftService.publishDraftV2(registrationId), HttpStatus.OK);
+		} catch (IdRepoAppException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.PUBLISH_DRAFT_REQUEST_RESPONSE, registrationId,
+					IdType.ID, e);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "publishDraftV2", e.getMessage());
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		} finally {
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.PUBLISH_DRAFT_REQUEST_RESPONSE, registrationId,
+					IdType.ID, "Publish draft v2 requested");
+		}
+	}
+
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetdraftregistrationId())")
+	@GetMapping(path = "/v2/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(
+			summary = "getDraftV2",
+			description = "Granular draft retrieval at V2 path. Optional ?type=demographics|supportingdocuments|biometrics|all (default: all).",
+			tags = { "id-repo-draft-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true))),
+	})
+	public ResponseEntity<IdResponseDTO> getDraftV2(@PathVariable String registrationId,
+			@RequestParam(name = FINGER_EXTRACTION_FORMAT, required = false) @Nullable String fingerExtractionFormat,
+			@RequestParam(name = IRIS_EXTRACTION_FORMAT, required = false) @Nullable String irisExtractionFormat,
+			@RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat,
+			@RequestParam(name = "type", required = false) @Nullable String type)
+			throws IdRepoAppException {
+		try {
+			return new ResponseEntity<>(draftService.getDraftV2(registrationId,
+					buildExtractionFormatMap(fingerExtractionFormat, irisExtractionFormat, faceExtractionFormat),
+					type),
+					HttpStatus.OK);
+		} catch (IdRepoAppException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_DRAFT_REQUEST_RESPONSE, registrationId,
+					IdType.ID, e);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "getDraftV2", e.getMessage());
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		} finally {
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_DRAFT_REQUEST_RESPONSE, registrationId,
+					IdType.ID, "Get draft v2 requested");
+		}
+	}
+
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getPutdraftextractbiometricsregistrationId())")
+	@PutMapping(path = "/v2/extractbiometrics/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "extractBiometricsV2", description = "extractBiometricsV2 (V2)", tags = { "id-repo-draft-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true))),
+	})
+	public ResponseEntity<IdResponseDTO> extractBiometricsV2(@PathVariable String registrationId,
+			@RequestParam(name = FINGER_EXTRACTION_FORMAT, required = false) @Nullable String fingerExtractionFormat,
+			@RequestParam(name = IRIS_EXTRACTION_FORMAT, required = false) @Nullable String irisExtractionFormat,
+			@RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat)
+			throws IdRepoAppException {
+		try {
+			return new ResponseEntity<>(draftService.extractBiometricsV2(registrationId,
+					buildExtractionFormatMap(fingerExtractionFormat, irisExtractionFormat, faceExtractionFormat)),
+					HttpStatus.OK);
+		} catch (IdRepoAppException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.EXTRACT_BIOMETRICS_DRAFT_REQUEST_RESPONSE, registrationId,
+					IdType.ID, e);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "extractBiometricsV2", e.getMessage());
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		} finally {
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.EXTRACT_BIOMETRICS_DRAFT_REQUEST_RESPONSE, registrationId,
+					IdType.ID, "Extract Biometrics draft v2 requested");
+		}
+	}
+
+	@PreAuthorize("hasAnyRole(@authorizedRoles.getDeletedraftdiscardregistrationId())")
+	@DeleteMapping(path = "/v2/discard/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "discardDraftV2", description = "discardDraftV2 (V2)", tags = { "id-repo-draft-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "204", description = "No Content" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
+	public ResponseEntity<IdResponseDTO> discardDraftV2(@PathVariable String registrationId) throws IdRepoAppException {
+		try {
+			return new ResponseEntity<>(draftService.discardDraftV2(registrationId), HttpStatus.OK);
+		} catch (IdRepoAppException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.DISCARD_DRAFT_REQUEST_RESPONSE, registrationId,
+					IdType.ID, e);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_CONTROLLER, "discardDraftV2", e.getMessage());
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		} finally {
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.DISCARD_DRAFT_REQUEST_RESPONSE, registrationId,
+					IdType.ID, "Discard draft v2 requested");
+		}
+	}
+
+	private Map<String, String> buildExtractionFormatMap(String fingerExtractionFormat, String irisExtractionFormat,
+			String faceExtractionFormat) {
+		Map<String, String> extractionFormats = new HashMap<>();
+		if(Objects.nonNull(fingerExtractionFormat)) {
+			extractionFormats.put(FINGER_EXTRACTION_FORMAT, fingerExtractionFormat);
+		}
+		if(Objects.nonNull(irisExtractionFormat)) {
+			extractionFormats.put(IRIS_EXTRACTION_FORMAT, irisExtractionFormat);
+		}
+		if(Objects.nonNull(faceExtractionFormat)) {
+			extractionFormats.put(FACE_EXTRACTION_FORMAT, faceExtractionFormat);
+		}
+		extractionFormats.remove(null);
+		return extractionFormats;
+	}
 }

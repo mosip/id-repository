@@ -57,6 +57,24 @@ public enum IdRepoErrorConstants {
 	/** The record exists. */
 	HANDLE_RECORD_EXISTS("IDR-IDC-014", "%s : Handle record already exists in DB"),
 
+	/** UIN details not found in draft. */
+	DRAFT_UIN_DETAILS_NOT_FOUND("IDR-IDC-015", "UIN details not found in draft"),
+
+	/** The requested RID is older than the latest processed RID for this UIN. */
+	RID_OLDER_THAN_LATEST_PROCESSED("IDR-IDC-016", "The requested RID is older than the latest processed RID"),
+
+	/** The requested UIN does not exist in the UIN table. */
+	UIN_NOT_FOUND("IDR-IDC-017", "UIN not found"),
+
+	/** The UIN hash on the draft does not match the requested UIN. */
+	DRAFT_UIN_HASH_MISMATCH("IDR-IDC-018", "UIN hash does not match"),
+
+	/** Failed to move draft object-store files to the live path during publish. */
+	DRAFT_OBJECT_MOVE_FAILED("IDR-IDC-019", "Failed to move draft object(s) to live path - %s"),
+
+	/** Failed to delete draft object-store files. */
+	DRAFT_OBJECT_DELETE_FAILED("IDR-IDC-020", "Failed to delete draft object(s) from object store - %s"),
+
 	// Identity Service
 	
 	/** The identity mismatch. */
