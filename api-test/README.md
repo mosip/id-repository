@@ -119,6 +119,56 @@ Use `env.testLevel=smokeAndRegression` for the full suite. `env.endpoint` should
 
 ---
 
+## Run against qa11new (or other remote env)
+
+1. Put Keycloak / DB URLs and secrets in `config/Idrepo.properties` (do **not** commit real secrets).
+2. Ensure `apitest-commons` includes the Face Subtype / CBEFF sanitize fix (see Biometric BioValue section below).
+3. Run with a non-localhost endpoint, for example:
+
+```sh
+java -Dmodules=idrepo \
+  -Denv.user=api-internal.qa11new \
+  -Denv.endpoint=https://api-internal.qa11new.mosip.net \
+  -Denv.testLevel=smoke \
+  -jar target/apitest-idrepo-*-jar-with-dependencies.jar
+```
+
+---
+
+## Biometric BioValue (local vs env)
+
+AddIdentity needs a CBEFF payload in `documents[0].value`. The runner chooses the source from `env.endpoint`:
+
+| Target | Bio source | What you need |
+|--------|------------|---------------|
+| **Localhost** | Bundled `config/bioValue.properties` | File present under `api-test/src/main/resources/config/` (no Mock SBI required) |
+| **Remote env** | Mock SBI / MDS generation | Complete `api-test/src/main/resources/mds/` (devices + `resource/Profile/.../Face.iso`) |
+
+### Local
+
+- Uses `bioValue.properties` only (partner/device setup is skipped on localhost).
+- Confirm in the log: `Local mode: loading bundled bioValue.properties`.
+
+### Remote / QA
+
+- Always generates BioValue via Mock SBI; it does **not** fall back to `bioValue.properties`.
+- Runner sets `user.dir` to `src/main/resources/mds` while generating so Mock SBI finds `application.properties`, `Biometric Devices/`, and `resource/Profile/`.
+- Confirm in the log: `Env mode: generating BioValue via Mock SBI` and a large `BioValue ready for AddIdentity (len=...)`.
+- `apitest-commons` must keep empty Face `<Subtype></Subtype>` and sanitize MDS CBEFF for idrepo XSD (strip JWT `<SB>` / `<others>` that known-good BioValue does not have). Install the fixed commons SNAPSHOT before the env run if your IDE still has an older jar.
+
+If env fails with `IDR-IDC-002` / `Invalid Input Parameter - documents/0/value`, the CBEFF failed `validateXML` — check mds Face ISO, Face Subtype, and commons sanitize — not the local property file.
+
+### Optional: scope test cases
+
+In `Idrepo.properties` (or `Idrepo-local.properties` when using that flow):
+
+```properties
+# Empty = full suite. Comma-separated uniqueIdentifier values to run a subset.
+testCasesToExecute=
+```
+
+---
+
 ## Build Test Automation Code
 
 Once the repository is cloned or downloaded, follow these steps to build and install the test automation code:
