@@ -1,5 +1,5 @@
 
-\c mosip_idrepo sysadmin
+\c :mosipdbname sysadmin
 ---------------------------------------------------------------------------------------------------
 
 ALTER TABLE idrepo.credential_request_status DROP COLUMN IF EXISTS trigger_action;

@@ -1,4 +1,4 @@
-\c mosip_idrepo
+\c :mosipdbname
 
 --INDEX
 CREATE INDEX IF NOT EXISTS idx_uin_uin_hash ON idrepo.uin USING btree(uin_hash);

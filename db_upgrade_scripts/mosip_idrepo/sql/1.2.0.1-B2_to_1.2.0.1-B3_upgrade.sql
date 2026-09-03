@@ -1,5 +1,5 @@
 -- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_idrepo
+-- Database Name: :mosipdbname
 -- Purpose    		: Database Alter scripts for the release for ID Repository DB.       
 -- Create By   		: Anusha SE
 -- Created Date		: Dec-2023
@@ -8,7 +8,7 @@
 -- -------------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------------------
 
-\c mosip_idrepo sysadmin
+\c :mosipdbname sysadmin
 ---------------------------------------------------------------------------------------------------
 
 ALTER TABLE idrepo.credential_request_status ALTER COLUMN request_id type character varying(64);
