@@ -500,6 +500,95 @@ public class IdRepoDraftServiceImplTest {
 		when(securityManager.hash(Mockito.any()))
 				.thenReturn("A2C07E94066BE52308E96ABAD995035E62985A1B0D8837E9ACAB47F8F8A52014");
 		ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "updateDocuments", req, draft);
+		verify(objectStoreHelper).putBiometricObject(eq(uinHashwithSalt), any(), any());
+		verify(objectStoreHelper).getBiometricObject(eq(uinHashwithSalt), eq("1234"));
+		verify(objectStoreHelper, never()).putDraftBiometricObject(any(), any(), any());
+		verify(objectStoreHelper, never()).getDraftBiometricObject(any(), any());
+		verify(objectStoreHelper, never()).getRidHash(anyString());
+	}
+
+	@Test
+	public void testUpdateDocumentsV2_usesDraftRidHashPath() throws Exception {
+		RequestDTO req = new RequestDTO();
+		DocumentsDTO doc1 = new DocumentsDTO();
+		doc1.setCategory("individualBiometrics");
+		String docValue = Base64.getEncoder().encodeToString("text biomterics".getBytes());
+		doc1.setValue(docValue);
+		req.setDocuments(Collections.singletonList(doc1));
+		UinDraft draft = new UinDraft();
+		draft.setUin("274390482564");
+		draft.setRegId("1234567890");
+		String identityData = IOUtils.toString(
+				this.getClass().getClassLoader().getResourceAsStream("identity-data.json"), StandardCharsets.UTF_8);
+		req.setIdentity(mapper.readValue(identityData, Object.class));
+		draft.setUinData(identityData.getBytes());
+		String uinHashwithSalt = DatatypeConverter.printHexBinary(MessageDigest.getInstance("SHA-256").digest(identityData.getBytes()))
+				.toUpperCase();
+		draft.setUinHash("123_" + uinHashwithSalt);
+		UinBiometricDraft biometric = new UinBiometricDraft();
+		biometric.setBiometricFileType("individualBiometrics");
+		biometric.setBiometricFileHash("A2C07E94066BE52308E96ABAD995035E62985A1B0D8837E9ACAB47F8F8A52014");
+		biometric.setBioFileId("1234");
+		biometric.setBiometricFileName("name");
+		draft.setBiometrics(new ArrayList<>(List.of(biometric)));
+		draft.setDocuments(new ArrayList<>());
+		ReflectionTestUtils.setField(idRepoServiceImpl, "mapper", mapper);
+		ReflectionTestUtils.setField(idRepoServiceImpl, "cbeffUtil", cbeffUtil);
+		ReflectionTestUtils.setField(idRepoServiceImpl, "anonymousProfileHelper", anonymousProfileHelper);
+		ReflectionTestUtils.setField(idRepoServiceImpl, "bioAttributes",
+				Lists.newArrayList("individualBiometrics", "parentOrGuardianBiometrics"));
+		when(cbeffUtil.validateXML(Mockito.any())).thenReturn(true);
+		when(securityManager.hash(Mockito.any()))
+				.thenReturn("A2C07E94066BE52308E96ABAD995035E62985A1B0D8837E9ACAB47F8F8A52014");
+		when(objectStoreHelper.getRidHash(anyString())).thenReturn("AAFCC2383A50FAFD9131EF9F731CCCF276BBCD6D62076ADF6C887B791BB75D85");
+		ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "updateDocumentsV2", req, draft);
+		verify(objectStoreHelper).putDraftBiometricObject(eq("AAFCC2383A50FAFD9131EF9F731CCCF276BBCD6D62076ADF6C887B791BB75D85"), any(), any());
+		verify(objectStoreHelper).getDraftBiometricObject(eq("AAFCC2383A50FAFD9131EF9F731CCCF276BBCD6D62076ADF6C887B791BB75D85"), eq("1234"));
+		verify(objectStoreHelper, never()).putBiometricObject(any(), any(), any());
+		verify(objectStoreHelper, never()).getBiometricObject(any(), any());
+	}
+
+	@Test
+	public void should_storeAndReadBiometricsOnLiveUinHash_when_updateDraftV1() throws Exception {
+		stubDocumentUpload();
+		UinDraft draft = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(anyString())).thenReturn(Optional.of(draft));
+
+		IdRequestDTO request = new IdRequestDTO();
+		request.setRequest(documentUpdateRequest(draft.getUinData()));
+
+		IdResponseDTO response = idRepoServiceImpl.updateDraft(draft.getRegId(), request);
+
+		assertNotNull(response);
+		String liveUinHash = draft.getUinHash().split("_")[1];
+		verify(objectStoreHelper).putBiometricObject(eq(liveUinHash), any(), any());
+		verify(objectStoreHelper).putDemographicObject(eq(liveUinHash), any(), any());
+		verify(objectStoreHelper).getBiometricObject(eq(liveUinHash), eq("1234"));
+		verify(objectStoreHelper, never()).putDraftBiometricObject(any(), any(), any());
+		verify(objectStoreHelper, never()).putDraftDemographicObject(any(), any(), any());
+		verify(objectStoreHelper, never()).getDraftBiometricObject(any(), any());
+		verify(objectStoreHelper, never()).getRidHash(anyString());
+	}
+
+	@Test
+	public void should_storeAndReadBiometricsOnDraftRidHash_when_updateDraftV2() throws Exception {
+		stubDocumentUpload();
+		UinDraft draft = buildMinimalDraft();
+		when(uinDraftRepo.findByRegId(anyString())).thenReturn(Optional.of(draft));
+		when(objectStoreHelper.getRidHash(draft.getRegId())).thenReturn("AAFCC2383A50FAFD9131EF9F731CCCF276BBCD6D62076ADF6C887B791BB75D85");
+
+		IdRequestDTO request = new IdRequestDTO();
+		request.setRequest(documentUpdateRequest(draft.getUinData()));
+
+		IdResponseDTO response = idRepoServiceImpl.updateDraftV2(draft.getRegId(), request);
+
+		assertNotNull(response);
+		verify(objectStoreHelper).putDraftBiometricObject(eq("AAFCC2383A50FAFD9131EF9F731CCCF276BBCD6D62076ADF6C887B791BB75D85"), any(), any());
+		verify(objectStoreHelper).putDraftDemographicObject(eq("AAFCC2383A50FAFD9131EF9F731CCCF276BBCD6D62076ADF6C887B791BB75D85"), any(), any());
+		verify(objectStoreHelper).getDraftBiometricObject(eq("AAFCC2383A50FAFD9131EF9F731CCCF276BBCD6D62076ADF6C887B791BB75D85"), eq("1234"));
+		verify(objectStoreHelper, never()).putBiometricObject(any(), any(), any());
+		verify(objectStoreHelper, never()).putDemographicObject(any(), any(), any());
+		verify(objectStoreHelper, never()).getBiometricObject(any(), any());
 	}
 
 	@Test
@@ -1734,6 +1823,26 @@ public class IdRepoDraftServiceImplTest {
 		verify(objectStoreHelper, never()).getDraftBiometricObject(anyString(), anyString());
 	}
 
+	private void stubDocumentUpload() throws Exception {
+		when(cbeffUtil.validateXML(any())).thenReturn(true);
+		when(securityManager.hash(any()))
+				.thenReturn("A2C07E94066BE52308E96ABAD995035E62985A1B0D8837E9ACAB47F8F8A52014");
+		when(identityUpdateTracker.findById(any())).thenReturn(Optional.empty());
+	}
+
+	private RequestDTO documentUpdateRequest(byte[] identityBytes) throws IOException {
+		RequestDTO req = new RequestDTO();
+		req.setIdentity(mapper.readValue(identityBytes, Object.class));
+		DocumentsDTO bio = new DocumentsDTO();
+		bio.setCategory("individualBiometrics");
+		bio.setValue(Base64.getEncoder().encodeToString("text biomterics".getBytes()));
+		DocumentsDTO demo = new DocumentsDTO();
+		demo.setCategory("proofOfIdentity");
+		demo.setValue(Base64.getEncoder().encodeToString("pdf-bytes".getBytes()));
+		req.setDocuments(List.of(bio, demo));
+		return req;
+	}
+
 	private Uin buildUinEntity() throws IOException, NoSuchAlgorithmException {
 		Uin uinEntity = new Uin();
 		String uinHash = DatatypeConverter
@@ -1762,13 +1871,13 @@ public class IdRepoDraftServiceImplTest {
 		biometric.setBiometricFileHash("A2C07E94066BE52308E96ABAD995035E62985A1B0D8837E9ACAB47F8F8A52014");
 		biometric.setBioFileId("1234");
 		biometric.setBiometricFileName("name");
-		uin.setBiometrics(Collections.singletonList(biometric));
+		uin.setBiometrics(new ArrayList<>(List.of(biometric)));
 		UinDocumentDraft document = new UinDocumentDraft();
 		document.setDoccatCode("ProofOfIdentity");
 		document.setDocHash("3A6EB0790F39AC87C94F3856B2DD2C5D110E6811602261A9A923D3BB23ADC8B7");
 		document.setDocId("1236");
 		document.setDocName("name");
-		uin.setDocuments(Collections.singletonList(document));
+		uin.setDocuments(new ArrayList<>(List.of(document)));
 		return uin;
 	}
 
