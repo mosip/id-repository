@@ -1071,7 +1071,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 		}
 		Uin uinObject = mapper.convertValue(draftToUpdate, Uin.class);
 		String uinHashWithSalt = draftToUpdate.getUinHash().split(SPLITTER)[1];
-		super.updateDocuments(uinHashWithSalt, uinObject, requestDTO, true);
+		// v1 stores at {uinHash}/Biometrics|Demographics/.
+		super.updateDocuments(uinHashWithSalt, uinObject, requestDTO, true, false);
 		updateBiometricAndDocumentDrafts(requestDTO.getRegistrationId(), draftToUpdate, uinObject);
 	}
 
@@ -1084,7 +1085,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 		Uin uinObject = mapper.convertValue(draftToUpdate, Uin.class);
 		String ridHash = objectStoreHelper.getRidHash(draftToUpdate.getRegId());
 		uinObject.setUinHash("_" + ridHash);
-		super.updateDocuments(ridHash, uinObject, requestDTO, true);
+		// v2 stores at _draft/{ridHash}/Biometrics|Demographics/.
+		super.updateDocuments(ridHash, uinObject, requestDTO, true, true);
 		updateBiometricAndDocumentDrafts(requestDTO.getRegistrationId(), draftToUpdate, uinObject);
 	}
 
