@@ -38,3 +38,9 @@ test-output/
 testng-report/
 /reg
 ./reg
+
+# Mock SBI assets live under src/main/resources/mds/ — ignore copies at module root
+/Biometric Devices/
+/resource/
+/application.properties
+
