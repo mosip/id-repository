@@ -1,12 +1,12 @@
-\c mosip_idrepo
+\c :mosipdbname
 
 REASSIGN OWNED BY sysadmin TO postgres;
 
-REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA idrepo FROM idrepouser;
+REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA idrepo FROM :dbuname;
 
 REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA idrepo FROM sysadmin;
 
-GRANT SELECT, INSERT, REFERENCES, UPDATE, DELETE ON ALL TABLES IN SCHEMA idrepo TO idrepouser;
+GRANT SELECT, INSERT, REFERENCES, UPDATE, DELETE ON ALL TABLES IN SCHEMA idrepo TO :dbuname;
 
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA idrepo TO postgres;
 
@@ -34,7 +34,7 @@ CREATE TABLE idrepo.credential_request_status (
 
 GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
    ON idrepo.credential_request_status
-   TO idrepouser;
+   TO :dbuname;
 ----------------------------------------------------------------------------------------------------------------------------------
 CREATE TABLE idrepo.uin_biometric_draft(
 	reg_id character varying(39) NOT NULL,								
@@ -54,7 +54,7 @@ CREATE TABLE idrepo.uin_biometric_draft(
 
 GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
    ON idrepo.uin_biometric_draft
-   TO idrepouser;
+   TO :dbuname;
 -----------------------------------------------------------------------------------------------------------------------------------------------
 CREATE TABLE idrepo.uin_draft(
 	reg_id character varying (39) NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE idrepo.uin_draft(
 
 GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
    ON idrepo.uin_draft
-   TO idrepouser;
+   TO :dbuname;
 ---------------------------------------------------------------------------------------------------------------------------------------------
 CREATE TABLE idrepo.uin_document_draft(
 	reg_id character varying(39) NOT NULL,										
@@ -98,7 +98,7 @@ CREATE TABLE idrepo.uin_document_draft(
 
 GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
    ON idrepo.uin_document_draft
-   TO idrepouser;
+   TO :dbuname;
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 CREATE TABLE idrepo.identity_update_count_tracker (
@@ -109,7 +109,7 @@ CREATE TABLE idrepo.identity_update_count_tracker (
 
 GRANT SELECT, INSERT, TRUNCATE, REFERENCES, UPDATE, DELETE
    ON idrepo.identity_update_count_tracker
-   TO idrepouser;
+   TO :dbuname;
 
 -------------------------------------------------------------------------------------------------
 

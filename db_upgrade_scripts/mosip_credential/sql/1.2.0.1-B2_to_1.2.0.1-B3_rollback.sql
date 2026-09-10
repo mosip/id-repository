@@ -1,13 +1,13 @@
 -- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_credential
--- Purpose    		: Revoking Database Alter deployement done for release in mosip_credential DB.       
+-- Database Name: :mosipdbname
+-- Purpose    		: Revoking Database Alter deployement done for release in :mosipdbname DB.
 -- Create By   		: Anusha SE
 -- Created Date		: Dec-2023
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- -------------------------------------------------------------------------------------------------
 
-\c mosip_credential sysadmin
+\c :mosipdbname sysadmin
 
 ALTER TABLE credential.credential_transaction ALTER COLUMN id type character varying(36);
 

@@ -1,4 +1,4 @@
-\c mosip_idrepo
+\c :mosipdbname
 
 --INDEX
 DROP INDEX IF EXISTS idx_uin_uin_hash;

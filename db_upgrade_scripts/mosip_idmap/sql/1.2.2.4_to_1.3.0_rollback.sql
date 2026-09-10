@@ -1,4 +1,4 @@
-\c mosip_idmap
+\c :mosipdbname
 
 -- Drop the indices if they were created
 DROP INDEX IF EXISTS idmap.idx_vid_status_expiry;
