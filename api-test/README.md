@@ -73,26 +73,15 @@ Do **not** commit local secrets or localhost URLs in `Idrepo.properties`.
 
 ## Run against localhost
 
-Use this when ID Repository is running on your machine (service on port `8090`, typically with a local gateway on `8082`).
+Use this when ID Repository is running on your machine (service on port `8090`, typically with a local gateway / WireMock on `8082`).
 
-### 1. Point `Idrepo.properties` at localhost
+### 1. Config file auto-select
 
-Edit `api-test/src/main/resources/config/Idrepo.properties` locally (do not push these values):
+When `-Denv.endpoint` contains `localhost` or `127.0.0.1`, the runner loads `config/Idrepo-local.properties` automatically. Otherwise it loads `config/Idrepo.properties`. Optional override: `-Didrepo.propertiesFile=<name>`.
 
-```properties
-keycloak-external-url = http://localhost:8082
-audit_url = jdbc:postgresql://localhost:5455/mosip_idrepo
-partner_url = jdbc:postgresql://localhost:5455/mosip_idrepo
-db-server = localhost
-db-port = 5455
-postgres-password = <local postgres password>
-authCertsPath = target/local-authcerts
-mosip_components_base_urls = idrepository=localhost:8082;authmanager=localhost:8082;masterdata=localhost:8082;idgenerator=localhost:8082;keymanager=localhost:8082;auditmanager=localhost:8082;datashare=localhost:8082;partnermanager=localhost:8082;policymanager=localhost:8082;credentialservice=localhost:8082;credentialrequest=localhost:8082
-```
+`Idrepo-local.properties` already points at local Keycloak/WireMock (`:8082`), Postgres (`:5455`), and component base URLs (`idrepository` on `:8090`, stubs on `:8082`). Leave secrets blank in the file and supply them via `.env.local` / environment variables (`ConfigManager` prefers `System.getenv(key)`).
 
-Fill client secrets and `keycloak_Password` for your local IAM. `ConfigManager` also reads matching environment variables, so you can leave secrets blank in the file and export them in the shell instead.
-
-When `env.endpoint` is `localhost` or `127.0.0.1`, the runner skips Keycloak admin user setup and partner/device cert generation, and it sanitizes Windows cert folder names that contain `:`.
+When `env.endpoint` is `localhost` or `127.0.0.1`, the runner also skips Keycloak admin user setup and partner/device cert generation, and it sanitizes Windows cert folder names that contain `:`.
 
 ### 2. Build and run
 

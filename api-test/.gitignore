@@ -34,6 +34,8 @@ test.txt
 src/logs/mosip-api-test.log
 /target/
 target/
+.env.local
+.env.qa11new
 test-output/
 testng-report/
 /reg
