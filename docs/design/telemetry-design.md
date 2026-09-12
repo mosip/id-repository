@@ -486,10 +486,10 @@ The telemetry pipeline is packaged as a containerized stack within the `mosip-tu
    docker logs telemetry_alloy_collector
 
 3. **LogQL Ingestion Query**: Query Grafana Loki endpoint (`http://localhost:3000`) for streamed entries:
-```logql
-{job="tusd_logs"} |= "app.crash"
+   ```logql
+    {job="tusd_logs"} |= "app.crash"
 
-```
+   ```
 
 
 
