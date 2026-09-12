@@ -271,67 +271,85 @@ The telemetry pipeline strictly enforces zero-tolerance data exclusion policies:
 * **Storage at Rest**: Telemetry files (`.metrics/metrics.log`) are stored in private internal application storage (`context.getFilesDir()`), restricting access from third-party apps or non-root users.
 * **Transport Encryption**: All log batches uploaded via the TUS protocol must be transmitted over encrypted TLS/HTTPS channels (`https://`).
 
-
+````md
 ## 5. Observability & Monitoring
+
+The telemetry pipeline utilizes a modern Grafana-native observability architecture (Grafana Alloy + Loki + Prometheus + Grafana) to replace the legacy ELK stack. This architecture minimizes index overhead by leveraging Loki 3.0's structured metadata for high-cardinality values.
+
+---
 
 ### 5.1 Observability Architecture
 
-```mermaid
-graph LR
-
-    A[Telemetry Source]
-    B[Collector]
-    C[Log Backend]
-    D[Metrics Backend]
-    E[Dashboard]
-
-    A --> B
-    B --> C
-    B --> D
-    C --> E
-    D --> E
-```
-
-### 5.2 Logs
-
-* **Log Backend:** `TODO`
-* **Log Format:** `TODO`
-* **Labels:** `TODO`
-* **Retention:** `TODO`
-
-### 5.3 Metrics
-
-| Metric | Type                      | Description | Target |
-| :----- | :------------------------ | :---------- | :----- |
-| `TODO` | `Counter/Gauge/Histogram` | `TODO`      | `TODO` |
-| `TODO` | `Counter/Gauge/Histogram` | `TODO`      | `TODO` |
-| `TODO` | `Counter/Gauge/Histogram` | `TODO`      | `TODO` |
-
-### 5.4 Dashboard
-
-<!-- TODO: Describe the dashboard layout. -->
-
-#### Dashboard Sections
-
-* **System Health:** `TODO`
-* **Application Metrics:** `TODO`
-* **Upload Metrics:** `TODO`
-* **Error Metrics:** `TODO`
-* **Infrastructure Metrics:** `TODO`
-
-### 5.5 Log Queries
-
-```logql
-# TODO: Add production LogQL queries
-```
-
-### 5.6 Metric Queries
-
-```promql
-# TODO: Add production PromQL queries
-```
+```text
+Android Registration Client (TUS Client)
+                 │
+                 ▼
+           MOSIP TUSD Server
+                 │ (Mounts Upload Volume)
+                 ▼
+           Grafana Alloy  ──────────────────┐
+        (Collector & Shipper)               │ (Scrapes Pipeline Metrics)
+                 │                          ▼
+                 │ (Parses Logs)        Prometheus
+                 ▼                   (Metrics Store)
+            Grafana Loki                    │
+            (Log Engine)                    │
+                 │                          │
+                 └────────────┬─────────────┘
+                              ▼
+                           Grafana
+                        (Dashboards)
+````
 
 ---
+
+### 5.2 Log Pipeline & Processing Specifications
+
+* **Log Collector & Shipper**: [Grafana Alloy](https://github.com/mosip/tusd-server/pull/16/changes) (v1.2.0) running as a sidecar container watching uploaded TUSD files (`/var/log/tusd/*`).
+
+* **Log Storage Engine**: [Grafana Loki](https://github.com/mosip/tusd-server/pull/16/changes) (v3.0.0) configured with TSDB index store and local filesystem chunk storage.
+
+* **Log Filtering & Exclusion**: Files with the `.info` extension created by TUSD are dropped automatically in Alloy using `discovery.relabel` rules to prevent non-telemetry metadata ingestion.
+
+* **Log Parsing & Relabeling (`loki.process.tusd_logs`)**:
+
+  1. **Outer Stage**: Extract envelope fields (`level`, `message`, `machine`).
+
+  2. **Inner Stage**: Parse stringified inner JSON inside `message` to extract metric/event attributes (`name`, `value`).
+
+  3. **Structured Metadata**: Attach high-cardinality dynamic fields (`machine`, `value`) as **Loki 3.0 structured metadata** to keep Loki index stream cardinality low.
+
+  4. **Labels**: Promote low-cardinality fields (`level`, `name`) to indexed Loki labels for rapid filtering.
+
+  5. **Drop Stage**: Malformed JSON missing the required `level` string are safely dropped (`malformed_json_missing_level`).
+
+* **Retention Policy**: 7 days (168h) enforced via Loki compactor (`limits_config.retention_period: 168h`).
+
+---
+
+### 5.3 Metrics Pipeline Specifications
+
+* **Metrics Storage**: Prometheus (v2.51.0) scraping internal metrics at 15-second intervals.
+
+* **Scrape Target**: `grafana-alloy:12345` for pipeline processing metrics and collector health indicators.
+
+---
+
+### 5.4 Dashboard & Visualization Specifications
+
+Unified visualization is provided via **Grafana** (v10.4.0) connecting to Loki (LogQL) and Prometheus (PromQL) data sources.
+
+| **Dashboard Panel**            | **Data Source** | **Query Type / Function** | **Key Indicators**                                                                                |
+| :----------------------------- | :-------------- | :------------------------ | :------------------------------------------------------------------------------------------------ |
+| **System Metrics Overview**    | Grafana Loki    | LogQL (`app.metrics`)     | Tracks battery, memory, CPU, and disk storage trends extracted via structured metadata `unwrap`.  |
+| **Client Machine Filtering**   | Grafana Loki    | LogQL (`machine`)         | Filters telemetry events and metric streams per specific registration client machine ID.          |
+| **Application Crash Logs**     | Grafana Loki    | LogQL (`app.crash`)       | Displays unhandled exceptions, error stack traces, and unmounted Flutter widget logs.             |
+| **User Flow & Route Activity** | Grafana Loki    | LogQL (`app.event`)       | Tracks active screen views, button clicks, and user navigation paths across registration screens. |
+| **Telemetry Pipeline Health**  | Prometheus      | PromQL (`grafana-alloy`)  | Monitors log ingestion rates, batch processing throughput, and shipper error counters.            |
+
+```
+```
+
 
 ## 6. Storage & Retention
 
