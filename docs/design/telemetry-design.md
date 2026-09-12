@@ -68,87 +68,77 @@ sequenceDiagram
     autonumber
     
     actor User as User
-    participant Client as Client App
+    participant Client as Client Application
     participant Collector as Telemetry Collector
     participant Storage as Local Storage (.metrics/)
-    participant Worker as TelemetryUploadWorker
-    participant Backend as mosip-tusd Server
+    participant Worker as Background Worker
+    participant Backend as mosip-tusd Backend
     participant Pipeline as Grafana Alloy
-    participant Observability as Loki & Prometheus
+    participant Observability as Loki / Prometheus
     participant Visuals as Grafana Dashboards
 
-    %% 1. Data Collection & Envelope Processing
-    rect rgb(28, 33, 40)
-        note over User, Collector: 1. Telemetry Collection & Processing
-        User->>Client: Perform Action / Trigger App Crash
-        alt UI Interaction or Performance Metric
-            Client->>Collector: logRawMetric(metricJson) / logMetric()
-            Collector->>Collector: Inject UTC Timestamp & getDeviceId()
-            Collector->>Collector: buildEnvelope() with JSON String Escaping
-        else System Metrics Execution
-            Collector->>Collector: collectAndLogSystemMetrics()
-            Note over Collector: Captures uptime, memory (used/avail),<br/>battery level, and device.info
-        else App Crash Exception
-            Client->>Collector: writeSyncCrash()
-            Collector->>Collector: Synchronous file flush & getFD().sync()
-        end
+    %% 1. Telemetry Collection & Processing
+    note over User, Collector: 1. Telemetry Data Collection & Processing
+    User->>Client: Perform Action / Trigger Crash
+    alt UI Interaction or Performance Metric
+        Client->>Collector: logRawMetric(metricJson) / logMetric()
+        Collector->>Collector: Inject UTC Timestamp & getDeviceId()
+        Collector->>Collector: buildEnvelope() with JSON String Escaping
+    else System Health & Device Info
+        Collector->>Collector: collectAndLogSystemMetrics()
+        Note over Collector: Captures uptime, memory (used/avail),<br/>battery level, and device.info
+    else App Crash Exception
+        Client->>Collector: writeSyncCrash()
+        Collector->>Collector: Synchronous file flush & getFD().sync()
     end
 
-    %% 2. Rotation & Persistence
-    rect rgb(22, 27, 34)
-        note over Collector, Storage: 2. File Rotation & Storage Persistence
-        Collector->>Collector: rotateIfNeeded() [MAX_LOG_SIZE = 5MB]
-        Collector->>Storage: appendLine() -> Write JSON line to metrics.log
-    end
+    %% 2. File Rotation & Storage Persistence
+    note over Collector, Storage: 2. File Rotation & Storage Persistence
+    Collector->>Collector: rotateIfNeeded() [Check MAX_LOG_SIZE_BYTES = 5MB]
+    Collector->>Storage: appendLine() -> Write JSON line to metrics.log
 
     %% 3. Safe Handoff Strategy
-    rect rgb(28, 33, 40)
-        note over Storage, Worker: 3. Safe Handoff Strategy (prepareFileForUpload)
-        Worker->>Collector: prepareFileForUpload()
-        alt processingFile.exists() [Interrupted Upload Recovery]
-            Collector-->>Worker: Return existing metrics.log.processing
-        else currentLog.length() > 0
-            Collector->>Storage: Atomic Rename: metrics.log -> metrics.log.processing
-            Storage-->>Collector: Rename Success
-            Collector-->>Worker: Return metrics.log.processing file handle
-        end
+    note over Storage, Worker: 3. Atomic Handoff Strategy (prepareFileForUpload)
+    Worker->>Collector: prepareFileForUpload()
+    alt processingFile.exists() [Previous Upload Interrupted]
+        Collector-->>Worker: Return existing metrics.log.processing
+    else currentLog.length() > 0
+        Collector->>Storage: Atomic Rename: metrics.log -> metrics.log.processing
+        Storage-->>Collector: Rename Success
+        Collector-->>Worker: Return metrics.log.processing file handle
     end
 
-    %% 4. TUS Protocol Upload
-    rect rgb(22, 27, 34)
-        note over Worker, Backend: 4. TUS Resumable Upload Handshake
-        Worker->>Backend: POST /files (Create Upload Session)
-        Backend-->>Worker: 201 Created (Upload-Location URL)
-        
-        alt Normal Chunk Transfer
-            Worker->>Backend: PATCH /files/{id} (Send Binary Data Chunks)
-            Backend-->>Worker: 204 No Content (Offset Updated)
-        else Connection Interrupted Mid-Upload
-            Worker->>Backend: HEAD /files/{id} (Query Offset)
-            Backend-->>Worker: 200 OK (Upload-Offset: {bytes_received})
-            Worker->>Backend: PATCH /files/{id} (Resume from received byte offset)
-            Backend-->>Worker: 204 No Content (Upload Complete)
-        end
-        
-        Worker->>Storage: Delete metrics.log.processing on 204 Success
+    %% 4. TUS Resumable Upload Handshake
+    note over Worker, Backend: 4. TUS Resumable Upload Protocol Handshake
+    Worker->>Backend: POST /files (Create Upload Session)
+    Backend-->>Worker: 201 Created (Upload-Location URL)
+    
+    alt Normal Chunk Transfer
+        Worker->>Backend: PATCH /files/{id} (Send Binary Data Chunks)
+        Backend-->>Worker: 204 No Content (Upload Offset Updated)
+    else Connection Interrupted Mid-Upload
+        Worker->>Backend: HEAD /files/{id} (Query Offset)
+        Backend-->>Worker: 200 OK (Upload-Offset: {bytes_received})
+        Worker->>Backend: PATCH /files/{id} (Resume from received byte offset)
+        Backend-->>Worker: 204 No Content (Upload Complete)
     end
+    
+    Worker->>Storage: Delete metrics.log.processing on 204 Success
 
-    %% 5. Ingestion Pipeline & Dashboards
-    rect rgb(28, 33, 40)
-        note over Backend, Visuals: 5. Ingestion Pipeline & Visualization
-        Backend->>Pipeline: Write batch to shared volume /var/log/tusd/*
-        Pipeline->>Pipeline: Tail file & Parse Outer JSON Envelope
-        Pipeline->>Pipeline: Parse Inner JSON Payload & Assign Structured Metadata
-        
-        par Stream Logs
-            Pipeline->>Observability: Push parsed log streams to Grafana Loki
-        and Extract Metrics
-            Pipeline->>Observability: Extract numerical gauge values to Prometheus
-        end
-        
-        Visuals->>Observability: LogQL Queries (Loki) & PromQL Queries (Prometheus)
-        Observability-->>Visuals: Render real-time metrics on Grafana Dashboards
+    %% 5. Ingestion Pipeline & Visualization
+    note over Backend, Visuals: 5. Ingestion Pipeline & Visualization
+    Backend->>Pipeline: Write batch to shared volume /var/log/tusd/*
+    Pipeline->>Pipeline: Tail file & Parse Outer JSON Envelope
+    Pipeline->>Pipeline: Parse Inner JSON Payload & Assign Structured Metadata
+    
+    par Stream Logs
+        Pipeline->>Observability: Push parsed log streams to Grafana Loki
+    and Extract Metrics
+        Pipeline->>Observability: Extract numerical gauge values to Prometheus
     end
+    
+    Visuals->>Observability: LogQL Queries (Loki) & PromQL Queries (Prometheus)
+    Observability-->>Visuals: Render real-time metrics on Grafana Dashboards
 ```
 
 <!-- TODO: Update sequence according to the actual implementation. -->
