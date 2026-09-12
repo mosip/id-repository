@@ -77,7 +77,7 @@ sequenceDiagram
     participant Observability as Loki / Prometheus
     participant Visuals as Grafana Dashboards
 
-    %% 1. Telemetry Collection & Processing
+    %% 1. Telemetry Data Collection & Processing
     note over User, Collector: 1. Telemetry Data Collection & Processing
     User->>Client: Perform Action / Trigger Crash
     alt UI Interaction or Performance Metric
@@ -97,7 +97,7 @@ sequenceDiagram
     Collector->>Collector: rotateIfNeeded() [Check MAX_LOG_SIZE_BYTES = 5MB]
     Collector->>Storage: appendLine() -> Write JSON line to metrics.log
 
-    %% 3. Safe Handoff Strategy
+    %% 3. Atomic Handoff Strategy
     note over Storage, Worker: 3. Atomic Handoff Strategy (prepareFileForUpload)
     Worker->>Collector: prepareFileForUpload()
     alt processingFile.exists() [Previous Upload Interrupted]
