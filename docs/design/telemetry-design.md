@@ -1,4 +1,3 @@
-````markdown
 # Telemetry System Design Specification
 
 | Field | Details |
