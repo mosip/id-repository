@@ -348,47 +348,37 @@ Unified visualization is provided via **Grafana** (v10.4.0) connecting to Loki (
 
 ```
 
-
 ## 6. Storage & Retention
 
-### 6.1 Local Storage
-
-| Parameter            | Value  |
-| :------------------- | :----- |
-| Maximum File Size    | `TODO` |
-| Maximum Storage Size | `TODO` |
-| Rotation Policy      | `TODO` |
-| Cleanup Policy       | `TODO` |
-
-### 6.2 Backend Storage
-
-| Component | Storage | Retention |
-| :-------- | :------ | :-------- |
-| `TODO`    | `TODO`  | `TODO`    |
-| `TODO`    | `TODO`  | `TODO`    |
-
-### 6.3 Data Lifecycle
-
-```mermaid
-flowchart LR
-
-    A[Telemetry Generated]
-    B[Local Storage]
-    C[Uploaded]
-    D[Processed]
-    E[Stored]
-    F[Retention Expiry]
-    G[Deleted]
-
-    A --> B
-    B --> C
-    C --> D
-    D --> E
-    E --> F
-    F --> G
-```
+The telemetry system manages log storage across both the edge device (Android Registration Client) and the telemetry ingestion backend ([Grafana Loki](https://github.com/mosip/tusd-server/pull/16/changes)). Storage constraints and retention policies are strictly enforced at each stage to prevent device storage exhaustion and unbounded server disk usage.
 
 ---
+
+### 6.1 Local Edge Device Storage Policy
+
+Telemetry generated on the Android client is stored locally in internal application storage prior to TUS upload synchronization.
+
+* **Storage Path**: Logs are stored in private internal storage at `context.getFilesDir() + "/.metrics/metrics.log"`.
+* **File Size Threshold**: Local log files are capped at a maximum file size of **5 MB** (`MAX_LOG_SIZE_BYTES = 5 * 1024 * 1024`).
+* **Log Rotation & Truncation**: When `metrics.log` reaches 5 MB, log rotation triggers automatically:
+  * Active log entries are flushed and sealed into a candidate file for TUS upload.
+  * A new `metrics.log` file is initialized to ensure continuous, non-blocking log collection.
+* **Post-Upload Cleanup**: Once a log file batch is successfully uploaded via the TUS resumable upload protocol, local log buffers are pruned to free client disk space.
+
+---
+
+### 6.2 Server-Side Data Retention Policy
+
+Log retention on the backend engine is managed by Grafana Loki's automated compactor process.
+
+| Parameter | Configuration | Value | Purpose / Description |
+| :--- | :--- | :--- | :--- |
+| **Log Retention Window** | `limits_config.retention_period` | `168h` (7 days) | Telemetry log streams and crash logs are automatically retained for 7 days. |
+| **Compactor Execution** | `compactor.retention_enabled` | `true` | Enables periodic filesystem chunk cleanup for expired log streams. |
+| **Index Persistence** | `schema_config.configs.period` | `24h` | TSDB index tables are partitioned and rotated daily. |
+| **Drop Store** | `delete_request_store` | `filesystem` | Deletion requests and tombstone markers are tracked locally within Loki storage (`/tmp/loki/compactor`). |
+
+
 
 ## 7. Reliability & Failure Handling
 
