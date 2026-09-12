@@ -235,7 +235,6 @@ Below is the complete JSON envelope structure as stored in `metrics.log`. The ou
 | **Inner (Events)**  | `event_name` / `screen` | String / String       |  Conditional | User interaction name (e.g., `user_navigation`) and target UI screen.                     |
 | **Inner (Crash)**   | `error_type` / `fatal`  | String / Boolean      |  Conditional | Exception category (`FlutterError`, `NullPointerException`) and criticality flag.         |
 
----
 
 ### 3.3 Metric Types & Supported System Indicators
 
