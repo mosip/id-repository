@@ -12,19 +12,17 @@
 ## 1. Executive Summary & Objectives
 
 ### 1.1 Background
-
-<!-- TODO: Describe the background and problem statement. -->
-
+Currently, the Flutter-based Android Registration Client (ARC) operates with limited operational visibility into field operations, user interactions, and runtime health. Without a structured telemetry pipeline, detecting performance bottlenecks, monitoring application crashes, and identifying usability issues in distributed or offline field environments requires manual debugging and issue reporting.
 ### 1.2 Objective
-
-<!-- TODO: Describe the primary objective of the telemetry system. -->
+The primary objective of this telemetry system is to establish an end-to-end, resilient, and non-blocking observability framework for the Android Registration Client. The architecture enables real-time collection of client metrics, secure batch synchronization over the TUS protocol, and centralized analysis using a cloud-native observability stack (**Grafana Alloy + Loki + Prometheus**).
 
 ### 1.3 Core Capabilities
-
-- **Capability 1:** `TODO`
-- **Capability 2:** `TODO`
-- **Capability 3:** `TODO`
-- **Capability 4:** `TODO`
+### 1.3 Core Capabilities
+- **Offline-First Non-Blocking Collection:** Asynchronous background event logging via the Pigeon Bridge and an Android Native Collector with automatic thread-safe 5MB file rotation (`metrics.log`).
+- **Resumable & Efficient Transmission:** Periodic, network-aware sync executed by Android `WorkManager` pushing log batches over the TUS protocol (`mosip-tusd`).
+- **Decoupled Ingestion Architecture:** High-throughput backend ingestion utilizing **Grafana Alloy** for parsing, routing log streams to **Grafana Loki**, and extracting numerical time-series metrics to **Prometheus**.
+- **Centralized Observability & Visualization:** Operational monitoring through unified **Grafana Dashboards**, providing real-time queries via LogQL (for logs) and PromQL (for metrics) alongside automated alerting.
+- **Privacy & Compliance Governance:** Built-in client-side data sanitization and opt-in user consent enforcement to safeguard personal identifiable information (PII).
 
 ### 1.4 Scope
 
