@@ -139,32 +139,56 @@ sequenceDiagram
     
     Visuals->>Observability: LogQL Queries (Loki) & PromQL Queries (Prometheus)
     Observability-->>Visuals: Render real-time metrics on Grafana Dashboards
-    
-```
 
-<!-- TODO: Update sequence according to the actual implementation. -->
+```
 
 ### 2.3 Telemetry File Lifecycle
 
+The local file queue on the mobile client transitions through distinct states to ensure thread safety, prevent data loss during upload failures, and enforce strict disk usage limits.
+
 ```mermaid
 stateDiagram-v2
+    [*] --> Collecting: App Initialization
+    
+    state Collecting {
+        [*] --> WritingLogs
+        WritingLogs --> CheckingSize: appendLine()
+        CheckingSize --> WritingLogs: Size < 5MB
+    }
 
-    [*] --> Created
-    Created --> Writing
-    Writing --> Pending
-    Pending --> Uploading
-    Uploading --> Uploaded
-    Uploading --> Failed
-    Failed --> Pending
-    Uploaded --> Processed
-    Processed --> Archived
-    Archived --> Deleted
-    Deleted --> [*]
-```
+    Collecting --> LogRotated: Size >= 5MB (rotateIfNeeded)
+    LogRotated --> Collecting: Rename to metrics.log.1 & open new metrics.log
 
-<!-- TODO: Modify states according to the actual file lifecycle. -->
+    Collecting --> PendingUpload: TelemetryUploadWorker Triggered
+    
+    state PendingUpload {
+        [*] --> CheckProcessingFile: prepareFileForUpload()
+        
+        alt Previous Interrupted Upload Found
+            CheckProcessingFile --> ReadyForUpload: Return existing metrics.log.processing
+        else New File Handoff
+            CheckProcessingFile --> AtomicRename: Rename metrics.log -> metrics.log.processing
+            AtomicRename --> ReadyForUpload: Return metrics.log.processing handle
+        end
+    }
 
----
+    ReadyForUpload --> UploadingTUS: Worker Starts TUS Sync
+    
+    state UploadingTUS {
+        [*] --> SessionInit: POST /files
+        SessionInit --> StreamingChunks: PATCH /files/{id}
+        
+        alt Network Interruption
+            StreamingChunks --> QueryOffset: HEAD /files/{id}
+            QueryOffset --> StreamingChunks: Resume from Upload-Offset
+        end
+    }
+
+    UploadingTUS --> FilePurged: HTTP 204 No Content (Success)
+    FilePurged --> [*]: Delete metrics.log.processing
+
+    UploadingTUS --> ReadyForUpload: Network Failure (Retried in Next Worker Run) 
+
 
 ## 3. Technical Specifications & Payload Schemas
 
