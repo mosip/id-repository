@@ -271,113 +271,124 @@ The telemetry pipeline strictly enforces zero-tolerance data exclusion policies:
 * **Storage at Rest**: Telemetry files (`.metrics/metrics.log`) are stored in private internal application storage (`context.getFilesDir()`), restricting access from third-party apps or non-root users.
 * **Transport Encryption**: All log batches uploaded via the TUS protocol must be transmitted over encrypted TLS/HTTPS channels (`https://`).
 
+````md
 ## 5. Observability & Monitoring
 
-The telemetry pipeline utilizes a modern Grafana-native observability architecture (Grafana Alloy + Loki + Prometheus + Grafana) to replace the legacy ELK stack. This architecture minimizes index overhead by leveraging Loki 3.0's structured metadata for high-cardinality values.
+The telemetry pipeline utilizes a modern Grafana-native observability architecture consisting of **Grafana Alloy, Loki, Prometheus, and Grafana**, replacing the legacy ELK stack. The architecture minimizes index overhead by leveraging **Loki 3.0 structured metadata** for high-cardinality values.
 
 ---
 
 ### 5.1 Observability Architecture
 
-```text
-Android Registration Client (TUS Client)
-                 │
-                 ▼
-           MOSIP TUSD Server
-                 │ (Mounts Upload Volume)
-                 ▼
-           Grafana Alloy  ──────────────────┐
-        (Collector & Shipper)               │ (Scrapes Pipeline Metrics)
-                 │                          ▼
-                 │ (Parses Logs)        Prometheus
-                 ▼                   (Metrics Store)
-            Grafana Loki                    │
-            (Log Engine)                    │
-                 │                          │
-                 └────────────┬─────────────┘
-                              ▼
-                           Grafana
-                        (Dashboards)
+```mermaid
+flowchart TD
+    A[Android Registration Client<br/>TUS Client]
+    B[MOSIP TUSD Server<br/>Mounts Upload Volume]
+    C[Grafana Alloy<br/>Collector & Shipper]
+    D[Grafana Loki<br/>Log Engine]
+    E[Prometheus<br/>Metrics Store]
+    F[Grafana<br/>Dashboards]
+
+    A --> B
+    B -->|Uploaded Telemetry Files| C
+    C -->|Parses & Ships Logs| D
+    C -->|Pipeline Metrics<br/>Collector Health| E
+    D --> F
+    E --> F
 ````
 
 ---
 
 ### 5.2 Log Pipeline & Processing Specifications
 
-* **Log Collector & Shipper**: [Grafana Alloy](https://github.com/mosip/tusd-server/pull/16/changes) (v1.2.0) running as a sidecar container watching uploaded TUSD files (`/var/log/tusd/*`).
+* **Log Collector & Shipper**: [Grafana Alloy](https://github.com/mosip/tusd-server/pull/16/changes) (v1.2.0), running as a sidecar container and watching uploaded TUSD files under `/var/log/tusd/*`.
 
-* **Log Storage Engine**: [Grafana Loki](https://github.com/mosip/tusd-server/pull/16/changes) (v3.0.0) configured with TSDB index store and local filesystem chunk storage.
+* **Log Storage Engine**: [Grafana Loki](https://github.com/mosip/tusd-server/pull/16/changes) (v3.0.0), configured with the TSDB index store and local filesystem chunk storage.
 
-* **Log Filtering & Exclusion**: Files with the `.info` extension created by TUSD are dropped automatically in Alloy using `discovery.relabel` rules to prevent non-telemetry metadata ingestion.
+* **Log Filtering & Exclusion**: Files with the `.info` extension created by TUSD are automatically dropped in Alloy using `discovery.relabel` rules to prevent non-telemetry metadata from being ingested.
 
 * **Log Parsing & Relabeling (`loki.process.tusd_logs`)**:
 
-  1. **Outer Stage**: Extract envelope fields (`level`, `message`, `machine`).
+  1. **Outer Stage**: Extracts envelope fields such as `level`, `message`, and `machine`.
 
-  2. **Inner Stage**: Parse stringified inner JSON inside `message` to extract metric/event attributes (`name`, `value`).
+  2. **Inner Stage**: Parses the stringified inner JSON contained in `message` to extract metric and event attributes such as `name` and `value`.
 
-  3. **Structured Metadata**: Attach high-cardinality dynamic fields (`machine`, `value`) as **Loki 3.0 structured metadata** to keep Loki index stream cardinality low.
+  3. **Structured Metadata**: High-cardinality dynamic fields such as `machine` and `value` are stored as **Loki 3.0 structured metadata** to keep Loki index stream cardinality low.
 
-  4. **Labels**: Promote low-cardinality fields (`level`, `name`) to indexed Loki labels for rapid filtering.
+  4. **Labels**: Low-cardinality fields such as `level` and `name` are promoted to indexed Loki labels for efficient filtering.
 
-  5. **Drop Stage**: Malformed JSON missing the required `level` string are safely dropped (`malformed_json_missing_level`).
+  5. **Drop Stage**: Malformed JSON entries missing the required `level` string are safely dropped using the `malformed_json_missing_level` drop rule.
 
-* **Retention Policy**: 7 days (168h) enforced via Loki compactor (`limits_config.retention_period: 168h`).
+* **Retention Policy**: Telemetry logs are retained for **7 days (168h)** and automatically cleaned up through the Loki compactor using `limits_config.retention_period: 168h`.
 
 ---
 
 ### 5.3 Metrics Pipeline Specifications
 
-* **Metrics Storage**: Prometheus (v2.51.0) scraping internal metrics at 15-second intervals.
+* **Metrics Storage**: Prometheus (v2.51.0), scraping internal Alloy metrics at **15-second intervals**.
 
-* **Scrape Target**: `grafana-alloy:12345` for pipeline processing metrics and collector health indicators.
+* **Scrape Target**: `grafana-alloy:12345`, exposing pipeline processing metrics and collector health indicators.
 
 ---
 
 ### 5.4 Dashboard & Visualization Specifications
 
-Unified visualization is provided via **Grafana** (v10.4.0) connecting to Loki (LogQL) and Prometheus (PromQL) data sources.
+Unified visualization is provided through **Grafana** (v10.4.0), which connects to Loki using **LogQL** and Prometheus using **PromQL**.
 
-| **Dashboard Panel**            | **Data Source** | **Query Type / Function** | **Key Indicators**                                                                                |
-| :----------------------------- | :-------------- | :------------------------ | :------------------------------------------------------------------------------------------------ |
-| **System Metrics Overview**    | Grafana Loki    | LogQL (`app.metrics`)     | Tracks battery, memory, CPU, and disk storage trends extracted via structured metadata `unwrap`.  |
-| **Client Machine Filtering**   | Grafana Loki    | LogQL (`machine`)         | Filters telemetry events and metric streams per specific registration client machine ID.          |
-| **Application Crash Logs**     | Grafana Loki    | LogQL (`app.crash`)       | Displays unhandled exceptions, error stack traces, and unmounted Flutter widget logs.             |
-| **User Flow & Route Activity** | Grafana Loki    | LogQL (`app.event`)       | Tracks active screen views, button clicks, and user navigation paths across registration screens. |
-| **Telemetry Pipeline Health**  | Prometheus      | PromQL (`grafana-alloy`)  | Monitors log ingestion rates, batch processing throughput, and shipper error counters.            |
+| **Dashboard Panel**            | **Data Source** | **Query Type / Function** | **Key Indicators**                                                                                     |
+| :----------------------------- | :-------------- | :------------------------ | :----------------------------------------------------------------------------------------------------- |
+| **System Metrics Overview**    | Grafana Loki    | LogQL (`app.metrics`)     | Tracks battery, memory, CPU, and disk storage trends extracted using structured metadata and `unwrap`. |
+| **Client Machine Filtering**   | Grafana Loki    | LogQL (`machine`)         | Filters telemetry events and metric streams for a specific registration client machine ID.             |
+| **Application Crash Logs**     | Grafana Loki    | LogQL (`app.crash`)       | Displays unhandled exceptions, error stack traces, and unmounted Flutter widget logs.                  |
+| **User Flow & Route Activity** | Grafana Loki    | LogQL (`app.event`)       | Tracks active screen views, button clicks, and user navigation paths across registration screens.      |
+| **Telemetry Pipeline Health**  | Prometheus      | PromQL (`grafana-alloy`)  | Monitors log ingestion rates, batch processing throughput, and shipper error counters.                 |
 
-```
+---
 
 ## 6. Storage & Retention
 
-The telemetry system manages log storage across both the edge device (Android Registration Client) and the telemetry ingestion backend ([Grafana Loki](https://github.com/mosip/tusd-server/pull/16/changes)). Storage constraints and retention policies are strictly enforced at each stage to prevent device storage exhaustion and unbounded server disk usage.
+The telemetry system manages log storage across both the **edge device (Android Registration Client)** and the telemetry ingestion backend, **Grafana Loki**. Storage constraints and retention policies are enforced at each stage to prevent device storage exhaustion and unbounded server-side disk usage.
 
 ---
 
 ### 6.1 Local Edge Device Storage Policy
 
-Telemetry generated on the Android client is stored locally in internal application storage prior to TUS upload synchronization.
+Telemetry generated on the Android client is stored locally in internal application storage before synchronization through the TUS upload mechanism.
 
-* **Storage Path**: Logs are stored in private internal storage at `context.getFilesDir() + "/.metrics/metrics.log"`.
-* **File Size Threshold**: Local log files are capped at a maximum file size of **5 MB** (`MAX_LOG_SIZE_BYTES = 5 * 1024 * 1024`).
-* **Log Rotation & Truncation**: When `metrics.log` reaches 5 MB, log rotation triggers automatically:
+* **Storage Path**: Logs are stored in private internal storage at:
+
+  ```text
+  context.getFilesDir() + "/.metrics/metrics.log"
+  ```
+
+* **File Size Threshold**: Local log files are capped at a maximum size of **5 MB**:
+
+  ```text
+  MAX_LOG_SIZE_BYTES = 5 * 1024 * 1024
+  ```
+
+* **Log Rotation & Truncation**: When `metrics.log` reaches the 5 MB threshold, log rotation is triggered automatically:
+
   * Active log entries are flushed and sealed into a candidate file for TUS upload.
-  * A new `metrics.log` file is initialized to ensure continuous, non-blocking log collection.
-* **Post-Upload Cleanup**: Once a log file batch is successfully uploaded via the TUS resumable upload protocol, local log buffers are pruned to free client disk space.
+  * A new `metrics.log` file is initialized to ensure continuous and non-blocking telemetry collection.
+
+* **Post-Upload Cleanup**: After a log file batch is successfully uploaded through the TUS resumable upload protocol, the corresponding local log buffers are pruned to release client storage.
 
 ---
 
 ### 6.2 Server-Side Data Retention Policy
 
-Log retention on the backend engine is managed by Grafana Loki's automated compactor process.
+Log retention on the backend is managed by the **Grafana Loki compactor**, which automatically removes expired log data according to the configured retention policy.
 
-| Parameter | Configuration | Value | Purpose / Description |
-| :--- | :--- | :--- | :--- |
-| **Log Retention Window** | `limits_config.retention_period` | `168h` (7 days) | Telemetry log streams and crash logs are automatically retained for 7 days. |
-| **Compactor Execution** | `compactor.retention_enabled` | `true` | Enables periodic filesystem chunk cleanup for expired log streams. |
-| **Index Persistence** | `schema_config.configs.period` | `24h` | TSDB index tables are partitioned and rotated daily. |
-| **Drop Store** | `delete_request_store` | `filesystem` | Deletion requests and tombstone markers are tracked locally within Loki storage (`/tmp/loki/compactor`). |
+| **Parameter**            | **Configuration**                | **Value**       | **Purpose / Description**                                                                                |
+| :----------------------- | :------------------------------- | :-------------- | :------------------------------------------------------------------------------------------------------- |
+| **Log Retention Window** | `limits_config.retention_period` | `168h` (7 days) | Telemetry log streams and crash logs are automatically retained for 7 days.                              |
+| **Compactor Execution**  | `compactor.retention_enabled`    | `true`          | Enables automated cleanup of expired log data through the Loki compactor.                                |
+| **Index Persistence**    | `schema_config.configs.period`   | `24h`           | TSDB index tables are partitioned and rotated daily.                                                     |
+| **Delete Request Store** | `delete_request_store`           | `filesystem`    | Deletion requests and tombstone markers are stored locally within Loki storage at `/tmp/loki/compactor`. |
 
+```
+```
 
 
 ## 7. Reliability & Failure Handling
