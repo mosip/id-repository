@@ -39,6 +39,7 @@ The primary objective of this telemetry system is to establish an end-to-end, re
 ## 2. System Architecture & Flow Diagrams
 
 ### 2.1 High-Level Architecture
+This diagram illustrates the end-to-end telemetry architecture, tracing data flow from the Flutter Android Registration Client through TUS protocol background upload to backend ingestion via Grafana Alloy, Loki, Prometheus, and Grafana dashboards.
 ```mermaid
 flowchart TD
 
@@ -62,6 +63,7 @@ flowchart TD
 ```
 
 ### 2.2 Telemetry Collection Sequence
+This sequence diagram details the step-by-step lifecycle of telemetry events, covering client event capture, atomic file rotation and handoff (metrics.log.processing), TUS resumable upload synchronization, and downstream log/metric parsing
 
 ```mermaid
 sequenceDiagram
