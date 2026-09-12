@@ -271,7 +271,6 @@ The telemetry pipeline strictly enforces zero-tolerance data exclusion policies:
 * **Storage at Rest**: Telemetry files (`.metrics/metrics.log`) are stored in private internal application storage (`context.getFilesDir()`), restricting access from third-party apps or non-root users.
 * **Transport Encryption**: All log batches uploaded via the TUS protocol must be transmitted over encrypted TLS/HTTPS channels (`https://`).
 
-````md
 ## 5. Observability & Monitoring
 
 The telemetry pipeline utilizes a modern Grafana-native observability architecture (Grafana Alloy + Loki + Prometheus + Grafana) to replace the legacy ELK stack. This architecture minimizes index overhead by leveraging Loki 3.0's structured metadata for high-cardinality values.
@@ -347,7 +346,6 @@ Unified visualization is provided via **Grafana** (v10.4.0) connecting to Loki (
 | **User Flow & Route Activity** | Grafana Loki    | LogQL (`app.event`)       | Tracks active screen views, button clicks, and user navigation paths across registration screens. |
 | **Telemetry Pipeline Health**  | Prometheus      | PromQL (`grafana-alloy`)  | Monitors log ingestion rates, batch processing throughput, and shipper error counters.            |
 
-```
 ```
 
 
