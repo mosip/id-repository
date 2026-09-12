@@ -39,32 +39,27 @@ The primary objective of this telemetry system is to establish an end-to-end, re
 ## 2. System Architecture & Flow Diagrams
 
 ### 2.1 High-Level Architecture
-
 ```mermaid
-graph TD
+flowchart TD
 
-    A[Client Application]
-    B[Telemetry Collector]
-    C[Local Storage]
-    D[Upload / Synchronization]
-    E[Backend Ingestion]
-    F[Telemetry Processing]
-    G[Log Storage]
-    H[Metrics Storage]
-    I[Visualization / Dashboard]
+    ARC["Android Registration Client"]
+    TUSD["mosip-tusd<br/>TUS Ingestion Server"]
+    SV["Shared Volume<br/>Telemetry File Storage"]
+    ALLOY["Grafana Alloy<br/>Collection & Processing"]
+    LOKI["Grafana Loki<br/>Log / Event Storage"]
+    PROM["Prometheus<br/>Metrics Storage"]
+    GRAFANA["Grafana<br/>Dashboards & Visualization"]
 
-    A --> B
-    B --> C
-    C --> D
-    D --> E
-    E --> F
-    F --> G
-    F --> H
-    G --> I
-    H --> I
-````
+    ARC -->|"TUS Resumable File Upload"| TUSD
+    TUSD -->|"Write Uploaded Payload"| SV
+    SV -->|"Watch & Ingest Files"| ALLOY
 
-<!-- TODO: Replace the placeholder architecture with the actual implementation. -->
+    ALLOY -->|"Parsed Log / Event Stream"| LOKI
+    ALLOY -->|"Metric Stream"| PROM
+
+    LOKI -->|"Log Queries"| GRAFANA
+    PROM -->|"Metric Queries"| GRAFANA
+```
 
 ### 2.2 Telemetry Collection Sequence
 
