@@ -139,6 +139,7 @@ sequenceDiagram
     
     Visuals->>Observability: LogQL Queries (Loki) & PromQL Queries (Prometheus)
     Observability-->>Visuals: Render real-time metrics on Grafana Dashboards
+    
 ```
 
 <!-- TODO: Update sequence according to the actual implementation. -->
