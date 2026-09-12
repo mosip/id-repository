@@ -435,379 +435,76 @@ Log retention on the backend is managed by the **Grafana Loki compactor**, which
 
 ```
 
+---
+
 ## 7. Reliability & Failure Handling
 
-### 7.1 Network Failure
+The telemetry architecture incorporates multi-layered fault isolation and retry strategies to ensure zero data loss while preserving Android Registration Client performance under intermittent network or hardware conditions.
 
-<!-- TODO: Describe behavior when network connectivity is unavailable. -->
+### 7.1 Client-Side Failure Mitigation
+* **Thread Isolation & Non-Blocking Logging**: All logging calls (`logRawMetric`, `writeSyncCrash`) execute asynchronously on a dedicated background thread (`android-metrics-publisher`) to prevent blocking UI frame rendering.
+* **Storage Guard & Backpressure**: Log file rotation triggers automatically at **5 MB**. If local storage write limits are reached or disk space falls below safety thresholds, local telemetry buffering pauses to protect core client functions.
+* **Crash-Safe Synchronous Writes**: Fatal crash exceptions trigger native `writeSyncCrash` handlers to flush stack traces to disk before process termination.
 
-### 7.2 Upload Failure
+### 7.2 Transport & Sync Reliability
+* **Resumable TUS Uploads**: Handled via `mosip-tusd` using chunked resumable transfers. Interrupted uploads automatically resume from the last acknowledged byte offset upon network recovery.
+* **Exponential Backoff Strategy**: Network or server failures trigger automated retries managed by Android `WorkManager` with exponential backoff constraints.
 
-<!-- TODO: Describe retry and recovery behavior. -->
-
-### 7.3 Backend Failure
-
-<!-- TODO: Describe client behavior when the backend is unavailable. -->
-
-### 7.4 Application Restart
-
-<!-- TODO: Describe how pending telemetry is recovered after application restart. -->
-
-### 7.5 Storage Failure
-
-<!-- TODO: Describe behavior when local or backend storage is unavailable/full. -->
-
-### 7.6 Retry Strategy
-
-| Failure Type    |  Retry | Strategy | Maximum Attempts |
-| :-------------- | :----: | :------- | :--------------: |
-| Network Failure | `TODO` | `TODO`   |      `TODO`      |
-| Timeout         | `TODO` | `TODO`   |      `TODO`      |
-| Server Error    | `TODO` | `TODO`   |      `TODO`      |
-| Storage Error   | `TODO` | `TODO`   |      `TODO`      |
+| Failure Type | Handling Mechanism | Recovery / Retry Strategy |
+| :--- | :--- | :--- |
+| **Network Loss** | Local disk queuing (`metrics.log`) | Retries deferred until network reconnects (`CONNECTED` constraint). |
+| **Upload Interruption** | Resumable chunking (`mosip-tusd`) | Resumes from last offset using TUS upload URL headers. |
+| **Server Offline (5xx)** | Exponential backoff retry | Maximum 3 retry attempts before rescheduling next batch window. |
+| **Malformed Payload** | Loki drop rule (`malformed_json_missing_level`) | Bad payload dropped at Alloy pipeline to prevent ingestion blocking. |
 
 ---
 
-## 8. Performance Considerations
+## 8. Deployment & Environment Strategy
 
-### 8.1 Client Performance
+### 8.1 Docker Compose Deployment Architecture
+The telemetry pipeline is packaged as a containerized stack within the `mosip-tusd` deployment environment:
+* **TUSD Server (`mosip-tusd`)**: Listens on port `1080` and mounts shared log volume (`telemetry_shared_volume`).
+* **Grafana Alloy (`telemetry_alloy_collector`)**: Runs as a sidecar watching `/var/log/tusd/*` and exposes collector health on port `12345`.
+* **Grafana Loki (`local_loki`)**: Ingestion engine listening on port `3100`.
+* **Prometheus (`local_prometheus`)**: Time-series database listening on port `9090`.
+* **Grafana (`local_grafana`)**: Dashboard visualization interface listening on port `3000`.
 
-<!-- TODO: Document expected impact on CPU, memory, battery, and application responsiveness. -->
-
-### 8.2 Telemetry Overhead
-
-| Metric           | Target |
-| :--------------- | :----- |
-| CPU Overhead     | `TODO` |
-| Memory Overhead  | `TODO` |
-| Storage Overhead | `TODO` |
-| Network Overhead | `TODO` |
-| Battery Impact   | `TODO` |
-
-### 8.3 Upload Performance
-
-* **Expected Upload Throughput:** `TODO`
-* **Maximum Batch Size:** `TODO`
-* **Expected Latency:** `TODO`
+### 8.2 Production Setup (Kubernetes Migration)
+> **TODO**: Kubernetes Deployment Strategy
+> * [ ] Define Helm chart templates for Grafana Alloy daemonset / sidecar deployment.
+> * [ ] Configure persistent volume claims (PVC) for Loki storage and TUSD upload mounts.
+> * [ ] Implement production TLS/HTTPS ingress for TUSD endpoints and Grafana instance access.
 
 ---
 
-## 9. Testing & Verification
+## 9. Verification & Testing
 
-### 9.1 Unit Testing
+### 9.1 Verification Workflow
+1. **Local Metric Verification**: Verify line outputs in private app storage (`.metrics/metrics.log`) using `adb shell` or Android Studio File Explorer.
+2. **Pipeline Ingestion Check**: Confirm active container status via `docker ps` and check Alloy processing logs:
+   ```bash
+   docker logs telemetry_alloy_collector
 
-* [ ] Telemetry event generation
-* [ ] Payload validation
-* [ ] Local file writing
-* [ ] File rotation
-* [ ] Retry logic
-* [ ] Upload state management
-* [ ] Error handling
-
-### 9.2 Integration Testing
-
-* [ ] Client → Collector
-* [ ] Collector → Local Storage
-* [ ] Local Storage → Upload Worker
-* [ ] Upload Worker → Backend
-* [ ] Backend → Telemetry Collector
-* [ ] Collector → Log Backend
-* [ ] Collector → Metrics Backend
-* [ ] Backend → Dashboard
-
-### 9.3 End-to-End Testing
-
-#### Test Case: Successful Telemetry Upload
-
-**Precondition:**
-`TODO`
-
-**Steps:**
-
-1. `TODO`
-2. `TODO`
-3. `TODO`
-
-**Expected Result:**
-`TODO`
-
-#### Test Case: Interrupted Upload
-
-**Precondition:**
-`TODO`
-
-**Steps:**
-
-1. `TODO`
-2. `TODO`
-3. `TODO`
-
-**Expected Result:**
-`TODO`
-
-#### Test Case: Application Restart
-
-**Precondition:**
-`TODO`
-
-**Steps:**
-
-1. `TODO`
-2. `TODO`
-3. `TODO`
-
-**Expected Result:**
-`TODO`
-
-### 9.4 Network Resilience Testing
-
-* [ ] Offline mode
-* [ ] Intermittent connectivity
-* [ ] Network timeout
-* [ ] Upload interruption
-* [ ] Upload resumption
-* [ ] Backend unavailable
-* [ ] Duplicate upload prevention
-
-### 9.5 Observability Verification
-
-* [ ] Logs visible in log backend
-* [ ] Metrics visible in metrics backend
-* [ ] Dashboard displays expected values
-* [ ] Log queries return expected events
-* [ ] Metrics queries return expected values
-* [ ] Alerts trigger correctly
-
----
-
-## 10. Deployment & Configuration
-
-### 10.1 Local Development Environment
-
-```text
-TODO: Document local development setup.
 ```
 
-### 10.2 Container Configuration
+3. **LogQL Ingestion Query**: Query Grafana Loki endpoint (`http://localhost:3000`) for streamed entries:
+```logql
+{job="tusd_logs"} |= "app.crash"
 
-```yaml
-# TODO: Add relevant container configuration.
 ```
 
-### 10.3 Kubernetes Deployment
 
-```yaml
-# TODO: Add relevant Kubernetes manifests/configuration.
+
+---
+
+## 10. Summary & Sign-off
+
+| Deliverable | Implementation Target | Verification Status |
+| --- | --- | --- |
+| **Client Native Collector** | `AndroidMetricCollector.java` | Verified in client PR [#1098](https://github.com/mosip/android-registration-client/pull/1098/changes) |
+| **Ingestion Pipeline** | `config.alloy` & `docker-compose.yml` | Verified in TUSD PR [#16](https://github.com/mosip/tusd-server/pull/16/changes) |
+| **Dashboard Querying** | Loki 3.0 LogQL (`machine` metadata) | Verified against AC9 specs |
+
 ```
 
-### 10.4 Environment Variables
-
-| Variable | Description | Required | Default |
-| :------- | :---------- | :------: | :------ |
-| `TODO`   | `TODO`      |  `TODO`  | `TODO`  |
-| `TODO`   | `TODO`      |  `TODO`  | `TODO`  |
-
-### 10.5 Secrets
-
-<!-- TODO: Document required secrets without exposing actual secret values. -->
-
----
-
-## 11. Operational Runbook
-
-### 11.1 Telemetry Upload Failure
-
-1. `TODO`
-2. `TODO`
-3. `TODO`
-
-### 11.2 Missing Logs
-
-1. `TODO`
-2. `TODO`
-3. `TODO`
-
-### 11.3 Missing Metrics
-
-1. `TODO`
-2. `TODO`
-3. `TODO`
-
-### 11.4 Storage Issues
-
-1. `TODO`
-2. `TODO`
-3. `TODO`
-
-### 11.5 Service Recovery
-
-1. `TODO`
-2. `TODO`
-3. `TODO`
-
----
-
-## 12. Security Considerations
-
-### 12.1 Threat Model
-
-| Threat                 | Risk   | Mitigation |
-| :--------------------- | :----- | :--------- |
-| Unauthorized upload    | `TODO` | `TODO`     |
-| Sensitive data leakage | `TODO` | `TODO`     |
-| Log tampering          | `TODO` | `TODO`     |
-| Credential exposure    | `TODO` | `TODO`     |
-| Storage compromise     | `TODO` | `TODO`     |
-
-### 12.2 Security Controls
-
-* [ ] TLS enabled
-* [ ] Authentication configured
-* [ ] Authorization configured
-* [ ] PII sanitization implemented
-* [ ] Secrets excluded from source control
-* [ ] File permissions restricted
-* [ ] Log access controlled
-
----
-
-## 13. Architecture Decisions
-
-### 13.1 Decision Record
-
-| Decision | Status                         | Rationale |
-| :------- | :----------------------------- | :-------- |
-| `TODO`   | Proposed / Accepted / Rejected | `TODO`    |
-| `TODO`   | Proposed / Accepted / Rejected | `TODO`    |
-| `TODO`   | Proposed / Accepted / Rejected | `TODO`    |
-
-### 13.2 Alternatives Considered
-
-| Alternative | Advantages | Disadvantages | Decision |
-| :---------- | :--------- | :------------ | :------- |
-| `TODO`      | `TODO`     | `TODO`        | `TODO`   |
-| `TODO`      | `TODO`     | `TODO`        | `TODO`   |
-
----
-
-## 14. Known Limitations
-
-| ID        | Limitation | Impact | Workaround / Future Plan |
-| :-------- | :--------- | :----- | :----------------------- |
-| `LIM-001` | `TODO`     | `TODO` | `TODO`                   |
-| `LIM-002` | `TODO`     | `TODO` | `TODO`                   |
-
----
-
-## 15. Future Enhancements
-
-* [ ] `TODO`
-* [ ] `TODO`
-* [ ] `TODO`
-* [ ] `TODO`
-
----
-
-## 16. Implementation Mapping
-
-| Design Component     | Repository | Module / File | Status |
-| :------------------- | :--------- | :------------ | :----- |
-| Telemetry Generation | `TODO`     | `TODO`        | `TODO` |
-| Client Interface     | `TODO`     | `TODO`        | `TODO` |
-| Local Storage        | `TODO`     | `TODO`        | `TODO` |
-| Upload Worker        | `TODO`     | `TODO`        | `TODO` |
-| Backend Ingestion    | `TODO`     | `TODO`        | `TODO` |
-| Telemetry Collector  | `TODO`     | `TODO`        | `TODO` |
-| Log Storage          | `TODO`     | `TODO`        | `TODO` |
-| Metrics Storage      | `TODO`     | `TODO`        | `TODO` |
-| Dashboard            | `TODO`     | `TODO`        | `TODO` |
-
----
-
-## 17. Verification Checklist
-
-### Client
-
-* [ ] Telemetry generation verified
-* [ ] Payload schema verified
-* [ ] Local persistence verified
-* [ ] File rotation verified
-* [ ] Background synchronization verified
-* [ ] Retry mechanism verified
-* [ ] Resumable upload verified
-* [ ] Application restart recovery verified
-
-### Backend
-
-* [ ] Upload endpoint verified
-* [ ] File persistence verified
-* [ ] Telemetry processing verified
-* [ ] Log ingestion verified
-* [ ] Metrics ingestion verified
-* [ ] Dashboard verified
-
-### Security
-
-* [ ] PII protection verified
-* [ ] Authentication verified
-* [ ] Authorization verified
-* [ ] TLS verified
-* [ ] Secrets protection verified
-
-### Operations
-
-* [ ] Retention policy verified
-* [ ] Storage limits verified
-* [ ] Monitoring verified
-* [ ] Alerting verified
-* [ ] Failure recovery verified
-
----
-
-## 18. Change History
-
-| Version  | Date         | Author | Change Description |
-| :------- | :----------- | :----- | :----------------- |
-| `v1.0.0` | `YYYY-MM-DD` | `TODO` | Initial document   |
-| `v1.1.0` | `YYYY-MM-DD` | `TODO` | `TODO`             |
-
----
-
-## 19. Approval
-
-| Role       | Name   | Status  | Date   |
-| :--------- | :----- | :------ | :----- |
-| Author     | `TODO` | Pending | `TODO` |
-| Reviewer   | `TODO` | Pending | `TODO` |
-| Maintainer | `TODO` | Pending | `TODO` |
-
----
-
-# Appendix A — References
-
-* `TODO`
-* `TODO`
-* `TODO`
-
----
-
-# Appendix B — Related Issues & Pull Requests
-
-* `TODO`
-* `TODO`
-* `TODO`
-
----
-
-# Appendix C — Open Questions
-
-* [ ] `TODO`
-* [ ] `TODO`
-* [ ] `TODO`
-
----
-
-**End of Document**
-
-```
 ```
