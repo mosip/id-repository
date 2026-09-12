@@ -159,36 +159,35 @@ stateDiagram-v2
     Collecting --> LogRotated: Size >= 5MB (rotateIfNeeded)
     LogRotated --> Collecting: Rename to metrics.log.1 & open new metrics.log
 
-    Collecting --> PendingUpload: TelemetryUploadWorker Triggered
+    Collecting --> PendingUpload: WorkManager Triggered
     
     state PendingUpload {
         [*] --> CheckProcessingFile: prepareFileForUpload()
         
-        alt Previous Interrupted Upload Found
-            CheckProcessingFile --> ReadyForUpload: Return existing metrics.log.processing
-        else New File Handoff
-            CheckProcessingFile --> AtomicRename: Rename metrics.log -> metrics.log.processing
-            AtomicRename --> ReadyForUpload: Return metrics.log.processing handle
-        end
+        state CheckProcessingFile <<choice>>
+        CheckProcessingFile --> ReadyForUpload: File .processing exists
+        CheckProcessingFile --> AtomicRename: File .processing missing
+        
+        AtomicRename --> ReadyForUpload: Rename metrics.log to .processing
     }
 
-    ReadyForUpload --> UploadingTUS: Worker Starts TUS Sync
+    ReadyForUpload --> UploadingTUS: TelemetryUploadWorker Starts Sync
     
     state UploadingTUS {
         [*] --> SessionInit: POST /files
         SessionInit --> StreamingChunks: PATCH /files/{id}
         
-        alt Network Interruption
-            StreamingChunks --> QueryOffset: HEAD /files/{id}
-            QueryOffset --> StreamingChunks: Resume from Upload-Offset
-        end
+        state NetworkCheck <<choice>>
+        StreamingChunks --> NetworkCheck: Connection Interrupted
+        NetworkCheck --> QueryOffset: HEAD /files/{id}
+        QueryOffset --> StreamingChunks: Resume from Upload-Offset
     }
 
     UploadingTUS --> FilePurged: HTTP 204 No Content (Success)
     FilePurged --> [*]: Delete metrics.log.processing
 
-    UploadingTUS --> ReadyForUpload: Network Failure (Retried in Next Worker Run) 
-
+    UploadingTUS --> ReadyForUpload: Network Failure (Retry Next Run)
+```
 
 ## 3. Technical Specifications & Payload Schemas
 
