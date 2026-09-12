@@ -4,7 +4,7 @@
 | :--- | :--- |
 | **Document Version** | `v1.0.0` |
 | **Last Updated** | `12-09-2026` |
-| **Target Repository** | `https://github.com/mosip/tusd-server ,https://github.com/mosip/android-registration-client`|
+| **Target Repository** | `https://github.com/mosip/tusd-server  https://github.com/mosip/android-registration-client`|
 | **Related Issues & PRs** | `https://github.com/mosip/android-registration-client/issues/719` |
 
 ---
