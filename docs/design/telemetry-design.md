@@ -250,33 +250,100 @@ Standard runtime indicators periodically emitted by `AndroidMetricCollector` (`n
 | `system.network.status`    | `status`        | `enum`    | Connectivity         | Connection state (`online`, `offline`, `cellular`). |
 
 
+```markdown
+## 3. Technical Specifications & Payload Schemas
+
+The telemetry system collects runtime system health metrics, application events, and crash logs directly from the native `AndroidMetricCollector`. Telemetry items are serialized locally, wrapped in a uniform Logback-compatible outer envelope, and appended to `.metrics/metrics.log` prior to TUS batch upload.
+
+---
+
+### 3.1 Integrated Telemetry Payload Schema
+
+Below is the complete JSON envelope structure as stored in `metrics.log`. The outer object maintains logback metadata, while the inner stringified JSON payload carrying metric, event, or crash data is escaped within the `message` field.
+
+```json
+{
+  "@timestamp": "2026-09-10T12:49:51.497+05:30",
+  "@Version": "1",
+  "message": "{\"@timestamp\":\"2026-09-10T07:19:51.493Z\",\"name\":\"app.crash\",\"type\":\"event\",\"device_model\":\"22031116AI\",\"error_type\":\"FlutterError\",\"message\":\"This widget has been unmounted, so the State no longer has a context (and should be considered defunct).\",\"stack_trace\":\"#0 State.context...\\n#1 State.context...\",\"screen\":\"HomePage\",\"fatal\":true}",
+  "logger_name": "io.mosip.registration_client.telemetry.AndroidMetricCollector",
+  "thread_name": "android-metrics-publisher",
+  "level": "INFO",
+  "level_value": 20000,
+  "machine": "xJBPYGE5UOuk"
+}
+
+```
+
+---
+
+### 3.2 Data Dictionary & Field Specifications
+
+| Scope | Key Name | Data Type | Required | Description / Allowed Values |
+| --- | --- | --- | --- | --- |
+| **Envelope** | `@timestamp` | String (ISO-8601) | Yes | Envelope creation timestamp with local timezone offset. |
+| **Envelope** | `@Version` | String | Yes | Logback schema version tag (fixed to `"1"`). |
+| **Envelope** | `message` | String (Escaped JSON) | Yes | Stringified inner payload (`app.metrics`, `app.event`, or `app.crash`). |
+| **Envelope** | `logger_name` | String | Yes | Originating Java class (`io.mosip.registration_client.telemetry.AndroidMetricCollector`). |
+| **Envelope** | `thread_name` | String | Yes | Execution thread identifier (`android-metrics-publisher`). |
+| **Envelope** | `level` / `level_value` | String / Integer | Yes | Severity level (`INFO`: `20000`, `WARN`: `30000`, `ERROR`: `40000`). |
+| **Envelope** | `machine` | String | Yes | Cached machine/device registration ID (passed as Loki structured metadata). |
+| **Inner** | `@timestamp` | String (ISO-8601) | Yes | Telemetry event capture timestamp in UTC (`Z`). |
+| **Inner** | `name` | String | Yes | Telemetry namespace (`app.metrics`, `app.event`, or `app.crash`). |
+| **Inner** | `type` | String | Yes | Record classification (`metric` or `event`). |
+| **Inner** | `device_model` | String | Yes | Hardware device model string (e.g., `22031116AI`). |
+| **Inner (Metrics)** | `metric_name` / `value` | String / Double | Conditional | Performance indicator name (e.g., `system.battery.level`) and numerical reading. |
+| **Inner (Events)** | `event_name` / `screen` | String / String | Conditional | User interaction name (e.g., `user_navigation`) and target UI screen. |
+| **Inner (Crash)** | `error_type` / `fatal` | String / Boolean | Conditional | Exception category (`FlutterError`, `NullPointerException`) and criticality flag. |
+
+---
+
+### 3.3 Metric Types & Supported System Indicators
+
+Standard runtime indicators periodically emitted by `AndroidMetricCollector` (`name: "app.metrics"`):
+
+| Metric Name | Metric Type | Unit | Target Category | Description |
+| --- | --- | --- | --- | --- |
+| `system.battery.level` | `gauge` | `percent` | Device State | Battery level percentage (0–100%). |
+| `system.memory.usage` | `gauge` | `bytes` | Resource Utilization | RAM consumption of the client process. |
+| `system.cpu.usage` | `gauge` | `percent` | Resource Utilization | Process CPU utilization percentage. |
+| `system.storage.available` | `gauge` | `bytes` | Disk Health | Available internal storage capacity. |
+| `system.network.status` | `status` | `enum` | Connectivity | Connection state (`online`, `offline`, `cellular`). |
+
+---
+
 ## 4. Data Privacy & Security
 
 ### 4.1 User Consent
+
 The telemetry system respects user privacy by incorporating explicit consent controls:
+
 * **Consent Verification**: Telemetry collection is enabled only after obtaining user/operator consent during initial application setup or login.
 * **Consent Preference Storage**: Consent state is persisted locally in encrypted application shared preferences.
 
 ### 4.2 Data Minimization & Feature Toggles
+
 * **Dynamic Opt-In / Opt-Out**: Administrators can enable or disable telemetry logging dynamically using feature flags or local configuration settings.
 * **Minimal Footprint**: Only operational indicators, UI route events, and system exception stack traces necessary for diagnostic monitoring are collected.
 
 ### 4.3 PII & Sensitive Data Protection
+
 The telemetry pipeline strictly enforces zero-tolerance data exclusion policies:
+
 * **No PII**: Names, National IDs (UIN/FIN), phone numbers, email addresses, and demographic attributes are strictly forbidden inside event attributes.
 * **No Biometrics**: Raw biometric buffers, fingerprints, face/iris samples, or templates are never captured or logged.
 * **Data Sanitization**: Loggers sanitize input parameters to prevent sensitive input values from leaking into error messages.
 
 ### 4.4 Data Security
+
 * **Storage at Rest**: Telemetry files (`.metrics/metrics.log`) are stored in private internal application storage (`context.getFilesDir()`), restricting access from third-party apps or non-root users.
 * **Transport Encryption**: All log batches uploaded via the TUS protocol must be transmitted over encrypted TLS/HTTPS channels (`https://`).
 
-````md
+---
+
 ## 5. Observability & Monitoring
 
 The telemetry pipeline utilizes a modern Grafana-native observability architecture consisting of **Grafana Alloy, Loki, Prometheus, and Grafana**, replacing the legacy ELK stack. The architecture minimizes index overhead by leveraging **Loki 3.0 structured metadata** for high-cardinality values.
-
----
 
 ### 5.1 Observability Architecture
 
@@ -295,53 +362,40 @@ flowchart TD
     C -->|Pipeline Metrics<br/>Collector Health| E
     D --> F
     E --> F
-````
 
----
+```
 
 ### 5.2 Log Pipeline & Processing Specifications
 
 * **Log Collector & Shipper**: [Grafana Alloy](https://github.com/mosip/tusd-server/pull/16/changes) (v1.2.0), running as a sidecar container and watching uploaded TUSD files under `/var/log/tusd/*`.
-
 * **Log Storage Engine**: [Grafana Loki](https://github.com/mosip/tusd-server/pull/16/changes) (v3.0.0), configured with the TSDB index store and local filesystem chunk storage.
-
 * **Log Filtering & Exclusion**: Files with the `.info` extension created by TUSD are automatically dropped in Alloy using `discovery.relabel` rules to prevent non-telemetry metadata from being ingested.
-
 * **Log Parsing & Relabeling (`loki.process.tusd_logs`)**:
+1. **Outer Stage**: Extracts envelope fields such as `level`, `message`, and `machine`.
+2. **Inner Stage**: Parses the stringified inner JSON contained in `message` to extract metric and event attributes such as `name` and `value`.
+3. **Structured Metadata**: High-cardinality dynamic fields such as `machine` and `value` are stored as **Loki 3.0 structured metadata** to keep Loki index stream cardinality low.
+4. **Labels**: Low-cardinality fields such as `level` and `name` are promoted to indexed Loki labels for efficient filtering.
+5. **Drop Stage**: Malformed JSON entries missing the required `level` string are safely dropped using the `malformed_json_missing_level` drop rule.
 
-  1. **Outer Stage**: Extracts envelope fields such as `level`, `message`, and `machine`.
-
-  2. **Inner Stage**: Parses the stringified inner JSON contained in `message` to extract metric and event attributes such as `name` and `value`.
-
-  3. **Structured Metadata**: High-cardinality dynamic fields such as `machine` and `value` are stored as **Loki 3.0 structured metadata** to keep Loki index stream cardinality low.
-
-  4. **Labels**: Low-cardinality fields such as `level` and `name` are promoted to indexed Loki labels for efficient filtering.
-
-  5. **Drop Stage**: Malformed JSON entries missing the required `level` string are safely dropped using the `malformed_json_missing_level` drop rule.
 
 * **Retention Policy**: Telemetry logs are retained for **7 days (168h)** and automatically cleaned up through the Loki compactor using `limits_config.retention_period: 168h`.
-
----
 
 ### 5.3 Metrics Pipeline Specifications
 
 * **Metrics Storage**: Prometheus (v2.51.0), scraping internal Alloy metrics at **15-second intervals**.
-
 * **Scrape Target**: `grafana-alloy:12345`, exposing pipeline processing metrics and collector health indicators.
-
----
 
 ### 5.4 Dashboard & Visualization Specifications
 
 Unified visualization is provided through **Grafana** (v10.4.0), which connects to Loki using **LogQL** and Prometheus using **PromQL**.
 
-| **Dashboard Panel**            | **Data Source** | **Query Type / Function** | **Key Indicators**                                                                                     |
-| :----------------------------- | :-------------- | :------------------------ | :----------------------------------------------------------------------------------------------------- |
-| **System Metrics Overview**    | Grafana Loki    | LogQL (`app.metrics`)     | Tracks battery, memory, CPU, and disk storage trends extracted using structured metadata and `unwrap`. |
-| **Client Machine Filtering**   | Grafana Loki    | LogQL (`machine`)         | Filters telemetry events and metric streams for a specific registration client machine ID.             |
-| **Application Crash Logs**     | Grafana Loki    | LogQL (`app.crash`)       | Displays unhandled exceptions, error stack traces, and unmounted Flutter widget logs.                  |
-| **User Flow & Route Activity** | Grafana Loki    | LogQL (`app.event`)       | Tracks active screen views, button clicks, and user navigation paths across registration screens.      |
-| **Telemetry Pipeline Health**  | Prometheus      | PromQL (`grafana-alloy`)  | Monitors log ingestion rates, batch processing throughput, and shipper error counters.                 |
+| Dashboard Panel | Data Source | Query Type / Function | Key Indicators |
+| --- | --- | --- | --- |
+| **System Metrics Overview** | Grafana Loki | LogQL (`app.metrics`) | Tracks battery, memory, CPU, and disk storage trends extracted using structured metadata and `unwrap`. |
+| **Client Machine Filtering** | Grafana Loki | LogQL (`machine`) | Filters telemetry events and metric streams for a specific registration client machine ID. |
+| **Application Crash Logs** | Grafana Loki | LogQL (`app.crash`) | Displays unhandled exceptions, error stack traces, and unmounted Flutter widget logs. |
+| **User Flow & Route Activity** | Grafana Loki | LogQL (`app.event`) | Tracks active screen views, button clicks, and user navigation paths across registration screens. |
+| **Telemetry Pipeline Health** | Prometheus | PromQL (`grafana-alloy`) | Monitors log ingestion rates, batch processing throughput, and shipper error counters. |
 
 ---
 
@@ -349,47 +403,45 @@ Unified visualization is provided through **Grafana** (v10.4.0), which connects 
 
 The telemetry system manages log storage across both the **edge device (Android Registration Client)** and the telemetry ingestion backend, **Grafana Loki**. Storage constraints and retention policies are enforced at each stage to prevent device storage exhaustion and unbounded server-side disk usage.
 
----
-
 ### 6.1 Local Edge Device Storage Policy
 
 Telemetry generated on the Android client is stored locally in internal application storage before synchronization through the TUS upload mechanism.
 
 * **Storage Path**: Logs are stored in private internal storage at:
+```text
+context.getFilesDir() + "/.metrics/metrics.log"
 
-  ```text
-  context.getFilesDir() + "/.metrics/metrics.log"
-  ```
+```
+
 
 * **File Size Threshold**: Local log files are capped at a maximum size of **5 MB**:
+```text
+MAX_LOG_SIZE_BYTES = 5 * 1024 * 1024
 
-  ```text
-  MAX_LOG_SIZE_BYTES = 5 * 1024 * 1024
-  ```
+```
+
 
 * **Log Rotation & Truncation**: When `metrics.log` reaches the 5 MB threshold, log rotation is triggered automatically:
+* Active log entries are flushed and sealed into a candidate file for TUS upload.
+* A new `metrics.log` file is initialized to ensure continuous and non-blocking telemetry collection.
 
-  * Active log entries are flushed and sealed into a candidate file for TUS upload.
-  * A new `metrics.log` file is initialized to ensure continuous and non-blocking telemetry collection.
 
 * **Post-Upload Cleanup**: After a log file batch is successfully uploaded through the TUS resumable upload protocol, the corresponding local log buffers are pruned to release client storage.
-
----
 
 ### 6.2 Server-Side Data Retention Policy
 
 Log retention on the backend is managed by the **Grafana Loki compactor**, which automatically removes expired log data according to the configured retention policy.
 
-| **Parameter**            | **Configuration**                | **Value**       | **Purpose / Description**                                                                                |
-| :----------------------- | :------------------------------- | :-------------- | :------------------------------------------------------------------------------------------------------- |
-| **Log Retention Window** | `limits_config.retention_period` | `168h` (7 days) | Telemetry log streams and crash logs are automatically retained for 7 days.                              |
-| **Compactor Execution**  | `compactor.retention_enabled`    | `true`          | Enables automated cleanup of expired log data through the Loki compactor.                                |
-| **Index Persistence**    | `schema_config.configs.period`   | `24h`           | TSDB index tables are partitioned and rotated daily.                                                     |
-| **Delete Request Store** | `delete_request_store`           | `filesystem`    | Deletion requests and tombstone markers are stored locally within Loki storage at `/tmp/loki/compactor`. |
+| Parameter | Configuration | Value | Purpose / Description |
+| --- | --- | --- | --- |
+| **Log Retention Window** | `limits_config.retention_period` | `168h` (7 days) | Telemetry log streams and crash logs are automatically retained for 7 days. |
+| **Compactor Execution** | `compactor.retention_enabled` | `true` | Enables automated cleanup of expired log data through the Loki compactor. |
+| **Index Persistence** | `schema_config.configs.period` | `24h` | TSDB index tables are partitioned and rotated daily. |
+| **Delete Request Store** | `delete_request_store` | `filesystem` | Deletion requests and tombstone markers are stored locally within Loki storage at `/tmp/loki/compactor`. |
 
 ```
-```
 
+```
 
 ## 7. Reliability & Failure Handling
 
