@@ -503,7 +503,4 @@ The telemetry pipeline is packaged as a containerized stack within the `mosip-tu
 | **Ingestion Pipeline** | `config.alloy` & `docker-compose.yml` | Verified in TUSD PR [#16](https://github.com/mosip/tusd-server/pull/16/changes) |
 | **Dashboard Querying** | Loki 3.0 LogQL (`machine` metadata) | Verified against AC9 specs |
 
-```
-
-```
 
