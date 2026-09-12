@@ -3,9 +3,9 @@
 | Field | Details |
 | :--- | :--- |
 | **Document Version** | `v1.0.0` |
-| **Last Updated** | `YYYY-MM-DD` |
-| **Target Repository** | `https://github.com/mosip/tusd-server ,(https://github.com/mosip/android-registration-client)`|
-| **Related Issues & PRs** | `[Telemetry for Android Registration Client](https://github.com/mosip/android-registration-client/issues/719)` |
+| **Last Updated** | `12-09-2026` |
+| **Target Repository** | `https://github.com/mosip/tusd-server ,https://github.com/mosip/android-registration-client`|
+| **Related Issues & PRs** | `https://github.com/mosip/android-registration-client/issues/719` |
 
 ---
 
