@@ -257,7 +257,6 @@ The telemetry system collects runtime system health metrics, application events,
 
 ### 3.1 Integrated Telemetry Payload Schema
 
-
 ```json
 {
   "@timestamp": "2026-09-10T12:49:51.497+05:30",
@@ -269,9 +268,7 @@ The telemetry system collects runtime system health metrics, application events,
   "level_value": 20000,
   "machine": "xJBPYGE5UOuk"
 }
-
-
----
+```
 
 ### 3.2 Data Dictionary & Field Specifications
 
@@ -306,7 +303,6 @@ Standard runtime indicators periodically emitted by `AndroidMetricCollector` (`n
 | `system.storage.available` | `gauge` | `bytes` | Disk Health | Available internal storage capacity. |
 | `system.network.status` | `status` | `enum` | Connectivity | Connection state (`online`, `offline`, `cellular`). |
 
----
 
 ## 4. Data Privacy & Security
 
