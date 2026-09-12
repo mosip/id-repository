@@ -13,10 +13,10 @@
 
 ### 1.1 Background
 Currently, the Flutter-based Android Registration Client (ARC) operates with limited operational visibility into field operations, user interactions, and runtime health. Without a structured telemetry pipeline, detecting performance bottlenecks, monitoring application crashes, and identifying usability issues in distributed or offline field environments requires manual debugging and issue reporting.
+
 ### 1.2 Objective
 The primary objective of this telemetry system is to establish an end-to-end, resilient, and non-blocking observability framework for the Android Registration Client. The architecture enables real-time collection of client metrics, secure batch synchronization over the TUS protocol, and centralized analysis using a cloud-native observability stack (**Grafana Alloy + Loki + Prometheus**).
 
-### 1.3 Core Capabilities
 ### 1.3 Core Capabilities
 - **Offline-First Non-Blocking Collection:** Asynchronous background event logging via the Pigeon Bridge and an Android Native Collector with automatic thread-safe 5MB file rotation (`metrics.log`).
 - **Resumable & Efficient Transmission:** Periodic, network-aware sync executed by Android `WorkManager` pushing log batches over the TUS protocol (`mosip-tusd`).
@@ -25,14 +25,16 @@ The primary objective of this telemetry system is to establish an end-to-end, re
 - **Privacy & Compliance Governance:** Built-in client-side data sanitization and opt-in user consent enforcement to safeguard personal identifiable information (PII).
 
 ### 1.4 Scope
-
-<!-- TODO: Define what is included in the telemetry implementation. -->
+- **Client Event Collection:** UI interaction tracking, navigation flows, and registration journey metrics across Flutter and Android native layers.
+- **System Health Monitoring:** Application startup latency, CPU/memory consumption, battery status, and unhandled crash exception reports.
+- **Local Resilience & Sync:** Non-blocking thread-safe local file logging, 5MB log rotation strategy, and network-aware background uploads via Android `WorkManager`.
+- **Ingestion & Analytics:** Backend ingestion handling through `mosip-tusd`, pipeline parsing via Grafana Alloy, and storage in Grafana Loki (log streams) and Prometheus (metrics).
+- **Visualization:** Production Grafana dashboards using LogQL and PromQL queries.
 
 ### 1.5 Non-Goals
-
-<!-- TODO: Define what is explicitly outside the scope. -->
-
----
+- **Synchronous Real-Time Streaming:** Log uploads do not block main thread UI execution or require real-time websocket connections.
+- **Raw PII/Biometric Storage:** Unmasked Personally Identifiable Information (PII) or biometric payload data will strictly never be logged or transmitted.
+- **Long-Term On-Device Archival:** Local mobile storage acts solely as a temporary queue; log files are purged locally upon successful backend upload confirmation.
 
 ## 2. System Architecture & Flow Diagrams
 
