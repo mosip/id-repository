@@ -4,7 +4,7 @@
 | :--- | :--- |
 | **Document Version** | `v1.0.0` |
 | **Last Updated** | `YYYY-MM-DD` |
-| **Target Repository** | `[Telemetry-server](https://github.com/mosip/tusd-server)` | |`[Telemtry-collection & upload](https://github.com/mosip/android-registration-client)`|
+| **Target Repository** | `https://github.com/mosip/tusd-server ,(https://github.com/mosip/android-registration-client)`|
 | **Related Issues & PRs** | `[Telemetry for Android Registration Client](https://github.com/mosip/android-registration-client/issues/719)` |
 
 ---
