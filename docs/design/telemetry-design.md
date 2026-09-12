@@ -249,7 +249,6 @@ Standard runtime indicators periodically emitted by `AndroidMetricCollector` (`n
 | `system.network.status`    | `status`        | `enum`    | Connectivity         | Connection state (`online`, `offline`, `cellular`). |
 
 
-```markdown
 ## 3. Technical Specifications & Payload Schemas
 
 The telemetry system collects runtime system health metrics, application events, and crash logs directly from the native `AndroidMetricCollector`. Telemetry items are serialized locally, wrapped in a uniform Logback-compatible outer envelope, and appended to `.metrics/metrics.log` prior to TUS batch upload.
@@ -258,7 +257,6 @@ The telemetry system collects runtime system health metrics, application events,
 
 ### 3.1 Integrated Telemetry Payload Schema
 
-Below is the complete JSON envelope structure as stored in `metrics.log`. The outer object maintains logback metadata, while the inner stringified JSON payload carrying metric, event, or crash data is escaped within the `message` field.
 
 ```json
 {
@@ -272,7 +270,6 @@ Below is the complete JSON envelope structure as stored in `metrics.log`. The ou
   "machine": "xJBPYGE5UOuk"
 }
 
-```
 
 ---
 
