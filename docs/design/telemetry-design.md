@@ -68,19 +68,79 @@ sequenceDiagram
     autonumber
 
     actor User
-    participant Client as Client Application
-    participant Collector as Telemetry Collector
-    participant Storage as Local Storage
-    participant Worker as Background Worker
-    participant Backend as Backend
-    participant Observability as Observability Stack
+    participant Client as Flutter Client App
+    participant Collector as AndroidMetricCollector
+    participant Storage as Local File Storage
+    participant Worker as TelemetryUploadWorker
+    participant TUSD as mosip-tusd Backend
+    participant Alloy as Grafana Alloy
+    participant Loki as Grafana Loki
+    participant Prom as Prometheus
+    participant Grafana as Grafana Dashboard
 
-    User->>Client: Application interaction
-    Client->>Collector: Generate telemetry event
-    Collector->>Storage: Persist telemetry event
-    Worker->>Storage: Read pending telemetry
-    Worker->>Backend: Upload telemetry
-    Backend->>Observability: Process telemetry
+    %% 1. Data Collection Phase
+    rect rgb(240, 248, 255)
+        note over Client, Collector: Event Collection & Metric Generation
+        alt Flutter User Action
+            User->>Client: Perform UI Action / Flow
+            Client->>Collector: logRawMetric(metricJson)
+        else Periodic System Health Check
+            Client->>Collector: collectAndLogSystemMetrics()
+            note over Collector: Collects Uptime, Memory (MB),<br/>Battery (%), & Device Info
+        else Application Crash / Unhandled Exception
+            Client->>Collector: writeSyncCrash(errorType, message, stackTrace)
+        end
+    end
+
+    %% 2. Local Storage & File Handshake
+    rect rgb(245, 245, 245)
+        note over Collector, Storage: Enveloping, File Locking & Handshake Staging
+        Collector->>Collector: buildEnvelope() [Inject Timestamp, Machine ID, Level]
+        Collector->>Collector: rotateIfNeeded() [Check if > 5MB, rotate to .1]
+        Collector->>Storage: Append JSON-line entry to metrics.log (under fileLock)
+        
+        note over Worker, Storage: Atomic Handoff Strategy (prepareFileForUpload)
+        Worker->>Collector: prepareFileForUpload()
+        alt Has previous metrics.log.processing?
+            Collector-->>Worker: Return existing metrics.log.processing
+        else metrics.log exists & non-empty
+            Collector->>Storage: Atomic Rename (metrics.log -> metrics.log.processing)
+            Collector-->>Worker: Return metrics.log.processing
+        else Log file empty or missing
+            Collector-->>Worker: Return null (Skip execution)
+        end
+    end
+
+    %% 3. TUS Resumable Upload Handshake
+    rect rgb(255, 250, 240)
+        note over Worker, TUSD: TUS Protocol Resumable Sync Execution
+        Worker->>TUSD: POST /files (Create Upload Session with metadata)
+        TUSD-->>Worker: 201 Created (Upload-Location URL)
+        
+        alt Intermittent Network Interruption / Retry Recovery
+            Worker->>TUSD: PATCH /files/{id} (Send Data Chunks)
+            Note over Worker, TUSD: Connection lost mid-transfer
+            Worker->>TUSD: HEAD /files/{id} (Query Upload-Offset)
+            TUSD-->>Worker: 200 OK (Upload-Offset: N bytes)
+            Worker->>TUSD: PATCH /files/{id} (Resume uploading from byte N)
+        end
+        
+        TUSD-->>Worker: 204 No Content (Upload Completed)
+        Worker->>Storage: Safely delete metrics.log.processing
+    end
+
+    %% 4. Ingestion & Observability Pipeline
+    rect rgb(240, 255, 240)
+        note over TUSD, Grafana: Backend Ingestion & Visualization Processing
+        TUSD->>Storage: Store completed log to /var/log/tusd/
+        Alloy->>Storage: Tail log files (local.file_match "tusd_logs")
+        Alloy->>Alloy: Parse Outer Envelope -> Extract inner message JSON
+        Alloy->>Alloy: Extract labels (level, name) & structured metadata
+        Alloy->>Loki: Push log streams (loki.write)
+        Alloy->>Prom: Extract numerical gauge values (memory, uptime, battery)
+        Grafana->>Loki: Query log streams via LogQL
+        Grafana->>Prom: Query metric time-series via PromQL
+    end
 ```
 
 <!-- TODO: Update sequence according to the actual implementation. -->
