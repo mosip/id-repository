@@ -193,95 +193,84 @@ stateDiagram-v2
 
 ## 3. Technical Specifications & Payload Schemas
 
-### 3.1 Client Interface Contract
+The telemetry system collects operational metrics, application events, and crash logs directly from the native `AndroidMetricCollector`. Telemetry items are serialized locally, wrapped in a uniform Logback-compatible outer envelope, and appended to `.metrics/metrics.log` prior to TUS batch upload.
 
-```text
-TODO: Add the client/native interface definition.
-```
+---
 
-### 3.2 Telemetry Event Model
+### 3.1 Integrated Telemetry Payload Schema
+
+Below is the complete JSON envelope structure as stored in `metrics.log`. The outer object maintains Logback metadata, while the inner stringified JSON payload carrying metric, event, or crash data is escaped within the `message` field.
 
 ```json
 {
-  "timestamp": "",
-  "event_type": "",
-  "severity": "",
-  "source": "",
-  "device_metadata": {},
-  "payload": {}
+  "@timestamp": "2026-09-10T12:49:51.497+05:30",
+  "@Version": "1",
+  "message": "{\"@timestamp\":\"2026-09-10T07:19:51.493Z\",\"name\":\"app.crash\",\"type\":\"event\",\"device_model\":\"22031116AI\",\"error_type\":\"FlutterError\",\"message\":\"This widget has been unmounted, so the State no longer has a context (and should be considered defunct).\",\"stack_trace\":\"#0 State.context...\\n#1 State.context...\",\"screen\":\"HomePage\",\"fatal\":true}",
+  "logger_name": "io.mosip.registration_client.telemetry.AndroidMetricCollector",
+  "thread_name": "android-metrics-publisher",
+  "level": "INFO",
+  "level_value": 20000,
+  "machine": "xJBPYGE5UOuk"
 }
 ```
 
-<!-- TODO: Define the final telemetry schema and field requirements. -->
+---
 
-### 3.3 Field Definitions
+### 3.2 Data Dictionary & Field Specifications
 
-| Field             | Type   | Required | Description |
-| :---------------- | :----- | :------: | :---------- |
-| `timestamp`       | `TODO` |  `TODO`  | `TODO`      |
-| `event_type`      | `TODO` |  `TODO`  | `TODO`      |
-| `severity`        | `TODO` |  `TODO`  | `TODO`      |
-| `source`          | `TODO` |  `TODO`  | `TODO`      |
-| `device_metadata` | `TODO` |  `TODO`  | `TODO`      |
-| `payload`         | `TODO` |  `TODO`  | `TODO`      |
-
-### 3.4 Local Storage Format
-
-```text
-TODO: Document local telemetry file format and directory structure.
-```
-
-### 3.5 File Rotation
-
-* **Maximum File Size:** `TODO`
-* **Rotation Trigger:** `TODO`
-* **File Naming Convention:** `TODO`
-* **Maximum Number of Files:** `TODO`
-* **Cleanup Policy:** `TODO`
-
-### 3.6 Upload / Synchronization
-
-* **Protocol:** `TODO`
-* **Upload Trigger:** `TODO`
-* **Batch Size:** `TODO`
-* **Retry Strategy:** `TODO`
-* **Resume Strategy:** `TODO`
-* **Failure Handling:** `TODO`
+| **Scope**           | **Key Name**            | **Data Type**         | **Required** | **Description / Allowed Values**                                                          |
+| :------------------ | :---------------------- | :-------------------- | :----------: | :---------------------------------------------------------------------------------------- |
+| **Envelope**        | `@timestamp`            | String (ISO-8601)     |      Yes     | Envelope creation timestamp with local timezone offset.                                   |
+| **Envelope**        | `@Version`              | String                |      Yes     | Logback schema version tag (fixed to `"1"`).                                              |
+| **Envelope**        | `message`               | String (Escaped JSON) |      Yes     | Stringified inner payload (`app.metrics`, `app.event`, or `app.crash`).                   |
+| **Envelope**        | `logger_name`           | String                |      Yes     | Originating Java class (`io.mosip.registration_client.telemetry.AndroidMetricCollector`). |
+| **Envelope**        | `thread_name`           | String                |      Yes     | Execution thread identifier (`android-metrics-publisher`).                                |
+| **Envelope**        | `level` / `level_value` | String / Integer      |      Yes     | Severity level (`INFO`: `20000`, `WARN`: `30000`, `ERROR`: `40000`).                      |
+| **Envelope**        | `machine`               | String                |      Yes     | Cached machine/device registration ID passed as Loki structured metadata.                 |
+| **Inner**           | `@timestamp`            | String (ISO-8601)     |      Yes     | Telemetry event capture timestamp in UTC (`Z`).                                           |
+| **Inner**           | `name`                  | String                |      Yes     | Telemetry namespace (`app.metrics`, `app.event`, or `app.crash`).                         |
+| **Inner**           | `type`                  | String                |      Yes     | Record classification (`metric` or `event`).                                              |
+| **Inner**           | `device_model`          | String                |      Yes     | Hardware device model string (e.g., `22031116AI`).                                        |
+| **Inner (Metrics)** | `metric_name` / `value` | String / Double       |  Conditional | Performance indicator name (e.g., `system.battery.level`) and numerical reading.          |
+| **Inner (Events)**  | `event_name` / `screen` | String / String       |  Conditional | User interaction name (e.g., `user_navigation`) and target UI screen.                     |
+| **Inner (Crash)**   | `error_type` / `fatal`  | String / Boolean      |  Conditional | Exception category (`FlutterError`, `NullPointerException`) and criticality flag.         |
 
 ---
+
+### 3.3 Metric Types & Supported System Indicators
+
+Standard runtime indicators periodically emitted by `AndroidMetricCollector` (`name: "app.metrics"`):
+
+| **Metric Name**            | **Metric Type** | **Unit**  | **Target Category**  | **Description**                                     |
+| :------------------------- | :-------------- | :-------- | :------------------- | :-------------------------------------------------- |
+| `system.battery.level`     | `gauge`         | `percent` | Device State         | Battery level percentage (0–100%).                  |
+| `system.memory.usage`      | `gauge`         | `bytes`   | Resource Utilization | RAM consumption of the client process.              |
+| `system.cpu.usage`         | `gauge`         | `percent` | Resource Utilization | Process CPU utilization percentage.                 |
+| `system.storage.available` | `gauge`         | `bytes`   | Disk Health          | Available internal storage capacity.                |
+| `system.network.status`    | `status`        | `enum`    | Connectivity         | Connection state (`online`, `offline`, `cellular`). |
+
 
 ## 4. Data Privacy & Security
 
 ### 4.1 User Consent
+The telemetry system respects user privacy by incorporating explicit consent controls:
+* **Consent Verification**: Telemetry collection is enabled only after obtaining user/operator consent during initial application setup or login.
+* **Consent Preference Storage**: Consent state is persisted locally in encrypted application shared preferences.
 
-<!-- TODO: Document whether telemetry requires user consent and how consent is managed. -->
+### 4.2 Data Minimization & Feature Toggles
+* **Dynamic Opt-In / Opt-Out**: Administrators can enable or disable telemetry logging dynamically using feature flags or local configuration settings.
+* **Minimal Footprint**: Only operational indicators, UI route events, and system exception stack traces necessary for diagnostic monitoring are collected.
 
-### 4.2 Data Minimization
+### 4.3 PII & Sensitive Data Protection
+The telemetry pipeline strictly enforces zero-tolerance data exclusion policies:
+* **No PII**: Names, National IDs (UIN/FIN), phone numbers, email addresses, and demographic attributes are strictly forbidden inside event attributes.
+* **No Biometrics**: Raw biometric buffers, fingerprints, face/iris samples, or templates are never captured or logged.
+* **Data Sanitization**: Loggers sanitize input parameters to prevent sensitive input values from leaking into error messages.
 
-<!-- TODO: Define what information may and may not be collected. -->
+### 4.4 Data Security
+* **Storage at Rest**: Telemetry files (`.metrics/metrics.log`) are stored in private internal application storage (`context.getFilesDir()`), restricting access from third-party apps or non-root users.
+* **Transport Encryption**: All log batches uploaded via the TUS protocol must be transmitted over encrypted TLS/HTTPS channels (`https://`).
 
-### 4.3 PII Protection
-
-<!-- TODO: Document PII detection, masking, anonymization, or removal. -->
-
-### 4.4 Sensitive Data
-
-The telemetry system must not collect:
-
-* `TODO`
-* `TODO`
-* `TODO`
-
-### 4.5 Data Encryption
-
-* **At Rest:** `TODO`
-* **In Transit:** `TODO`
-
-### 4.6 Authentication & Authorization
-
-<!-- TODO: Document authentication and authorization mechanisms. -->
-
----
 
 ## 5. Observability & Monitoring
 
