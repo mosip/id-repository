@@ -403,13 +403,13 @@ public class ObjectStoreHelper {
 		try {
 			boolean copied = objectStore.moveObject(src, dst, deleteSourceAfterCopy);
 			if (!copied) {
-				throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
-						"Server-side copy returned false: " + srcKey + " -> " + destKey);
+				throw new IdRepoAppException(DRAFT_OBJECT_COPY_FAILED.getErrorCode(),
+						String.format(DRAFT_OBJECT_COPY_FAILED.getErrorMessage(), srcKey + " -> " + destKey));
 			}
 			mosipLogger.debug("Copied object: {} -> {}", srcKey, destKey);
 		} catch (ObjectStoreAdapterException e) {
-			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
-					"Failed to copy object: " + srcKey + " -> " + destKey, e);
+			throw new IdRepoAppException(DRAFT_OBJECT_COPY_FAILED.getErrorCode(),
+					String.format(DRAFT_OBJECT_COPY_FAILED.getErrorMessage(), srcKey + " -> " + destKey), e);
 		}
 	}
 }

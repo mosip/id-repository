@@ -2,6 +2,7 @@ package io.mosip.idrepository.identity.repository;
 
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -71,4 +72,18 @@ public interface UinRepo extends JpaRepository<Uin, String> {
 
 	@Query("select regId from Uin where uinHash = :uinHash")
 	String getRidByUinHash(@Param("uinHash") String uinHash);
+
+	/**
+	 * Loads the live UIN row with biometrics fetched in the same query.
+	 * Documents remain {@code @BatchSize}-loadable; the caller must initialize
+	 * them in the same transaction before the session closes.
+	 * Dedicated method so {@link #findByUinHash} is unchanged for other APIs.
+	 */
+	@EntityGraph(attributePaths = {"biometrics"})
+	@Query("SELECT u FROM Uin u WHERE u.uinHash = :uinHash")
+	Optional<Uin> findWithBiometricsByUinHash(@Param("uinHash") String uinHash);
+
+	@EntityGraph(attributePaths = {"biometrics"})
+	@Query("SELECT u FROM Uin u WHERE u.regId = :regId")
+	Optional<Uin> findWithBiometricsByRegId(@Param("regId") String regId);
 }

@@ -75,6 +75,9 @@ public enum IdRepoErrorConstants {
 	/** Failed to delete draft object-store files. */
 	DRAFT_OBJECT_DELETE_FAILED("IDR-IDC-020", "Failed to delete draft object(s) from object store - %s"),
 
+	/** Failed to copy live object-store files into the draft path. */
+	DRAFT_OBJECT_COPY_FAILED("IDR-IDC-021", "Failed to copy live object(s) to draft path - %s"),
+
 	// Identity Service
 	
 	/** The identity mismatch. */

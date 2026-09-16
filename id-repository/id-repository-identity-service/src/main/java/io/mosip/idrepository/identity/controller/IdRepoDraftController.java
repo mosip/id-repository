@@ -22,6 +22,7 @@ import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils2;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -352,20 +353,38 @@ public class IdRepoDraftController {
 		}
 	}
 
+	/**
+	 * Creates a V2 identity draft for the given registration ID.
+	 * <p>
+	 * Use this instead of {@link #createDraft} when the packet should follow the V2
+	 * draft storage path (ridHash). Typical callers are Registration Processor packet
+	 * stages:
+	 * <ul>
+	 * <li>NEW — omit {@code uin} and leave {@code generateUin} true so a UIN is allocated.</li>
+	 * <li>UPDATE — pass the resident's existing {@code uin}.</li>
+	 * <li>LOST — set {@code generateUin} false and omit {@code uin}; stamp the matched
+	 * UIN later with {@link #updateDraftUinData} after ABIS.</li>
+	 * </ul>
+	 *
+	 * @param registrationId registration ID of the packet
+	 * @param request create-draft options ({@code uin}, {@code generateUin})
+	 * @return draft create response
+	 * @throws IdRepoAppException if the RID is invalid or the draft cannot be created
+	 */
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getPostdraftcreateregistrationId())")
 	@PostMapping(path = "/v2/create/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(
 			summary = "createDraftV2",
-			description = "Creates a draft for NEW, UPDATE, or LOST packets. " +
-					"Set generateUin=true (default) to allocate a UIN immediately (NEW/UPDATE). " +
-					"Set generateUin=false to skip UIN allocation (LOST packets — UIN is resolved via updateDraftUinData after ABIS).",
+			description = "Creates a draft for NEW, UPDATE, or LOST packets.",
 			tags = { "id-repo-draft-controller" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK"),
 			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
-	public ResponseEntity<IdResponseDTO> createDraftV2(@PathVariable String registrationId,
+	public ResponseEntity<IdResponseDTO> createDraftV2(
+			@Parameter(description = "Registration ID of the draft.")
+			@PathVariable String registrationId,
 			@RequestBody CreateDraftV2RequestDto request) throws IdRepoAppException {
 		try {
 			if (!ridCompiledPattern.matcher(registrationId).matches()) {
@@ -388,6 +407,20 @@ public class IdRepoDraftController {
 		}
 	}
 
+	/**
+	 * Stamps a UIN on a LOST draft after ABIS identifies the matched identity.
+	 * <p>
+	 * Call this only after {@link #createDraftV2} with {@code generateUin=false}.
+	 * It does not replace {@link #updateDraftV2}: packet demographics, biometrics, and
+	 * documents still go through update. Missing live demographic fields are backfilled
+	 * here so the draft can be published.
+	 *
+	 * @param registrationId registration ID of the LOST draft
+	 * @param request body containing the matched UIN
+	 * @return draft update response
+	 * @throws IdRepoAppException if the draft is missing, the UIN is invalid, or the UIN
+	 *         does not match an existing identity
+	 */
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getPatchdraftupdateregistrationId())")
 	@PatchMapping(path = "/uindata/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(
@@ -399,7 +432,9 @@ public class IdRepoDraftController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
-	public ResponseEntity<IdResponseDTO> updateDraftUinData(@PathVariable String registrationId,
+	public ResponseEntity<IdResponseDTO> updateDraftUinData(
+			@Parameter(description = "Registration ID of the draft.")
+			@PathVariable String registrationId,
 			@RequestBody UpdateDraftUinDataRequestDto request) throws IdRepoAppException {
 		try {
 			if (!validator.validateUin(request.getUin())) {
@@ -420,15 +455,34 @@ public class IdRepoDraftController {
 		}
 	}
 
+	/**
+	 * Updates identity, biometric, and supporting-document data on an existing V2 draft.
+	 * <p>
+	 * Use after {@link #createDraftV2} (and for LOST packets, alongside
+	 * {@link #updateDraftUinData}) when Registration Processor has packet data to merge
+	 * into the draft. Prefer this over {@link #updateDraft} so files are written on the
+	 * V2 ridHash path that {@link #publishDraftV2} and {@link #getDraftV2} read.
+	 *
+	 * @param registrationId registration ID of the draft
+	 * @param request identity update payload
+	 * @param errors request-validation errors populated by the binder
+	 * @return draft update response
+	 * @throws IdRepoAppException if validation fails or the draft cannot be updated
+	 */
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getPatchdraftupdateregistrationId())")
 	@PatchMapping(path = "/v2/update/{registrationId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "updateDraftV2", description = "updateDraftV2 — updates draft identity/biometric data (V2).", tags = { "id-repo-draft-controller" })
+	@Operation(
+			summary = "updateDraftV2",
+			description = "Updates draft identity and biometric data.",
+			tags = { "id-repo-draft-controller" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK"),
 			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
-	public ResponseEntity<IdResponseDTO> updateDraftV2(@PathVariable String registrationId,
+	public ResponseEntity<IdResponseDTO> updateDraftV2(
+			@Parameter(description = "Registration ID of the draft.")
+			@PathVariable String registrationId,
 			@RequestBody IdRequestDTO request, @ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
 			request.getRequest().setRegistrationId(registrationId);
@@ -446,18 +500,32 @@ public class IdRepoDraftController {
 		}
 	}
 
+	/**
+	 * Publishes a completed V2 draft as the live identity.
+	 * <p>
+	 * Use when packet processing has finished successfully (identity updated, and for
+	 * LOST packets the UIN already stamped). This copies draft object-store content to
+	 * the live path and removes the draft. Do not call it for a rejected or incomplete
+	 * packet — use {@link #discardDraftV2} instead.
+	 *
+	 * @param registrationId registration ID of the draft to publish
+	 * @return publish response
+	 * @throws IdRepoAppException if the draft is missing or cannot be published
+	 */
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetdraftpublishregistrationId())")
 	@GetMapping(path = "/v2/publish/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(
 			summary = "publishDraftV2",
-			description = "Publishes a draft to the ID Repository (V2 — with object-store draft-to-live copy and full cleanup).",
+			description = "Publishes a draft to the ID Repository.",
 			tags = { "id-repo-draft-controller" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK"),
 			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
-	public ResponseEntity<IdResponseDTO> publishDraftV2(@PathVariable String registrationId) throws IdRepoAppException {
+	public ResponseEntity<IdResponseDTO> publishDraftV2(
+			@Parameter(description = "Registration ID of the draft.")
+			@PathVariable String registrationId) throws IdRepoAppException {
 		try {
 			return new ResponseEntity<>(draftService.publishDraftV2(registrationId), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
@@ -471,11 +539,27 @@ public class IdRepoDraftController {
 		}
 	}
 
+	/**
+	 * Retrieves a V2 draft by registration ID.
+	 * <p>
+	 * Use during processing when a stage needs to read draft content (for example ABIS,
+	 * manual adjudication, or verification). Optional {@code type} limits the payload to
+	 * demographics, biometrics, supporting documents, or all. Extraction-format query
+	 * parameters apply when biometrics are returned.
+	 *
+	 * @param registrationId registration ID of the draft
+	 * @param fingerExtractionFormat optional finger biometric extraction format
+	 * @param irisExtractionFormat optional iris biometric extraction format
+	 * @param faceExtractionFormat optional face biometric extraction format
+	 * @param type optional content selector; omitted or blank defaults to all
+	 * @return draft response for the requested type
+	 * @throws IdRepoAppException if the draft is missing or {@code type} is invalid
+	 */
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getGetdraftregistrationId())")
 	@GetMapping(path = "/v2/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(
 			summary = "getDraftV2",
-			description = "Granular draft retrieval at V2 path. Optional ?type=demographics|supportingdocuments|biometrics|all (default: all).",
+			description = "Retrieves a draft by registration ID.",
 			tags = { "id-repo-draft-controller" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK"),
@@ -483,10 +567,20 @@ public class IdRepoDraftController {
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true))),
 	})
-	public ResponseEntity<IdResponseDTO> getDraftV2(@PathVariable String registrationId,
+	public ResponseEntity<IdResponseDTO> getDraftV2(
+			@Parameter(description = "Registration ID of the draft.")
+			@PathVariable String registrationId,
+			@Parameter(description = "Finger biometric extraction format.")
 			@RequestParam(name = FINGER_EXTRACTION_FORMAT, required = false) @Nullable String fingerExtractionFormat,
+			@Parameter(description = "Iris biometric extraction format.")
 			@RequestParam(name = IRIS_EXTRACTION_FORMAT, required = false) @Nullable String irisExtractionFormat,
+			@Parameter(description = "Face biometric extraction format.")
 			@RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat,
+			@Parameter(
+					description = "Draft content to return. Omitted or blank defaults to all.",
+					schema = @Schema(
+							allowableValues = { "demographics", "biometrics", "supportingdocuments", "all" },
+							defaultValue = "all"))
 			@RequestParam(name = "type", required = false) @Nullable String type)
 			throws IdRepoAppException {
 		try {
@@ -505,9 +599,26 @@ public class IdRepoDraftController {
 		}
 	}
 
+	/**
+	 * Extracts biometric templates from a V2 draft.
+	 * <p>
+	 * Use this method for template extraction from the draft CBEFF on the V2 ridHash
+	 * path. Optional extraction-format query parameters select the SDK format for
+	 * finger, iris, and face.
+	 *
+	 * @param registrationId registration ID of the draft
+	 * @param fingerExtractionFormat optional finger biometric extraction format
+	 * @param irisExtractionFormat optional iris biometric extraction format
+	 * @param faceExtractionFormat optional face biometric extraction format
+	 * @return extraction result
+	 * @throws IdRepoAppException if the draft is missing or extraction fails
+	 */
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getPutdraftextractbiometricsregistrationId())")
 	@PutMapping(path = "/v2/extractbiometrics/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "extractBiometricsV2", description = "extractBiometricsV2 (V2)", tags = { "id-repo-draft-controller" })
+	@Operation(
+			summary = "extractBiometricsV2",
+			description = "Extracts biometric templates for a draft.",
+			tags = { "id-repo-draft-controller" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK"),
 			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
@@ -515,9 +626,14 @@ public class IdRepoDraftController {
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true))),
 	})
-	public ResponseEntity<IdResponseDTO> extractBiometricsV2(@PathVariable String registrationId,
+	public ResponseEntity<IdResponseDTO> extractBiometricsV2(
+			@Parameter(description = "Registration ID of the draft.")
+			@PathVariable String registrationId,
+			@Parameter(description = "Finger biometric extraction format.")
 			@RequestParam(name = FINGER_EXTRACTION_FORMAT, required = false) @Nullable String fingerExtractionFormat,
+			@Parameter(description = "Iris biometric extraction format.")
 			@RequestParam(name = IRIS_EXTRACTION_FORMAT, required = false) @Nullable String irisExtractionFormat,
+			@Parameter(description = "Face biometric extraction format.")
 			@RequestParam(name = FACE_EXTRACTION_FORMAT, required = false) @Nullable String faceExtractionFormat)
 			throws IdRepoAppException {
 		try {
@@ -535,16 +651,30 @@ public class IdRepoDraftController {
 		}
 	}
 
+	/**
+	 * Discards a V2 draft and its stored files.
+	 * <p>
+	 * Removes the draft record and associated ridHash object-store objects.
+	 *
+	 * @param registrationId registration ID of the draft to discard
+	 * @return discard response
+	 * @throws IdRepoAppException if the draft is missing or cannot be discarded
+	 */
 	@PreAuthorize("hasAnyRole(@authorizedRoles.getDeletedraftdiscardregistrationId())")
 	@DeleteMapping(path = "/v2/discard/{registrationId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	@Operation(summary = "discardDraftV2", description = "discardDraftV2 (V2)", tags = { "id-repo-draft-controller" })
+	@Operation(
+			summary = "discardDraftV2",
+			description = "Discards a draft.",
+			tags = { "id-repo-draft-controller" })
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK"),
 			@ApiResponse(responseCode = "204", description = "No Content" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
-	public ResponseEntity<IdResponseDTO> discardDraftV2(@PathVariable String registrationId) throws IdRepoAppException {
+	public ResponseEntity<IdResponseDTO> discardDraftV2(
+			@Parameter(description = "Registration ID of the draft.")
+			@PathVariable String registrationId) throws IdRepoAppException {
 		try {
 			return new ResponseEntity<>(draftService.discardDraftV2(registrationId), HttpStatus.OK);
 		} catch (IdRepoAppException e) {

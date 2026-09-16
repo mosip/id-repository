@@ -227,3 +227,4 @@ sequenceDiagram
 | `IDR-IDC-018` | `/uindata` when the draft is already stamped with a different UIN |
 | `IDR-IDC-019` | Object-store move from draft path to live path failed |
 | `IDR-IDC-020` | Object-store delete of draft files failed |
+| `IDR-IDC-021` | Object-store copy from live path to draft path failed |

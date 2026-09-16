@@ -497,7 +497,21 @@ public class ObjectStoreHelperTest {
 				.thenThrow(new ObjectStoreAdapterException("ERR", "copy failed"));
 		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
 				helper.copyBiometricLiveToDraft("liveHash", "ridHash", "fileRefId"));
-		assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorCode(), thrown.getErrorCode());
+		assertEquals(IdRepoErrorConstants.DRAFT_OBJECT_COPY_FAILED.getErrorCode(), thrown.getErrorCode());
+		assertEquals(String.format(IdRepoErrorConstants.DRAFT_OBJECT_COPY_FAILED.getErrorMessage(),
+				"liveHash/Biometrics/fileRefId -> _draft/ridHash/Biometrics/fileRefId"),
+				thrown.getErrorText());
+	}
+
+	@Test
+	public void testCopyBiometricLiveToDraft_ReturnsFalse_ThrowsDraftObjectCopyFailed() {
+		when(adapter.moveObject(any(), any(), anyBoolean())).thenReturn(Boolean.FALSE);
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				helper.copyBiometricLiveToDraft("liveHash", "ridHash", "fileRefId"));
+		assertEquals(IdRepoErrorConstants.DRAFT_OBJECT_COPY_FAILED.getErrorCode(), thrown.getErrorCode());
+		assertEquals(String.format(IdRepoErrorConstants.DRAFT_OBJECT_COPY_FAILED.getErrorMessage(),
+				"liveHash/Biometrics/fileRefId -> _draft/ridHash/Biometrics/fileRefId"),
+				thrown.getErrorText());
 	}
 
 	@Test
@@ -517,7 +531,10 @@ public class ObjectStoreHelperTest {
 				.thenThrow(new ObjectStoreAdapterException("ERR", "copy failed"));
 		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
 				helper.copyDemographicLiveToDraft("liveHash", "ridHash", "fileRefId"));
-		assertEquals(IdRepoErrorConstants.FILE_STORAGE_ACCESS_ERROR.getErrorCode(), thrown.getErrorCode());
+		assertEquals(IdRepoErrorConstants.DRAFT_OBJECT_COPY_FAILED.getErrorCode(), thrown.getErrorCode());
+		assertEquals(String.format(IdRepoErrorConstants.DRAFT_OBJECT_COPY_FAILED.getErrorMessage(),
+				"liveHash/Demographics/fileRefId -> _draft/ridHash/Demographics/fileRefId"),
+				thrown.getErrorText());
 	}
 
 }

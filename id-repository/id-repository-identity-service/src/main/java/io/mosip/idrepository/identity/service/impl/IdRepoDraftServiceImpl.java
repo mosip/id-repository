@@ -92,6 +92,7 @@ import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.DateUtils2;
 
+import org.hibernate.Hibernate;
 import org.hibernate.exception.JDBCConnectionException;
 import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONCompare;
@@ -393,15 +394,15 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public IdResponseDTO discardDraftV2(String regId) throws IdRepoAppException {
 		try {
-			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
-			if (uinDraft.isEmpty()) {
+			if (!uinDraftRepo.existsByRegId(regId)) {
 				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 						DISCARD_DRAFT, "RID NOT FOUND IN DB | regId=" + regId);
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
-			cleanupDraft(uinDraft.get());
+			cleanupDraft(regId);
 			return constructIdResponse(null, "DISCARDED", null, null);
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
@@ -580,8 +581,13 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	 *       copies live files (uinHash→ridHash) before creating draft; if {@code uin} is
 	 *       null, creates a bare draft (UIN stamped later via {@code updateDraftUinData}).</li>
 	 * </ul>
+	 *
+	 * <p>NOT_SUPPORTED so the class-level transaction is not held across object-store
+	 * copies. Reads run in one {@link TransactionTemplate} transaction; {@code save}
+	 * uses Spring Data's own short write transaction.
 	 */
 	@Override
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public IdResponseDTO createDraftV2(String registrationId, String uin, boolean generateUin)
 			throws IdRepoAppException {
 		if (!generateUin && uin == null) {
@@ -631,89 +637,23 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 
 	private IdResponseDTO createDraftWithUin(String registrationId, String uin) throws IdRepoAppException {
 		try {
-			// Guard: block only if a draft already exists for this exact regId.
-			// We deliberately do NOT check uinHistoryRepo here — a previously committed
-			// packet must be allowed to reprocess by re-creating its draft using the
-			// existing UIN (fetched below) rather than allocating a second UIN.
-			if (uinDraftRepo.existsByRegId(registrationId)) {
-				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-						CREATE_DRAFT, "RID ALREADY EXIST | regId=" + registrationId);
-				throw new IdRepoAppException(RECORD_EXISTS);
-			}
+			UinDraft newDraft = transactionTemplate.execute(status -> {
+				try {
+					return getDraftForExistingUin(registrationId, uin);
+				} catch (IdRepoAppException e) {
+					// TransactionCallback cannot throw checked exceptions.
+					throw new IdRepoAppUncheckedException(e.getErrorCode(), e.getErrorText(), e);
+				}
+			});
 
-			UinDraft newDraft;
-
-			if (Objects.isNull(uin) && super.uinHistoryRepo.existsByRegId(registrationId)) {
-				// If RID is there in UIN history then the RID is already processed.
-				// But it may not be latest RID. To check the same we need to check in the UIN table as well.
-				// If it is not the latest, reprocessing is not allowed.
-				if (!super.uinRepo.existsByRegId(registrationId)) {
-					idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-							CREATE_DRAFT, "REQUESTED RID IS OLDER THAN THE LATEST PROCESSED RID | regId=" + registrationId);
-					throw new IdRepoAppException(RID_OLDER_THAN_LATEST_PROCESSED);
-				}
-
-				// Reprocess of a previously committed NEW packet: the UIN was already
-				// allocated in the prior run. Retrieve it so we reuse the same UIN
-				// instead of allocating a second one.
-				IdResponseDTO existingIdentity = proxyService.retrieveIdentityByRid(registrationId, null, null);
-				if (existingIdentity != null && existingIdentity.getResponse() != null
-						&& existingIdentity.getResponse().getIdentity() != null) {
-					LinkedHashMap<String, Object> identityMap = mapper.convertValue(
-							existingIdentity.getResponse().getIdentity(),
-							new TypeReference<LinkedHashMap<String, Object>>() {});
-					Object uinObj = identityMap.get("UIN");
-					if (uinObj != null) {
-						uin = String.valueOf(uinObj);
-					}
-				}
-				if (uin == null) {
-					idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-							CREATE_DRAFT, "UIN NOT FOUND FOR REPROCESS | regId=" + registrationId);
-					throw new IdRepoAppException(NO_RECORD_FOUND);
-				}
-			}
-
-			if (Objects.nonNull(uin)) {
-				Optional<Uin> uinObjectOptional = super.uinRepo.findByUinHash(super.getUinHash(uin));
-				if (uinObjectOptional.isEmpty()) {
-					idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-							CREATE_DRAFT, "UIN NOT EXIST | uin=<redacted>");
-					throw new IdRepoAppException(NO_RECORD_FOUND);
-				}
-				Uin uinObject = uinObjectOptional.get();
-				newDraft = mapper.convertValue(uinObject, UinDraft.class);
-				updateBiometricAndDocumentDrafts(registrationId, newDraft, uinObject);
-				newDraft.setUin(super.getUinToEncrypt(uin));
-
-				// Copy existing live files to the draft path so updateDraft can read/merge them.
-				String ridHash = objectStoreHelper.getRidHash(registrationId);
-				String livePrefix = uinObject.getUinHash().split(SPLITTER)[1];
-				if (newDraft.getBiometrics() != null) {
-					for (UinBiometricDraft bio : newDraft.getBiometrics()) {
-						objectStoreHelper.copyBiometricLiveToDraft(livePrefix, ridHash, bio.getBioFileId());
-					}
-				}
-				if (newDraft.getDocuments() != null) {
-					for (UinDocumentDraft doc : newDraft.getDocuments()) {
-						objectStoreHelper.copyDemographicLiveToDraft(livePrefix, ridHash, doc.getDocId());
-					}
-				}
+			if (newDraft != null) {
+				// Live identity was already copied onto this draft (uinHash, bio/doc file ids).
+				// Object-store copy uses those draft fields; the live Uin entity is not needed.
+				copyLiveFilesToDraft(registrationId, newDraft);
 			} else {
-				// Standard first-time NEW flow: allocate a brand-new UIN.
-				newDraft = new UinDraft();
-				uin = idRepoServiceHelper.generateUin();
-				newDraft.setUin(super.getUinToEncrypt(uin));
-				newDraft.setUinHash(super.getUinHash(uin));
-				byte[] uinData = convertToBytes(generateIdentityObject(uin));
-				newDraft.setUinData(uinData);
-				newDraft.setUinDataHash(securityManager.hash(uinData));
+				newDraft = buildNewIdentityDraft(registrationId);
 			}
 
-			newDraft.setRegId(registrationId);
-			newDraft.setStatusCode("DRAFT");
-			newDraft.setCreatedBy(IdRepoSecurityManager.getUser());
-			newDraft.setCreatedDateTime(DateUtils2.getUTCCurrentDateTime());
 			uinDraftRepo.save(newDraft);
 
 			return constructIdResponse(null, DRAFTED, null, null);
@@ -722,10 +662,148 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 					CREATE_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
+		} catch (IdRepoAppUncheckedException e) {
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+					CREATE_DRAFT, e.getMessage());
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		} catch (RuntimeException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 					CREATE_DRAFT, e.getMessage());
 			throw new IdRepoAppException(UNKNOWN_ERROR, e);
+		}
+	}
+
+	/**
+	 * Builds a draft from an identity that already exists in the live UIN table
+	 * (UPDATE or reprocess). Returns {@code null} when this is a first-time NEW
+	 * registration and there is no live identity yet.
+	 *
+	 * <p>Call only from an open DB transaction: biometric and document lists are
+	 * lazy and must be initialized before the transaction closes.
+	 */
+	private UinDraft getDraftForExistingUin(String registrationId, String uin) throws IdRepoAppException {
+		// Guard: block only if a draft already exists for this exact regId.
+		// We deliberately do NOT check uinHistoryRepo here — a previously committed
+		// packet must be allowed to reprocess by re-creating its draft using the
+		// existing UIN (fetched below) rather than allocating a second UIN.
+		if (uinDraftRepo.existsByRegId(registrationId)) {
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+					CREATE_DRAFT, "RID ALREADY EXIST | regId=" + registrationId);
+			throw new IdRepoAppException(RECORD_EXISTS);
+		}
+
+		Uin liveUin = null;
+		if (Objects.isNull(uin) && super.uinHistoryRepo.existsByRegId(registrationId)) {
+			// If RID is there in UIN history then the RID is already processed.
+			// But it may not be latest RID. To check the same we need to check in the UIN table as well.
+			// If it is not the latest, reprocessing is not allowed.
+			if (!super.uinRepo.existsByRegId(registrationId)) {
+				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+						CREATE_DRAFT, "REQUESTED RID IS OLDER THAN THE LATEST PROCESSED RID | regId=" + registrationId);
+				throw new IdRepoAppException(RID_OLDER_THAN_LATEST_PROCESSED);
+			}
+
+			// Reprocess of a previously committed NEW packet: load the live row once
+			// (history was only the permission gate). Decrypt UIN so onSave can
+			// re-encrypt via getUinToEncrypt.
+			liveUin = loadLiveUinByRegId(registrationId);
+			if (liveUin == null) {
+				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+						CREATE_DRAFT, "UIN NOT FOUND FOR REPROCESS | regId=" + registrationId);
+				throw new IdRepoAppException(NO_RECORD_FOUND);
+			}
+			uin = decryptUin(liveUin.getUin(), liveUin.getUinHash());
+		} else if (Objects.nonNull(uin)) {
+			liveUin = loadLiveUinByHash(super.getUinHash(uin));
+			if (liveUin == null) {
+				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+						CREATE_DRAFT, "UIN NOT EXIST | uin=<redacted>");
+				throw new IdRepoAppException(NO_RECORD_FOUND);
+			}
+		}
+
+		if (liveUin == null) {
+			// First-time NEW packet: no live identity exists yet.
+			return null;
+		}
+
+		UinDraft newDraft = mapper.convertValue(liveUin, UinDraft.class);
+		updateBiometricAndDocumentDrafts(registrationId, newDraft, liveUin);
+		newDraft.setUin(super.getUinToEncrypt(uin));
+		newDraft.setRegId(registrationId);
+		newDraft.setStatusCode("DRAFT");
+		newDraft.setCreatedBy(IdRepoSecurityManager.getUser());
+		newDraft.setCreatedDateTime(DateUtils2.getUTCCurrentDateTime());
+		return newDraft;
+	}
+
+	private UinDraft buildNewIdentityDraft(String registrationId) throws IdRepoAppException {
+		UinDraft newDraft = new UinDraft();
+		String uin = idRepoServiceHelper.generateUin();
+		newDraft.setUin(super.getUinToEncrypt(uin));
+		newDraft.setUinHash(super.getUinHash(uin));
+		byte[] uinData = convertToBytes(generateIdentityObject(uin));
+		newDraft.setUinData(uinData);
+		newDraft.setUinDataHash(securityManager.hash(uinData));
+		newDraft.setRegId(registrationId);
+		newDraft.setStatusCode("DRAFT");
+		newDraft.setCreatedBy(IdRepoSecurityManager.getUser());
+		newDraft.setCreatedDateTime(DateUtils2.getUTCCurrentDateTime());
+		return newDraft;
+	}
+
+	/**
+	 * Loads the live UIN and initializes lazy collections. Caller must be in a transaction.
+	 */
+	private Uin loadLiveUinByRegId(String registrationId) {
+		Optional<Uin> loaded = super.uinRepo.findWithBiometricsByRegId(registrationId);
+		if (loaded.isEmpty()) {
+			return null;
+		}
+		initializeUinCollections(loaded.get());
+		return loaded.get();
+	}
+
+	private Uin loadLiveUinByHash(String uinHash) {
+		Optional<Uin> loaded = super.uinRepo.findWithBiometricsByUinHash(uinHash);
+		if (loaded.isEmpty()) {
+			return null;
+		}
+		initializeUinCollections(loaded.get());
+		return loaded.get();
+	}
+
+	private void initializeUinCollections(Uin uinObject) {
+		Hibernate.initialize(uinObject.getBiometrics());
+		Hibernate.initialize(uinObject.getDocuments());
+	}
+
+	/**
+	 * Copies live biometric/document objects into the draft path. Runs outside
+	 * a DB transaction, one file at a time on the request thread.
+	 */
+	private void copyLiveFilesToDraft(String registrationId, UinDraft newDraft)
+			throws IdRepoAppException {
+		List<UinBiometricDraft> bios = newDraft.getBiometrics();
+		List<UinDocumentDraft> docs = newDraft.getDocuments();
+		boolean hasBios = bios != null && !bios.isEmpty();
+		boolean hasDocs = docs != null && !docs.isEmpty();
+		if (!hasBios && !hasDocs) {
+			return;
+		}
+
+		String ridHash = objectStoreHelper.getRidHash(registrationId);
+		String livePrefix = newDraft.getUinHash().split(SPLITTER)[1];
+
+		if (hasBios) {
+			for (UinBiometricDraft bio : bios) {
+				objectStoreHelper.copyBiometricLiveToDraft(livePrefix, ridHash, bio.getBioFileId());
+			}
+		}
+		if (hasDocs) {
+			for (UinDocumentDraft doc : docs) {
+				objectStoreHelper.copyDemographicLiveToDraft(livePrefix, ridHash, doc.getDocId());
+			}
 		}
 	}
 	/**
@@ -880,29 +958,17 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public IdResponseDTO publishDraftV2(String regId) throws IdRepoAppException {
 		anonymousProfileHelper.setRegId(regId);
 		try {
-			Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
-			if (uinDraft.isEmpty()) {
-				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-						PUBLISH_DRAFT, DRAFT_RECORD_NOT_FOUND + " | regId=" + regId);
-				throw new IdRepoAppException(NO_RECORD_FOUND);
-			}
-
-			UinDraft draft = uinDraft.get();
-
-			if (draft.getUinHash() == null || draft.getUin() == null) {
-				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-						PUBLISH_DRAFT, "UIN details not found in draft | regId=" + regId
-								+ " | uinNull=" + (draft.getUin() == null) + " | uinHashNull=" + (draft.getUinHash() == null));
-				throw new IdRepoAppException(DRAFT_UIN_DETAILS_NOT_FOUND);
-			}
-			if (draft.getUinData() == null) {
-				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
-						PUBLISH_DRAFT, "UIN details not found in draft — identity data missing | regId=" + regId);
-				throw new IdRepoAppException(DRAFT_UIN_DETAILS_NOT_FOUND);
-			}
+			UinDraft draft = transactionTemplate.execute(status -> {
+				try {
+					return loadDraftForPublish(regId);
+				} catch (IdRepoAppException e) {
+					throw new IdRepoAppUncheckedException(e.getErrorCode(), e.getErrorText(), e);
+				}
+			});
 
 			String lastBioFileId = (Objects.nonNull(draft.getBiometrics()) && !draft.getBiometrics().isEmpty())
 					? draft.getBiometrics().get(draft.getBiometrics().size() - 1).getBioFileId()
@@ -914,38 +980,79 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 
 			IdRequestDTO idRequest = buildRequest(regId, draft);
 			validateRequest(idRequest.getRequest());
-
 			String uin = decryptUin(draft.getUin(), draft.getUinHash());
-			String draftVid = null;
-			final Uin uinObject;
 
-			if (uinRepo.existsByUinHash(draft.getUinHash())) {
-				uinObject = super.updateIdentity(idRequest, uin);
-			} else {
-				draftVid = vidDraftHelper.generateDraftVid(uin);
-				uinObject = super.addIdentity(idRequest, uin);
-				vidDraftHelper.activateDraftVid(draftVid);
-			}
-
-			publishDocuments(draft, uinObject);
-
-			// Move object-store files to live BEFORE deleting DB records.
-			// If the move throws, the draft DB record is still intact so the draft is recoverable.
+			// Move objects to the live path first. If the later UIN commit fails, retry
+			// finds the files already in place. Reversing this order would commit a live
+			// identity with no objects if S3 then fails and nobody retries.
 			String srcPrefix = objectStoreHelper.getRidHash(draft.getRegId());
 			String destPrefix = draft.getUinHash().split(SPLITTER)[1];
 			objectStoreHelper.moveAllDraftBiometricsToLive(srcPrefix, destPrefix);
 			objectStoreHelper.moveAllDraftDemographicsToLive(srcPrefix, destPrefix);
 
+			boolean liveIdentityExists = uinRepo.existsByUinHash(draft.getUinHash());
+			String draftVid = liveIdentityExists ? null : vidDraftHelper.generateDraftVid(uin);
+			Uin liveUin = transactionTemplate.execute(status -> {
+				try {
+					Uin committed;
+					if (liveIdentityExists) {
+						committed = updateIdentity(idRequest, uin);
+					} else {
+						committed = addIdentity(idRequest, uin);
+						vidDraftHelper.activateDraftVid(draftVid);
+					}
+					publishDocuments(draft, committed);
+					return committed;
+				} catch (IdRepoAppException e) {
+					throw new IdRepoAppUncheckedException(e.getErrorCode(), e.getErrorText(), e);
+				}
+			});
+
 			deleteDraftDbRecords(regId);
 
 			anonymousProfileHelper.buildAndsaveProfile(true);
-			return constructIdResponse(null, uinObject.getStatusCode(), null, draftVid);
+			return constructIdResponse(null, liveUin.getStatusCode(), null, draftVid);
 
 		} catch (DataAccessException | TransactionException | JDBCConnectionException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 					PUBLISH_DRAFT, e.getMessage());
 			throw new IdRepoAppException(DATABASE_ACCESS_ERROR, e);
+		} catch (IdRepoAppUncheckedException e) {
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+					PUBLISH_DRAFT, e.getMessage());
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
 		}
+	}
+
+	/**
+	 * Loads the draft and initializes lazy fields. Must run inside an open
+	 * transaction. Does not create or update the live UIN row.
+	 */
+	private UinDraft loadDraftForPublish(String regId) throws IdRepoAppException {
+		Optional<UinDraft> uinDraft = uinDraftRepo.findByRegId(regId);
+		if (uinDraft.isEmpty()) {
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+					PUBLISH_DRAFT, DRAFT_RECORD_NOT_FOUND + " | regId=" + regId);
+			throw new IdRepoAppException(NO_RECORD_FOUND);
+		}
+
+		UinDraft draft = uinDraft.get();
+		if (draft.getUinHash() == null || draft.getUin() == null) {
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+					PUBLISH_DRAFT, "UIN details not found in draft | regId=" + regId
+							+ " | uinNull=" + (draft.getUin() == null) + " | uinHashNull=" + (draft.getUinHash() == null));
+			throw new IdRepoAppException(DRAFT_UIN_DETAILS_NOT_FOUND);
+		}
+		if (draft.getUinData() == null) {
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+					PUBLISH_DRAFT, "UIN details not found in draft — identity data missing | regId=" + regId);
+			throw new IdRepoAppException(DRAFT_UIN_DETAILS_NOT_FOUND);
+		}
+		// Load lazy collections while the session is open so they can be used after the read TX.
+		Hibernate.initialize(draft.getBiometrics());
+		Hibernate.initialize(draft.getDocuments());
+		draft.getUinData();
+		return draft;
 	}
 
 	@Override
@@ -999,16 +1106,15 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	}
 
 	/**
-	 * Full V2 cleanup: deletes object-store draft files then DB records.
-	 * Used by {@link #publishDraftV2} and {@link #createDraftWithUin} stale cleanup.
+	 * Deletes object-store draft files then DB records. S3 first so a failed
+	 * object delete leaves the draft row for retry. Caller must not hold a
+	 * DB transaction across this method — S3 I/O happens here.
 	 */
-	public void cleanupDraft(UinDraft draft) throws IdRepoAppException {
-		String ridHash = objectStoreHelper.getRidHash(draft.getRegId());
-		// Delete object-store files first — if deletion fails the DB record still points
-		// to the draft files so the failure is visible and recoverable.
+	public void cleanupDraft(String regId) throws IdRepoAppException {
+		String ridHash = objectStoreHelper.getRidHash(regId);
 		objectStoreHelper.deleteAllDraftBiometrics(ridHash);
 		objectStoreHelper.deleteAllDraftDemographics(ridHash);
-		deleteDraftDbRecords(draft.getRegId());
+		deleteDraftDbRecords(regId);
 	}
 
 	private void deleteDraftDbRecords(String regId) {
@@ -1055,6 +1161,16 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 		JSONCompareResult diff = JSONCompare.compareJSON(
 				inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
 		if (diff.failed()) {
+			// LOST packet: first updateDraftV2 writes uinData while uinHash is still
+			// unset (UIN is stamped later via updateDraftUinData). A later identity
+			// change would call updateJsonObject with a null hash and NPE inside
+			// Map.entry. Fail with a draft error instead of a generic 500.
+			if (draftToUpdate.getUinHash() == null) {
+				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+						UPDATE_DRAFT, "UIN details not found in draft | regId=" + draftToUpdate.getRegId()
+								+ " | uinHashNull=true | hasUinData=" + (draftToUpdate.getUinData() != null));
+				throw new IdRepoAppException(DRAFT_UIN_DETAILS_NOT_FOUND);
+			}
 			super.updateJsonObject(draftToUpdate.getUinHash(), inputData, dbData, diff, false);
 		}
 
@@ -1225,7 +1341,15 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 					uinBio.setLangCode("");
 					return uinBio;
 				}).collect(Collectors.toList());
-		uinBiometricRepo.saveAll(uinBiometricList);
+		if (!uinBiometricList.isEmpty()) {
+			try {
+				uinBiometricRepo.saveAll(uinBiometricList);
+			} catch (DataIntegrityViolationException e) {
+				// Retry after a committed write may hit uk_uinb. Treat as already published.
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+						PUBLISH_DRAFT, "Live bio rows already exist (retry) | error=" + e.getMessage());
+			}
+		}
 
 		List<UinDocument> uinDocumentList = draft.getDocuments() == null ? Collections.emptyList()
 				: draft.getDocuments().stream().map(doc -> {
@@ -1234,7 +1358,15 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 					uinDoc.setLangCode("");
 					return uinDoc;
 				}).collect(Collectors.toList());
-		uinDocumentRepo.saveAll(uinDocumentList);
+		if (!uinDocumentList.isEmpty()) {
+			try {
+				uinDocumentRepo.saveAll(uinDocumentList);
+			} catch (DataIntegrityViolationException e) {
+				// Retry after a committed write may hit uk_uind. Treat as already published.
+				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+						PUBLISH_DRAFT, "Live doc rows already exist (retry) | error=" + e.getMessage());
+			}
+		}
 	}
 
 	private String decryptUin(String encryptedUin, String uinHash) throws IdRepoAppException {
