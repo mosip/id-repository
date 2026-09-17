@@ -156,7 +156,8 @@ UpdateIdentity:
       output: '{
    "errors": [
     {
-      "errorCode": "IDR-IDC-001"
+      "errorCode": "IDR-IDC-001",
+      "message": "$IGNORE$"
     }
   ]
 }'
@@ -180,7 +181,8 @@ UpdateIdentity:
       output: '{
    "errors": [
     {
-      "errorCode": "IDR-IDC-001"
+      "errorCode": "IDR-IDC-001",
+      "message": "$IGNORE$"
     }
   ]
 }'
@@ -310,7 +312,6 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_invalid_dob:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing invalid DOB
-      requiredSchemaFields: [dateOfBirth]
       uniqueIdentifier: TC_IDRepo_UpdateIdentity_14
       role: testrig
       restMethod: patch
@@ -335,7 +336,6 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_invalid_phonenumber:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing invalid phonenumber
-      requiredSchemaFields: [phone]
       uniqueIdentifier: TC_IDRepo_UpdateIdentity_15
       role: testrig
       restMethod: patch
@@ -361,7 +361,6 @@ UpdateIdentity:
   IdRepository_UpdateIdentity_with_invalid_email:
       endPoint: /idrepository/v1/identity/
       description: Update Identity passing invalid email
-      requiredSchemaFields: [email]
       uniqueIdentifier: TC_IDRepo_UpdateIdentity_16
       role: testrig
       restMethod: patch

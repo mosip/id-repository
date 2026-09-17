@@ -51,7 +51,6 @@ RetrieveIdentityPost:
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPost_03
       role: idrepo
       restMethod: post
-      additionalDependencies: TC_IDRepo_AddIdentity_02
       inputTemplate: idRepository/RetrieveIdentityPost/retrieveIdentityTempPost
       outputTemplate: idRepository/error
       input: '{

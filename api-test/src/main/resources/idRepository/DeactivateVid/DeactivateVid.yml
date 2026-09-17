@@ -5,7 +5,6 @@ DeactivateVIDs:
       uniqueIdentifier: TC_IDRepo_DeactivateVID_01
       role: resident
       restMethod: post
-      additionalDependencies: TC_IDRepo_CreateVID_01
       inputTemplate: idRepository/DeactivateVid/deactivateVid
       outputTemplate: idRepository/DeactivateVid/deactivateVidResult
       input: '{
@@ -24,7 +23,6 @@ DeactivateVIDs:
       uniqueIdentifier: TC_IDRepo_DeactivateVID_02
       role: resident
       restMethod: post
-      additionalDependencies: TC_IDRepo_UpdateIdentity_17
       inputTemplate: idRepository/DeactivateVid/deactivateVid
       outputTemplate: idRepository/error
       input: '{
@@ -47,7 +45,6 @@ DeactivateVIDs:
       uniqueIdentifier: TC_IDRepo_DeactivateVID_03
       role: resident
       restMethod: post
-      additionalDependencies: TC_IDRepo_CreateVID_03
       inputTemplate: idRepository/DeactivateVid/deactivateVid
       outputTemplate: idRepository/DeactivateVid/deactivateVidResult
       input: '{
@@ -66,7 +63,6 @@ DeactivateVIDs:
       uniqueIdentifier: TC_IDRepo_DeactivateVID_04
       role: resident
       restMethod: post
-      additionalDependencies: TC_IDRepo_CreateVID_01
       inputTemplate: idRepository/DeactivateVid/deactivateVid
       outputTemplate: idRepository/error
       input: '{
@@ -88,7 +84,6 @@ DeactivateVIDs:
       uniqueIdentifier: TC_IDRepo_DeactivateVID_05
       role: resident
       restMethod: post
-      additionalDependencies: TC_IDRepo_CreateVID_01
       inputTemplate: idRepository/DeactivateVid/deactivateVid
       outputTemplate: idRepository/error
       input: '{
@@ -111,7 +106,6 @@ DeactivateVIDs:
       uniqueIdentifier: TC_IDRepo_DeactivateVID_06
       role: resident
       restMethod: post
-      additionalDependencies: TC_IDRepo_CreateVID_01
       inputTemplate: idRepository/DeactivateVid/deactivateVid
       outputTemplate: idRepository/error
       input: '{
@@ -134,7 +128,6 @@ DeactivateVIDs:
       uniqueIdentifier: TC_IDRepo_DeactivateVID_07
       role: resident
       restMethod: post
-      additionalDependencies: TC_IDRepo_CreateVID_01
       inputTemplate: idRepository/DeactivateVid/deactivateVid
       outputTemplate: idRepository/error
       input: '{
@@ -246,7 +239,6 @@ DeactivateVIDs:
       uniqueIdentifier: TC_IDRepo_DeactivateVID_12
       role: resident
       restMethod: post
-      additionalDependencies: TC_IDRepo_CreateVID_01
       inputTemplate: idRepository/DeactivateVid/deactivateVid
       outputTemplate: idRepository/error
       input: '{
@@ -268,7 +260,6 @@ DeactivateVIDs:
       uniqueIdentifier: TC_IDRepo_DeactivateVID_13
       role: resident
       restMethod: post
-      additionalDependencies: TC_IDRepo_CreateVID_01
       inputTemplate: idRepository/DeactivateVid/deactivateVid
       outputTemplate: idRepository/error
       input: '{
@@ -291,7 +282,6 @@ DeactivateVIDs:
       uniqueIdentifier: TC_IDRepo_DeactivateVID_14
       role: resident
       restMethod: post
-      additionalDependencies: TC_IDRepo_CreateVID_01
       inputTemplate: idRepository/DeactivateVid/deactivateVid
       outputTemplate: idRepository/error
       input: '{
@@ -314,7 +304,6 @@ DeactivateVIDs:
       uniqueIdentifier: TC_IDRepo_DeactivateVID_15
       role: resident
       restMethod: post
-      additionalDependencies: TC_IDRepo_CreateVID_01
       inputTemplate: idRepository/DeactivateVid/deactivateVid
       outputTemplate: idRepository/error
       input: '{
@@ -337,7 +326,6 @@ DeactivateVIDs:
       uniqueIdentifier: TC_IDRepo_DeactivateVID_16
       role: resident
       restMethod: post
-      additionalDependencies: TC_IDRepo_CreateVID_01
       inputTemplate: idRepository/DeactivateVid/deactivateVid
       outputTemplate: idRepository/error
       input: '{
@@ -360,7 +348,6 @@ DeactivateVIDs:
       uniqueIdentifier: TC_IDRepo_DeactivateVID_17
       role: resident
       restMethod: post
-      additionalDependencies: TC_IDRepo_CreateVID_01
       inputTemplate: idRepository/DeactivateVid/deactivateVid
       outputTemplate: idRepository/error
       input: '{
@@ -383,7 +370,6 @@ DeactivateVIDs:
       uniqueIdentifier: TC_IDRepo_DeactivateVID_18
       role: resident
       restMethod: post
-      additionalDependencies: TC_IDRepo_CreateVID_01
       inputTemplate: idRepository/DeactivateVid/deactivateVid
       outputTemplate: idRepository/error
       input: '{
@@ -405,7 +391,6 @@ DeactivateVIDs:
       uniqueIdentifier: TC_IDRepo_DeactivateVID_19
       role: resident
       restMethod: post
-      additionalDependencies: TC_IDRepo_CreateVID_01
       inputTemplate: idRepository/DeactivateVid/deactivateVid
       outputTemplate: idRepository/error
       input: '{
@@ -428,7 +413,6 @@ DeactivateVIDs:
       uniqueIdentifier: TC_IDRepo_DeactivateVID_20
       role: resident
       restMethod: post
-      additionalDependencies: TC_IDRepo_CreateVID_01
       inputTemplate: idRepository/DeactivateVid/deactivateVid
       outputTemplate: idRepository/error
       input: '{
@@ -451,7 +435,6 @@ DeactivateVIDs:
       uniqueIdentifier: TC_IDRepo_DeactivateVID_21
       role: resident
       restMethod: post
-      additionalDependencies: TC_IDRepo_CreateVID_01
       inputTemplate: idRepository/DeactivateVid/deactivateVid
       outputTemplate: idRepository/error
       input: '{

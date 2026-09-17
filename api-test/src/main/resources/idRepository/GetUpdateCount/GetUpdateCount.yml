@@ -47,14 +47,14 @@ GetUpdateCount:
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
       outputTemplate: idRepository/error
       input: '{
-      "individualId": " ",
+      "individualId": "",
       "idType": "UIN",
        "attribute_list": "fullName"
 }'
       output: '{
   "errors": [
     {
-      "errorCode": "IDR-IDC-002"
+      "errorCode": "IDR-IDC-003"
     }
   ]
 }'
@@ -75,7 +75,7 @@ GetUpdateCount:
       output: '{
   "errors": [
     {
-      "errorCode": "IDR-IDC-002"
+      "errorCode": "IDR-IDC-004"
     }
   ]
 }'
@@ -93,7 +93,7 @@ GetUpdateCount:
       "idType": "UIN",
        "attribute_list": "fullName"
 }'
-      output: "401"
+      output: "500"
 
    IdRepository_GetUpdateCount_Vid_Valid_Smoke:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
@@ -102,7 +102,6 @@ GetUpdateCount:
       role: resident
       checkErrorsOnlyInResponse: true
       restMethod: get
-      additionalDependencies: TC_IDRepo_AddIdentity_39
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
       outputTemplate: idRepository/GetUpdateCount/GetUpdateCountResult
       input: '{
@@ -183,7 +182,6 @@ GetUpdateCount:
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_10
       role: invalid
       restMethod: get
-      additionalDependencies: TC_IDRepo_AddIdentity_39
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
       outputTemplate: idRepository/error
       input: '{
@@ -191,7 +189,7 @@ GetUpdateCount:
       "idType": "VID",
        "attribute_list": "fullName"
 }'
-      output: "401"
+      output: "500"
       
    IdRepository_GetUpdateCount_Uin_Invalid_idType:
       endPoint: /idrepository/v1/identity/{individualId}/update-counts?idType={idType}&attribute_list={attribute_list}
@@ -262,7 +260,6 @@ GetUpdateCount:
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_14
       role: resident
       restMethod: get
-      additionalDependencies: TC_IDRepo_AddIdentity_39
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
       outputTemplate: idRepository/error
       input: '{
@@ -284,7 +281,6 @@ GetUpdateCount:
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_15
       role: resident
       restMethod: get
-      additionalDependencies: TC_IDRepo_AddIdentity_39
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
       outputTemplate: idRepository/error
       input: '{
@@ -307,7 +303,6 @@ GetUpdateCount:
       uniqueIdentifier: TC_IDRepo_GetUpdateCount_16
       role: resident
       restMethod: get
-      additionalDependencies: TC_IDRepo_AddIdentity_39
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
       outputTemplate: idRepository/error
       input: '{

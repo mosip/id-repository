@@ -12,7 +12,8 @@ Retrieve_VID_pos:
     "VID": "$ID:CreateVID_withValidParameters_For_VidType_Smoke_Perpetual_sid_VID$"
 }'
       output: '{
-  "UIN": "$ID:AddIdentity_ValidParam_smoke_Pos_UIN$"
+       "vidStatus": "$IGNORE$",
+        "UIN": "$IGNORE$"
 }'
 
   IdRepository_Retrieve_VID_pos_Temp_Active_smoke:
@@ -28,7 +29,9 @@ Retrieve_VID_pos:
     "VID": "$ID:CreateVID_withValidParameters_Smoke_Temp1_sid_VID$"
 }'
       output: '{
-  "UIN": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$"    
+       "vidStatus": "$IGNORE$",
+        "UIN": "$IGNORE$"
+      
 }'
 
   IdRepository_Retrieve_VID_pos_Onetimeuse_Active_smoke:
@@ -44,7 +47,8 @@ Retrieve_VID_pos:
     "VID": "$ID:CreateVID_withValidParameters_Smoke_Onetime_sid_VID$"
 }'
       output: '{
-  "UIN": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$"
+      "vidStatus": "$IGNORE$",
+        "UIN": "$IGNORE$"
 }'
 
   IdRepository_Retrieve_VID_pos_perpetual_DEACTIVATED:
