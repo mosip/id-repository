@@ -3405,6 +3405,1073 @@ paths:
         '404':
           description: Not Found
 
+  /draft/v2/create/{registrationId}:
+    post:
+      tags:
+        - id-repo-draft-controller
+      summary: Creates a V2 identity draft for the given registration ID.
+      description: Creates a V2 identity draft for the given registration ID.
+      operationId: createDraftV2
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          description: Registration ID of the draft.
+          schema:
+            type: string
+            example: "27847536016526"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDraftV2RequestDto'
+            examples:
+              newPacket:
+                summary: NEW packet — allocate a UIN
+                value:
+                  generateUin: true
+              updatePacket:
+                summary: UPDATE packet — reuse an existing UIN
+                value:
+                  uin: "123456789012"
+                  generateUin: true
+              lostPacket:
+                summary: LOST packet — defer UIN until ABIS
+                value:
+                  generateUin: false
+      responses:
+        '200':
+          description: Draft identity successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    nullable: true
+                    description: Unique response identifier; may be null if not provided in request
+                  version:
+                    type: string
+                    nullable: true
+                    description: API version; may be null if not provided in request
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time when the response was generated
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata (e.g., VID)
+                  response:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Current status of the draft identity (e.g., DRAFTED)
+                      identity:
+                        type: object
+                        description: Draft identity details
+                        properties:
+                          name:
+                            type: string
+                            description: Full name of the individual
+                          dob:
+                            type: string
+                            format: date
+                            description: Date of birth (YYYY-MM-DD)
+                          gender:
+                            type: string
+                            description: Gender code (e.g., M/F/O)
+                          phone:
+                            type: string
+                            description: Mobile phone number
+                          email:
+                            type: string
+                            format: email
+                            description: Email address
+                      documents:
+                        type: array
+                        description: List of associated documents
+                        items:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                              description: Document category (e.g., POI, POA)
+                            value:
+                              type: string
+                              description: Base64-encoded document content
+                      registrationId:
+                        type: string
+                        description: Registration ID used for draft creation
+                      uin:
+                        type: string
+                        description: Unique Identity Number (if available)
+                      biometricReferenceId:
+                        type: string
+                        description: Reference ID used for biometric data linkage
+                      verifiedAttributes:
+                        type: array
+                        description: List of attributes verified during draft creation
+                        items:
+                          type: string
+                  errors:
+                    type: array
+                    description: List of errors, if any
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+              examples:
+                example-1:
+                  value:
+                    id: null
+                    version: null
+                    responsetime: "2025-07-02T14:00:35.891Z"
+                    metadata:
+                      vid: "1234567890123456"
+                    response:
+                      status: "DRAFTED"
+                      identity:
+                        name: "John Doe"
+                        dob: "1990-01-01"
+                        gender: "M"
+                        phone: "9876543210"
+                        email: "john.doe@example.com"
+                      documents:
+                        - category: "POI"
+                          value: "Base64EncodedPOIImageString=="
+                        - category: "POA"
+                          value: "Base64EncodedPOAImageString=="
+                      registrationId: "REG1234567890"
+                      uin: "123456789012"
+                      biometricReferenceId: "bio-ref-9876543210"
+                      verifiedAttributes:
+                        - "name"
+                        - "dob"
+                        - "gender"
+                    errors: []
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /draft/uindata/{registrationId}:
+    patch:
+      tags:
+        - id-repo-draft-controller
+      summary: Stamps a UIN on an existing LOST draft after ABIS resolves the matched registration's UIN.
+      description: Stamps a UIN on an existing LOST draft after ABIS resolves the matched registration's UIN.
+      operationId: updateDraftUinData
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          description: Registration ID of the draft.
+          schema:
+            type: string
+            example: "27847536016526"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDraftUinDataRequestDto'
+            examples:
+              example-1:
+                value:
+                  uin: "123456789012"
+      responses:
+        '200':
+          description: Draft UIN data updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    nullable: true
+                    description: Unique response identifier (nullable)
+                  version:
+                    type: string
+                    nullable: true
+                    description: API version (nullable)
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time when the response was generated
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata
+                  response:
+                    type: object
+                    description: Draft update result. Only status is populated; remaining fields are null.
+                    properties:
+                      status:
+                        type: string
+                        description: Current status after update (e.g., DRAFTED)
+                        example: DRAFTED
+                      identity:
+                        type: object
+                        nullable: true
+                        description: Not returned by this API
+                      documents:
+                        type: array
+                        nullable: true
+                        description: Not returned by this API
+                        items:
+                          type: object
+                      registrationId:
+                        type: string
+                        nullable: true
+                        description: Not returned by this API
+                      uin:
+                        type: string
+                        nullable: true
+                        description: Not returned by this API
+                      biometricReferenceId:
+                        type: string
+                        nullable: true
+                        description: Not returned by this API
+                      verifiedAttributes:
+                        type: array
+                        nullable: true
+                        description: Not returned by this API
+                        items:
+                          type: string
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                        message:
+                          type: string
+              examples:
+                example-1:
+                  value:
+                    id: null
+                    version: null
+                    responsetime: "2025-07-02T14:28:22.240Z"
+                    metadata: null
+                    response:
+                      status: "DRAFTED"
+                      identity: null
+                      documents: null
+                      registrationId: null
+                      uin: null
+                      biometricReferenceId: null
+                      verifiedAttributes: null
+                    errors: []
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /draft/v2/update/{registrationId}:
+    patch:
+      tags:
+        - id-repo-draft-controller
+      summary: Updates identity, biometric, and supporting-document data on an existing V2 draft.
+      description: Updates identity, biometric, and supporting-document data on an existing V2 draft.
+      operationId: updateDraftV2
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          description: Registration ID of the draft.
+          schema:
+            type: string
+            example: "2784732022091216526"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  nullable: true
+                  description: Unique request identifier (nullable)
+                  example: null
+                version:
+                  type: string
+                  nullable: true
+                  description: API version (nullable)
+                  example: null
+                requesttime:
+                  type: string
+                  format: date-time
+                  description: Time at which the request was sent
+                  example: "2023-12-01T09:55:29.331Z"
+                metadata:
+                  type: object
+                  nullable: true
+                  description: Optional metadata
+                  example: {}
+                request:
+                  type: object
+                  required:
+                    - status
+                    - identity
+                    - registrationId
+                  properties:
+                    status:
+                      type: string
+                      description: Status of the draft (e.g., ACTIVATED)
+                      example: ACTIVATED
+                    identity:
+                      type: object
+                      properties:
+                        UIN:
+                          type: string
+                          description: Unique Identity Number
+                          example: "6231201539"
+                        IDSchemaVersion:
+                          type: number
+                          description: Version of the identity schema
+                          example: 0.1
+                        fullName:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              language:
+                                type: string
+                                description: Language code
+                                example: "eng"
+                              value:
+                                type: string
+                                description: Full name
+                                example: "Jane Smith"
+                    documents:
+                      type: array
+                      description: List of supporting documents
+                      items:
+                        type: object
+                        properties:
+                          category:
+                            type: string
+                            description: Document category
+                          value:
+                            type: string
+                            description: Base64 encoded document content
+                    registrationId:
+                      type: string
+                      description: Registration ID used for the draft
+                      example: "278472091216526"
+                    uin:
+                      type: string
+                      description: UIN associated with the draft
+                      example: "6231201539"
+            examples:
+              example-1:
+                value:
+                  id: null
+                  version: null
+                  requesttime: "2023-12-01T09:55:29.331Z"
+                  metadata: {}
+                  request:
+                    status: "ACTIVATED"
+                    identity:
+                      UIN: "6231201539"
+                      IDSchemaVersion: 0.1
+                      fullName:
+                        - language: "eng"
+                          value: "Jane Smith"
+                    registrationId: "27847591216526"
+                    uin: "6231201539"
+      responses:
+        '200':
+          description: Draft identity updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    nullable: true
+                    description: Unique response identifier (nullable)
+                  version:
+                    type: string
+                    nullable: true
+                    description: API version (nullable)
+                    example: null
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time when the response was generated
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata
+                  response:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Current status after update (e.g., DRAFTED)
+                      identity:
+                        type: object
+                        description: Updated identity object
+                        properties:
+                          name:
+                            type: string
+                          dob:
+                            type: string
+                            format: date
+                          gender:
+                            type: string
+                          phone:
+                            type: string
+                          email:
+                            type: string
+                      documents:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                            value:
+                              type: string
+                      registrationId:
+                        type: string
+                      uin:
+                        type: string
+                        example: "6231201539"
+                      biometricReferenceId:
+                        type: string
+                      verifiedAttributes:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "name"
+                          - "dob"
+                          - "gender"
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          example: "IDR-VAL-001"
+                        message:
+                          type: string
+                          example: "Validation failed"
+              examples:
+                example-1:
+                  value:
+                    id: null
+                    version: null
+                    responsetime: "2025-07-02T14:28:22.240Z"
+                    metadata:
+                      source: "id-repo-draft-service"
+                    response:
+                      status: "DRAFTED"
+                      identity:
+                        name: "Jane Smith"
+                        dob: "1992-04-15"
+                        gender: "F"
+                        phone: "9876543210"
+                        email: "jane.smith@example.com"
+                      documents:
+                        - category: "POI"
+                          value: "Base64EncodedPOIImage=="
+                        - category: "POA"
+                          value: "Base64EncodedPOAImage=="
+                      registrationId: "2784753602993732022091216526"
+                      uin: "6231201539"
+                      biometricReferenceId: "bio-ref-6231201539"
+                      verifiedAttributes:
+                        - "name"
+                        - "dob"
+                        - "gender"
+                    errors: []
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /draft/v2/publish/{registrationId}:
+    get:
+      tags:
+        - id-repo-draft-controller
+      summary: Publishes a completed V2 draft as the live identity.
+      description: Publishes a completed V2 draft as the live identity.
+      operationId: publishDraftV2
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          description: Registration ID of the draft.
+          schema:
+            type: string
+            example: "16666666234567890"
+      responses:
+        '200':
+          description: Identity draft successfully published
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Unique response identifier
+                  version:
+                    type: string
+                    description: API version
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time when the response was generated
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata
+                  response:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Final status of the identity (e.g., DRAFTED)
+                      identity:
+                        type: object
+                        description: Finalized identity details
+                        properties:
+                          name:
+                            type: string
+                          dob:
+                            type: string
+                            format: date
+                          gender:
+                            type: string
+                          phone:
+                            type: string
+                          email:
+                            type: string
+                      documents:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                            value:
+                              type: string
+                      registrationId:
+                        type: string
+                      uin:
+                        type: string
+                      biometricReferenceId:
+                        type: string
+                      verifiedAttributes:
+                        type: array
+                        items:
+                          type: string
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                        message:
+                          type: string
+              examples:
+                example-1:
+                  value:
+                    id: "mosip.idrepo.draft.publish"
+                    version: "1.0"
+                    responsetime: "2025-07-02T16:35:35.829Z"
+                    metadata: {}
+                    response:
+                      status: "DRAFTED"
+                      identity:
+                        name: "Ravi Kumar"
+                        dob: "1985-08-10"
+                        gender: "M"
+                        phone: "9876543210"
+                        email: "ravi.kumar@example.com"
+                      documents:
+                        - category: "POI"
+                          value: "Base64EncodedPOIImage=="
+                        - category: "POA"
+                          value: "Base64EncodedPOAImage=="
+                      registrationId: "REG1234567890"
+                      uin: "123456789012"
+                      biometricReferenceId: "bio-ref-123456789012"
+                      verifiedAttributes:
+                        - "name"
+                        - "dob"
+                        - "gender"
+                    errors: []
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /draft/v2/{registrationId}:
+    get:
+      tags:
+        - id-repo-draft-controller
+      summary: Retrieves a V2 draft by registration ID.
+      description: Retrieves a V2 draft by registration ID. Use during processing when a stage needs to read draft content.
+      operationId: getDraftV2
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          description: Registration ID of the draft.
+          schema:
+            type: string
+            example: "278436029937326"
+        - name: fingerExtractionFormat
+          in: query
+          required: false
+          description: Finger biometric extraction format.
+          schema:
+            type: string
+            example: mock-1.1
+        - name: irisExtractionFormat
+          in: query
+          required: false
+          description: Iris biometric extraction format.
+          schema:
+            type: string
+            example: mock-1.1
+        - name: faceExtractionFormat
+          in: query
+          required: false
+          description: Face biometric extraction format.
+          schema:
+            type: string
+            example: mock-1.1
+        - name: type
+          in: query
+          required: false
+          description: Draft content to return. Omitted or blank defaults to all.
+          schema:
+            type: string
+            enum:
+              - demographics
+              - biometrics
+              - supportingdocuments
+              - all
+            default: all
+            example: all
+      responses:
+        '200':
+          description: Draft identity successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    nullable: true
+                    description: Unique response identifier (may be null for GET)
+                  version:
+                    type: string
+                    nullable: true
+                    description: API version (may be null for GET)
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time when the response was generated
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata associated with the response
+                  response:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Status of the draft record (e.g., DRAFT)
+                      identity:
+                        type: object
+                        properties:
+                          UIN:
+                            type: string
+                            description: Unique Identity Number
+                        description: Basic identity details
+                      documents:
+                        type: array
+                        description: List of supporting documents
+                        items:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                              description: Document category (e.g., POI, POA)
+                            value:
+                              type: string
+                              description: Base64-encoded document content
+                      registrationId:
+                        type: string
+                        description: Registration ID associated with the draft
+                      uin:
+                        type: string
+                        description: UIN linked with the draft (if available)
+                      biometricReferenceId:
+                        type: string
+                        description: Biometric reference identifier
+                      verifiedAttributes:
+                        type: array
+                        items:
+                          type: string
+                        description: List of verified attributes
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+              examples:
+                example-1:
+                  value:
+                    id: null
+                    version: null
+                    responsetime: "2025-07-02T13:48:59.599Z"
+                    metadata: {}
+                    response:
+                      status: "DRAFT"
+                      identity:
+                        UIN: "2479165295"
+                      documents:
+                        - category: "POI"
+                          value: "Base64EncodedPOIImageString=="
+                        - category: "POA"
+                          value: "Base64EncodedPOAImageString=="
+                      registrationId: "278475360299373"
+                      uin: "2479165295"
+                      biometricReferenceId: "bio-ref-2479165295"
+                      verifiedAttributes:
+                        - "name"
+                        - "dob"
+                        - "gender"
+                    errors: []
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /draft/v2/extractbiometrics/{registrationId}:
+    put:
+      tags:
+        - id-repo-draft-controller
+      summary: Extracts biometric templates from a V2 draft.
+      description: Extracts biometric templates from a V2 draft. Use this method for template extraction from the draft CBEFF.
+      operationId: extractBiometricsV2
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          description: Registration ID of the draft.
+          schema:
+            type: string
+            example: "2784753091216526"
+        - name: fingerExtractionFormat
+          in: query
+          required: false
+          description: Finger biometric extraction format.
+          schema:
+            type: string
+            example: "mock-1.1"
+        - name: irisExtractionFormat
+          in: query
+          required: false
+          description: Iris biometric extraction format.
+          schema:
+            type: string
+            example: "mock-1.1"
+        - name: faceExtractionFormat
+          in: query
+          required: false
+          description: Face biometric extraction format.
+          schema:
+            type: string
+            example: "mock-1.1"
+      responses:
+        '200':
+          description: Biometrics extracted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    nullable: true
+                    description: Unique response identifier; may be null if not set
+                  version:
+                    type: string
+                    nullable: true
+                    description: API version; may be null if not set
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time when the response was generated
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata
+                  response:
+                    type: object
+                    description: Response containing extracted biometric data
+                    properties:
+                      status:
+                        type: string
+                        description: Current status of the draft (e.g., DRAFTED)
+                      identity:
+                        type: object
+                        description: Basic identity information
+                        properties:
+                          name:
+                            type: string
+                          dob:
+                            type: string
+                            format: date
+                          gender:
+                            type: string
+                          phone:
+                            type: string
+                          email:
+                            type: string
+                      documents:
+                        type: array
+                        description: List of associated documents
+                        items:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                            value:
+                              type: string
+                      registrationId:
+                        type: string
+                      uin:
+                        type: string
+                      biometricReferenceId:
+                        type: string
+                      verifiedAttributes:
+                        type: array
+                        items:
+                          type: string
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                          description: Error code
+                        message:
+                          type: string
+                          description: Error message
+              examples:
+                example-1:
+                  value:
+                    id: "mosip.idrepo.draft.extract-biometrics"
+                    version: "1.0"
+                    responsetime: "2025-07-02T16:19:42.794Z"
+                    metadata: {}
+                    response:
+                      status: "DRAFTED"
+                      identity:
+                        name: "Ravi Kumar"
+                        dob: "1985-06-25"
+                        gender: "M"
+                        phone: "9876543210"
+                        email: "ravi.kumar@example.com"
+                      documents:
+                        - category: "POI"
+                          value: "Base64EncodedPOIImageString=="
+                        - category: "POA"
+                          value: "Base64EncodedPOAImageString=="
+                      registrationId: "2784753602993732022091216526"
+                      uin: "123456789012"
+                      biometricReferenceId: "bio-ref-123456789012"
+                      verifiedAttributes:
+                        - "name"
+                        - "dob"
+                        - "gender"
+                    errors: []
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /draft/v2/discard/{registrationId}:
+    delete:
+      tags:
+        - id-repo-draft-controller
+      summary: Deletes the draft identity associated with the specified registration ID.
+      description: >
+        Deletes the draft identity associated with the specified registration ID.
+        Removes the draft record and associated object-store objects.
+        This operation is used to abandon the registration flow and clean up unneeded drafts.
+      operationId: discardDraftV2
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          description: Registration ID of the draft.
+          schema:
+            type: string
+            example: "27847531216526"
+      responses:
+        '200':
+          description: Draft identity discarded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    nullable: true
+                    description: Unique response identifier; may be null if not set
+                  version:
+                    type: string
+                    nullable: true
+                    description: API version; may be null if not set
+                  responsetime:
+                    type: string
+                    format: date-time
+                    description: Time when the response was generated
+                  metadata:
+                    type: object
+                    nullable: true
+                    description: Optional metadata
+                  response:
+                    type: object
+                    description: Response containing the result of discard operation
+                    properties:
+                      status:
+                        type: string
+                        description: Current status of the draft (e.g., DISCARDED)
+                      identity:
+                        type: object
+                        description: Identity data at the time of discard
+                        properties:
+                          name:
+                            type: string
+                          dob:
+                            type: string
+                            format: date
+                          gender:
+                            type: string
+                          phone:
+                            type: string
+                          email:
+                            type: string
+                      documents:
+                        type: array
+                        description: Documents associated with the draft
+                        items:
+                          type: object
+                          properties:
+                            category:
+                              type: string
+                            value:
+                              type: string
+                      registrationId:
+                        type: string
+                        description: Registration ID that was discarded
+                      uin:
+                        type: string
+                        description: UIN linked with the draft (if any)
+                      biometricReferenceId:
+                        type: string
+                        description: Biometric reference ID
+                      verifiedAttributes:
+                        type: array
+                        items:
+                          type: string
+                        description: List of verified attributes
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        errorCode:
+                          type: string
+                        message:
+                          type: string
+              examples:
+                example-1:
+                  value:
+                    id: "mosip.idrepo.draft.discard"
+                    version: "1.0"
+                    responsetime: "2025-07-02T16:26:38.104Z"
+                    metadata: {}
+                    response:
+                      status: "DISCARDED"
+                      identity:
+                        name: "Rahul Verma"
+                        dob: "1991-05-20"
+                        gender: "M"
+                        phone: "9876543210"
+                        email: "rahul.verma@example.com"
+                      documents:
+                        - category: "POI"
+                          value: "Base64EncodedPOIImageString=="
+                        - category: "POA"
+                          value: "Base64EncodedPOAImageString=="
+                      registrationId: "2784753602993732022091216526"
+                      uin: "123456789012"
+                      biometricReferenceId: "bio-ref-123456789012"
+                      verifiedAttributes:
+                        - "name"
+                        - "dob"
+                        - "gender"
+                    errors: []
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
   /callback/remove_id_status:
     post:
       tags:
@@ -3726,6 +4793,25 @@ components:
           type: string
         value:
           type: string
+    CreateDraftV2RequestDto:
+      type: object
+      properties:
+        uin:
+          type: string
+          description: UIN of the resident (required for UPDATE packets; omit for NEW packets so UIN is auto-generated)
+          example: "123456789012"
+        generateUin:
+          type: boolean
+          description: When true (default) a UIN is allocated during draft creation. Set to false for LOST packets where the UIN is resolved later after ABIS deduplication.
+          default: true
+          example: true
+    UpdateDraftUinDataRequestDto:
+      type: object
+      properties:
+        uin:
+          type: string
+          description: UIN to be stamped on the LOST draft after ABIS resolves the match
+          example: "123456789012"
     IdRequestDTOListVerificationMetadata:
       type: object
       properties:
