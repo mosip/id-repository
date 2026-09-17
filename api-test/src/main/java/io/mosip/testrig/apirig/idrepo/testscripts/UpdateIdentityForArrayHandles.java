@@ -1,5 +1,6 @@
 package io.mosip.testrig.apirig.idrepo.testscripts;
 
+import java.lang.reflect.Field;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -20,6 +21,8 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.testng.internal.BaseTestMethod;
+import org.testng.internal.TestResult;
 
 import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
@@ -33,6 +36,7 @@ import io.mosip.testrig.apirig.utils.AdminTestUtil;
 import io.mosip.testrig.apirig.utils.AuthenticationTestException;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
 import io.mosip.testrig.apirig.utils.OutputValidationUtil;
+//import io.mosip.testrig.apirig.utils.PartnerRegistration;
 import io.mosip.testrig.apirig.utils.ReportUtil;
 import io.mosip.testrig.apirig.utils.SecurityXSSException;
 import io.restassured.response.Response;
@@ -91,12 +95,9 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
 		testCaseName = testCaseDTO.getTestCaseName();
 		testCaseName = IdRepoUtil.isTestCaseValidForExecution(testCaseDTO);
-		
-		if(testCaseDTO.getEndPoint().contains(GlobalConstants.ADD_IDENTITY_V2_ENDPOINT)) {
-			testCaseDTO.setInputTemplate(AdminTestUtil.updateIdentityHbsV2(testCaseDTO.isRegenerateHbs()));
-		} else {
-			testCaseDTO.setInputTemplate(AdminTestUtil.updateIdentityHbs(testCaseDTO.isRegenerateHbs()));
-		}
+
+
+		testCaseDTO.setInputTemplate(AdminTestUtil.updateIdentityHbs(testCaseDTO.isRegenerateHbs()));
 		testCaseName = testCaseDTO.getTestCaseName();
 		if (HealthChecker.signalTerminateExecution) {
 			throw new SkipException(
@@ -121,7 +122,7 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 		JSONArray dobArray = new JSONArray(getValueFromAuthActuator("json-property", "dob"));
 		String dob = dobArray.getString(0);
 		String phoneNumber = "";
-		String email = testCaseName + "_" + BaseTestCase.runContext + "@mosip.net";
+		String email = testCaseName +"@mosip.net";
 		
 		
 		if (inputJson.contains("$PHONENUMBERFORIDENTITY$")) {
@@ -157,12 +158,6 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 			inputJson = replaceKeywordWithValue(inputJson, "$FUNCTIONALID$", generateRandomNumberString(2)
 					+ Calendar.getInstance().getTimeInMillis());
 		}
-		inputJson = inputJsonKeyWordHandeler(inputJson, testCaseName);
-		if (testCaseName.toLowerCase().contains("_sid")) {
-			JSONObject reqJson = new JSONObject(inputJson);
-			String phonenumber = reqJson.getJSONObject("request").getJSONObject("identity").getString("phone");
-			writeToCache(getAutogenIdKeyName(testCaseName, "phone"), phonenumber);
-		}
 
 		JSONObject jsonString = new JSONObject(inputJson);
 		if (jsonString.getJSONObject("request").getJSONObject("identity").has("selectedHandles")) {
@@ -187,6 +182,16 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 	 */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {
-		result.setAttribute("TestCaseName", testCaseName);
+		try {
+			Field method = TestResult.class.getDeclaredField("m_method");
+			method.setAccessible(true);
+			method.set(result, result.getMethod().clone());
+			BaseTestMethod baseTestMethod = (BaseTestMethod) result.getMethod();
+			Field f = baseTestMethod.getClass().getSuperclass().getDeclaredField("m_methodName");
+			f.setAccessible(true);
+			f.set(baseTestMethod, testCaseName);
+		} catch (Exception e) {
+			Reporter.log("Exception : " + e.getMessage());
+		}
 	}
 }

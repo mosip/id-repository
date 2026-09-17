@@ -16,7 +16,6 @@ import java.util.Properties;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import io.mosip.testrig.apirig.utils.DependencyResolver;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.testng.TestNG;
 
@@ -83,7 +82,7 @@ public class MosipTestRunner {
 			setLogLevels();
 
 			HealthChecker healthcheck = new HealthChecker();
-			healthcheck.setCurrentRunningModule(GlobalConstants.IDREPO);
+			healthcheck.setCurrentRunningModule(BaseTestCase.currentModule);
 			Thread trigger = new Thread(healthcheck);
 			trigger.start();
 			
@@ -97,36 +96,24 @@ public class MosipTestRunner {
 			
 			// Generate device certificates to be consumed by Mock-MDS
 			PartnerRegistration.deleteCertificates();
+			AdminTestUtil.createAndPublishPolicy();
+			AdminTestUtil.createEditAndPublishPolicy();
 			PartnerRegistration.deviceGeneration();
 
 			BiometricDataProvider.generateBiometricTestData("Registration");
-			
-			String testCasesToExecuteString = IdRepoConfigManager.getproperty("testCasesToExecute");
-			
-			DependencyResolver.loadDependencies(
-					getGlobalResourcePath() + "/" + "config/testCaseInterDependency.json");
-			if (!testCasesToExecuteString.isBlank()) {
-				IdRepoUtil.testCasesInRunScope = DependencyResolver.getDependencies(testCasesToExecuteString);
-			}
 
 			startTestRunner();
 		} catch (Exception e) {
-			LOGGER.error("Exception", e);
-		} catch (Error e) {
-			LOGGER.fatal("Fatal error during test run", e);
-			throw e;
+			LOGGER.error("Exception " + e.getMessage());
 		}
 		
-		IdRepoUtil.dbCleanUp();
 		KeycloakUserManager.removeUser();
 		KeycloakUserManager.closeKeycloakInstance();
 
 		OTPListener.bTerminate = true;
 
 		HealthChecker.bTerminate = true;
-		
-		// Used for generating the test case interdependency JSON file
-		// AdminTestUtil.generateTestCaseInterDependencies(getGlobalResourcePath() + "/config/testCaseInterDependency.json");
+
 		System.exit(0);
 
 	}
@@ -142,9 +129,21 @@ public class MosipTestRunner {
 		if (!runType.equalsIgnoreCase("JAR")) {
 			AuthTestsUtil.removeOldMosipTempTestResource();
 		}
-		BaseTestCase.currentModule = BaseTestCase.runContext + GlobalConstants.IDREPO;
-		BaseTestCase.certsForModule = BaseTestCase.runContext + GlobalConstants.IDREPO;
-		IdRepoUtil.dbCleanUp();
+		BaseTestCase.currentModule = "idrepo";
+		BaseTestCase.certsForModule = "idrepo";
+		DBManager.executeDBQueries(IdRepoConfigManager.getKMDbUrl(), IdRepoConfigManager.getKMDbUser(),
+				IdRepoConfigManager.getKMDbPass(), IdRepoConfigManager.getKMDbSchema(),
+				getGlobalResourcePath() + "/" + "config/keyManagerCertDataDeleteQueries.txt");
+		DBManager.executeDBQueries(IdRepoConfigManager.getIdaDbUrl(), IdRepoConfigManager.getIdaDbUser(),
+				IdRepoConfigManager.getPMSDbPass(), IdRepoConfigManager.getIdaDbSchema(),
+				getGlobalResourcePath() + "/" + "config/idaCertDataDeleteQueries.txt");
+		DBManager.executeDBQueries(IdRepoConfigManager.getMASTERDbUrl(), IdRepoConfigManager.getMasterDbUser(),
+				IdRepoConfigManager.getMasterDbPass(), IdRepoConfigManager.getMasterDbSchema(),
+				getGlobalResourcePath() + "/" + "config/masterDataCertDataDeleteQueries.txt");
+
+		DBManager.executeDBQueries(IdRepoConfigManager.getIdRepoDbUrl(), IdRepoConfigManager.getIdRepoDbUser(),
+				IdRepoConfigManager.getPMSDbPass(), "idrepo",
+				getGlobalResourcePath() + "/" + "config/idrepoCertDataDeleteQueries.txt");
 
 		AdminTestUtil.copyIdrepoTestResource();
 		BaseTestCase.otpListener = new OTPListener();

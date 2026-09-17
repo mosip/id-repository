@@ -6,7 +6,6 @@ AuthInternalUnlock:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
-      additionalDependencies: TC_IDRepo_AuthInternalock_01
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlockResult
       input: '{
@@ -30,7 +29,6 @@ AuthInternalUnlock:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
-      additionalDependencies: TC_IDRepo_AuthInternalock_02,TC_IDRepo_AddIdentity_36
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlockResult
       input: '{
@@ -54,7 +52,6 @@ AuthInternalUnlock:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
-      additionalDependencies: TC_IDRepo_AuthInternalock_03
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlockResult
       input: '{
@@ -78,7 +75,6 @@ AuthInternalUnlock:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
-      additionalDependencies: TC_IDRepo_AddIdentity_36,TC_IDRepo_AuthInternalock_04
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlockResult
       input: '{
@@ -102,7 +98,6 @@ AuthInternalUnlock:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
-      additionalDependencies: TC_IDRepo_AuthInternalock_05
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlockResult
       input: '{
@@ -126,7 +121,6 @@ AuthInternalUnlock:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
-      additionalDependencies: TC_IDRepo_AddIdentity_36,TC_IDRepo_AuthInternalock_06
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlockResult
       input: '{
@@ -150,7 +144,6 @@ AuthInternalUnlock:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
-      additionalDependencies: TC_IDRepo_AuthInternalock_07
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlockResult
       input: '{
@@ -174,7 +167,6 @@ AuthInternalUnlock:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
-      additionalDependencies: TC_IDRepo_AddIdentity_36,TC_IDRepo_AuthInternalock_08
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlockResult
       input: '{
@@ -198,7 +190,6 @@ AuthInternalUnlock:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
-      additionalDependencies: TC_IDRepo_AuthInternalock_09
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlockResult
       input: '{
@@ -222,7 +213,6 @@ AuthInternalUnlock:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
-      additionalDependencies: TC_IDRepo_AddIdentity_36,TC_IDRepo_AuthInternalock_10
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlockResult
       input: '{
@@ -246,7 +236,6 @@ AuthInternalUnlock:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
-      additionalDependencies: TC_IDRepo_AuthInternalock_11
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlockResult
       input: '{
@@ -270,7 +259,6 @@ AuthInternalUnlock:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: post
-      additionalDependencies: TC_IDRepo_AddIdentity_36,TC_IDRepo_AuthInternalock_12
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlockResult
       input: '{
@@ -293,7 +281,6 @@ AuthInternalUnlock:
       uniqueIdentifier: TC_IDRepo_AuthInternalunlock_14
       role: idrepo
       restMethod: post
-      additionalDependencies: TC_IDRepo_AuthInternalock_13
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/error
       input: '{
@@ -321,7 +308,6 @@ AuthInternalUnlock:
       uniqueIdentifier: TC_IDRepo_AuthInternalunlock_15
       role: idrepo
       restMethod: post
-      additionalDependencies: TC_IDRepo_AddIdentity_36,TC_IDRepo_AuthInternalock_14
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/error
       input: '{
@@ -349,7 +335,6 @@ AuthInternalUnlock:
       uniqueIdentifier: TC_IDRepo_AuthInternalunlock_16
       role: idrepo
       restMethod: post
-      additionalDependencies: TC_IDRepo_AuthInternalock_15
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/error
       input: '{
@@ -377,7 +362,6 @@ AuthInternalUnlock:
       uniqueIdentifier: TC_IDRepo_AuthInternalunlock_17
       role: idrepo
       restMethod: post
-      additionalDependencies: TC_IDRepo_AddIdentity_36,TC_IDRepo_AuthInternalock_16
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/error
       input: '{
@@ -405,7 +389,6 @@ AuthInternalUnlock:
       uniqueIdentifier: TC_IDRepo_AuthInternalunlock_18
       role: idrepo
       restMethod: post
-      additionalDependencies: TC_IDRepo_AuthInternalock_17
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/error
       input: '{
@@ -433,7 +416,6 @@ AuthInternalUnlock:
       uniqueIdentifier: TC_IDRepo_AuthInternalunlock_19
       role: idrepo
       restMethod: post
-      additionalDependencies: TC_IDRepo_AddIdentity_36,TC_IDRepo_AuthInternalock_18
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/error
       input: '{
@@ -461,7 +443,6 @@ AuthInternalUnlock:
       uniqueIdentifier: TC_IDRepo_AuthInternalunlock_20
       role: idrepo
       restMethod: post
-      additionalDependencies: TC_IDRepo_AuthInternalock_19
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/error
       input: '{
@@ -489,7 +470,6 @@ AuthInternalUnlock:
       uniqueIdentifier: TC_IDRepo_AuthInternalunlock_21
       role: idrepo
       restMethod: post
-      additionalDependencies: TC_IDRepo_AddIdentity_36,TC_IDRepo_AuthInternalock_20
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/error
       input: '{
@@ -517,7 +497,6 @@ AuthInternalUnlock:
       uniqueIdentifier: TC_IDRepo_AuthInternalunlock_22
       role: idrepo
       restMethod: post
-      additionalDependencies: TC_IDRepo_AuthInternalock_21
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/error
       input: '{
@@ -545,7 +524,6 @@ AuthInternalUnlock:
       uniqueIdentifier: TC_IDRepo_AuthInternalunlock_23
       role: idrepo
       restMethod: post
-      additionalDependencies: TC_IDRepo_AuthInternalock_22,TC_IDRepo_AddIdentity_36
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/error
       input: '{
@@ -573,7 +551,6 @@ AuthInternalUnlock:
       uniqueIdentifier: TC_IDRepo_AuthInternalunlock_24
       role: idrepo
       restMethod: post
-      additionalDependencies: TC_IDRepo_AuthInternalock_23
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/error
       input: '{
@@ -601,7 +578,6 @@ AuthInternalUnlock:
       uniqueIdentifier: TC_IDRepo_AuthInternalunlock_25
       role: idrepo
       restMethod: post
-      additionalDependencies: TC_IDRepo_AddIdentity_36,TC_IDRepo_AuthInternalock_24
       inputTemplate: idRepository/AuthInternalUnlock/AuthInternalUnlock
       outputTemplate: idRepository/error
       input: '{

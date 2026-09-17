@@ -38,7 +38,6 @@ RetrieveIdentity:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: get
-      additionalDependencies: TC_IDRepo_UpdateIdentity_17
       inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
       outputTemplate: idRepository/error
       input: '{
@@ -55,7 +54,6 @@ RetrieveIdentity:
       role: idrepo
       checkErrorsOnlyInResponse: true
       restMethod: get
-      additionalDependencies: TC_IDRepo_AddIdentity_32
       inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
       outputTemplate: idRepository/error
       input: '{
@@ -147,7 +145,6 @@ RetrieveIdentity:
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_11
       role: idrepo
       restMethod: get
-      additionalDependencies: TC_IDRepo_AddIdentity_05,TC_IDRepo_UpdateVIDStatus_40
       inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
       outputTemplate: idRepository/error
       input: '{
@@ -166,7 +163,6 @@ RetrieveIdentity:
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_12
       role: idrepo
       restMethod: get
-      additionalDependencies: TC_IDRepo_AddIdentity_05,TC_IDRepo_UpdateVIDStatus_40
       inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
       outputTemplate: idRepository/error
       input: '{
@@ -185,7 +181,6 @@ RetrieveIdentity:
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityByUIN_13
       role: idrepo
       restMethod: get
-      additionalDependencies: TC_IDRepo_AddIdentity_05,TC_IDRepo_UpdateVIDStatus_40
       inputTemplate: idRepository/RetrieveIdentityByUin/retrieveIdentityByUin
       outputTemplate: idRepository/error
       input: '{
