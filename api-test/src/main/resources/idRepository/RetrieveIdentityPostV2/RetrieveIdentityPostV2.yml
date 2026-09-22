@@ -392,7 +392,7 @@ RetrieveIdentityPostV2:
 }'
   IdRepository_RetrieveIdentityPostV2_VerifyUpdateFieldIdValueWithoutVerifiedAttributes_Pos:
       endPoint: /idrepository/v1/identity/idvid/v2
-      description: Verify that the system successfully retrieves identity V2 details when the API is called after update changes fullName without sending verifiedAttributes
+      description: Verify verifiedAttributes is cleared after an update that omits it
       uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_17
       role: idrepo
       restMethod: post
@@ -400,6 +400,109 @@ RetrieveIdentityPostV2:
       outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2VerifiedAttributesDetailResult
       input: '{
     "id": "$ID:AddIdentityV2_WithFullNameVerified_Base_Pos_UIN$",
+    "type": "all",
+    "idType": "UIN",
+    "fingerExtractionFormat": "",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+    "status": "ACTIVATED",
+    "verifiedAttributes": []
+}'
+
+  IdRepository_RetrieveIdentityPostV2_VerifyPartialMetadataUpdateLeavesPhoneUntouched_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Confirms a new trustFramework/verificationProcess for fullName adds a record alongside the original, and untouched phone survives
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_18
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2VerifiedAttributesDetailResult
+      input: '{
+    "id": "$ID:AddIdentityV2_ForPartialMetadataUpdate_Base_Pos_UIN$",
+    "type": "all",
+    "idType": "UIN",
+    "fingerExtractionFormat": "",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+    "status": "ACTIVATED",
+    "verifiedAttributes": [
+      {
+        "trustFramework": "internal",
+        "verificationProcess": "online_video",
+        "claims": ["fullName"],
+        "metadata": {
+          "trust_framework": "internal",
+          "verification_process": "online_video",
+          "assurance_level": "Home"
+        }
+      },
+      {
+        "trustFramework": "kyc",
+        "verificationProcess": "online_video",
+        "claims": ["fullName"],
+        "metadata": {
+          "trust_framework": "kyc",
+          "verification_process": "online_video",
+          "assurance_level": "Land"
+        }
+      },
+      {
+        "trustFramework": "internal",
+        "verificationProcess": "otp_verified",
+        "claims": ["phone"],
+        "metadata": {
+          "trust_framework": "internal",
+          "verification_process": "otp_verified",
+          "assurance_level": "Home"
+        }
+      }
+    ]
+}'
+  IdRepository_RetrieveIdentityPostV2_VerifyReplaceMetadataAppliesToExpandedClaims_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Confirms an expanded-claims update replaces (not duplicates) metadata, now covering phone and email
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_19
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2VerifiedAttributesDetailResult
+      input: '{
+    "id": "$ID:AddIdentityV2_ForUpdateExpandedClaims_Base_Pos_UIN$",
+    "type": "all",
+    "idType": "UIN",
+    "fingerExtractionFormat": "",
+    "irisExtractionFormat":"$REMOVE$",
+    "faceExtractionFormat":"$REMOVE$"
+}'
+      output: '{
+    "status": "ACTIVATED",
+    "verifiedAttributes": [
+      {
+        "trustFramework": "internal",
+        "verificationProcess": "otp_verified",
+        "claims": ["phone", "email"],
+        "metadata": {
+          "trust_framework": "internal",
+          "verification_process": "otp_verified",
+          "assurance_level": "Land"
+        }
+      }
+    ]
+}'
+  IdRepository_RetrieveIdentityPostV2_VerifyMultipleVerificationDetailsForSameFieldIdAfterUpdate_Pos:
+      endPoint: /idrepository/v1/identity/idvid/v2
+      description: Confirms both verification details exist for fullName after adding a second trustFramework/verificationProcess pair
+      uniqueIdentifier: TC_IDRepo_RetrieveIdentityPostV2_20
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2
+      outputTemplate: idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2VerifiedAttributesDetailResult
+      input: '{
+    "id": "$ID:AddIdentityV2_ForUpdateMultipleVerificationDetails_Base_Pos_UIN$",
     "type": "all",
     "idType": "UIN",
     "fingerExtractionFormat": "",
@@ -416,7 +519,17 @@ RetrieveIdentityPostV2:
         "metadata": {
           "trust_framework": "internal",
           "verification_process": "otp_verified",
-          "assurance_level": "Home"
+          "assurance_level": "Land"
+        }
+      },
+      {
+        "trustFramework": "kyc",
+        "verificationProcess": "online_video",
+        "claims": ["fullName"],
+        "metadata": {
+          "trust_framework": "kyc",
+          "verification_process": "online_video",
+          "assurance_level": "Land"
         }
       }
     ]

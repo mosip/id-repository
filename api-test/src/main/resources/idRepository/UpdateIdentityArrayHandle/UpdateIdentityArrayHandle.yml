@@ -986,7 +986,7 @@ UpdateIdentity:
         "id": "mosip.id.update",
 		"status": "ACTIVATED",
 	    "addressCopy": "Y",
-	    "UIN": "$ID:AddIdentity_array_handle_value_withouttags_UIN$",
+	    "UIN": "$ID:AddIdentity_array_handle_value_withouttags_Pos_UIN$",
 	    "dateOfBirth": "1992/04/15",
 	    "postalCode": "14022",
 	    "email": "$EMAILVALUE$",
