@@ -1,0 +1,1104 @@
+openapi: 3.0.1
+info:
+  title: Id Repository Identity Service
+  description: Id Repository Identity Service
+  license:
+    name: Mosip
+    url: https://docs.mosip.io/platform/license
+  version: '1.0'
+servers:
+  - url: https://api-internal.collab.mosip.net/idrepository/v1/identity
+    description: Id Repository Identity Service
+tags:
+  - name: id-repo-draft-controller
+    description: Id Repo Draft Controller
+  - name: vid-event-callback-controller
+    description: Vid Event Callback Controller
+  - name: id-repo-controller
+    description: Id Repo Controller
+paths:
+  /{individualId}/update-counts:
+    get:
+      tags:
+        - id-repo-controller
+      summary: Get Remaining update count by Individual Id Request
+      description: Get Remaining update count by Individual Id Request
+      operationId: getRemainingUpdateCountByIndividualId
+      parameters:
+        - name: individualId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the individual (UIN or VID).
+        - name: idType
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Type of identifier provided (UIN or VID).
+        - name: attribute_list
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          description: List of specific identity attributes to be fetched.
+      responses:
+        '200':
+          description: Request authenticated successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IdRepoAppException'
+        '400':
+          description: No Records Found
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /rid/{individualId}:
+    get:
+      tags:
+        - id-repo-controller
+      summary: Get RID by IndividualId Request
+      description: Get RID by IndividualId Request
+      operationId: getRidByIndividualId
+      parameters:
+        - name: individualId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the individual (UIN or VID).
+        - name: idType
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Type of identifier provided (UIN or VID).
+      responses:
+        '200':
+          description: Request authenticated successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IdRepoAppException'
+        '400':
+          description: No Records Found
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /idvid/{id}:
+    get:
+      tags:
+        - id-repo-controller
+      summary: retrieveIdentity
+      description: retrieveIdentity
+      operationId: retrieveIdentity
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Unique identifier of the individual (UIN or VID).
+    
+      - name: type
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Type of identity data requested (e.g., demo, bio).
+    
+      - name: idType
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Type of identifier provided (UIN or VID).
+    
+      - name: fingerExtractionFormat
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Desired extraction format for fingerprint data.
+    
+      - name: irisExtractionFormat
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Desired extraction format for iris data.
+    
+      - name: faceExtractionFormat
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Desired extraction format for face data.
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDTO'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      deprecated: true
+  /idvid/:
+    post:
+      tags:
+        - id-repo-controller
+      summary: retrieveIdentityById
+      description: retrieveIdentityById
+      operationId: retrieveIdentityById
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdRequestByIdDTO'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDTO'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /draft/{registrationId}:
+    get:
+      tags:
+        - id-repo-draft-controller
+      summary: getDraft
+      description: getDraft
+      operationId: getDraft
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique ID of the registration packet to fetch data for.
+      
+        - name: fingerExtractionFormat
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Desired extraction format for fingerprint data.
+      
+        - name: irisExtractionFormat
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Desired extraction format for iris data.
+      
+        - name: faceExtractionFormat
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Desired extraction format for face data.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDTO'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+    head:
+      tags:
+        - id-repo-draft-controller
+      summary: hasDraft
+      description: hasDraft
+      operationId: hasDraft
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique ID of the registration packet to fetch data for.
+      responses:
+        '200':
+          description: OK
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  /draft/update/{registrationId}:
+    patch:
+      tags:
+        - id-repo-draft-controller
+      summary: updateDraft
+      description: updateDraft
+      operationId: updateDraft
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique ID of the registration packet to fetch data for.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdRequestDTO'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDTO'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /draft/uin/{UIN}:
+    get:
+      tags:
+        - id-repo-draft-controller
+      summary: getDraftUIN
+      description: getDraft
+      operationId: getDraftUIN
+      parameters:
+        - name: UIN
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the individual.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseWrapperDraftResponseDto'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /draft/publish/{registrationId}:
+    get:
+      tags:
+        - id-repo-draft-controller
+      summary: publishDraft
+      description: publishDraft
+      operationId: publishDraft
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique ID of the registration packet to fetch data for.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDTO'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /draft/extractbiometrics/{registrationId}:
+    put:
+      tags:
+        - id-repo-draft-controller
+      summary: extractBiometrics
+      description: extractBiometrics
+      operationId: extractBiometrics
+      parameters:
+      - name: registrationId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Unique ID of the registration packet to fetch data for.
+    
+      - name: fingerExtractionFormat
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Desired extraction format for fingerprint data.
+    
+      - name: irisExtractionFormat
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Desired extraction format for iris data.
+    
+      - name: faceExtractionFormat
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Desired extraction format for face data.
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDTO'
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /draft/discard/{registrationId}:
+    delete:
+      tags:
+        - id-repo-draft-controller
+      summary: discardDraft
+      description: discardDraft
+      operationId: discardDraft
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique ID of the registration packet to fetch data for.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDTO'
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /draft/create/{registrationId}:
+    post:
+      tags:
+        - id-repo-draft-controller
+      summary: createDraft
+      description: createDraft
+      operationId: createDraft
+      parameters:
+        - name: registrationId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique ID of the registration packet to fetch data for.
+        - name: UIN
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Unique identifier of the individual
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDTO'
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /callback/vid_credential_status_update:
+    post:
+      tags:
+        - vid-event-callback-controller
+      summary: handleVidEvent
+      description: handleVidEvent
+      operationId: handleVidEvent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventModel'
+        required: true
+      responses:
+        '200':
+          description: Request authenticated successfully
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /authtypes/status:
+    post:
+      tags:
+        - id-repo-controller
+      summary: Authenticate Internal Request
+      description: Authenticate Internal Request
+      operationId: updateAuthtypeStatus
+      requestBody:
+        content:
+          application/json;charset=UTF-8:
+            schema:
+              $ref: '#/components/schemas/AuthTypeStatusRequestDto'
+        required: true
+      responses:
+        '200':
+          description: Request authenticated successfully
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IdRepoAppException'
+        '400':
+          description: Request authenticated failed
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /authtypes/status/{ID}:
+    get:
+      tags:
+        - id-repo-controller
+      summary: Authtype Status Request
+      description: Authtype Status Request
+      operationId: getAuthTypeStatus
+      parameters:
+        - name: ID
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the individual
+      responses:
+        '200':
+          description: Request authenticated successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IdRepoAppException'
+        '400':
+          description: No Records Found
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+  /authtypes/status/individualIdType/{IDType}/individualId/{ID}:
+    get:
+      tags:
+        - id-repo-controller
+      summary: Authtype Status Request
+      description: Authtype Status Request
+      operationId: getAuthTypeStatus_1
+      parameters:
+        - name: ID
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the individual
+        - name: IDType
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Type of identifier provided (UIN or VID).
+      responses:
+        '200':
+          description: Request authenticated successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IdRepoAppException'
+        '400':
+          description: No Records Found
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      deprecated: true
+  /:
+    post:
+      tags:
+        - id-repo-controller
+      summary: addIdentity
+      description: addIdentity
+      operationId: addIdentity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdRequestDTO'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDTO'
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+    patch:
+      tags:
+        - id-repo-controller
+      summary: updateIdentity
+      description: updateIdentity
+      operationId: updateIdentity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdRequestDTO'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponseDTO'
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+components:
+  schemas:
+    IdRepoAppException:
+      type: object
+      properties:
+        cause:
+          type: object
+          description: Root cause of the exception.
+          properties:
+            stackTrace:
+              type: array
+              description: Stack trace elements for the cause.
+              items:
+                type: object
+                properties:
+                  classLoaderName:
+                    type: string
+                    description: Name of the class loader.
+                  moduleName:
+                    type: string
+                    description: Name of the module.
+                  moduleVersion:
+                    type: string
+                    description: Version of the module.
+                  methodName:
+                    type: string
+                    description: Name of the method where the error occurred.
+                  fileName:
+                    type: string
+                    description: Name of the source file.
+                  lineNumber:
+                    type: integer
+                    format: int32
+                    description: Line number in the source file.
+                  className:
+                    type: string
+                    description: Name of the class.
+                  nativeMethod:
+                    type: boolean
+                    description: Indicates if it is a native method.
+            message:
+              type: string
+              description: Error message.
+            suppressed:
+              type: array
+              description: Suppressed exceptions.
+              items:
+                type: object
+                properties:
+                  stackTrace:
+                    type: array
+                    description: Stack trace for suppressed exception.
+                    items:
+                      type: object
+                      properties:
+                        classLoaderName:
+                          type: string
+                          description: Name of the class loader.
+                        moduleName:
+                          type: string
+                          description: Name of the module.
+                        moduleVersion:
+                          type: string
+                          description: Version of the module.
+                        methodName:
+                          type: string
+                          description: Method where the exception occurred.
+                        fileName:
+                          type: string
+                          description: Name of the file.
+                        lineNumber:
+                          type: integer
+                          format: int32
+                          description: Line number in the source file.
+                        className:
+                          type: string
+                          description: Class where the exception occurred.
+                        nativeMethod:
+                          type: boolean
+                          description: Whether it's a native method.
+                  message:
+                    type: string
+                    description: Message of the suppressed exception.
+                  localizedMessage:
+                    type: string
+                    description: Localized message of the suppressed exception.
+            localizedMessage:
+              type: string
+              description: Localized error message.
+        stackTrace:
+          type: array
+          description: Complete stack trace.
+          items:
+            type: object
+            properties:
+              classLoaderName:
+                type: string
+                description: Name of the class loader.
+              moduleName:
+                type: string
+                description: Module name.
+              moduleVersion:
+                type: string
+                description: Version of the module.
+              methodName:
+                type: string
+                description: Method name.
+              fileName:
+                type: string
+                description: File name.
+              lineNumber:
+                type: integer
+                format: int32
+                description: Line number.
+              className:
+                type: string
+                description: Class name.
+              nativeMethod:
+                type: boolean
+                description: Whether it's a native method.
+        operation:
+          type: string
+          description: Operation that caused the exception.
+        message:
+          type: string
+          description: Exception message.
+        errorTexts:
+          type: array
+          items:
+            type: string
+          description: List of detailed error messages.
+        errorText:
+          type: string
+          description: Single error message.
+        codes:
+          type: array
+          items:
+            type: string
+          description: List of error codes.
+        errorCode:
+          type: string
+          description: Single error code.
+        suppressed:
+          type: array
+          description: List of suppressed exceptions.
+          items:
+            type: object
+            properties:
+              stackTrace:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    classLoaderName:
+                      type: string
+                    moduleName:
+                      type: string
+                    moduleVersion:
+                      type: string
+                    methodName:
+                      type: string
+                    fileName:
+                      type: string
+                    lineNumber:
+                      type: integer
+                      format: int32
+                    className:
+                      type: string
+                    nativeMethod:
+                      type: boolean
+              message:
+                type: string
+              localizedMessage:
+                type: string
+        localizedMessage:
+          type: string
+          description: Localized exception message.
+
+    DocumentsDTO:
+      type: object
+      properties:
+        category:
+          type: string
+          description: Category of the document.
+        value:
+          type: string
+          description: Document value or identifier.
+
+    IdResponseDTO:
+      required:
+        - response
+      type: object
+      properties:
+        id:
+          type: string
+          description: Request identifier.
+        version:
+          type: string
+          description: Version of the API.
+        responsetime:
+          type: string
+          format: date-time
+          description: Time at which the response was generated.
+        metadata:
+          type: object
+          description: Additional metadata related to the response.
+        response:
+          $ref: '#/components/schemas/ResponseDTO'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceError'
+          description: List of service errors if any.
+
+    ResponseDTO:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Status of the identity request.
+        identity:
+          type: object
+          description: Identity information returned.
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentsDTO'
+          description: List of attached documents.
+        verifiedAttributes:
+          type: array
+          items:
+            type: string
+          description: List of verified attributes.
+
+    ServiceError:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          description: Error code.
+        message:
+          type: string
+          description: Description of the error.
+
+    IdRequestByIdDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Identifier of the individual.
+        type:
+          type: string
+          description: Type of data requested.
+        idType:
+          type: string
+          description: Type of the identifier.
+        fingerExtractionFormat:
+          type: string
+          description: Format for extracting fingerprint data.
+        irisExtractionFormat:
+          type: string
+          description: Format for extracting iris data.
+        faceExtractionFormat:
+          type: string
+          description: Format for extracting face data.
+
+    IdRequestDTO:
+      required:
+        - request
+      type: object
+      properties:
+        id:
+          type: string
+          description: Request ID.
+        version:
+          type: string
+          description: API version.
+        requesttime:
+          type: string
+          format: date-time
+          description: Time at which the request was made.
+        metadata:
+          type: object
+          description: Additional metadata.
+        request:
+          $ref: '#/components/schemas/RequestDTO'
+
+    RequestDTO:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Status of the request.
+        identity:
+          type: object
+          description: Identity data.
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentsDTO'
+          description: List of documents.
+        verifiedAttributes:
+          type: array
+          items:
+            type: string
+          description: Attributes that were verified.
+        registrationId:
+          type: string
+          description: Registration ID.
+        uin:
+          type: string
+          description: Unique Identity Number.
+        biometricReferenceId:
+          type: string
+          deprecated: true
+          description: Biometric reference ID (deprecated).
+
+    DraftResponseDto:
+      type: object
+      properties:
+        drafts:
+          type: array
+          items:
+            $ref: '#/components/schemas/DraftUinResponseDto'
+          description: List of draft UIN responses.
+
+    DraftUinResponseDto:
+      type: object
+      properties:
+        rid:
+          type: string
+          description: Registration ID.
+        createdDTimes:
+          type: string
+          description: Creation timestamp.
+        attributes:
+          type: array
+          items:
+            type: string
+          description: List of identity attributes.
+
+    ResponseWrapperDraftResponseDto:
+      required:
+        - response
+      type: object
+      properties:
+        id:
+          type: string
+          description: Request ID.
+        version:
+          type: string
+          description: Version of the API.
+        responsetime:
+          type: string
+          format: date-time
+          description: Time of the response.
+        metadata:
+          type: object
+          description: Metadata information.
+        response:
+          $ref: '#/components/schemas/DraftResponseDto'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceError'
+          description: List of service errors if any.
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique ID for the event.
+        transactionId:
+          type: string
+          description: Associated transaction ID.
+        type:
+          $ref: '#/components/schemas/Type'
+        timestamp:
+          type: string
+          description: Timestamp of the event.
+        dataShareUri:
+          type: string
+          description: URI for data sharing.
+        data:
+          type: object
+          additionalProperties:
+            type: object
+          description: Payload data of the event.
+
+    EventModel:
+      type: object
+      properties:
+        publisher:
+          type: string
+          description: Publisher of the event.
+        topic:
+          type: string
+          description: Topic associated with the event.
+        publishedOn:
+          type: string
+          description: Time when event was published.
+        event:
+          $ref: '#/components/schemas/Event'
+
+    Type:
+      type: object
+      properties:
+        namespace:
+          type: string
+          description: Namespace of the type.
+        name:
+          type: string
+          description: Name of the type.
+
+    AuthTypeStatusRequestDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique ID for the request.
+        version:
+          type: string
+          description: Version of the request format.
+        requestTime:
+          type: string
+          description: Time when the request was made.
+        consentObtained:
+          type: boolean
+          description: Indicates whether user consent was obtained.
+        individualId:
+          type: string
+          description: Unique identifier of the individual.
+        individualIdType:
+          type: string
+          description: Type of the individual ID (e.g., UIN, VID).
+        request:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthtypeStatus'
+          description: List of authentication type status objects.
+
+    AuthtypeStatus:
+      type: object
+      properties:
+        authType:
+          type: string
+          description: Type of authentication (e.g., OTP, biometric).
+        authSubType:
+          type: string
+          description: Subtype of authentication, if any.
+        locked:
+          type: boolean
+          description: Indicates if the auth type is locked.
+        unlockForSeconds:
+          type: integer
+          format: int64
+          description: Duration in seconds for which the auth type will be unlocked.
+        requestId:
+          type: string
+          description: Unique request ID.
+        metadata:
+          type: object
+          additionalProperties:
+            type: object
