@@ -286,7 +286,6 @@
     "TC_IDRepo_CreateVID_13": [
         "TC_IDRepo_AddIdentity_01"
     ],
-    "TC_IDRepo_CreateVID_13": ["TC_IDRepo_AddIdentity_01"],
     "TC_IDRepo_GetUpdateCount_15": [
         "TC_IDRepo_CreateVID_47",
         "TC_IDRepo_AddIdentity_39"
@@ -354,7 +353,6 @@
     "TC_IDRepo_CreateVID_19": [
         "TC_IDRepo_AddIdentity_01"
     ],
-    "TC_IDRepo_CreateVID_19": ["TC_IDRepo_AddIdentity_01"],
     "TC_IDRepo_DeactivateVID_20": [
         "TC_IDRepo_CreateVID_01",
         "TC_IDRepo_AddIdentity_01"
@@ -374,11 +372,6 @@
     "TC_IDRepo_CreateVID_18": [
         "TC_IDRepo_AddIdentity_01"
     ],
-    "TC_IDRepo_CreateVID_16": ["TC_IDRepo_AddIdentity_01"],
-    "TC_IDRepo_GetUpdateCount_12": ["TC_IDRepo_AddIdentity_38"],
-    "TC_IDRepo_CreateVID_15": ["TC_IDRepo_AddIdentity_01"],
-    "TC_IDRepo_GetUpdateCount_13": ["TC_IDRepo_AddIdentity_38"],
-    "TC_IDRepo_CreateVID_18": ["TC_IDRepo_AddIdentity_01"],
     "TC_IDRepo_GetUpdateCount_10": [
         "TC_IDRepo_CreateVID_47",
         "TC_IDRepo_AddIdentity_39"
@@ -470,8 +463,6 @@
     "TC_IDRepo_CreateVID_29": [
         "TC_IDRepo_AddIdentity_01"
     ],
-    "TC_IDRepo_RetrieveVID_06": ["TC_IDRepo_CreateVID_05"],
-    "TC_IDRepo_CreateVID_29": ["TC_IDRepo_AddIdentity_01"],
     "TC_IDRepo_DeactivateVID_12": [
         "TC_IDRepo_CreateVID_01",
         "TC_IDRepo_AddIdentity_01"
@@ -606,5 +597,5 @@
     "TC_IDRepo_RetrieveIdentityByUIN_03": [
         "TC_IDRepo_UpdateIdentity_17",
         "TC_IDRepo_AddIdentity_33"
-    ],
+    ]
 }
