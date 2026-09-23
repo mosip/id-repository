@@ -597,5 +597,296 @@
     "TC_IDRepo_RetrieveIdentityByUIN_03": [
         "TC_IDRepo_UpdateIdentity_17",
         "TC_IDRepo_AddIdentity_33"
+    ],
+    "TC_IDRepo_UpdateIdentity_01": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateVID_39": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_AuthInternalock_09": [
+        "TC_IDRepo_AddIdentity_34"
+    ],
+    "TC_IDRepo_UpdateIdentity_15": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_RetrieveIdentityByUIN_01": [
+        "TC_IDRepo_AddIdentity_32"
+    ],
+    "TC_IDRepo_AuthInternalock_13": [
+        "TC_IDRepo_AddIdentity_34"
+    ],
+    "TC_IDRepo_CreateVID_11": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_RetrieveAuthTypeStatus_01": [
+        "TC_IDRepo_AddIdentity_34"
+    ],
+    "TC_IDRepo_UpdateIdentity_12": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_RetrieveVID_05": [
+        "TC_IDRepo_CreateVID_03"
+    ],
+    "TC_IDRepo_AuthInternalunlock_28": [
+        "TC_IDRepo_AddIdentity_34"
+    ],
+    "TC_IDRepo_CreateVID_17": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateDraftVID_04": [
+        "TC_IDRepo_GetDraft_01"
+    ],
+    "TC_IDRepo_CreateVID_32": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_GetUpdateCount_01": [
+        "TC_IDRepo_AddIdentity_38"
+    ],
+    "TC_IDRepo_RetrieveVIDByUIN_01": [
+        "TC_IDRepo_AddIdentity_02"
+    ],
+    "TC_IDRepo_UpdateIdentity_02": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateVID_04": [
+        "TC_IDRepo_AddIdentity_03"
+    ],
+    "TC_IDRepo_AuthInternalock_19": [
+        "TC_IDRepo_AddIdentity_34"
+    ],
+    "TC_IDRepo_CreateVID_21": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateVID_02": [
+        "TC_IDRepo_AddIdentity_02"
+    ],
+    "TC_IDRepo_CreateVID_08": [
+        "TC_IDRepo_AddIdentity_07"
+    ],
+    "TC_IDRepo_UpdateIdentity_13": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateVID_28": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_AuthInternalock_21": [
+        "TC_IDRepo_AddIdentity_34"
+    ],
+    "TC_IDRepo_CreateVID_44": [
+        "TC_IDRepo_AddIdentity_32"
+    ],
+    "TC_IDRepo_AuthInternalock_01": [
+        "TC_IDRepo_AddIdentity_34"
+    ],
+    "TC_IDRepo_CreateVID_42": [
+        "TC_IDRepo_AddIdentity_32"
+    ],
+    "TC_IDRepo_CreateVID_12": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateVID_40": [
+        "TC_IDRepo_AddIdentity_32"
+    ],
+    "TC_IDRepo_AuthInternalunlock_29": [
+        "TC_IDRepo_CreateVID_45"
+    ],
+    "TC_IDRepo_RetrieveVIDByUIN_04": [
+        "TC_IDRepo_AddIdentity_32"
+    ],
+    "TC_IDRepo_CreateVID_34": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_RetrieveVID_07": [
+        "TC_IDRepo_CreateVID_08"
+    ],
+    "TC_IDRepo_CreateVID_31": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateVID_03": [
+        "TC_IDRepo_AddIdentity_31"
+    ],
+    "TC_IDRepo_CreateVID_43": [
+        "TC_IDRepo_AddIdentity_32"
+    ],
+    "TC_IDRepo_CreateVID_38": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateVID_07": [
+        "TC_IDRepo_AddIdentity_06"
+    ],
+    "TC_IDRepo_AuthInternalock_03": [
+        "TC_IDRepo_AddIdentity_34"
+    ],
+    "TC_IDRepo_RetrieveVID_09": [
+        "TC_IDRepo_CreateVID_09"
+    ],
+    "TC_IDRepo_CreateVID_01": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_UpdateIdentity_06": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateVID_26": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateVID_33": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_GetUpdateCount_05": [
+        "TC_IDRepo_AddIdentity_38"
+    ],
+    "TC_IDRepo_GetUpdateCount_11": [
+        "TC_IDRepo_AddIdentity_38"
+    ],
+    "TC_IDRepo_CreateVID_23": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateDraftVID_01": [
+        "TC_IDRepo_GetDraft_01"
+    ],
+    "TC_IDRepo_UpdateIdentity_10": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_AuthInternalock_05": [
+        "TC_IDRepo_AddIdentity_34"
+    ],
+    "TC_IDRepo_CreateVID_20": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_RetrieveIdentityPost_02": [
+        "TC_IDRepo_AddIdentity_32"
+    ],
+    "TC_IDRepo_CreateVID_47": [
+        "TC_IDRepo_AddIdentity_39"
+    ],
+    "TC_IDRepo_UpdateIdentity_03": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_ReactivateVID_01": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_RetrieveVIDByUIN_02": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateVID_46": [
+        "TC_IDRepo_AddIdentity_37"
+    ],
+    "TC_IDRepo_CreateVID_45": [
+        "TC_IDRepo_AddIdentity_36"
+    ],
+    "TC_IDRepo_RetrieveVIDByUIN_03": [
+        "TC_IDRepo_AddIdentity_02"
+    ],
+    "TC_IDRepo_CreateDraftVID_03": [
+        "TC_IDRepo_GetDraft_01"
+    ],
+    "TC_IDRepo_RetrieveAuthTypeStatus_02": [
+        "TC_IDRepo_CreateVID_45"
+    ],
+    "TC_IDRepo_UpdateIdentity_07": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_UpdateIdentity_17": [
+        "TC_IDRepo_AddIdentity_33"
+    ],
+    "TC_IDRepo_CreateVID_25": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateVID_06": [
+        "TC_IDRepo_AddIdentity_05"
+    ],
+    "TC_IDRepo_CreateVID_37": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_RetrieveIdentityByRID_01": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateVID_24": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateVID_35": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_UpdateIdentity_05": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateVID_10": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_RetrieveVID_04": [
+        "TC_IDRepo_CreateVID_06"
+    ],
+    "TC_IDRepo_UpdateIdentity_14": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateVID_09": [
+        "TC_IDRepo_AddIdentity_08"
+    ],
+    "TC_IDRepo_RegenerateVID_02": [
+        "TC_IDRepo_AddIdentity_31"
+    ],
+    "TC_IDRepo_UpdateIdentity_04": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateDraftVID_02": [
+        "TC_IDRepo_GetDraft_01"
+    ],
+    "TC_IDRepo_AuthInternalock_23": [
+        "TC_IDRepo_AddIdentity_34"
+    ],
+    "TC_IDRepo_AuthInternalock_17": [
+        "TC_IDRepo_AddIdentity_34"
+    ],
+    "TC_IDRepo_CreateVID_05": [
+        "TC_IDRepo_AddIdentity_04"
+    ],
+    "TC_IDRepo_AuthInternalock_07": [
+        "TC_IDRepo_AddIdentity_34"
+    ],
+    "TC_IDRepo_CreateVID_22": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateVID_27": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_RetrieveVID_08": [
+        "TC_IDRepo_CreateVID_07"
+    ],
+    "TC_IDRepo_CreateVID_41": [
+        "TC_IDRepo_AddIdentity_32"
+    ],
+    "TC_IDRepo_CreateVID_30": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_UpdateIdentity_11": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_AuthInternalock_27": [
+        "TC_IDRepo_AddIdentity_34"
+    ],
+    "TC_IDRepo_UpdateIdentity_09": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateVID_36": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_AuthInternalock_11": [
+        "TC_IDRepo_AddIdentity_34"
+    ],
+    "TC_IDRepo_UpdateIdentity_08": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_UpdateIdentity_16": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_CreateVID_14": [
+        "TC_IDRepo_AddIdentity_01"
+    ],
+    "TC_IDRepo_RegenerateVID_01": [
+        "TC_IDRepo_CreateVID_01"
+    ],
+    "TC_IDRepo_AuthInternalock_15": [
+        "TC_IDRepo_AddIdentity_34"
     ]
 }
