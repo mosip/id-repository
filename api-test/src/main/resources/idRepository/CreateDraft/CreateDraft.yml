@@ -49,7 +49,7 @@ CreateDraft:
   IdRepository_CreateDraft_invalid_rid:
       endPoint: /idrepository/v1/identity/draft/create/{registrationId}
       description: Verify that the system rejects create draft when the API is called with an invalid RID
-      uniqueIdentifier: TC_IDRepo_CreateDraft_01
+      uniqueIdentifier: TC_IDRepo_CreateDraft_04
       role: idrepo
       restMethod: post
       inputTemplate: idRepository/CreateDraft/createDraft

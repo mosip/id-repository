@@ -33,8 +33,8 @@ GetUpdateCount:
       output: '{
   "errors": [
     {
-      "errorCode": "IDR-IDC-002",
-      "message": "Invalid Input Parameter - id"
+      "errorCode": "IDR-IDC-004",
+      "message": "Unknown error occurred"
     }
   ]
 }'

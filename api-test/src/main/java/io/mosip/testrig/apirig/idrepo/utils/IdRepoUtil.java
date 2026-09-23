@@ -83,8 +83,7 @@ public class IdRepoUtil extends AdminTestUtil {
 			throw new SkipException(GlobalConstants.KNOWN_ISSUES);
 		}
 
-		// The schema-conditional skips below use FEATURE_NOT_SUPPORTED_MESSAGE so EmailableReport routes
-		// them to the Ignored bucket (it matches on that phrase), not Skipped.
+		// FEATURE_NOT_SUPPORTED_MESSAGE routes these schema-conditional skips to EmailableReport's Ignored bucket
 		if (testCaseDTO.getRequiredSchemaFields() != null && testCaseDTO.getRequiredSchemaFields().length > 0) {
 			for (String field : testCaseDTO.getRequiredSchemaFields()) {
 				String trimmed = field.trim();
@@ -107,8 +106,7 @@ public class IdRepoUtil extends AdminTestUtil {
 			}
 		}
 
-		// Schema-capability skips for the generic (field-name-agnostic) handle scenarios. Each test
-		// declares the capability it needs via its name; if the live schema can't support it, skip.
+		// Schema-capability skips for the generic (field-name-agnostic) handle scenarios
 		if (testCaseName.contains("_missingRequiredHandle") && !schemaHasRequiredHandle()) {
 			throw new SkipException(
 					"No required handle field in the current IdSchema — " + GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
@@ -144,8 +142,8 @@ public class IdRepoUtil extends AdminTestUtil {
 		if (emailActuator != null && !emailActuator.isBlank()) {
 			emailArray = new JSONArray(emailActuator);
 		}
-		String dob = (dobArray != null && !dobArray.isEmpty()) ? dobArray.getString(0) : "dateOfBirth";
-		String email = (emailArray != null && !emailArray.isEmpty()) ? emailArray.getString(0) : "email";
+		String dob = (dobArray != null && dobArray.length() > 0) ? dobArray.getString(0) : "dateOfBirth";
+		String email = (emailArray != null && emailArray.length() > 0) ? emailArray.getString(0) : "email";
 
 		if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("DOB")
 				&& (!isElementPresent(globalRequiredFields, dob))) {
@@ -215,15 +213,8 @@ public class IdRepoUtil extends AdminTestUtil {
 			return jsonString;
 		}
 
-		for (Map.Entry<String, String> token : RID_TOKENS.entrySet()) {
-			if (jsonString.contains(token.getKey())) {
-				jsonString = replaceKeywordWithValue(jsonString, token.getKey(), token.getValue());
-			}
-		}
-		// Fresh value per call, so safe to reuse across test cases.
-		if (jsonString.contains(RIDV2FRESH_TOKEN)) {
-			jsonString = replaceKeywordWithValue(jsonString, RIDV2FRESH_TOKEN, freshRidV2());
-		}
+		if (jsonString.contains("$RIDEXT$"))
+			jsonString = replaceKeywordWithValue(jsonString, "$RIDEXT$", genRidExt);
 		return jsonString;
 	}
 
