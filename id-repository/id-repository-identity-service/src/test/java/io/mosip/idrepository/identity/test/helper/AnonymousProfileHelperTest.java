@@ -2,11 +2,18 @@ package io.mosip.idrepository.identity.test.helper;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -28,6 +35,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
@@ -66,6 +74,9 @@ public class AnonymousProfileHelperTest {
 	@Mock
 	private ChannelInfoHelper channelInfoHelper;
 
+	@Mock
+	private Executor anonymousProfileExecutor;
+
 	IdentityMapping identityMapping;
 	
 	private String cbeff;
@@ -87,6 +98,10 @@ public class AnonymousProfileHelperTest {
 				IdentityMapping.class);
 		IdentityIssuanceProfileBuilder.setIdentityMapping(identityMapping);
 		IdentityIssuanceProfileBuilder.setDateFormat("uuuu/MM/dd");
+		Mockito.doAnswer(invocation -> {
+			invocation.<Runnable>getArgument(0).run();
+			return null;
+		}).when(anonymousProfileExecutor).execute(Mockito.any(Runnable.class));
 	}
 
 	@Test
@@ -147,8 +162,8 @@ public class AnonymousProfileHelperTest {
 		AnonymousProfileEntity actualData = capturedData.getValue();
 		actualData.setCrDTimes(null);
 		expectedData.setId(actualData.getId());
-		assertTrue(anonymousProfileHelper.isNewCbeffPresent());
-		assertTrue(anonymousProfileHelper.isOldCbeffPresent());
+		assertFalse(anonymousProfileHelper.isNewCbeffPresent());
+		assertFalse(anonymousProfileHelper.isOldCbeffPresent());
 		assertEquals(expectedData, actualData);
 		anonymousProfileHelper
 		.setRegId("2");
@@ -181,8 +196,8 @@ public class AnonymousProfileHelperTest {
 		AnonymousProfileEntity actualData = capturedData.getValue();
 		actualData.setCrDTimes(null);
 		expectedData.setId(actualData.getId());
-		assertTrue(anonymousProfileHelper.isNewCbeffPresent());
-		assertTrue(anonymousProfileHelper.isOldCbeffPresent());
+		assertFalse(anonymousProfileHelper.isNewCbeffPresent());
+		assertFalse(anonymousProfileHelper.isOldCbeffPresent());
 		assertEquals(expectedData, actualData);
 		anonymousProfileHelper
 		.setRegId("2");
@@ -198,6 +213,132 @@ public class AnonymousProfileHelperTest {
 		.setNewCbeff("12_12", "1234")
 		.setOldCbeff("12_12", "1234")
 		.setOldUinData(identityData.getBytes())
-		.buildAndsaveProfile(false);
+			.buildAndsaveProfile(false);
+		Mockito.verifyZeroInteractions(
+				anonymousProfileExecutor, anonymousProfileRepo, channelInfoHelper);
 	}
+
+    @Test
+    public void testDelayedNewProfileSurvivesNextRequest() throws Exception {
+        assertDelayedProfileSurvivesNextRequest(false);
+    }
+
+    @Test
+    public void testDelayedUpdateProfileSurvivesNextRequest() throws Exception {
+        assertDelayedProfileSurvivesNextRequest(true);
+    }
+
+    private void assertDelayedProfileSurvivesNextRequest(boolean update)
+            throws Exception {
+        Queue<Runnable> pending = queueProfileWork();
+        byte[] newData = identityData.getBytes(StandardCharsets.UTF_8);
+        byte[] oldData = update ? newData.clone() : null;
+
+        anonymousProfileHelper.setRegId("request-A")
+                .setOldUinData(oldData)
+                .setNewUinData(newData)
+                .buildAndsaveProfile(false);
+
+        assertEquals(1, pending.size());
+        Mockito.verifyZeroInteractions(anonymousProfileRepo, channelInfoHelper);
+
+        // Request B begins before A's queued worker executes.
+        anonymousProfileHelper.setRegId("request-B")
+                .setNewUinData(identityData.replace("\"Male\"", "\"Female\"")
+                        .getBytes(StandardCharsets.UTF_8));
+
+        runOnWorker(pending.remove());
+
+        JsonNode saved = mapper.readTree(captureSavedProfile().getProfile());
+        assertEquals(update ? "Update" : "New",
+                saved.path("processName").asText());
+        assertFalse(saved.path("newProfile").isNull());
+
+        IdentityIssuanceProfile expected = IdentityIssuanceProfile.builder()
+                .setFilterLanguage("eng")
+                .setProcessName(update ? "Update" : "New")
+                .setOldIdentity(oldData)
+                .setOldDocuments(List.of())
+                .setNewIdentity(newData)
+                .setNewDocuments(List.of())
+                .build();
+
+        JsonNode expectedJson = mapper.valueToTree(expected);
+        assertEquals(expectedJson.path("oldProfile"), saved.path("oldProfile"));
+        assertEquals(expectedJson.path("newProfile"), saved.path("newProfile"));
+        verify(channelInfoHelper).updatePhoneChannelInfo(oldData, newData);
+        verify(channelInfoHelper).updateEmailChannelInfo(oldData, newData);
+    }
+
+    @Test
+    public void testConcurrentRequestThreadsKeepSeparateProfiles()
+            throws Exception {
+        Queue<Runnable> pending = queueProfileWork();
+        byte[] dataA = identityData.getBytes(StandardCharsets.UTF_8);
+        byte[] dataB = identityData.replace("\"Male\"", "\"Female\"")
+                .getBytes(StandardCharsets.UTF_8);
+
+        anonymousProfileHelper.setRegId("request-A")
+                .setOldUinData(dataA)
+                .setNewUinData(dataA);
+
+        runOnWorker(() -> anonymousProfileHelper.setRegId("request-B")
+                .setNewUinData(dataB)
+                .buildAndsaveProfile(false));
+
+        anonymousProfileHelper.buildAndsaveProfile(false);
+        assertEquals(2, pending.size());
+        Mockito.verifyZeroInteractions(anonymousProfileRepo);
+
+        runOnWorker(pending.remove());
+        runOnWorker(pending.remove());
+
+        ArgumentCaptor<AnonymousProfileEntity> captor =
+                ArgumentCaptor.forClass(AnonymousProfileEntity.class);
+        Mockito.verify(anonymousProfileRepo, Mockito.times(2))
+                .save(captor.capture());
+
+        JsonNode profileB = mapper.readTree(
+                captor.getAllValues().get(0).getProfile());
+        JsonNode profileA = mapper.readTree(
+                captor.getAllValues().get(1).getProfile());
+
+        assertEquals("New", profileB.path("processName").asText());
+        assertTrue(profileB.path("oldProfile").isNull());
+        assertFalse(profileB.path("newProfile").isNull());
+        assertEquals("Update", profileA.path("processName").asText());
+        assertFalse(profileA.path("oldProfile").isNull());
+        assertFalse(profileA.path("newProfile").isNull());
+        assertFalse(profileA.path("newProfile")
+                .equals(profileB.path("newProfile")));
+    }
+
+    private Queue<Runnable> queueProfileWork() {
+        Queue<Runnable> pending = new ArrayDeque<>();
+        Mockito.doAnswer(invocation -> {
+            pending.add(invocation.getArgument(0));
+            return null;
+        }).when(anonymousProfileExecutor).execute(Mockito.any(Runnable.class));
+        return pending;
+    }
+
+    private void runOnWorker(Runnable work) throws Exception {
+        FutureTask<Void> task = new FutureTask<>(work, null);
+        Thread worker = new Thread(task, "anonymous-profile-test-worker");
+        worker.setDaemon(true);
+        worker.start();
+        task.get(5, TimeUnit.SECONDS);
+    }
+
+    private AnonymousProfileEntity captureSavedProfile() {
+        ArgumentCaptor<AnonymousProfileEntity> captor =
+                ArgumentCaptor.forClass(AnonymousProfileEntity.class);
+        verify(anonymousProfileRepo).save(captor.capture());
+
+        AnonymousProfileEntity saved = captor.getValue();
+        assertNotNull(saved.getId());
+        assertNotNull(saved.getCrDTimes());
+        assertEquals(IdRepoSecurityManager.getUser(), saved.getCreatedBy());
+        return saved;
+    }
 }
