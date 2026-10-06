@@ -152,7 +152,7 @@ AddIdentity needs a CBEFF payload in `documents[0].value`. The runner chooses th
 ### Remote / QA
 
 - Always generates BioValue via Mock SBI; it does **not** fall back to `bioValue.properties`.
-- Runner sets `user.dir` to `src/main/resources/mds` while generating so Mock SBI finds `application.properties`, `Biometric Devices/`, and `resource/Profile/`.
+- Runner exposes `src/main/resources/mds` on the process working directory while generating so Mock SBI finds `./application.properties`, `Biometric Devices/`, and `resource/Profile/`.
 - Confirm in the log: `Env mode: generating BioValue via Mock SBI` and a large `BioValue ready for AddIdentity (len=...)`.
 - `apitest-commons` must keep empty Face `<Subtype></Subtype>` and sanitize MDS CBEFF for idrepo XSD (strip JWT `<SB>` / `<others>` that known-good BioValue does not have). Install the fixed commons SNAPSHOT before the env run if your IDE still has an older jar.
 

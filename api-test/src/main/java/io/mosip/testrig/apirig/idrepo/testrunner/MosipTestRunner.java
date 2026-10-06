@@ -3,7 +3,6 @@ package io.mosip.testrig.apirig.idrepo.testrunner;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 import io.mosip.testrig.apirig.dataprovider.BiometricDataProvider;
-import io.mosip.testrig.apirig.dataprovider.util.DataProviderConstants;
 import io.mosip.testrig.apirig.dbaccess.DBManager;
 import io.mosip.testrig.apirig.idrepo.utils.IdRepoConfigManager;
 import io.mosip.testrig.apirig.idrepo.utils.IdRepoUtil;
@@ -35,6 +34,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.lang.reflect.Field;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -102,14 +102,8 @@ public class MosipTestRunner {
 			BaseTestCase.getLanguageList();
 			AdminTestUtil.getLocationData();
 
-			// Mock SBI loads ./application.properties from cwd and joins Biometric Devices /
-			// resource/Profile relative to that cwd. Canonical assets live under
-			// src/main/resources/mds — run generation with user.dir temporarily at mds/.
-			Path mdsRoot = ensureMockSbiResourcesFromClasspath();
-
 			if (skipPartnerSetup) {
 				LOGGER.warn("Skipping PartnerRegistration.deviceGeneration() on local endpoint.");
-				seedMockSbiSigningKeys();
 			} else {
 				PartnerRegistration.deleteCertificates();
 				PartnerRegistration.deviceGeneration();
@@ -122,14 +116,12 @@ public class MosipTestRunner {
 					loadBundledBioValueProperties();
 					if (!hasUsableBioValue()) {
 						LOGGER.warn("No usable bundled BioValue; attempting Mock SBI under mds/.");
-						runWithUserDir(mdsRoot,
-								() -> BiometricDataProvider.generateBiometricTestData("Registration"));
+						generateBioValueViaMockSbi();
 					}
 				} else {
 					// Env/server: Mock SBI only — never fall back to bioValue.properties.
-					LOGGER.info("Env mode: generating BioValue via Mock SBI (mds=" + mdsRoot + ")");
-					Boolean mdsOk = runWithUserDir(mdsRoot,
-							() -> BiometricDataProvider.generateBiometricTestData("Registration"));
+					LOGGER.info("Env mode: generating BioValue via Mock SBI");
+					Boolean mdsOk = generateBioValueViaMockSbi();
 					if (!Boolean.TRUE.equals(mdsOk) || !hasUsableBioValue()) {
 						throw new IllegalStateException(
 								"Mock SBI did not produce usable BioValue/FaceBioValue for env run "
@@ -248,9 +240,20 @@ public class MosipTestRunner {
 							+ " (need application.properties, Biometric Devices/.../mosipface.p12, "
 							+ "resource/Profile/Default/Registration/Face.iso).");
 		}
-		DataProviderConstants.RESOURCE = mdsRoot.resolve("resource").toString().replace('\\', '/') + "/";
 		LOGGER.info("Mock SBI devices/profiles from " + mdsRoot);
 		return mdsRoot;
+	}
+
+	/**
+	 * Resolve mds/, seed device keystores, and expose that tree on the process cwd
+	 * before Mock SBI starts. Skipped when localhost already has a usable bundled BioValue.
+	 */
+	private static Boolean generateBioValueViaMockSbi() throws Exception {
+		Path mdsRoot = ensureMockSbiResourcesFromClasspath();
+		seedMockSbiSigningKeys();
+		LOGGER.info("Generating BioValue via Mock SBI (mds=" + mdsRoot + ")");
+		return runWithMdsOnCwd(mdsRoot,
+				() -> BiometricDataProvider.generateBiometricTestData("Registration"));
 	}
 
 	static boolean isCompleteMds(Path mdsRoot) {
@@ -266,19 +269,121 @@ public class MosipTestRunner {
 		T get() throws Exception;
 	}
 
-	static <T> T runWithUserDir(Path dir, ThrowingSupplier<T> action) throws Exception {
-		String originalUserDir = System.getProperty("user.dir");
-		System.setProperty("user.dir", dir.toAbsolutePath().normalize().toString());
-		try {
-			return action.get();
-		} finally {
-			if (originalUserDir != null) {
-				System.setProperty("user.dir", originalUserDir);
+	/**
+	 * mock-mds resolves {@code ./application.properties} via {@code new File(".")}
+	 * (process cwd). Bridge the canonical mds tree onto that cwd before starting Mock SBI.
+	 */
+	static <T> T runWithMdsOnCwd(Path dir, ThrowingSupplier<T> action) throws Exception {
+		Path mdsRoot = dir.toAbsolutePath().normalize();
+		exposeMdsAtProcessCwd(mdsRoot, resolveProcessCwd());
+		resetMockSbiPropertyCache();
+		return action.get();
+	}
+
+	private static Path resolveProcessCwd() throws IOException {
+		return Path.of(new File(".").getCanonicalPath());
+	}
+
+	private static void exposeMdsAtProcessCwd(Path mdsRoot, Path processCwd) throws IOException {
+		Path normalizedMds = mdsRoot.toAbsolutePath().normalize();
+		Path normalizedCwd = processCwd.toAbsolutePath().normalize();
+		if (normalizedCwd.equals(normalizedMds)) {
+			return;
+		}
+		ensureMdsEntry(normalizedMds.resolve("application.properties"),
+				normalizedCwd.resolve("application.properties"), false);
+		ensureMdsEntry(normalizedMds.resolve("Biometric Devices"),
+				normalizedCwd.resolve("Biometric Devices"), true);
+		ensureMdsEntry(normalizedMds.resolve("resource"), normalizedCwd.resolve("resource"), true);
+		LOGGER.info("Mock SBI cwd bridge: exposed " + normalizedMds + " at " + normalizedCwd);
+	}
+
+	private static void ensureMdsEntry(Path source, Path target, boolean directory) throws IOException {
+		Path normalizedSource = source.toAbsolutePath().normalize();
+		if (Files.exists(target)) {
+			if (directory) {
+				if (pathPointsTo(target, normalizedSource)) {
+					return;
+				}
+				throw new IllegalStateException("Mock SBI needs " + target
+						+ " but an unrelated path already exists. Remove or relocate it.");
 			}
+			if (Files.isRegularFile(target)) {
+				Files.copy(normalizedSource, target, StandardCopyOption.REPLACE_EXISTING);
+				return;
+			}
+			throw new IllegalStateException("Mock SBI needs " + target
+					+ " but an unrelated path already exists. Remove or relocate it.");
+		}
+		Path parent = target.getParent();
+		if (parent != null) {
+			Files.createDirectories(parent);
+		}
+		if (directory) {
+			createDirectoryLink(normalizedSource, target);
+		} else {
+			Files.copy(normalizedSource, target, StandardCopyOption.REPLACE_EXISTING);
 		}
 	}
 
-	/** Local runs skip PMS deviceGeneration — seed modality keystores from mds/. */
+	private static boolean pathPointsTo(Path link, Path target) throws IOException {
+		if (!Files.exists(link)) {
+			return false;
+		}
+		Path normalizedTarget = target.toAbsolutePath().normalize();
+		if (Files.isSymbolicLink(link)) {
+			return Files.readSymbolicLink(link).toAbsolutePath().normalize().equals(normalizedTarget);
+		}
+		return link.toRealPath().normalize().equals(normalizedTarget.toRealPath().normalize());
+	}
+
+	private static void createDirectoryLink(Path source, Path target) throws IOException {
+		try {
+			Files.createSymbolicLink(target, source);
+		} catch (IOException | UnsupportedOperationException first) {
+			if (!isWindows()) {
+				throw new IOException("Failed to link Mock SBI directory " + source + " -> " + target, first);
+			}
+			createWindowsJunction(source, target);
+		}
+	}
+
+	private static void createWindowsJunction(Path source, Path target) throws IOException {
+		ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", "mklink", "/J",
+				target.toAbsolutePath().normalize().toString(),
+				source.toAbsolutePath().normalize().toString());
+		processBuilder.redirectErrorStream(true);
+		Process process = processBuilder.start();
+		String output;
+		try (InputStream in = process.getInputStream()) {
+			output = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+		}
+		try {
+			if (process.waitFor() != 0) {
+				throw new IOException("mklink /J failed for " + target + ": " + output.trim());
+			}
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new IOException("Interrupted while creating junction for " + target, e);
+		}
+	}
+
+	private static boolean isWindows() {
+		return System.getProperty("os.name", "").toLowerCase().contains("win");
+	}
+
+	private static void resetMockSbiPropertyCache() {
+		try {
+			Class<?> helperClass = Class.forName("io.mosip.mock.sbi.util.ApplicationPropertyHelper");
+			Field propertiesField = helperClass.getDeclaredField("properties");
+			propertiesField.setAccessible(true);
+			propertiesField.set(null, null);
+		} catch (ReflectiveOperationException e) {
+			LOGGER.warn("Could not reset Mock SBI ApplicationPropertyHelper cache: " + e.getMessage());
+		}
+	}
+
+	/** Seed bundled mds modality keystores into the certs module dir for Mock SBI signing. */
 	static void seedMockSbiSigningKeys() throws IOException {
 		Path mdsRoot = resolveMdsSourceDir();
 		Path biometricDevices = mdsRoot.resolve("Biometric Devices");
@@ -288,14 +393,9 @@ public class MosipTestRunner {
 		}
 		String keysDir = BiometricDataProvider.getKeysDirPath("", BaseTestCase.certsForModule);
 		Path keysBiometricDevices = Path.of(keysDir).resolve("Biometric Devices");
-		Path keysFace = keysBiometricDevices.resolve("Face").resolve("Keys").resolve("mosipface.p12");
-		if (!Files.isRegularFile(keysFace)) {
-			LOGGER.info("Seeding Mock SBI signing keystore: " + biometricDevices + " -> " + keysBiometricDevices);
-			Files.createDirectories(Path.of(keysDir));
-			copyDirectory(biometricDevices, keysBiometricDevices);
-		} else {
-			LOGGER.info("Mock SBI signing keystore already present: " + keysFace);
-		}
+		LOGGER.info("Seeding Mock SBI signing keystore: " + biometricDevices + " -> " + keysBiometricDevices);
+		Files.createDirectories(Path.of(keysDir));
+		copyDirectory(biometricDevices, keysBiometricDevices);
 	}
 
 	static Path resolveMdsSourceDir() throws IOException {
