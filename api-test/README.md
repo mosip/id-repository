@@ -62,28 +62,31 @@ You can access the test automation code using either of the following methods:
 ---
 
 ## Update the property file
-1. Navigate to the Idrepo.properties file located at:
-    id-repository\api-test\src\main\resources\config\Idrepo.properties
-2. Open the file in your preferred editor
-3. Update the client secret values and other required credentials as per your environment
 
-Do **not** commit local secrets or localhost URLs in `Idrepo.properties`.
+`api-test/src/main/resources/config/Idrepo.properties` is committed with local docker-compose defaults (WireMock `:8082`, identity service `:8090`, Postgres `:5455`).
+
+Rancher overrides a key when it sets an environment variable with the same name. `ConfigManager` prefers `System.getenv(key)` over the file. `-Denv.endpoint` does not replace Keycloak, database, or component URLs.
+
+To run this jar from a laptop against a remote server, edit these keys in `Idrepo.properties` for that run, then change them back before you commit:
+
+- `keycloak-external-url`
+- `audit_url`
+- `partner_url`
+- `db-server`
+- `db-port`
+- `mosip_components_base_urls`
+
+Leave secrets blank in the file. Supply them with environment variables or `.env.local` (gitignored). Do **not** commit secrets.
 
 ---
 
 ## Run against localhost
 
-Use this when ID Repository is running on your machine (service on port `8090`, typically with a local gateway / WireMock on `8082`).
+Use this when ID Repository is running on your machine (service on port `8090`, typically with a local gateway / WireMock on `8082`). No property edit is required; `Idrepo.properties` already points at that stack.
 
-### 1. Config file auto-select
+When `env.endpoint` is `localhost` or `127.0.0.1`, the runner skips Keycloak admin user setup and partner/device cert generation, and it sanitizes Windows cert folder names that contain `:`.
 
-When `-Denv.endpoint` contains `localhost` or `127.0.0.1`, the runner loads `config/Idrepo-local.properties` automatically. Otherwise it loads `config/Idrepo.properties`. Optional override: `-Didrepo.propertiesFile=<name>`.
-
-`Idrepo-local.properties` already points at local Keycloak/WireMock (`:8082`), Postgres (`:5455`), and component base URLs (`idrepository` on `:8090`, stubs on `:8082`). Leave secrets blank in the file and supply them via `.env.local` / environment variables (`ConfigManager` prefers `System.getenv(key)`).
-
-When `env.endpoint` is `localhost` or `127.0.0.1`, the runner also skips Keycloak admin user setup and partner/device cert generation, and it sanitizes Windows cert folder names that contain `:`.
-
-### 2. Build and run
+### Build and run
 
 ```sh
 cd api-test
