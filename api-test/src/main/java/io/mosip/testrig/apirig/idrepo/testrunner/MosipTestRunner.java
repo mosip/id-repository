@@ -59,10 +59,8 @@ public class MosipTestRunner {
 			ExtractResource.removeOldMosipTestTestResource();
 			if (getRunType().equalsIgnoreCase("JAR")) {
 				ExtractResource.extractCommonResourceFromJar();
-				ExtractResource.getListOfFilesFromJarAndCopyToExternalResource("mds/");
 			} else {
 				ExtractResource.copyCommonResources();
-				ExtractResource.copyCommonResources("mds/");
 			}
 			AdminTestUtil.init();
 			IdRepoConfigManager.init();
