@@ -1211,6 +1211,156 @@ AddIdentity:
   "status":"ACTIVATED"
 }'
 
+   IdRepository_AddIdentity_For_DraftV2UpdateScen_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      description: Add an identity reserved for the CreateDraftV2 UPDATE-packet draft - uin_draft.uin_hash is unique, so each open draft needs its own UIN.
+      uniqueIdentifier: TC_IDRepo_AddIdentity_45
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+  "UIN": "$UIN$",
+  "dateOfBirth": "1992/04/15",
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+  "category": "individualBiometrics",
+  "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+
+   IdRepository_AddIdentity_For_DraftV2LostScen_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      description: Add an identity reserved as the ABIS-matched UIN stamped onto the $RIDV2LOST$ draft - uin_draft.uin_hash is unique, so it must not be shared with another open draft.
+      uniqueIdentifier: TC_IDRepo_AddIdentity_46
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+  "UIN": "$UIN$",
+  "dateOfBirth": "1992/04/15",
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+  "category": "individualBiometrics",
+  "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+
+   IdRepository_AddIdentity_For_DraftV2OlderRidScen_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      description: Add an identity reserved for the older-RID draft chain ($RIDV2OLD$ then $RIDV2LATEST$ published on this UIN) - not shared with any other draft since uin_draft.uin_hash is unique.
+      uniqueIdentifier: TC_IDRepo_AddIdentity_47
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+  "UIN": "$UIN$",
+  "dateOfBirth": "1992/04/15",
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+  "category": "individualBiometrics",
+  "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+
+   IdRepository_AddIdentity_For_DraftV2LostStampFirstScen_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      description: Add an identity reserved as the ABIS-matched UIN stamped onto the $RIDV2LOSTSTAMPFIRST$ LOST draft before any update - not shared with any other draft since uin_draft.uin_hash is unique.
+      uniqueIdentifier: TC_IDRepo_AddIdentity_48
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+  "UIN": "$UIN$",
+  "dateOfBirth": "1992/04/15",
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+  "category": "individualBiometrics",
+  "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+
+   IdRepository_AddIdentity_For_DraftV2LostRestampScen_smoke_Pos:
+      endPoint: /idrepository/v1/identity/
+      description: Add an identity reserved as the ABIS-matched UIN stamped on $RIDV2LOSTRESTAMP$, released when that draft is discarded, then stamped again on the re-created draft - not shared with any other draft since uin_draft.uin_hash is unique.
+      uniqueIdentifier: TC_IDRepo_AddIdentity_49
+      role: testrig
+      restMethod: post
+      inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
+      outputTemplate: idRepository/AddIdentity/addIdentityResult
+      input: '{
+  "value": "$BIOVALUE$",
+  "id": "mosip.id.create",
+  "registrationId": "$RID$",
+  "addressCopy": "Y",
+  "biometricReferenceId": "23452353",
+  "UIN": "$UIN$",
+  "dateOfBirth": "1992/04/15",
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "referenceIdentityNumber": "6789545678878",
+  "version": "v1",
+  "introducerRID": "212124324784879",
+  "introducerUIN": "212124324784879",
+  "category": "individualBiometrics",
+  "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+  "status":"ACTIVATED"
+}'
+
    IdRepository_AddIdentity_For_DeactivateScen_smoke_Pos:
       endPoint: /idrepository/v1/identity/
       description: Verify that the system successfully adds an identity for the deactivate scenario when the API is called with valid parameters

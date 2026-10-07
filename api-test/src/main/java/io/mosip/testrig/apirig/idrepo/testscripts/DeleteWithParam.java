@@ -113,8 +113,9 @@ public class DeleteWithParam extends IdRepoUtil implements ITest {
 		}
 
 		else {
-			response = deleteWithPathParamAndCookie(ApplnURI + testCaseDTO.getEndPoint(),
-					getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate()), COOKIENAME,
+			String inputJson = inputStringKeyWordHandeler(
+					getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate()), testCaseName);
+			response = deleteWithPathParamAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 					testCaseDTO.getRole(), testCaseDTO.getTestCaseName(), sendEsignetToken);
 			Map<String, List<OutputValidationDto>> ouputValid = OutputValidationUtil.doJsonOutputValidation(
 					response.asString(), getJsonFromTemplate(testCaseDTO.getOutput(), testCaseDTO.getOutputTemplate()),

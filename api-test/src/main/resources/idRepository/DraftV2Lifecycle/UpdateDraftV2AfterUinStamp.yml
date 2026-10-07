@@ -1,0 +1,23 @@
+UpdateDraftV2AfterUinStamp:
+  IdRepository_DraftV2Lifecycle_UpdateLostDraftAfterStamp_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
+      description: L3 - update the $RIDV2LOST$ LOST draft after UpdateDraftUinData stamped it (postalCode 14999) - merge now runs with uinHash set; PublishDraftV2_10 then publishes it.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_39
+      role: idrepo
+      restMethod: patch
+      outputTemplate: idRepository/UpdateDraft/updateDraftResult
+      input: '{
+  "id": "mosip.id.create",
+  "registrationId": "$RIDV2LOST$",
+  "dateOfBirth": "1992/04/15",
+  "postalCode": "14999",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
+  "version": "v1",
+  "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+    "status": "DRAFTED"
+}'

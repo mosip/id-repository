@@ -1,0 +1,23 @@
+UpdateDraftV2LatestRid:
+  IdRepository_DraftV2Lifecycle_OlderRidChainUpdateLatestRid_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
+      description: Older-RID chain step 5 - update the $RIDV2LATEST$ UPDATE draft before it is published.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_09
+      role: idrepo
+      restMethod: patch
+      outputTemplate: idRepository/UpdateDraft/updateDraftResult
+      input: '{
+  "id": "mosip.id.create",
+  "registrationId": "$RIDV2LATEST$",
+  "dateOfBirth": "1992/04/15",
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
+  "version": "v1",
+  "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+    "status": "DRAFTED"
+}'

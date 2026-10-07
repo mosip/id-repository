@@ -139,3 +139,18 @@ ExtractBiometricsV2:
       output: '{
    "responseCode": "403"
 }'
+
+  IdRepository_ExtractBiometricsV2_ForFaceIrisFinger_LiveCopiedDraft_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?faceExtractionFormat=mock-1.1&fingerExtractionFormat=mock-1.1&irisExtractionFormat=mock-1.1
+      description: N2 - extract all three modalities from the $RIDV2LATEST$ draft re-created by DraftV2Lifecycle_14, whose CBEFF was copied from the live identity into _draft/{ridHash}/ - extraction must read the copied files.
+      uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_10
+      role: idrepo
+      restMethod: put
+      inputTemplate: idRepository/ExtractBiometrics/extractBiometrics
+      outputTemplate: idRepository/ExtractBiometrics/extractBiometricsResult
+      input: '{
+      "registrationId":"$RIDV2LATEST$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'

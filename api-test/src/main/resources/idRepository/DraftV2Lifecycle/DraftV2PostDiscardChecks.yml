@@ -1,0 +1,32 @@
+DraftV2PostDiscardChecks:
+  IdRepository_DraftV2Lifecycle_LiveDemographicsIntactAfterDiscard_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/idvid/{id}?type={type}
+      description: U4 - after the $RIDV2DISCARDUPDATE$ UPDATE draft was discarded, the live NewScen identity must still show the published postalCode 14555.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_21
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/DraftV2Lifecycle/retrieveIdentityWithType
+      outputTemplate: idRepository/DraftV2Lifecycle/retrieveIdentityPostalCodeResult
+      input: '{
+      "id":"$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$",
+      "type": "demo"
+      }'
+      output: '{
+      "postalCode": "14555"
+}'
+
+  IdRepository_DraftV2Lifecycle_LiveBiometricsIntactAfterDiscard_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/idvid/{id}?type={type}
+      description: U4 - after the UPDATE draft discard, retrieving the NewScen identity with type=bio must still succeed - discard must not delete live {uinHash}/ biometrics.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_22
+      role: idrepo
+      restMethod: get
+      checkErrorsOnlyInResponse: true
+      inputTemplate: idRepository/DraftV2Lifecycle/retrieveIdentityWithType
+      outputTemplate: idRepository/error
+      input: '{
+      "id":"$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$",
+      "type": "bio"
+      }'
+      output: '{
+}'

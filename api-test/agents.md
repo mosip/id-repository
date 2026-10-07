@@ -14,6 +14,7 @@ Module artifact: `apitest-idrepo`. Package: `io.mosip.testrig.apirig.idrepo`. Ru
 | `resources/idRepository/AddIdentity/AddIdentityArrayHandle.yml` | Handle-specific AddIdentity negative tests |
 | `resources/idRepository/UpdateIdentity/UpdateIdentity.yml` | UpdateIdentity test cases |
 | `resources/idRepository/UpdateIdentityArrayHandle/UpdateIdentityArrayHandle.yml` | Handle-specific UpdateIdentity negative tests |
+| `resources/idRepository/DraftV2Lifecycle/` | Draft V2 steps that must run after publish/discard (reprocess, stale-RID, live-vs-draft checks) |
 
 ## HBS Template Generation
 
@@ -133,9 +134,53 @@ Three known issues fixed in `IdRepoArrayHandle.java` for UpdateIdentity tests:
 
 The fix to use `{{email}}` was applied only to `modifySchemaGenerateHbs` (used by `AddIdentity`). The three sibling methods (`updateIdentityHbs`, `generateHbsForUpdateDraft`, `generateHbsForPrereg`) are pending the same `$ref`-type-driven refactor.
 
+## Draft V2 Tests (`/identity/draft/v2/*`, `/draft/uindata`)
+
+### RID tokens
+Draft V2 RIDs are resolved by `IdRepoUtil.inputStringKeyWordHandeler` from the `RID_TOKENS` map (`$RIDV2NEW$`, `$RIDV2LOST$`, `$RIDV2OLD$`, …). Each is generated once per run so every YAML that uses it hits the same draft. `$RIDV2FRESH$` is generated fresh on every call — use it for one-off RIDs nothing else looks up. `$UNUSEDUIN$` fetches a fresh valid-format UIN from `/v1/idgenerator/uin` (same call as AddIdentity's `$UIN$`) that no identity uses — for "UIN not found" (`IDR-IDC-017`) cases. New tokens need a unique 5-digit prefix (`4567x`/`4568x` are taken — check before adding).
+
+### One open draft per UIN
+`idrepo.uin_draft` has `UNIQUE (uin)` and `UNIQUE (uin_hash)`. Two drafts holding the same UIN at the same time fail:
+- `createDraftV2` with a UIN already held → `IDR-IDC-006` (DB error, not a clean conflict)
+- `uindata` stamping a UIN already held → `IDR-IDC-012`
+
+Give every UPDATE draft / LOST stamp its own `AddIdentity_For_DraftV2*Scen` identity unless the previous holder is provably published or discarded by then. Sharing `AddIdentity_For_NewScen` across overlapping drafts silently broke `CreateDraftV2_04` and the `$RIDV2LOST$` stamp before this was fixed.
+
+### LOST drafts: update/stamp ordering
+- **One identity update before stamping.** A second `updateDraftV2` that changes identity while `uinHash` is null is rejected with `IDR-IDC-015` (deliberate guard in `updateDemographicData`).
+- **Stamp before any update currently NPEs.** `uindata` on a LOST draft with null `uinData` fails in `backfillDraftIdentityFromLiveUin` → `IDR-IDC-004`, and the stamp rolls back. `UpdateDraftUinData_12` expects `DRAFTED` on purpose to flag it; `PublishDraftV2_12` expects `ACTIVATED` and fails with `IDR-IDC-015` until the same fix lands.
+- **Publish needs a stamped UIN** → otherwise `IDR-IDC-015`.
+- **Update with no `identity` passes validation.** On a draft with identity data it is a no-op merge; as a LOST draft's first update it stores the identity as JSON `null`.
+- **Draft RID format is only validated on create** (`IDR-IDC-002`). Update, discard, `uindata`, get and publish treat a malformed RID as not found (`IDR-IDC-007`) — same path as a `NoDraftExists` test, so don't add format tests for them.
+
+### Reprocess rules (`createDraftV2` on a used RID)
+- Blocked only while a draft row exists for the RID (`IDR-IDC-012`); after publish or discard the same RID can be re-drafted.
+- With no `uin`, a RID found in UIN history but no longer the live row's RID is rejected as older (`IDR-IDC-016`); the latest RID is allowed.
+- With a `uin`, that older-RID check is skipped — an older UPDATE RID is re-drafted (`DRAFTED`). Stale UPDATE packets are blocked in Registration Processor (MOSIP #2385), not here, so there's no ID Repo test for it.
+- Draft APIs never change UIN status — `status` is not merged on update or sent on publish. ACTIVATED/DEACTIVATED belong to the identity update API.
+
+### Suite ordering
+Each `<test>` runs its whole YAML at one point, so multi-step chains are spread across entries in this order:
+`CreateDraftV2 → GetDraftV2 → UpdateDraftV2 → UpdateDraftUinData → UpdateDraftV2AfterUinStamp → DraftV2PrePublishChecks → PublishDraftV2 → DraftV2PostPublishChecks → CreateDraftV2AfterPublish → UpdateDraftV2LatestRid → PublishDraftV2LatestRid → DiscardDraftV2 → DraftV2PostDiscardChecks → CreateDraftV2AfterDiscard → DraftV2ReprocessChecks → UpdateDraftV2AfterDiscard → UpdateDraftUinDataAfterDiscard → PublishDraftV2AfterDiscard`
+
+Before adding a step, put it in the earliest existing entry of the right class that runs after its prerequisite; add a new entry only when none fits. Test descriptions name the chain and step they belong to.
+
+### Custom draft assertions (`GetWithParam`, by test-name marker)
+| Marker | Check |
+|---|---|
+| `UinNotAllocated` | draft returned (no `errors`) and `response.identity.UIN` absent/blank — an error response fails |
+| `UinEquals` | `response.identity.UIN` equals `output.UIN` (`$ID:` tokens resolved — plain output validation does not resolve them) |
+| `DraftFieldAbsent` | draft identity exists and lacks `output.absentField` |
+
+A missing `UIN`/`absentField` key in `output` is reported as FAIL, not thrown.
+
+`/draft/uindata` validates the UIN format in the controller before any lookup, so malformed or blank UINs get `IDR-IDC-002`; a well-formed UIN that doesn't exist gets `IDR-IDC-017`.
+
 ## Common Pitfalls
 
 - **`_save_withdublicatevalue` must run before `_withdublicatevalue`** — YAML order matters; they must be in this sequence in the file.
 - **Email in `UpdateIdentityArrayHandle.yml`** — all inputs use `"email": "mosipuser123@mailinator.com"` (ignored by Handlebars since HBS uses `$EMAILVALUE$`); the actual email comes from the HBS template.
 - **`requiredSchemaFields` field names are literal** — `[dateOfBirth]` will NOT match a schema that calls the field `DOB`. Both the YAML key and `requiredSchemaFields` must use the same field name as the live schema.
+- **Draft V2 UIN reuse** — never let two open drafts hold the same UIN (see "One open draft per UIN"); failures show up as unrelated `IDR-IDC-006`/`012` errors.
+- **Draft V2 values that must differ from live** — `UpdateDraftV2_05` uses postalCode `14555` (live is `14022`) so the pre/post-publish retrieval checks can tell draft and live apart. Don't reset it.
 - **Recovery from accidentally emptied YAML**: `cd target && jar xf apitest-idrepo-1.2.1-SNAPSHOT.jar <path/in/jar>`, then copy to `src/main/resources/`.

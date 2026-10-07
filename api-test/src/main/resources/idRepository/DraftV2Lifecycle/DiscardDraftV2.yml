@@ -1,0 +1,145 @@
+DiscardDraftV2:
+  IdRepository_DraftV2Lifecycle_DiscardDraft_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/discard/{registrationId}
+      description: Discard the reprocess draft re-created on $RIDV2NEW$ after publish.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_02
+      role: idrepo
+      restMethod: delete
+      inputTemplate: idRepository/DeleteDraft/deleteDraft
+      outputTemplate: idRepository/DeleteDraft/deleteDraftResult
+      input: '{
+      "registrationId":"$RIDV2NEW$"
+      }'
+      output: '{
+    "status": "DISCARDED"
+}'
+
+  IdRepository_DraftV2Lifecycle_DiscardDraftTwice_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/discard/{registrationId}
+      description: Discard $RIDV2NEW$ again right after it was discarded - no draft row remains, so it must be rejected as no record found.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_04
+      role: idrepo
+      restMethod: delete
+      inputTemplate: idRepository/DeleteDraft/deleteDraft
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RIDV2NEW$"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-007"
+    }
+  ]
+}'
+
+  IdRepository_DraftV2Lifecycle_DiscardWithInvalidToken_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/discard/{registrationId}
+      description: Discard using an invalid/unauthenticated auth token - must be rejected before the draft is looked up.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_06
+      role: invalid
+      restMethod: delete
+      checkOnlyStatusCodeInResponse: true
+      inputTemplate: idRepository/DeleteDraft/deleteDraft
+      outputTemplate: idRepository/responseCode
+      input: '{
+      "registrationId":"$RIDV2NEW$"
+      }'
+      output: '{
+   "responseCode": "500"
+}'
+
+  IdRepository_DraftV2Lifecycle_DiscardWithUnauthorizedRole_StatusCode_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/discard/{registrationId}
+      description: Discard using a valid token that lacks the required role - must be rejected before the draft is looked up.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_07
+      role: resident
+      restMethod: delete
+      checkOnlyStatusCodeInResponse: true
+      inputTemplate: idRepository/DeleteDraft/deleteDraft
+      outputTemplate: idRepository/responseCode
+      input: '{
+      "registrationId":"$RIDV2NEW$"
+      }'
+      output: '{
+   "responseCode": "403"
+}'
+
+  IdRepository_DraftV2Lifecycle_DiscardUnstampedLostDraft_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/discard/{registrationId}
+      description: Discard the never-stamped $RIDV2LOSTNOUIN$ LOST draft (null uin/uin_hash), as regproc does when a LOST packet has no ABIS match and is rejected.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_13
+      role: idrepo
+      restMethod: delete
+      inputTemplate: idRepository/DeleteDraft/deleteDraft
+      outputTemplate: idRepository/DeleteDraft/deleteDraftResult
+      input: '{
+      "registrationId":"$RIDV2LOSTNOUIN$"
+      }'
+      output: '{
+    "status": "DISCARDED"
+}'
+
+  IdRepository_DraftV2Lifecycle_DiscardUpdateDraft_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/discard/{registrationId}
+      description: U4 - discard the $RIDV2DISCARDUPDATE$ UPDATE draft; only _draft/{ridHash}/ may be removed, never the live NewScen files it was copied from.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_20
+      role: idrepo
+      restMethod: delete
+      inputTemplate: idRepository/DeleteDraft/deleteDraft
+      outputTemplate: idRepository/DeleteDraft/deleteDraftResult
+      input: '{
+      "registrationId":"$RIDV2DISCARDUPDATE$"
+      }'
+      output: '{
+    "status": "DISCARDED"
+}'
+
+  IdRepository_DraftV2Lifecycle_DiscardUnpublishedNewDraft_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/discard/{registrationId}
+      description: K1 step 3 - discard the updated but never-published $RIDV2NEWREPROCESS$ NEW draft (regproc reprocess discards first).
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_23
+      role: idrepo
+      restMethod: delete
+      inputTemplate: idRepository/DeleteDraft/deleteDraft
+      outputTemplate: idRepository/DeleteDraft/deleteDraftResult
+      input: '{
+      "registrationId":"$RIDV2NEWREPROCESS$"
+      }'
+      output: '{
+    "status": "DISCARDED"
+}'
+
+  IdRepository_DraftV2Lifecycle_DiscardStampedLostDraft_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/discard/{registrationId}
+      description: K5 step 4 - discard the stamped $RIDV2LOSTRESTAMP$ LOST draft; its draft row and uin_hash must be removed.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_24
+      role: idrepo
+      restMethod: delete
+      inputTemplate: idRepository/DeleteDraft/deleteDraft
+      outputTemplate: idRepository/DeleteDraft/deleteDraftResult
+      input: '{
+      "registrationId":"$RIDV2LOSTRESTAMP$"
+      }'
+      output: '{
+    "status": "DISCARDED"
+}'
+
+  IdRepository_DraftV2Lifecycle_DiscardBlankRid_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/discard/{registrationId}
+      description: N3 - discard passing a blank registrationId - rejected as missing input.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_38
+      role: idrepo
+      restMethod: delete
+      inputTemplate: idRepository/DeleteDraft/deleteDraft
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":""
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-003"
+    }
+  ]
+}'

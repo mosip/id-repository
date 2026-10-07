@@ -1,0 +1,51 @@
+CreateDraftV2AfterPublish:
+  IdRepository_DraftV2Lifecycle_CreateDraftSameRidAfterPublish_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
+      description: Re-create a draft on $RIDV2NEW$ after PublishDraftV2 published it - allowed as a reprocess, reusing the UIN from the live identity.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_01
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/CreateDraftV2/createDraftV2
+      outputTemplate: idRepository/CreateDraftV2/createDraftV2Result
+      input: '{
+      "registrationId":"$RIDV2NEW$",
+      "uin": "$REMOVE$",
+      "generateUin": "$REMOVE$"
+      }'
+      output: '{
+    "status": "DRAFTED"
+}'
+
+  IdRepository_DraftV2Lifecycle_OlderRidChainLatestRid_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
+      description: Older-RID chain step 4 - create an UPDATE draft on $RIDV2LATEST$ for the same OlderRidScen UIN that $RIDV2OLD$ was just published on.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_08
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/CreateDraftV2/createDraftV2
+      outputTemplate: idRepository/CreateDraftV2/createDraftV2Result
+      input: '{
+      "registrationId":"$RIDV2LATEST$",
+      "uin": "$ID:AddIdentity_For_DraftV2OlderRidScen_smoke_Pos_UIN$",
+      "generateUin": "$REMOVE$"
+      }'
+      output: '{
+    "status": "DRAFTED"
+}'
+
+  IdRepository_DraftV2Lifecycle_UpdateDraftToDiscard_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
+      description: U4 setup - create an UPDATE draft on $RIDV2DISCARDUPDATE$ for the NewScen UIN (free again after $RIDV2UPDATEA$ was published); live files are copied into the draft and it is later discarded.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_19
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/CreateDraftV2/createDraftV2
+      outputTemplate: idRepository/CreateDraftV2/createDraftV2Result
+      input: '{
+      "registrationId":"$RIDV2DISCARDUPDATE$",
+      "uin": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$",
+      "generateUin": "$REMOVE$"
+      }'
+      output: '{
+    "status": "DRAFTED"
+}'

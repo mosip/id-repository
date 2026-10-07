@@ -1,0 +1,69 @@
+UpdateDraftV2AfterDiscard:
+  IdRepository_DraftV2Lifecycle_UpdateRecreatedNewDraft_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
+      description: K2 step 1 - update the re-created $RIDV2NEWREPROCESS$ NEW draft.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_31
+      role: idrepo
+      restMethod: patch
+      outputTemplate: idRepository/UpdateDraft/updateDraftResult
+      input: '{
+  "id": "mosip.id.create",
+  "registrationId": "$RIDV2NEWREPROCESS$",
+  "dateOfBirth": "1992/04/15",
+  "postalCode": "14888",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
+  "version": "v1",
+  "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+    "status": "DRAFTED"
+}'
+
+  IdRepository_DraftV2Lifecycle_UpdateRecreatedUpdateDraft_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
+      description: K3 step 2 - update the re-created $RIDV2DISCARDUPDATE$ UPDATE draft.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_32
+      role: idrepo
+      restMethod: patch
+      outputTemplate: idRepository/UpdateDraft/updateDraftResult
+      input: '{
+  "id": "mosip.id.create",
+  "registrationId": "$RIDV2DISCARDUPDATE$",
+  "dateOfBirth": "1992/04/15",
+  "postalCode": "14666",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
+  "version": "v1",
+  "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+    "status": "DRAFTED"
+}'
+
+  IdRepository_DraftV2Lifecycle_UpdateRecreatedLostDraft_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
+      description: K5 step 7 - update the re-created $RIDV2LOSTRESTAMP$ LOST draft before stamping it again.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_33
+      role: idrepo
+      restMethod: patch
+      outputTemplate: idRepository/UpdateDraft/updateDraftResult
+      input: '{
+  "id": "mosip.id.create",
+  "registrationId": "$RIDV2LOSTRESTAMP$",
+  "dateOfBirth": "1992/04/15",
+  "postalCode": "14022",
+  "email": "$EMAILVALUE$",
+  "phone": "$PHONENUMBERFORIDENTITY$",
+  "value": "$BIOVALUE$",
+  "category": "individualBiometrics",
+  "version": "v1",
+  "requesttime": "$TIMESTAMP$"
+}'
+      output: '{
+    "status": "DRAFTED"
+}'

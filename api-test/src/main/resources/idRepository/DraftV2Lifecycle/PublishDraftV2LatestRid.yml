@@ -1,0 +1,15 @@
+PublishDraftV2LatestRid:
+  IdRepository_DraftV2Lifecycle_OlderRidChainPublishLatestRid_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
+      description: Older-RID chain step 6 - publish $RIDV2LATEST$; the live UIN row now carries $RIDV2LATEST$ and $RIDV2OLD$ remains only in UIN history.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_10
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/PublishDraft/publishDraft
+      outputTemplate: idRepository/PublishDraft/publishDraftResult
+      input: '{
+      "registrationId":"$RIDV2LATEST$"
+      }'
+      output: '{
+      "status": "ACTIVATED"
+}'

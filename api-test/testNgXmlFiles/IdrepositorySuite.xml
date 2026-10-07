@@ -265,9 +265,131 @@
 		</classes>
 	</test>
 
+	<test name="UpdateDraftV2AfterUinStamp">
+		<parameter name="ymlFile"
+			value="idRepository/DraftV2Lifecycle/UpdateDraftV2AfterUinStamp.yml" />
+		<parameter name="pathParams" value="registrationId" />
+		<classes>
+			<class name="io.mosip.testrig.apirig.idrepo.testscripts.UpdateDraft" />
+		</classes>
+	</test>
+
+	<test name="DraftV2PrePublishChecks">
+		<parameter name="ymlFile"
+			value="idRepository/DraftV2Lifecycle/DraftV2PrePublishChecks.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
+		</classes>
+	</test>
+
 	<test name="PublishDraftV2">
 		<parameter name="ymlFile"
 			value="idRepository/PublishDraftV2/PublishDraftV2.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
+		</classes>
+	</test>
+
+	<!-- Continues the $RIDV2NEW$ chain (CreateDraftV2 -> UpdateDraftV2 -> PublishDraftV2): re-create -> discard -> re-create -->
+	<test name="DraftV2PostPublishChecks">
+		<parameter name="ymlFile"
+			value="idRepository/DraftV2Lifecycle/DraftV2PostPublishChecks.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
+		</classes>
+	</test>
+
+	<test name="CreateDraftV2AfterPublish">
+		<parameter name="ymlFile"
+			value="idRepository/DraftV2Lifecycle/CreateDraftV2AfterPublish.yml" />
+		<parameter name="pathParams" value="registrationId" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.PostWithBodyAndPathParams" />
+		</classes>
+	</test>
+
+	<test name="UpdateDraftV2LatestRid">
+		<parameter name="ymlFile"
+			value="idRepository/DraftV2Lifecycle/UpdateDraftV2LatestRid.yml" />
+		<parameter name="pathParams" value="registrationId" />
+		<classes>
+			<class name="io.mosip.testrig.apirig.idrepo.testscripts.UpdateDraft" />
+		</classes>
+	</test>
+
+	<test name="PublishDraftV2LatestRid">
+		<parameter name="ymlFile"
+			value="idRepository/DraftV2Lifecycle/PublishDraftV2LatestRid.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
+		</classes>
+	</test>
+
+	<test name="DiscardDraftV2">
+		<parameter name="ymlFile"
+			value="idRepository/DraftV2Lifecycle/DiscardDraftV2.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.DeleteWithParam" />
+		</classes>
+	</test>
+
+	<test name="DraftV2PostDiscardChecks">
+		<parameter name="ymlFile"
+			value="idRepository/DraftV2Lifecycle/DraftV2PostDiscardChecks.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
+		</classes>
+	</test>
+
+	<test name="CreateDraftV2AfterDiscard">
+		<parameter name="ymlFile"
+			value="idRepository/DraftV2Lifecycle/CreateDraftV2AfterDiscard.yml" />
+		<parameter name="pathParams" value="registrationId" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.PostWithBodyAndPathParams" />
+		</classes>
+	</test>
+
+	<test name="DraftV2ReprocessChecks">
+		<parameter name="ymlFile"
+			value="idRepository/DraftV2Lifecycle/DraftV2ReprocessChecks.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
+		</classes>
+	</test>
+
+	<test name="UpdateDraftV2AfterDiscard">
+		<parameter name="ymlFile"
+			value="idRepository/DraftV2Lifecycle/UpdateDraftV2AfterDiscard.yml" />
+		<parameter name="pathParams" value="registrationId" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.UpdateDraft" />
+		</classes>
+	</test>
+
+	<test name="UpdateDraftUinDataAfterDiscard">
+		<parameter name="ymlFile"
+			value="idRepository/DraftV2Lifecycle/UpdateDraftUinDataAfterDiscard.yml" />
+		<parameter name="pathParams" value="registrationId" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.PatchWithPathParamsAndBody" />
+		</classes>
+	</test>
+
+	<test name="PublishDraftV2AfterDiscard">
+		<parameter name="ymlFile"
+			value="idRepository/DraftV2Lifecycle/PublishDraftV2AfterDiscard.yml" />
 		<classes>
 			<class
 				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />

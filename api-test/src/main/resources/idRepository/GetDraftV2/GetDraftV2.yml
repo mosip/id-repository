@@ -197,3 +197,18 @@ GetDraftV2:
       output: '{
    "responseCode": "403"
 }'
+
+  IdRepository_GetDraftV2_UinEqualsLive_UpdatePacket_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
+      description: U1 - get the $RIDV2UPDATEA$ UPDATE draft right after createDraftV2, before any update - the identity copied from live must carry the NewScen UIN.
+      uniqueIdentifier: TC_IDRepo_GetDraftV2_13
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/GetDraft/getDraft
+      outputTemplate: idRepository/GetDraftV2/getDraftV2UinResult
+      input: '{
+      "registrationId":"$RIDV2UPDATEA$"
+      }'
+      output: '{
+    "UIN": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$"
+}'
