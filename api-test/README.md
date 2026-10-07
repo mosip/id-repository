@@ -102,7 +102,7 @@ To execute the tests using Jar, use the following steps:
 
 2. Run the automation test suite JAR file:
    ```
-   java -jar -Dmodules=idrepo -Denv.user=api-internal.<env_name> -Denv.endpoint=<base_env> -Denv.testLevel=smokeAndRegression -jar apitest-idrepo-1.2.3.1-jar-with-dependencies.jar
+   java -Dmodules=idrepo -Denv.user=api-internal.<env_name> -Denv.endpoint=<base_env> -Denv.testLevel=smokeAndRegression -jar apitest-idrepo-<version>-jar-with-dependencies.jar
    ```
    
 # Using Eclipse IDE
@@ -176,7 +176,7 @@ This section describes the meaning of each column in the test report:
 - **env.user**: Replace `<env_name>` with the appropriate environment name (e.g., `dev`, `qa`, etc.).
 - **env.endpoint**: The environment where the application under test is deployed. Replace `<base_env>` with the correct base URL for the environment (e.g., `https://api-internal.<env_name>.mosip.net`).
 - **env.testLevel**: Set this to `smoke` to run only smoke test cases, or `smokeAndRegression` to run both smoke and regression tests.
-- **jar**: Specify the name of the JAR file to execute. The version will change according to the development code version. For example, the current version may look like `apitest-idrepo-1.2.3.1-jar-with-dependencies.jar`.
+- **jar**: The JAR file generated in the `target` directory, named `apitest-idrepo-<version>-jar-with-dependencies.jar`. Replace `<version>` with the project version in `api-test/pom.xml`, or use the exact file name present in `target`.
 
 ### Build and Run Info
 
