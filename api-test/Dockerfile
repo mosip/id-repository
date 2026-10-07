@@ -30,9 +30,6 @@ ENV work_dir=/home/${container_user}
 
 # Combine all necessary files into a single COPY command
 COPY ./api-test/target $work_dir/
-COPY ./api-test/src/main/resources/mds/application.properties $work_dir/
-COPY ["./api-test/src/main/resources/mds/Biometric Devices", "$work_dir/Biometric Devices"]
-COPY ["./api-test/src/main/resources/mds/resource", "$work_dir/resource"]
 COPY entrypoint.sh $work_dir
 
 # install packages and create user
