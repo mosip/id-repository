@@ -500,6 +500,78 @@ public class IdRepoProxyServiceImpl implements IdRepoService<IdRequestDTO, IdRes
 		}
 	}
 
+	// V2: same as getBiometricsForRequestedFormats, but extraction results persist directly
+	// under the draft path (_draft/{ridHash}/Biometrics/...) instead of the live path, so
+	// publishDraftV2 can move the whole draft prefix to live atomically without a separate
+	// relocate step.
+	protected byte[] getBiometricsForRequestedFormatsDraft(String ridHash, String fileName,
+													  Map<String, String> extractionFormats, byte[] originalData) throws IdRepoAppException {
+		try {
+			List<BIR> originalBirs = cbeffUtil.getBIRDataFromXML(originalData);
+			List<BIR> finalBirs = new ArrayList<>();
+
+			List<CompletableFuture<List<BIR>>> extractionFutures = new ArrayList<>();
+
+			for (BiometricType modality : SUPPORTED_MODALITIES) {
+				List<BIR> birTypesForModality = originalBirs.stream()
+						.filter(bir -> {
+							List<BiometricType> types = bir.getBdbInfo().getType();
+							return !types.isEmpty() && types.get(0).value().equalsIgnoreCase(modality.value());
+						})						.filter(bir -> {
+							Map<String, String> others = bir.getOthers();
+							return others == null || "false".equalsIgnoreCase(others.get("EXCEPTION"));
+						})
+						.collect(Collectors.toList());
+				Optional<Entry<String, String>> extractionFormatForModality = extractionFormats.entrySet().stream()
+						.filter(ent -> ent.getKey().toLowerCase().contains(modality.value().toLowerCase())).findAny();
+
+				if (!extractionFormatForModality.isEmpty()&& !birTypesForModality.isEmpty()) {
+					Entry<String, String> format = extractionFormatForModality.get();
+					CompletableFuture<List<BIR>> extractTemplateFuture = biometricExtractionService.extractTemplateDraft(
+							ridHash, fileName, format.getKey(), format.getValue(), birTypesForModality);
+					extractionFutures.add(extractTemplateFuture);
+
+				} else {
+					mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
+							"GETTING NON EXTRACTED FORMAT for Modality: " + modality.name());
+					finalBirs.addAll(birTypesForModality);
+				}
+			}
+
+			originalBirs.clear(); // release parsed BIR list before blocking on futures - reduces live set during wait
+
+			try {
+				CompletableFuture.allOf(extractionFutures.toArray(new CompletableFuture<?>[0]))
+						.get(extractionTimeoutSeconds, TimeUnit.SECONDS);
+			} catch (TimeoutException e) {
+				extractionFutures.forEach(f -> f.cancel(true));
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate",
+						"Biometric extraction timed out after " + extractionTimeoutSeconds + "s");
+				throw new IdRepoAppUncheckedException(BIO_EXTRACTION_ERROR, e);
+			} catch (ExecutionException e) {
+				Throwable cause = e.getCause();
+				if (cause instanceof IdRepoAppUncheckedException)
+					throw (IdRepoAppUncheckedException) cause;
+				throw new IdRepoAppUncheckedException(BIO_EXTRACTION_ERROR, cause);
+			}
+			for (CompletableFuture<List<BIR>> future : extractionFutures) {
+				finalBirs.addAll(future.getNow(Collections.emptyList()));
+			}
+
+			return cbeffUtil.createXML(finalBirs);
+		} catch (IdRepoAppUncheckedException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		} catch (InterruptedException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
+			Thread.currentThread().interrupt();
+			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
+		} catch (Exception e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "extractTemplate", e.getMessage());
+			throw new IdRepoAppException(BIO_EXTRACTION_ERROR, e);
+		}
+	}
+
 	/*
 	 * (non-Javadoc)
 	 *

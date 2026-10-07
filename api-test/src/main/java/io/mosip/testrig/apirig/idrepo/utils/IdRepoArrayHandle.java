@@ -293,6 +293,13 @@ public class IdRepoArrayHandle {
 			applySavedHandleValues(identity);
 			return jsonObj.toString();
 		}
+		// Renames only the selectedHandles entry to a name with no matching field — same as
+		// _withupdatedselectedhandle below — leaving the real field's key/value untouched. Run outside
+		// the per-handle loop so a real handle key is never in play here at all.
+		if (testCaseName.contains("_withupdatedselectedhandleanddemo") && identity.has("selectedHandles")) {
+			applyWithUpdatedSelectedHandle(identity.getJSONArray("selectedHandles"));
+			return jsonObj.toString();
+		}
 
 		// Only the per-handle loop below needs a pre-existing selectedHandles.
 		if (!identity.has("selectedHandles")) {
@@ -391,7 +398,8 @@ public class IdRepoArrayHandle {
 			JSONArray selectedHandles, String handle, JSONArray handleArray,
 			String phoneFieldName, int outerIndex) {
 		// More-specific patterns must appear before shorter substrings they contain:
-		//   _withupdatedselectedhandleanddemo and _withupdatedselectedhandleandfirstattribute before _withupdatedselectedhandle
+		//   _withupdatedselectedhandleandfirstattribute before _withupdatedselectedhandle
+		//   (_withupdatedselectedhandleanddemo is handled earlier, outside the per-handle loop)
 		//   _withupdatetagsandhandles before _withupdatetags
 		if (testCaseName.contains("_withupdatevalues")) {
 			applyWithUpdateValues(handleArray, handle, resolveEmailFieldName());
@@ -617,11 +625,24 @@ public class IdRepoArrayHandle {
 	/** Appends two more untagged values to an existing array-typed handle, to prove tags don't gate status. */
 	private static void applyAppendUntaggedValues(JSONArray handleArray, String handle) {
 		JSONObject second = new JSONObject();
-		second.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+		second.put("value", generateHandleAppendValue(handle));
 		JSONObject third = new JSONObject();
-		third.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+		third.put("value", generateHandleAppendValue(handle));
 		handleArray.put(second);
 		handleArray.put(third);
+	}
+
+	/**
+	 * Value for an appended array-handle entry. Regex-driven generation (via the Generex library, see
+	 * {@link IdRepoUtil#generateSchemaFieldValue}) isn't reliable for complex validator patterns like
+	 * email's — it can emit garbage that technically matches the regex but fails real-world validation
+	 * — so email gets a synthetic address instead, matching every other email value in this codebase.
+	 */
+	private static String generateHandleAppendValue(String handle) {
+		if (handle.equals(resolveEmailFieldName())) {
+			return "mosip" + BaseTestCase.generateRandomNumberString(10) + "@mosip.net";
+		}
+		return IdRepoUtil.generateSchemaFieldValue(handle);
 	}
 
 	// ===== AddIdentity Private Handlers =====

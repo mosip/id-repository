@@ -1,23 +1,29 @@
 package io.mosip.idrepository.identity.test.service.impl;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.FINGER_EXTRACTION_FORMAT;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 import java.util.List;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
 
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.entity.Handle;
@@ -63,20 +69,26 @@ import io.mosip.idrepository.core.dto.RequestDTO;
 import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.dto.VidsInfosDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
+import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.RestServiceException;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.spi.BiometricExtractionService;
 import io.mosip.idrepository.core.util.TokenIDGenerator;
 import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.repository.UinHistoryRepo;
 import io.mosip.idrepository.identity.repository.UinRepo;
 import io.mosip.idrepository.identity.service.impl.IdRepoProxyServiceImpl;
 import io.mosip.idrepository.identity.service.impl.IdRepoServiceImpl;
+import io.mosip.kernel.biometrics.commons.CbeffValidator;
+import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.websub.model.EventModel;
 import io.mosip.kernel.core.websub.spi.PublisherClient;
+import org.apache.commons.io.IOUtils;
 
 /**
  * The Class IdRepoProxyServiceTest.
@@ -151,6 +163,9 @@ public class IdRepoProxyServiceTest {
 	@Mock
 	private TokenIDGenerator tokenIDGenerator;
 
+	@Mock
+	private BiometricExtractionService biometricExtractionService;
+
 	IdRequestDTO request = new IdRequestDTO();
 
 	private Map<String, String> id;
@@ -179,6 +194,7 @@ public class IdRepoProxyServiceTest {
 		ReflectionTestUtils.setField(proxyService, "id", id);
 		ReflectionTestUtils.setField(proxyService, "allowedBioAttributes",
 				Collections.singletonList("individualBiometrics"));
+		ReflectionTestUtils.setField(proxyService, "extractionTimeoutSeconds", 30L);
 
 		RestRequestDTO partnerServiceRequestObject = new RestRequestDTO();
 		partnerServiceRequestObject.setResponseType(Map.class);
@@ -347,6 +363,94 @@ public class IdRepoProxyServiceTest {
 			proxyService.retrieveIdentity(id, IdType.HANDLE, type, extractionFormats);
 		});
 		assertEquals("Failed to extract template from bio extractor service", thrownException.getErrorText());
+	}
+
+	// ── getBiometricsForRequestedFormatsDraft (MOSIP-082 draft-aware extraction) ──
+
+	private List<BIR> loadFingerBirs() throws Exception {
+		String cbeff = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("test-cbeff.xml"),
+				StandardCharsets.UTF_8);
+		return CbeffValidator.getBIRDataFromXMLType(CryptoUtil.decodeURLSafeBase64(cbeff), "Finger");
+	}
+
+	@Test
+	public void testGetBiometricsForRequestedFormatsDraft_extractsViaDraftPath() throws Exception {
+		List<BIR> fingerBirs = loadFingerBirs();
+		when(cbeffUtil.getBIRDataFromXML(any())).thenReturn(fingerBirs);
+		when(cbeffUtil.createXML(any())).thenReturn("combined-cbeff".getBytes());
+		when(biometricExtractionService.extractTemplateDraft(anyString(), anyString(), anyString(), anyString(), any()))
+				.thenReturn(CompletableFuture.completedFuture(fingerBirs));
+
+		Map<String, String> extractionFormats = new HashMap<>();
+		extractionFormats.put(FINGER_EXTRACTION_FORMAT, "ISO19794_4_2011");
+
+		byte[] response = ReflectionTestUtils.invokeMethod(proxyService, "getBiometricsForRequestedFormatsDraft",
+				"RID_HASH_TEST", "Finger.xml", extractionFormats, "original".getBytes());
+
+		assertNotNull(response);
+		verify(biometricExtractionService).extractTemplateDraft(eq("RID_HASH_TEST"), eq("Finger.xml"),
+				anyString(), anyString(), any());
+		verify(biometricExtractionService, never()).extractTemplate(any(), any(), any(), any(), any());
+	}
+
+	@Test
+	public void testGetBiometricsForRequestedFormatsDraft_noMatchingFormat_skipsExtraction() throws Exception {
+		List<BIR> fingerBirs = loadFingerBirs();
+		when(cbeffUtil.getBIRDataFromXML(any())).thenReturn(fingerBirs);
+		when(cbeffUtil.createXML(any())).thenReturn("combined-cbeff".getBytes());
+
+		// No extraction formats supplied for the finger modality present in the BIRs.
+		Map<String, String> extractionFormats = new HashMap<>();
+
+		byte[] response = ReflectionTestUtils.invokeMethod(proxyService, "getBiometricsForRequestedFormatsDraft",
+				"RID_HASH_TEST", "Finger.xml", extractionFormats, "original".getBytes());
+
+		assertNotNull(response);
+		verify(biometricExtractionService, never()).extractTemplateDraft(any(), any(), any(), any(), any());
+	}
+
+	@Test(expected = IdRepoAppException.class)
+	public void testGetBiometricsForRequestedFormatsDraft_executionException_wrappedAsIdRepoAppException() throws Throwable {
+		List<BIR> fingerBirs = loadFingerBirs();
+		when(cbeffUtil.getBIRDataFromXML(any())).thenReturn(fingerBirs);
+
+		CompletableFuture<List<BIR>> failedFuture = new CompletableFuture<>();
+		failedFuture.completeExceptionally(new IdRepoAppUncheckedException(BIO_EXTRACTION_ERROR));
+		when(biometricExtractionService.extractTemplateDraft(anyString(), anyString(), anyString(), anyString(), any()))
+				.thenReturn(failedFuture);
+
+		Map<String, String> extractionFormats = new HashMap<>();
+		extractionFormats.put(FINGER_EXTRACTION_FORMAT, "ISO19794_4_2011");
+
+		try {
+			ReflectionTestUtils.invokeMethod(proxyService, "getBiometricsForRequestedFormatsDraft",
+					"RID_HASH_TEST", "Finger.xml", extractionFormats, "original".getBytes());
+		} catch (UndeclaredThrowableException e) {
+			throw e.getCause();
+		}
+	}
+
+	@Test(expected = IdRepoAppException.class)
+	public void testGetBiometricsForRequestedFormatsDraft_timeout_wrappedAsIdRepoAppException() throws Throwable {
+		ReflectionTestUtils.setField(proxyService, "extractionTimeoutSeconds", 1L);
+		List<BIR> fingerBirs = loadFingerBirs();
+		when(cbeffUtil.getBIRDataFromXML(any())).thenReturn(fingerBirs);
+
+		// A future that never completes forces the allOf().get(timeout) call to time out.
+		when(biometricExtractionService.extractTemplateDraft(anyString(), anyString(), anyString(), anyString(), any()))
+				.thenReturn(new CompletableFuture<>());
+
+		Map<String, String> extractionFormats = new HashMap<>();
+		extractionFormats.put(FINGER_EXTRACTION_FORMAT, "ISO19794_4_2011");
+
+		try {
+			ReflectionTestUtils.invokeMethod(proxyService, "getBiometricsForRequestedFormatsDraft",
+					"RID_HASH_TEST", "Finger.xml", extractionFormats, "original".getBytes());
+		} catch (UndeclaredThrowableException e) {
+			throw e.getCause();
+		} finally {
+			ReflectionTestUtils.setField(proxyService, "extractionTimeoutSeconds", 30L);
+		}
 	}
 
 }

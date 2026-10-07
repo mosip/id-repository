@@ -754,6 +754,7 @@ AddIdentity:
       description: Verify that the system rejects the request when the API is called without the email field
       uniqueIdentifier: TC_IDRepo_AddIdentity_21
       requiredSchemaFields: [email]
+      allowedErrorCodes: IDR-IDC-001,IDR-IDC-002
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$

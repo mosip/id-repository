@@ -15,8 +15,8 @@
 -- DROP TABLE IF EXISTS idrepo.uin_draft CASCADE;
 CREATE TABLE idrepo.uin_draft(
 	reg_id character varying (39) NOT NULL,
-	uin character varying (500) NOT NULL,
-	uin_hash character varying (128) NOT NULL,
+	uin character varying (500),
+	uin_hash character varying (128),
 	uin_data bytea,		
 	uin_data_hash character varying (64),			
 	status_code character varying (32) NOT NULL,

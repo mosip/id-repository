@@ -146,4 +146,125 @@ public class BiometricExtractionServiceImplTest {
 		}
 	}
 
+	// ── extractTemplateDraft (MOSIP-082 draft-aware extraction) ──────────────
+
+	@Test
+	public void testExtractTemplateDraftExtractionExists() throws Exception {
+		when(objectStoreHelper.draftBiometricObjectExists(any(), any())).thenReturn(true);
+		String cbeff = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("test-cbeff.xml"),
+				StandardCharsets.UTF_8);
+		List<BIR> birDataFromXMLType = CbeffValidator.getBIRDataFromXMLType(CryptoUtil.decodeURLSafeBase64(cbeff),
+				"Finger");
+		when(objectStoreHelper.getDraftBiometricObject(any(), any())).thenReturn(CryptoUtil.decodeURLSafeBase64(cbeff));
+		when(cbeffUtil.getBIRDataFromXML(any())).thenReturn(birDataFromXMLType);
+		CompletableFuture<List<BIR>> extractTemplate = extractionServiceImpl.extractTemplateDraft("", "", "", "", birDataFromXMLType);
+		assertEquals(birDataFromXMLType.size(), extractTemplate.join().size());
+		verify(objectStoreHelper, never()).biometricObjectExists(any(), any());
+		verify(objectStoreHelper, never()).getBiometricObject(any(), any());
+	}
+
+	@Test
+	public void testExtractTemplateDraftExtractionNotExists() throws Exception {
+		when(objectStoreHelper.draftBiometricObjectExists(any(), any())).thenReturn(false);
+		String cbeff = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("test-cbeff.xml"),
+				StandardCharsets.UTF_8);
+		List<BIR> birDataFromXMLType = CbeffValidator.getBIRDataFromXMLType(CryptoUtil.decodeURLSafeBase64(cbeff),
+				"Finger");
+		when(objectStoreHelper.getDraftBiometricObject(any(), any())).thenReturn(CryptoUtil.decodeURLSafeBase64(cbeff));
+		when(cbeffUtil.getBIRDataFromXML(any())).thenReturn(birDataFromXMLType);
+		when(bioExractionHelper.extractTemplates(any(), any())).thenReturn(birDataFromXMLType);
+		CompletableFuture<List<BIR>> extractTemplate = extractionServiceImpl.extractTemplateDraft("ridHash", "", "a", "ExtractionFormat", birDataFromXMLType);
+		assertEquals(birDataFromXMLType.size(), extractTemplate.join().size());
+		verify(objectStoreHelper).putDraftBiometricObject(any(), any(), any());
+		verify(objectStoreHelper, never()).putBiometricObject(any(), any(), any());
+	}
+
+	@Test
+	public void testExtractTemplateDraftExtractedBioIsEmpty() throws Exception {
+		when(objectStoreHelper.draftBiometricObjectExists(any(), any())).thenReturn(false);
+		String cbeff = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("test-cbeff.xml"),
+				StandardCharsets.UTF_8);
+		List<BIR> birDataFromXMLType = CbeffValidator.getBIRDataFromXMLType(CryptoUtil.decodeURLSafeBase64(cbeff),
+				"Finger");
+		when(objectStoreHelper.getDraftBiometricObject(any(), any())).thenReturn(CryptoUtil.decodeURLSafeBase64(cbeff));
+		when(cbeffUtil.getBIRDataFromXML(any())).thenReturn(birDataFromXMLType);
+		when(bioExractionHelper.extractTemplates(any(), any())).thenReturn(List.of());
+		CompletableFuture<List<BIR>> extractTemplate = extractionServiceImpl.extractTemplateDraft("ridHash", "", "a", "ExtractionFormat", birDataFromXMLType);
+		assertEquals(0, extractTemplate.join().size());
+		verify(objectStoreHelper, never()).putDraftBiometricObject(any(), any(), any());
+	}
+
+	@Test
+	public void testExtractTemplateDraftObjectStoreFailure() throws Exception {
+		when(objectStoreHelper.draftBiometricObjectExists(any(), any())).thenReturn(true);
+		String cbeff = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("test-cbeff.xml"),
+				StandardCharsets.UTF_8);
+		List<BIR> birDataFromXMLType = CbeffValidator.getBIRDataFromXMLType(CryptoUtil.decodeURLSafeBase64(cbeff),
+				"Finger");
+		when(objectStoreHelper.getDraftBiometricObject(any(), any())).thenThrow(new ObjectStoreAdapterException("", ""));
+		when(cbeffUtil.getBIRDataFromXML(any())).thenReturn(birDataFromXMLType);
+		when(bioExractionHelper.extractTemplates(any(), any())).thenReturn(birDataFromXMLType);
+		CompletableFuture<List<BIR>> extractTemplate = extractionServiceImpl.extractTemplateDraft("ridHash", "", "a", "ExtractionFormat", birDataFromXMLType);
+		assertEquals(birDataFromXMLType.size(), extractTemplate.join().size());
+	}
+
+	@Test
+	public void testExtractTemplateDraftBioExtractionFailure() throws Exception {
+		when(objectStoreHelper.draftBiometricObjectExists(any(), any())).thenReturn(false);
+		String cbeff = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("test-cbeff.xml"),
+				StandardCharsets.UTF_8);
+		List<BIR> birDataFromXMLType = CbeffValidator.getBIRDataFromXMLType(CryptoUtil.decodeURLSafeBase64(cbeff),
+				"Finger");
+		when(objectStoreHelper.getDraftBiometricObject(any(), any())).thenReturn(CryptoUtil.decodeURLSafeBase64(cbeff));
+		when(cbeffUtil.getBIRDataFromXML(any())).thenReturn(birDataFromXMLType);
+		when(bioExractionHelper.extractTemplates(any(), any())).thenThrow(new BiometricExtractionException(IdRepoErrorConstants.UNKNOWN_ERROR));
+		try {
+			extractionServiceImpl.extractTemplateDraft("ridHash", "", "a", "ExtractionFormat", birDataFromXMLType);
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.BIO_EXTRACTION_ERROR.getErrorCode(), e.getErrorCode());
+			assertEquals(IdRepoErrorConstants.BIO_EXTRACTION_ERROR.getErrorMessage(), e.getErrorText());
+		}
+	}
+
+	@Test
+	public void testExtractTemplateDraftUnknownError() throws Exception {
+		when(objectStoreHelper.draftBiometricObjectExists(any(), any())).thenReturn(false);
+		String cbeff = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("test-cbeff.xml"),
+				StandardCharsets.UTF_8);
+		List<BIR> birDataFromXMLType = CbeffValidator.getBIRDataFromXMLType(CryptoUtil.decodeURLSafeBase64(cbeff),
+				"Finger");
+		when(objectStoreHelper.getDraftBiometricObject(any(), any())).thenReturn(CryptoUtil.decodeURLSafeBase64(cbeff));
+		when(cbeffUtil.getBIRDataFromXML(any())).thenReturn(birDataFromXMLType);
+		when(bioExractionHelper.extractTemplates(any(), any())).thenThrow(new NullPointerException());
+		try {
+			extractionServiceImpl.extractTemplateDraft("ridHash", "", "a", "ExtractionFormat", birDataFromXMLType);
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
+			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
+		}
+	}
+
+	@Test
+	public void testExtractTemplateDraftAndLiveKeysAreIndependent() throws Exception {
+		// Same fileName/type/format but different path (draft vs live) must not
+		// share in-flight state: live and draft use separate maps with the same
+		// key shape, so a live extraction must not short-circuit a draft call.
+		when(objectStoreHelper.biometricObjectExists(any(), any())).thenReturn(false);
+		when(objectStoreHelper.draftBiometricObjectExists(any(), any())).thenReturn(false);
+		String cbeff = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("test-cbeff.xml"),
+				StandardCharsets.UTF_8);
+		List<BIR> birDataFromXMLType = CbeffValidator.getBIRDataFromXMLType(CryptoUtil.decodeURLSafeBase64(cbeff),
+				"Finger");
+		when(objectStoreHelper.getBiometricObject(any(), any())).thenReturn(CryptoUtil.decodeURLSafeBase64(cbeff));
+		when(objectStoreHelper.getDraftBiometricObject(any(), any())).thenReturn(CryptoUtil.decodeURLSafeBase64(cbeff));
+		when(cbeffUtil.getBIRDataFromXML(any())).thenReturn(birDataFromXMLType);
+		when(bioExractionHelper.extractTemplates(any(), any())).thenReturn(birDataFromXMLType);
+
+		extractionServiceImpl.extractTemplate("sameHash", "Finger.xml", "a", "ExtractionFormat", birDataFromXMLType).join();
+		extractionServiceImpl.extractTemplateDraft("sameHash", "Finger.xml", "a", "ExtractionFormat", birDataFromXMLType).join();
+
+		verify(objectStoreHelper).putBiometricObject(any(), any(), any());
+		verify(objectStoreHelper).putDraftBiometricObject(any(), any(), any());
+	}
+
 }

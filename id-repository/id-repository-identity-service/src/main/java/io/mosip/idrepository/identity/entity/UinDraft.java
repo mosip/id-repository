@@ -61,7 +61,7 @@ public class UinDraft implements Persistable<String>, UinInfo, Serializable {
 	}
 
 	@Id
-	@Column(name="reg_id", insertable = false, updatable = false, nullable = false)
+	@Column(name="reg_id", updatable = false, nullable = false)
 	private String regId;
 
 	/** The uin. */

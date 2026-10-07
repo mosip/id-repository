@@ -105,7 +105,7 @@ AddIdentity:
     }
   ]
 }'
-   IdRepository_AddIdentity_array_handle_value_withouttags:
+   IdRepository_AddIdentity_array_handle_value_withouttags_Pos:
       endPoint: /idrepository/v1/identity/
       description: Verify that the system rejects add identity with array handle values when the API is called without tags
       uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_04

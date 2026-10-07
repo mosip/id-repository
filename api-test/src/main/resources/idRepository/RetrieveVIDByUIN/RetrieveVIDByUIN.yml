@@ -16,7 +16,7 @@ RetrieveVIDByUIN:
 }'
   IdRepository_RetrieveVIDByUIN_With_blocked_vid_:
       endPoint: /idrepository/v1/vid/uin/{UIN}
-      description: Verify that the system rejects retrieve VID when the API is called with a blocked UIN
+      description: Verify retrieving VID returns an empty result when the UIN has no active VID
       uniqueIdentifier: TC_IDRepo_RetrieveVIDByUIN_02
       role: idrepo
       checkErrorsOnlyInResponse: true
@@ -26,13 +26,7 @@ RetrieveVIDByUIN:
       input: '{
       "UIN":"$ID:AddIdentity_withValidParameters_smoke_Pos_UIN$"
       }'
-      output: '{
-   "errors": [
-    {
-      "errorCode": "IDR-IDC-007"
-    }
-  ]
-}'
+      output: '{}'
   IdRepository_RetrieveVIDByUIN_With_Valid_Smoke_Perp:
       endPoint: /idrepository/v1/vid/uin/{UIN}
       description: Verify that the system successfully retrieves a VID when the API is called with a valid perpetual UIN

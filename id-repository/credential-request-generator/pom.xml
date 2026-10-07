@@ -33,7 +33,7 @@
 		<spring.batch.integration.version>4.0.1.RELEASE</spring.batch.integration.version>
 		<springdoc.version>1.5.10</springdoc.version>
 		<kernel.auth.adapter.version>1.3.1</kernel.auth.adapter.version>
-		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
+		<central.publishing.maven.plugin.version>0.11.0</central.publishing.maven.plugin.version>
 		<maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
 
 	</properties>
