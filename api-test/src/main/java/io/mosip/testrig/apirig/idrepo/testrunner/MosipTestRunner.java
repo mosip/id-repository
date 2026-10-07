@@ -19,29 +19,14 @@ import org.testng.TestNG;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.lang.reflect.Field;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -74,8 +59,10 @@ public class MosipTestRunner {
 			ExtractResource.removeOldMosipTestTestResource();
 			if (getRunType().equalsIgnoreCase("JAR")) {
 				ExtractResource.extractCommonResourceFromJar();
+				ExtractResource.getListOfFilesFromJarAndCopyToExternalResource("mds/");
 			} else {
 				ExtractResource.copyCommonResources();
+				ExtractResource.copyCommonResources("mds/");
 			}
 			AdminTestUtil.init();
 			IdRepoConfigManager.init();
@@ -116,19 +103,19 @@ public class MosipTestRunner {
 					loadBundledBioValueProperties();
 					if (!hasUsableBioValue()) {
 						LOGGER.warn("No usable bundled BioValue; attempting Mock SBI under mds/.");
-						generateBioValueViaMockSbi();
+						BiometricDataProvider.generateBiometricTestData("Registration");
 					}
 				} else {
 					// Env/server: Mock SBI only — never fall back to bioValue.properties.
 					LOGGER.info("Env mode: generating BioValue via Mock SBI");
-					Boolean mdsOk = generateBioValueViaMockSbi();
+					Boolean mdsOk = BiometricDataProvider.generateBiometricTestData("Registration");
 					if (!Boolean.TRUE.equals(mdsOk) || !hasUsableBioValue()) {
 						throw new IllegalStateException(
 								"Mock SBI did not produce usable BioValue/FaceBioValue for env run "
 										+ "(mdsOk=" + mdsOk + ", bioLen="
-										+ bioValueLength() + "). Ensure src/main/resources/mds has "
-										+ "Biometric Devices + resource/Profile Face.iso, and Face BIR "
-										+ "keeps empty <Subtype></Subtype>.");
+										+ bioValueLength() + "). Ensure src/main/resources/mds is copied "
+										+ "to MosipTemporaryTestResource/mds (same as config/Idrepo.properties) "
+										+ "and contains Biometric Devices + resource/Profile Face.iso.");
 					}
 				}
 				if (!hasUsableBioValue()) {
@@ -221,306 +208,6 @@ public class MosipTestRunner {
 	private static int bioValueLength() {
 		String bio = BiometricDataProvider.getFromBiometricMap("BioValue");
 		return bio == null ? 0 : bio.length();
-	}
-
-	private static final String MDS_CLASSPATH_ROOT = "mds";
-	private static final String MDS_PROPS = "mds/application.properties";
-	private static final String MDS_SRC_RELATIVE = "src/main/resources/mds";
-
-	/**
-	 * Mock SBI loads {@code ./application.properties} from cwd and joins
-	 * {@code Biometric Devices} / {@code resource/Profile} relative to that cwd.
-	 * Canonical assets live under {@code src/main/resources/mds}.
-	 */
-	static Path ensureMockSbiResourcesFromClasspath() throws IOException {
-		Path mdsRoot = resolveMdsSourceDir();
-		if (!isCompleteMds(mdsRoot)) {
-			throw new IllegalStateException(
-					"Incomplete mds/ at " + mdsRoot
-							+ " (need application.properties, Biometric Devices/.../mosipface.p12, "
-							+ "resource/Profile/Default/Registration/Face.iso).");
-		}
-		LOGGER.info("Mock SBI devices/profiles from " + mdsRoot);
-		return mdsRoot;
-	}
-
-	/**
-	 * Resolve mds/, seed device keystores, and expose that tree on the process cwd
-	 * before Mock SBI starts. Skipped when localhost already has a usable bundled BioValue.
-	 */
-	private static Boolean generateBioValueViaMockSbi() throws Exception {
-		Path mdsRoot = ensureMockSbiResourcesFromClasspath();
-		seedMockSbiSigningKeys();
-		LOGGER.info("Generating BioValue via Mock SBI (mds=" + mdsRoot + ")");
-		return runWithMdsOnCwd(mdsRoot,
-				() -> BiometricDataProvider.generateBiometricTestData("Registration"));
-	}
-
-	static boolean isCompleteMds(Path mdsRoot) {
-		return Files.isRegularFile(mdsRoot.resolve("application.properties"))
-				&& Files.isRegularFile(mdsRoot.resolve("Biometric Devices").resolve("Face")
-						.resolve("Keys").resolve("mosipface.p12"))
-				&& Files.isRegularFile(mdsRoot.resolve("resource").resolve("Profile")
-						.resolve("Default").resolve("Registration").resolve("Face.iso"));
-	}
-
-	@FunctionalInterface
-	interface ThrowingSupplier<T> {
-		T get() throws Exception;
-	}
-
-	/**
-	 * mock-mds resolves {@code ./application.properties} via {@code new File(".")}
-	 * (process cwd). Bridge the canonical mds tree onto that cwd before starting Mock SBI.
-	 */
-	static <T> T runWithMdsOnCwd(Path dir, ThrowingSupplier<T> action) throws Exception {
-		Path mdsRoot = dir.toAbsolutePath().normalize();
-		exposeMdsAtProcessCwd(mdsRoot, resolveProcessCwd());
-		resetMockSbiPropertyCache();
-		return action.get();
-	}
-
-	private static Path resolveProcessCwd() throws IOException {
-		return Path.of(new File(".").getCanonicalPath());
-	}
-
-	private static void exposeMdsAtProcessCwd(Path mdsRoot, Path processCwd) throws IOException {
-		Path normalizedMds = mdsRoot.toAbsolutePath().normalize();
-		Path normalizedCwd = processCwd.toAbsolutePath().normalize();
-		if (normalizedCwd.equals(normalizedMds)) {
-			return;
-		}
-		ensureMdsEntry(normalizedMds.resolve("application.properties"),
-				normalizedCwd.resolve("application.properties"), false);
-		ensureMdsEntry(normalizedMds.resolve("Biometric Devices"),
-				normalizedCwd.resolve("Biometric Devices"), true);
-		ensureMdsEntry(normalizedMds.resolve("resource"), normalizedCwd.resolve("resource"), true);
-		LOGGER.info("Mock SBI cwd bridge: exposed " + normalizedMds + " at " + normalizedCwd);
-	}
-
-	private static void ensureMdsEntry(Path source, Path target, boolean directory) throws IOException {
-		Path normalizedSource = source.toAbsolutePath().normalize();
-		if (Files.exists(target)) {
-			if (directory) {
-				if (pathPointsTo(target, normalizedSource)) {
-					return;
-				}
-				throw new IllegalStateException("Mock SBI needs " + target
-						+ " but an unrelated path already exists. Remove or relocate it.");
-			}
-			if (Files.isRegularFile(target)) {
-				Files.copy(normalizedSource, target, StandardCopyOption.REPLACE_EXISTING);
-				return;
-			}
-			throw new IllegalStateException("Mock SBI needs " + target
-					+ " but an unrelated path already exists. Remove or relocate it.");
-		}
-		Path parent = target.getParent();
-		if (parent != null) {
-			Files.createDirectories(parent);
-		}
-		if (directory) {
-			createDirectoryLink(normalizedSource, target);
-		} else {
-			Files.copy(normalizedSource, target, StandardCopyOption.REPLACE_EXISTING);
-		}
-	}
-
-	private static boolean pathPointsTo(Path link, Path target) throws IOException {
-		if (!Files.exists(link)) {
-			return false;
-		}
-		Path normalizedTarget = target.toAbsolutePath().normalize();
-		if (Files.isSymbolicLink(link)) {
-			return Files.readSymbolicLink(link).toAbsolutePath().normalize().equals(normalizedTarget);
-		}
-		return link.toRealPath().normalize().equals(normalizedTarget.toRealPath().normalize());
-	}
-
-	private static void createDirectoryLink(Path source, Path target) throws IOException {
-		try {
-			Files.createSymbolicLink(target, source);
-		} catch (IOException | UnsupportedOperationException first) {
-			if (!isWindows()) {
-				throw new IOException("Failed to link Mock SBI directory " + source + " -> " + target, first);
-			}
-			createWindowsJunction(source, target);
-		}
-	}
-
-	private static void createWindowsJunction(Path source, Path target) throws IOException {
-		ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", "mklink", "/J",
-				target.toAbsolutePath().normalize().toString(),
-				source.toAbsolutePath().normalize().toString());
-		processBuilder.redirectErrorStream(true);
-		Process process = processBuilder.start();
-		String output;
-		try (InputStream in = process.getInputStream()) {
-			output = new String(in.readAllBytes(), StandardCharsets.UTF_8);
-		}
-		try {
-			if (process.waitFor() != 0) {
-				throw new IOException("mklink /J failed for " + target + ": " + output.trim());
-			}
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new IOException("Interrupted while creating junction for " + target, e);
-		}
-	}
-
-	private static boolean isWindows() {
-		return System.getProperty("os.name", "").toLowerCase().contains("win");
-	}
-
-	private static void resetMockSbiPropertyCache() {
-		try {
-			Class<?> helperClass = Class.forName("io.mosip.mock.sbi.util.ApplicationPropertyHelper");
-			Field propertiesField = helperClass.getDeclaredField("properties");
-			propertiesField.setAccessible(true);
-			propertiesField.set(null, null);
-		} catch (ReflectiveOperationException e) {
-			LOGGER.warn("Could not reset Mock SBI ApplicationPropertyHelper cache: " + e.getMessage());
-		}
-	}
-
-	/** Seed bundled mds modality keystores into the certs module dir for Mock SBI signing. */
-	static void seedMockSbiSigningKeys() throws IOException {
-		Path mdsRoot = resolveMdsSourceDir();
-		Path biometricDevices = mdsRoot.resolve("Biometric Devices");
-		Path faceKey = biometricDevices.resolve("Face").resolve("Keys").resolve("mosipface.p12");
-		if (!Files.isRegularFile(faceKey)) {
-			throw new IllegalStateException("Missing Mock SBI device keystore in mds: " + faceKey);
-		}
-		String keysDir = BiometricDataProvider.getKeysDirPath("", BaseTestCase.certsForModule);
-		Path keysBiometricDevices = Path.of(keysDir).resolve("Biometric Devices");
-		LOGGER.info("Seeding Mock SBI signing keystore: " + biometricDevices + " -> " + keysBiometricDevices);
-		Files.createDirectories(Path.of(keysDir));
-		copyDirectory(biometricDevices, keysBiometricDevices);
-	}
-
-	static Path resolveMdsSourceDir() throws IOException {
-		File moduleDir = resolveApiTestModuleDir();
-		Path srcMds = moduleDir.toPath().resolve(MDS_SRC_RELATIVE).toAbsolutePath().normalize();
-		if (isCompleteMds(srcMds)) {
-			LOGGER.info("Using Mock SBI mds from source: " + srcMds);
-			return srcMds;
-		}
-		URL marker = MosipTestRunner.class.getClassLoader().getResource(MDS_PROPS);
-		if (marker == null) {
-			throw new IllegalStateException(
-					"mds not found at " + srcMds + " and classpath resource " + MDS_PROPS
-							+ " is missing. Expected src/main/resources/mds.");
-		}
-		try {
-			if ("file".equalsIgnoreCase(marker.getProtocol())) {
-				Path classpathMds = Path.of(marker.toURI()).getParent();
-				LOGGER.info("Using Mock SBI mds from classpath: " + classpathMds);
-				return classpathMds;
-			}
-			if ("jar".equalsIgnoreCase(marker.getProtocol())) {
-				Path extractTo = Path.of("target", "mds-runtime").toAbsolutePath().normalize();
-				extractMdsFromJar(marker.toURI(), extractTo);
-				return extractTo;
-			}
-			throw new IllegalStateException("Unsupported mds resource URL: " + marker);
-		} catch (URISyntaxException e) {
-			throw new IOException("Failed to resolve mds classpath location: " + marker, e);
-		}
-	}
-
-	static void extractMdsFromJar(URI jarEntryUri, Path extractTo) throws IOException {
-		String raw = jarEntryUri.toString();
-		int sep = raw.indexOf("!/");
-		if (sep < 0) {
-			throw new IOException("Not a jar resource URI: " + jarEntryUri);
-		}
-		URI jarFileUri = URI.create(raw.substring(0, sep));
-		Path markerOut = extractTo.resolve("application.properties");
-		if (Files.isRegularFile(markerOut)
-				&& Files.isRegularFile(extractTo.resolve("Biometric Devices").resolve("Face")
-						.resolve("Keys").resolve("mosipface.p12"))) {
-			LOGGER.info("Reusing extracted Mock SBI mds at " + extractTo);
-			return;
-		}
-		Files.createDirectories(extractTo);
-		try (FileSystem jarFs = FileSystems.newFileSystem(jarFileUri, Collections.emptyMap())) {
-			Path mdsInJar = jarFs.getPath("/" + MDS_CLASSPATH_ROOT);
-			if (!Files.isDirectory(mdsInJar)) {
-				mdsInJar = jarFs.getPath(MDS_CLASSPATH_ROOT);
-			}
-			if (!Files.isDirectory(mdsInJar)) {
-				throw new IOException("mds/ not found inside jar: " + jarFileUri);
-			}
-			Path root = mdsInJar;
-			Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
-				@Override
-				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-					Path rel = root.relativize(dir);
-					Files.createDirectories(extractTo.resolve(rel.toString()));
-					return FileVisitResult.CONTINUE;
-				}
-
-				@Override
-				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-					Path rel = root.relativize(file);
-					Path out = extractTo.resolve(rel.toString());
-					Files.createDirectories(out.getParent());
-					try (InputStream in = Files.newInputStream(file)) {
-						Files.copy(in, out, StandardCopyOption.REPLACE_EXISTING);
-					}
-					return FileVisitResult.CONTINUE;
-				}
-			});
-		}
-		LOGGER.info("Extracted Mock SBI mds from jar -> " + extractTo);
-	}
-
-	static void copyDirectory(Path source, Path target) throws IOException {
-		Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
-			@Override
-			public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-				Files.createDirectories(target.resolve(source.relativize(dir)));
-				return FileVisitResult.CONTINUE;
-			}
-
-			@Override
-			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-				Files.copy(file, target.resolve(source.relativize(file)), StandardCopyOption.REPLACE_EXISTING);
-				return FileVisitResult.CONTINUE;
-			}
-		});
-	}
-
-	private static File resolveApiTestModuleDir() {
-		try {
-			URL location = MosipTestRunner.class.getProtectionDomain().getCodeSource().getLocation();
-			if (location != null) {
-				File locFile;
-				try {
-					locFile = new File(location.toURI());
-				} catch (Exception uriEx) {
-					String decoded = URLDecoder.decode(location.getPath(), StandardCharsets.UTF_8);
-					locFile = new File(decoded);
-				}
-				File dir = locFile.isFile() ? locFile.getParentFile() : locFile;
-				if (dir != null && "classes".equalsIgnoreCase(dir.getName())) {
-					dir = dir.getParentFile();
-				}
-				if (dir != null && "target".equalsIgnoreCase(dir.getName()) && dir.getParentFile() != null) {
-					return dir.getParentFile();
-				}
-			}
-		} catch (Exception ignored) {
-		}
-		File cwd = new File(System.getProperty("user.dir", "."));
-		if (new File(cwd, "pom.xml").isFile() && new File(cwd, MDS_SRC_RELATIVE).isDirectory()) {
-			return cwd;
-		}
-		File nested = new File(cwd, "api-test");
-		if (new File(nested, "pom.xml").isFile()) {
-			return nested;
-		}
-		return cwd;
 	}
 
 	public static void suiteSetup(String runType) {
