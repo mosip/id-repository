@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.URI;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -87,20 +88,64 @@ public class MosipTestRunner {
 			Thread trigger = new Thread(healthcheck);
 			trigger.start();
 			
-			KeycloakUserManager.removeUser();
-			KeycloakUserManager.createUsers();
-			KeycloakUserManager.closeKeycloakInstance();
+			boolean skipPartnerSetup = shouldSkipPartnerSetup();
+			if (skipPartnerSetup) {
+				LOGGER.warn("Skipping Keycloak user setup (local endpoint has no Keycloak Admin API).");
+			} else {
+				KeycloakUserManager.removeUser();
+				KeycloakUserManager.createUsers();
+				KeycloakUserManager.closeKeycloakInstance();
+			}
 			AdminTestUtil.getRequiredField();
 
 			BaseTestCase.getLanguageList();
 			AdminTestUtil.getLocationData();
-			
-			// Generate device certificates to be consumed by Mock-MDS
-			PartnerRegistration.deleteCertificates();
-			PartnerRegistration.deviceGeneration();
 
-			BiometricDataProvider.generateBiometricTestData("Registration");
-			
+			if (skipPartnerSetup) {
+				LOGGER.warn("Skipping PartnerRegistration.deviceGeneration() on local endpoint.");
+			} else {
+				PartnerRegistration.deleteCertificates();
+				PartnerRegistration.deviceGeneration();
+			}
+
+			try {
+				if (skipPartnerSetup) {
+					// Local: bundled bioValue.properties only (do not require Mock SBI Face).
+					LOGGER.warn("Local mode: loading bundled bioValue.properties when present.");
+					loadBundledBioValueProperties();
+					if (!hasUsableBioValue()) {
+						LOGGER.warn("No usable bundled BioValue; attempting Mock SBI under mds/.");
+						BiometricDataProvider.generateBiometricTestData("Registration");
+					}
+				} else {
+					// Env/server: Mock SBI only — never fall back to bioValue.properties.
+					LOGGER.info("Env mode: generating BioValue via Mock SBI");
+					Boolean mdsOk = BiometricDataProvider.generateBiometricTestData("Registration");
+					if (!Boolean.TRUE.equals(mdsOk) || !hasUsableBioValue()) {
+						throw new IllegalStateException(
+								"Mock SBI did not produce usable BioValue/FaceBioValue for env run "
+										+ "(mdsOk=" + mdsOk + ", bioLen="
+										+ bioValueLength() + "). Ensure src/main/resources/mds is copied "
+										+ "to MosipTemporaryTestResource/mds (same as config/Idrepo.properties) "
+										+ "and contains Biometric Devices + resource/Profile Face.iso.");
+					}
+				}
+				if (!hasUsableBioValue()) {
+					throw new IllegalStateException(
+							"No usable BioValue/FaceBioValue before test start (bioLen="
+									+ bioValueLength() + ").");
+				}
+				LOGGER.info("BioValue ready for AddIdentity (len=" + bioValueLength() + ")");
+			} catch (Exception bioEx) {
+				if (skipPartnerSetup) {
+					LOGGER.warn("Biometric test data generation skipped/failed in local mode: "
+							+ bioEx.getMessage());
+					loadBundledBioValueProperties();
+				} else {
+					throw bioEx;
+				}
+			}
+
 			String testCasesToExecuteString = IdRepoConfigManager.getproperty("testCasesToExecute");
 			
 			DependencyResolver.loadDependencies(
@@ -112,18 +157,29 @@ public class MosipTestRunner {
 			startTestRunner();
 		} catch (Exception e) {
 			LOGGER.error("Exception", e);
+			throw new RuntimeException(e);
 		} catch (Error e) {
 			LOGGER.fatal("Fatal error during test run", e);
 			throw e;
+		} finally {
+			OTPListener.bTerminate = true;
+			HealthChecker.bTerminate = true;
+
+			try {
+				IdRepoUtil.dbCleanUp();
+			} catch (Exception cleanupEx) {
+				LOGGER.error("DB cleanup failed", cleanupEx);
+			}
+			if (!shouldSkipPartnerSetup()) {
+				try {
+					KeycloakUserManager.removeUser();
+				} catch (Exception cleanupEx) {
+					LOGGER.error("Keycloak user removal failed", cleanupEx);
+				} finally {
+					KeycloakUserManager.closeKeycloakInstance();
+				}
+			}
 		}
-		
-		IdRepoUtil.dbCleanUp();
-		KeycloakUserManager.removeUser();
-		KeycloakUserManager.closeKeycloakInstance();
-
-		OTPListener.bTerminate = true;
-
-		HealthChecker.bTerminate = true;
 		
 		// Used for generating the test case interdependency JSON file
 		// AdminTestUtil.generateTestCaseInterDependencies(getGlobalResourcePath() + "/config/testCaseInterDependency.json");
@@ -131,12 +187,82 @@ public class MosipTestRunner {
 
 	}
 	
+	/** Load BioValue keys from config/bioValue.properties (local runs only). */
+	private static void loadBundledBioValueProperties() throws IOException {
+		String path = getGlobalResourcePath() + "/config/bioValue.properties";
+		File file = new File(path);
+		if (!file.isFile()) {
+			LOGGER.warn("Bundled bioValue.properties not found at " + path);
+			return;
+		}
+		Properties props = new Properties();
+		try (FileInputStream in = new FileInputStream(file)) {
+			props.load(in);
+		}
+		int loaded = 0;
+		for (String key : props.stringPropertyNames()) {
+			String value = props.getProperty(key);
+			if (value != null && !value.isBlank()) {
+				BiometricDataProvider.addToBiometricMap(key, value);
+				loaded++;
+			}
+		}
+		LOGGER.info("Loaded " + loaded + " biometric value(s) from " + path);
+	}
+
+	/** Shell CBEFF from empty Face capture is ~200 chars; require Face + real size. */
+	private static boolean hasUsableBioValue() {
+		String bio = BiometricDataProvider.getFromBiometricMap("BioValue");
+		String face = BiometricDataProvider.getFromBiometricMap("FaceBioValue");
+		return bio != null && bio.length() > 500 && face != null && !face.isBlank();
+	}
+
+	private static int bioValueLength() {
+		String bio = BiometricDataProvider.getFromBiometricMap("BioValue");
+		return bio == null ? 0 : bio.length();
+	}
+
+	/**
+	 * Windows cannot use {@code localhost:8082} as a folder name (illegal ':').
+	 */
+	static void sanitizeCertDomainForWindows() {
+		if (BaseTestCase.domain != null
+				&& System.getProperty("os.name").toLowerCase().contains("windows")
+				&& BaseTestCase.domain.contains(":")) {
+			String sanitized = BaseTestCase.domain.replace(":", "_");
+			LOGGER.info("Windows certs folder: BaseTestCase.domain " + BaseTestCase.domain + " -> " + sanitized);
+			BaseTestCase.domain = sanitized;
+		}
+	}
+
+	static boolean shouldSkipPartnerSetup() {
+		String flag = System.getProperty("idrepo.skipPartnerSetup");
+		if (flag != null && !flag.isBlank()) {
+			return Boolean.parseBoolean(flag);
+		}
+		return isLocalEndpoint();
+	}
+
+	static boolean isLocalEndpoint() {
+		String endpoint = System.getProperty("env.endpoint", "");
+		if (endpoint == null || endpoint.isBlank()) {
+			return false;
+		}
+		try {
+			String host = URI.create(endpoint).getHost();
+			return "localhost".equalsIgnoreCase(host) || "127.0.0.1".equals(host);
+		} catch (IllegalArgumentException ex) {
+			return false;
+		}
+	}
+
 	public static void suiteSetup(String runType) {
 		if (IdRepoConfigManager.IsDebugEnabled())
 			LOGGER.setLevel(Level.ALL);
 		else
 			LOGGER.info("Test Framework for Mosip api Initialized");
 		BaseTestCase.initialize();
+		sanitizeCertDomainForWindows();
 		LOGGER.info("Done with BeforeSuite and test case setup! su TEST EXECUTION!\n\n");
 
 		if (!runType.equalsIgnoreCase("JAR")) {

@@ -87,6 +87,37 @@ This will download the required dependencies and prepare the test suite for exec
 
 ---
 
+## Run against localhost
+
+Use this when the consolidated ID Repository from this branch is running on your machine (service on port `8090`, local gateway/WireMock on `8082`).
+
+`Idrepo.properties` for this local run points at `localhost:8082` and Postgres on `5455`.
+
+When `env.endpoint` is `localhost` or `127.0.0.1`, the runner skips Keycloak admin user setup and partner/device cert generation, and it loads bundled `config/bioValue.properties` instead of requiring Mock SBI.
+
+```sh
+java -Dmodules=idrepo \
+  -Denv.user=api-internal.local \
+  -Denv.endpoint=http://localhost:8082 \
+  -Denv.testLevel=smokeAndRegression \
+  -jar target/apitest-idrepo-*-jar-with-dependencies.jar
+```
+
+`env.testLevel=smokeAndRegression` is the full suite. `env.endpoint` is the local gateway (`http://localhost:8082`), not the ID Repository process on `:8090`.
+
+## Biometric BioValue (local vs env)
+
+AddIdentity needs a CBEFF payload in `documents[0].value`. The runner chooses the source from `env.endpoint`:
+
+| Target | Bio source | What you need |
+|--------|------------|---------------|
+| **Localhost** | Bundled `config/bioValue.properties` | File present under `api-test/src/main/resources/config/` |
+| **Remote env** | Mock SBI / MDS generation | Complete `api-test/src/main/resources/mds/` |
+
+`mds/` is copied into `MosipTemporaryTestResource/mds` by `copyCommonResources()`. `apitest-commons` then points Mock SBI at that folder (see mosip-functional-tests PR 1992).
+
+---
+
 ## Execute Test Automation Suite
 
 You can execute the test automation code using either of the following methods:
