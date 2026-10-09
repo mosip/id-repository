@@ -62,39 +62,31 @@ You can access the test automation code using either of the following methods:
 ---
 
 ## Update the property file
-1. Navigate to the Idrepo.properties file located at:
-    id-repository\api-test\src\main\resources\config\Idrepo.properties
-2. Open the file in your preferred editor
-3. Update the client secret values and other required credentials as per your environment
 
-Do **not** commit local secrets or localhost URLs in `Idrepo.properties`.
+`api-test/src/main/resources/config/Idrepo.properties` is committed with local docker-compose defaults (WireMock `:8082`, identity service `:8090`, Postgres `:5455`).
+
+Rancher overrides a key when it sets an environment variable with the same name. `ConfigManager` prefers `System.getenv(key)` over the file. `-Denv.endpoint` does not replace Keycloak, database, or component URLs.
+
+To run this jar from a laptop against a remote server, edit these keys in `Idrepo.properties` for that run, then change them back before you commit:
+
+- `keycloak-external-url`
+- `audit_url`
+- `partner_url`
+- `db-server`
+- `db-port`
+- `mosip_components_base_urls`
+
+Leave secrets blank in the file. Supply them with environment variables or `.env.local` (gitignored). Do **not** commit secrets.
 
 ---
 
 ## Run against localhost
 
-Use this when ID Repository is running on your machine (service on port `8090`, typically with a local gateway on `8082`).
-
-### 1. Point `Idrepo.properties` at localhost
-
-Edit `api-test/src/main/resources/config/Idrepo.properties` locally (do not push these values):
-
-```properties
-keycloak-external-url = http://localhost:8082
-audit_url = jdbc:postgresql://localhost:5455/mosip_idrepo
-partner_url = jdbc:postgresql://localhost:5455/mosip_idrepo
-db-server = localhost
-db-port = 5455
-postgres-password = <local postgres password>
-authCertsPath = target/local-authcerts
-mosip_components_base_urls = idrepository=localhost:8082;authmanager=localhost:8082;masterdata=localhost:8082;idgenerator=localhost:8082;keymanager=localhost:8082;auditmanager=localhost:8082;datashare=localhost:8082;partnermanager=localhost:8082;policymanager=localhost:8082;credentialservice=localhost:8082;credentialrequest=localhost:8082
-```
-
-Fill client secrets and `keycloak_Password` for your local IAM. `ConfigManager` also reads matching environment variables, so you can leave secrets blank in the file and export them in the shell instead.
+Use this when ID Repository is running on your machine (service on port `8090`, typically with a local gateway / WireMock on `8082`). No property edit is required; `Idrepo.properties` already points at that stack.
 
 When `env.endpoint` is `localhost` or `127.0.0.1`, the runner skips Keycloak admin user setup and partner/device cert generation, and it sanitizes Windows cert folder names that contain `:`.
 
-### 2. Build and run
+### Build and run
 
 ```sh
 cd api-test
