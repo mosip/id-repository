@@ -95,21 +95,37 @@ public class MosipTestRunner {
 			}
 
 			try {
-				// Local stacks often get empty Face capture from Mock SBI.
-				// Prefer bundled bioValue.properties on localhost; otherwise generate via Mock SBI.
 				if (skipPartnerSetup) {
+					// Local: bundled bioValue.properties only (do not require Mock SBI Face).
 					LOGGER.warn("Local mode: loading bundled bioValue.properties when present.");
 					loadBundledBioValueProperties();
 					if (!hasUsableBioValue()) {
-						LOGGER.warn("No usable bundled BioValue; attempting Mock SBI generation.");
+						LOGGER.warn("No usable bundled BioValue; attempting Mock SBI under mds/.");
 						BiometricDataProvider.generateBiometricTestData("Registration");
 					}
 				} else {
-					BiometricDataProvider.generateBiometricTestData("Registration");
+					// Env/server: Mock SBI only — never fall back to bioValue.properties.
+					LOGGER.info("Env mode: generating BioValue via Mock SBI");
+					Boolean mdsOk = BiometricDataProvider.generateBiometricTestData("Registration");
+					if (!Boolean.TRUE.equals(mdsOk) || !hasUsableBioValue()) {
+						throw new IllegalStateException(
+								"Mock SBI did not produce usable BioValue/FaceBioValue for env run "
+										+ "(mdsOk=" + mdsOk + ", bioLen="
+										+ bioValueLength() + "). Ensure src/main/resources/mds is copied "
+										+ "to MosipTemporaryTestResource/mds (same as config/Idrepo.properties) "
+										+ "and contains Biometric Devices + resource/Profile Face.iso.");
+					}
 				}
+				if (!hasUsableBioValue()) {
+					throw new IllegalStateException(
+							"No usable BioValue/FaceBioValue before test start (bioLen="
+									+ bioValueLength() + ").");
+				}
+				LOGGER.info("BioValue ready for AddIdentity (len=" + bioValueLength() + ")");
 			} catch (Exception bioEx) {
 				if (skipPartnerSetup) {
-					LOGGER.warn("Biometric test data generation skipped/failed in local mode: " + bioEx.getMessage());
+					LOGGER.warn("Biometric test data generation skipped/failed in local mode: "
+							+ bioEx.getMessage());
 					loadBundledBioValueProperties();
 				} else {
 					throw bioEx;
@@ -157,7 +173,7 @@ public class MosipTestRunner {
 
 	}
 
-	/** Load BioValue keys from config/bioValue.properties when Mock SBI cannot produce usable Face CBEFF. */
+	/** Load BioValue keys from config/bioValue.properties (local runs only). */
 	private static void loadBundledBioValueProperties() throws IOException {
 		String path = getGlobalResourcePath() + "/config/bioValue.properties";
 		File file = new File(path);
@@ -180,12 +196,18 @@ public class MosipTestRunner {
 		LOGGER.info("Loaded " + loaded + " biometric value(s) from " + path);
 	}
 
+	/** Shell CBEFF from empty Face capture is ~200 chars; require Face + real size. */
 	private static boolean hasUsableBioValue() {
 		String bio = BiometricDataProvider.getFromBiometricMap("BioValue");
 		String face = BiometricDataProvider.getFromBiometricMap("FaceBioValue");
-		return bio != null && bio.length() > 100 && face != null && !face.isBlank();
+		return bio != null && bio.length() > 500 && face != null && !face.isBlank();
 	}
-	
+
+	private static int bioValueLength() {
+		String bio = BiometricDataProvider.getFromBiometricMap("BioValue");
+		return bio == null ? 0 : bio.length();
+	}
+
 	public static void suiteSetup(String runType) {
 		if (IdRepoConfigManager.IsDebugEnabled())
 			LOGGER.setLevel(Level.ALL);
