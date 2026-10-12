@@ -103,6 +103,12 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-ref-idobjectvalidator</artifactId>
 		</dependency>
+		<!-- Required by the Orika data mapper used for WebSub intent verification. -->
+		<dependency>
+			<groupId>ma.glasnost.orika</groupId>
+			<artifactId>orika-core</artifactId>
+			<version>1.5.4</version>
+		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-auth-adapter</artifactId>
