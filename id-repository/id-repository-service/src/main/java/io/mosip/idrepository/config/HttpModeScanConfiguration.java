@@ -48,6 +48,7 @@ import io.mosip.idrepository.credential.store.config.CredentialStoreBeanConfig;
 		"${mosip.auth.adapter.impl.basepackage}"
 }, excludeFilters = {
 		@ComponentScan.Filter(type = FilterType.ASPECTJ, pattern = {
+				"io.mosip.kernel.datamapper.orika.impl.DataMapperImpl",
 				"io.mosip.kernel.zkcryptoservice.*",
 				"io.mosip.kernel.tokenidgenerator.*",
 				"io.mosip.kernel.signature.*",
