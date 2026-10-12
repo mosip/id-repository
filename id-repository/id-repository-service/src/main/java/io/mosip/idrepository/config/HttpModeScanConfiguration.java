@@ -49,12 +49,12 @@ import io.mosip.idrepository.credential.store.config.CredentialStoreBeanConfig;
 }, excludeFilters = {
 		@ComponentScan.Filter(type = FilterType.ASPECTJ, pattern = {
 				"io.mosip.kernel.datamapper.orika.impl.DataMapperImpl",
-				"io.mosip.kernel.idgenerator.machineid..*",
-				"io.mosip.kernel.idgenerator.regcenterid..*",
-				"io.mosip.kernel.idgenerator.partnerid..*",
-				"io.mosip.kernel.idgenerator.mispid..*",
-				"io.mosip.kernel.idgenerator.rid..*",
-				"io.mosip.kernel.idgenerator.tokenid..*",
+				"io.mosip.kernel.idgenerator.machineid.*",
+				"io.mosip.kernel.idgenerator.regcenterid.*",
+				"io.mosip.kernel.idgenerator.partnerid.*",
+				"io.mosip.kernel.idgenerator.mispid.*",
+				"io.mosip.kernel.idgenerator.rid.*",
+				"io.mosip.kernel.idgenerator.tokenid.*",
 				"io.mosip.kernel.zkcryptoservice.*",
 				"io.mosip.kernel.tokenidgenerator.*",
 				"io.mosip.kernel.signature.*",
