@@ -49,6 +49,7 @@ import io.mosip.idrepository.credential.store.config.CredentialStoreBeanConfig;
 }, excludeFilters = {
 		@ComponentScan.Filter(type = FilterType.ASPECTJ, pattern = {
 				"io.mosip.kernel.datamapper.orika.impl.DataMapperImpl",
+				"io.mosip.kernel.idvalidator.mispid.impl.MispIdValidatorImpl",
 				"io.mosip.kernel.idgenerator.machineid.*",
 				"io.mosip.kernel.idgenerator.regcenterid.*",
 				"io.mosip.kernel.idgenerator.partnerid.*",
