@@ -86,6 +86,10 @@ public final class Util {
 		return Base64.getEncoder().encodeToString(data.getBytes());
 	}
 
+	public static String base64EncodeBytes(byte[] data) {
+		return Base64.getEncoder().encodeToString(data);
+	}
+
 	public static String getDebugRequestResponse() {
 		return DEBUG_REQUEST_RESPONSE;
 	}
