@@ -1720,6 +1720,20 @@ public class IdRepoDraftServiceImplTest {
 	}
 
 	@Test
+	public void should_throwDraftAlreadyExistsForUin_when_anotherRidHoldsDraftForSameUin() throws Exception {
+		when(uinHistoryRepo.existsByRegId(any())).thenReturn(false);
+		when(uinDraftRepo.existsByRegId(any())).thenReturn(false);
+		Uin uinEntity = buildUinEntity();
+		when(uinRepo.findWithBiometricsByUinHash(any())).thenReturn(Optional.of(uinEntity));
+		when(uinDraftRepo.existsByUinHash(any())).thenReturn(true);
+		stubCreateDraftCrypto();
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.createDraftV2("REG123", "274390482564", false));
+		assertEquals(IdRepoErrorConstants.DRAFT_ALREADY_EXISTS_FOR_UIN.getErrorCode(), thrown.getErrorCode());
+		verify(uinDraftRepo, never()).save(any());
+	}
+
+	@Test
 	public void should_throwNoRecordFound_when_createDraftWithUin_uinNotInDb() throws IdRepoAppException {
 		when(uinHistoryRepo.existsByRegId(any())).thenReturn(false);
 		when(uinDraftRepo.existsByRegId(any())).thenReturn(false);

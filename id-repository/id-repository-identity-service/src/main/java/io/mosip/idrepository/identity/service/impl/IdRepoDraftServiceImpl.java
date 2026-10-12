@@ -19,6 +19,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.UPDATE_DRAFT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VERIFIED_ATTRIBUTES;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DRAFT_ALREADY_EXISTS_FOR_UIN;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DRAFT_UIN_DETAILS_NOT_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DRAFT_UIN_HASH_MISMATCH;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
@@ -725,6 +726,15 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 		if (liveUin == null) {
 			// First-time NEW packet: no live identity exists yet.
 			return null;
+		}
+
+		// uin_draft allows one draft per UIN (unique uin / uin_hash). The same-RID case was
+		// rejected above, so a match here is another packet still holding the UIN.
+		// Fail with a clear code instead of letting the insert hit the DB constraint.
+		if (uinDraftRepo.existsByUinHash(liveUin.getUinHash())) {
+			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+					CREATE_DRAFT, "DRAFT ALREADY EXISTS FOR UIN WITH ANOTHER RID | regId=" + registrationId);
+			throw new IdRepoAppException(DRAFT_ALREADY_EXISTS_FOR_UIN);
 		}
 
 		UinDraft newDraft = mapper.convertValue(liveUin, UinDraft.class);
