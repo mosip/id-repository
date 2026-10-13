@@ -50,6 +50,8 @@ import io.mosip.idrepository.credential.store.config.CredentialStoreBeanConfig;
 		@ComponentScan.Filter(type = FilterType.ASPECTJ, pattern = {
 				"io.mosip.kernel.datamapper.orika.impl.DataMapperImpl",
 				"io.mosip.kernel.idvalidator.mispid.impl.MispIdValidatorImpl",
+				"io.mosip.kernel.licensekeygenerator.misp.impl.MISPLicenseKeyGeneratorImpl",
+				"io.mosip.kernel.licensekeygenerator.misp.util.MISPLicenseKeyGeneratorUtil",
 				"io.mosip.kernel.idgenerator.machineid.impl.MachineIdGeneratorImpl",
 				"io.mosip.kernel.idgenerator.regcenterid.impl.*",
 				"io.mosip.kernel.idgenerator.partnerid.impl.*",
