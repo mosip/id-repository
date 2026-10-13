@@ -674,6 +674,7 @@ AddIdentity:
       endPoint: /idrepository/v1/identity/
       description: Verify that the system rejects the request when the API is called without the phone field
       uniqueIdentifier: TC_IDRepo_AddIdentity_19
+      requiredHandleFields: [phone]
       role: testrig
       restMethod: post
       inputTemplate: idRepository/AddIdentity/addIdentity_$LANGNUMBER$
@@ -753,7 +754,7 @@ AddIdentity:
       endPoint: /idrepository/v1/identity/
       description: Verify that the system rejects the request when the API is called without the email field
       uniqueIdentifier: TC_IDRepo_AddIdentity_21
-      requiredSchemaFields: [email]
+      requiredHandleFields: [email]
       allowedErrorCodes: IDR-IDC-001,IDR-IDC-002
       role: testrig
       restMethod: post
