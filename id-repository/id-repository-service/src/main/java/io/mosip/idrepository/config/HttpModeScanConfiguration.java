@@ -54,6 +54,7 @@ import io.mosip.idrepository.credential.store.config.CredentialStoreBeanConfig;
 				"io.mosip.kernel.idgenerator.regcenterid.impl.*",
 				"io.mosip.kernel.idgenerator.partnerid.impl.*",
 				"io.mosip.kernel.idgenerator.mispid.impl.*",
+				"io.mosip.kernel.idgenerator.mispid.util.*",
 				"io.mosip.kernel.idgenerator.rid.impl.*",
 				"io.mosip.kernel.idgenerator.tokenid.impl.*",
 				"io.mosip.kernel.zkcryptoservice.*",
