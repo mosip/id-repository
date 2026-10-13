@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "dataSharePolicies": {
+      "type": "object",
+      "properties": {
+        "typeOfShare": {
+          "type": "string",
+          "enum":["Data Share","direct"]
+        },
+        "validForInMinutes": {
+          "type": "string"
+        },
+        "transactionsAllowed": {
+          "type": "string"
+        },
+        "encryptionType": {
+          "type": "string",
+          "enum":["Partner Based","none"]
+        },
+        "shareDomain": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "protocol": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "typeOfShare",
+        "validForInMinutes",
+        "transactionsAllowed",
+        "encryptionType",
+        "shareDomain",
+        "source"
+      ]
+    },
+    "shareableAttributes": {
+      "type": "array",
+      "additionalItems": false,
+      "items": {
+        "type": "object",        
+        "properties": {
+          "attributeName": {
+            "type": "string"
+          },
+          "group": {
+            "type": "string"
+          },
+          "source": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "attribute": {
+                  "type": "string"
+                },
+                "filter": {
+                  "type": "array",
+                  "items": [{
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string"
+                        },
+                        "subType": {
+                          "type": "array",
+                          "items": [{
+                              "type": "string"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "language": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "attribute"
+              ]
+            }
+          },
+          "encrypted": {
+            "type": "boolean"
+          },
+          "format": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "attributeName",
+          "source",
+          "encrypted"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "dataSharePolicies",
+    "shareableAttributes"
+  ],
+  "additionalProperties": false
+}

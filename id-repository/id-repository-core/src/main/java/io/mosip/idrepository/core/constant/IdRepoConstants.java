@@ -767,6 +767,9 @@ public class IdRepoConstants {
 	/** Access type: create-only. */
 	public static final String CREATE = "create";
 
+	/** Access type / identity-handle operation: update. */
+	public static final String UPDATE = "update";
+
 	/** Access type: read-only. */
 	public static final String READ = "read";
 

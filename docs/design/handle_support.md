@@ -29,7 +29,12 @@ As handles are revocable they provide strong privacy by default. If a user feels
     8. Issue credentials with the UIN. As part of handle support, we have made this issuance configurable.
     9. Issue credentials with the handle for each selected handle.
 * There were changes in IDA to support handle as a new IDType and also introduced regex-based handle validation.
-* Changes in `update_identity` API: (Not implemented)
+* Changes in `update_identity` API:
+    1. `selectedHandles` in the update request **replaces** the previous selection (it does not append).
+    2. Handle field values may be a string, a list, or a map with `value` (lists may tag entries `"handle"`).
+    3. Hashes that drop out of the selection are marked `DELETE`; after IDA `REMOVE_ID` they become `DELETE_REQUESTED`.
+    4. New hashes are inserted as `ACTIVATED`. Credentials are issued only for `ACTIVATED` handles.
+    5. Omitting `selectedHandles` on a partial update keeps existing handles; omitting a field id from an explicit `selectedHandles` list revokes it.
 
 ### How is the credential request ID created for handles?
 

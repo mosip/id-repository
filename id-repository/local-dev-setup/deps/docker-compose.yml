@@ -1,0 +1,206 @@
+# Compose project name (shown by `docker compose ls`) — not the parent folder name.
+name: idrepo-local
+
+services:
+
+  postgres:
+    image: 'postgres:bookworm'
+    container_name: local_postgres
+    ports:
+      - 5455:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mosip123
+    volumes:
+      # IDA-style single init.sql (+ helper DDL mounts)
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./keymanager:/keymanager:ro
+      - ../../../db_scripts:/db_scripts:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  config-server:
+    image: mosipid/config-server:latest
+    container_name: my_config_server
+    ports:
+      - "51100:51000"
+    volumes:
+      # Bundled config (no host absolute path). Edit ./mosip-config/* for local overrides.
+      - ./mosip-config:/mosip-config:ro
+    environment:
+       # Spring profile & config location
+      - SPRING_PROFILES_ACTIVE=native
+      - SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS=file:/mosip-config
+      - SPRING_CLOUD_CONFIG_SERVER_ACCEPT_EMPTY=true
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_FORCE_PULL=false
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_CLONEONSTART=false
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_REFRESHRATE=0
+      - SERVER_PORT=51000
+      # Expose all actuator endpoints
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=*
+      - MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=always
+      # Disable security if the image has spring-security on classpath
+      - MANAGEMENT_SECURITY_ENABLED=false
+      - SPRING_SECURITY_ENABLED=false
+    healthcheck:
+      # actuator/health returns 404 in this image; config endpoint proves server is ready
+      test: ["CMD-SHELL", "curl -f http://localhost:51000/config/application/default || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  # Official WireMock — stubs in ./wiremock/mappings/id-repository.json (jsonBody inlined).
+  # __files holds EMPTY-FILE only; IAM / BioSDK / WebSub / Data Share / idgenerator are in mappings.
+  # Built on Temurin 21 (official wiremock/wiremock:* images are still Java 17).
+  mock-service:
+    build:
+      context: ./wiremock
+      dockerfile: Dockerfile
+    image: idrepo-local-wiremock:3.13.2-jre21
+    container_name: local_wiremock
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./wiremock/mappings:/home/wiremock/mappings
+      - ./wiremock/__files:/home/wiremock/__files
+      - ../keys:/home/wiremock/keys:ro
+      - ./mosip-config:/mosip-config:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      websub-partner-ack:
+        condition: service_healthy
+    environment:
+      - JAVA_OPTS=-Xms256m -Xmx1024m
+      - CONFIG_SERVER_URL=http://config-server:51000/config
+      - MOSIP_CONFIG_DIR=/mosip-config
+      # Hub runs in Docker; id-repo runs on the host. localhost:8090 inside the container is not the app.
+    command:
+      - --verbose
+      - --port
+      - "8082"
+      - --local-response-templating
+      - --max-template-cache-entries
+      - "10"
+      - --no-request-journal
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8082/__admin/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # Local partner WebSub ack: on */CREDENTIAL_ISSUED publish, HMAC-POSTs STORED to notifyStatus.
+  # WireMock /hub proxies here so host app keeps websub.*.url=localhost:8082.
+  websub-partner-ack:
+    image: python:3.12-alpine
+    container_name: local_websub_partner_ack
+    ports:
+      - "8085:8085"
+    volumes:
+      - ./websub-partner-ack:/app:ro
+    working_dir: /app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - WEBSUB_PORT=8085
+      - CREDENTIAL_STATUS_CALLBACK=http://host.docker.internal:8090/v1/credentialrequest/callback/notifyStatus
+      - CREDENTIAL_STATUS_GET_URL=http://host.docker.internal:8090/v1/credentialrequest/get
+      - CREDENTIAL_STATUS_SECRET=test
+      # AuthFilter requires JWT on GET /credentialrequest/get/{id}
+      - AUTH_TOKEN_URL=http://mock-service:8082/v1/authmanager/authenticate/clientidsecretkey
+      - AUTH_CLIENT_ID=mosip-idrepo-client
+      - AUTH_SECRET_KEY=local-secret
+      - AUTH_APP_ID=idrepo
+      # Wait for ISSUED commit before STORED (avoids null credential_id race)
+      - CREDENTIAL_ACK_INITIAL_DELAY_SEC=1.5
+      - CREDENTIAL_ACK_POLL_TIMEOUT_SEC=30
+    command: ["python", "server.py"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8085/health')",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  # Object store for id-repo biometrics/documents (credentials use static WireMock datashare stubs)
+  minio:
+    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+    container_name: local_minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: local_minio_init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 admin minioadmin &&
+      mc mb --ignore-existing local/idrepo &&
+      exit 0
+      "
+
+  # Key Manager — encrypt/decrypt for id-repo (PKCS12, no SoftHSM).
+  # Default KM_STATIC_SEED=true: crypto from deps/init.sql keymgr seed + keys/mosip-idrepo-ks.p12.
+  # bootstrap.sh only starts KM and verifies getCertificate (no keys-generator.jar).
+  keymanager-service:
+    image: mosipid/kernel-keymanager-service:1.3.0
+    container_name: keymanager_service
+    ports:
+      - "8088:8088"
+    volumes:
+      - ../keys:/home/mosip/config:rw
+      - ./keymanager:/bootstrap:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    environment:
+      SPRING_CLOUD_CONFIG_LABEL: develop
+      KM_CONFIG_DIR: /home/mosip/config
+      KM_URL: http://127.0.0.1:8088
+      # true = SQL seed in init.sql (default). false = optional keys-generator.jar fallback.
+      KM_STATIC_SEED: "true"
+    entrypoint: ["/bin/bash", "/bootstrap/bootstrap.sh"]
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "test -f /home/mosip/config/.km-local-ready && curl -f http://localhost:8088/v1/keymanager/actuator/health || exit 1",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 40
+      start_period: 300s
+
+  # id-repository-service runs on the host (not in Compose).
+  #   ../run-idrepo-local.bat   or   ../run-idrepo-local.sh
+  # Build first: cd ../../ && mvn -pl id-repository-service -am package -DskipTests -Dgpg.skip=true

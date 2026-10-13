@@ -21,12 +21,11 @@ import io.mosip.idrepository.core.helper.RestHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
-import io.mosip.idrepository.core.util.EnvUtil;
+import io.mosip.idrepository.core.util.IdRepositoryUtil;
 import io.mosip.idrepository.identity.dto.HandleDto;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.idobjectvalidator.constant.IdObjectValidatorConstant;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +39,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
@@ -138,7 +136,7 @@ public class IdRepoServiceHelper {
                     "\n" + "schemaVersion is null");
             throw new IdRepoAppUncheckedException(MISSING_INPUT_PARAMETER.getErrorCode(),
                     String.format(MISSING_INPUT_PARAMETER.getErrorMessage(),
-                            ROOT_PATH + IdObjectValidatorConstant.PATH_SEPERATOR + "IDSchemaVersion"));
+                            ROOT_PATH + "/IDSchemaVersion"));
         }
         try {
             if (schemaMap.containsKey(schemaVersion)) {
@@ -158,28 +156,80 @@ public class IdRepoServiceHelper {
         }
     }
 
-    public Map<String, HandleDto> getSelectedHandles(Object identity) throws IdRepoAppException {
+    /**
+     * Resolves selected handle field ids to one or more {@link HandleDto} values each.
+     * <p>
+     * Field values may be a string, a list (optionally tagged {@code handle}), or a
+     * map with a {@code value} key. When {@code selectedHandles} is absent and
+     * {@code existingSelectedHandlesMap} is provided, existing field ids still present
+     * in the identity (or omitted from a partial update) are kept.
+     * </p>
+     *
+     * @param identity                    request or identity wrapper containing {@code identity}
+     * @param existingSelectedHandlesMap  currently stored handles keyed by field id; may be {@code null}
+     * @return mutable map of field id → handle DTOs; empty when none apply
+     * @throws IdRepoAppException when the identity payload cannot be converted to a map
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, List<HandleDto>> getSelectedHandles(Object identity,
+            Map<String, List<HandleDto>> existingSelectedHandlesMap) throws IdRepoAppException {
         Map<String, Object> requestMap = convertToMap(identity);
+        Map<String, List<HandleDto>> selectedHandlesMap = new HashMap<>();
         if (requestMap.containsKey(ROOT_PATH) && Objects.nonNull(requestMap.get(ROOT_PATH))) {
             Map<String, Object> identityMap = (Map<String, Object>) requestMap.get(ROOT_PATH);
-            String schemaVersion = String.valueOf(identityMap.get(identityMapping.getIdentity().getIDSchemaVersion().getValue()));
+            String schemaVersion = String.valueOf(
+                    identityMap.get(identityMapping.getIdentity().getIDSchemaVersion().getValue()));
+            if (!supportedHandlesInSchema.containsKey(schemaVersion)) {
+                getSchema(schemaVersion);
+            }
+            List<String> schemaHandles = supportedHandlesInSchema.getOrDefault(schemaVersion, List.of());
             String selectedHandlesFieldId = identityMapping.getIdentity().getSelectedHandles().getValue();
-            if(identityMap.containsKey(selectedHandlesFieldId) && Objects.nonNull(identityMap.get(selectedHandlesFieldId))) {
+            if (identityMap.containsKey(selectedHandlesFieldId) && Objects.nonNull(identityMap.get(selectedHandlesFieldId))) {
                 mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER, "getSelectedHandles",
-                        requestMap.get(selectedHandlesFieldId));
+                        String.valueOf(identityMap.get(selectedHandlesFieldId)));
                 List<String> selectedHandleFieldIds = (List<String>) identityMap.get(selectedHandlesFieldId);
-                return selectedHandleFieldIds.stream()
-                        .filter( handleFieldId -> supportedHandlesInSchema.get(schemaVersion).contains(handleFieldId))
-                        .collect(Collectors.toMap(handleName->handleName,
-                                handleFieldId-> {
-                                    String handle = ((String) identityMap.get(handleFieldId))
-                                            .concat(getHandlePostfix(handleFieldId))
-                                            .toLowerCase(Locale.ROOT);
-                                    return new HandleDto(handle, getHandleHash(handle));
-                                }));
+                if (selectedHandleFieldIds != null) {
+                    for (String handleFieldId : selectedHandleFieldIds) {
+                        if (handleFieldId != null && schemaHandles.contains(handleFieldId)) {
+                            buildHandleDto(identityMap.get(handleFieldId), handleFieldId)
+                                    .ifPresent(dtos -> selectedHandlesMap.put(handleFieldId, dtos));
+                        }
+                    }
+                }
+            } else if (existingSelectedHandlesMap != null && !existingSelectedHandlesMap.isEmpty()) {
+                for (Map.Entry<String, List<HandleDto>> existing : existingSelectedHandlesMap.entrySet()) {
+                    String handleFieldId = existing.getKey();
+                    if (!schemaHandles.contains(handleFieldId)) {
+                        continue;
+                    }
+                    if (identityMap.containsKey(handleFieldId) && identityMap.get(handleFieldId) != null) {
+                        buildHandleDto(identityMap.get(handleFieldId), handleFieldId)
+                                .ifPresent(dtos -> selectedHandlesMap.put(handleFieldId, dtos));
+                    } else {
+                        selectedHandlesMap.put(handleFieldId, existing.getValue());
+                    }
+                }
             }
         }
-        return Map.of();
+        return selectedHandlesMap;
+    }
+
+    /**
+     * Replaces {@code selectedHandles} in the identity map with the field ids that
+     * were actually accepted as handles.
+     *
+     * @param identityObjectMap        identity JSON as a map
+     * @param newSelectedHandlesMap    handles to persist; ignored when {@code null}
+     */
+    public void updateSelectedHandleFields(Map<String, Object> identityObjectMap,
+            Map<String, List<HandleDto>> newSelectedHandlesMap) {
+        if (newSelectedHandlesMap == null || identityObjectMap == null) {
+            return;
+        }
+        String selectedHandlesFieldId = identityMapping.getIdentity().getSelectedHandles().getValue();
+        if (identityObjectMap.containsKey(selectedHandlesFieldId)) {
+            identityObjectMap.put(selectedHandlesFieldId, new ArrayList<>(newSelectedHandlesMap.keySet()));
+        }
     }
 
     /**
@@ -188,12 +238,73 @@ public class IdRepoServiceHelper {
      * @return string
      */
     public String getHandleHash(String handle) {
-        //handle is converted to lowercase. It is language neutral conversion.
-        int saltId = securityManager.getSaltKeyForHashOfId(handle.toLowerCase(Locale.ROOT));
+        String normalized = IdRepositoryUtil.getTrimmedLowercaseValue(handle);
+        int saltId = securityManager.getSaltKeyForHashOfId(normalized);
         String salt = uinHashSaltRepo.retrieveSaltById(saltId);
-        String saltedHash = securityManager.hashwithSalt(handle.getBytes(StandardCharsets.UTF_8),
+        String saltedHash = securityManager.hashwithSalt(normalized.getBytes(StandardCharsets.UTF_8),
                 CryptoUtil.decodePlainBase64(salt));
         return saltId + SPLITTER + saltedHash;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Optional<List<HandleDto>> buildHandleDto(Object handleValue, String handleFieldId) {
+        if (handleValue instanceof String) {
+            return buildSingleHandleDto((String) handleValue, handleFieldId).map(List::of);
+        }
+        if (handleValue instanceof List) {
+            List<HandleDto> dtos = new ArrayList<>();
+            for (String value : getFilteredHandleValues((List<Object>) handleValue)) {
+                buildSingleHandleDto(value, handleFieldId).ifPresent(dtos::add);
+            }
+            return dtos.isEmpty() ? Optional.empty() : Optional.of(dtos);
+        }
+        if (handleValue instanceof Map) {
+            Object value = ((Map<String, Object>) handleValue).get("value");
+            if (value instanceof String) {
+                return buildSingleHandleDto((String) value, handleFieldId).map(List::of);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private Optional<HandleDto> buildSingleHandleDto(String handleValue, String handleFieldId) {
+        if (!StringUtils.hasText(handleValue)) {
+            return Optional.empty();
+        }
+        String handle = IdRepositoryUtil.getTrimmedLowercaseValue(handleValue).concat(getHandlePostfix(handleFieldId));
+        return Optional.of(new HandleDto(handle, getHandleHash(handle)));
+    }
+
+    /**
+     * From a list of identity attribute values, keep strings and map entries tagged
+     * as {@code handle} (or untagged maps, which are treated as handles).
+     */
+    @SuppressWarnings("unchecked")
+    private List<String> getFilteredHandleValues(List<Object> handleValues) {
+        List<String> values = new ArrayList<>();
+        if (handleValues == null) {
+            return values;
+        }
+        for (Object item : handleValues) {
+            if (item instanceof String) {
+                values.add((String) item);
+            } else if (item instanceof Map) {
+                Map<String, Object> map = (Map<String, Object>) item;
+                Object rawValue = map.get("value");
+                if (!(rawValue instanceof String)) {
+                    continue;
+                }
+                if (map.containsKey("tags") && map.get("tags") instanceof List) {
+                    List<?> tags = (List<?>) map.get("tags");
+                    if (tags.stream().anyMatch(tag -> "handle".equals(String.valueOf(tag)))) {
+                        values.add((String) rawValue);
+                    }
+                } else {
+                    values.add((String) rawValue);
+                }
+            }
+        }
+        return values;
     }
 
     private List<String> getSupportedHandles(String schema) {

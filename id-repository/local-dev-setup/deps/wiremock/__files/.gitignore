@@ -1,0 +1,7 @@
+# Runtime / generated WireMock files (do not commit secrets)
+# IAM JWTs/JWKS are embedded in mappings/id-repository.json — no local-iam-* mint files.
+# Optional leftover BioSDK body files (stubs are now inlined in mappings)
+biosdk-extract-template-response.json
+biosdk-convert-format-response.json
+biosdk-segment-response.json
+biometric_cbeff_b64.txt

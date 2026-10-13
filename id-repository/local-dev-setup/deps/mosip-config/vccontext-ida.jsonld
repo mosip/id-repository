@@ -1,0 +1,9 @@
+{
+   "context" : [
+    "https://www.w3.org/2018/credentials/v1",
+    "https://${mosip.api.public.host}/.well-known/mosip-ida-context.json",
+    {
+       "sec": "https://w3id.org/security#"
+    }
+]
+}

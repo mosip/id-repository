@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executor;
 
 import jakarta.annotation.PostConstruct;
 
@@ -15,9 +16,10 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,9 +43,13 @@ import io.mosip.kernel.core.util.CryptoUtil;
  * Builds and persists anonymous identity issuance profiles (IOV) asynchronously.
  * <p>
  * Request-scoped data is accumulated via fluent setters in a {@link ThreadLocal}
- * so concurrent HTTP threads do not overwrite each other. {@link #buildAndsaveProfile(boolean)}
- * captures that context on the caller thread and passes a snapshot to the async worker,
- * because {@code @Async} runs on a different thread where {@link ThreadLocal} is empty.
+ * so concurrent HTTP threads do not overwrite each other.
+ * </p>
+ * <p>
+ * <strong>Do not put {@code @Async} on {@link #buildAndsaveProfile(boolean)}.</strong>
+ * That method must run on the request thread to {@linkplain #detachContext() snapshot}
+ * the ThreadLocal, then hand the copy to {@code anonymousProfileExecutor}. An
+ * {@code @Async} worker thread has an empty ThreadLocal and will always see {@code null}.
  * </p>
  */
 @Component
@@ -70,9 +76,9 @@ public class AnonymousProfileHelper {
 	private ChannelInfoHelper channelInfoHelper;
 
 	@Autowired
-	@Lazy
-	/** Self. */
-	private AnonymousProfileHelper self;
+	@Qualifier("anonymousProfileExecutor")
+	/** Async executor for profile build/save (runs after context snapshot). */
+	private Executor anonymousProfileExecutor;
 
 	@Value("${" + IdRepoConstants.IDENTITY_MAPPING_JSON + "}")
 	/** Identity mapping json. */
@@ -96,6 +102,10 @@ public class AnonymousProfileHelper {
 
 	/**
 	 * Captures request-thread context and hands off profile construction to the async executor.
+	 * <p>
+	 * Must stay synchronous (no {@code @Async} on this method). Snapshot happens here; work runs
+	 * on {@code anonymousProfileExecutor}.
+	 * </p>
 	 *
 	 * @param isDraft when {@code true}, clears context and skips profile creation (draft flow)
 	 */
@@ -107,18 +117,31 @@ public class AnonymousProfileHelper {
 		if (ctx == null || ctx.newUinData == null || ctx.regId == null) {
 			mosipLogger.warn(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper",
 					"buildAndsaveProfile",
-					"Missing regId, context, or newUinData. Skipping profile creation.");
+					"Missing context on request thread before async handoff"
+							+ " (ctxNull=" + (ctx == null)
+							+ ", newUinDataNull=" + (ctx == null || ctx.newUinData == null)
+							+ ", regIdNull=" + (ctx == null || ctx.regId == null)
+							+ "). Skipping profile creation.");
 			return;
 		}
-		self.executeBuildAndSaveProfile(copyContext(ctx));
+		ProfileContext copy = copyContext(ctx);
+		SecurityContext securityContext = SecurityContextHolder.getContext();
+		anonymousProfileExecutor.execute(() -> {
+			SecurityContextHolder.setContext(securityContext);
+			try {
+				doBuildAndSaveProfile(copy);
+			} finally {
+				SecurityContextHolder.clearContext();
+			}
+		});
 	}
 
-	@Async("anonymousProfileExecutor")
 	/**
-	 * Execute build and save profile.
-	 * @param ctx ctx
+	 * Builds and persists the profile from a request-thread snapshot (executor worker).
+	 *
+	 * @param ctx immutable-enough copy of request context; never read from ThreadLocal here
 	 */
-	public void executeBuildAndSaveProfile(ProfileContext ctx) {
+	void doBuildAndSaveProfile(ProfileContext ctx) {
 		try {
 			if (ctx.oldCbeff == null && ctx.oldCbeffRefId != null) {
 				ctx.oldCbeff = encodeCbeffIfAvailable(ctx.oldCbeffRefId, ctx.uinHash);
@@ -151,7 +174,7 @@ public class AnonymousProfileHelper {
 			updateChannelInfo(ctx.oldUinData, ctx.newUinData);
 		} catch (Exception e) {
 			mosipLogger.warn(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper",
-					"executeBuildAndSaveProfile", ExceptionUtils.getStackTrace(e));
+					"doBuildAndSaveProfile", ExceptionUtils.getStackTrace(e));
 		}
 	}
 
@@ -303,7 +326,7 @@ public class AnonymousProfileHelper {
 		return copy;
 	}
 
-	private static class ProfileContext {
+	static class ProfileContext {
 		byte[] oldUinData;
 		byte[] newUinData;
 		String oldCbeff;

@@ -27,8 +27,8 @@ import lombok.NoArgsConstructor;
  * Persist handle metadata separately from the main UIN identity row while still
  * participating in the shared {@link HandleInfo} / {@link UinInfo} interceptor
  * contract. Plaintext UIN and encrypted UIN bytes are <em>not</em> stored on
- * this table; only {@link #uinHash}, {@link #handle}, and {@link #handleHash}
- * link the handle to an individual.
+ * this table; only {@link #uinHash}, {@link #handle}, {@link #handleHash}, and
+ * {@link #status} link the handle to an individual.
  * </p>
  *
  * <h2>Table / persistence unit</h2>
@@ -114,6 +114,16 @@ public class Handle implements HandleInfo {
 	 */
 	@Column(name = "handle_hash")
 	private String handleHash;
+
+	/**
+	 * Handle lifecycle: {@code ACTIVATED}, {@code DELETE}, or {@code DELETE_REQUESTED}.
+	 * <p>
+	 * Uniqueness is still enforced on {@link #handleHash} regardless of status.
+	 * Only {@code ACTIVATED} rows are used for retrieve-by-handle and credential issuance.
+	 * </p>
+	 */
+	@Column(name = "status", length = 32, nullable = false)
+	private String status;
 
 	/**
 	 * Audit: user or system that created this row.

@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -24,6 +27,7 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.InvalidJsonException;
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.PathNotFoundException;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
@@ -107,138 +111,152 @@ import io.mosip.kernel.core.util.UUIDUtils;
 @Transactional(rollbackFor = { IdRepoAppException.class, IdRepoAppUncheckedException.class })
 public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
+	/** Identity JSON key holding the list of verified attribute names. */
 	private static final String VERIFIED_ATTRIBUTES = "verifiedAttributes";
 
-	/** The Constant UPDATE_IDENTITY. */
+	/** Method name used in logs of {@code updateIdentity}. */
 	private static final String UPDATE_IDENTITY = "updateIdentity";
 
-	/** The Constant ROOT. */
+	/** JSON path root token. */
 	private static final String ROOT = "$";
 
-	/** The Constant OPEN_SQUARE_BRACE. */
+	/** JSON path array-index opening token. */
 	private static final String OPEN_SQUARE_BRACE = "[";
 
-	/** The Constant LANGUAGE. */
+	/** Key of the language code in a multi-language identity value. */
 	private static final String LANGUAGE = "language";
 
+	/** Key of the text in a multi-language identity value. */
 	private static final String VALUE = "value";
 
-	/** The Constant ADD_IDENTITY. */
+	/** Method name used in logs of {@code addIdentity}. */
 	private static final String ADD_IDENTITY = "addIdentity";
 
+	/** Method name used in logs of {@link #addIdentityHandle}. */
 	private static final String ADD_IDENTITY_HANDLE = "addIdentityHandle";
 
+	/** Separator used when joining or splitting attribute lists. */
 	private static final String COMMA = ",";
 
-	/** Mosip logger. */
+	/** Logger for identity operations; also receives the per-method performance log. */
 	private static final Logger mosipLogger = IdRepoLogger.getLogger(IdRepoServiceImpl.class);
 
-	/** The Constant TYPE. */
+	/** Identity schema key of a document's type. */
 	private static final String TYPE = "type";
 
-	/** The Constant DOT. */
+	/** Separator in file names. */
 	private static final String DOT = ".";
 
-	/** The Constant ID_REPO_SERVICE_IMPL. */
+	/** Class name used as the logger component id. */
 	private static final String ID_REPO_SERVICE_IMPL = "IdRepoServiceImpl";
 	
+	/** Method name used in logs of {@code retrieveIdentity}. */
 	private static final String RETRIEVE_IDENTITY = "retrieveIdentity";
 
 	/** Spring environment for property resolution. */
 	@Autowired
 	protected EnvUtil env;
 
-	/** Mapper. */
+	/** Converts between identity JSON, DTOs and entities. */
 	@Autowired
 	protected ObjectMapper mapper;
 
-	/** Uin repo. */
+	/** Repository of live {@code uin} rows. */
 	@Autowired
 	protected UinRepo uinRepo;
 
-	/** Uin detail repo. */
+	/** Repository of {@code uin_document_h}; receives a history row for every document change. */
 	@Autowired
-	/** Uin doc hrepo. */
 	private UinDocumentHistoryRepo uinDocHRepo;
 
-	/** Uin bio h repo. */
+	/** Repository of {@code uin_biometric_h}; receives a history row for every biometric change. */
 	@Autowired
-	/** Uin bio hrepo. */
 	private UinBiometricHistoryRepo uinBioHRepo;
 
-	/** Uin history repo. */
+	/** Repository of {@code uin_h}; receives a history row for every identity change. */
 	@Autowired
 	protected UinHistoryRepo uinHistoryRepo;
 
-	/** Cbeff util. */
+	/** Parses, merges and writes CBEFF biometric XML. */
 	@Autowired
 	protected CbeffUtil cbeffUtil;
 
-	/** Security manager. */
+	/** Hashes and encrypts the UIN and identity data. */
 	@Autowired
 	protected IdRepoSecurityManager securityManager;
 
-	/** Bio attributes. */
+	/** Identity schema attribute names that hold biometric files. */
 	@Resource
-	/** Bio attributes (List<String>). */
 	protected List<String> bioAttributes;
 
-	/** Uin hash salt repo. */
+	/** Repository of {@code uin_hash_salt}; salts for the UIN hash. */
 	@Autowired
 	protected UinHashSaltRepo uinHashSaltRepo;
 
-	/** Uin encrypt salt repo. */
+	/** Repository of {@code uin_encrypt_salt}; salts for UIN encryption. */
 	@Autowired
 	protected UinEncryptSaltRepo uinEncryptSaltRepo;
 
 	@Autowired
-	/** Object store helper. */
+	/** Reads and writes encrypted biometric and document files. */
 	protected ObjectStoreHelper objectStoreHelper;
 
 	@Autowired
-	/** Dummy partner. */
+	/** Supplies the dummy online-verification partner id used for new credential requests. */
 	private DummyPartnerCheckUtil dummyPartner;
 
+	/**
+	 * Runs credential issuance queued during an identity transaction once that transaction
+	 * has committed. Lazy to break a bean cycle.
+	 */
 	@Autowired
 	@Lazy
 	private CredentialStatusManager credentialStatusManager;
 
 	@Autowired
-	/** Cred request repo. */
+	/** Repository of {@code credential_request_status}; tracks credential issuance per identity. */
 	private CredentialRequestStatusRepo credRequestRepo;
 	
 	@Autowired
-	/** Anonymous profile helper. */
+	/** Builds and saves the anonymous profile of every identity change. */
 	protected AnonymousProfileHelper anonymousProfileHelper;
 	
 	@Value("${" + ACTIVE_STATUS + "}")
-	/** Active status. */
+	/** Identity status that means active (normally {@code ACTIVATED}). */
 	private String activeStatus;
 
 	@Value("#{${" + UPDATE_IDENTITY_FIELDS_TO_REPLACE + "}}")
-	/** Fields to replace on update (List<String>). */
+	/**
+	 * Identity fields that an update replaces as a whole instead of merging values
+	 * language by language.
+	 */
 	private List<String> fieldsToReplaceOnUpdate;
 
+	/** Repository of {@code identity_update_count_tracker}; counts updates per attribute. */
 	@Autowired
 	private IdentityUpdateTrackerRepo identityUpdateTracker;
 
+	/**
+	 * When {@code true}, a new credential request uses the request id derived by naming
+	 * convention instead of a random id.
+	 */
 	@Value("${" + ENABLE_CONVENTION_BASED_ID + ":false}")
 	private boolean enableConventionBasedId;
 
 	@Autowired
-	/** Handle repo. */
+	/** Repository of {@code handle}; stores the identity handles. */
 	private HandleRepo handleRepo;
 
 	@Autowired
-	/** Id repo service helper. */
+	/** Reads handle configuration and builds handle hashes. */
 	private IdRepoServiceHelper idRepoServiceHelper;
 
 	@Value("${" + UIN_REFID + "}")
-	/** Uin ref id. */
+	/** Key reference id used to encrypt and decrypt the UIN with its salt. */
 	private String uinRefId;
 
 	@Value("${" + UPDATE_IDENTITY_TRIM_WHITESPACES + ":true}")
-	/** Whether trim whitespaces. */
+	/** When {@code true}, leading and trailing whitespace is trimmed from update values. */
 	private boolean trimWhitespaces;
 
 	/**
@@ -255,14 +273,27 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		try {
 			String uinRefId = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils2.getUTCCurrentDateTime())
 					.toString();
-			ObjectNode identityObject = mapper.convertValue(request.getRequest().getIdentity(), ObjectNode.class);
-			identityObject.putPOJO(VERIFIED_ATTRIBUTES, request.getRequest().getVerifiedAttributes());
-			byte[] identityInfo = convertToBytes(identityObject);
 			String uinHash = getUinHash(uin);
 			String uinHashWithSalt = uinHash.split(SPLITTER)[1];
 			String uinToEncrypt = getUinToEncrypt(uin);
 
-			Map<String, HandleDto> selectedUniqueHandlesMap = checkAndGetHandles(request);
+			Map<String, Object> identityObjectMap = mapper.convertValue(request.getRequest().getIdentity(),
+					new TypeReference<Map<String, Object>>() {
+					});
+			Map<String, List<HandleDto>> selectedUniqueHandlesMap = checkAndGetHandles(request, uinHash, null, CREATE);
+			idRepoServiceHelper.updateSelectedHandleFields(identityObjectMap, selectedUniqueHandlesMap);
+			request.getRequest().setIdentity(identityObjectMap);
+
+			ObjectNode identityObject = mapper.convertValue(identityObjectMap, ObjectNode.class);
+			if (request.getRequest().getVerifiedAttributesMetadata() != null) {
+				DocumentContext inputData = jacksonJson(identityObjectMap);
+				DocumentContext storedData = jacksonJson(new HashMap<>());
+				applyV2VerifiedAttributes(request.getRequest().getVerifiedAttributesMetadata(), inputData, storedData);
+				identityObject.putPOJO(VERIFIED_ATTRIBUTES, storedData.read("$." + VERIFIED_ATTRIBUTES));
+			} else {
+				identityObject.putPOJO(VERIFIED_ATTRIBUTES, request.getRequest().getVerifiedAttributes());
+			}
+			byte[] identityInfo = convertToBytes(identityObject);
 
 			anonymousProfileHelper
 				.setRegId(request.getRequest().getRegistrationId())
@@ -273,7 +304,7 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			Uin uinEntity;
 			if (Objects.nonNull(request.getRequest().getDocuments()) && !request.getRequest().getDocuments().isEmpty()) {
 				addDocuments(uinHashWithSalt, identityInfo, request.getRequest().getDocuments(), uinRefId, docList, bioList,
-						false);
+						false, false);
 				uinEntity = new Uin(uinRefId, uinToEncrypt, uinHash, identityInfo, securityManager.hash(identityInfo),
 						request.getRequest().getRegistrationId(), activeStatus, IdRepoSecurityManager.getUser(),
 						DateUtils2.getUTCCurrentDateTime(), null, null, false, null, bioList, docList);
@@ -327,67 +358,139 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	}
 
 	/**
-	 * Stores the documents to FileSystem.
+	 * Decodes the request documents, writes them to the object store, and records a
+	 * biometric or document metadata row for each.
 	 *
-	 * @param uinHash      the uin hash
-	 * @param identityInfo the identity info
-	 * @param documents    the documents
-	 * @param uinRefId     the uin ref id
-	 * @param docList      the doc list
-	 * @param bioList      the bio list
-	 * @throws IdRepoAppException the id repo app exception
+	 * @param uinHash             uin hash used as the object path; for V2 drafts, the rid hash
+	 * @param identityInfo        identity JSON, used to find each document's category and type
+	 * @param documents           Base64URL-encoded documents from the request
+	 * @param uinRefId            reference id of the identity row the metadata rows belong to
+	 * @param docList             receives the new document metadata rows
+	 * @param bioList             receives the new biometric metadata rows
+	 * @param isDraft             {@code true} when the metadata rows belong to a draft
+	 * @param useDraftObjectStore {@code true} only for V2 drafts, which store files under
+	 *                            {@code _draft/{ridHash}/}; {@code false} uses {@code {uinHash}/}
+	 * @throws IdRepoAppUncheckedException {@code INVALID_INPUT_PARAMETER} when a document
+	 *         cannot be decoded; {@code FILE_STORAGE_ACCESS_ERROR} when a write fails
 	 */
 	private void addDocuments(String uinHash, byte[] identityInfo, List<DocumentsDTO> documents, String uinRefId,
-			List<UinDocument> docList, List<UinBiometric> bioList, boolean isDraft) {
+			List<UinDocument> docList, List<UinBiometric> bioList, boolean isDraft, boolean useDraftObjectStore) {
 		ObjectNode identityObject = convertToObject(identityInfo, ObjectNode.class);
+		List<PendingObjectStorePut> pendingPuts = new ArrayList<>();
 		IntStream.range(0, documents.size()).filter(index -> identityObject.has(documents.get(index).getCategory())).forEach(index -> {
 			DocumentsDTO doc = documents.get(index);
 			JsonNode docType = identityObject.get(doc.getCategory());
 			try {
+				byte[] data = CryptoUtil.decodeURLSafeBase64(doc.getValue());
 				if (bioAttributes.contains(doc.getCategory())) {
-					//print doc get category
-					mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, "Document Category: " + doc.getCategory());
-					addBiometricDocuments(uinHash, uinRefId, bioList, doc, docType, isDraft, index);
-					anonymousProfileHelper.setNewCbeff(doc.getValue());
+					try {
+						cbeffUtil.validateXML(data);
+					} catch (Exception e) {
+						mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "addBiometricDocuments", e.getMessage());
+						throw new IdRepoAppUncheckedException(INVALID_INPUT_PARAMETER.getErrorCode(),
+								String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "documents/" + index + "/value"), e);
+					}
+					pendingPuts.add(new PendingObjectStorePut(true, getFileRefId(docType), data, doc, docType, index));
 				} else {
-					addDemographicDocuments(uinHash, uinRefId, docList, doc, docType, isDraft);
+					pendingPuts.add(new PendingObjectStorePut(false, getFileRefId(docType), data, doc, docType, index));
 				}
-			} catch (IdRepoAppException e) {
+			} catch (IdRepoAppUncheckedException e) {
+				throw e;
+			} catch (Exception e) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, ADD_IDENTITY, e.getMessage());
-				throw new IdRepoAppUncheckedException(e.getErrorCode(), e.getErrorText(), e);
+				throw new IdRepoAppUncheckedException(INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "documents/" + index + "/value"), e);
 			}
 		});
+
+		storePendingDocuments(uinHash, pendingPuts, useDraftObjectStore);
+
+		for (PendingObjectStorePut pending : pendingPuts) {
+			if (pending.bio()) {
+				addBiometricMetadata(uinRefId, bioList, pending.doc(), pending.docType(), isDraft, pending.fileRefId(), pending.data());
+				anonymousProfileHelper.setNewCbeff(pending.doc().getValue());
+			} else {
+				addDemographicMetadata(uinRefId, docList, pending.doc(), pending.docType(), isDraft, pending.fileRefId(), pending.data());
+			}
+		}
 	}
 
 	/**
-	 * Stores the biometric documents to FileSystem.
+	 * Writes all pending documents to the object store, in parallel when there is more than one.
 	 *
-	 * @param uinHash  the uin hash
-	 * @param uinRefId the uin ref id
-	 * @param bioList  the bio list
-	 * @param doc      the doc
-	 * @param docType  the doc type
-	 * @throws IdRepoAppException the id repo app exception
+	 * @param uinHash             the uin hash (rid hash when {@code useDraftObjectStore})
+	 * @param pendingPuts         the pending puts
+	 * @param useDraftObjectStore {@code true} for v2 drafts stored under {@code _draft/{ridHash}/...}
+	 * @throws IdRepoAppUncheckedException the first write failure, with its original error
+	 *         code, or {@code FILE_STORAGE_ACCESS_ERROR} for an unexpected failure
 	 */
-	private void addBiometricDocuments(String uinHash, String uinRefId, List<UinBiometric> bioList, DocumentsDTO doc,
-			JsonNode docType, boolean isDraft, int index) throws IdRepoAppException {
-		byte[] data = null;
-		String fileRefId = getFileRefId(docType);
-
-		data = CryptoUtil.decodeURLSafeBase64(doc.getValue());
-		//print doc.getvalue
-		mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "addBiometricDocuments", "Document Value: " + doc.getValue());
-		try {
-			cbeffUtil.validateXML(data);
-			//print data
-			mosipLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "addBiometricDocuments", "Data: " + new String(data));
-		} catch (Exception e) {
-			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "addBiometricDocuments", e.getMessage());
-			throw new IdRepoAppUncheckedException(INVALID_INPUT_PARAMETER.getErrorCode(),
-					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "documents/" + index + "/value"), e);
+	private void storePendingDocuments(String uinHash, List<PendingObjectStorePut> pendingPuts,
+			boolean useDraftObjectStore) {
+		if (pendingPuts.isEmpty()) {
+			return;
 		}
-		objectStoreHelper.putBiometricObject(uinHash, fileRefId, data);
+		if (pendingPuts.size() == 1) {
+			putPendingDocument(uinHash, pendingPuts.get(0), useDraftObjectStore);
+			return;
+		}
+		List<CompletableFuture<Void>> puts = pendingPuts.stream()
+				.map(pending -> CompletableFuture.runAsync(() -> putPendingDocument(uinHash, pending, useDraftObjectStore)))
+				.toList();
+		try {
+			CompletableFuture.allOf(puts.toArray(CompletableFuture[]::new)).join();
+		} catch (CompletionException e) {
+			Throwable cause = e.getCause() != null ? e.getCause() : e;
+			if (cause instanceof IdRepoAppUncheckedException unchecked) {
+				throw unchecked;
+			} else if (cause instanceof IdRepoAppException idRepoAppException) {
+				throw new IdRepoAppUncheckedException(idRepoAppException.getErrorCode(),
+						idRepoAppException.getErrorText(), idRepoAppException);
+			}
+			throw new IdRepoAppUncheckedException(FILE_STORAGE_ACCESS_ERROR, cause);
+		}
+	}
 
+	/**
+	 * Writes one pending document to the live or draft object-store path.
+	 *
+	 * @param uinHash             uin hash, or rid hash when {@code useDraftObjectStore}
+	 * @param pending             document to write
+	 * @param useDraftObjectStore {@code true} to write under {@code _draft/{ridHash}/}
+	 * @throws IdRepoAppUncheckedException when the write fails
+	 */
+	private void putPendingDocument(String uinHash, PendingObjectStorePut pending, boolean useDraftObjectStore) {
+		try {
+			if (pending.bio()) {
+				if (useDraftObjectStore) {
+					objectStoreHelper.putDraftBiometricObject(uinHash, pending.fileRefId(), pending.data());
+				} else {
+					objectStoreHelper.putBiometricObject(uinHash, pending.fileRefId(), pending.data());
+				}
+			} else if (useDraftObjectStore) {
+				objectStoreHelper.putDraftDemographicObject(uinHash, pending.fileRefId(), pending.data());
+			} else {
+				objectStoreHelper.putDemographicObject(uinHash, pending.fileRefId(), pending.data());
+			}
+		} catch (IdRepoAppException e) {
+			throw new IdRepoAppUncheckedException(e.getErrorCode(), e.getErrorText(), e);
+		}
+	}
+
+	/**
+	 * Adds a {@code uin_biometric} row for a CBEFF file and, for a live identity, saves a
+	 * {@code uin_biometric_h} history row. The file itself is written separately by
+	 * {@link #storePendingDocuments}.
+	 *
+	 * @param uinRefId  id of the owning {@code uin} or {@code uin_draft} row
+	 * @param bioList   biometric rows of the identity; the new row is appended
+	 * @param doc       request document; its category (for example {@code individualBiometrics}) is stored
+	 * @param docType   the document's node in the identity JSON; supplies the file name
+	 * @param isDraft   {@code true} for a draft, which keeps no history
+	 * @param fileRefId object-store file name from {@link #getFileRefId}
+	 * @param data      decoded CBEFF content; its hash is stored on the row
+	 */
+	private void addBiometricMetadata(String uinRefId, List<UinBiometric> bioList, DocumentsDTO doc,
+			JsonNode docType, boolean isDraft, String fileRefId, byte[] data) {
 		bioList.add(new UinBiometric(uinRefId, fileRefId, doc.getCategory(), docType.get(FILE_NAME_ATTRIBUTE).asText(),
 				securityManager.hash(data), "", IdRepoSecurityManager.getUser(),
 				DateUtils2.getUTCCurrentDateTime(), null, null, false, null));
@@ -400,22 +503,20 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	}
 
 	/**
-	 * Stores the demographic documents to FileSystem.
+	 * Adds a {@code uin_document} row for a demographic document (proof of address, identity,
+	 * and so on) and, for a live identity, saves a {@code uin_document_h} history row. The file
+	 * itself is written separately by {@link #storePendingDocuments}.
 	 *
-	 * @param uinHash  the uin hash
-	 * @param uinRefId the uin ref id
-	 * @param docList  the doc list
-	 * @param doc      the doc
-	 * @param docType  the doc type
-	 * @throws IdRepoAppException the id repo app exception
+	 * @param uinRefId  id of the owning {@code uin} or {@code uin_draft} row
+	 * @param docList   document rows of the identity; the new row is appended
+	 * @param doc       request document; its category (for example {@code proofOfAddress}) is stored
+	 * @param docType   the document's node in the identity JSON; supplies the type, file name and format
+	 * @param isDraft   {@code true} for a draft, which keeps no history
+	 * @param fileRefId object-store file name from {@link #getFileRefId}
+	 * @param data      decoded document content; its hash is stored on the row
 	 */
-	private void addDemographicDocuments(String uinHash, String uinRefId, List<UinDocument> docList, DocumentsDTO doc,
-			JsonNode docType, boolean isDraft) throws IdRepoAppException {
-		String fileRefId = getFileRefId(docType);
-
-		byte[] data = CryptoUtil.decodeURLSafeBase64(doc.getValue());
-		objectStoreHelper.putDemographicObject(uinHash, fileRefId, data);
-
+	private void addDemographicMetadata(String uinRefId, List<UinDocument> docList, DocumentsDTO doc,
+			JsonNode docType, boolean isDraft, String fileRefId, byte[] data) {
 		docList.add(new UinDocument(uinRefId, doc.getCategory(), docType.get(TYPE).asText(), fileRefId,
 				docType.get(FILE_NAME_ATTRIBUTE).asText(), docType.get(FILE_FORMAT_ATTRIBUTE).asText(),
 				securityManager.hash(data), "", IdRepoSecurityManager.getUser(),
@@ -498,7 +599,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					uinObject.setUpdatedBy(IdRepoSecurityManager.getUser());
 					uinObject.setUpdatedDateTime(DateUtils2.getUTCCurrentDateTime());
 				}
+				Map<String, List<HandleDto>> handlesToAdd = null;
 				if (Objects.nonNull(request.getRequest()) && Objects.nonNull(request.getRequest().getIdentity())) {
+					handlesToAdd = getNewAndDeleteExistingHandles(request, uinObject, UPDATE);
 					RequestDTO requestDTO = request.getRequest();
 					Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
 							.mappingProvider(new JacksonMappingProvider()).build();
@@ -538,6 +641,8 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						DateUtils2.getUTCCurrentDateTime(), IdRepoSecurityManager.getUser(),
 						DateUtils2.getUTCCurrentDateTime(), false, null));
 
+				addIdentityHandle(uinObject, handlesToAdd);
+
 				issueCredential(uin, uinObject.getUin(), uinObject.getStatusCode(),
 						DateUtils2.getUTCCurrentDateTime(), uinObject.getRegId(), true);
 
@@ -570,13 +675,25 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				if (attributeData.getValue() instanceof String) {
 					attributeData.setValue(((String) attributeData.getValue()).trim());
 				} else if (attributeData.getValue() instanceof List) {
-					((List<Map<String, Object>>) attributeData.getValue()).forEach(map -> {
-						String trimValue = ((String) map.get(VALUE)).trim();
-						map.put(VALUE, trimValue);
-					});
+					List<Object> list = (List<Object>) attributeData.getValue();
+					for (int i = 0; i < list.size(); i++) {
+						Object item = list.get(i);
+						if (item instanceof String) {
+							list.set(i, ((String) item).trim());
+						} else if (item instanceof Map) {
+							Map<String, Object> map = (Map<String, Object>) item;
+							Object v = map.get(VALUE);
+							if (v instanceof String) {
+								map.put(VALUE, ((String) v).trim());
+							}
+						}
+					}
 				} else if (attributeData.getValue() instanceof Map) {
-					String trimValue = ((String) ((Map) attributeData.getValue()).get(VALUE)).trim();
-					((Map) attributeData.getValue()).put(VALUE, trimValue);
+					Map map = (Map) attributeData.getValue();
+					Object v = map.get(VALUE);
+					if (v instanceof String) {
+						map.put(VALUE, ((String) v).trim());
+					}
 				}
 				return attributeData;
 			}).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -592,6 +709,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * @param dbData db data
 	 */
 	protected void updateVerifiedAttributes(RequestDTO requestDTO, DocumentContext inputData, DocumentContext dbData) {
+		if (requestDTO.getVerifiedAttributesMetadata() != null) {
+			applyV2VerifiedAttributes(requestDTO.getVerifiedAttributesMetadata(), inputData, dbData);
+			return;
+		}
 		List dbVerifiedAttributes = (List) dbData.read(".verifiedAttributes");
 		dbVerifiedAttributes.remove(null);
 		if (dbVerifiedAttributes.isEmpty()) {
@@ -606,6 +727,112 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		dbData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
 	}
 
+	/**
+	 * Merges v2 {@link VerificationMetadata} into the stored identity.
+	 * A saved entry is kept when the same framework and process are not in the request
+	 * and its claims are not present in the incoming identity.
+	 */
+	private void applyV2VerifiedAttributes(List<VerificationMetadata> incoming, DocumentContext inputData,
+			DocumentContext dbData) {
+		List<VerificationMetadata> inputVerifiedAttributes = new ArrayList<>();
+		for (VerificationMetadata item : incoming) {
+			VerificationMetadata copy = new VerificationMetadata();
+			copy.setTrustFramework(item.getTrustFramework());
+			copy.setVerificationProcess(item.getVerificationProcess());
+			copy.setClaims(item.getClaims() == null ? new ArrayList<>() : new ArrayList<>(item.getClaims()));
+			copy.setMetadata(item.getMetadata());
+			inputVerifiedAttributes.add(copy);
+		}
+		retainClaimsThatExist(inputData, dbData, inputVerifiedAttributes);
+
+		List<VerificationMetadata> stored = readStoredVerificationMetadata(dbData);
+		if (stored.isEmpty()) {
+			inputData.put("$", VERIFIED_ATTRIBUTES, inputVerifiedAttributes);
+			dbData.put("$", VERIFIED_ATTRIBUTES, inputVerifiedAttributes);
+			return;
+		}
+		for (VerificationMetadata saved : stored) {
+			boolean updated = inputVerifiedAttributes.stream()
+					.anyMatch(vm -> StringUtils.equalsIgnoreCase(saved.getTrustFramework(), vm.getTrustFramework())
+							&& StringUtils.equalsIgnoreCase(saved.getVerificationProcess(), vm.getVerificationProcess()));
+			if (!updated) {
+				List<String> claims = saved.getClaims() == null ? List.of() : saved.getClaims();
+				List<String> claimsNotUpdated = claims.stream()
+						.filter(claim -> !fieldHasValue(inputData, claim))
+						.collect(Collectors.toList());
+				if (!claimsNotUpdated.isEmpty()) {
+					saved.setClaims(claimsNotUpdated);
+					inputVerifiedAttributes.add(saved);
+				}
+			}
+		}
+		inputData.put("$", VERIFIED_ATTRIBUTES, inputVerifiedAttributes);
+		dbData.put("$", VERIFIED_ATTRIBUTES, inputVerifiedAttributes);
+	}
+
+	private void retainClaimsThatExist(DocumentContext inputData, DocumentContext dbData,
+			List<VerificationMetadata> inputVerifiedAttributes) {
+		for (VerificationMetadata metadata : inputVerifiedAttributes) {
+			List<String> claims = metadata.getClaims() == null ? List.of() : metadata.getClaims();
+			metadata.setClaims(claims.stream()
+					.filter(claim -> fieldHasValue(inputData, claim) || fieldHasValue(dbData, claim))
+					.collect(Collectors.toList()));
+		}
+		inputVerifiedAttributes.removeIf(item -> item.getClaims() == null || item.getClaims().isEmpty());
+	}
+
+	private boolean fieldHasValue(DocumentContext data, String fieldId) {
+		try {
+			return data.read("$." + fieldId) != null;
+		} catch (PathNotFoundException ignored) {
+			return false;
+		}
+	}
+
+	private List<VerificationMetadata> readStoredVerificationMetadata(DocumentContext dbData) {
+		List<?> matches;
+		try {
+			matches = dbData.read(".verifiedAttributes");
+		} catch (PathNotFoundException ex) {
+			return new ArrayList<>();
+		}
+		if (matches == null || matches.isEmpty() || matches.get(0) == null) {
+			return new ArrayList<>();
+		}
+		Object stored = matches.get(0);
+		if (!(stored instanceof List<?> storedList) || storedList.isEmpty()) {
+			return new ArrayList<>();
+		}
+		if (storedList.stream().allMatch(String.class::isInstance)) {
+			VerificationMetadata converted = new VerificationMetadata();
+			converted.setClaims(storedList.stream().map(String.class::cast).collect(Collectors.toList()));
+			converted.setTrustFramework("NA");
+			converted.setVerificationProcess("NA");
+			Map<String, Object> metadata = new HashMap<>();
+			metadata.put("trust_framework", "NA");
+			metadata.put("verification_process", "NA");
+			metadata.put("time", DateUtils2.formatToISOString(DateUtils2.getUTCCurrentDateTime()));
+			converted.setMetadata(metadata);
+			return new ArrayList<>(List.of(converted));
+		}
+		return mapper.convertValue(storedList, new TypeReference<List<VerificationMetadata>>() {
+		});
+	}
+
+	private static DocumentContext jacksonJson(Object source) {
+		Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
+				.mappingProvider(new JacksonMappingProvider()).build();
+		return JsonPath.using(configuration).parse(source);
+	}
+
+	/**
+	 * Copies each field listed in {@link #fieldsToReplaceOnUpdate} from the request to the
+	 * stored identity, replacing the stored value whole. Fields missing or null in the request
+	 * are left as they are.
+	 *
+	 * @param inputData identity JSON from the update request
+	 * @param dbData    stored identity JSON; changed in place
+	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void replaceConfiguredFieldsOnUpdate(DocumentContext inputData, DocumentContext dbData) {
 		for(String fieldId : fieldsToReplaceOnUpdate) {
@@ -619,13 +846,16 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 	/**
-	 * Update identity.
+	 * Merges request identity JSON into stored identity (missing fields, failing
+	 * fields, then language-list values). Remaining LENIENT diffs — for example
+	 * array handles {@code [{value, tags}]} that are not language lists — fail
+	 * the update. Recursing here never converges and overflows the stack.
 	 *
 	 * @param inputData        the input data
 	 * @param dbData           the db data
 	 * @param comparisonResult the comparison result
 	 * @throws JSONException      the JSON exception
-	 * @throws IdRepoAppException the id repo app exception
+	 * @throws IdRepoAppException {@code UNKNOWN_ERROR} when a leftover diff remains
 	 */
 	protected void updateJsonObject(String uinHash, DocumentContext inputData, DocumentContext dbData,
 			JSONCompareResult comparisonResult, boolean canPersistUpdateCount) throws JSONException, IOException, IdRepoAppException {
@@ -652,12 +882,91 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
 		if (comparisonResult.failed()) {
 			// Code should never reach here
-			updateJsonObject(uinHash, inputData, dbData, comparisonResult, true);
+			//updateJsonObject(uinHash, inputData, dbData, comparisonResult, true);
+			logRemainingDiff(uinHash, inputData, dbData, comparisonResult, attribute);
+			throw new IdRepoAppException(UNKNOWN_ERROR);
 		}
 		identityUpdateTracker.save(new IdentityUpdateTracker(updateCountTracker.getKey(), CryptoUtil
 				.encodeToURLSafeBase64(mapper.writeValueAsString(updateCountTrackerMap).getBytes()).getBytes()));
 	}
 
+	/**
+	 * Logs why the merge in {@link #updateJsonObject} did not converge.
+	 * <p>
+	 * Paths and counts go to ERROR. Request and merged stored values of the attributes named in
+	 * the diff go to DEBUG only, because they can hold personal data.
+	 * </p>
+	 *
+	 * @param uinHash          salted UIN hash of the identity being updated
+	 * @param inputData        request identity after the merge passes
+	 * @param dbData           stored identity after the merge passes
+	 * @param comparisonResult final LENIENT comparison that still fails
+	 * @param attribute        attributes already changed by the merge passes
+	 */
+	@SuppressWarnings("unchecked")
+	private void logRemainingDiff(String uinHash, DocumentContext inputData, DocumentContext dbData,
+			JSONCompareResult comparisonResult, Set<String> attribute) {
+		String message = comparisonResult.getMessage();
+		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateJsonObject",
+				"Comparison still failing after all update passes for uinHash: " + uinHash
+						+ " - remaining diff: " + message
+						+ " - fieldFailures: " + describeFailures(comparisonResult.getFieldFailures())
+						+ " - fieldMissing: " + describeFailures(comparisonResult.getFieldMissing())
+						+ " - fieldUnexpected: " + describeFailures(comparisonResult.getFieldUnexpected())
+						+ " - attributesMergedSoFar: " + attribute);
+
+		Map<String, Object> inputMap = inputData.read(ROOT, Map.class);
+		Map<String, Object> dbMap = dbData.read(ROOT, Map.class);
+		Set<String> keys = new LinkedHashSet<>(inputMap.keySet());
+		keys.addAll(dbMap.keySet());
+		keys.stream()
+				.filter(key -> Pattern.compile("(^|[\\s.;])" + Pattern.quote(key) + "[\\[.:]").matcher(message).find())
+				.forEach(key -> {
+					Object requestValue = inputMap.get(key);
+					Object storedValue = dbMap.get(key);
+					mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateJsonObject",
+							"Diff attribute '" + key + "' - request: " + describeShape(requestValue)
+									+ ", merged stored: " + describeShape(storedValue));
+					mosipLogger.debug(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_IMPL, "updateJsonObject",
+							"Diff attribute '" + key + "' - request value: " + requestValue
+									+ " | merged stored value: " + storedValue);
+				});
+	}
+
+	private String describeFailures(List<FieldComparisonFailure> failures) {
+		return failures.stream()
+				.map(failure -> failure.getField() + " (expected " + describeShape(failure.getExpected())
+						+ ", actual " + describeShape(failure.getActual()) + ")")
+				.collect(Collectors.joining(", ", "[", "]"));
+	}
+
+	private String describeShape(Object value) {
+		if (value == null) {
+			return "absent";
+		}
+		if (value instanceof List) {
+			return "list of " + ((List<?>) value).size();
+		}
+		if (value instanceof JSONArray) {
+			return "list of " + ((JSONArray) value).length();
+		}
+		if (value instanceof Map || value instanceof JSONObject) {
+			return "object";
+		}
+		return value.getClass().getSimpleName();
+	}
+
+	/**
+	 * Adds one to the update count of every changed attribute that has a configured limit.
+	 * <p>
+	 * A count never goes above the limit. All attributes are processed first; then, if any of
+	 * them had already reached its limit before this update, the update is rejected.
+	 * </p>
+	 *
+	 * @param updateCountTrackerMap counts by attribute; changed in place
+	 * @param attributeSet          attributes changed by this update
+	 * @throws IdRepoAppException {@code UPDATE_COUNT_LIMIT_EXCEEDED}, listing the attributes at their limit
+	 */
 	private void updateCount(Map<String, Integer> updateCountTrackerMap, Set<String> attributeSet) throws IdRepoAppException {
 		mosipLogger.debug("Entering updateCount");
 		List<String> attributesHavingLimitExceeded = new ArrayList<>();
@@ -691,6 +1000,19 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		mosipLogger.debug("Exiting updateCount");
 	}
 
+	/**
+	 * Loads how many times each attribute of the identity has been updated.
+	 * <p>
+	 * The count map is stored in {@code identity_update_count_tracker} as URL-safe Base64 JSON.
+	 * </p>
+	 *
+	 * @param uinHash salted UIN hash; the tracker's id
+	 * @param dbData  stored identity JSON (not used)
+	 * @return entry of the UIN hash and a mutable count map; the map is empty when nothing is stored
+	 * @throws IOException          if the stored value cannot be decoded
+	 * @throws JsonParseException   if the stored JSON is malformed
+	 * @throws JsonMappingException if the stored JSON is not a map of counts
+	 */
 	private Entry<String, Map<String, Integer>> getUpdateCountTracker(String uinHash, DocumentContext dbData)
 			throws IOException, JsonParseException, JsonMappingException {
 		Optional<IdentityUpdateTracker> updateTrackerOptional = identityUpdateTracker.findById(uinHash);
@@ -705,12 +1027,17 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	}
 	
 	/**
-	 * Update missing fields.
+	 * First merge step of an update: adds fields that are in the request but not in the stored
+	 * identity.
+	 * <p>
+	 * The comparison treats the request as expected and the stored JSON as actual, so a
+	 * "missing" field exists only in the request. For an array path (a multi-language value),
+	 * the request entry is appended to the stored list. Otherwise the field is created.
+	 * </p>
 	 *
-	 * @param dbData           the db data
-	 * @param comparisonResult the comparison result
-	 * @param attribute
-	 * @throws IdRepoAppException the id repo app exception
+	 * @param dbData           stored identity JSON; changed in place
+	 * @param comparisonResult LENIENT comparison of the request against {@code dbData}
+	 * @param attribute        collects the names of changed top-level attributes for update counting
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void updateMissingFields(DocumentContext dbData, JSONCompareResult comparisonResult,
@@ -744,13 +1071,19 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	}
 
 	/**
-	 * Update failing fields.
+	 * Second merge step of an update: overwrites stored values that differ from the request.
+	 * <p>
+	 * An array-index path from the comparison (for example {@code fullName[language=eng]}) is
+	 * turned into a JsonPath filter ({@code fullName[?(@.language=='eng')]}) so the matching
+	 * entry is updated. Arrays and objects are written whole. A scalar is written to both
+	 * documents, except that a {@code null} in the request keeps the stored value (copied into
+	 * {@code inputData} so the documents match).
+	 * </p>
 	 *
-	 * @param inputData        the input data
-	 * @param dbData           the db data
-	 * @param comparisonResult the comparison result
-	 * @return
-	 * @throws IdRepoAppException the id repo app exception
+	 * @param inputData        identity JSON from the request; changed in place to match
+	 * @param dbData           stored identity JSON; changed in place
+	 * @param comparisonResult LENIENT comparison of the request against {@code dbData}
+	 * @param attribute        collects the names of changed top-level attributes for update counting
 	 */
 	private void updateFailingFields(DocumentContext inputData, DocumentContext dbData,
 									 JSONCompareResult comparisonResult, Set<String> attribute) {
@@ -788,12 +1121,18 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	}
 
 	/**
-	 * Update missing values.
+	 * Last merge step of an update: lines up the language entries of a multi-language field.
+	 * <p>
+	 * The field is taken from the comparison message. Request entries whose language is not
+	 * stored are added to {@code dbData}; stored entries whose language is not in the request
+	 * are added to {@code inputData}. Afterwards both lists cover the same languages, so
+	 * languages not sent in the update are kept.
+	 * </p>
 	 *
-	 * @param inputData        the input data
-	 * @param dbData           the db data
-	 * @param comparisonResult the comparison result
-	 * @return
+	 * @param inputData        identity JSON from the request; changed in place
+	 * @param dbData           stored identity JSON; changed in place
+	 * @param comparisonResult LENIENT comparison whose message names the field to fix
+	 * @param attribute        collects the name of the changed attribute for update counting
 	 */
 	@SuppressWarnings("unchecked")
 	private void updateMissingValues(DocumentContext inputData, DocumentContext dbData,
@@ -831,15 +1170,34 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 */
 	protected void updateDocuments(String uinHashwithSalt, Uin uinObject, RequestDTO requestDTO, boolean isDraft)
 			throws IdRepoAppException {
+		updateDocuments(uinHashwithSalt, uinObject, requestDTO, isDraft, false);
+	}
+
+	/**
+	 * Merges the request's biometrics into the stored CBEFF, writes the request documents,
+	 * and adds or replaces the identity's biometric and document metadata rows.
+	 *
+	 * @param uinHashwithSalt     uin hash used as the object path; for V2 drafts, the rid hash
+	 * @param uinObject           identity (or draft mapped to {@link Uin}) being updated
+	 * @param requestDTO          update request with the documents
+	 * @param isDraft             {@code true} when the metadata rows belong to a draft
+	 * @param useDraftObjectStore {@code true} only for v2 draft APIs, which store
+	 *                            files under {@code _draft/{ridHash}/...}. v1 drafts
+	 *                            and live identity updates use the UIN-hash path
+	 *                            {@code {uinHash}/Biometrics|Demographics/...}.
+	 * @throws IdRepoAppException when a file cannot be read, merged or written
+	 */
+	protected void updateDocuments(String uinHashwithSalt, Uin uinObject, RequestDTO requestDTO, boolean isDraft,
+			boolean useDraftObjectStore) throws IdRepoAppException {
 		List<UinDocument> docList = new ArrayList<>();
 		List<UinBiometric> bioList = new ArrayList<>();
 
 		if (Objects.nonNull(uinObject.getBiometrics())) {
-			updateCbeff(uinObject, requestDTO);
+			updateCbeff(uinObject, requestDTO, useDraftObjectStore);
 		}
 
 		addDocuments(uinHashwithSalt, convertToBytes(requestDTO.getIdentity()), requestDTO.getDocuments(),
-				uinObject.getUinRefId(), docList, bioList, isDraft);
+				uinObject.getUinRefId(), docList, bioList, isDraft, useDraftObjectStore);
 
 		docList.stream().forEach(doc -> uinObject.getDocuments().stream()
 				.filter(docObj -> StringUtils.equals(doc.getDoccatCode(), docObj.getDoccatCode())).forEach(docObj -> {
@@ -872,13 +1230,18 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	}
 
 	/**
-	 * Update cbeff.
+	 * Merges each request CBEFF with the stored CBEFF of the same biometric file type, so
+	 * modalities missing from the request are kept. The stored CBEFF is read from the
+	 * live path, or from the draft path when {@code useDraftObjectStore} is set.
 	 *
-	 * @param uinObject  the uin object
-	 * @param requestDTO the request DTO
-	 * @throws IdRepoAppException the id repo app exception
+	 * @param uinObject           identity whose stored biometric files are read; for V2 drafts
+	 *                            its uin hash is {@code _{ridHash}}
+	 * @param requestDTO          request whose biometric documents are replaced by the merged CBEFF
+	 * @param useDraftObjectStore {@code true} to read the stored CBEFF from {@code _draft/{ridHash}/}
+	 * @throws IdRepoAppUncheckedException the read error when a stored CBEFF cannot be read;
+	 *         {@code INVALID_INPUT_PARAMETER} when the request CBEFF cannot be merged
 	 */
-	private void updateCbeff(Uin uinObject, RequestDTO requestDTO) {
+	private void updateCbeff(Uin uinObject, RequestDTO requestDTO, boolean useDraftObjectStore) {
 		ObjectNode identityMap = convertToObject(uinObject.getUinData(), ObjectNode.class);
 		IntStream.range(0, uinObject.getBiometrics().size()).forEach(index -> {
 			UinBiometric bio = uinObject.getBiometrics().get(index);
@@ -887,7 +1250,9 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 						try {
 							String uinHash = uinObject.getUinHash().split("_")[1];
 							String bioFileId = bio.getBioFileId();
-							byte[] data = objectStoreHelper.getBiometricObject(uinHash, bioFileId);
+							byte[] data = useDraftObjectStore
+									? objectStoreHelper.getDraftBiometricObject(uinHash, bioFileId)
+									: objectStoreHelper.getBiometricObject(uinHash, bioFileId);
 								if (StringUtils.equalsIgnoreCase(
 										identityMap.get(bio.getBiometricFileType()).get(FILE_FORMAT_ATTRIBUTE).asText(), CBEFF_FORMAT)
 										&& bioFileId.endsWith(CBEFF_FORMAT)) {
@@ -909,6 +1274,20 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		});
 	}
 
+	/**
+	 * Merges a new CBEFF into the stored one, modality by modality.
+	 * <p>
+	 * Each BIR is keyed by its biometric type plus subtype (for example {@code FingerLeftIndexFinger}).
+	 * A BIR in the input replaces the stored BIR with the same key or is added if there is none;
+	 * stored BIRs not in the input are kept. The merged CBEFF is also given to the anonymous
+	 * profile helper.
+	 * </p>
+	 *
+	 * @param inputBioData    CBEFF XML from the update request
+	 * @param existingBioData CBEFF XML currently stored
+	 * @return the merged CBEFF XML
+	 * @throws Exception if either CBEFF cannot be parsed or the result cannot be written
+	 */
 	private byte[] updateXML(byte[] inputBioData, byte[] existingBioData) throws Exception {
 		List<BIR> existingBIRData = cbeffUtil.getBIRDataFromXML(existingBioData);
 		List<BIR> inputBIRData = cbeffUtil.getBIRDataFromXML(inputBioData);
@@ -1011,6 +1390,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
+	/**
+	 * Adds every attribute that has an update limit but no entry yet, using the configured
+	 * limit as its remaining count (the attribute has never been updated).
+	 *
+	 * @param updateCountTracker remaining counts by attribute; changed in place
+	 * @return the same map, now covering all limited attributes
+	 */
 	private Map<String, Integer> addMissingAttributes(Map<String, Integer> updateCountTracker) {
 		IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap().entrySet().stream()
 				.filter(entry -> !updateCountTracker.containsKey(entry.getKey()))
@@ -1019,6 +1405,14 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	}
 
 
+	/**
+	 * Returns remaining update counts for an identity that has never been updated, which are
+	 * simply the configured limits.
+	 *
+	 * @param attributeList attributes to include; {@code null} or empty means all limited attributes.
+	 *                      Attributes without a limit are left out.
+	 * @return configured limit by attribute
+	 */
 	private Map<String, Integer> getRemainingUpdateCountFromConfig(List<String> attributeList) {
 		if(attributeList == null || attributeList.isEmpty()){
 			return IdentityUpdateTrackerPolicyProvider.getUpdateCountLimitMap();
@@ -1030,6 +1424,27 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
+	/**
+	 * Records the credential work needed after an identity is added or updated, then queues
+	 * credential issuance to run once the identity transaction has committed.
+	 * <p>
+	 * Credential request rows for the identity are changed as follows:
+	 * </p>
+	 * <ul>
+	 * <li>Rows exist and the status is active: each row goes back to {@code NEW}.</li>
+	 * <li>Rows exist and the status is not active: each row becomes {@code DELETED}.</li>
+	 * <li>No rows exist: one row is created for the dummy online-verification partner, either
+	 * {@code NEW} or {@code DELETED} (with {@code expiryTimestamp}) depending on the status.
+	 * When convention-based ids are enabled, {@code requestId} becomes its request id.</li>
+	 * </ul>
+	 *
+	 * @param uin             plaintext UIN; hashed to find the rows
+	 * @param encryptedUin    encrypted UIN stored on a new row
+	 * @param uinStatus       identity status after the change
+	 * @param expiryTimestamp expiry for a deactivated identity; ignored when active
+	 * @param requestId       request id to use for a new row; may be {@code null}
+	 * @param isUpdate        {@code true} sets the trigger action to {@code UPDATE}, otherwise {@code CREATE}
+	 */
 	private void issueCredential(String uin, String encryptedUin, String uinStatus, LocalDateTime expiryTimestamp, String requestId, boolean isUpdate) {
 
 		String uinHash = securityManager.getIdHashWithSaltModuloByPlainIdHash(uin, uinHashSaltRepo::retrieveSaltById);
@@ -1119,37 +1534,131 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
-	private Map<String, HandleDto> checkAndGetHandles(IdRequestDTO request) throws IdRepoAppException {
-		Map<String, HandleDto> handles = idRepoServiceHelper.getSelectedHandles(request.getRequest());
-		if(handles != null && !handles.isEmpty()) {
-			List<String> duplicateHandles = handles.keySet()
-					.stream()
-					.filter(handleName -> handleRepo.existsByHandleHash(handles.get(handleName).getHandleHash()))
+	/**
+	 * Gets the handles selected in the request and checks that none of them is already taken
+	 * by a different UIN. On update, hashes already owned by {@code uinHash} are not duplicates.
+	 *
+	 * @param request                    identity create/update request
+	 * @param uinHash                    salted UIN hash of the identity being written
+	 * @param existingSelectedHandlesMap currently stored handles; {@code null} on create
+	 * @param method                     {@link IdRepoConstants#CREATE} or {@link IdRepoConstants#UPDATE}
+	 * @return handles keyed by field id; empty when the request selects none
+	 * @throws IdRepoAppException {@code HANDLE_RECORD_EXISTS} when a handle hash is already stored
+	 */
+	private Map<String, List<HandleDto>> checkAndGetHandles(IdRequestDTO request, String uinHash,
+			Map<String, List<HandleDto>> existingSelectedHandlesMap, String method) throws IdRepoAppException {
+		Map<String, List<HandleDto>> handles = idRepoServiceHelper.getSelectedHandles(request.getRequest(),
+				existingSelectedHandlesMap);
+		if (handles != null && !handles.isEmpty()) {
+			List<String> hashes = handles.values().stream()
+					.filter(Objects::nonNull)
+					.flatMap(List::stream)
+					.map(HandleDto::getHandleHash)
 					.collect(Collectors.toList());
-
-			if(duplicateHandles != null && !duplicateHandles.isEmpty()) {
-				throw new IdRepoAppException(HANDLE_RECORD_EXISTS.getErrorCode(),
-						String.format(HANDLE_RECORD_EXISTS.getErrorMessage(), duplicateHandles));
+			if (!hashes.isEmpty()) {
+				List<String> uinHashFromDB = handleRepo.findUinHashByHandleHashes(hashes);
+				boolean isDuplicate = !uinHashFromDB.isEmpty()
+						&& !(UPDATE.equals(method) && uinHashFromDB.contains(uinHash));
+				if (isDuplicate) {
+					throw new IdRepoAppException(HANDLE_RECORD_EXISTS.getErrorCode(),
+							String.format(HANDLE_RECORD_EXISTS.getErrorMessage(), handles.keySet()));
+				}
 			}
 		}
 		return handles;
 	}
 
-	private void addIdentityHandle(Uin uinEntity, Map<String, HandleDto> handles) {
-		if (handles != null && !handles.isEmpty()) {
-			for (Entry<String, HandleDto> handleDtoEntry : handles.entrySet()) {
-				int saltId = securityManager.getSaltKeyForHashOfId(handleDtoEntry.getValue().getHandle());
+	/**
+	 * Compares requested handles with those already stored for the UIN: leftover hashes are
+	 * marked {@code DELETE}, matching hashes are dropped from the returned map so they are
+	 * not re-inserted, and {@code selectedHandles} on the request identity is rewritten.
+	 *
+	 * @param request identity update request
+	 * @param uinObject persisted identity
+	 * @param method {@link IdRepoConstants#UPDATE}
+	 * @return new handles to insert (existing matching hashes removed)
+	 * @throws IdRepoAppException on uniqueness failure or identity conversion errors
+	 */
+	private Map<String, List<HandleDto>> getNewAndDeleteExistingHandles(IdRequestDTO request, Uin uinObject,
+			String method) throws IdRepoAppException {
+		RequestDTO existingIdentityRequestDto = new RequestDTO();
+		existingIdentityRequestDto.setIdentity(convertToObject(uinObject.getUinData(), ObjectNode.class));
+		Map<String, List<HandleDto>> existingSelectedHandlesMap = idRepoServiceHelper
+				.getSelectedHandles(existingIdentityRequestDto, null);
+		Map<String, List<HandleDto>> newSelectedHandlesMap = checkAndGetHandles(request, uinObject.getUinHash(),
+				existingSelectedHandlesMap, method);
+		if (newSelectedHandlesMap == null) {
+			newSelectedHandlesMap = new HashMap<>();
+		}
+
+		if (existingSelectedHandlesMap != null && !existingSelectedHandlesMap.isEmpty()) {
+			for (Map.Entry<String, List<HandleDto>> existingEntry : existingSelectedHandlesMap.entrySet()) {
+				List<HandleDto> requested = newSelectedHandlesMap.get(existingEntry.getKey());
+				List<HandleDto> remainingNew = new ArrayList<>(requested == null ? List.of() : requested);
+				for (HandleDto existingDto : existingEntry.getValue()) {
+					Optional<HandleDto> matching = remainingNew.stream()
+							.filter(h -> Objects.equals(h.getHandleHash(), existingDto.getHandleHash()))
+							.findFirst();
+					if (matching.isPresent()) {
+						remainingNew.remove(matching.get());
+					} else {
+						handleRepo.updateStatusByHandleHash(existingDto.getHandleHash(),
+								HandleStatusLifecycle.DELETE.name());
+					}
+				}
+				if (remainingNew.isEmpty()) {
+					newSelectedHandlesMap.remove(existingEntry.getKey());
+				} else {
+					newSelectedHandlesMap.put(existingEntry.getKey(), remainingNew);
+				}
+			}
+		}
+
+		Map<String, Object> identityObjectMap = mapper.convertValue(request.getRequest().getIdentity(),
+				new TypeReference<Map<String, Object>>() {
+				});
+		idRepoServiceHelper.updateSelectedHandleFields(identityObjectMap, newSelectedHandlesMap);
+		request.getRequest().setIdentity(identityObjectMap);
+		return newSelectedHandlesMap;
+	}
+
+	/**
+	 * Saves one {@code handle} row per handle DTO, linked to the identity by UIN hash.
+	 * <p>
+	 * The stored value is {@code saltId + SPLITTER + base64(handle) + SPLITTER + encryptSalt},
+	 * with the salt chosen from the handle by the same modulo rule as the UIN. The row id is a
+	 * UUID derived from the handle and the current time. Status is {@code ACTIVATED}.
+	 * </p>
+	 *
+	 * @param uinEntity identity the handles belong to
+	 * @param handles   handles from {@link #checkAndGetHandles}; nothing is saved when null or empty
+	 */
+	private void addIdentityHandle(Uin uinEntity, Map<String, List<HandleDto>> handles) {
+		if (handles == null || handles.isEmpty()) {
+			return;
+		}
+		for (List<HandleDto> handleDtos : handles.values()) {
+			if (handleDtos == null) {
+				continue;
+			}
+			for (HandleDto handleDto : handleDtos) {
+				if (handleRepo.findByHandleHash(handleDto.getHandleHash()).isPresent()) {
+					throw new IdRepoAppUncheckedException(HANDLE_RECORD_EXISTS.getErrorCode(),
+							String.format(HANDLE_RECORD_EXISTS.getErrorMessage(), handleDto.getHandle()));
+				}
+				int saltId = securityManager.getSaltKeyForHashOfId(handleDto.getHandle());
 				String encryptSalt = uinEncryptSaltRepo.retrieveSaltById(saltId);
 
-				String encodedHandleValue = CryptoUtil.encodeToPlainBase64(handleDtoEntry.getValue().getHandle().getBytes());
+				String encodedHandleValue = CryptoUtil.encodeToPlainBase64(handleDto.getHandle().getBytes());
 				String handleToEncrypt = saltId + SPLITTER + encodedHandleValue + SPLITTER + encryptSalt;
 
 				Handle handleEntity = new Handle();
-				handleEntity.setHandleHash(handleDtoEntry.getValue().getHandleHash());
+				handleEntity.setHandleHash(handleDto.getHandleHash());
 				handleEntity.setId(UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID,
-						handleDtoEntry.getValue().getHandle() + SPLITTER + DateUtils2.getUTCCurrentDateTime()).toString());
+						handleDto.getHandle() + SPLITTER + DateUtils2.getUTCCurrentDateTime()).toString());
 				handleEntity.setHandle(handleToEncrypt);
 				handleEntity.setUinHash(uinEntity.getUinHash());
+				handleEntity.setStatus(HandleStatusLifecycle.ACTIVATED.name());
 				handleEntity.setCreatedBy(IdRepoSecurityManager.getUser());
 				handleEntity.setCreatedDateTime(DateUtils2.getUTCCurrentDateTime());
 				handleRepo.save(handleEntity);
@@ -1158,7 +1667,30 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			}
 		}
 	}
+
+	/**
+	 * Builds a new object-store file name for a document: a random UUID plus the file format
+	 * from the identity JSON (for example {@code 3f2a....cbeff}).
+	 *
+	 * @param docType the document's node in the identity JSON; must contain {@code format}
+	 * @return the new file reference id
+	 */
 	private String getFileRefId(JsonNode docType) {
 		return UUID.randomUUID().toString() + DOT + docType.get(FILE_FORMAT_ATTRIBUTE).asText();
+	}
+
+	/**
+	 * A document file waiting to be written to the object store. Files are collected while
+	 * metadata rows are built and written afterwards, so a bad document fails before any upload.
+	 *
+	 * @param bio       {@code true} for a biometric (CBEFF) file, {@code false} for a demographic one
+	 * @param fileRefId object name under the identity's folder
+	 * @param data      decoded file content
+	 * @param doc       the request document, used to report which document failed
+	 * @param docType   the document's node in the identity JSON
+	 * @param index     position of the document in the request, used in error messages
+	 */
+	private record PendingObjectStorePut(boolean bio, String fileRefId, byte[] data, DocumentsDTO doc,
+			JsonNode docType, int index) {
 	}
 }

@@ -1,5 +1,6 @@
 package io.mosip.testrig.apirig.idrepo.utils;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -18,10 +19,19 @@ public class IdRepoConfigManager extends ConfigManager{
 		configManagerLogger.setLevel(Level.WARN);
 		
 		Map<String, Object> moduleSpecificPropertiesMap = new HashMap<>();
-		// Load scope specific properties
+		// Load scope specific properties (default Idrepo.properties; override with -Didrepo.propertiesFile=...)
 		try {
-			String path = MosipTestRunner.getGlobalResourcePath() + "/config/Idrepo.properties";
-			Properties props = getproperties(path);
+			String requested = System.getProperty("idrepo.propertiesFile", "Idrepo.properties");
+			if (requested == null || requested.isBlank()) {
+				requested = "Idrepo.properties";
+			}
+			String resourceRoot = MosipTestRunner.getGlobalResourcePath() + "/config/";
+			File propsFile = new File(resourceRoot + requested);
+			if (!propsFile.isFile() && "Idrepo.properties".equals(requested)) {
+				propsFile = new File(resourceRoot + "IDRepo.properties");
+			}
+			LOGGER.info("Loading idrepo properties from: " + propsFile.getAbsolutePath());
+			Properties props = getproperties(propsFile.getAbsolutePath());
 			// Convert Properties to Map and add to moduleSpecificPropertiesMap
 			for (String key : props.stringPropertyNames()) {
 				moduleSpecificPropertiesMap.put(key, props.getProperty(key));

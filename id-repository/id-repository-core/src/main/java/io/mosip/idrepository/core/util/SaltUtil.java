@@ -78,15 +78,21 @@ public final class SaltUtil {
 	 * @return integer derived from the suffix of {@code idvid}, suitable as a salt-table
 	 *         index input
 	 * @throws IllegalArgumentException if {@code substringLen} is not positive
-	 * @throws NumberFormatException    if the selected suffix is not a valid decimal integer
+	 * @throws IdRepoAppUncheckedException with {@link IdRepoErrorConstants#INVALID_INPUT_PARAMETER}
+	 *                                     if the selected suffix is not a valid decimal integer
 	 * @see IdRepoSecurityManager#getSaltKeyForId(String)
 	 * @see #getIdvidHashModulo(String, int)
 	 */
 	public static int getIdvidModulo(String idvid, int substringLen) {
 		Assert.isTrue(substringLen > 0, "divisor should be positive integer");
 		int length = idvid.length();
-		return length <= substringLen ? Integer.parseInt(idvid)
-				: Integer.parseInt(idvid.substring(length - substringLen));
+		try {
+			return length <= substringLen ? Integer.parseInt(idvid)
+					: Integer.parseInt(idvid.substring(length - substringLen));
+		} catch (NumberFormatException e) {
+			throw new IdRepoAppUncheckedException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(),
+					String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "id"), e);
+		}
 	}
 
 	/**

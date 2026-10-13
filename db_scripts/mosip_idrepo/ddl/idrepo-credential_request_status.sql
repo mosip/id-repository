@@ -14,7 +14,7 @@
 -- object: idrepo.credential_request_status | type: TABLE --
 -- DROP TABLE IF EXISTS idrepo.credential_request_status CASCADE;
 CREATE TABLE idrepo.credential_request_status (
-	individual_id character varying(500) NOT NULL,
+	individual_id character varying(1024) NOT NULL,
 	individual_id_hash character varying(128) NOT NULL,
 	partner_id character varying(36) NOT NULL,
 	request_id character varying(64),

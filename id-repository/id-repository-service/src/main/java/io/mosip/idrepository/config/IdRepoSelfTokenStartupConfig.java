@@ -2,12 +2,13 @@ package io.mosip.idrepository.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestTemplate;
 
 import io.mosip.kernel.auth.defaultadapter.helper.TokenHelper;
 import io.mosip.kernel.auth.defaultadapter.model.TokenHolder;
@@ -55,15 +56,20 @@ public class IdRepoSelfTokenStartupConfig {
 
 	private final TokenHolder<String> cachedToken;
 
+	private final RestTemplate plainRestTemplate;
+
 	/**
-	 * @param env         Spring environment (config server + local overrides)
-	 * @param tokenHelper primary {@link TokenHelper} bean
-	 * @param cachedToken shared token holder used by self-token REST/WebClient interceptors
+	 * @param env                Spring environment (config server + local overrides)
+	 * @param tokenHelper        primary {@link TokenHelper} bean
+	 * @param cachedToken        shared token holder used by self-token REST/WebClient interceptors
+	 * @param plainRestTemplate  kernel-auth RestTemplate without load-balancer (v1.3.1 TokenHelper path)
 	 */
-	public IdRepoSelfTokenStartupConfig(Environment env, TokenHelper tokenHelper, TokenHolder<String> cachedToken) {
+	public IdRepoSelfTokenStartupConfig(Environment env, TokenHelper tokenHelper, TokenHolder<String> cachedToken,
+			@Qualifier("plainRestTemplate") RestTemplate plainRestTemplate) {
 		this.env = env;
 		this.tokenHelper = tokenHelper;
 		this.cachedToken = cachedToken;
+		this.plainRestTemplate = plainRestTemplate;
 	}
 
 	/**
@@ -111,14 +117,14 @@ public class IdRepoSelfTokenStartupConfig {
 		}
 
 		LOGGER.debug("Self-token pre-fetch starting (clientId={}, appId={}) ...", clientId, appId);
-		String token = tokenHelper.getClientToken(clientId, clientSecret, appId, (WebClient) null);
+		String token = tokenHelper.getClientToken(clientId, clientSecret, appId, plainRestTemplate);
 		if (token != null) {
 			cachedToken.setToken(token);
 			LOGGER.debug("Self-token pre-fetch succeeded for clientId={}", clientId);
 		} else {
 			LOGGER.error(
 					"Self-token pre-fetch failed — see TokenHelper logs above (invalid_client = wrong id/secret). "
-							+ "Local fix: set MOSIP_IAM_ADAPTER_CLIENTID=mosip-idmanagement-client and "
+							+ "Local fix: set MOSIP_IAM_ADAPTER_CLIENTID=mosip-idrepo-client and "
 							+ "MOSIP_IAM_ADAPTER_CLIENTSECRET from config server id-repository properties.");
 		}
 	}

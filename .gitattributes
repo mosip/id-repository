@@ -1,0 +1,5 @@
+# Keep shell/Docker entrypoints Unix (LF). CRLF shebang → exec: no such file or directory
+*.sh text eol=lf
+*.bash text eol=lf
+Dockerfile text eol=lf
+**/Dockerfile text eol=lf

@@ -1,5 +1,6 @@
 package io.mosip.testrig.apirig.idrepo.testscripts;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +18,8 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.testng.internal.BaseTestMethod;
+import org.testng.internal.TestResult;
 
 import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
@@ -113,8 +116,10 @@ public class GetWithParam extends IdRepoUtil implements ITest {
 			ArrayList<JSONObject> inputtestCases = AdminTestUtil.getInputTestCase(testCaseDTO);
 			ArrayList<JSONObject> outputtestcase = AdminTestUtil.getOutputTestCase(testCaseDTO);
 			for (int i = 0; i < languageList.size(); i++) {
-				response = getWithPathParamAndCookie(ApplnURI + testCaseDTO.getEndPoint(),
+				String inputJson = inputStringKeyWordHandeler(
 						getJsonFromTemplate(inputtestCases.get(i).toString(), testCaseDTO.getInputTemplate()),
+						testCaseName);
+				response = getWithPathParamAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson,
 						COOKIENAME, testCaseDTO.getRole(), testCaseDTO.getTestCaseName());
 
 				Map<String, List<OutputValidationDto>> ouputValid = OutputValidationUtil.doJsonOutputValidation(
@@ -129,14 +134,21 @@ public class GetWithParam extends IdRepoUtil implements ITest {
 		}
 
 		else {
-			response = getWithPathParamAndCookie(ApplnURI + testCaseDTO.getEndPoint(),
-					getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate()), auditLogCheck,
+			String inputJson = inputStringKeyWordHandeler(
+					getJsonFromTemplate(testCaseDTO.getInput(), testCaseDTO.getInputTemplate()), testCaseName);
+			response = getWithPathParamAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, auditLogCheck,
 					COOKIENAME, testCaseDTO.getRole(), testCaseDTO.getTestCaseName(), sendEsignetToken);
 			Map<String, List<OutputValidationDto>> ouputValid = null;
 			if (testCaseName.contains("_StatusCode")) {
 
 				OutputValidationDto customResponse = customStatusCodeResponse(String.valueOf(response.getStatusCode()),
 						testCaseDTO.getOutput());
+
+				ouputValid = new HashMap<>();
+				ouputValid.put(GlobalConstants.EXPECTED_VS_ACTUAL, List.of(customResponse));
+			} else if (testCaseName.contains("UinNotAllocated")) {
+
+				OutputValidationDto customResponse = IdRepoUtil.assertDraftUinNotAllocated(response);
 
 				ouputValid = new HashMap<>();
 				ouputValid.put(GlobalConstants.EXPECTED_VS_ACTUAL, List.of(customResponse));
@@ -159,6 +171,16 @@ public class GetWithParam extends IdRepoUtil implements ITest {
 	 */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {
-		result.setAttribute("TestCaseName", testCaseName);
+		try {
+			Field method = TestResult.class.getDeclaredField("m_method");
+			method.setAccessible(true);
+			method.set(result, result.getMethod().clone());
+			BaseTestMethod baseTestMethod = (BaseTestMethod) result.getMethod();
+			Field f = baseTestMethod.getClass().getSuperclass().getDeclaredField("m_methodName");
+			f.setAccessible(true);
+			f.set(baseTestMethod, testCaseName);
+		} catch (Exception e) {
+			Reporter.log("Exception : " + e.getMessage());
+		}
 	}
 }

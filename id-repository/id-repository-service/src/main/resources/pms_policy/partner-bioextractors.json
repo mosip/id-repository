@@ -1,0 +1,198 @@
+{
+  "default": {
+    "extractors": [
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "face",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      },
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "iris",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      },
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "finger",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      }
+    ]
+  },
+  "mpartner-default-auth|mpolicy-default-auth": {
+    "extractors": [
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "face",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      },
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "iris",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      },
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "finger",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      }
+    ]
+  },
+  "mpartner-default-auth|mpolicy-default-qrcode": {
+    "extractors": [
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "face",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      },
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "iris",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      },
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "finger",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      }
+    ]
+  },
+  "mpartner-default-print|mpolicy-default-euin": {
+    "extractors": [
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "face",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      },
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "iris",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      },
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "finger",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      }
+    ]
+  },
+  "mpartner-default-print|mpolicy-default-reprint": {
+    "extractors": [
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "face",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      },
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "iris",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      },
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "finger",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      }
+    ]
+  },
+  "mpartner-default-print|mpolicy-default-PDFCard": {
+    "extractors": [
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "face",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      },
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "iris",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      },
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "finger",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      }
+    ]
+  },
+  "mpartner-default-mobile|mpolicy-default-mobile": {
+    "extractors": [
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "face",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      },
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "iris",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      },
+      {
+        "attributeName": "individualBiometrics",
+        "biometric": "finger",
+        "extractor": {
+          "provider": "mock",
+          "version": "1.1"
+        }
+      }
+    ]
+  }
+}

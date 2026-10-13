@@ -1,0 +1,64 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/",
+    "type": "@type",
+    "id": "@id",
+        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    	  "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+		    "schema": "https://schema.org/",
+        "mosip": "https://raw.githubusercontent.com/mosip/mosip-config/develop-v3/mosip.jsonld"
+    },
+	"@graph" : [
+	{
+      "@id": "mosip:ResidentAddress",
+      "@type": "rdfs:Class",
+      "rdfs:subClassOf": {
+        "@id": "schema:Place"
+       }
+    },
+	{
+      "@id": "mosip:Barangey",
+      "@type": "rdfs:Class",
+      "rdfs:label": "Barangey",
+      "rdfs:subClassOf": {
+        "@id": "schema:Enumeration"
+      }
+    },
+    {
+      "@id": "mosip:streetNumber",
+      "@type": "rdf:Property",
+      "schema:domainIncludes": {
+        "@id": "mosip:ResidentAddress"
+      },
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:Number"
+        }
+      ]
+    },
+    {
+      "@id": "mosip:streetName",
+      "@type": "rdf:Property",
+      "schema:domainIncludes": {
+        "@id": "mosip:ResidentAddress"
+      },
+      "schema:rangeIncludes": [
+        {
+          "@id": "schema:Text"
+        }
+      ]
+    },
+    {
+      "@id": "mosip:barangey",
+      "@type": "rdf:Property",
+      "schema:domainIncludes": {
+        "@id": "mosip:ResidentAddress"
+      },
+      "schema:rangeIncludes": [
+        {
+          "@id": "mosip:Barangey"
+        }
+      ]
+    }
+	]
+}

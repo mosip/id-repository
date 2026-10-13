@@ -51,31 +51,36 @@ public final class ClassLoaderTestSupport {
 		Path workDir = Files.createTempDirectory("classloader-test-");
 		Path classesDir = workDir.resolve("classes");
 		Files.createDirectories(classesDir);
-		for (Map.Entry<String, String> source : sources.entrySet()) {
-			compileSource(source.getKey(), source.getValue(), classesDir);
-		}
+		compileSources(sources, classesDir);
 		Map<String, byte[]> entries = readClassEntries(classesDir);
 		entries.putAll(extraEntries);
 		return createJar(jarPath, entries);
 	}
 
-	private static void compileSource(String className, String source, Path classesDir) {
+	private static void compileSources(Map<String, String> sources, Path classesDir) {
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		if (compiler == null) {
 			throw new IllegalStateException("JDK compiler is required for classloader tests");
 		}
 		try (StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null)) {
-			List<String> options = List.of("-d", classesDir.toString());
-			JavaFileObject sourceFile = new SimpleJavaFileObject(
-					URI.create("string:///" + className.replace('.', '/') + ".java"), JavaFileObject.Kind.SOURCE) {
-				@Override
-				public CharSequence getCharContent(boolean ignoreEncodingErrors) {
-					return source;
-				}
-			};
-			Boolean compiled = compiler.getTask(null, fileManager, null, options, null, List.of(sourceFile)).call();
+			// Stub sources need no processors; without -proc:none, javac prints the same
+			// "Annotation processing is enabled..." note for every in-test compile.
+			List<String> options = List.of("-d", classesDir.toString(), "-proc:none");
+			List<JavaFileObject> sourceFiles = new ArrayList<>(sources.size());
+			for (Map.Entry<String, String> source : sources.entrySet()) {
+				String className = source.getKey();
+				String body = source.getValue();
+				sourceFiles.add(new SimpleJavaFileObject(
+						URI.create("string:///" + className.replace('.', '/') + ".java"), JavaFileObject.Kind.SOURCE) {
+					@Override
+					public CharSequence getCharContent(boolean ignoreEncodingErrors) {
+						return body;
+					}
+				});
+			}
+			Boolean compiled = compiler.getTask(null, fileManager, null, options, null, sourceFiles).call();
 			if (!Boolean.TRUE.equals(compiled)) {
-				throw new IllegalStateException("Failed to compile " + className);
+				throw new IllegalStateException("Failed to compile test classpath sources: " + sources.keySet());
 			}
 		} catch (IOException ex) {
 			throw new UncheckedIOException(ex);

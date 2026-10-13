@@ -41,6 +41,7 @@ import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.exception.ServiceError;
+import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -179,11 +180,45 @@ public class IdRepoExceptionHandler extends ResponseEntityExceptionHandler {
 	@ExceptionHandler(Exception.class)
 	protected ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
 		Throwable rootCause = getRootCause(ex);
+		if (ex instanceof NumberFormatException || rootCause instanceof NumberFormatException) {
+			return invalidInputIdResponse(ex, request, "handleAllExceptions-NumberFormatException");
+		}
 		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_EXCEPTION_HANDLER,
 				"handleAllExceptions - \n" + ExceptionUtils.getStackTrace(Objects.isNull(rootCause) ? ex : rootCause));
 		IdRepoUnknownException e = new IdRepoUnknownException(UNKNOWN_ERROR);
 		return new ResponseEntity<>(
 				buildExceptionResponse(e, ((ServletWebRequest) request).getHttpMethod(), null),
+				HttpStatus.OK);
+	}
+
+	/**
+	 * Maps Kernel {@link io.mosip.kernel.core.idvalidator.exception.InvalidIDException}
+	 * (UIN/VID format failures) to {@link io.mosip.idrepository.core.constant.IdRepoErrorConstants#INVALID_INPUT_PARAMETER}.
+	 * Without this, the catch-all {@link #handleAllExceptions} would report {@code IDR-IDC-004}.
+	 */
+	@ExceptionHandler(InvalidIDException.class)
+	protected ResponseEntity<Object> handleInvalidIdException(InvalidIDException ex, WebRequest request) {
+		return invalidInputIdResponse(ex, request, "handleInvalidIdException");
+	}
+
+	/**
+	 * Maps {@link NumberFormatException} from salt-key modulo of a non-numeric ID
+	 * (for example {@code GET .../{individualId}/update-counts} with {@code $123ds})
+	 * to {@code IDR-IDC-002}. Without this, {@link #handleAllExceptions} reports {@code IDR-IDC-004}.
+	 */
+	@ExceptionHandler(NumberFormatException.class)
+	protected ResponseEntity<Object> handleNumberFormatException(NumberFormatException ex, WebRequest request) {
+		return invalidInputIdResponse(ex, request, "handleNumberFormatException");
+	}
+
+	private ResponseEntity<Object> invalidInputIdResponse(Exception ex, WebRequest request, String handlerName) {
+		Throwable rootCause = getRootCause(ex);
+		mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO, ID_REPO_EXCEPTION_HANDLER,
+				handlerName + " - \n" + ExceptionUtils.getStackTrace(Objects.isNull(rootCause) ? ex : rootCause));
+		IdRepoAppException mapped = new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+				String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "id"));
+		return new ResponseEntity<>(
+				buildExceptionResponse(mapped, ((ServletWebRequest) request).getHttpMethod(), null),
 				HttpStatus.OK);
 	}
 	

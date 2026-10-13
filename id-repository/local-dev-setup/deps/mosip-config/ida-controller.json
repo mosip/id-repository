@@ -1,0 +1,7 @@
+{
+    "@context": "https://w3id.org/security/v2",
+    "id": "https://${mosip.api.public.host}/.well-known/ida-controller.json",
+    "assertionMethod": [
+        "https://${mosip.api.public.host}/.well-known/ida-public-key.json"
+    ]
+}

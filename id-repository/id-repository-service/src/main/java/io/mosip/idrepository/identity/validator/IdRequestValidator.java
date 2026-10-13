@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -35,6 +36,7 @@ import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.core.validator.BaseIdRepoValidator;
 import io.mosip.idrepository.core.validator.IdRepoValidationMessageHelper;
 import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
@@ -189,6 +191,20 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 * @see org.springframework.validation.Validator#validate(java.lang.Object,
 	 * org.springframework.validation.Errors)
 	 */
+	/**
+	 * Accepts {@code v2} on identity create and update. Those requests use
+	 * {@code POST}/{@code PATCH} {@code /v2} and send {@code version=v2}, while the
+	 * configured exact version stays {@code v1} for the original endpoints.
+	 */
+	@Override
+	protected void validateVersion(String ver, Errors errors) {
+		String versionPattern = EnvUtil.getVersionPattern();
+		if ("v2".equals(ver) && versionPattern != null && Pattern.compile(versionPattern).matcher(ver).matches()) {
+			return;
+		}
+		super.validateVersion(ver, errors);
+	}
+
 	@Override
 	/**
 	 * Validate.

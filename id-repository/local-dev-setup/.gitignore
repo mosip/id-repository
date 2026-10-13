@@ -1,0 +1,9 @@
+# Host-app file logs (run-idrepo-local.* writes logging.file.path=.local/logs)
+.local/
+logs/
+
+# PKCS12 keystores (local only — see keys/README.md)
+keys/*.p12
+
+# Ephemeral WSL→Windows Maven launcher (created during `bash … build`, then removed)
+.wsl-mvn-build.cmd

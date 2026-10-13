@@ -2,7 +2,6 @@ package io.mosip.idrepository.config;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -12,6 +11,7 @@ import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -35,14 +35,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AnyRequestMatcher;
-import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.util.AntPathMatcher;
-import org.springframework.util.StringUtils;
 
 import io.mosip.kernel.auth.defaultadapter.config.NoAuthenticationEndPoint;
-import io.mosip.kernel.auth.defaultadapter.model.GlobalEndPoint;
-import io.mosip.kernel.auth.defaultadapter.model.ServiceEndPoint;
+import io.mosip.kernel.auth.defaultadapter.config.NoAuthenticationEndPoint.GlobalEndPoint;
+import io.mosip.kernel.auth.defaultadapter.config.NoAuthenticationEndPoint.ServiceEndPoint;
+import io.mosip.kernel.auth.defaultadapter.config.PathPatternSupport;
 import io.mosip.kernel.auth.defaultadapter.filter.AuthFilter;
 import io.mosip.kernel.auth.defaultadapter.filter.CorsFilter;
 import io.mosip.kernel.auth.defaultadapter.handler.AuthHandler;
@@ -56,14 +54,17 @@ import jakarta.servlet.http.HttpServletResponse;
  * Spring Security 7 filter chain for the consolidated ID-Repository service.
  * <p>
  * Replaces {@code io.mosip.kernel.auth.defaultadapter.config.SecurityConfig} from
- * {@code kernel-auth-adapter}, which relies on removed {@code AntPathRequestMatcher}.
- * The kernel {@code SecurityConfig} is excluded from component scan in
- * {@link HttpModeScanConfiguration}.
+ * {@code kernel-auth-adapter}. The kernel {@code SecurityConfig} is excluded from
+ * component scan in {@link HttpModeScanConfiguration}.
  * </p>
  * <p>
- * Auth exclusions from config server ({@code mosip.global.end-points},
- * {@code mosip.service.end-points}) are matched with {@link AntPathMatcher} because Boot 4
- * {@code PathPattern} parsing rejects legacy multi-{@code **} Ant patterns used in MOSIP sandboxes.
+ * {@code mosip.auth.filter_disable=true} (id-repository default and local) omits
+ * {@link AuthFilter} and permits all HTTP, including {@code @PreAuthorize}. Local IAM
+ * tokens are WireMock stubs, so there is no JWT principal for role checks. Leaving
+ * method security on in that mode rejects every call as {@code KER-ATH-403}. Role
+ * checks apply only when the filter is on. When the filter is on, no-auth paths from
+ * {@code mosip.global.end-points} / {@code mosip.service.end-points} use
+ * {@link PathPatternSupport} so they match {@link AuthFilter} (WebSub callbacks have no JWT).
  * </p>
  *
  * <h2>Configuration properties</h2>
@@ -80,9 +81,18 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
 @Order(2)
 public class KernelAuthSecurityConfig {
+
+	/**
+	 * Role checks on controllers. Skipped when {@code mosip.auth.filter_disable=true},
+	 * because mocked tokens are not turned into a principal.
+	 */
+	@Configuration
+	@EnableMethodSecurity
+	@ConditionalOnProperty(name = "mosip.auth.filter_disable", havingValue = "false")
+	static class IdRepoMethodSecurityConfig {
+	}
 
 	/** Ant patterns exempt from CSRF when {@code mosip.security.csrf-enable=true}. */
 	@Value("${mosip.kernel.csrf_ignore.url:}")
@@ -91,6 +101,13 @@ public class KernelAuthSecurityConfig {
 	/** When {@code true}, CSRF protection is enabled with cookie token repository. */
 	@Value("${mosip.security.csrf-enable:false}")
 	private boolean isCSRFEnable;
+
+	/**
+	 * When {@code true}, {@link AuthFilter} is not added (id-repository default).
+	 * WebSub hub intent/content callbacks have no MOSIP JWT.
+	 */
+	@Value("${mosip.auth.filter_disable:true}")
+	private boolean authFilterDisable;
 
 	/** When {@code true}, kernel {@link CorsFilter} is inserted before {@link AuthFilter}. */
 	@Value("${mosip.security.cors-enable:false}")
@@ -182,35 +199,54 @@ public class KernelAuthSecurityConfig {
 	 */
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		boolean ant = PathPatternSupport.isAntPathMatcher(environment);
 		if (!isCSRFEnable) {
 			http = http.csrf(csrf -> csrf.disable());
 		}
 		else {
-			http.csrf(csrf -> csrf.ignoringRequestMatchers(antPathPatternsMatcher(csrfIgnoreUrls))
-					.csrfTokenRepository(getCsrfTokenRepository()));
+			RequestMatcher[] csrfIgnoreMatchers = Stream.of(csrfIgnoreUrls)
+					.map(url -> PathPatternSupport.requestMatcher(url, ant))
+					.toArray(RequestMatcher[]::new);
+			http.csrf(csrf -> {
+				if (csrfIgnoreMatchers.length > 0) {
+					csrf.ignoringRequestMatchers(csrfIgnoreMatchers);
+				}
+				csrf.csrfTokenRepository(getCsrfTokenRepository());
+			});
 		}
 
-		String[] exclusionPatterns = Stream.concat(
-				Optional.ofNullable(noAuthenticationEndPoint.getGlobal()).map(GlobalEndPoint::getEndPoints)
-						.map(List::stream).orElseGet(Stream::empty),
-				Optional.ofNullable(noAuthenticationEndPoint.getService()).map(ServiceEndPoint::getEndPoints)
-						.map(List::stream).orElseGet(Stream::empty))
-				.toArray(String[]::new);
-
-		http.authorizeHttpRequests(authorize -> authorize
-				.requestMatchers(antPathPatternsMatcher(exclusionPatterns)).permitAll()
-				.anyRequest().authenticated());
-		http.exceptionHandling(exception -> exception.authenticationEntryPoint(new KernelAuthEntryPoint()));
 		http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-		http.addFilterBefore(authFilter(), UsernamePasswordAuthenticationFilter.class);
-		if (isCORSEnable) {
-			http.addFilterBefore(new CorsFilter(origins), AuthFilter.class);
-		}
 		http.headers(headers -> {
 			headers.cacheControl(Customizer.withDefaults());
 			headers.frameOptions(frame -> frame.sameOrigin());
 		});
 
+		if (authFilterDisable) {
+			http.authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll());
+			return http.build();
+		}
+
+		if (isCORSEnable) {
+			http.addFilterBefore(new CorsFilter(origins), AuthFilter.class);
+		}
+
+		RequestMatcher[] exclusionMatchers = Stream.concat(
+				Optional.ofNullable(noAuthenticationEndPoint.getGlobal()).map(GlobalEndPoint::getEndPoints)
+						.map(List::stream).orElseGet(Stream::empty),
+				Optional.ofNullable(noAuthenticationEndPoint.getService()).map(ServiceEndPoint::getEndPoints)
+						.map(List::stream).orElseGet(Stream::empty))
+				.distinct()
+				.map(pattern -> PathPatternSupport.requestMatcher(pattern, ant))
+				.toArray(RequestMatcher[]::new);
+
+		http.authorizeHttpRequests(authorize -> {
+			if (exclusionMatchers.length > 0) {
+				authorize.requestMatchers(exclusionMatchers).permitAll();
+			}
+			authorize.anyRequest().authenticated();
+		});
+		http.exceptionHandling(exception -> exception.authenticationEntryPoint(new KernelAuthEntryPoint()));
+		http.addFilterBefore(authFilter(), UsernamePasswordAuthenticationFilter.class);
 		return http.build();
 	}
 
@@ -236,47 +272,6 @@ public class KernelAuthSecurityConfig {
 		CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
 		repository.setCookiePath("/");
 		return repository;
-	}
-
-	/**
-	 * Matches kernel auth exclusion URLs with Ant patterns (including multi-wildcard forms).
-	 * Boot 4 requestMatchers(String...) uses PathPattern and rejects multiple {@code **}.
-	 */
-	private static RequestMatcher antPathPatternsMatcher(String... patterns) {
-		if (patterns == null || patterns.length == 0) {
-			return request -> false;
-		}
-		AntPathMatcher pathMatcher = new AntPathMatcher();
-		List<RequestMatcher> matchers = Arrays.stream(patterns)
-				.filter(StringUtils::hasText)
-				.<RequestMatcher>map(pattern -> request -> pathMatcher.match(pattern, lookupPath(request)))
-				.collect(Collectors.toList());
-		if (matchers.isEmpty()) {
-			return request -> false;
-		}
-		return new OrRequestMatcher(matchers);
-	}
-
-	/**
-	 * Resolves servlet path for Ant-style matching (servlet path + path info, minus context path).
-	 *
-	 * @param request inbound HTTP request
-	 * @return path used for {@link AntPathMatcher}
-	 */
-	private static String lookupPath(HttpServletRequest request) {
-		String path = request.getServletPath();
-		String pathInfo = request.getPathInfo();
-		if (pathInfo != null) {
-			path = path + pathInfo;
-		}
-		if (!StringUtils.hasText(path)) {
-			path = request.getRequestURI();
-			String contextPath = request.getContextPath();
-			if (StringUtils.hasText(contextPath) && path.startsWith(contextPath)) {
-				path = path.substring(contextPath.length());
-			}
-		}
-		return path;
 	}
 
 	/**

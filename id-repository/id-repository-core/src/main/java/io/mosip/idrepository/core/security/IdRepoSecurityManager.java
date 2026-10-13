@@ -3,6 +3,7 @@ package io.mosip.idrepository.core.security;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.CACHE_UPDATE_DEFAULT_INTERVAL;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.IDREPO_CACHE_UPDATE_INTERVAL;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.ENCRYPTION_DECRYPTION_FAILED;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
@@ -615,7 +616,12 @@ public class IdRepoSecurityManager {
 	 */
 	public int getSaltKeyForId(String id) {
 		Integer saltKeyLength = EnvUtil.getIdrepoSaltKeyLength();
-		return SaltUtil.getIdvidModulo(id, saltKeyLength);
+		try {
+			return SaltUtil.getIdvidModulo(id, saltKeyLength);
+		} catch (NumberFormatException e) {
+			throw new IdRepoAppUncheckedException(INVALID_INPUT_PARAMETER.getErrorCode(),
+					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "id"), e);
+		}
 	}
 	
 	/**

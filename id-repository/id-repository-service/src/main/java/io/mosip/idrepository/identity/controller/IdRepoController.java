@@ -21,12 +21,14 @@ import jakarta.annotation.Nullable;
 import jakarta.annotation.Resource;
 
 import io.mosip.idrepository.core.dto.*;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.WebDataBinder;
@@ -71,7 +73,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Parameter;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * REST controller for identity APIs ({@code /idrepository/v1/identity/*}).
@@ -91,7 +93,7 @@ public class IdRepoController {
 	private static final String RETRIEVE_IDENTITY = "retrieveIdentity";
 
 	/** Mosip logger. */
-	Logger mosipLogger = IdRepoLogger.getLogger(IdRepoController.class);
+	private static final Logger mosipLogger = IdRepoLogger.getLogger(IdRepoController.class);
 
 	/** The Constant CREATE. */
 	private static final String CREATE = "create";
@@ -207,6 +209,59 @@ public class IdRepoController {
 			String uin = getUin(idRequestDTO.getRequest());
 			validator.validateId(idRequestDTO.getId(), CREATE);
 			DataValidationUtil.validate(errors);
+			if (!validator.validateUin(uin)) {
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, "Invalid uin");
+				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
+			}
+			return new ResponseEntity<>(idRepoService.addIdentity(idRequestDTO, uin), HttpStatus.OK);
+		} catch (IdRepoDataValidationException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE,
+					regId, IdType.ID, e);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, e.getMessage());
+			throw new IdRepoAppException(DATA_VALIDATION_FAILED, e);
+		} catch (IdRepoAppException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE,
+					regId, IdType.ID, e);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY, e.getMessage());
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		} finally {
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, regId,
+					IdType.ID, "Create Identity requested");
+		}
+	}
+
+	/**
+	 * Creates an identity at {@code POST /idrepository/v1/identity/v2}.
+	 * <p>
+	 * {@code verifiedAttributes} is a list of {@link VerificationMetadata} objects.
+	 * {@link #addIdentity} is unchanged and still accepts a list of claim names.
+	 * </p>
+	 *
+	 * @param idRequestV2DTO MOSIP identity v2 create request envelope
+	 * @param errors         Spring validation errors binding result
+	 * @return created identity response
+	 * @throws IdRepoAppException on validation or persistence failure
+	 */
+	@PreAuthorize("hasAnyRole(@identityAuthorizedRoles.getPostidrepov2())")
+	@PostMapping(path = "/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "addIdentityV2", description = "addIdentityV2", tags = { "id-repo-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "201", description = "Created" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
+	public ResponseEntity<IdResponseDTO> addIdentityV2(@Validated @RequestBody IdRequestV2DTO idRequestV2DTO,
+			@Parameter(hidden = true) Errors errors) throws IdRepoAppException {
+		IdRequestDTO idRequestDTO = toLegacyRequest(idRequestV2DTO);
+		String regId = Optional.ofNullable(idRequestDTO.getRequest()).map(req -> String.valueOf(req.getRegistrationId()))
+				.orElse("null");
+		try {
+			String uin = getUin(idRequestDTO.getRequest());
+			validator.validateId(idRequestDTO.getId(), CREATE);
+			validateLegacyRequest(idRequestDTO, errors);
+			validateVerificationMetadata(idRequestV2DTO);
 			if (!validator.validateUin(uin)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, "Invalid uin");
 				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
@@ -402,6 +457,59 @@ public class IdRepoController {
 			String uin = getUin(idRequestDTO.getRequest());
 			validator.validateId(idRequestDTO.getId(), UPDATE);
 			DataValidationUtil.validate(errors);
+			if (!validator.validateUin(uin)) {
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, "Invalid uin");
+				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), UIN));
+			}
+			return new ResponseEntity<>(idRepoService.updateIdentity(idRequestDTO, uin), HttpStatus.OK);
+		} catch (IdRepoDataValidationException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_IDENTITY_REQUEST_RESPONSE,
+					regId, IdType.ID, e);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, UPDATE_IDENTITY, e.getMessage());
+			throw new IdRepoAppException(DATA_VALIDATION_FAILED, e);
+		} catch (IdRepoAppException e) {
+			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_IDENTITY_REQUEST_RESPONSE,
+					regId, IdType.ID, e);
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, RETRIEVE_IDENTITY, e.getMessage());
+			throw new IdRepoAppException(e.getErrorCode(), e.getErrorText(), e);
+		} finally {
+			auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_IDENTITY_REQUEST_RESPONSE, regId,
+					IdType.ID, "Update Identity requested");
+		}
+	}
+
+	/**
+	 * Updates an identity at {@code PATCH /idrepository/v1/identity/v2}.
+	 * <p>
+	 * Accepts {@code verifiedAttributes} as {@link VerificationMetadata} objects.
+	 * The v1 update method still accepts a list of claim names.
+	 * </p>
+	 *
+	 * @param idRequestV2DTO MOSIP identity v2 update request envelope
+	 * @param errors         Spring validation errors binding result
+	 * @return updated identity response
+	 * @throws IdRepoAppException on validation or persistence failure
+	 */
+	@PreAuthorize("hasAnyRole(@identityAuthorizedRoles.getPatchidrepo())")
+	@PatchMapping(path = "/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "updateIdentityV2", description = "updateIdentityV2", tags = { "id-repo-controller" })
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "204", description = "No Content" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
+			})
+	public ResponseEntity<IdResponseDTO> updateIdentityV2(@Validated @RequestBody IdRequestV2DTO idRequestV2DTO,
+			@Parameter(hidden = true) Errors errors) throws IdRepoAppException {
+		IdRequestDTO idRequestDTO = toLegacyRequest(idRequestV2DTO);
+		String regId = Optional.ofNullable(idRequestDTO.getRequest()).map(req -> String.valueOf(req.getRegistrationId()))
+				.orElse("null");
+		try {
+			String uin = getUin(idRequestDTO.getRequest());
+			validator.validateId(idRequestDTO.getId(), UPDATE);
+			validateLegacyRequest(idRequestDTO, errors);
+			validateVerificationMetadata(idRequestV2DTO);
 			if (!validator.validateUin(uin)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, "Invalid uin");
 				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
@@ -642,7 +750,7 @@ public class IdRepoController {
 	}
 
 	@PreAuthorize("hasAnyRole(@identityAuthorizedRoles.getRemainingUpdateCountByIndividualId())")
-	@GetMapping(path = "/{individualId}/update-counts", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(path = { "/{individualId}/update-counts", "/update-counts" }, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Get Remaining update count by Individual Id Request", description = "Get Remaining update count by Individual Id Request", tags = {
 			"id-repo-controller" })
 	@ApiResponses(value = {
@@ -660,9 +768,13 @@ public class IdRepoController {
 	 * @return per-attribute remaining update counts
 	 */
 	public ResponseEntity<ResponseWrapper<AttributeListDto>> getRemainingUpdateCountByIndividualId(
-			@PathVariable String individualId, @RequestParam(name = ID_TYPE, required = false) @Nullable String idType,
+			@PathVariable(required = false) String individualId, @RequestParam(name = ID_TYPE, required = false) @Nullable String idType,
 			@RequestParam(name = "attribute_list", required = false) @Nullable List<String> attributeList)
 			throws IdRepoAppException {
+		if (StringUtils.isBlank(individualId)) {
+			throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "individualId"));
+		}
 		IdType individualIdType = Objects.isNull(idType) ? getIdType(individualId) : validator.validateIdType(idType);
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.GET_RID_BY_INDIVIDUALID, individualId,
 				individualIdType, "Get Remaining update count by Individual Id Request received");
@@ -716,5 +828,68 @@ public class IdRepoController {
 		if (validator.validateVid(id))
 			return IdType.VID;
 		return IdType.ID;
+	}
+
+	/**
+	 * Copies a v2 envelope onto the legacy {@link IdRequestDTO} used by the service.
+	 * Verification objects are carried on {@link RequestDTO#getVerifiedAttributesMetadata()}
+	 * so the v1 string list is left empty.
+	 */
+	private IdRequestDTO toLegacyRequest(IdRequestV2DTO source) {
+		IdRequestDTO target = new IdRequestDTO();
+		if (source == null) {
+			return target;
+		}
+		target.setId(source.getId());
+		target.setVersion(source.getVersion());
+		target.setRequesttime(source.getRequesttime());
+		target.setMetadata(source.getMetadata());
+		RequestV2DTO incoming = source.getRequest();
+		if (incoming == null) {
+			return target;
+		}
+		RequestDTO request = new RequestDTO();
+		request.setStatus(incoming.getStatus());
+		request.setIdentity(incoming.getIdentity());
+		request.setDocuments(incoming.getDocuments());
+		request.setRegistrationId(incoming.getRegistrationId());
+		request.setUin(incoming.getUin());
+		request.setBiometricReferenceId(incoming.getBiometricReferenceId());
+		request.setVerifiedAttributesMetadata(incoming.getVerifiedAttributes());
+		target.setRequest(request);
+		return target;
+	}
+
+	private void validateLegacyRequest(IdRequestDTO idRequestDTO, Errors errors) throws IdRepoDataValidationException {
+		DataValidationUtil.validate(errors);
+		BeanPropertyBindingResult legacyErrors = new BeanPropertyBindingResult(idRequestDTO, "idRequestDTO");
+		validator.validate(idRequestDTO, legacyErrors);
+		DataValidationUtil.validate(legacyErrors);
+	}
+
+	private void validateVerificationMetadata(IdRequestV2DTO idRequestV2DTO) throws IdRepoAppException {
+		if (idRequestV2DTO == null || idRequestV2DTO.getRequest() == null
+				|| idRequestV2DTO.getRequest().getVerifiedAttributes() == null) {
+			return;
+		}
+		List<VerificationMetadata> verifiedAttributes = idRequestV2DTO.getRequest().getVerifiedAttributes();
+		for (int i = 0; i < verifiedAttributes.size(); i++) {
+			VerificationMetadata metadata = verifiedAttributes.get(i);
+			if (metadata == null || StringUtils.isBlank(metadata.getTrustFramework())) {
+				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(),
+								"verifiedAttributes/" + i + "/trustFramework"));
+			}
+			if (StringUtils.isBlank(metadata.getVerificationProcess())) {
+				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(),
+								"verifiedAttributes/" + i + "/verificationProcess"));
+			}
+			if (metadata.getClaims() == null || metadata.getClaims().isEmpty()) {
+				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(),
+								"verifiedAttributes/" + i + "/claims"));
+			}
+		}
 	}
 }

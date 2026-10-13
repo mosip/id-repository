@@ -50,7 +50,8 @@
 		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
 		<argLine></argLine>
 		<sonar.coverage.exclusions>
-			**/constant/**,**/config/**,**/httpfilter/**,**/cache/**,**/dto/**,**/entity/**,**/model/**,**/exception/**,**/repository/**,**/security/**,**/*Config.java,**/*BootApplication.java,**/*VertxApplication.java,**/cbeffutil/**,**/io/mosip/biosdk/client/utils/Util.java,**/io/mosip/idrepository/bootstrap/KernelAuthSpringFactoriesFilteringClassLoader.java,**/io/mosip/idrepository/credential/request/controller/CredentialRequestGeneratorController.java,**/io/mosip/idrepository/credential/request/dao/CredentialDao.java,**/io/mosip/idrepository/credential/request/helper/CredentialIssueRequestHelper.java,**/io/mosip/idrepository/credential/request/init/CredentialInstializer.java,**/io/mosip/idrepository/credential/request/init/SubscribeEvent.java,**/io/mosip/idrepository/credential/request/integration/WebSubSubscriptionHelper.java,**/io/mosip/idrepository/credential/request/interceptor/CredentialTransactionInterceptor.java,**/io/mosip/idrepository/credential/request/service/impl/CredentialRequestServiceImpl.java,**/io/mosip/idrepository/credential/request/util/CredReqRestUtil.java,**/io/mosip/idrepository/credential/request/util/Utilities.java,**/io/mosip/idrepository/credential/request/validator/RequestValidator.java,**/io/mosip/idrepository/credential/store/controller/CredentialStoreController.java,**/io/mosip/idrepository/credential/store/provider/CredentialProvider.java,**/io/mosip/idrepository/credential/store/provider/impl/IdAuthProvider.java,**/io/mosip/idrepository/credential/store/provider/impl/QrCodeProvider.java,**/io/mosip/idrepository/credential/store/provider/impl/VerCredProvider.java,**/io/mosip/idrepository/credential/store/service/impl/CredentialStoreServiceImpl.java,**/io/mosip/idrepository/credential/store/util/CredentialStoreRestUtil.java,**/io/mosip/idrepository/credential/store/util/DataShareUtil.java,**/io/mosip/idrepository/credential/store/util/DigitalSignatureUtil.java,**/io/mosip/idrepository/credential/store/util/EncryptionUtil.java,**/io/mosip/idrepository/credential/store/util/IdrepositaryUtil.java,**/io/mosip/idrepository/credential/store/util/JsonUtil.java,**/io/mosip/idrepository/credential/store/util/PolicyUtil.java,**/io/mosip/idrepository/credential/store/util/Utilities.java,**/io/mosip/idrepository/credential/store/util/VIDUtil.java,**/io/mosip/idrepository/identity/controller/IdRepoController.java,**/io/mosip/idrepository/identity/controller/IdRepoDraftController.java,**/io/mosip/idrepository/identity/controller/VidEventCallbackController.java,**/io/mosip/idrepository/identity/helper/AnonymousProfileHelper.java,**/io/mosip/idrepository/identity/helper/BioExtractionHelper.java,**/io/mosip/idrepository/identity/helper/ChannelInfoHelper.java,**/io/mosip/idrepository/identity/helper/IdRepoServiceHelper.java,**/io/mosip/idrepository/identity/helper/ObjectStoreHelper.java,**/io/mosip/idrepository/identity/helper/VidDraftHelper.java,**/io/mosip/idrepository/identity/interceptor/IdRepoEntityInterceptor.java,**/io/mosip/idrepository/identity/service/impl/AuthTypeStatusImpl.java,**/io/mosip/idrepository/identity/service/impl/BiometricExtractionServiceImpl.java,**/io/mosip/idrepository/identity/service/impl/IdRepoDraftServiceImpl.java,**/io/mosip/idrepository/identity/service/impl/IdRepoProxyServiceImpl.java,**/io/mosip/idrepository/identity/service/impl/IdRepoServiceImpl.java,**/io/mosip/idrepository/identity/validator/IdRequestValidator.java,**/io/mosip/idrepository/identity/validator/IndividualIdValidator.java,**/io/mosip/idrepository/manager/CredentialServiceManager.java,**/io/mosip/idrepository/manager/CredentialStatusManager.java,**/io/mosip/idrepository/pipeline/CredentialIssuanceProcessor.java,**/io/mosip/idrepository/saltgenerator/service/DatabaseRouter.java,**/io/mosip/idrepository/saltgenerator/service/SaltGenerator.java,**/io/mosip/idrepository/saltgenerator/service/SaltJdbcWriter.java,**/io/mosip/idrepository/vid/provider/VidPolicyProvider.java,**/io/mosip/idrepository/vid/service/impl/VidServiceImpl.java,**/io/mosip/idrepository/vid/validator/VidRequestValidator.java,**/io/mosip/kernel/auth/defaultadapter/helper/TokenHelper.java,**/io/mosip/kernel/auth/defaultadapter/helper/TokenValidationHelper.java,**/io/mosip/kernel/auth/defaultadapter/helper/ValidateTokenHelper.java,**/io/mosip/kernel/websub/api/client/PublisherClientImpl.java,**/io/mosip/kernel/websub/api/client/SubscriberClientImpl.java,io/mosip/idrepository/credential/**,io/mosip/idrepository/identity/**,io/mosip/idrepository/manager/**,io/mosip/idrepository/pipeline/**,io/mosip/idrepository/vid/**,io/mosip/idrepository/saltgenerator/service/**,io/mosip/kernel/auth/defaultadapter/helper/**,io/mosip/kernel/websub/api/client/**,io/mosip/biosdk/client/utils/**,io/mosip/idrepository/bootstrap/KernelAuthSpringFactoriesFilteringClassLoader.java,io/mosip/idrepository/core/helper/RestHelper.java</sonar.coverage.exclusions>
+			**/constant/**,**/config/**,**/httpfilter/**,**/cache/**,**/dto/**,**/entity/**,**/model/**,**/exception/**,**/repository/**,**/security/**,**/*Config.java,**/*BootApplication.java,**/*VertxApplication.java,**/cbeffutil/**,**/bootstrap/**,**/idrepository/credential/**,**/idrepository/identity/**,**/idrepository/manager/**,**/idrepository/pipeline/**,**/idrepository/vid/**,**/idrepository/saltgenerator/**,**/idrepository/core/helper/RestHelper.java
+		</sonar.coverage.exclusions>
 		<sonar.cpd.exclusions>**/dto/**,**/entity/**,**/config/**,**/api/**</sonar.cpd.exclusions>
 
 		<!-- ── Third-party libraries (Maven Central) ─────────────────────────── -->
@@ -64,50 +65,43 @@
 		<json.version>20240303</json.version>
 		<jsonassert.version>1.5.3</jsonassert.version>
 		<httpclient4.version>4.5.14</httpclient4.version>
+		<commons-collections4.version>4.5.0</commons-collections4.version>
 		<!-- javax JAXB runtime for kernel CBEFF (JDK 21 removed JAXB from the JDK) -->
 		<jaxb.runtime.version>2.3.9</jaxb.runtime.version>
-		<logstash.logback.encoder.version>8.1</logstash.logback.encoder.version>
+		<logstash.logback.encoder.version>9.0</logstash.logback.encoder.version>
 		<powermock.version>2.0.9</powermock.version>
+		<!-- Jackson 2.x: annotations line is 2.21 (no patch releases); databind carries the patch -->
+		<jackson.annotations.version>2.21</jackson.annotations.version>
+		<jackson.databind.version>2.21.4</jackson.databind.version>
 
 		<!-- ── MOSIP repositories (external libs — no kernel/commons BOM) ──── -->
 		<!-- Must match ${project.version} so reactor builds use local id-repository-core,
 		     not an older published artifact from Maven Central (CI classpath mismatch). -->
 		<id.repository.version>${project.version}</id.repository.version>
 		<id.repository.core.version>${project.version}</id.repository.core.version>
-		<mosip.kernel.version>1.3.1-rc.1</mosip.kernel.version>
-		<mosip.commons.version>1.3.1-rc.1</mosip.commons.version>
-		<mosip.biometrics.util.version>1.4.0-SNAPSHOT</mosip.biometrics.util.version>
-		<biosdk.client.version>1.4.0-SNAPSHOT</biosdk.client.version>
-		<!-- Kernel artifact aliases (single bump via mosip.kernel.version) -->
-		<kernel.core.version>${mosip.kernel.version}</kernel.core.version>
-		<kernel.logger.logback.version>${mosip.kernel.version}</kernel.logger.logback.version>
-		<kernel.dataaccess.hibernate.version>${mosip.kernel.version}</kernel.dataaccess.hibernate.version>
-		<kernel.biosdk.provider.version>1.3.0</kernel.biosdk.provider.version>
-		<!-- commons develop (1.4.0-SNAPSHOT): https://github.com/mosip/commons/tree/develop/kernel/kernel-websubclient-api -->
-		<kernel.websubclient.api.version>1.4.0-SNAPSHOT</kernel.websubclient.api.version>
-		<kernel.idvalidator.uin.version>${mosip.kernel.version}</kernel.idvalidator.uin.version>
-		<kernel.idvalidator.rid.version>${mosip.kernel.version}</kernel.idvalidator.rid.version>
-		<kernel.idvalidator.vid.version>${mosip.kernel.version}</kernel.idvalidator.vid.version>
-		<kernel.idobjectvalidator.version>${mosip.kernel.version}</kernel.idobjectvalidator.version>
-		<kernel.ref.idobjectvalidator.version>${mosip.kernel.version}</kernel.ref.idobjectvalidator.version>
-		<kernel.cbeffutil.api.version>1.3.0</kernel.cbeffutil.api.version>
-		<!-- mosip-openid-bridge v1.3.1: https://github.com/mosip/mosip-openid-bridge/tree/v1.3.1 -->
-		<kernel.auth.adapter.version>1.3.1</kernel.auth.adapter.version>
-		<kernel.idgenerator.vid.version>${mosip.kernel.version}</kernel.idgenerator.vid.version>
-		<kernel.khazana.version>1.3.0</kernel.khazana.version>
+		<mosip.biometrics.util.version>1.4.1-SNAPSHOT</mosip.biometrics.util.version>
+		<biosdk.client.version>1.4.1-SNAPSHOT</biosdk.client.version>
+		<!-- Kernel artifact aliases (kernel-core / auth-adapter from commons 1.4.1-SNAPSHOT) -->
+		<kernel.core.version>1.4.1-SNAPSHOT</kernel.core.version>
+		<!-- bio-utils 1.4.1-SNAPSHOT (kernel-biometrics-api, cbeffutil, biosdk-provider, biometrics-util) -->
+		<kernel.biosdk.provider.version>1.4.1-SNAPSHOT</kernel.biosdk.provider.version>
+		<kernel.cbeffutil.api.version>1.4.1-SNAPSHOT</kernel.cbeffutil.api.version>
+		<!-- commons kernel-auth-adapter 1.4.1-SNAPSHOT (formerly mosip-openid-bridge) -->
+		<kernel.auth.adapter.version>1.4.1-SNAPSHOT</kernel.auth.adapter.version>
+		<kernel.khazana.version>1.4.1-SNAPSHOT</kernel.khazana.version>
 	</properties>
-		<dependencyManagement>
+	<dependencyManagement>
 		<dependencies>
 			<!-- Align Jackson 2.x annotations with databind (kernel-auth-adapter shades older annotations) -->
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-annotations</artifactId>
-				<version>2.21</version>
+				<version>${jackson.annotations.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-databind</artifactId>
-				<version>2.21.4</version>
+				<version>${jackson.databind.version}</version>
 			</dependency>
 			<!-- Spring Cloud aligned with Boot 4.1.0 -->
 			<dependency>
@@ -122,47 +116,12 @@
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-core</artifactId>
-				<version>${mosip.kernel.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-logger-logback</artifactId>
-				<version>${kernel.logger.logback.version}</version>
+				<version>${kernel.core.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-biometrics-api</artifactId>
 				<version>${mosip.biometrics.util.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-dataaccess-hibernate</artifactId>
-				<version>${kernel.dataaccess.hibernate.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-idvalidator-uin</artifactId>
-				<version>${kernel.idvalidator.uin.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-idvalidator-rid</artifactId>
-				<version>${kernel.idvalidator.rid.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-idvalidator-vid</artifactId>
-				<version>${kernel.idvalidator.vid.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-idobjectvalidator</artifactId>
-				<version>${kernel.idobjectvalidator.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-ref-idobjectvalidator</artifactId>
-				<version>${kernel.ref.idobjectvalidator.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
@@ -173,11 +132,6 @@
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-biosdk-provider</artifactId>
 				<version>${kernel.biosdk.provider.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-websubclient-api</artifactId>
-				<version>${kernel.websubclient.api.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
@@ -263,6 +217,11 @@
 				<version>${httpclient4.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-collections4</artifactId>
+				<version>${commons-collections4.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>org.glassfish.jaxb</groupId>
 				<artifactId>jaxb-runtime</artifactId>
 				<version>${jaxb.runtime.version}</version>
@@ -301,21 +260,6 @@
 				<exclusion>
 					<groupId>com.fasterxml.jackson.module</groupId>
 					<artifactId>jackson-module-afterburner</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-logger-logback</artifactId>
-			<exclusions>
-				<!-- 6.x is incompatible with logback 1.5.x (Boot 4); use pinned 8.1 below -->
-				<exclusion>
-					<groupId>net.logstash.logback</groupId>
-					<artifactId>logstash-logback-encoder</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>ch.qos.logback</groupId>
-					<artifactId>logback-access</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -542,7 +486,8 @@
 						<includeOnlyProperty>^git.commit.id.(abbrev|full)$</includeOnlyProperty>
 					</includeOnlyProperties>
 					<commitIdGenerationMode>full</commitIdGenerationMode>
-					<dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+					<!-- Git root is the repo (parent of Maven multi-module dir id-repository/) -->
+					<dotGitDirectory>${maven.multiModuleProjectDirectory}/../.git</dotGitDirectory>
 					<!-- <format>json</format> -->
 				</configuration>
 			</plugin>

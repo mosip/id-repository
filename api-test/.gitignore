@@ -14,12 +14,21 @@ hs_err_pid*
 bin/
 tmp/
 
-logs/
+logs/*
+!logs/.gitkeep
+src/logs/
+# Runtime materialization of classpath mds/ into api-test cwd (Mock SBI requires cwd paths)
+/Profile/
+/Biometric Devices/
+/resource/
+/application.properties
+target/mds-runtime/
 *.tmp
 *.bak
 *.swp
 *~.nib
 local.properties
+.env.local
 .loadpath
 .DS_Store
 test.txt
@@ -31,7 +40,6 @@ test.txt
 
 **/*.iml
 *.log
-src/logs/mosip-api-test.log
 /target/
 target/
 test-output/

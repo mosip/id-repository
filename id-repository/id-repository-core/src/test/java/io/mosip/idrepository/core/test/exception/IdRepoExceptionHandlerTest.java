@@ -99,6 +99,48 @@ public class IdRepoExceptionHandlerTest {
 		});
 	}
 
+	@Test
+	public void testHandleInvalidIdException() {
+		when(request.getHttpMethod()).thenReturn(HttpMethod.GET);
+		ResponseEntity<Object> responseEntity = ReflectionTestUtils.invokeMethod(handler, "handleInvalidIdException",
+				new io.mosip.kernel.core.idvalidator.exception.InvalidIDException("KER-IDV-004", "Invalid VID"),
+				request);
+		IdResponseDTO response = (IdResponseDTO) responseEntity.getBody();
+		List<ServiceError> errorCode = response.getErrors();
+		errorCode.forEach(e -> {
+			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "id"),
+					e.getMessage());
+		});
+	}
+
+	@Test
+	public void testHandleNumberFormatException() {
+		when(request.getHttpMethod()).thenReturn(HttpMethod.GET);
+		ResponseEntity<Object> responseEntity = ReflectionTestUtils.invokeMethod(handler, "handleNumberFormatException",
+				new NumberFormatException("For input string: \"3ds\""), request);
+		IdResponseDTO response = (IdResponseDTO) responseEntity.getBody();
+		List<ServiceError> errorCode = response.getErrors();
+		errorCode.forEach(e -> {
+			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+			assertEquals(String.format(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorMessage(), "id"),
+					e.getMessage());
+		});
+	}
+
+	@Test
+	public void testHandleAllExceptionsNumberFormatRootCause() {
+		when(request.getHttpMethod()).thenReturn(HttpMethod.GET);
+		RuntimeException wrapped = new RuntimeException("salt key", new NumberFormatException("For input string: \"3ds\""));
+		ResponseEntity<Object> responseEntity = ReflectionTestUtils.invokeMethod(handler, "handleAllExceptions",
+				wrapped, request);
+		IdResponseDTO response = (IdResponseDTO) responseEntity.getBody();
+		List<ServiceError> errorCode = response.getErrors();
+		errorCode.forEach(e -> {
+			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+		});
+	}
+
 	/**
 	 * Test handle exception internal.
 	 */

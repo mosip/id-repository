@@ -1,0 +1,70 @@
+{
+    "ida-mapping": {
+        "name": [
+            "fullName"
+        ],
+        "dob": [
+            "dateOfBirth"
+        ],
+        "age": [
+            "dateOfBirth"
+        ],
+        "gender": [
+            "gender"
+        ],
+        "phoneNumber": [
+            "phone"
+        ],
+        "emailId": [
+            "email"
+        ],
+        "addressLine1": [
+            "addressLine1"
+        ],
+        "addressLine2": [
+            "addressLine2"
+        ],
+        "addressLine3": [
+            "addressLine3"
+        ],
+        "location1": [
+            "city"
+        ],
+        "location2": [
+            "region"
+        ],
+        "location3": [
+            "province"
+        ],
+        "postalCode": [
+            "postalCode"
+        ],
+        "fullAddress": [
+            "addressLine1",
+            "addressLine2",
+            "addressLine3",
+            "city",
+            "region",
+            "province",
+            "postalCode"
+        ],
+        "iris": [
+            "CBEFF"
+        ],
+        "fingerprint": [
+            "CBEFF"
+        ],
+        "face": [
+            "CBEFF"
+        ],
+        "location4" : [ "zone" ],
+        "residenceStatus" : ["residenceStatus" ],
+        "preferredLanguage" : ["preferredLang" ],
+        "locationProfile": [
+            "city",
+            "region",
+            "province",
+            "zone"
+        ]
+    }
+}

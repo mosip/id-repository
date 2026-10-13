@@ -1,7 +1,13 @@
 package io.mosip.testrig.apirig.idrepo.testscripts;
 
+import java.lang.reflect.Field;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+
+import org.json.JSONObject;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -15,6 +21,8 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.testng.internal.BaseTestMethod;
+import org.testng.internal.TestResult;
 
 import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
@@ -78,7 +86,6 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
 		testCaseName = testCaseDTO.getTestCaseName();
 		testCaseName = IdRepoUtil.isTestCaseValidForExecution(testCaseDTO);
-		testCaseDTO.setInputTemplate(AdminTestUtil.generateHbsForUpdateDraft());
 		if (HealthChecker.signalTerminateExecution) {
 			throw new SkipException(
 					GlobalConstants.TARGET_ENV_HEALTH_CHECK_FAILED + HealthChecker.healthCheckFailureMapS);
@@ -91,10 +98,35 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 			}
 		}
 		String jsonInput = testCaseDTO.getInput();
-		String inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
+		String inputJson;
+		String declaredTemplate = testCaseDTO.getInputTemplate();
+		if (declaredTemplate == null || declaredTemplate.isEmpty() || declaredTemplate.contains("$LANGNUMBER$")) {
+			testCaseDTO.setInputTemplate(AdminTestUtil.generateHbsForUpdateDraft());
+			inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
+			JSONObject originalInput = new JSONObject(jsonInput);
+			if (originalInput.has("verifiedAttributes")) {
+				JSONObject requestJson = new JSONObject(inputJson);
+				requestJson.getJSONObject("request").put("verifiedAttributes",
+						originalInput.get("verifiedAttributes"));
+				inputJson = requestJson.toString();
+			}
+		} else {
+			inputJson = getJsonFromTemplate(jsonInput, declaredTemplate);
+			String actualPhoneField = getValueFromAuthActuator("json-property", "phone_number")
+					.replaceAll("\\[\"|\"]", "");
+			String actualEmailField = getValueFromAuthActuator("json-property", "emailId")
+					.replaceAll("\\[\"|\"]", "");
+			inputJson = inputJson.replace("\"phone\":", "\"" + actualPhoneField + "\":");
+			inputJson = inputJson.replace("\"email\":", "\"" + actualEmailField + "\":");
+		}
 
+		if (inputJson.contains("$SCHEMAVERSION$"))
+			inputJson = replaceKeywordWithValue(inputJson, "$SCHEMAVERSION$", generateLatestSchemaVersion());
+
+		DateFormat dateFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
+		String timestampValue = dateFormatter.format(Calendar.getInstance().getTime());
 		String phoneNumber = "";
-		String email = testCaseName + "_" + BaseTestCase.runContext + "@mosip.net";
+		String email = testCaseName + "_" + BaseTestCase.runContext + timestampValue + "@mosip.net";
 		if (inputJson.contains("$PHONENUMBERFORIDENTITY$") || inputJson.contains("$EMAILVALUE$")) {
 			if (!phoneSchemaRegex.isEmpty()) {
 				try {
@@ -103,9 +135,17 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 					logger.error(e.getMessage());
 				}
 			}
+			if (phoneNumber.isEmpty()) {
+				phoneNumber = timestampValue.substring(timestampValue.length() - 6)
+						+ generateRandomNumberString(4);
+			}
 			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber);
+		}
+		if (inputJson.contains("$EMAILVALUE$")) {
 			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", email);
 		}
+
+		inputJson = inputStringKeyWordHandeler(inputJson, testCaseName);
 
 		response = patchWithPathParamsBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 				testCaseDTO.getRole(), testCaseDTO.getTestCaseName(), pathParams);
@@ -127,7 +167,17 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 	 */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {
-		result.setAttribute("TestCaseName", testCaseName);
+		try {
+			Field method = TestResult.class.getDeclaredField("m_method");
+			method.setAccessible(true);
+			method.set(result, result.getMethod().clone());
+			BaseTestMethod baseTestMethod = (BaseTestMethod) result.getMethod();
+			Field f = baseTestMethod.getClass().getSuperclass().getDeclaredField("m_methodName");
+			f.setAccessible(true);
+			f.set(baseTestMethod, testCaseName);
+		} catch (Exception e) {
+			Reporter.log("Exception : " + e.getMessage());
+		}
 	}
 
 	@AfterClass(alwaysRun = true)

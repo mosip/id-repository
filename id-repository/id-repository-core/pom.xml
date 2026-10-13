@@ -110,20 +110,10 @@
 					<groupId>org.springframework.boot</groupId>
 					<artifactId>spring-boot-starter</artifactId>
 				</exclusion>
-				<!-- Boot 4: bootstrap child context bypasses our spring.factories filter -->
-				<exclusion>
-					<groupId>org.springframework.cloud</groupId>
-					<artifactId>spring-cloud-starter-bootstrap</artifactId>
-				</exclusion>
 				<!-- Shaded NativeImageUtil in kernel-auth-adapter breaks afterburner setupModule -->
 				<exclusion>
 					<groupId>com.fasterxml.jackson.module</groupId>
 					<artifactId>jackson-module-afterburner</artifactId>
-				</exclusion>
-				<!-- kernel-core pairs javax jaxb-api 2.3 with jaxb-runtime 4.x (jakarta); CBEFF needs 2.x -->
-				<exclusion>
-					<groupId>org.glassfish.jaxb</groupId>
-					<artifactId>jaxb-runtime</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -131,32 +121,6 @@
 		<dependency>
 			<groupId>org.glassfish.jaxb</groupId>
 			<artifactId>jaxb-runtime</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-dataaccess-hibernate</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-starter</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-idvalidator-uin</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-idvalidator-rid</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-idvalidator-vid</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-idobjectvalidator</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
@@ -231,16 +195,6 @@
 				</exclusion>
 			</exclusions>
 		</dependency>-->
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-websubclient-api</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-starter</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
 		<dependency>
 			<groupId>com.github.java-json-tools</groupId>
 			<artifactId>json-schema-validator</artifactId>
