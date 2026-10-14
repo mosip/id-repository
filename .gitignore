@@ -46,6 +46,5 @@ sanity-test-output.log
 api-test/.env.local
 .env.local
 
-# Archives and local api-test run output (GitHub rejects files > 100 MB)
+# Archives (GitHub rejects files > 100 MB)
 *.zip
-api-test/.local/
