@@ -46,8 +46,8 @@ service:
   externalTrafficPolicy: Cluster
 image:
   registry: docker.io
-  repository: mosipqa/id-repository-service
-  tag: develop
+  repository: mosipdev/apitest-idrepo
+  tag: IDREPO-1583-consolidate-idrepo-services
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
@@ -383,7 +383,14 @@ metrics:
     #       severity: error
     rules: []
 ## Partner management needs public access.
+## Legacy context paths from the pre-consolidation credential/credentialrequest/vid
+## charts are routed here too, for backward compatibility with existing clients
+## (Reg Processor, IDA, partners, api-test) — see IdRepoApiPathConfig.
 istio:
   enabled: true
   gateway: istio-system/internal
-  prefix: /idrepository/v1/identity
+  prefixes:
+    - /idrepository/v1/identity
+    - /idrepository/v1
+    - /v1/credentialservice
+    - /v1/credentialrequest

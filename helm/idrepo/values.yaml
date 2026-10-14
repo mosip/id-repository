@@ -1,7 +1,0 @@
-saltgen:
-  enabled: true
-
-service:
-  enabled: true
-  istio:
-    enabled: false

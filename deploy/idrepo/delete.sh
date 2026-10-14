@@ -13,10 +13,7 @@ function deleting_idrepo() {
       if [ $yn = "Y" ]
         then
           helm -n $NS delete idrepo-saltgen
-          helm -n $NS delete credential
-          helm -n $NS delete credentialrequest
           helm -n $NS delete identity
-          helm -n $NS delete vid
           break
         else
           break

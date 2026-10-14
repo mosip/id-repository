@@ -1,6 +1,6 @@
 # ID-Repository Service
 
-Helm chart for the merged MOSIP ID-Repository deployable (`id-repository-service`): identity, credential store, and credential-request APIs in one pod.
+Helm chart for the merged MOSIP ID-Repository deployable (`id-repository-service`): identity, credential store, credential-request, and VID APIs in one pod.
 
 ## TL;DR
 
