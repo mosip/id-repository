@@ -1,7 +1,7 @@
 UpdateDraftV2LatestRid:
   IdRepository_DraftV2Lifecycle_OlderRidChainUpdateLatestRid_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: Older-RID chain step 5 - update the $RIDV2LATEST$ UPDATE draft before it is published.
+      description: Older-RID flow, step 5 - verify that the UPDATE draft on the newer RID is updated before it is published
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_09
       role: idrepo
       restMethod: patch

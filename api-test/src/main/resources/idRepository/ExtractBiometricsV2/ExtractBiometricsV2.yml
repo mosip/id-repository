@@ -31,7 +31,7 @@ ExtractBiometricsV2:
 
   IdRepository_ExtractBiometricsV2_ForFinger_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?fingerExtractionFormat=mock-1.1
-      description: Extract biometrics with only fingerExtractionFormat.
+      description: Verify that biometrics are extracted when only the finger extraction format is passed
       uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_03
       role: idrepo
       restMethod: put
@@ -46,7 +46,7 @@ ExtractBiometricsV2:
 
   IdRepository_ExtractBiometricsV2_ForIris_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?irisExtractionFormat=mock-1.1
-      description: Extract biometrics with only irisExtractionFormat.
+      description: Verify that biometrics are extracted when only the iris extraction format is passed
       uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_04
       role: idrepo
       restMethod: put
@@ -61,7 +61,7 @@ ExtractBiometricsV2:
 
   IdRepository_ExtractBiometricsV2_ForFace_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?faceExtractionFormat=mock-1.1
-      description: Extract biometrics with only faceExtractionFormat.
+      description: Verify that biometrics are extracted when only the face extraction format is passed
       uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_05
       role: idrepo
       restMethod: put
@@ -76,7 +76,7 @@ ExtractBiometricsV2:
 
   IdRepository_ExtractBiometricsV2_ForFaceIrisFinger_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/extractbiometrics/{registrationId}?faceExtractionFormat=mock-1.1&fingerExtractionFormat=mock-1.1&irisExtractionFormat=mock-1.1
-      description: Extract biometrics with all three formats together, correctly "&"-joined.
+      description: Verify that biometrics are extracted when finger, iris and face extraction formats are passed together
       uniqueIdentifier: TC_IDRepo_ExtractBiometricsV2_06
       role: idrepo
       restMethod: put

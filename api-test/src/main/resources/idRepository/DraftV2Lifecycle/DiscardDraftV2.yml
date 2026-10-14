@@ -1,7 +1,7 @@
 DiscardDraftV2:
   IdRepository_DraftV2Lifecycle_DiscardDraft_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/discard/{registrationId}
-      description: Discard the reprocess draft re-created on $RIDV2NEW$ after publish.
+      description: Verify that the draft created again on a published RID can be discarded
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_02
       role: idrepo
       restMethod: delete
@@ -53,7 +53,7 @@ DiscardDraftV2:
       endPoint: /idrepository/v1/identity/draft/v2/discard/{registrationId}
       description: Verify that discarding a draft is rejected when the token does not have the required role
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_07
-      role: resident
+      role: hotlist
       restMethod: delete
       checkOnlyStatusCodeInResponse: true
       inputTemplate: idRepository/DeleteDraft/deleteDraft
@@ -127,7 +127,7 @@ DiscardDraftV2:
 
   IdRepository_DraftV2Lifecycle_DiscardBlankRid_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/discard/{registrationId}
-      description: N3 - discard passing a blank registrationId - rejected as missing input.
+      description: Verify that discarding a draft is rejected when the registration ID is blank
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_38
       role: idrepo
       restMethod: delete

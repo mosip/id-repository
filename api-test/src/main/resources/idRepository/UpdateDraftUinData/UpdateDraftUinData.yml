@@ -1,7 +1,7 @@
 UpdateDraftUinData:
   IdRepository_UpdateDraftUinData_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
-      description: Update a lost packet draft with its resolved uin - expected status DRAFTED
+      description: Verify that the ABIS-matched UIN is stamped on the LOST packet draft and the draft stays DRAFTED
       uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_01
       role: idrepo
       restMethod: patch
@@ -97,7 +97,7 @@ UpdateDraftUinData:
 
   IdRepository_UpdateDraftUinData_BlankRid_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
-      description: Update a draft using a blank registration ID - should be rejected with error IDR-IDC-003
+      description: Verify that stamping a UIN is rejected when the registration ID is blank
       uniqueIdentifier: TC_IDRepo_UpdateDraftUinData_06
       role: idrepo
       restMethod: patch

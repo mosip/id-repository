@@ -1,7 +1,7 @@
 UpdateDraftV2AfterDiscard:
   IdRepository_DraftV2Lifecycle_UpdateRecreatedNewDraft_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: K2 step 1 - update the re-created $RIDV2NEWREPROCESS$ NEW draft.
+      description: Reprocess flow for a NEW draft, step 6 - verify that the re-created NEW draft can be updated
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_31
       role: idrepo
       restMethod: patch
@@ -24,7 +24,7 @@ UpdateDraftV2AfterDiscard:
 
   IdRepository_DraftV2Lifecycle_UpdateRecreatedUpdateDraft_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: K3 step 2 - update the re-created $RIDV2DISCARDUPDATE$ UPDATE draft.
+      description: Reprocess flow for an UPDATE draft, step 2 - verify that the re-created UPDATE draft can be updated
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_32
       role: idrepo
       restMethod: patch
@@ -47,7 +47,7 @@ UpdateDraftV2AfterDiscard:
 
   IdRepository_DraftV2Lifecycle_UpdateRecreatedLostDraft_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: K5 step 7 - update the re-created $RIDV2LOSTRESTAMP$ LOST draft before stamping it again.
+      description: Reprocess flow for a LOST draft, step 7 - verify that the re-created LOST draft can be updated before its UIN is stamped again
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_33
       role: idrepo
       restMethod: patch

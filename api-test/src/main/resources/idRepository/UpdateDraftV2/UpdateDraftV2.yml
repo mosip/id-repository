@@ -47,7 +47,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_WithVerifiedAttributes_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: Update a draft by passing verifiedAttributes - expected status DRAFTED
+      description: Verify that a draft is updated when verifiedAttributes are passed with the identity data
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_03
       role: idrepo
       restMethod: patch
@@ -152,7 +152,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_NoDraftExists_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: Update a registrationId that has no prior draft - must be rejected as no record found.
+      description: Verify that updating a draft is rejected when the RID has no draft
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_06
       role: idrepo
       restMethod: patch
@@ -251,7 +251,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_OlderRidChainFirstRid_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: Older-RID chain step 2 - update the $RIDV2OLD$ UPDATE draft before it is published.
+      description: Older-RID flow, step 2 - verify that the UPDATE draft on the older RID is updated before it is published
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_11
       role: idrepo
       restMethod: patch
@@ -324,7 +324,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_LostPacketRestampFirstPass_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: K5 step 2 - update the $RIDV2LOSTRESTAMP$ LOST draft before its first UIN stamp.
+      description: Reprocess flow for a LOST draft, step 2 - verify that the LOST draft is updated before its first UIN stamp
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_14
       role: idrepo
       restMethod: patch
@@ -383,7 +383,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_BlankRid_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: N3 - update a draft passing a blank registrationId - rejected as missing input.
+      description: Verify that updating a draft is rejected when the registration ID is blank
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_17
       role: idrepo
       restMethod: patch
