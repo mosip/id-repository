@@ -154,7 +154,7 @@ public class ObjectStoreHelper {
 			return HMACUtils2.digestAsPlainText(registrationId.getBytes());
 		} catch (Exception e) {
 			throw new IdRepoAppException(UNKNOWN_ERROR.getErrorCode(),
-					"Failed to compute rid hash for regId=" + registrationId, e);
+					"Failed to compute rid hash", e);
 		}
 	}
 
@@ -324,7 +324,7 @@ public class ObjectStoreHelper {
 		try {
 			objectStore.deleteObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
 		} catch (ObjectStoreAdapterException e) {
-			mosipLogger.warn("Failed to delete draft biometric object: {} | error={}", objectName, e.getMessage());
+			mosipLogger.warn("Failed to delete draft biometric object");
 		}
 	}
 
@@ -340,7 +340,7 @@ public class ObjectStoreHelper {
 		try {
 			objectStore.deleteObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
 		} catch (ObjectStoreAdapterException e) {
-			mosipLogger.warn("Failed to delete draft demographic object: {} | error={}", objectName, e.getMessage());
+			mosipLogger.warn("Failed to delete draft demographic object");
 		}
 	}
 
@@ -405,7 +405,7 @@ public class ObjectStoreHelper {
 			throw e;
 		} catch (Exception e) {
 			throw new IdRepoAppException(DRAFT_OBJECT_MOVE_FAILED.getErrorCode(),
-					String.format(DRAFT_OBJECT_MOVE_FAILED.getErrorMessage(), "ridHash=" + ridHash), e);
+					String.format(DRAFT_OBJECT_MOVE_FAILED.getErrorMessage(), BIOMETRICS), e);
 		}
 	}
 
@@ -436,7 +436,7 @@ public class ObjectStoreHelper {
 			throw e;
 		} catch (Exception e) {
 			throw new IdRepoAppException(DRAFT_OBJECT_MOVE_FAILED.getErrorCode(),
-					String.format(DRAFT_OBJECT_MOVE_FAILED.getErrorMessage(), "ridHash=" + ridHash), e);
+					String.format(DRAFT_OBJECT_MOVE_FAILED.getErrorMessage(), DEMOGRAPHICS), e);
 		}
 	}
 
@@ -460,7 +460,7 @@ public class ObjectStoreHelper {
 			}
 		} catch (Exception e) {
 			throw new IdRepoAppException(DRAFT_OBJECT_DELETE_FAILED.getErrorCode(),
-					String.format(DRAFT_OBJECT_DELETE_FAILED.getErrorMessage(), "ridHash=" + ridHash), e);
+					String.format(DRAFT_OBJECT_DELETE_FAILED.getErrorMessage(), BIOMETRICS), e);
 		}
 	}
 
@@ -483,7 +483,7 @@ public class ObjectStoreHelper {
 			}
 		} catch (Exception e) {
 			throw new IdRepoAppException(DRAFT_OBJECT_DELETE_FAILED.getErrorCode(),
-					String.format(DRAFT_OBJECT_DELETE_FAILED.getErrorMessage(), "ridHash=" + ridHash), e);
+					String.format(DRAFT_OBJECT_DELETE_FAILED.getErrorMessage(), DEMOGRAPHICS), e);
 		}
 	}
 
@@ -523,7 +523,7 @@ public class ObjectStoreHelper {
 		} catch (IdRepoAppException e) {
 			throw e;
 		} catch (Throwable e) {
-			mosipLogger.error("Exception in connection>>>", e);
+			mosipLogger.error("Failed to store {} object", isBio ? BIOMETRICS : DEMOGRAPHICS);
 			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR, e);
 		}
 	}
@@ -620,10 +620,10 @@ public class ObjectStoreHelper {
 		String objectName = buildDraftObjectName(pathPrefix, isBio, fileRefId);
 		try (InputStream encryptData = new ByteArrayInputStream(securityManager.encrypt(data, refId))) {
 			objectStore.putObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName, encryptData);
-			mosipLogger.debug("Uploaded draft object: {} ({} bytes)", objectName, data.length);
+			mosipLogger.debug("Uploaded draft {} object ({} bytes)", isBio ? BIOMETRICS : DEMOGRAPHICS, data.length);
 		} catch (IOException | ObjectStoreAdapterException e) {
 			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
-					"Failed to store draft object: " + e.getMessage(), e);
+					"Failed to store draft object", e);
 		}
 	}
 
@@ -648,7 +648,7 @@ public class ObjectStoreHelper {
 			rawStream = objectStore.getObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
 		} catch (ObjectStoreAdapterException e) {
 			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
-					"Failed to fetch draft object: " + objectName, e);
+					"Failed to fetch draft object", e);
 		}
 		if (rawStream == null) {
 			throw new IdRepoAppException(FILE_NOT_FOUND);
@@ -657,14 +657,14 @@ public class ObjectStoreHelper {
 			byte[] encryptedData = IOUtils.toByteArray(s3Stream);
 			if (encryptedData.length > maxObjectSizeBytes) {
 				throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
-						"Draft object size exceeds allowed limit: " + objectName);
+						"Draft object size exceeds allowed limit (" + maxObjectSizeBytes + " bytes)");
 			}
 			byte[] decryptedData = securityManager.decrypt(encryptedData, refId);
 			encryptedData = null;
 			return decryptedData;
 		} catch (IOException | ObjectStoreAdapterException e) {
 			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
-					"Failed to retrieve draft object: " + e.getMessage(), e);
+					"Failed to retrieve draft object", e);
 		}
 	}
 
@@ -688,12 +688,11 @@ public class ObjectStoreHelper {
 			objectStore.moveObject(src, dst, true);
 		} catch (ObjectStoreAdapterException e) {
 			if (isMissingSourceKey(e)) {
-				mosipLogger.debug("Draft object not found (already moved), skipping move: {} | error={}",
-						srcKey, e.getMessage());
+				mosipLogger.debug("Draft object not found (already moved), skipping move");
 				return;
 			}
 			throw new IdRepoAppException(DRAFT_OBJECT_MOVE_FAILED.getErrorCode(),
-					String.format(DRAFT_OBJECT_MOVE_FAILED.getErrorMessage(), srcKey + " -> " + destKey), e);
+					String.format(DRAFT_OBJECT_MOVE_FAILED.getErrorMessage(), "object move"), e);
 		}
 	}
 
@@ -728,12 +727,12 @@ public class ObjectStoreHelper {
 			boolean copied = objectStore.moveObject(src, dst, deleteSourceAfterCopy);
 			if (!copied) {
 				throw new IdRepoAppException(DRAFT_OBJECT_COPY_FAILED.getErrorCode(),
-						String.format(DRAFT_OBJECT_COPY_FAILED.getErrorMessage(), srcKey + " -> " + destKey));
+						String.format(DRAFT_OBJECT_COPY_FAILED.getErrorMessage(), "copy not supported by adapter"));
 			}
-			mosipLogger.debug("Copied object: {} -> {}", srcKey, destKey);
+			mosipLogger.debug("Copied live object to draft path");
 		} catch (ObjectStoreAdapterException e) {
 			throw new IdRepoAppException(DRAFT_OBJECT_COPY_FAILED.getErrorCode(),
-					String.format(DRAFT_OBJECT_COPY_FAILED.getErrorMessage(), srcKey + " -> " + destKey), e);
+					String.format(DRAFT_OBJECT_COPY_FAILED.getErrorMessage(), "object copy"), e);
 		}
 	}
 }

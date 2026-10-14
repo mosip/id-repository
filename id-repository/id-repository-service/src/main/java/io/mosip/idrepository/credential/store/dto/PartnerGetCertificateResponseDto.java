@@ -3,7 +3,7 @@ package io.mosip.idrepository.credential.store.dto;
 /**
  * PMS partner certificate download API response envelope for credential-service.
  * <p>
- * {@link PartnerResponseWrapper} whose {@link PartnerResponseWrapper#getResponse()} carries
+ * {@link PartnerResponseWrapper} whose {@code response} carries
  * {@link PartnerCertDownloadResponeDto} with the partner encryption certificate.
  * </p>
  *

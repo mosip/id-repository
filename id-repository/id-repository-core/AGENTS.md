@@ -1,30 +1,24 @@
 # id-repository-core
 
-Published library. Package `io.mosip.idrepository.core.*` only. Consumed by IDA and the service. No controllers, no boot, no salt-generator, no `identity.*` / `vid.*` / `credential.*` domain.
+Published library, `io.mosip.idrepository.core.*` only. Used by IDA and the service. No controllers, boot, salt-generator or domain (`identity` / `vid` / `credential`).
 
-## IDA — do not rename/remove without an IDA release
+```text
+IDA contract (no rename/remove without an IDA release)
+├─ DTOs        CredentialRequestIdsDto, AuthtypeStatus, AuthTypeStatusEventDTO, RestRequestDTO
+├─ Constants   IdRepoConstants, IdRepoErrorConstants, IDAEventType
+├─ Utils       RestUtil, SaltUtil, RestRequestBuilder, IdRepoLogger
+├─ Exceptions  RestServiceException, IdRepoRetryException, AuthenticationException
+└─ Payloads    credential / Datashare shape, JSON field names, error codes (IDR-CRG-009 …)
 
-- DTOs: `CredentialRequestIdsDto`, `AuthtypeStatus`, `AuthTypeStatusEventDTO`, `RestRequestDTO`
-- Constants: `IdRepoConstants`, `IdRepoErrorConstants`, `IDAEventType`
-- Utils: `RestUtil`, `SaltUtil`, `RestRequestBuilder`, `IdRepoLogger`
-- Exceptions: `RestServiceException`, `IdRepoRetryException`, `AuthenticationException`
-- Also freeze: credential/Datashare payload shape, those JSON field names, error codes (e.g. `IDR-CRG-009`)
-
-IDA does **not** read id-repo salt tables.
-
-## Datasources
-
-| PU | DB | Notes |
-|----|----|-------|
-| `@Primary` | `mosip_idrepo` | `IdRepoDataSourceConfig` — identity salts, Handle, CredentialRequestStatus |
-| VID | `mosip_idmap` | VID salt repos live in **service** (`VidUinHashSaltRepo`) |
-| Credential | `mosip_credential` | Wired from service |
-
-Default `@Transactional` → PU1. Credential PU needs `credentialTransactionManager`. Mis-routing identity vs VID salts = silent crypto failure.
+Persistence units
+├─ @Primary    mosip_idrepo      IdRepoDataSourceConfig: identity salts, Handle, CredentialRequestStatus
+├─ VID         mosip_idmap       VID salt repos live in service (VidUinHashSaltRepo)
+└─ Credential  mosip_credential  wired from service; needs credentialTransactionManager
+```
 
 ## Rules
 
+- Default `@Transactional` → idrepo PU. Routing identity vs VID salts wrongly = silent crypto failure.
 - Keep `core.*` API stable. Shared DTOs, SPI, helpers, security, salt entities/repos belong here.
-- `@Primary` / `@Qualifier` for shared beans (`IdRepoSecurityManager`, `RestRequestBuilder`).
-- After changes: `mvn test -pl id-repository-core`
-- Never add `saltgenerator.*` or HTTP/boot code here.
+- Shared beans (`IdRepoSecurityManager`, `RestRequestBuilder`) use `@Primary` / `@Qualifier`.
+- Test after changes: `mvn test -pl id-repository-core`.

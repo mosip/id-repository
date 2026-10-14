@@ -29,8 +29,11 @@ import io.restassured.response.Response;
  */
 public class GlobalMethods {
 	private static final Logger logger = Logger.getLogger(GlobalMethods.class);
+	/** Server-side failures (code to message) collected during the run, for the report summary. */
 	public static Map<Object, Object> serverFailuresMapS = Collections.synchronizedMap(new HashMap<>());
+	/** Captcha status flags reported by modules; key {@code Captcha_enabled} is read by {@link #getCaptchaStatus()}. */
 	public static Map<Object, Object> captchaStatusMap = Collections.synchronizedMap(new HashMap<>());
+	/** Every endpoint URL reported by {@link #reportRequest(String, String, String)}, after base-URL rewriting. */
 	public static Set<String> serverEndpoints = new HashSet<>();
 	private static String module_name = "(mimoto|certify|signup|partnermanager|preregistration|resident|residentmobileapp|masterdata|esignet|idgenerator|policymanager|idauthentication|idrepository|auditmanager|authmanager|keymanager|mock-identity-system|credentialservice|credentialrequest)";
 	// https?:// so local http://localhost endpoints appear in the report
@@ -39,12 +42,22 @@ public class GlobalMethods {
 	private static String regex_2 = URL_SCHEME + "([^/]+)/" + module_name + "/(v[0-9]+)/([^,]+)";
 	private static Pattern pattern_1 = Pattern.compile(regex_1);
 	private static Pattern pattern_2 = Pattern.compile(regex_2);
+	/** Three-character run prefix (for example {@code a1b_}) set by {@link #getRunContext()}. */
 	public static String runContext = null;
 
+	/** @return true when the {@code xssProtectionCheck} property is {@code yes} */
 	public static boolean isXSSProtectionCheckEnabled() {
 		return ConfigManager.getproperty("xssProtectionCheck").equalsIgnoreCase("yes");
 	}
 
+	/**
+	 * When the XSS check is enabled, requires the response header {@code X-Xss-Protection: 1; mode=block}.
+	 *
+	 * @param response HTTP response to inspect
+	 * @param url      called URL, used for reporting only
+	 * @throws SecurityXSSException when the check is on and the header is missing or different;
+	 *                              the response headers are logged to the report first
+	 */
 	public static void checkXSSProtectionHeader(Response response, String url) throws SecurityXSSException {
 		String xssHeader = response.getHeader("X-Xss-Protection");
 		if (isXSSProtectionCheckEnabled() && (xssHeader == null || !xssHeader.equalsIgnoreCase("1; mode=block"))) {
@@ -53,6 +66,13 @@ public class GlobalMethods {
 		}
 	}
 
+	/**
+	 * Replaces the module-name alternation used by the endpoint regexes (for example
+	 * {@code (idrepository|credentialservice)}) and recompiles them. Blank values are ignored and the
+	 * built-in list is kept.
+	 *
+	 * @param value regex group of module names, normally from {@code moduleNamePattern}
+	 */
 	public static void setModuleNameAndReCompilePattern(String value) {
 		if (value == null || value.trim().isEmpty()) {
 			return;
@@ -64,15 +84,33 @@ public class GlobalMethods {
 		pattern_2 = Pattern.compile(regex_2);
 	}
 
+	/**
+	 * Generates a new random three-character run prefix (plus {@code _}), stores it in
+	 * {@link #runContext} and returns it. Each call creates a new value.
+	 *
+	 * @return the new run context
+	 */
 	public static String getRunContext() {
 		runContext = UUID.randomUUID().toString().replaceAll("-", "").toLowerCase().substring(0, 3) + "_";
 		logger.info("RUN_CONTEXT set to: " + runContext);
 		return runContext;
 	}
 
+	/** No-op; kept for parity with the commons class. */
 	public static void main(String[] arg) {
 	}
 
+	/**
+	 * Rewrites the host of {@code url} to the module's configured base URL
+	 * ({@link ConfigManager#getComponentBaseURL(String)}) when one is set.
+	 * <p>
+	 * Two layouts are recognised: {@code http(s)://host/vN/module/...} and
+	 * {@code http(s)://host/module/vN/...}. An unmatched URL, or a module with no override, is
+	 * returned unchanged.
+	 *
+	 * @param url absolute endpoint URL
+	 * @return the URL with the host replaced, or the original URL
+	 */
 	public static String getUpdatedEndPointURL(String url) {
 		Matcher matcher = pattern_1.matcher(url);
 		if (matcher.find()) {
@@ -98,12 +136,26 @@ public class GlobalMethods {
 		return url;
 	}
 
+	/**
+	 * Rewrites {@code url} with {@link #getUpdatedEndPointURL(String)} and records it in
+	 * {@link #serverEndpoints}.
+	 *
+	 * @param url called endpoint
+	 * @return the rewritten URL
+	 */
 	public static String addToServerEndPointMap(String url) {
 		String updatedURL = getUpdatedEndPointURL(url);
 		serverEndpoints.add(updatedURL);
 		return updatedURL;
 	}
 
+	/**
+	 * Generalises a URL for de-duplication by dropping numeric path segments (UINs, VIDs, RIDs)
+	 * and {@code mosip_*} segments.
+	 *
+	 * @param url endpoint path
+	 * @return the path without volatile segments
+	 */
 	public static String removeNumerics(String url) {
 		String modifiedString = url;
 		modifiedString = Pattern.compile("/\\d+/").matcher(modifiedString).replaceAll("/");
@@ -112,6 +164,13 @@ public class GlobalMethods {
 		return modifiedString;
 	}
 
+	/**
+	 * Builds the "End Points used" section of the emailable report from {@link #serverEndpoints}:
+	 * one de-duplicated {@code Domain ---- Module ---- End Point} line per endpoint, with numeric
+	 * segments removed. Accepts {@code http} and {@code https}.
+	 *
+	 * @return newline-separated lines; empty when no endpoint matched
+	 */
 	public static String getComponentDetails() {
 		Pattern localPattern1 = Pattern.compile(URL_SCHEME + "([^/]+)/(v[0-9]+)?/" + module_name + "/([^,]+)");
 		Pattern localPattern2 = Pattern.compile(URL_SCHEME + "([^/]+)/" + module_name + "/(v[0-9]+)/([^,]+)");
@@ -146,6 +205,12 @@ public class GlobalMethods {
 		return stringBuilder.toString();
 	}
 
+	/**
+	 * Describes which test cases produce ({@code generators}) and consume ({@code consumers}) cached
+	 * {@code $ID:...$} variables, with impact summaries per generator and per consumer.
+	 *
+	 * @return report text; sections without content are left out
+	 */
 	public static String getTestCaseVariableMapping() {
 		VariableDependencyMapper mapper = new VariableDependencyMapper(AdminTestUtil.generators, AdminTestUtil.consumers);
 		StringBuilder variableMappingBuilder = new StringBuilder();
@@ -172,10 +237,12 @@ public class GlobalMethods {
 		return variableMappingBuilder.toString();
 	}
 
+	/** Records a server failure for the report summary; a repeated code keeps the latest message. */
 	public static void reportServerError(Object code, Object errorMessage) {
 		serverFailuresMapS.put(code, errorMessage);
 	}
 
+	/** @return the recorded server failures, or {@code "No server errors"} */
 	public static String getServerErrors() {
 		if (serverFailuresMapS.isEmpty()) {
 			return "No server errors";
@@ -183,15 +250,28 @@ public class GlobalMethods {
 		return serverFailuresMapS.toString();
 	}
 
+	/** Records a captcha status flag, for example {@code Captcha_enabled -> true}. */
 	public static void reportCaptchaStatus(Object code, Object captchaMessage) {
 		captchaStatusMap.put(code, captchaMessage);
 	}
 
+	/** @return true when {@code Captcha_enabled} was reported as {@code true} */
 	public static boolean getCaptchaStatus() {
 		Object value = captchaStatusMap.get("Captcha_enabled");
 		return Boolean.parseBoolean(String.valueOf(value));
 	}
 
+	/**
+	 * Masks secrets and bulky payloads before they are written to the report.
+	 * <p>
+	 * Outside debug mode, string values whose JSON key contains {@code password}, {@code secret},
+	 * {@code token}, {@code key}, {@code private}, {@code client_secret} or {@code authclientsecret}
+	 * are replaced, along with {@code individualBiometrics} values. In every mode, {@code value} and
+	 * {@code data} strings of 200 or more characters are replaced too.
+	 *
+	 * @param strInput request or response text; null or blank is returned as is
+	 * @return the masked text
+	 */
 	public static String maskOutSensitiveInfo(String strInput) {
 		if (strInput == null || strInput.isBlank()) {
 			return strInput;
@@ -214,22 +294,34 @@ public class GlobalMethods {
 		return maskedInput;
 	}
 
+	/**
+	 * Logs a request and its response to the TestNG report.
+	 *
+	 * @param formatResponse true to render the response body as formatted JSON
+	 */
 	public static void ReportRequestAndResponse(String reqHeader, String resHeader, String url, String requestBody,
 			String response, boolean formatResponse) {
 		reportRequest(reqHeader, requestBody, url);
 		reportResponse(resHeader, url, response, formatResponse);
 	}
 
+	/** Logs a request and its unformatted response to the TestNG report. */
 	public static void ReportRequestAndResponse(String reqHeader, String resHeader, String url, String requestBody,
 			String response) {
 		reportRequest(reqHeader, requestBody, url);
 		reportResponse(resHeader, url, response);
 	}
 
+	/** Logs a request with no endpoint URL. */
 	public static void reportRequest(String requestHeader, String request) {
 		reportRequest(requestHeader, request, "");
 	}
 
+	/**
+	 * Logs a request (headers plus masked body) to the TestNG report. A non-blank {@code url} is
+	 * recorded through {@link #addToServerEndPointMap(String)} so it appears under "End Points used".
+	 * A null or {@code {}} body is shown as "No request body".
+	 */
 	public static void reportRequest(String requestHeader, String request, String url) {
 		if (url != null && !url.isBlank()) {
 			url = addToServerEndPointMap(url);
@@ -244,6 +336,7 @@ public class GlobalMethods {
 		}
 	}
 
+	/** Logs a response; PDF bodies are left out and other bodies are masked and formatted. */
 	public static void reportResponse(String responseHeader, String url, Response response) {
 		String formattedHeader = ReportUtil.getTextAreaForHeaders(responseHeader);
 		String contentType = response.getHeader("Content-Type");
@@ -255,15 +348,23 @@ public class GlobalMethods {
 		}
 	}
 
+	/** Logs response headers only. */
 	public static void reportResponseHeader(String responseHeader, String url) {
 		String formattedHeader = ReportUtil.getTextAreaForHeaders(responseHeader);
 		Reporter.log("<b><u>Response: </u></b><pre>" + formattedHeader + "</pre>");
 	}
 
+	/** Logs an unformatted, masked response body. */
 	public static void reportResponse(String responseHeader, String url, String response) {
 		reportResponse(responseHeader, url, response, false);
 	}
 
+	/**
+	 * Logs a masked response body.
+	 *
+	 * @param formatResponse true to format headers and body as HTML text areas; false to log the
+	 *                       raw header string followed by the body
+	 */
 	public static void reportResponse(String responseHeader, String url, String response, boolean formatResponse) {
 		String formattedHeader = ReportUtil.getTextAreaForHeaders(responseHeader);
 		String maskedResponse = maskOutSensitiveInfo(response);
@@ -275,6 +376,12 @@ public class GlobalMethods {
 		}
 	}
 
+	/**
+	 * Lower-case hex SHA-256 of {@code input} in the platform default charset (used for PKCE /
+	 * VCI code challenges).
+	 *
+	 * @return the hex digest, or an empty string if SHA-256 is unavailable
+	 */
 	public static String sha256(String input) {
 		String returnString = "";
 		try {

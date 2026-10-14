@@ -96,7 +96,7 @@ AddIdentity:
       ]
     }'
 
-  IdRepository_AddIdentity_array_handle_value_withouttags:
+  IdRepository_AddIdentity_array_handle_value_withouttags_Pos:
     endPoint: /idrepository/v1/identity/
     description: Add identity array handle with positive values and withouts tags
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandle_04

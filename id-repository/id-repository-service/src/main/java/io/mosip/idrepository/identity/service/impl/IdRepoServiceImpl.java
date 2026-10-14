@@ -12,6 +12,7 @@ import java.util.concurrent.CompletionException;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import io.mosip.idrepository.core.constant.*;
 import jakarta.annotation.Resource;
@@ -100,10 +101,34 @@ import io.mosip.kernel.core.util.DateUtils2;
 import io.mosip.kernel.core.util.UUIDUtils;
 
 /**
- * Core identity service: add, update, retrieve, and lifecycle operations on UIN.
+ * Persistence layer of the identity service: writes, merges and reads UIN records in
+ * {@code mosip_idrepo}.
  * <p>
- * Orchestrates encryption, history, credential issuance triggers, VID/handle integration,
- * and WebSub events. Primary implementation of {@link io.mosip.idrepository.core.spi.IdRepoService}.
+ * Primary {@link IdRepoService} implementation. It is called by {@link IdRepoProxyServiceImpl}
+ * (validation, caching and the REST contract) and reused by the draft service, which extends it.
+ * </p>
+ * <p>
+ * Responsibilities:
+ * </p>
+ * <ul>
+ * <li><b>Add</b> ({@link #addIdentity}): hashes and encrypts the UIN with the salts from
+ * {@code uin_hash_salt} / {@code uin_encrypt_salt}, stores the identity JSON and its hash,
+ * uploads documents and biometrics to the object store, and writes {@code uin}, {@code uin_h},
+ * {@code uin_document(_h)}, {@code uin_biometric(_h)} and {@code handle} rows.</li>
+ * <li><b>Update</b> ({@link #updateIdentity}): trims input values, merges the request into
+ * the stored JSON ({@link #updateJsonObject}), merges CBEFF files modality by modality,
+ * replaces changed handles, enforces per-attribute update limits and writes a history row.</li>
+ * <li><b>Verified attributes</b>: keeps the v1 list of claim names or the v2 list of
+ * {@link VerificationMetadata} objects on the identity JSON.</li>
+ * <li><b>Credentials</b>: updates {@code credential_request_status} and queues synchronous
+ * credential issuance to run after the identity transaction ends.</li>
+ * <li><b>Anonymous profile</b>: feeds old and new identity data and CBEFF to
+ * {@link AnonymousProfileHelper}.</li>
+ * </ul>
+ * <p>
+ * Every public method runs in one transaction that rolls back on {@link IdRepoAppException}
+ * and {@link IdRepoAppUncheckedException}, and logs its duration through
+ * {@code IdentityServicePerformanceLog}.
  * </p>
  */
 @Component
@@ -111,7 +136,10 @@ import io.mosip.kernel.core.util.UUIDUtils;
 @Transactional(rollbackFor = { IdRepoAppException.class, IdRepoAppUncheckedException.class })
 public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
-	/** Identity JSON key holding the list of verified attribute names. */
+	/**
+	 * Identity JSON key holding the verified attributes: a list of claim names (v1) or a list of
+	 * {@link VerificationMetadata} objects (v2).
+	 */
 	private static final String VERIFIED_ATTRIBUTES = "verifiedAttributes";
 
 	/** Method name used in logs of {@code updateIdentity}. */
@@ -197,12 +225,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	@Autowired
 	protected UinEncryptSaltRepo uinEncryptSaltRepo;
 
-	@Autowired
 	/** Reads and writes encrypted biometric and document files. */
+	@Autowired
 	protected ObjectStoreHelper objectStoreHelper;
 
-	@Autowired
 	/** Supplies the dummy online-verification partner id used for new credential requests. */
+	@Autowired
 	private DummyPartnerCheckUtil dummyPartner;
 
 	/**
@@ -213,23 +241,23 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	@Lazy
 	private CredentialStatusManager credentialStatusManager;
 
-	@Autowired
 	/** Repository of {@code credential_request_status}; tracks credential issuance per identity. */
+	@Autowired
 	private CredentialRequestStatusRepo credRequestRepo;
 	
-	@Autowired
 	/** Builds and saves the anonymous profile of every identity change. */
+	@Autowired
 	protected AnonymousProfileHelper anonymousProfileHelper;
 	
-	@Value("${" + ACTIVE_STATUS + "}")
 	/** Identity status that means active (normally {@code ACTIVATED}). */
+	@Value("${" + ACTIVE_STATUS + "}")
 	private String activeStatus;
 
-	@Value("#{${" + UPDATE_IDENTITY_FIELDS_TO_REPLACE + "}}")
 	/**
 	 * Identity fields that an update replaces as a whole instead of merging values
-	 * language by language.
+	 * language by language (a SpEL list from {@code UPDATE_IDENTITY_FIELDS_TO_REPLACE}).
 	 */
+	@Value("#{${" + UPDATE_IDENTITY_FIELDS_TO_REPLACE + "}}")
 	private List<String> fieldsToReplaceOnUpdate;
 
 	/** Repository of {@code identity_update_count_tracker}; counts updates per attribute. */
@@ -243,29 +271,48 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	@Value("${" + ENABLE_CONVENTION_BASED_ID + ":false}")
 	private boolean enableConventionBasedId;
 
-	@Autowired
 	/** Repository of {@code handle}; stores the identity handles. */
+	@Autowired
 	private HandleRepo handleRepo;
 
-	@Autowired
 	/** Reads handle configuration and builds handle hashes. */
+	@Autowired
 	private IdRepoServiceHelper idRepoServiceHelper;
 
+	/**
+	 * Key reference id used to encrypt and decrypt the UIN with its salt. Not read by this class
+	 * ({@link #addIdentity} uses a local variable of the same name for the row id).
+	 */
 	@Value("${" + UIN_REFID + "}")
-	/** Key reference id used to encrypt and decrypt the UIN with its salt. */
 	private String uinRefId;
 
-	@Value("${" + UPDATE_IDENTITY_TRIM_WHITESPACES + ":true}")
 	/** When {@code true}, leading and trailing whitespace is trimmed from update values. */
+	@Value("${" + UPDATE_IDENTITY_TRIM_WHITESPACES + ":true}")
 	private boolean trimWhitespaces;
 
 	/**
-	 * Persists a new UIN entity and associated documents/biometrics.
+	 * Creates a new identity record.
+	 * <ol>
+	 * <li>Derives the row id ({@code uinRefId}) as a name-based UUID of the UIN and the current
+	 * time, the salted UIN hash ({@code saltId_hash}) and the value to encrypt
+	 * ({@code saltId_uin_salt}).</li>
+	 * <li>Resolves the selected handles, rejects any already owned by another identity, and
+	 * writes their hashes back into the identity JSON.</li>
+	 * <li>Stores the verified attributes: v2 metadata (only claims present in the identity are
+	 * kept) or the v1 list as sent.</li>
+	 * <li>Uploads the documents and builds their metadata rows, then saves the {@code uin} row
+	 * (cascading the document and biometric rows) and a {@code uin_h} history row.</li>
+	 * <li>Saves the handle rows, records the credential request and queues issuance, and saves
+	 * the anonymous profile.</li>
+	 * </ol>
 	 *
-	 * @param request identity create request DTO
-	 * @param uin     plaintext UIN to store
-	 * @return persisted {@link Uin} entity
-	 * @throws IdRepoAppException on validation or persistence failure
+	 * @param request identity create request; its identity map is replaced in place with the
+	 *                handle-resolved version
+	 * @param uin     plaintext UIN, already allocated
+	 * @return the saved {@link Uin} entity (UIN field encrypted)
+	 * @throws IdRepoAppException          on handle conflict ({@code HANDLE_RECORD_EXISTS}) or
+	 *                                     identity serialisation failure
+	 * @throws IdRepoAppUncheckedException when a document cannot be decoded or stored
 	 */
 	@Override
 	public Uin addIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
@@ -336,9 +383,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	}
 
 	/**
-	 * Get uin to encrypt.
-	 * @param uin uin
-	 * @return string
+	 * Builds the value stored (after entity-level encryption) in {@code uin.uin}:
+	 * {@code saltId + SPLITTER + uin + SPLITTER + encryptSalt}. The salt id is the UIN modulo the
+	 * salt table size, and the salt comes from {@code uin_encrypt_salt}.
+	 *
+	 * @param uin plaintext UIN
+	 * @return the salted value to encrypt
 	 */
 	protected String getUinToEncrypt(String uin) {
 		int modResult = securityManager.getSaltKeyForId(uin);
@@ -347,9 +397,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	}
 
 	/**
-	 * Get uin hash.
-	 * @param uin uin
-	 * @return string
+	 * Builds the salted UIN hash used as the lookup key of an identity:
+	 * {@code saltId + SPLITTER + hash(uin, hashSalt)}, with the salt id taken from the UIN by the
+	 * modulo rule and the salt from {@code uin_hash_salt}.
+	 *
+	 * @param uin plaintext UIN
+	 * @return the value stored in {@code uin.uin_hash}; the part after {@code SPLITTER} is the
+	 *         bare hash used as the object-store folder
 	 */
 	protected String getUinHash(String uin) {
 		int modResult = securityManager.getSaltKeyForId(uin);
@@ -530,21 +584,18 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 					null, null, false, null));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see io.mosip.idrepository.core.spi.IdRepoService#retrieveIdentity(java.lang.
-	 * String, io.mosip.idrepository.core.constant.IdType, java.lang.String)
+	/**
+	 * Loads the identity row by salted UIN hash. Filtering by {@code type} and biometric
+	 * extraction are done by the caller ({@link IdRepoProxyServiceImpl}); this method only reads.
+	 *
+	 * @param uinHash           salted UIN hash, as built by {@link #getUinHash(String)}
+	 * @param idType            id type the caller resolved (not used here)
+	 * @param type              requested data type, for example {@code bio} or {@code all} (not used here)
+	 * @param extractionFormats biometric extraction formats (not used here)
+	 * @return the identity row, with its document and biometric rows
+	 * @throws IdRepoAppException {@code NO_RECORD_FOUND} when no row has this hash
 	 */
 	@Override
-	/**
-	 * Retrieve identity.
-	 * @param uinHash uin hash
-	 * @param idType id type
-	 * @param type type
-	 * @param extractionFormats extraction formats
-	 * @return uin
-	 */
 	public Uin retrieveIdentity(String uinHash, IdType idType, String type, Map<String, String> extractionFormats)
 			throws IdRepoAppException {
 		long startNanos = System.nanoTime();
@@ -562,21 +613,31 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see io.mosip.kernel.core.idrepo.spi.IdRepoService#updateIdentity(java.lang.
-	 * Object, java.lang.String)
+	/**
+	 * Applies an update request to an existing identity.
+	 * <ol>
+	 * <li>Trims request values (when {@link #trimWhitespaces} is on) and loads the stored row.</li>
+	 * <li>Sets the registration id and, when it changes, the status.</li>
+	 * <li>When the request has an identity: replaces handles (removed ones are marked
+	 * {@code DELETE}, new ones checked for uniqueness), merges verified attributes, replaces the
+	 * {@link #fieldsToReplaceOnUpdate} fields, and merges the remaining differences with
+	 * {@link #updateJsonObject}, which also enforces update-count limits.</li>
+	 * <li>When the request has documents: merges biometrics into the stored CBEFF, uploads the
+	 * files and updates the metadata rows.</li>
+	 * <li>Saves the row and a {@code uin_h} history row, inserts new handles, records the
+	 * credential requests ({@code NEW} when the status is active, {@code DELETED} otherwise) and
+	 * saves the anonymous profile.</li>
+	 * </ol>
+	 *
+	 * @param request identity update request; its identity map may be changed in place
+	 * @param uin     plaintext UIN of the identity to update
+	 * @return the saved {@link Uin} entity
+	 * @throws IdRepoAppException {@code NO_RECORD_FOUND}, {@code HANDLE_RECORD_EXISTS},
+	 *                            {@code UPDATE_COUNT_LIMIT_EXCEEDED}, {@code UNKNOWN_ERROR} when the
+	 *                            merge cannot reconcile the request, {@code ID_OBJECT_PROCESSING_FAILED}
+	 *                            on JSON errors, or the code of any unchecked failure
 	 */
 	@Override
-	/**
-	 * Updates an existing UIN entity from the request payload.
-	 *
-	 * @param request identity update request DTO
-	 * @param uin     plaintext UIN to update
-	 * @return updated {@link Uin} entity
-	 * @throws IdRepoAppException on validation or persistence failure
-	 */
 	public Uin updateIdentity(IdRequestDTO request, String uin) throws IdRepoAppException {
 		long startNanos = System.nanoTime();
 		try {
@@ -662,10 +723,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	}
 
 	/**
-	 * Trims leading/trailing whitespace from string fields in the identity payload when enabled.
+	 * When {@link #trimWhitespaces} is on, trims leading and trailing whitespace from the top-level
+	 * identity values: plain strings, strings inside lists, and the {@code value} of language or
+	 * tagged entries ({@code {language, value}}, {@code {value, tags}}). Nested objects other than
+	 * that {@code value} key are left as they are.
 	 *
-	 * @param request identity request DTO to normalize in place
-	 * @throws IdRepoAppException if identity conversion fails
+	 * @param request identity request; its identity is replaced with the trimmed map
+	 * @throws IdRepoAppException if the identity cannot be converted to a map
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void updateRequestBodyData(IdRequestDTO request) throws IdRepoAppException {
@@ -701,13 +765,21 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	/**
-	 * Update verified attributes.
-	 * @param requestDTO request dto
-	 * @param inputData input data
-	 * @param dbData db data
+	 * Merges the request's verified attributes into the stored identity and writes the result
+	 * to both documents, so the later JSON comparison sees no difference for this key.
+	 * <ul>
+	 * <li>v2 ({@code verifiedAttributesMetadata} set): delegates to
+	 * {@link #applyV2VerifiedAttributes}.</li>
+	 * <li>v1: the stored list of claim names and the request list are combined into a set
+	 * (duplicates removed; order not kept).</li>
+	 * </ul>
+	 *
+	 * @param requestDTO update request body
+	 * @param inputData  request identity JSON; changed in place
+	 * @param dbData     stored identity JSON; changed in place
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected void updateVerifiedAttributes(RequestDTO requestDTO, DocumentContext inputData, DocumentContext dbData) {
 		if (requestDTO.getVerifiedAttributesMetadata() != null) {
 			applyV2VerifiedAttributes(requestDTO.getVerifiedAttributesMetadata(), inputData, dbData);
@@ -729,8 +801,22 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	/**
 	 * Merges v2 {@link VerificationMetadata} into the stored identity.
-	 * A saved entry is kept when the same framework and process are not in the request
-	 * and its claims are not present in the incoming identity.
+	 * <ol>
+	 * <li>Copies the request entries and drops claims whose field has no value in either the
+	 * request or the stored identity; entries left with no claims are dropped.</li>
+	 * <li>Reads the stored entries (a legacy v1 list of names becomes one entry with framework
+	 * and process {@code NA}).</li>
+	 * <li>A stored entry whose trust framework and verification process (case-insensitive) are
+	 * not in the request is kept, but only with the claims whose field is absent from the request
+	 * identity; it is dropped if none remain. A stored entry with a matching framework and process
+	 * is replaced by the request entry.</li>
+	 * </ol>
+	 * With no stored entries, the filtered request entries are used as they are. The merged list
+	 * is written to both {@code inputData} and {@code dbData}.
+	 *
+	 * @param incoming  v2 entries from the request; not modified
+	 * @param inputData request identity JSON; changed in place
+	 * @param dbData    stored identity JSON (empty on add); changed in place
 	 */
 	private void applyV2VerifiedAttributes(List<VerificationMetadata> incoming, DocumentContext inputData,
 			DocumentContext dbData) {
@@ -770,6 +856,14 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		dbData.put("$", VERIFIED_ATTRIBUTES, inputVerifiedAttributes);
 	}
 
+	/**
+	 * Removes, from each entry, claims whose field has no value in either document, then removes
+	 * entries left without claims.
+	 *
+	 * @param inputData               request identity JSON
+	 * @param dbData                  stored identity JSON
+	 * @param inputVerifiedAttributes entries to filter; changed in place
+	 */
 	private void retainClaimsThatExist(DocumentContext inputData, DocumentContext dbData,
 			List<VerificationMetadata> inputVerifiedAttributes) {
 		for (VerificationMetadata metadata : inputVerifiedAttributes) {
@@ -781,6 +875,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		inputVerifiedAttributes.removeIf(item -> item.getClaims() == null || item.getClaims().isEmpty());
 	}
 
+	/**
+	 * @param data    identity JSON
+	 * @param fieldId top-level field name
+	 * @return true when {@code $.fieldId} exists and is not null
+	 */
 	private boolean fieldHasValue(DocumentContext data, String fieldId) {
 		try {
 			return data.read("$." + fieldId) != null;
@@ -789,6 +888,16 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
+	/**
+	 * Reads the stored verified attributes as v2 entries.
+	 * <p>
+	 * A legacy v1 list of claim names is converted to a single entry with trust framework and
+	 * verification process {@code NA} and the current time, so it can be merged with v2 data.
+	 * </p>
+	 *
+	 * @param dbData stored identity JSON
+	 * @return mutable list of entries; empty when the key is absent, null or empty
+	 */
 	private List<VerificationMetadata> readStoredVerificationMetadata(DocumentContext dbData) {
 		List<?> matches;
 		try {
@@ -819,6 +928,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		});
 	}
 
+	/**
+	 * Wraps an object (map, list or JSON string) in a JsonPath document backed by Jackson, so
+	 * POJOs such as {@link VerificationMetadata} can be written into it.
+	 *
+	 * @param source value to parse
+	 * @return a writable document
+	 */
 	private static DocumentContext jacksonJson(Object source) {
 		Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
 				.mappingProvider(new JacksonMappingProvider()).build();
@@ -845,23 +961,40 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 			}
 		}
 	}
+
 	/**
-	 * Merges request identity JSON into stored identity (missing fields, failing
-	 * fields, then language-list values). Remaining LENIENT diffs — for example
-	 * array handles {@code [{value, tags}]} that are not language lists — fail
-	 * the update. Recursing here never converges and overflows the stack.
+	 * Merges the request identity into the stored identity and enforces update-count limits.
+	 * <ol>
+	 * <li>Replaces array-handle fields ({@code [{value, tags}]}) whole.</li>
+	 * <li>Adds fields missing from the stored identity.</li>
+	 * <li>Overwrites fields whose values differ.</li>
+	 * <li>Merges language lists entry by entry.</li>
+	 * <li>When {@code canPersistUpdateCount} is true, adds one to the count of every changed
+	 * attribute.</li>
+	 * </ol>
+	 * The JSON is compared (LENIENT) again before each step. If it still differs after the last
+	 * step, the remaining diff is logged and the update fails; calling this method again would
+	 * never converge and would overflow the stack. Otherwise the count map is saved to
+	 * {@code identity_update_count_tracker}, even when counting is off.
 	 *
-	 * @param inputData        the input data
-	 * @param dbData           the db data
-	 * @param comparisonResult the comparison result
-	 * @throws JSONException      the JSON exception
-	 * @throws IdRepoAppException {@code UNKNOWN_ERROR} when a leftover diff remains
+	 * @param uinHash               salted UIN hash; id of the update-count tracker row
+	 * @param inputData             request identity JSON
+	 * @param dbData                stored identity JSON; changed in place
+	 * @param comparisonResult      first comparison; recomputed before each step
+	 * @param canPersistUpdateCount whether changed attributes count against their limits
+	 * @throws JSONException      if a document cannot be compared
+	 * @throws IOException        if the stored count map cannot be read or written
+	 * @throws IdRepoAppException {@code UPDATE_COUNT_LIMIT_EXCEEDED}, or {@code UNKNOWN_ERROR}
+	 *                            when a diff remains after the merge
 	 */
 	protected void updateJsonObject(String uinHash, DocumentContext inputData, DocumentContext dbData,
 			JSONCompareResult comparisonResult, boolean canPersistUpdateCount) throws JSONException, IOException, IdRepoAppException {
 		Entry<String, Map<String, Integer>> updateCountTracker = getUpdateCountTracker(uinHash, dbData);
 		Map<String, Integer> updateCountTrackerMap = updateCountTracker.getValue();
 		Set<String> attribute = new HashSet<>();
+
+		replaceArrayHandleFields(inputData, dbData, attribute);
+		comparisonResult = JSONCompare.compareJSON(inputData.jsonString(), dbData.jsonString(), JSONCompareMode.LENIENT);
 
 		if (comparisonResult.isMissingOnField()) {
 			updateMissingFields(dbData, comparisonResult, attribute);
@@ -888,6 +1021,50 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 		identityUpdateTracker.save(new IdentityUpdateTracker(updateCountTracker.getKey(), CryptoUtil
 				.encodeToURLSafeBase64(mapper.writeValueAsString(updateCountTrackerMap).getBytes()).getBytes()));
+	}
+
+	/**
+	 * Copies array-handle fields from the request to the stored identity, replacing the stored
+	 * list whole. The LENIENT comparison cannot match such lists by position, so they are not
+	 * merged entry by entry. Fields equal to the stored value are skipped.
+	 *
+	 * @param inputData request identity JSON
+	 * @param dbData    stored identity JSON; changed in place
+	 * @param attribute names of changed attributes; replaced fields are added
+	 */
+	@SuppressWarnings("unchecked")
+	private void replaceArrayHandleFields(DocumentContext inputData, DocumentContext dbData, Set<String> attribute) {
+		Map<String, Object> inputMap = inputData.read(ROOT, Map.class);
+		Map<String, Object> dbMap = dbData.read(ROOT, Map.class);
+		for (Map.Entry<String, Object> entry : inputMap.entrySet()) {
+			if (!isArrayHandleList(entry.getValue()) || Objects.equals(dbMap.get(entry.getKey()), entry.getValue())) {
+				continue;
+			}
+			dbData.put(ROOT, entry.getKey(), new ArrayList<>((List<Object>) entry.getValue()));
+			attribute.add(entry.getKey());
+		}
+	}
+
+	/**
+	 * @param value an identity field value
+	 * @return true when the value is a non-empty list of objects that each have {@code value},
+	 *         optionally {@code tags}, no {@code language}, and no other keys
+	 */
+	private boolean isArrayHandleList(Object value) {
+		if (!(value instanceof List<?> list) || list.isEmpty()) {
+			return false;
+		}
+		for (Object item : list) {
+			if (!(item instanceof Map<?, ?> map) || !map.containsKey(VALUE) || map.containsKey(LANGUAGE)) {
+				return false;
+			}
+			for (Object key : map.keySet()) {
+				if (!VALUE.equals(key) && !"tags".equals(key)) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -933,6 +1110,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				});
 	}
 
+	/**
+	 * Lists comparison failures by path and value shape, without values, so the result is safe
+	 * to log at ERROR.
+	 *
+	 * @param failures field failures from a {@link JSONCompareResult}
+	 * @return text such as {@code [email (expected list of 2, actual list of 1)]}
+	 */
 	private String describeFailures(List<FieldComparisonFailure> failures) {
 		return failures.stream()
 				.map(failure -> failure.getField() + " (expected " + describeShape(failure.getExpected())
@@ -940,6 +1124,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 				.collect(Collectors.joining(", ", "[", "]"));
 	}
 
+	/**
+	 * Describes a JSON value without exposing it.
+	 *
+	 * @param value any JSON value, or null
+	 * @return {@code absent}, {@code list of N}, {@code object}, or the simple class name
+	 */
 	private String describeShape(Object value) {
 		if (value == null) {
 			return "absent";
@@ -1128,6 +1318,10 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * are added to {@code inputData}. Afterwards both lists cover the same languages, so
 	 * languages not sent in the update are kept.
 	 * </p>
+	 * <p>
+	 * A list holding plain values (for example a list of phone numbers or handle field ids)
+	 * has no language entries to line up, so the stored list is replaced by the request list.
+	 * </p>
 	 *
 	 * @param inputData        identity JSON from the request; changed in place
 	 * @param dbData           stored identity JSON; changed in place
@@ -1147,8 +1341,14 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 		attribute.add(key);
 		JsonPath jsonPath = JsonPath.compile(path + DOT + key);
-		List<Map<String, String>> dbDataList = dbData.read(path + DOT + key, List.class);
-		List<Map<String, String>> inputDataList = inputData.read(path + DOT + key, List.class);
+		List<Object> dbValues = dbData.read(path + DOT + key, List.class);
+		List<Object> inputValues = inputData.read(path + DOT + key, List.class);
+		if (Stream.concat(dbValues.stream(), inputValues.stream()).anyMatch(value -> !(value instanceof Map))) {
+			dbData.set(jsonPath, inputValues);
+			return;
+		}
+		List<Map<String, String>> dbDataList = (List<Map<String, String>>) (List<?>) dbValues;
+		List<Map<String, String>> inputDataList = (List<Map<String, String>>) (List<?>) inputValues;
 		inputDataList.stream()
 				.filter(map -> map.containsKey(LANGUAGE) && dbDataList.stream().filter(dbMap -> dbMap.containsKey(LANGUAGE))
 						.allMatch(dbMap -> !StringUtils.equalsIgnoreCase(dbMap.get(LANGUAGE), map.get(LANGUAGE))))
@@ -1161,12 +1361,14 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	}
 
 	/**
-	 * Update documents.
+	 * Same as {@link #updateDocuments(String, Uin, RequestDTO, boolean, boolean)} with the UIN-hash
+	 * object path ({@code useDraftObjectStore = false}); used by live updates and v1 drafts.
 	 *
-	 * @param uinHashwithSalt    the uin hash
-	 * @param uinObject  the uin object
-	 * @param requestDTO the request DTO
-	 * @throws IdRepoAppException the id repo app exception
+	 * @param uinHashwithSalt UIN hash without the salt-id prefix; the object-store folder
+	 * @param uinObject       identity (or draft mapped to {@link Uin}) being updated
+	 * @param requestDTO      update request with the documents
+	 * @param isDraft         {@code true} when the metadata rows belong to a draft
+	 * @throws IdRepoAppException when a file cannot be read, merged or written
 	 */
 	protected void updateDocuments(String uinHashwithSalt, Uin uinObject, RequestDTO requestDTO, boolean isDraft)
 			throws IdRepoAppException {
@@ -1311,13 +1513,15 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		return updatedCbeff;
 	}
 
-	@Override
 	/**
-	 * Get rid by individual id.
-	 * @param individualId individual id
-	 * @param idType id type
-	 * @return string
+	 * Not supported by this layer; RID lookup is done by {@link IdRepoProxyServiceImpl}.
+	 *
+	 * @param individualId UIN, VID or RID (not used)
+	 * @param idType       type of {@code individualId} (not used)
+	 * @return always {@code null}
+	 * @throws IdRepoAppException never thrown here
 	 */
+	@Override
 	public String getRidByIndividualId(String individualId, IdType idType) throws IdRepoAppException {
 		long startNanos = System.nanoTime();
 		try {
@@ -1327,13 +1531,15 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
-	@Override
 	/**
-	 * Get id vid metadata.
-	 * @param individualId individual id
-	 * @param idType id type
-	 * @return id vid metadata response dto
+	 * Not supported by this layer; metadata lookup is done by {@link IdRepoProxyServiceImpl}.
+	 *
+	 * @param individualId UIN or VID (not used)
+	 * @param idType       type of {@code individualId} (not used)
+	 * @return never returns
+	 * @throws IdRepoAppException always, {@code UNKNOWN_ERROR} ("not implemented")
 	 */
+	@Override
 	public IdVidMetadataResponseDTO getIdVidMetadata(String individualId, IdType idType) throws IdRepoAppException {
 		long startNanos = System.nanoTime();
 		try {
@@ -1345,14 +1551,20 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	}
 
 	/**
-	 * This function is used to get the maximum allowed update count of an attribute
-	 * for the given individual id
+	 * Returns how many more times each limited attribute of the identity may be updated.
+	 * <ul>
+	 * <li>With a tracker row: for each tracked attribute that has a limit (and is in
+	 * {@code attributeList}, when given), remaining = max(0, limit − used). Then every limited
+	 * attribute not yet in the result is added with its full limit; this step ignores
+	 * {@code attributeList}.</li>
+	 * <li>Without a tracker row: the configured limits, filtered by {@code attributeList}.</li>
+	 * </ul>
 	 *
-	 * @param idType        The type of the ID. For example, UIN, RID, VID, etc.
-	 * @param attributeList List of attributes for which the update count is to be
-	 *                      retrieved.
-	 * @return A map of attribute name and the maximum allowed update count for that
-	 *         attribute.
+	 * @param uinHash       salted UIN hash; id of the tracker row
+	 * @param idType        type of the id the caller resolved (not used)
+	 * @param attributeList attributes to report; empty means all limited attributes
+	 * @return remaining update count by attribute
+	 * @throws IdRepoAppException {@code UNKNOWN_ERROR} if the stored count map cannot be read
 	 */
 	@Override
 	public Map<String, Integer> getRemainingUpdateCountByIndividualId(String uinHash, IdType idType,
@@ -1495,6 +1707,13 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	 * {@link IdRepoProxyServiceImpl} / draft publish drain via
 	 * {@link CredentialStatusManager#runPendingAfterIdentityCommit()}.
 	 * </p>
+	 *
+	 * @param uin             plaintext UIN
+	 * @param encryptedUin    encrypted UIN as stored on the identity row
+	 * @param uinStatus       identity status after the change
+	 * @param expiryTimestamp expiry for a deactivated identity; may be {@code null}
+	 * @param isUpdate        {@code true} for an update, {@code false} for a create
+	 * @param requestId       credential request id to reuse; may be {@code null}
 	 */
 	private void scheduleSynchronizedCredentialPipeline(String uin, String encryptedUin, String uinStatus,
 			LocalDateTime expiryTimestamp, boolean isUpdate, String requestId) {
@@ -1502,12 +1721,15 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	}
 
 	/**
-	 * Convert to object.
+	 * Parses JSON bytes with the shared {@link ObjectMapper}. Unchecked so it can be used
+	 * inside lambdas and streams.
 	 *
-	 * @param identity the identity
-	 * @param clazz    the clazz
-	 * @return the object
-	 * @throws IdRepoAppException the id repo app exception
+	 * @param <T>      target type
+	 * @param identity JSON bytes, for example stored identity data or a CBEFF diff value
+	 * @param clazz    target class, for example {@link Map}, {@link List} or {@link ObjectNode}
+	 * @return the parsed value
+	 * @throws IdRepoAppUncheckedException {@code ID_OBJECT_PROCESSING_FAILED} if the bytes are not
+	 *                                     valid JSON for {@code clazz}
 	 */
 	protected <T> T convertToObject(byte[] identity, Class<T> clazz) {
 		try {
@@ -1519,11 +1741,12 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 	}
 
 	/**
-	 * Convert to bytes.
+	 * Serializes a value to JSON bytes with the shared {@link ObjectMapper}; used for the stored
+	 * identity data and its hash.
 	 *
-	 * @param identity the identity
-	 * @return the byte[]
-	 * @throws IdRepoAppException the id repo app exception
+	 * @param identity value to serialize, usually the identity map
+	 * @return UTF-8 JSON bytes
+	 * @throws IdRepoAppException {@code ID_OBJECT_PROCESSING_FAILED} if the value cannot be serialized
 	 */
 	protected byte[] convertToBytes(Object identity) throws IdRepoAppException {
 		try {

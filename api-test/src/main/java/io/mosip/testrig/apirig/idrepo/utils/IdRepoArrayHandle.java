@@ -12,9 +12,37 @@ import org.json.JSONObject;
 import io.mosip.testrig.apirig.testrunner.BaseTestCase;
 import io.mosip.testrig.apirig.utils.AdminTestUtil;
 
+/**
+ * Request-body mutator for the identity <em>handle</em> scenarios ({@code selectedHandles} plus
+ * handle fields of type string or array of {@code {value, tags}}).
+ * <p>
+ * The AddIdentity / UpdateIdentity scripts render a schema-driven HBS template that produces a
+ * valid identity. For handle test cases the YAML only names the scenario; this class reads the
+ * scenario from a lower/camel-case token inside the test case name (for example
+ * {@code _withouttags}, {@code _withusedhandlevalue}) and rewrites the rendered JSON so the
+ * request exercises that rule on the server.
+ * <p>
+ * Rules shared by every scenario:
+ * <ul>
+ * <li>Field names are resolved from the live IdSchema and the auth actuator (email / phone
+ * property names), never hard-coded, so the same YAML works across country schemas.</li>
+ * <li>Name tokens are matched with {@link String#contains(CharSequence)}; a longer token that
+ * contains a shorter one is always checked first.</li>
+ * <li>Global scenarios (that rewrite {@code selectedHandles} or the whole identity) return
+ * immediately; per-handle scenarios run once for every array-typed handle in
+ * {@code selectedHandles}.</li>
+ * <li>{@link #savedHandleValues} lets a "_save_" AddIdentity case record its handle values so a
+ * later case can replay them and expect the duplicate-handle error {@code IDR-IDC-014}.</li>
+ * </ul>
+ * All state is static because TestNG drives the scripts sequentially within one JVM run.
+ */
 public class IdRepoArrayHandle {
 	/** Handle values captured from a "_save_" test's identity, replayed to trigger IDR-IDC-014. */
 	private static final Map<String, String> savedHandleValues = new LinkedHashMap<>();
+	/**
+	 * Suffix fixed once per run and appended to values and tags in update scenarios, so a value
+	 * written by one step can be predicted by a later step of the same run.
+	 */
 	public static String RANDOM_ID = nextRandomId();
 
 	/** Fresh id per call so array-handle values/tags do not collide across tests in the same run. */
@@ -53,6 +81,22 @@ public class IdRepoArrayHandle {
 
 	// ===== Public Entry Points =====
 
+	/**
+	 * Applies the AddIdentity handle scenario named in {@code testCaseName} to a rendered request.
+	 * <p>
+	 * Array-handle values are first made unique for this run. Then the first matching global
+	 * scenario is applied and the method returns, for example: no / empty / null / wrongly typed
+	 * {@code selectedHandles}; a non-handle or unknown field listed as a handle; case or
+	 * whitespace mismatch; duplicate entries; a schema-derived missing required handle or an
+	 * invalid handle value; the save/replay duplicate-value cases. If no global scenario matches,
+	 * {@link #applyAddIdentityHandleMutation} runs for each array-typed handle in
+	 * {@code selectedHandles}.
+	 *
+	 * @param inputJson    rendered AddIdentity request ({@code request.identity} is required)
+	 * @param testCaseName YAML test case name that carries the scenario token
+	 * @return the mutated request JSON
+	 * @throws org.json.JSONException if the body has no {@code request.identity} object
+	 */
 	public static String replaceArrayHandleValues(String inputJson, String testCaseName) {
 		JSONObject jsonObj = new JSONObject(inputJson);
 		JSONObject request = jsonObj.getJSONObject("request");
@@ -202,6 +246,21 @@ public class IdRepoArrayHandle {
 		return jsonObj.toString();
 	}
 
+	/**
+	 * Applies the UpdateIdentity handle scenario named in {@code testCaseName} to a rendered request.
+	 * <p>
+	 * The update template contains every schema field, including freshly generated array handles
+	 * that do not match the stored record. These are removed first by
+	 * {@link #omitUnmutatedArrayHandleFields} so a plain email/phone update stays a partial update.
+	 * After that the first matching global scenario is applied (remove handles from the record,
+	 * reshape or invalidate {@code selectedHandles}, replay saved values for IDR-IDC-014, and so
+	 * on); otherwise {@link #applyUpdateIdentityHandleMutation} runs for each array-typed handle.
+	 *
+	 * @param inputJson    rendered UpdateIdentity request ({@code request.identity} is required)
+	 * @param testCaseName YAML test case name that carries the scenario token
+	 * @return the mutated request JSON
+	 * @throws org.json.JSONException if the body has no {@code request.identity} object
+	 */
 	public static String replaceArrayHandleValuesForUpdateIdentity(String inputJson, String testCaseName) {
 		JSONObject jsonObj = new JSONObject(inputJson);
 		JSONObject request = jsonObj.getJSONObject("request");
@@ -345,6 +404,18 @@ public class IdRepoArrayHandle {
 
 	// ===== AddIdentity per-handle dispatch =====
 
+	/**
+	 * Runs the first AddIdentity per-handle scenario whose token is in {@code testCaseName}
+	 * (tags removed or invalid, extra values, email-only variants, functional-id variants,
+	 * case-sensitive tags, duplicate values replayed from a "_save_" case). With no match the
+	 * handle array is left as rendered.
+	 *
+	 * @param testCaseName    YAML test case name
+	 * @param identity        {@code request.identity} being mutated
+	 * @param selectedHandles the identity's {@code selectedHandles} array
+	 * @param handle          name of the handle field currently visited
+	 * @param handleArray     that field's {@code [{value, tags}]} array, mutated in place
+	 */
 	private static void applyAddIdentityHandleMutation(String testCaseName, JSONObject identity,
 			JSONArray selectedHandles, String handle, JSONArray handleArray) {
 		// More-specific patterns must appear before shorter substrings they contain:
@@ -418,6 +489,20 @@ public class IdRepoArrayHandle {
 
 	// ===== UpdateIdentity per-handle dispatch =====
 
+	/**
+	 * Runs the first UpdateIdentity per-handle scenario whose token is in {@code testCaseName}
+	 * (new values or tags, appended untagged values, renamed or invalid {@code selectedHandles},
+	 * removed tags or demographic fields, email-array variants, a non-handle attribute listed as a
+	 * handle). With no match the handle array is left as rendered.
+	 *
+	 * @param testCaseName    YAML test case name
+	 * @param identity        {@code request.identity} being mutated
+	 * @param selectedHandles the identity's {@code selectedHandles} array
+	 * @param handle          name of the handle field currently visited
+	 * @param handleArray     that field's {@code [{value, tags}]} array, mutated in place
+	 * @param phoneFieldName  phone property name from the auth actuator
+	 * @param outerIndex      position of {@code handle} within {@code selectedHandles}
+	 */
 	private static void applyUpdateIdentityHandleMutation(String testCaseName, JSONObject identity,
 			JSONArray selectedHandles, String handle, JSONArray handleArray,
 			String phoneFieldName, int outerIndex) {
@@ -478,6 +563,7 @@ public class IdRepoArrayHandle {
 
 	// ===== Shared Helpers =====
 
+	/** Phone property name from the auth actuator ({@code json-property.phone_number}), e.g. {@code phone}. */
 	private static String resolvePhoneFieldName() {
 		String phone = AdminTestUtil.getValueFromAuthActuator("json-property", "phone_number");
 		return phone.replaceAll("\\[\"|\"]", "");
@@ -537,6 +623,7 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/** True for update scenarios that rewrite array-handle payloads, so the template's arrays must be kept. */
 	private static boolean keepsArrayHandlePayload(String testCaseName) {
 		return testCaseName.contains("_withupdatevalues")
 				|| testCaseName.contains("_withmultiplevalues")
@@ -553,6 +640,7 @@ public class IdRepoArrayHandle {
 				|| testCaseName.contains("_withmultiplehandleswithoutvalue");
 	}
 
+	/** True for scenarios that rewrite the email field as an {@code [{value, tags}]} array. */
 	private static boolean mutatesEmailArray(String testCaseName) {
 		return testCaseName.contains("_WithMultipleEmail")
 				|| testCaseName.contains("_RetainTaggedEmail")
@@ -563,6 +651,7 @@ public class IdRepoArrayHandle {
 				|| testCaseName.contains("_SelectedHandlesOrderVariation");
 	}
 
+	/** True (case-insensitive) for scenarios that send or reshape {@code selectedHandles} on update. */
 	private static boolean mutatesSelectedHandlesStructure(String testCaseName) {
 		String n = testCaseName.toLowerCase();
 		return n.contains("_withnullselectedhandles")
@@ -703,11 +792,13 @@ public class IdRepoArrayHandle {
 		writeHandleValue(identity, emailField, savedEmail);
 	}
 
+	/** Email property name from the auth actuator ({@code json-property.emailId}), e.g. {@code email}. */
 	private static String resolveEmailFieldName() {
 		String email = AdminTestUtil.getValueFromAuthActuator("json-property", "emailId");
 		return email.replaceAll("\\[\"|\"]", "");
 	}
 
+	/** Adds a non-schema {@code values} array (three strings) to every entry; the server must reject it. */
 	private static void putMultipleValues(JSONArray handleArray) {
 		JSONArray valuesArray = new JSONArray();
 		valuesArray.put("mosip501724826584965_modified_1");
@@ -730,6 +821,7 @@ public class IdRepoArrayHandle {
 
 	// ===== AddIdentity Private Handlers =====
 
+	/** {@code _withmultiplevaluesandwithouttags}: adds a {@code values} array and drops {@code tags} from every entry. */
 	private static void applyMultipleValuesAndWithoutTags(JSONArray handleArray) {
 		JSONArray valuesArray = new JSONArray();
 		valuesArray.put("mosip501724826584965_modified_1");
@@ -742,24 +834,28 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/** {@code _onlywithtags}: drops {@code value}, leaving entries with tags only. */
 	private static void applyOnlyWithTags(JSONArray handleArray) {
 		for (int j = 0; j < handleArray.length(); j++) {
 			handleArray.getJSONObject(j).remove("value");
 		}
 	}
 
+	/** {@code _withouttags}: drops {@code tags} from every entry. */
 	private static void applyWithoutTags(JSONArray handleArray) {
 		for (int j = 0; j < handleArray.length(); j++) {
 			handleArray.getJSONObject(j).remove("tags");
 		}
 	}
 
+	/** {@code _withtagwithoutselectedhandles}: removes any entry-level {@code selectedHandles} key (normally a no-op). */
 	private static void applyWithTagWithoutSelectedHandles(JSONArray handleArray) {
 		for (int j = 0; j < handleArray.length(); j++) {
 			handleArray.getJSONObject(j).remove("selectedHandles");
 		}
 	}
 
+	/** {@code _withinvalidtag}: suffixes every tag with {@code _invalid<randomId>}. */
 	private static void applyWithInvalidTag(JSONArray handleArray) {
 		for (int j = 0; j < handleArray.length(); j++) {
 			JSONObject obj = handleArray.getJSONObject(j);
@@ -773,6 +869,7 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/** {@code _withmultiplehandleswithoutvalue}: replaces the array with two entries that have tags but no value. */
 	private static void applyMultipleHandlesWithoutValue(JSONArray handleArray) {
 
 	    // Remove existing entries
@@ -790,6 +887,7 @@ public class IdRepoArrayHandle {
 	    handleArray.put(notificationObj);
 	}
 	
+	/** {@code _WithEmailHandleAndNotification}: tags every email entry {@code [handle, notification]}. */
 	private static void applyEmailHandleAndNotification(JSONArray handleArray) {
 	    for (int j = 0; j < handleArray.length(); j++) {
 	        JSONObject emailObj = handleArray.getJSONObject(j);
@@ -800,6 +898,10 @@ public class IdRepoArrayHandle {
 	    }
 	}
 	
+	/**
+	 * {@code _withfunctionalIdsUsedFirstTwoValueOutOfFive}: appends four schema-valid values (five in
+	 * total); only the first appended one is tagged {@code handle}.
+	 */
 	private static void applyFunctionalIdsUsedFirstTwoValueOutOfFive(JSONArray handleArray, String handle) {
 		// Positive: five entries, only the first tagged; values generated to satisfy the handle validator.
 		for (int j = 0; j < 4; j++) {
@@ -812,6 +914,7 @@ public class IdRepoArrayHandle {
 		}
 	}
 	
+	/** {@code _WithMultipleEmail_And_OneEmail_As_Handle}: one email tagged {@code handle} plus one untagged email. */
 	private static void applyMultipleEmailOneHandle(JSONArray handleArray) {
 	    while (handleArray.length() > 0) {
 	        handleArray.remove(0);
@@ -825,6 +928,7 @@ public class IdRepoArrayHandle {
 	    handleArray.put(normalEmail);
 	}
 	
+	/** {@code _SelectedHandlesOrderVariation}: tags every email entry {@code [notification, handle]} (reversed order). */
 	private static void applySelectedHandlesOrderVariation(JSONArray handleArray) {
 	    for (int j = 0; j < handleArray.length(); j++) {
 	        JSONObject emailObj = handleArray.getJSONObject(j);
@@ -835,6 +939,7 @@ public class IdRepoArrayHandle {
 	    }
 	}
 	
+	/** {@code _OnlyNotificationTag}: tags every email entry {@code [notification]} only (no {@code handle}). */
 	private static void applyOnlyNotificationTag(JSONArray handleArray) {
 	    for (int j = 0; j < handleArray.length(); j++) {
 	        JSONObject emailObj = handleArray.getJSONObject(j);
@@ -844,6 +949,7 @@ public class IdRepoArrayHandle {
 	    }
 	}
 	
+	/** {@code _WithLengthyEmailArray}: replaces the array with 20 unique emails; only the first is tagged {@code handle}. */
 	private static void applyLengthyEmailArray(JSONArray handleArray) {
 		while (handleArray.length() > 0) {
 			handleArray.remove(0);
@@ -860,6 +966,7 @@ public class IdRepoArrayHandle {
 		}
 	}
 	
+	/** {@code _WithMultipleHandlesDifferentDomains}: three emails on different domains, all tagged {@code handle}. */
 	private static void applyMultipleHandlesDifferentDomains(JSONArray handleArray) {
 	    while (handleArray.length() > 0) {
 	        handleArray.remove(0);
@@ -881,6 +988,7 @@ public class IdRepoArrayHandle {
 	    handleArray.put(email3);
 	}
 	
+	/** {@code _WithMultipleEmailWithoutHandle}: two unique emails with no tags. */
 	private static void applyMultipleEmailWithoutHandle(JSONArray handleArray) {
 		while (handleArray.length() > 0) {
 			handleArray.remove(0);
@@ -893,6 +1001,7 @@ public class IdRepoArrayHandle {
 		handleArray.put(email2);
 	}
 	
+	/** {@code _WithMultipleEmailHandlesTagged}: two unique emails, both tagged {@code handle}. */
 	private static void applyMultipleEmailHandlesTagged(JSONArray handleArray) {
 	    // Clear existing email entries
 	    while (handleArray.length() > 0) {
@@ -908,6 +1017,7 @@ public class IdRepoArrayHandle {
 	    handleArray.put(email2);
 	}
 	
+	/** {@code _RetainTaggedEmail}: keeps the existing entries and appends one new untagged email. */
 	private static void applyRetainTaggedEmail(JSONArray handleArray) {
 
 	    JSONObject existingEmail = handleArray.getJSONObject(0);
@@ -919,6 +1029,10 @@ public class IdRepoArrayHandle {
 	    handleArray.put(newEmail);
 	}
 
+	/**
+	 * {@code _withfunctionalIdsUsedFirstTwoValue}: when fewer than three entries exist, appends a
+	 * tagged and an untagged schema-valid value.
+	 */
 	private static void applyFunctionalIdsUsedFirstTwoValue(JSONArray handleArray, String handle) {
 		if (handleArray.length() < 3) {
 			// Positive: appended values generated to satisfy the handle's own validator.
@@ -932,6 +1046,7 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/** {@code _withfunctionalIdsandPhoneWithoutTags}: drops {@code tags} from every entry. */
 	private static void applyFunctionalIdsAndPhoneWithoutTags(JSONArray handleArray) {
 		// Gated [functionalId, phone]; both are already handles in the body — just strip the tags.
 		for (int j = 0; j < handleArray.length(); j++) {
@@ -939,12 +1054,18 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/** {@code _withfunctionalIds}: drops {@code tags} from every entry of an array-typed handle. */
 	private static void applyFunctionalIds(JSONArray handleArray) {
 		for (int j = 0; j < handleArray.length(); j++) {
 			handleArray.getJSONObject(j).remove("tags");
 		}
 	}
 
+	/**
+	 * {@code _removeexceptfirsthandle} / {@code _withinvaliddemofield_inupdate}: removes the visited
+	 * handle field when more than one handle is selected and trims {@code selectedHandles} to its
+	 * first entry.
+	 */
 	private static void applyRemoveExceptFirstHandle(JSONObject identity, JSONArray selectedHandles, String handle) {
 		if (identity.has("selectedHandles") && selectedHandles.length() > 0) {
 			for (int j = 1; j < selectedHandles.length(); j++) {
@@ -958,6 +1079,10 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/**
+	 * {@code _withonedemofield}: removes the visited array handle when more than one handle is
+	 * selected and sets {@code selectedHandles} to its first entry.
+	 */
 	private static void applyWithOneDemoField(JSONObject identity, JSONArray selectedHandles, String handle) {
 		if (identity.has("selectedHandles")) {
 			String firstHandle = selectedHandles.getString(0);
@@ -970,6 +1095,7 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/** {@code _withcasesensitivehandles}: rewrites any {@code handles} tag (any case) as {@code HANDLES}. */
 	private static void applyWithCaseSensitiveHandles(JSONArray handleArray) {
 	    for (int j = 0; j < handleArray.length(); j++) {
 	        JSONObject obj = handleArray.getJSONObject(j);
@@ -983,11 +1109,13 @@ public class IdRepoArrayHandle {
 	    }
 	}
 
+	/** {@code _withselectedhandlephone}: sets {@code selectedHandles} to the phone field only. */
 	private static void applyWithSelectedHandlePhone(JSONObject identity) {
 		// Gated [phone]; reduce selectedHandles to just phone (resolved name, not a literal).
 		identity.put("selectedHandles", new JSONArray().put(resolvePhoneFieldName()));
 	}
 
+	/** {@code _withmultipledublicatevalue}: appends the saved value of this handle as a second tagged entry (no-op if none saved). */
 	private static void applyWithMultipleDuplicateValue(JSONArray handleArray, String handle) {
 		String savedValue = savedHandleValues.get(handle);
 		if (savedValue == null) {
@@ -999,6 +1127,7 @@ public class IdRepoArrayHandle {
 		handleArray.put(secondValue);
 	}
 
+	/** {@code _removevalueaddexistingvalue}: overwrites every entry's value with this handle's saved value (no-op if none saved). */
 	private static void applyRemoveValueAddExistingValue(JSONArray handleArray, String handle) {
 		String savedValue = savedHandleValues.get(handle);
 		if (savedValue == null) {
@@ -1013,6 +1142,10 @@ public class IdRepoArrayHandle {
 
 	// ===== UpdateIdentity Private Handlers =====
 
+	/**
+	 * {@code _withupdatevalues}: gives every entry a new value, {@code mosip_update_<RANDOM_ID>@mosip.net}
+	 * for the email field and a schema-valid generated value for any other handle.
+	 */
 	private static void applyWithUpdateValues(JSONArray handleArray, String handle, String emailFieldName) {
 		for (int j = 0; j < handleArray.length(); j++) {
 			if (handle.equals(emailFieldName)) {
@@ -1024,6 +1157,7 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/** {@code _withupdatetags}: suffixes every tag with {@code _invalid<RANDOM_ID>}. */
 	private static void applyWithUpdateTags(JSONArray handleArray) {
 		for (int j = 0; j < handleArray.length(); j++) {
 			JSONObject handleObj = handleArray.getJSONObject(j);
@@ -1036,6 +1170,7 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/** {@code _withupdatetagsandhandles}: suffixes every tag, and every element of an array-valued {@code value}, with {@code _invalid<RANDOM_ID>}. */
 	private static void applyWithUpdateTagsAndHandles(JSONArray handleArray) {
 		for (int j = 0; j < handleArray.length(); j++) {
 			JSONObject handleObj = handleArray.getJSONObject(j);
@@ -1054,6 +1189,7 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/** {@code _withdeletehandlefromrecord}: removes every selected handle field and {@code selectedHandles} itself. */
 	private static void applyDeleteHandleFromRecord(JSONObject identity) {
 		JSONArray selectedHandles = identity.getJSONArray("selectedHandles");
 		for (int j = 0; j < selectedHandles.length(); j++) {
@@ -1065,11 +1201,16 @@ public class IdRepoArrayHandle {
 		identity.remove("selectedHandles");
 	}
 
+	/** {@code _withupdatedselectedhandle}: renames the first selected handle to an unknown name ({@code <name><RANDOM_ID>}). */
 	private static void applyWithUpdatedSelectedHandle(JSONArray selectedHandles) {
 		String firstHandle = selectedHandles.getString(0);
 		selectedHandles.put(0, firstHandle + RANDOM_ID);
 	}
 
+	/**
+	 * {@code _withupdatedselectedhandleanddemo}: renames the first selected handle and moves its
+	 * array under the new name, with each value suffixed by {@code RANDOM_ID}.
+	 */
 	private static void applyWithUpdatedSelectedHandleAndDemo(JSONObject identity, JSONArray selectedHandles,
 			int outerIndex) {
 		if (selectedHandles.length() > 0) {
@@ -1090,6 +1231,10 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/**
+	 * {@code _withupdatedselectedhandleandfirstattribute}: makes the first array-valued identity
+	 * attribute the first selected handle and appends {@code 123} to its values and tags.
+	 */
 	private static void applyWithUpdatedSelectedHandleAndFirstAttribute(JSONObject identity,
 			JSONArray selectedHandles) {
 		// Pick the first array-valued attribute to corrupt; skip selectedHandles and any string/scalar
@@ -1122,6 +1267,7 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/** {@code _withremovedtaggedattribute}: strips {@code tags} from the entries of every selected array handle. */
 	private static void applyWithRemovedTaggedAttribute(JSONObject identity, JSONArray selectedHandles,
 			String handle, JSONArray handleArray) {
 		for (int j = 0; j < selectedHandles.length(); j++) {
@@ -1139,6 +1285,7 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/** {@code _withouthandlesattr}: removes every selected handle field and {@code selectedHandles}, if present. */
 	private static void applyWithoutHandlesAttr(JSONObject identity) {
 		if (identity.has("selectedHandles")) {
 			JSONArray selectedHandles = identity.getJSONArray("selectedHandles");
@@ -1152,6 +1299,10 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/**
+	 * {@code _withinvaliddemofield}: prefixes the visited handle's value(s) with {@code invalid_}
+	 * and renames its {@code selectedHandles} entry at {@code outerIndex} to {@code invalid_<handle>}.
+	 */
 	private static void applyWithInvalidDemoField(JSONObject identity, JSONArray selectedHandles, String handle,
 			int outerIndex) {
 		if (identity.has("selectedHandles")) {
@@ -1177,6 +1328,7 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/** {@code _withoutselectedhandlesandattri}: removes every selected handle field and {@code selectedHandles}. */
 	private static void applyWithoutSelectedHandlesAndAttri(JSONObject identity) {
 		JSONArray selectedHandles = identity.getJSONArray("selectedHandles");
 		for (int j = 0; j < selectedHandles.length(); j++) {
@@ -1188,6 +1340,7 @@ public class IdRepoArrayHandle {
 		identity.remove("selectedHandles");
 	}
 
+	/** {@code _withalldemofieldsremoved}: removes the visited handle field, leaving {@code selectedHandles} intact. */
 	private static void applyWithAllDemoFieldsRemoved(JSONObject identity, JSONArray selectedHandles, String handle) {
 		for (int j = 0; j < selectedHandles.length(); j++) {
 			if (identity.has(handle)) {
@@ -1196,6 +1349,7 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/** {@code _witharandomnonhandleattr}: appends the first identity attribute not already selected to {@code selectedHandles}. */
 	private static void applyWithARandomNonHandleAttr(JSONObject identity, JSONArray selectedHandles) {
 		if (identity.has("selectedHandles")) {
 			List<String> existingHandles = new ArrayList<>();
@@ -1214,6 +1368,7 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/** {@code _updateselectedhandleswithscehmaattrwhichisnothandle}: appends the first unselected string attribute to {@code selectedHandles}. */
 	private static void applyUpdateSelectedHandlesWithSchemaAttrWhichIsNotHandle(JSONObject identity,
 			JSONArray selectedHandles) {
 		Iterator<String> keys = identity.keys();
@@ -1227,6 +1382,7 @@ public class IdRepoArrayHandle {
 		}
 	}
 
+	/** {@code _removeselectedhandle_updatephone}: drops {@code selectedHandles} and sets a new random 10-digit phone. */
 	private static void applyRemoveSelectedHandleUpdatePhone(JSONObject identity, String phoneFieldName) {
 		identity.remove("selectedHandles");
 		if (identity.has(phoneFieldName)) {
@@ -1236,6 +1392,7 @@ public class IdRepoArrayHandle {
 
 	// ===== Utility =====
 
+	/** {@code _removealltagshandles}: recursively removes every {@code tags} array that is exactly {@code ["handles"]}. */
 	private static void removeTagsHandles(JSONObject jsonObj) {
 		for (String key : jsonObj.keySet()) {
 			Object value = jsonObj.get(key);

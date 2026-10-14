@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Run api-test against local id-repository-service without touching Idrepo.properties.
-# Usage: ./run-local-smoke.sh [smoke|smokeAndRegression]
-#   default: smokeAndRegression
-# Output: console + logs/run-local-<testLevel>-<timestamp>.log
+# Usage: ./run-local-smoke.sh [smokeAndRegression|smoke|help] [testCaseIds]
+# Output: console + .local/logs/run-local-<testLevel>-<timestamp>.log
 # Prereqs:
 #   - Docker deps up (local-dev-setup: ./run-local-stack.sh up)
 #   - Host id-repository-service on :8090 (run-idrepo-local.sh / .bat)
@@ -15,6 +14,41 @@ API_TEST_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$API_TEST_DIR"
 
 TEST_LEVEL="${1:-smokeAndRegression}"
+TEST_CASES="${2:-}"
+
+usage() {
+  cat <<'EOF'
+
+./run-local-smoke.sh [runType] [testCaseIds]
+
+Run types:
+  smokeAndRegression   all smoke + regression cases (default)
+  smoke                smoke cases only
+  help | -h | --help   show this list and exit
+
+testCaseIds (optional): comma-separated uniqueIdentifiers, e.g.
+  ./run-local-smoke.sh smokeAndRegression TC_IDRepo_PublishDraftV2_07,TC_IDRepo_ExtractBiometricsV2_09
+
+Environment:
+  SKIP_PREFLIGHT=1     skip the WireMock / id-repository / keymanager health checks
+  .env.local           optional client secrets (see run-local.env.example)
+
+EOF
+}
+
+usage
+case "${TEST_LEVEL,,}" in
+  help|-h|--help) exit 0 ;;
+  smokeandregression) TEST_LEVEL=smokeAndRegression ;;
+  smoke) TEST_LEVEL=smoke ;;
+  *)
+    echo "ERROR: unknown run type \"$TEST_LEVEL\". Use one of the run types above." >&2
+    exit 1
+    ;;
+esac
+echo "Selected: $TEST_LEVEL"
+echo "Test cases: ${TEST_CASES:-all}"
+echo
 
 REQUIRED_ENV_KEYS=(
   postgres-password
@@ -119,6 +153,10 @@ for key in "${REQUIRED_ENV_KEYS[@]}"; do
   fi
 done
 
+if [[ -n "$TEST_CASES" ]]; then
+  ENV_ARGS+=("testCasesToExecute=${TEST_CASES}")
+fi
+
 if [[ ${#missing[@]} -gt 0 ]]; then
   echo "ERROR: missing required local-run secrets:" >&2
   printf '  - %s\n' "${missing[@]}" >&2
@@ -153,7 +191,7 @@ elif [[ -f "$PROPS_FILE" && "$PROPS_FILE" -nt "${jars[0]}" ]]; then
   echo "Idrepo-local.properties is newer than the jar; rebuilding so tests hit :8090..."
   need_build=1
 elif [[ -f "$LOG4J_FILE" && "$LOG4J_FILE" -nt "${jars[0]}" ]]; then
-  echo "log4j.properties is newer than the jar; rebuilding so logs go to api-test/logs..."
+  echo "log4j.properties is newer than the jar; rebuilding so logs go to api-test/.local/logs..."
   need_build=1
 elif [[ -f "$POM_FILE" && "$POM_FILE" -nt "${jars[0]}" ]]; then
   echo "pom.xml is newer than the jar; rebuilding..."
@@ -176,7 +214,7 @@ if [[ ${#jars[@]} -eq 0 ]]; then
 fi
 JAR="${jars[0]}"
 
-LOG_DIR="$API_TEST_DIR/logs"
+LOG_DIR="$API_TEST_DIR/.local/logs"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/run-local-${TEST_LEVEL}-$(date +%Y%m%d_%H%M%S).log"
 

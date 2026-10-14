@@ -59,8 +59,8 @@ CreateDraftV2:
     inputTemplate: idRepository/CreateDraftV2/createDraftV2
     outputTemplate: idRepository/CreateDraftV2/createDraftV2Result
     input: '{
-      "registrationId": "$RIDV2FRESH$",
-      "uin": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$",
+      "registrationId": "$RIDV2UPDATEB$",
+      "uin": "$ID:AddIdentity_ValidParam_smoke_Pos_UIN$",
       "generateUin": "true"
     }'
     output: '{
@@ -95,6 +95,27 @@ CreateDraftV2:
     input: '{
       "registrationId": "$RIDV2NEW$",
       "uin": "$REMOVE$",
+      "generateUin": "$REMOVE$"
+    }'
+    output: '{
+      "errors": [
+        {
+          "errorCode": "IDR-IDC-012"
+        }
+      ]
+    }'
+
+  IdRepository_CreateDraftV2_DuplicateUinDraft_Neg:
+    endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
+    description: Create a draft for a UIN that already has an open draft (TC_IDRepo_CreateDraftV2_03) - must be rejected as a duplicate record.
+    uniqueIdentifier: TC_IDRepo_CreateDraftV2_14
+    role: idrepo
+    restMethod: post
+    inputTemplate: idRepository/CreateDraftV2/createDraftV2
+    outputTemplate: idRepository/error
+    input: '{
+      "registrationId": "$RIDV2FRESH$",
+      "uin": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$",
       "generateUin": "$REMOVE$"
     }'
     output: '{
@@ -204,7 +225,7 @@ CreateDraftV2:
       "generateUin": "$REMOVE$"
     }'
     output: '{
-      "responseCode": "500"
+      "responseCode": "401"
     }'
 
   IdRepository_CreateDraftV2_WithUnauthorizedRole_StatusCode_Neg:

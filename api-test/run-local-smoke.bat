@@ -1,8 +1,7 @@
 @echo off
 REM Run api-test against local id-repository-service without touching Idrepo.properties.
-REM Usage: run-local-smoke.bat [smoke|smokeAndRegression]
-REM   default: smokeAndRegression
-REM Output: console + logs\run-local-<testLevel>-<timestamp>.log
+REM Usage: run-local-smoke.bat [smokeAndRegression^|smoke^|help] [testCaseIds]
+REM Output: console + .local\logs\run-local-<testLevel>-<timestamp>.log
 REM Prereqs: Docker deps up; host id-repository-service on :8090; WireMock IAM on :8082.
 REM Secrets: optional .env.local; otherwise local-dev-setup defaults are used.
 REM Skip health preflight: set SKIP_PREFLIGHT=1
@@ -12,7 +11,25 @@ set "API_TEST_DIR=%~dp0"
 cd /d "%API_TEST_DIR%"
 
 set "TEST_LEVEL=%~1"
+set "TEST_CASES=%~2"
 if "%TEST_LEVEL%"=="" set "TEST_LEVEL=smokeAndRegression"
+
+call :usage
+if /I "%TEST_LEVEL%"=="help" exit /b 0
+if /I "%TEST_LEVEL%"=="-h" exit /b 0
+if /I "%TEST_LEVEL%"=="--help" exit /b 0
+if "%TEST_LEVEL%"=="/?" exit /b 0
+set "LEVEL_OK="
+if /I "%TEST_LEVEL%"=="smokeAndRegression" set "TEST_LEVEL=smokeAndRegression" & set "LEVEL_OK=1"
+if /I "%TEST_LEVEL%"=="smoke" set "TEST_LEVEL=smoke" & set "LEVEL_OK=1"
+if not defined LEVEL_OK (
+  echo ERROR: unknown run type "%TEST_LEVEL%". Use one of the run types above.
+  exit /b 1
+)
+if defined TEST_CASES set "testCasesToExecute=%TEST_CASES%"
+echo Selected: %TEST_LEVEL%
+if defined TEST_CASES (echo Test cases: %TEST_CASES%) else (echo Test cases: all)
+echo.
 
 if exist "%API_TEST_DIR%.env.local" (
   for /f "usebackq eol=# tokens=1,* delims==" %%A in ("%API_TEST_DIR%.env.local") do (
@@ -71,7 +88,7 @@ if /I not "%SKIP_PREFLIGHT%"=="1" (
 set "authCertsPath=%API_TEST_DIR%target\local-authcerts"
 if not exist "%authCertsPath%" mkdir "%authCertsPath%"
 
-set "LOG_DIR=%API_TEST_DIR%logs"
+set "LOG_DIR=%API_TEST_DIR%.local\logs"
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 for /f %%I in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMdd_HHmmss"') do set "STAMP=%%I"
 set "LOG_FILE=%LOG_DIR%\run-local-%TEST_LEVEL%-%STAMP%.log"
@@ -144,3 +161,21 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "& { $ErrorActionPreferen
 
 set "RC=!ERRORLEVEL!"
 endlocal & exit /b %RC%
+
+:usage
+echo.
+echo run-local-smoke.bat [runType] [testCaseIds]
+echo.
+echo Run types:
+echo   smokeAndRegression   all smoke + regression cases (default)
+echo   smoke                smoke cases only
+echo   help ^| -h ^| --help   show this list and exit
+echo.
+echo testCaseIds (optional): comma-separated uniqueIdentifiers, e.g.
+echo   run-local-smoke.bat smokeAndRegression TC_IDRepo_PublishDraftV2_07,TC_IDRepo_ExtractBiometricsV2_09
+echo.
+echo Environment:
+echo   SKIP_PREFLIGHT=1     skip the WireMock / id-repository / keymanager health checks
+echo   .env.local           optional client secrets (see run-local.env.example)
+echo.
+exit /b 0

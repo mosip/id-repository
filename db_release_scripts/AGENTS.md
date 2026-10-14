@@ -1,13 +1,19 @@
-# db_release_scripts — named release / revoke
+# db_release_scripts (release / revoke)
 
-Point-in-time `{version}_release.sql` / `{version}_revoke.sql`. Operator notes: [`README.MD`](README.MD) (WinSCP **text** mode, `LOG_PATH`).
+Point-in-time SQL. Operator notes: `README.MD` (WinSCP **text** mode, `LOG_PATH`).
 
-`bash deploy.sh deploy.properties 1.2.1` · `bash revoke.sh deploy.properties 1.2.1` — repeat per schema.
+```text
+<schema>/
+├─ deploy.properties             host, MOSIP_DB_NAME, flags
+├─ ddl/
+├─ sql/{version}_release.sql + {version}_revoke.sql
+└─ deploy.sh · revoke.sh
+Run: bash deploy.sh deploy.properties 1.2.1 · bash revoke.sh deploy.properties 1.2.1 (per schema)
+```
 
 ## Rules
 
-- Always ship matching `_release.sql` and `_revoke.sql`. Wire new tables into `ddl/` **and** the versioned SQL.
-- Keep `db_scripts` + `db_upgrade_scripts` aligned. Never merge idrepo/idmap.
-- Set `deploy.properties` (host, `MOSIP_DB_NAME`, flags); create `LOG_PATH` first. Trailing newline in `.properties`; no padded values.
-- Passwords via `SU_USER_PWD` / `SYSADMIN_PWD` env. Check logs for `ERROR` (ignore `NOTICE` / `SKIPPING`).
-- Do not change `.sh` deploy mechanics without DB-team review. Wrong version arg or DB name is destructive.
+- Ship `_release.sql` and `_revoke.sql` together. New tables go in `ddl/` **and** the versioned SQL.
+- Create `LOG_PATH` first. `.properties` need a trailing newline and no padded values.
+- Passwords via `SU_USER_PWD` / `SYSADMIN_PWD`. In logs, look for `ERROR` (ignore `NOTICE` / `SKIPPING`).
+- `.sh` mechanics change only with DB-team review. A wrong version or DB name is destructive.

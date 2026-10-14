@@ -1,6 +1,6 @@
 # Local PKCS12 keystores (ID-Repository)
 
-Key Manager uses **PKCS12** under `keys/` (not SoftHSM). `.p12` files are gitignored.
+Key Manager uses **PKCS12** under `keys/` (not SoftHSM). `mosip-idrepo-ks.p12` is committed so it stays paired with the static seed in `init.sql`.
 
 ## Required for keymanager-service
 

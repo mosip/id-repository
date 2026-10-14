@@ -123,7 +123,7 @@ The script:
 
 - Preflights `:8090`, `:8082`, `:8088` (skip with `SKIP_PREFLIGHT=1`)
 - Rebuilds the fat jar if `src/main/resources` is newer than the jar (YAML/config changes)
-- Writes console + `api-test/logs/run-local-<level>-<timestamp>.log`
+- Writes console + `api-test/.local/logs/run-local-<level>-<timestamp>.log`
 - Writes HTML reports to `api-test/testng-report/`
 
 ### Step D — Optional: Cursor / VS Code
@@ -217,8 +217,8 @@ Local Eclipse run (if you must): use the same VM args as the Cursor local launch
 | Output | Path |
 |--------|------|
 | HTML TestNG report | `api-test/testng-report/` |
-| Script console log | `api-test/logs/run-local-<level>-<timestamp>.log` |
-| Log4j | `api-test/logs/mosip-api-test.log` |
+| Script console log | `api-test/.local/logs/run-local-<level>-<timestamp>.log` |
+| Log4j | `api-test/.local/logs/mosip-api-test.log` |
 
 Report counts: **T** total, **P** passed, **F** failed, **S** skipped (missing dependency), **I** ignored (schema / feature not supported), **KI** known issues.
 

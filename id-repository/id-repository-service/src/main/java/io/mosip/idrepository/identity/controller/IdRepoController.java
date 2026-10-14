@@ -254,14 +254,15 @@ public class IdRepoController {
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
 	public ResponseEntity<IdResponseDTO> addIdentityV2(@Validated @RequestBody IdRequestV2DTO idRequestV2DTO,
 			@Parameter(hidden = true) Errors errors) throws IdRepoAppException {
-		IdRequestDTO idRequestDTO = toLegacyRequest(idRequestV2DTO);
+		IdRequestDTO idRequestDTO = idRequestV2DTO.toLegacyRequest();
 		String regId = Optional.ofNullable(idRequestDTO.getRequest()).map(req -> String.valueOf(req.getRegistrationId()))
 				.orElse("null");
 		try {
 			String uin = getUin(idRequestDTO.getRequest());
 			validator.validateId(idRequestDTO.getId(), CREATE);
 			validateLegacyRequest(idRequestDTO, errors);
-			validateVerificationMetadata(idRequestV2DTO);
+			validator.validateVerificationMetadata(idRequestDTO.getRequest() == null ? null
+					: idRequestDTO.getRequest().getVerifiedAttributesMetadata());
 			if (!validator.validateUin(uin)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, "Invalid uin");
 				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
@@ -502,14 +503,15 @@ public class IdRepoController {
 			})
 	public ResponseEntity<IdResponseDTO> updateIdentityV2(@Validated @RequestBody IdRequestV2DTO idRequestV2DTO,
 			@Parameter(hidden = true) Errors errors) throws IdRepoAppException {
-		IdRequestDTO idRequestDTO = toLegacyRequest(idRequestV2DTO);
+		IdRequestDTO idRequestDTO = idRequestV2DTO.toLegacyRequest();
 		String regId = Optional.ofNullable(idRequestDTO.getRequest()).map(req -> String.valueOf(req.getRegistrationId()))
 				.orElse("null");
 		try {
 			String uin = getUin(idRequestDTO.getRequest());
 			validator.validateId(idRequestDTO.getId(), UPDATE);
 			validateLegacyRequest(idRequestDTO, errors);
-			validateVerificationMetadata(idRequestV2DTO);
+			validator.validateVerificationMetadata(idRequestDTO.getRequest() == null ? null
+					: idRequestDTO.getRequest().getVerifiedAttributesMetadata());
 			if (!validator.validateUin(uin)) {
 				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_CONTROLLER, ADD_IDENTITY, "Invalid uin");
 				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
@@ -830,66 +832,10 @@ public class IdRepoController {
 		return IdType.ID;
 	}
 
-	/**
-	 * Copies a v2 envelope onto the legacy {@link IdRequestDTO} used by the service.
-	 * Verification objects are carried on {@link RequestDTO#getVerifiedAttributesMetadata()}
-	 * so the v1 string list is left empty.
-	 */
-	private IdRequestDTO toLegacyRequest(IdRequestV2DTO source) {
-		IdRequestDTO target = new IdRequestDTO();
-		if (source == null) {
-			return target;
-		}
-		target.setId(source.getId());
-		target.setVersion(source.getVersion());
-		target.setRequesttime(source.getRequesttime());
-		target.setMetadata(source.getMetadata());
-		RequestV2DTO incoming = source.getRequest();
-		if (incoming == null) {
-			return target;
-		}
-		RequestDTO request = new RequestDTO();
-		request.setStatus(incoming.getStatus());
-		request.setIdentity(incoming.getIdentity());
-		request.setDocuments(incoming.getDocuments());
-		request.setRegistrationId(incoming.getRegistrationId());
-		request.setUin(incoming.getUin());
-		request.setBiometricReferenceId(incoming.getBiometricReferenceId());
-		request.setVerifiedAttributesMetadata(incoming.getVerifiedAttributes());
-		target.setRequest(request);
-		return target;
-	}
-
 	private void validateLegacyRequest(IdRequestDTO idRequestDTO, Errors errors) throws IdRepoDataValidationException {
 		DataValidationUtil.validate(errors);
 		BeanPropertyBindingResult legacyErrors = new BeanPropertyBindingResult(idRequestDTO, "idRequestDTO");
 		validator.validate(idRequestDTO, legacyErrors);
 		DataValidationUtil.validate(legacyErrors);
-	}
-
-	private void validateVerificationMetadata(IdRequestV2DTO idRequestV2DTO) throws IdRepoAppException {
-		if (idRequestV2DTO == null || idRequestV2DTO.getRequest() == null
-				|| idRequestV2DTO.getRequest().getVerifiedAttributes() == null) {
-			return;
-		}
-		List<VerificationMetadata> verifiedAttributes = idRequestV2DTO.getRequest().getVerifiedAttributes();
-		for (int i = 0; i < verifiedAttributes.size(); i++) {
-			VerificationMetadata metadata = verifiedAttributes.get(i);
-			if (metadata == null || StringUtils.isBlank(metadata.getTrustFramework())) {
-				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
-						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(),
-								"verifiedAttributes/" + i + "/trustFramework"));
-			}
-			if (StringUtils.isBlank(metadata.getVerificationProcess())) {
-				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
-						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(),
-								"verifiedAttributes/" + i + "/verificationProcess"));
-			}
-			if (metadata.getClaims() == null || metadata.getClaims().isEmpty()) {
-				throw new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
-						String.format(INVALID_INPUT_PARAMETER.getErrorMessage(),
-								"verifiedAttributes/" + i + "/claims"));
-			}
-		}
 	}
 }

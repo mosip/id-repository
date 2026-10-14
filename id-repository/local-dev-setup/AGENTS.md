@@ -1,35 +1,40 @@
-# Local Docker deps
+# local-dev-setup
 
-Deps in Docker, **id-repository-service on the host :8090**. How-to: [`README.md`](README.md). Detail: [`LOCAL-DEV-SETUP.md`](LOCAL-DEV-SETUP.md).
+Deps in Docker, `id-repository-service` on the host. How-to: `README.md`; detail: `LOCAL-DEV-SETUP.md`.
 
-| Service | Port |
-|---------|------|
-| Postgres | 5455 — `mosip_idrepo` / `idmap` / `credential` / `keymgr` (not `postgres/public`) |
-| Config-server | 51100 |
-| WireMock | 8082 |
-| MinIO | 9000 |
-| Keymanager | 8088 |
-| Host app | 8090 — profiles `default,local` |
+```text
+Ports
+├─ 5455   Postgres: mosip_idrepo / idmap / credential / keymgr (not postgres/public); users *user / mosip123
+├─ 51100  config-server  http://localhost:51100/config
+├─ 8082   WireMock (IAM + stubs)
+├─ 9000   MinIO
+├─ 8088   keymanager
+└─ 8090   host app, profiles default,local; logs in .local/logs/
+Files
+├─ deps/init.sql                            DB users, salts 0–999, static keymgr seed
+├─ deps/wiremock/mappings/id-repository.json  every stub
+├─ deps/additional_jars/                    kernel-ref-idobjectvalidator.jar (fetched by prep)
+├─ deps/mosip-config/                       config-server repo
+└─ ../id-repository-service/src/main/resources/application-local.properties
+```
 
-App users: `*user` / `mosip123` (`deps/init.sql`). Config URI: `http://localhost:51100/config`. Overrides: `../id-repository-service/src/main/resources/application-local.properties`. Host-app file logs: `.local/logs/` (not `logs/`).
+Run: build service → `./run-local-stack.sh up` → `./run-idrepo-local.sh` (or `.bat`).
 
 ## Rules
 
-- `./run-local-stack.sh up` then `./run-idrepo-local.sh` (or `.bat`). Build first: `mvn -pl id-repository-service -am package -DskipTests -Dgpg.skip=true`. Host JVM needs `deps/additional_jars/kernel-ref-idobjectvalidator.jar` (`prep` fetches it).
-- Edit only this tree (`mosip-config/`, WireMock, `application-local.properties`).
-- After `down -v`, re-`up` (init.sql static keymgr seed + keymanager verify) then restart the host app. Keep `keys/mosip-idrepo-ks.p12` — do not regenerate it when using static seed.
-- UINs from WireMock `GET /v1/idgenerator/uin` — invented digits → `IDR-IDC-002`. Draft `?UIN=` needs that UIN already in `idrepo.uin`.
-- Salts are in `init.sql` (0–999) — do not run salt-generator.
-- All stubs: `deps/wiremock/mappings/id-repository.json`. Recreate `mock-service` after mapping edits.
-- Docker Keycloak URLs = `http://mock-service:8082` (host: `localhost:8082`). JWKS must match embedded JWTs.
-- `/hub` is proxied to `websub-partner-ack`. Immediate `STORED` races ISSUED and can wipe `credential_id`.
-- Do not put the service back into Compose. No `{cipher}` without a decrypt key. No mint scripts.
+- Edit only this tree (incl. `deps/mosip-config/`, WireMock mappings) and `application-local.properties`.
+- After `down -v`: `up` again, then restart the host app. Keep `keys/mosip-idrepo-ks.p12`.
+- UINs come from WireMock `GET /v1/idgenerator/uin`. A draft `?UIN=` must already exist in `idrepo.uin`.
+- After a mapping edit, recreate `mock-service`. Containers call Keycloak at `http://mock-service:8082`, host uses `localhost:8082`. JWKS must match the embedded JWTs.
+- `/hub` is proxied to `websub-partner-ack`; an immediate `STORED` races `ISSUED` and can wipe `credential_id`.
+- Never: service in Compose, `{cipher}` without a decrypt key, mint scripts, `mosip.auth.filter_disable=true`, kernel-auth-adapter in `additional_jars`.
 
-| Symptom | Cause |
-|---------|-------|
-| Nothing on :8090 | Host app not started |
-| `IDR-IDC-002` | Bad UIN — use idgenerator |
-| `IDR-IDC-012` | UIN exists — `wipe` then restart app |
-| `KER-WSC-101` | WireMock / `mosip.websub.url` |
-| `KER-KMA-004` | Recreate `keymanager-service` |
-| `IDR-IDS-009` | Empty CBEFF in MinIO — fix `$BIOVALUE$`, not WireMock |
+```text
+Symptom      → cause
+nothing:8090 → host app not started
+IDR-IDC-002  → invented UIN; use idgenerator
+IDR-IDC-012  → UIN exists; wipe, restart app
+KER-WSC-101  → WireMock / mosip.websub.url
+KER-KMA-004  → recreate keymanager-service
+IDR-IDS-009  → empty CBEFF in MinIO; fix $BIOVALUE$, not WireMock
+```

@@ -26,10 +26,13 @@ import io.mosip.idrepository.identity.dto.HandleDto;
 import io.mosip.kernel.core.http.ResponseWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.kernel.idobjectvalidator.constant.IdObjectValidatorConstant;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -40,56 +43,93 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static io.mosip.idrepository.core.constant.IdRepoConstants.GENERATE_UIN;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.ROOT_PATH;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.SPLITTER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.MISSING_INPUT_PARAMETER;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UIN_GENERATION_FAILED;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.UNKNOWN_ERROR;
 
 @Component
 public class IdRepoServiceHelper {
 
     /** Mosip logger. */
-    Logger mosipLogger = IdRepoLogger.getLogger(IdRepoServiceHelper.class);
+    private static final Logger mosipLogger = IdRepoLogger.getLogger(IdRepoServiceHelper.class);
 
+    /** Class name used as the logger component id. */
     private static final String ID_REPO_SERVICE_HELPER = "IdRepoServiceHelper";
 
+    /** Field name reported in {@code INVALID_INPUT_PARAMETER} errors. */
     private static final String REQUEST = "request";
 
-    /** Schema map. */
-    private static Map<String, String> schemaMap = new HashMap<>();
-    private static Map<String, List<String>> supportedHandlesInSchema = new HashMap<>();
+    /** Maximum number of schema versions kept in each cache below. */
+    private static final int MAX_SCHEMA_CACHE_SIZE = 100;
 
-    @Autowired
+    /**
+     * Identity schema JSON by schema version, fetched from the sync-data service. Bounded
+     * (least recently used entry evicted) and synchronized.
+     */
+    private static final Map<String, String> schemaMap = Collections.synchronizedMap(
+            new LinkedHashMap<String, String>(16, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, String> eldest) {
+                    return size() > MAX_SCHEMA_CACHE_SIZE;
+                }
+            });
+
+    /**
+     * Field ids marked {@code "handle": true} in the identity schema, by schema version.
+     * Filled together with {@link #schemaMap}; bounded and synchronized the same way.
+     */
+    private static final Map<String, List<String>> supportedHandlesInSchema = Collections.synchronizedMap(
+            new LinkedHashMap<String, List<String>>(16, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, List<String>> eldest) {
+                    return size() > MAX_SCHEMA_CACHE_SIZE;
+                }
+            });
+
     /** Mapper. */
+    @Autowired
     private ObjectMapper mapper;
 
+    /** Rest builder for the sync-data (schema) and UIN generator calls. */
     @Autowired
-    /** Rest builder. */
     private RestRequestBuilder restBuilder;
 
+    /** Rest helper for the sync-data (schema) and UIN generator calls. */
     @Autowired
-    /** Rest helper. */
     private RestHelper restHelper;
 
+    /** Security manager used to salt and hash handles. */
     @Autowired
-    /** Security manager. */
     private IdRepoSecurityManager securityManager;
 
+    /** Uin hash salt repo; handle hashes use the same salts as UIN hashes. */
     @Autowired
-    /** Uin hash salt repo. */
     private UinHashSaltRepo uinHashSaltRepo;
 
+    /** URL of the identity mapping JSON, loaded once at startup. */
     @Value("${" + IdRepoConstants.IDENTITY_MAPPING_JSON + "}")
-    /** Identity mapping json. */
     private String identityMappingJson;
 
+    /**
+     * Postfix appended to a handle value by field id (for example {@code @phone}); a field
+     * without an entry uses {@code @<fieldId>}.
+     */
     @Value("#{${" + IdRepoConstants.IDENTITY_FIELDID_HANDLE_POSTFIX_MAPPING + "}}")
     private Map<String, String> fieldIdHandlePostfixMapping;
 
-    /** Identity mapping. */
+    /** Identity mapping parsed from {@link #identityMappingJson}. */
     private IdentityMapping identityMapping;
 
 
+    /**
+     * Loads the identity mapping from {@link #identityMappingJson} at startup.
+     *
+     * @throws IOException when the mapping cannot be read or parsed
+     */
     @PostConstruct
     private void initialize() throws IOException {
         try (InputStream xsdBytes = new URL(identityMappingJson).openStream()) {
@@ -99,6 +139,9 @@ public class IdRepoServiceHelper {
     }
 
     /**
+     * Returns the identity mapping loaded at startup (schema version, selected handles and
+     * other mapped field ids).
+     *
      * @return identity mapping
      */
     public IdentityMapping getIdentityMapping() {
@@ -107,11 +150,12 @@ public class IdRepoServiceHelper {
 
 
     /**
-     * Convert to map.
+     * Converts a request or identity object to a JSON map through the shared mapper.
      *
-     * @param identity the identity
-     * @return the map
-     * @throws IdRepoAppException the id repo app exception
+     * @param identity request, identity object or map
+     * @return the object as a {@code Map<String, Object>}
+     * @throws IdRepoAppException {@code INVALID_INPUT_PARAMETER} ({@code request}) when the
+     *         object cannot be serialized or read back as a map
      */
     public Map<String, Object> convertToMap(Object identity) throws IdRepoAppException {
         try {
@@ -125,10 +169,15 @@ public class IdRepoServiceHelper {
     }
 
     /**
-     * Gets the schema.
+     * Returns the identity schema JSON of a schema version. On a cache miss the schema is
+     * fetched from the sync-data service and cached together with its handle field ids
+     * ({@link #supportedHandlesInSchema}).
      *
      * @param schemaVersion the schema version
-     * @return the schema
+     * @return the schema JSON
+     * @throws IdRepoAppUncheckedException {@code MISSING_INPUT_PARAMETER}
+     *         ({@code identity/IDSchemaVersion}) when the version is {@code null} or
+     *         {@code "null"}; {@code SCHEMA_RETRIEVE_ERROR} when the fetch fails
      */
     public String getSchema(String schemaVersion) {
         if (Objects.isNull(schemaVersion) || schemaVersion.contentEquals("null")) {
@@ -136,7 +185,7 @@ public class IdRepoServiceHelper {
                     "\n" + "schemaVersion is null");
             throw new IdRepoAppUncheckedException(MISSING_INPUT_PARAMETER.getErrorCode(),
                     String.format(MISSING_INPUT_PARAMETER.getErrorMessage(),
-                            ROOT_PATH + "/IDSchemaVersion"));
+                            ROOT_PATH + IdObjectValidatorConstant.PATH_SEPERATOR + "IDSchemaVersion"));
         }
         try {
             if (schemaMap.containsKey(schemaVersion)) {
@@ -146,9 +195,10 @@ public class IdRepoServiceHelper {
                 restRequest = restBuilder.buildRequest(RestServicesConstants.SYNCDATA_SERVICE, null, ResponseWrapper.class);
                 restRequest.setUri(restRequest.getUri().concat("?schemaVersion=" + schemaVersion));
                 ResponseWrapper<Map<String, String>> response = restHelper.requestSync(restRequest);
-                schemaMap.put(schemaVersion, response.getResponse().get("schemaJson"));
-                supportedHandlesInSchema.put(schemaVersion, getSupportedHandles(response.getResponse().get("schemaJson")));
-                return getSchema(schemaVersion);
+                String schema = response.getResponse().get("schemaJson");
+                schemaMap.put(schemaVersion, schema);
+                supportedHandlesInSchema.put(schemaVersion, getSupportedHandles(schema));
+                return schema; // return directly - no recursive call needed
             }
         } catch (IdRepoDataValidationException | RestServiceException e) {
             mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER, "getSchema", "\n" + e.getMessage());
@@ -233,9 +283,11 @@ public class IdRepoServiceHelper {
     }
 
     /**
-     * Get handle hash.
-     * @param handle handle
-     * @return string
+     * Hashes a handle with a UIN hash salt. The handle is trimmed and lower-cased first, so
+     * the same handle in a different case or with surrounding spaces gives the same hash.
+     *
+     * @param handle handle value including its postfix, for example {@code user@x.com@email}
+     * @return {@code {saltId}_{salted hash}}
      */
     public String getHandleHash(String handle) {
         String normalized = IdRepositoryUtil.getTrimmedLowercaseValue(handle);
@@ -246,6 +298,45 @@ public class IdRepoServiceHelper {
         return saltId + SPLITTER + saltedHash;
     }
 
+    /**
+     * Calls the UIN generator service and returns a new UIN string.
+     *
+     * <p>Uses {@link Propagation#NOT_SUPPORTED} so the caller's database
+     * transaction is suspended for the duration of the HTTP call.  This
+     * prevents a HikariCP connection from being held idle while waiting
+     * for the remote service, which would otherwise exhaust the pool
+     * under concurrent load.
+     *
+     * @return a freshly generated UIN
+     * @throws IdRepoAppException on any failure from the remote service
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public String generateUin() throws IdRepoAppException {
+        try {
+            RestRequestDTO restRequest = restBuilder.buildRequest(
+                    RestServicesConstants.UIN_GENERATOR_SERVICE, null, ResponseWrapper.class);
+            ResponseWrapper<Map<String, String>> response = restHelper.requestSync(restRequest);
+            return response.getResponse().get("uin");
+        } catch (IdRepoDataValidationException e) {
+            mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER,
+                    GENERATE_UIN, e.getMessage());
+            throw new IdRepoAppException(UNKNOWN_ERROR, e);
+        } catch (RestServiceException e) {
+            mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_SERVICE_HELPER,
+                    GENERATE_UIN, e.getMessage());
+            throw new IdRepoAppException(UIN_GENERATION_FAILED, e);
+        }
+    }
+
+    /**
+     * Builds the handles of one identity field. A string gives one handle; a list gives one
+     * handle per value kept by {@link #getFilteredHandleValues}; a map gives one handle from
+     * its {@code value} entry. Blank values are skipped.
+     *
+     * @param handleValue   value of the field in the identity
+     * @param handleFieldId field id, used to choose the handle postfix
+     * @return the handles, or empty when the value yields none
+     */
     @SuppressWarnings("unchecked")
     private Optional<List<HandleDto>> buildHandleDto(Object handleValue, String handleFieldId) {
         if (handleValue instanceof String) {
@@ -267,6 +358,13 @@ public class IdRepoServiceHelper {
         return Optional.empty();
     }
 
+    /**
+     * Builds one handle: the trimmed, lower-cased value plus the field's postfix, and its hash.
+     *
+     * @param handleValue   raw handle value
+     * @param handleFieldId field id, used to choose the handle postfix
+     * @return the handle, or empty when the value is blank
+     */
     private Optional<HandleDto> buildSingleHandleDto(String handleValue, String handleFieldId) {
         if (!StringUtils.hasText(handleValue)) {
             return Optional.empty();
@@ -276,8 +374,11 @@ public class IdRepoServiceHelper {
     }
 
     /**
-     * From a list of identity attribute values, keep strings and map entries tagged
+     * From a list of identity attribute values, keeps strings and map entries tagged
      * as {@code handle} (or untagged maps, which are treated as handles).
+     *
+     * @param handleValues list value of a handle field; may be {@code null}
+     * @return the string values to turn into handles
      */
     @SuppressWarnings("unchecked")
     private List<String> getFilteredHandleValues(List<Object> handleValues) {
@@ -307,6 +408,12 @@ public class IdRepoServiceHelper {
         return values;
     }
 
+    /**
+     * Lists the identity field ids marked {@code "handle": true} in a schema.
+     *
+     * @param schema identity schema JSON
+     * @return handle field ids; empty when the schema marks none
+     */
     private List<String> getSupportedHandles(String schema) {
         List<String> supportedHandles = new ArrayList<>();
         List<String> paths = new ArrayList<>();
@@ -325,6 +432,12 @@ public class IdRepoServiceHelper {
         return supportedHandles;
     }
 
+    /**
+     * Returns the postfix appended to handles of a field.
+     *
+     * @param fieldId handle field id
+     * @return configured postfix, or {@code @<fieldId>} when none is configured
+     */
     private String getHandlePostfix(String fieldId) {
         if(CollectionUtils.isEmpty(fieldIdHandlePostfixMapping)) {
             return "@".concat(fieldId);

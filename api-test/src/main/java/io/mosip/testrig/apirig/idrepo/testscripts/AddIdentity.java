@@ -7,6 +7,8 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.ws.rs.core.MediaType;
 
@@ -45,13 +47,43 @@ import io.mosip.testrig.apirig.utils.RestClient;
 import io.mosip.testrig.apirig.utils.SecurityXSSException;
 import io.restassured.response.Response;
 
+/**
+ * TestNG script for the identity create APIs: {@code POST /idrepository/v1/identity/} (v1) and the v2
+ * add-identity endpoint ({@link GlobalConstants#ADD_IDENTITY_V2_ENDPOINT}).
+ * <p>
+ * The request body is built from the live IdSchema rather than a static HBS file, so the same
+ * YAML works for any country schema. Placeholders resolved here:
+ * <ul>
+ * <li>{@code $UIN$}: a UIN from {@code /v1/idgenerator/uin} not yet used in this run; on
+ * {@code IDR-IDC-012} the request is resent with a new one.</li>
+ * <li>{@code $RID$}: {@code 27847} + 10 random digits + {@code yyyyMMddHHmmss}.</li>
+ * <li>{@code $FUNCTIONALID$}, {@code $PHONENUMBERFORIDENTITY$} (matches the schema phone regex
+ * when one is defined) and {@code $EMAILVALUE$} ({@code <testCaseName>_<runContext><timestamp>@mosip.net}).</li>
+ * <li>{@code $HANDLEVALUE:<field>$}: a value valid for that schema field.</li>
+ * </ul>
+ * Handle scenarios are applied through {@link IdRepoArrayHandle}. Demographic documents are added
+ * so {@code uin_document} rows are written.
+ * <p>
+ * For {@code _Pos} cases the generated UIN, RID and EMAIL (and PHONE, whenever one was generated)
+ * are cached as {@code $ID:<testCaseName>_UIN$} and so on, for later YAML files.
+ */
 public class AddIdentity extends IdRepoUtil implements ITest {
 	private static final Logger logger = Logger.getLogger(AddIdentity.class);
+	/** Error code returned when the UIN already has an identity. */
+	private static final String UIN_EXISTS_ERROR = "IDR-IDC-012";
+	/** Generator calls per {@code $UIN$} before accepting a UIN already used in this run. */
+	private static final int MAX_UIN_FETCH_ATTEMPTS = 20;
+	/** Resends with a fresh UIN when the service still reports {@link #UIN_EXISTS_ERROR}. */
+	private static final int MAX_UIN_EXISTS_RETRIES = 3;
+	/** UINs handed to add-identity requests during this run. */
+	private static final Set<String> USED_UINS = ConcurrentHashMap.newKeySet();
+	/** Name of the case currently running; becomes the TestNG method name in reports. */
 	protected String testCaseName = "";
+	/** Response of the last add-identity call. */
 	public Response response = null;
 
 	/**
-	 * get current testcaseName
+	 * @return the current test case name (TestNG {@link ITest} contract)
 	 */
 	@Override
 	public String getTestName() {
@@ -59,6 +91,7 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 
 	}
 
+	/** Sets the script logger to {@code ALL} in debug mode, {@code ERROR} otherwise. */
 	@BeforeClass
 	public static void setLogLevel() {
 		if (IdRepoConfigManager.IsDebugEnabled())
@@ -68,9 +101,10 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * Data provider class provides test case list
-	 * 
-	 * @return object of data provider
+	 * Supplies the YAML cases named by the suite parameter {@code ymlFile}.
+	 *
+	 * @param context TestNG context holding the {@code <test>} parameters
+	 * @return one {@link TestCaseDTO} per YAML entry
 	 */
 	@DataProvider(name = "testcaselist")
 	public Object[] getTestCaseList(ITestContext context) {
@@ -80,13 +114,25 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * Test method for OTP Generation execution
-	 * 
-	 * @param objTestParameters
-	 * @param testScenario
-	 * @param testcaseName
-	 * @throws AuthenticationTestException
-	 * @throws AdminTestException
+	 * Runs one add-identity case.
+	 * <ol>
+	 * <li>Applies {@link IdRepoUtil#isTestCaseValidForExecution} and skips when the target
+	 * environment failed its health check.</li>
+	 * <li>Builds the v1 or v2 schema-based template, chosen by the endpoint, and resolves the
+	 * placeholders listed on the class.</li>
+	 * <li>For {@code Resident_AddIdentity_Valid_Params_AddUser_smoke_Pos}, recreates the Keycloak
+	 * resident user linked to the new UIN.</li>
+	 * <li>v1 only: copies the YAML {@code verifiedAttribute} array into the request.</li>
+	 * <li>Applies handle scenarios when {@code selectedHandles} is present, plus
+	 * {@code _extraNonSchemaField}, and adds missing demographic documents.</li>
+	 * <li>POSTs the request and validates the response against the YAML output template.</li>
+	 * <li>Caches the generated ids for positive cases.</li>
+	 * </ol>
+	 *
+	 * @param testCaseDTO the YAML case
+	 * @throws AuthenticationTestException on token generation failure
+	 * @throws AdminTestException          when output validation fails
+	 * @throws SecurityXSSException        when the XSS header check is enabled and fails
 	 */
 	@Test(dataProvider = "testcaselist")
 	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
@@ -110,11 +156,7 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 		String inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
 		String uin = null;
 		if (inputJson.contains("$UIN$")) {
-			uin = JsonPrecondtion.getValueFromJson(
-					RestClient.getRequestWithCookie(ApplnURI + "/v1/idgenerator/uin", MediaType.APPLICATION_JSON,
-							MediaType.APPLICATION_JSON, COOKIENAME,
-							new KernelAuthentication().getTokenByRole(testCaseDTO.getRole())).asString(),
-					"response.uin");
+			uin = fetchUnusedUin(testCaseDTO.getRole());
 		}
 
 		DateFormat dateFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -204,6 +246,18 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 		response = postWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
 				testCaseDTO.getRole(), testCaseDTO.getTestCaseName());
 
+		boolean duplicateUinExpected = String.valueOf(testCaseDTO.getOutput()).contains(UIN_EXISTS_ERROR);
+		for (int retry = 1; uin != null && !duplicateUinExpected && retry <= MAX_UIN_EXISTS_RETRIES
+				&& response.asString().contains(UIN_EXISTS_ERROR); retry++) {
+			String newUin = fetchUnusedUin(testCaseDTO.getRole());
+			logger.warn(testCaseName + ": UIN " + uin + " already exists (" + UIN_EXISTS_ERROR + "); retry " + retry
+					+ " with " + newUin);
+			inputJson = inputJson.replace("\"" + uin + "\"", "\"" + newUin + "\"");
+			uin = newUin;
+			response = postWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
+					testCaseDTO.getRole(), testCaseDTO.getTestCaseName());
+		}
+
 		Map<String, List<OutputValidationDto>> ouputValid = OutputValidationUtil.doJsonOutputValidation(
 				response.asString(), getJsonFromTemplate(testCaseDTO.getOutput(), testCaseDTO.getOutputTemplate()),
 				testCaseDTO, response.getStatusCode());
@@ -221,15 +275,48 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * The method ser current test name to result
-	 * 
-	 * @param result
+	 * Fetches a UIN from {@code /v1/idgenerator/uin} that this run has not used yet.
+	 * <p>
+	 * Local WireMock picks randomly from a fixed pool of 5000 UINs, so within one run two cases
+	 * can draw the same UIN and the second fails with {@code IDR-IDC-012}. Up to
+	 * {@value #MAX_UIN_FETCH_ATTEMPTS} draws are made; after that the last one is returned.
+	 * </p>
+	 *
+	 * @param role role whose token calls the generator
+	 * @return a UIN, recorded as used
+	 */
+	private String fetchUnusedUin(String role) {
+		String uin = null;
+		for (int attempt = 1; attempt <= MAX_UIN_FETCH_ATTEMPTS; attempt++) {
+			uin = JsonPrecondtion.getValueFromJson(
+					RestClient.getRequestWithCookie(ApplnURI + "/v1/idgenerator/uin", MediaType.APPLICATION_JSON,
+							MediaType.APPLICATION_JSON, COOKIENAME, new KernelAuthentication().getTokenByRole(role))
+							.asString(),
+					"response.uin");
+			if (uin == null || uin.isBlank() || USED_UINS.add(uin)) {
+				return uin;
+			}
+			logger.info("UIN " + uin + " already used in this run; fetching another (attempt " + attempt + ")");
+		}
+		logger.warn("No unused UIN after " + MAX_UIN_FETCH_ATTEMPTS + " attempts; using " + uin);
+		return uin;
+	}
+
+	/**
+	 * Stores the case name as the {@code TestCaseName} result attribute, which the report uses as the
+	 * row label.
+	 *
+	 * @param result result of the method that just ran
 	 */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {
 		result.setAttribute("TestCaseName", testCaseName);
 	}
 
+	/**
+	 * When the run module is {@code auth} or {@code esignet}, waits {@code Delaytime} ms after the
+	 * class so new identities can propagate to IDA before dependent suites start.
+	 */
 	@AfterClass(alwaysRun = true)
 	public void waittime() {
 

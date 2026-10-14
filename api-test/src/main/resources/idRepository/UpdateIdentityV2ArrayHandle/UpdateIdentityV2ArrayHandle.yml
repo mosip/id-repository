@@ -371,11 +371,11 @@ UpdateIdentityV2ArrayHandle:
       "id": "mosip.id.update",
       "status": "ACTIVATED",
       "addressCopy": "Y",
-      "UIN": "$ID:AddIdentityArrayHandleV2_WithMultipleEmail_And_OneEmail_As_Handle_Pos_UIN$",
+      "UIN": "$ID:AddIdentityArrayHandleV2_WithUniqueEmail_Pos_UIN$",
       "dateOfBirth": "1992/04/15",
       "postalCode": "14022",
-      "email": "$ID:AddIdentityArrayHandleV2_WithMultipleEmail_And_OneEmail_As_Handle_Pos_EMAIL$",
-      "phone": "$ID:AddIdentityArrayHandleV2_WithMultipleEmail_And_OneEmail_As_Handle_Pos_PHONE$",
+      "email": "$ID:AddIdentityArrayHandleV2_WithUniqueEmail_Pos_EMAIL$",
+      "phone": "$ID:AddIdentityArrayHandleV2_WithUniqueEmail_Pos_PHONE$",
       "referenceIdentityNumber": "6789545678878",
       "verifiedAttributes": [
         {

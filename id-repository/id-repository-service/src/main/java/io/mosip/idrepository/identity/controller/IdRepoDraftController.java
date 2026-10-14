@@ -8,6 +8,8 @@ import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.dto.DraftResponseDto;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
+import io.mosip.idrepository.core.dto.IdRequestV2DTO;
+import io.mosip.idrepository.core.dto.RequestDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.helper.AuditHelper;
@@ -565,9 +567,11 @@ public class IdRepoDraftController {
 	 * {@link #updateDraftUinData}) when Registration Processor has packet data to merge
 	 * into the draft. Prefer this over {@link #updateDraft} so files are written on the
 	 * V2 ridHash path that {@link #publishDraftV2} and {@link #getDraftV2} read.
+	 * {@code verifiedAttributes} uses the identity v2 object form (trust framework,
+	 * verification process, claims, metadata).
 	 *
 	 * @param registrationId registration ID of the draft
-	 * @param request identity update payload
+	 * @param request identity update payload in the identity v2 envelope
 	 * @param errors request-validation errors populated by the binder
 	 * @return draft update response
 	 * @throws IdRepoAppException if validation fails or the draft cannot be updated
@@ -586,12 +590,17 @@ public class IdRepoDraftController {
 	public ResponseEntity<IdResponseDTO> updateDraftV2(
 			@Parameter(description = "Registration ID of the draft.")
 			@PathVariable String registrationId,
-			@RequestBody IdRequestDTO request, @Parameter(hidden = true) Errors errors) throws IdRepoAppException {
+			@RequestBody IdRequestV2DTO request, @Parameter(hidden = true) Errors errors) throws IdRepoAppException {
 		try {
-			request.getRequest().setRegistrationId(registrationId);
-			validator.validateRequest(request.getRequest(), errors, "update");
+			IdRequestDTO legacyRequest = request.toLegacyRequest();
+			if (legacyRequest.getRequest() == null) {
+				legacyRequest.setRequest(new RequestDTO());
+			}
+			legacyRequest.getRequest().setRegistrationId(registrationId);
+			validator.validateRequest(legacyRequest.getRequest(), errors, "update");
 			DataValidationUtil.validate(errors);
-			return new ResponseEntity<>(draftService.updateDraftV2(registrationId, request), HttpStatus.OK);
+			validator.validateVerificationMetadata(legacyRequest.getRequest().getVerifiedAttributesMetadata());
+			return new ResponseEntity<>(draftService.updateDraftV2(registrationId, legacyRequest), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_DRAFT_REQUEST_RESPONSE,
 					registrationId, IdType.ID, e);

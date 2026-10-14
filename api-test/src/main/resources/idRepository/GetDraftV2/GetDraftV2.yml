@@ -178,9 +178,7 @@ GetDraftV2:
     input: '{
       "registrationId": "$RIDV2NEW$"
     }'
-    output: '{
-      "responseCode": "500"
-    }'
+    output: "401"
 
   IdRepository_GetDraftV2_WithUnauthorizedRole_StatusCode_Neg:
     endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
@@ -194,6 +192,4 @@ GetDraftV2:
     input: '{
       "registrationId": "$RIDV2NEW$"
     }'
-    output: '{
-      "responseCode": "403"
-    }'
+    output: "403"

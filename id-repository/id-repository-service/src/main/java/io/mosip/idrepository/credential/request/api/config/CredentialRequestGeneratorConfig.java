@@ -118,7 +118,7 @@ public class CredentialRequestGeneratorConfig extends HibernateDaoConfig {
 	/**
 	 * SpringDoc API group limiting Swagger UI to credential-request REST paths.
 	 *
-	 * @return {@link GroupedOpenApi} scoped to paths from {@link OpenApiProperties#getGroup()}
+	 * @return {@link GroupedOpenApi} scoped to paths from {@code openapi.group} ({@link OpenApiProperties})
 	 */
 	@Bean
 	public GroupedOpenApi groupedOpenApi() {

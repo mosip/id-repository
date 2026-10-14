@@ -64,7 +64,27 @@ import io.mosip.testrig.apirig.utils.PartnerRegistration;
 import io.mosip.testrig.apirig.utils.SkipTestCaseHandler;
 
 /**
- * Class to initiate mosip api test execution
+ * Entry point of the ID Repository API test rig ({@code apitest-idrepo}).
+ * <p>
+ * {@link #main(String[])} prepares the environment and then runs every TestNG suite file whose
+ * name contains {@code mastertestsuite}. Steps, in order:
+ * <ol>
+ * <li>Extracts the common and idrepo test resources (from the jar or the IDE classpath) into
+ * {@code MosipTestResource/MosipTemporaryTestResource}.</li>
+ * <li>Initialises configuration ({@code AdminTestUtil}, {@link IdRepoConfigManager}), cleans the
+ * databases, loads the known-issue skip list and starts the health checker and OTP listener.</li>
+ * <li>Against a real environment: creates the Keycloak users and registers partner devices.
+ * Locally (endpoint on {@code localhost}/{@code 127.0.0.1}, or {@code -Didrepo.skipPartnerSetup=true})
+ * both steps are skipped, because WireMock has no Keycloak Admin or PMS API, and the Mock SBI
+ * signing keys are seeded from {@code src/main/resources/mds} instead.</li>
+ * <li>Loads the IdSchema required fields, languages and location data, then generates biometric
+ * test data through Mock SBI. It falls back to the bundled {@code config/bioValue.properties} when
+ * the generated CBEFF would fail idrepo's CBEFF XSD.</li>
+ * <li>Restricts the run to {@code testCasesToExecute} plus their dependencies, when that property
+ * is set.</li>
+ * <li>Always: cleans the databases and removes Keycloak users (when they were created), then exits.</li>
+ * </ol>
+ * Logs are written to {@code api-test/.local/logs}, or to {@code -Dapi.test.log.dir}.
  *
  * @author Vignesh
  *
@@ -75,15 +95,24 @@ public class MosipTestRunner {
 	}
 
 	private static final Logger LOGGER = Logger.getLogger(MosipTestRunner.class);
+	/** Memoised result of {@link #getGlobalResourcePath()}. */
 	private static String cachedPath = null;
 
+	/** Location of this class's code source (the fat jar, or {@code target/classes} in the IDE). */
 	public static String jarUrl = MosipTestRunner.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+	/** Not populated by this class; kept for callers that expect it. Use {@code BaseTestCase.languageList}. */
 	public static List<String> languageList = new ArrayList<>();
 
 	/**
-	 * C Main method to start mosip test execution
+	 * Runs the whole API test rig: setup (including DB cleanup), every master TestNG suite, then
+	 * {@code System.exit(0)}. Test data is left in the DB after the run for inspection; the next
+	 * run's setup deletes it.
+	 * <p>
+	 * Any setup or run failure is logged and rethrown (checked exceptions wrapped in
+	 * {@link RuntimeException}); Keycloak users are still removed. Locally, a schema bootstrap failure is
+	 * reported with a hint that the WireMock admin-auth stub is broken.
 	 *
-	 * @param arg
+	 * @param arg not used; configuration comes from system properties and the idrepo properties
 	 */
 	public static void main(String[] arg) {
 
@@ -191,11 +220,6 @@ public class MosipTestRunner {
 			OTPListener.bTerminate = true;
 			HealthChecker.bTerminate = true;
 
-			try {
-				IdRepoUtil.dbCleanUp();
-			} catch (Exception cleanupEx) {
-				LOGGER.error("DB cleanup failed", cleanupEx);
-			}
 			if (!shouldSkipPartnerSetup()) {
 				try {
 					KeycloakUserManager.removeUser();
@@ -213,12 +237,26 @@ public class MosipTestRunner {
 
 	}
 
+	/**
+	 * One-time suite setup that runs before the TestNG suites.
+	 * <p>
+	 * Calls {@code BaseTestCase.initialize()}, then redirects Log4j back to the api-test log folder
+	 * (commons resets it to {@code src/logs}) and removes the stray commons log. On Windows it
+	 * makes the certificate-folder domain path-safe. It also sets the module and certificate
+	 * prefixes for this run, cleans the databases, copies the idrepo test resources and starts the
+	 * OTP listener.
+	 *
+	 * @param runType {@code JAR} or {@code IDE}; outside a jar the old temporary resources are deleted first
+	 */
 	public static void suiteSetup(String runType) {
 		if (IdRepoConfigManager.IsDebugEnabled())
 			LOGGER.setLevel(Level.ALL);
 		else
 			LOGGER.info("Test Framework for Mosip api Initialized");
 		BaseTestCase.initialize();
+		// apitest-commons initialize() reconfigures Log4j to a hard-coded src/logs/mosip-api-test.log.
+		configureApiTestLogDir();
+		removeCommonsSrcLogs();
 		// apitest-commons 1.7.0 KeyMgrUtility replaces ':' on Windows; BiometricDataProvider
 		// still uses BaseTestCase.domain as a folder name (localhost:8082 is illegal on Windows).
 		sanitizeCertDomainForWindows();
@@ -250,8 +288,11 @@ public class MosipTestRunner {
 		}
 	}
 
+	/** Classpath folder holding the Mock SBI resources. */
 	private static final String MDS_CLASSPATH_ROOT = "mds";
+	/** Marker resource used to locate {@link #MDS_CLASSPATH_ROOT} on the classpath. */
 	private static final String MDS_PROPS = "mds/application.properties";
+	/** Source location of the Mock SBI resources, relative to the api-test module. */
 	private static final String MDS_SRC_RELATIVE = "src/main/resources/mds";
 
 	/**
@@ -277,6 +318,10 @@ public class MosipTestRunner {
 		return mdsRoot;
 	}
 
+	/**
+	 * @return true when {@code mdsRoot} has {@code application.properties}, the face device keystore
+	 *         and the default Registration face profile
+	 */
 	static boolean isCompleteMds(Path mdsRoot) {
 		return Files.isRegularFile(mdsRoot.resolve("application.properties"))
 				&& Files.isRegularFile(mdsRoot.resolve("Biometric Devices").resolve("Face")
@@ -285,11 +330,16 @@ public class MosipTestRunner {
 				.resolve("Default").resolve("Registration").resolve("Face.iso"));
 	}
 
+	/** A {@link Runnable} that may throw a checked exception. */
 	@FunctionalInterface
 	interface ThrowingRunnable {
 		void run() throws Exception;
 	}
 
+	/**
+	 * Runs {@code action} with the system property {@code user.dir} temporarily set to {@code dir},
+	 * then restores it, even on failure. Mock SBI resolves its files from {@code user.dir}.
+	 */
 	static void runWithUserDir(Path dir, ThrowingRunnable action) throws Exception {
 		String originalUserDir = System.getProperty("user.dir");
 		System.setProperty("user.dir", dir.toAbsolutePath().normalize().toString());
@@ -366,6 +416,14 @@ public class MosipTestRunner {
 		}
 	}
 
+	/**
+	 * Copies the {@code mds/} tree out of the fat jar into {@code extractTo}. If an earlier
+	 * extraction (properties file plus face keystore) is already there, it is reused.
+	 *
+	 * @param jarEntryUri {@code jar:file:...!/mds/application.properties} URI
+	 * @param extractTo   target folder
+	 * @throws IOException when the URI is not a jar entry or the jar has no {@code mds/} folder
+	 */
 	static void extractMdsFromJar(URI jarEntryUri, Path extractTo) throws IOException {
 		String raw = jarEntryUri.toString();
 		int sep = raw.indexOf("!/");
@@ -498,6 +556,7 @@ public class MosipTestRunner {
 				+ bio.trim().length() + ")");
 	}
 
+	/** Recursively copies {@code source} into {@code target}, overwriting existing files. */
 	static void copyDirectory(Path source, Path target) throws IOException {
 		Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
 			@Override
@@ -514,6 +573,12 @@ public class MosipTestRunner {
 		});
 	}
 
+	/**
+	 * Whether to skip Keycloak user management and PMS partner/device registration.
+	 *
+	 * @return the value of {@code -Didrepo.skipPartnerSetup} when set, otherwise
+	 *         {@link #isLocalEndpoint()}
+	 */
 	static boolean shouldSkipPartnerSetup() {
 		String flag = System.getProperty("idrepo.skipPartnerSetup");
 		if (flag != null && !flag.isBlank()) {
@@ -522,11 +587,13 @@ public class MosipTestRunner {
 		return isLocalEndpoint();
 	}
 
+	/** @return true when {@code -Denv.endpoint} points to {@code localhost} or {@code 127.0.0.1} */
 	static boolean isLocalEndpoint() {
 		String endpoint = System.getProperty("env.endpoint", "");
 		return endpoint.contains("localhost") || endpoint.contains("127.0.0.1");
 	}
 
+	/** Applies the debug / non-debug log level to every commons and idrepo helper the run uses. */
 	private static void setLogLevels() {
 		AdminTestUtil.setLogLevel();
 		OutputValidationUtil.setLogLevel();
@@ -544,9 +611,11 @@ public class MosipTestRunner {
 	}
 
 	/**
-	 * The method to start mosip testng execution
-	 *
-	 * @throws IOException
+	 * Runs, one after another, every TestNG suite file whose name contains {@code mastertestsuite}.
+	 * <p>
+	 * The suite folder is {@code <user.dir>/testNgXmlFiles} when run from the IDE or on Windows, and
+	 * {@code <parent of user.dir>/mosip/testNgXmlFiles} otherwise (container layout). Reports are
+	 * written to {@code testng-report}. A missing folder is logged and nothing runs.
 	 */
 	public static void startTestRunner() {
 		File homeDir = null;
@@ -579,6 +648,14 @@ public class MosipTestRunner {
 		}
 	}
 
+	/**
+	 * Folder that holds the extracted test resources ({@code config/}, {@code idRepository/} YAML and
+	 * HBS, ...): {@code <jar dir>/MosipTestResource/MosipTemporaryTestResource} in JAR mode, or
+	 * {@code <classes dir>/MosipTestResource/MosipTemporaryTestResource} in IDE mode. The result is
+	 * cached after the first successful call.
+	 *
+	 * @return absolute path, or the literal {@code "Global Resource File Path Not Found"}
+	 */
 	public static String getGlobalResourcePath() {
 		if (cachedPath != null) {
 			return cachedPath;
@@ -602,10 +679,16 @@ public class MosipTestRunner {
 		}
 	}
 
+	/** Alias of {@link #getGlobalResourcePath()}. */
 	public static String getResourcePath() {
 		return getGlobalResourcePath();
 	}
 
+	/**
+	 * Generates a fresh RSA-2048 key pair and returns its public key.
+	 *
+	 * @return the X.509 public key in standard Base64, or null if RSA is unavailable
+	 */
 	public static String generatePulicKey() {
 		String publicKey = null;
 		try {
@@ -619,8 +702,10 @@ public class MosipTestRunner {
 		return publicKey;
 	}
 
+	/** Lazily created RSA-2048 generator shared by {@link #generatePublicKeyForMimoto()}. */
 	public static KeyPairGenerator keyPairGen = null;
 
+	/** @return the shared RSA-2048 {@link KeyPairGenerator}, created on first use (not thread-safe) */
 	public static KeyPairGenerator getKeyPairGeneratorInstance() {
 		if (keyPairGen != null)
 			return keyPairGen;
@@ -635,6 +720,12 @@ public class MosipTestRunner {
 		return keyPairGen;
 	}
 
+	/**
+	 * Generates an RSA public key as PEM, with line breaks escaped as a literal {@code \n} so the key
+	 * can be embedded in a JSON string (Mimoto wallet-binding requests).
+	 *
+	 * @return escaped PEM, or an empty string on failure
+	 */
 	public static String generatePublicKeyForMimoto() {
 
 		String vcString = "";
@@ -661,6 +752,12 @@ public class MosipTestRunner {
 		return vcString;
 	}
 
+	/**
+	 * Generates an RSA-2048 key pair as a JWK with {@code kid=RSAKeyID} and {@code use=sig}.
+	 * Despite the name, the JSON also contains the private parts.
+	 *
+	 * @return JWK JSON, or null if RSA is unavailable
+	 */
 	public static String generateJWKPublicKey() {
 		try {
 			KeyPairGenerator keyGenerator = KeyPairGenerator.getInstance("RSA");
@@ -676,6 +773,12 @@ public class MosipTestRunner {
 		}
 	}
 
+	/**
+	 * Loads a properties file from the file system.
+	 *
+	 * @param path file path
+	 * @return the loaded properties; empty (with an error logged) when the file cannot be read
+	 */
 	public static Properties getproperty(String path) {
 		Properties prop = new Properties();
 		FileInputStream inputStream = null;
@@ -692,7 +795,7 @@ public class MosipTestRunner {
 	}
 
 	/**
-	 * Point Log4j at {@code api-test/logs} before the first logger is created.
+	 * Point Log4j at {@code api-test/.local/logs} before the first logger is created.
 	 * Relative {@code logs/} or {@code src/logs/} follows {@code user.dir}, which is
 	 * the repo root when launching from the IDE.
 	 */
@@ -703,7 +806,7 @@ public class MosipTestRunner {
 		if (override != null && !override.isBlank()) {
 			logDir = new File(override);
 		} else {
-			logDir = new File(moduleDir, "logs");
+			logDir = new File(moduleDir, ".local/logs");
 		}
 		if (!logDir.exists()) {
 			logDir.mkdirs();
@@ -715,6 +818,28 @@ public class MosipTestRunner {
 		}
 	}
 
+	/**
+	 * Deletes the {@code src/logs} file and folder that {@code BaseTestCase.initialize()} creates
+	 * under {@code user.dir}. Call only after {@link #configureApiTestLogDir()} has closed that appender.
+	 */
+	private static void removeCommonsSrcLogs() {
+		File srcLogDir = new File(System.getProperty("user.dir"), "src/logs");
+		File srcLog = new File(srcLogDir, "mosip-api-test.log");
+		if (srcLog.isFile() && !srcLog.delete()) {
+			LOGGER.warn("Could not delete " + srcLog.getAbsolutePath());
+		}
+		String[] remaining = srcLogDir.list();
+		if (remaining != null && remaining.length == 0) {
+			srcLogDir.delete();
+		}
+	}
+
+	/**
+	 * Locates the {@code api-test} module folder. It is derived from the code source
+	 * ({@code target/classes} or {@code target/*.jar}, then two levels up). Otherwise
+	 * {@code user.dir} is used when it is the module, or {@code user.dir/api-test} when launched from
+	 * the repository root, with plain {@code user.dir} as the last resort.
+	 */
 	private static File resolveApiTestModuleDir() {
 		try {
 			java.net.URL location = MosipTestRunner.class.getProtectionDomain().getCodeSource().getLocation();
@@ -748,10 +873,9 @@ public class MosipTestRunner {
 	}
 
 	/**
-	 * The method will return mode of application started either from jar or eclipse
-	 * ide
+	 * Detects how the rig was launched.
 	 *
-	 * @return
+	 * @return {@code JAR} when this class was loaded from a jar, otherwise {@code IDE}
 	 */
 	public static String getRunType() {
 		if (MosipTestRunner.class.getResource("MosipTestRunner.class").getPath().contains(".jar"))

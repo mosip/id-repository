@@ -1,27 +1,23 @@
 # id-repository-service
 
-HTTP deployable on **8090**. Hosts identity, VID, credential, credreq — **domain lives here**, not in core.
+HTTP deployable on :8090. All domain code lives here. Chart: `helm/identity`.
+Entry `IdRepositoryBootApplication` (imports `IdRepoLibraryConfig`; excludes duplicate DS/cache/cred/VID configs). Scan via `HttpModeScanConfiguration`.
 
-Entry: `IdRepositoryBootApplication` (imports `IdRepoLibraryConfig`; excludes duplicate DS/cache/cred/VID configs). Scan via `HttpModeScanConfiguration` — not `io.mosip.*`.
+```text
+Controllers (paths are external contracts)
+├─ IdRepoController                      /idrepository/v1/identity
+├─ IdRepoDraftController                 /idrepository/v1/identity/draft
+├─ VidController                         /idrepository/v1/vid
+├─ CredentialStoreController             /v1/credentialservice
+├─ CredentialRequestGeneratorController  /v1/credentialrequest
+└─ VidEventCallbackController            WebSub callback
 
-| Controller | Path (contract) |
-|------------|-----------------|
-| `IdRepoController` | `/idrepository/v1/identity` |
-| `IdRepoDraftController` | `/idrepository/v1/identity/draft` |
-| `VidController` | `/idrepository/v1/vid` |
-| `CredentialStoreController` | `/v1/credentialservice` |
-| `CredentialRequestGeneratorController` | `/v1/credentialrequest` |
-| `VidEventCallbackController` | WebSub callback |
-
-Pipeline: credreq → credential → identity via `pipeline.InProcessCredentialClient` / `InProcessIdentityClient`. Status: `manager.CredentialStatusManager` (per-row txs — not class-level `@Transactional`).
-
-Local how-to: [`../local-dev-setup/README.md`](../local-dev-setup/README.md). Chart: `helm/identity`.
+Pipeline  credreq → credential → identity   pipeline.InProcessCredentialClient / InProcessIdentityClient
+Status    manager.CredentialStatusManager   one tx per row
+```
 
 ## Rules
 
-- New REST = thin controller + `@PreAuthorize` aligned with core role DTOs. Entities/repos/services stay in this module.
-- Import core wiring; do not duplicate core `@Bean`s.
-- Salt-generator is not on this classpath.
-- Paths above are external contracts.
-
-**Build:** `mvn -pl id-repository-service -am package -DskipTests -Dgpg.skip=true`
+- New REST = thin controller + `@PreAuthorize` matching core role DTOs.
+- Import core wiring; never duplicate core `@Bean`s.
+- Build: `mvn -pl id-repository-service -am package -DskipTests -Dgpg.skip=true`.

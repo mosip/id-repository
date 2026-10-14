@@ -1,20 +1,19 @@
-# db_scripts — greenfield Postgres
+# db_scripts (greenfield)
 
-Fresh install only (`deploy.sh` **drops** DB+role). Hops: `db_upgrade_scripts/`. Release: `db_release_scripts/`.
+Fresh install only: `deploy.sh` **drops** the DB and role. Order: three schemas → saltgen Job → HTTP service.
 
-Order: deploy three schemas → saltgen Job → HTTP service.
+```text
+mosip_idrepo/      UIN, handle, credential-request status, idrepo salts
+mosip_idmap/       VID, idmap salts
+mosip_credential/  credential, BATCH_*
+└─ each: ddl/*.sql + ddl.sql (\ir list) + db/role/grants/drop SQL + deploy.properties + deploy.sh
+```
 
-| Schema | Holds |
-|--------|-------|
-| `mosip_idrepo` | UIN, handle, cred-request status, idrepo salts |
-| `mosip_idmap` | VID + idmap salts |
-| `mosip_credential` | Credential + `BATCH_*` |
-
-Run: set `SU_USER_PWD` / `DBUSER_PWD`, edit `deploy.properties`, `./deploy.sh` in each schema folder.
+Run per schema: set `SU_USER_PWD` / `DBUSER_PWD`, edit `deploy.properties`, `./deploy.sh`.
 
 ## Rules
 
-- New DDL in `<schema>/ddl/` **and** `\ir` in `ddl.sql`. Mirror in upgrade + release folders.
-- Never merge idrepo/idmap salt DDL. Seed → DML (`DML_FLAG=1`), not DDL.
-- After salt DDL: rerun `helm/idrepo-saltgen`. IDA does not use these salts.
-- Never point `deploy.sh` at a live DB that must keep data.
+- New DDL file in `<schema>/ddl/` **and** an `\ir` line in `ddl.sql`.
+- Seed data → DML (`DML_FLAG=1`), never DDL.
+- After salt DDL, rerun `helm/idrepo-saltgen`.
+- Never point `deploy.sh` at a DB whose data must survive.

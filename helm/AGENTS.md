@@ -1,15 +1,15 @@
-# helm/
+# helm
 
-| Chart | Deploys |
-|-------|---------|
-| `helm/idrepo` | Umbrella (`saltgen.enabled`, `service.enabled`) |
-| `helm/identity` | HTTP service (`id-repository-service`, port 8090, health `/idrepository/v1/identity/actuator/health`) |
-| `helm/idrepo-saltgen` | One-shot salt **Job** |
-
-Order after schema/salt DDL: DB deploy → saltgen Job (`--wait --wait-for-jobs`) → HTTP. Cluster scripts: `deploy/`.
+```text
+helm/
+├─ idrepo/          umbrella (saltgen.enabled, service.enabled)
+├─ identity/        id-repository-service :8090, health /idrepository/v1/identity/actuator/health
+└─ idrepo-saltgen/  one-shot salt Job
+Order: DB deploy → saltgen (--wait --wait-for-jobs) → identity
+```
 
 ## Rules
 
-- Same HTTP image family; salt is a separate Job chart — never a scaled Deployment.
-- Keep values aligned with consolidated `id-repository-service`. No secrets in `values.yaml`.
-- Port/health path changes need probe + smoke updates. Bump `Chart.yaml` / README when publishing.
+- Salt is a Job chart, never a scaled Deployment.
+- Values follow the consolidated `id-repository-service`. No secrets in `values.yaml`.
+- Port or health-path change → update probes and smoke tests. Publishing → bump `Chart.yaml` + README.

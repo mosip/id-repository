@@ -21,7 +21,7 @@ import lombok.Data;
  * </table>
  *
  * @see OpenApiLicenseProperty
- * @see OpenApiProperties#getInfo()
+ * @see OpenApiProperties
  * @see io.mosip.idrepository.config.IdRepoOpenApiConfig
  */
 @Data

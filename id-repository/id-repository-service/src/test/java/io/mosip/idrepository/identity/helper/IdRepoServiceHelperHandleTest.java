@@ -54,9 +54,10 @@ public class IdRepoServiceHelperHandleTest {
 		mapping.setIdentity(identity);
 		ReflectionTestUtils.setField(helper, "identityMapping", mapping);
 
-		Map<String, List<String>> schemaHandles = new HashMap<>();
+		@SuppressWarnings("unchecked")
+		Map<String, List<String>> schemaHandles = (Map<String, List<String>>) ReflectionTestUtils
+				.getField(IdRepoServiceHelper.class, "supportedHandlesInSchema");
 		schemaHandles.put("0.1", List.of("phone", "email"));
-		ReflectionTestUtils.setField(IdRepoServiceHelper.class, "supportedHandlesInSchema", schemaHandles);
 
 		when(securityManager.getSaltKeyForHashOfId(any())).thenReturn(1);
 		when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn(CryptoUtil.encodeToPlainBase64("salt".getBytes()));

@@ -98,13 +98,11 @@ PublishDraftV2:
     restMethod: get
     checkOnlyStatusCodeInResponse: true
     inputTemplate: idRepository/PublishDraft/publishDraft
-    outputTemplate: idRepository/responseCode
+    outputTemplate: idRepository/error
     input: '{
       "registrationId": "$RIDV2NEW$"
     }'
-    output: '{
-      "responseCode": "401"
-    }'
+    output: "401"
 
   IdRepository_PublishDraftV2_WithUnauthorizedRole_StatusCode_Neg:
     endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
@@ -118,6 +116,4 @@ PublishDraftV2:
     input: '{
       "registrationId": "$RIDV2NEW$"
     }'
-    output: '{
-      "responseCode": "403"
-    }'
+    output: "403"

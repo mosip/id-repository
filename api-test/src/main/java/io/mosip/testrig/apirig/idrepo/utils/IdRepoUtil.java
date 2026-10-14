@@ -1,5 +1,11 @@
 package io.mosip.testrig.apirig.idrepo.utils;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -17,19 +23,57 @@ import io.mosip.testrig.apirig.utils.ConfigManager;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
 import io.mosip.testrig.apirig.utils.SkipTestCaseHandler;
 
+/**
+ * ID Repository helpers shared by every test script in
+ * {@code io.mosip.testrig.apirig.idrepo.testscripts}.
+ * <p>
+ * Extends the apitest-commons {@link AdminTestUtil}, so scripts inherit the REST helpers, template
+ * rendering and the {@code $ID:...$} cache, and adds idrepo-specific behaviour:
+ * <ul>
+ * <li>{@link #isTestCaseValidForExecution(TestCaseDTO)}: one gate that decides whether a YAML case
+ * runs in the current environment (run scope, known-issue list, IdSchema capabilities).</li>
+ * <li>Run-scoped registration-id placeholders ({@code $RIDEXT$}, {@code $RIDV2NEW$}, ...) resolved by
+ * {@link #inputStringKeyWordHandeler(String, String)}.</li>
+ * <li>Schema queries (handles, required and optional fields) that keep YAML cases independent of
+ * country-specific field names.</li>
+ * <li>Post-run DB cleanup and request-body fix-ups such as
+ * {@link #ensureDemographicDocumentsInRequest(String)}.</li>
+ * </ul>
+ */
 public class IdRepoUtil extends AdminTestUtil {
 
 	private static final Logger logger = Logger.getLogger(IdRepoUtil.class);
+
+	/*
+	 * Registration ids fixed once per run. Each prefix is distinct, so a draft created under one
+	 * placeholder can never clash with another. A uin_draft row is unique per UIN, so one
+	 * placeholder must map to one draft flow only.
+	 */
+	/** {@code $RIDEXT$}: v1 draft created by CreateDraft and consumed by ExtractBiometrics. */
 	public static String genRidExt = "23456" + generateRandomNumberString(10);
+	/** {@code $RIDDEL$}: v1 draft created by CreateDraft and discarded by DeleteDraft. */
 	public static String genRidDel = "23457" + generateRandomNumberString(10);
+	/** {@code $RIDV2NEW$}: main v2 draft lifecycle chain (CreateDraftV2, GetDraftV2, PublishDraftV2). */
 	public static String genRidV2New = "23458" + generateRandomNumberString(10);
+	/** {@code $RIDV2NEWEXPLICIT$}: v2 draft for a new identity with an explicit {@code generateUin}. */
 	public static String genRidV2NewExplicit = "23459" + generateRandomNumberString(10);
+	/** {@code $RIDV2UPDATEA$}: v2 draft over an existing UIN, later updated and published. */
 	public static String genRidV2UpdateA = "23460" + generateRandomNumberString(10);
+	/** {@code $RIDV2FRESH$}: registration id that must never have a draft (negative cases). */
 	public static String genRidV2Fresh = "23461" + generateRandomNumberString(10);
+	/** {@code $RIDV2LOST$}: v2 LOST-packet draft created with {@code generateUin=false}. */
 	public static String genRidV2Lost = "23462" + generateRandomNumberString(10);
+	/** {@code $RIDV2EXT$}: v2 draft reserved for ExtractBiometricsV2, isolated from the main chain. */
 	public static String genRidV2Ext = "23463" + generateRandomNumberString(10);
+	/** {@code $RIDV2UPDATEB$}: second v2 draft, over a different existing UIN than {@code $RIDV2UPDATEA$}. */
+	public static String genRidV2UpdateB = "23464" + generateRandomNumberString(10);
+	/**
+	 * Unique identifiers of the cases allowed to run, built by the runner from
+	 * {@code testCasesToExecute} plus their declared dependencies. Empty means "run everything".
+	 */
 	public static List<String> testCasesInRunScope = new ArrayList<>();
 	
+	/** Sets this class's logger to {@code ALL} in debug mode, {@code ERROR} otherwise. */
 	public static void setLogLevel() {
 		if (IdRepoConfigManager.IsDebugEnabled())
 			logger.setLevel(Level.ALL);
@@ -37,6 +81,33 @@ public class IdRepoUtil extends AdminTestUtil {
 			logger.setLevel(Level.ERROR);
 	}
 	
+	/**
+	 * Decides whether a YAML test case runs in the current environment, and throws
+	 * {@link SkipException} when it must not.
+	 * <p>
+	 * Checks, in order:
+	 * <ol>
+	 * <li>Run scope: when {@link #testCasesInRunScope} is non-empty, the case's unique identifier
+	 * must be in it ({@code NOT_IN_RUN_SCOPE_MESSAGE}).</li>
+	 * <li>Extra workflow dependencies are recorded when dependency generation is on.</li>
+	 * <li>Known issues listed in {@code testCaseSkippedList.txt} ({@code KNOWN_ISSUES}).</li>
+	 * <li>The YAML {@code requiredSchemaFields} and {@code requiredHandleFields} must exist in the
+	 * live IdSchema (the latter as {@code "handle": true}).</li>
+	 * <li>Name tokens that need a schema capability, for example {@code _missingRequiredHandle},
+	 * {@code _invalidArrayHandleValue}, {@code _extraNonSchemaField}, {@code _optionalFieldNotInAdd},
+	 * {@code _handle}, DOB / Email cases, multi-email cases that need an array-typed email, and
+	 * {@code Invalid_BioVal} when the admin service is not deployed.</li>
+	 * </ol>
+	 * Schema-driven skips use {@code FEATURE_NOT_SUPPORTED_MESSAGE}, so the emailable report lists
+	 * them as "Ignored" rather than "Skipped".
+	 * <p>
+	 * Side effects: sets {@code currentTestCaseName} and registers the case in the commons test case
+	 * map.
+	 *
+	 * @param testCaseDTO the case read from YAML
+	 * @return the test case name, unchanged
+	 * @throws SkipException when the case must not run here
+	 */
 	public static String isTestCaseValidForExecution(TestCaseDTO testCaseDTO) {
 		String testCaseName = testCaseDTO.getTestCaseName();
 		currentTestCaseName = testCaseName;
@@ -166,6 +237,31 @@ public class IdRepoUtil extends AdminTestUtil {
 		return false;
 	}
 
+	/** Property naming the {@code cr_by} value of rows the rig creates; see {@link #getTestDataCreator()}. */
+	private static final String TEST_DATA_CREATOR_PROPERTY = "testDataCreator";
+
+	/** Client the rig authenticates as on a deployed environment. */
+	private static final String DEFAULT_TEST_DATA_CREATOR = "service-account-mosip-testrig-client";
+
+	/** Placeholder in the idrepo, idmap and credential delete-query files. */
+	private static final String TEST_DATA_CREATOR_PLACEHOLDER = "${testDataCreator}";
+
+	/**
+	 * Deletes test data from the keymanager, IDA, masterdata, idrepo, idmap (VID) and credential
+	 * databases, using the SQL files under {@code config/} ({@code keyManagerCertDataDeleteQueries.txt},
+	 * {@code idaCertDataDeleteQueries.txt}, {@code masterDataCertDataDeleteQueries.txt},
+	 * {@code idrepoDeleteQueries.txt}, {@code idmapDeleteQueries.txt},
+	 * {@code credentialDeleteQueries.txt}).
+	 * <p>
+	 * The idrepo, idmap and credential files delete every row whose {@code cr_by} is
+	 * {@link #getTestDataCreator()}, with no age limit. Salt tables are never touched.
+	 * </p>
+	 * <p>
+	 * Each database is cleaned independently: a failure (for example a schema that is not deployed
+	 * locally) is logged and the next one is still attempted. Runs once, during suite setup,
+	 * before any test case.
+	 * </p>
+	 */
 	public static void dbCleanUp() {
 		runCleanup("keymgr", () -> DBManager.executeDBQueries(IdRepoConfigManager.getKMDbUrl(),
 				IdRepoConfigManager.getKMDbUser(), IdRepoConfigManager.getKMDbPass(),
@@ -179,11 +275,86 @@ public class IdRepoUtil extends AdminTestUtil {
 				IdRepoConfigManager.getMasterDbUser(), IdRepoConfigManager.getMasterDbPass(),
 				IdRepoConfigManager.getMasterDbSchema(),
 				getGlobalResourcePath() + "/" + "config/masterDataCertDataDeleteQueries.txt"));
-		runCleanup("idrepo", () -> DBManager.executeDBQueries(IdRepoConfigManager.getIdRepoDbUrl(),
-				IdRepoConfigManager.getIdRepoDbUser(), IdRepoConfigManager.getPMSDbPass(), "idrepo",
-				getGlobalResourcePath() + "/" + "config/idrepoDeleteQueries.txt"));
+		String creator = getTestDataCreator();
+		logger.info("DB cleanup deletes idrepo, idmap and credential rows created by: " + creator);
+		runCleanup("idrepo", () -> executeCreatorQueries(IdRepoConfigManager.getIdRepoDbUrl(), "idrepo",
+				"config/idrepoDeleteQueries.txt", creator));
+		runCleanup("idmap", () -> executeCreatorQueries(getDbUrl("mosip_idmap"), "idmap",
+				"config/idmapDeleteQueries.txt", creator));
+		runCleanup("credential", () -> executeCreatorQueries(getDbUrl("mosip_credential"), "credential",
+				"config/credentialDeleteQueries.txt", creator));
 	}
 
+	/**
+	 * Returns the {@code cr_by} value of rows created by the rig: property {@code testDataCreator},
+	 * or {@code service-account-mosip-testrig-client} when it is not set. The service stores the
+	 * caller's client as {@code cr_by}, so locally (WireMock IAM) this is
+	 * {@code service-account-mosip-idrepo-client}.
+	 *
+	 * @return the creator to delete rows for
+	 * @throws IllegalStateException if the value contains characters other than letters, digits,
+	 *                               {@code .}, {@code _} and {@code -}; it is placed inside SQL
+	 */
+	static String getTestDataCreator() {
+		String creator = null;
+		try {
+			creator = IdRepoConfigManager.getproperty(TEST_DATA_CREATOR_PROPERTY);
+		} catch (Exception e) {
+			logger.warn("Property " + TEST_DATA_CREATOR_PROPERTY + " not readable: " + e.getMessage());
+		}
+		if (creator == null || creator.isBlank()) {
+			return DEFAULT_TEST_DATA_CREATOR;
+		}
+		creator = creator.trim();
+		if (!creator.matches("[A-Za-z0-9._-]+")) {
+			throw new IllegalStateException("Invalid " + TEST_DATA_CREATOR_PROPERTY + ": " + creator);
+		}
+		return creator;
+	}
+
+	/**
+	 * @param database database name on the configured server, for example {@code mosip_idmap}
+	 * @return JDBC URL built from {@code db-server} and {@code db-port}
+	 */
+	private static String getDbUrl(String database) {
+		return "jdbc:postgresql://" + IdRepoConfigManager.getDbServer() + ":" + IdRepoConfigManager.getDbPort()
+				+ "/" + database;
+	}
+
+	/**
+	 * Runs a delete-query file after replacing {@code ${testDataCreator}} with {@code creator}.
+	 * The commons runner only reads files, so the resolved queries are written to a temporary
+	 * file that is removed afterwards. Uses the idrepo DB user and password.
+	 *
+	 * @param dbUrl        JDBC URL of the database
+	 * @param schema       default schema for the session
+	 * @param relativePath query file under the global resource path
+	 * @param creator      value for the placeholder
+	 */
+	private static void executeCreatorQueries(String dbUrl, String schema, String relativePath, String creator) {
+		Path resolved = null;
+		try {
+			String template = Files.readString(Paths.get(getGlobalResourcePath(), relativePath),
+					StandardCharsets.UTF_8);
+			resolved = Files.createTempFile("idrepo-cleanup-" + schema + "-", ".txt");
+			Files.writeString(resolved, template.replace(TEST_DATA_CREATOR_PLACEHOLDER, creator),
+					StandardCharsets.UTF_8);
+			DBManager.executeDBQueries(dbUrl, IdRepoConfigManager.getIdRepoDbUser(),
+					IdRepoConfigManager.getPMSDbPass(), schema, resolved.toString());
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		} finally {
+			if (resolved != null) {
+				try {
+					Files.deleteIfExists(resolved);
+				} catch (IOException e) {
+					logger.warn("Could not delete " + resolved + ": " + e.getMessage());
+				}
+			}
+		}
+	}
+
+	/** Runs one cleanup step and logs, rather than propagates, any exception. */
 	private static void runCleanup(String schema, Runnable cleanup) {
 		try {
 			cleanup.run();
@@ -193,6 +364,20 @@ public class IdRepoUtil extends AdminTestUtil {
 		}
 	}
 	
+	/**
+	 * Replaces the run-scoped registration-id placeholders ({@code $RIDEXT$}, {@code $RIDDEL$},
+	 * {@code $RIDV2NEW$}, {@code $RIDV2NEWEXPLICIT$}, {@code $RIDV2UPDATEA$}, {@code $RIDV2UPDATEB$},
+	 * {@code $RIDV2FRESH$}, {@code $RIDV2LOST$}, {@code $RIDV2EXT$}) with the matching
+	 * {@code genRid*} value. Because the values are fixed per run, create, get, update, publish and
+	 * delete cases in different YAML files act on the same draft.
+	 * <p>
+	 * {@code $RIDV2NEWEXPLICIT$} is replaced before {@code $RIDV2NEW$} because it starts with that
+	 * token.
+	 *
+	 * @param jsonString   request JSON, or a path-parameter string; {@code null} is returned as is
+	 * @param testCaseName current test case name (not used)
+	 * @return the string with every known placeholder resolved
+	 */
 	public static String inputStringKeyWordHandeler(String jsonString, String testCaseName) {
 		if (jsonString == null) {
 			logger.info(" Request Json String is :" + jsonString);
@@ -209,6 +394,8 @@ public class IdRepoUtil extends AdminTestUtil {
 			jsonString = replaceKeywordWithValue(jsonString, "$RIDV2NEW$", genRidV2New);
 		if (jsonString.contains("$RIDV2UPDATEA$"))
 			jsonString = replaceKeywordWithValue(jsonString, "$RIDV2UPDATEA$", genRidV2UpdateA);
+		if (jsonString.contains("$RIDV2UPDATEB$"))
+			jsonString = replaceKeywordWithValue(jsonString, "$RIDV2UPDATEB$", genRidV2UpdateB);
 		if (jsonString.contains("$RIDV2FRESH$"))
 			jsonString = replaceKeywordWithValue(jsonString, "$RIDV2FRESH$", genRidV2Fresh);
 		if (jsonString.contains("$RIDV2LOST$"))
@@ -220,6 +407,12 @@ public class IdRepoUtil extends AdminTestUtil {
 
 	/**
 	 * Asserts a GetDraftV2 response has no UIN yet (LOST packet with generateUin=false).
+	 * <p>
+	 * Never throws: an unparsable body becomes a {@code FAIL} result.
+	 *
+	 * @param response GetDraftV2 response
+	 * @return a "UIN" validation row: {@code PASS} when {@code response.identity.UIN} is absent,
+	 *         null or blank, otherwise {@code FAIL} with the allocated UIN as actual value
 	 */
 	public static OutputValidationDto assertDraftUinNotAllocated(io.restassured.response.Response response) {
 		OutputValidationDto dto = new OutputValidationDto();

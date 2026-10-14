@@ -202,7 +202,7 @@ UpdateDraftV2:
       "requesttime": "$TIMESTAMP$"
     }'
     output: '{
-      "responseCode": "500"
+      "responseCode": "401"
     }'
 
   IdRepository_UpdateDraftV2_WithUnauthorizedRole_StatusCode_Neg:

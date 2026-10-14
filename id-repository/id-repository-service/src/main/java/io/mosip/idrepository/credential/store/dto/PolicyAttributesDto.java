@@ -11,7 +11,7 @@ import lombok.Data;
  * during credential issuance.
  * </p>
  *
- * @see PartnerCredentialTypePolicyDto#getPolicies()
+ * @see PartnerCredentialTypePolicyDto
  */
 @Data
 public class PolicyAttributesDto {

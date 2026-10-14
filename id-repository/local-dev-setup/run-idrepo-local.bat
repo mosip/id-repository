@@ -36,20 +36,28 @@ if "%CMD%"=="" set "CMD=run"
 
 if /i "%CMD%"=="-h" set "CMD=help"
 if /i "%CMD%"=="--help" set "CMD=help"
+if "%CMD%"=="/?" set "CMD=help"
 if /i "%CMD%"=="--build" set "CMD=run"
 if /i "%CMD%"=="--no-build" set "CMD=start"
+if /i "%CMD%"=="build" set "CMD=rebuild"
 if /i "%CMD%"=="cleardb" set "CMD=wipe"
 if /i "%CMD%"=="clear-db" set "CMD=wipe"
 if /i "%CMD%"=="reset" set "CMD=wipe"
 
-if /i "%CMD%"=="help" goto :help
+call :print_help
+if /i "%CMD%"=="help" (
+  endlocal
+  exit /b 0
+)
+echo Selected: %CMD%
+echo.
+
 if /i "%CMD%"=="stop" (
   call :stop_app
   endlocal
   exit /b 0
 )
 if /i "%CMD%"=="rebuild" goto :rebuild
-if /i "%CMD%"=="build" goto :rebuild
 if /i "%CMD%"=="test" goto :unit_test
 if /i "%CMD%"=="sonar" goto :sonar
 if /i "%CMD%"=="smoke" goto :smoke
@@ -65,34 +73,38 @@ if /i "%CMD%"=="start" (
 )
 if /i "%CMD%"=="run" goto :run
 
-echo ERROR: unknown command: %CMD%
-echo.
-call :print_help
+echo ERROR: unknown command "%CMD%". Use one of the commands above.
 endlocal
 exit /b 1
 
-:help
-call :print_help
-endlocal
-exit /b 0
-
 :print_help
-echo Usage: run-idrepo-local.bat [command]
 echo.
-echo   run              Rebuild jar, then start http://localhost:8090  ^(default^)
-echo   start            Start existing jar ^(no Maven^)
-echo   rebuild          mvn clean package -DskipTests  ^(do not start^)
+echo run-idrepo-local.bat [command]
+echo.
+echo App ^(host JVM on http://localhost:8090^):
+echo   run              Rebuild jar, then start  ^(default^)
+echo   start            Start existing jar, no Maven
+echo   rebuild          mvn clean package, skip tests  ^(do not start^)
 echo   stop             Stop the host JVM
+echo.
+echo Docker deps ^(Postgres, config-server, WireMock, MinIO, keymanager^):
+echo   up               Start deps, keep DB volumes
+echo   wipe             Stop app, clear DB ^(compose down -v^), start deps  - PKCS12 kept
+echo   wipe-run         wipe, then rebuild + start app
+echo.
+echo Checks:
 echo   smoke            GET health / UIN / RID / idschema
 echo   test             mvn test on id-repository-service
 echo   sonar            mvn verify -Psonar  ^(needs SONAR_TOKEN for SonarCloud^)
-echo   up               Start Docker deps, keep volumes
-echo   wipe             Clear DB ^(compose down -v^) then start deps — PKCS12 kept
-echo   wipe-run         wipe, then rebuild + start
-echo   help             This text
 echo.
-echo Aliases: --no-build=start  --build=run  cleardb=wipe
-echo API tests:  ..\..\..\api-test\run-local-smoke.bat
+echo   help             Show this list and exit
+echo.
+echo Aliases: --build=run  --no-build=start  build=rebuild  cleardb / clear-db / reset=wipe  -h / --help / /?=help
+echo.
+echo Wipe and rerun api-test:
+echo   1^) run-idrepo-local.bat wipe-run      ^(wait for the app to start^)
+echo   2^) ..\..\api-test\run-local-smoke.bat smokeAndRegression
+echo.
 exit /b 0
 
 :rebuild

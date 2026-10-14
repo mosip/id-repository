@@ -14,6 +14,7 @@ hs_err_pid*
 bin/
 tmp/
 
+.local/
 logs/*
 !logs/.gitkeep
 src/logs/

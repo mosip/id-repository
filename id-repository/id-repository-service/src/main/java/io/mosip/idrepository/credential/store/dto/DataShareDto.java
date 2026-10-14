@@ -9,7 +9,7 @@ import lombok.Data;
  * credential artifacts (TTL, encryption, share domain).
  * </p>
  *
- * @see PolicyAttributesDto#getDataSharePolicies()
+ * @see PolicyAttributesDto
  */
 @Data
 public class DataShareDto {

@@ -11,7 +11,7 @@ import lombok.Data;
  * to locate identity fields, apply format/mask rules, and decide encryption.
  * </p>
  *
- * @see PolicyAttributesDto#getShareableAttributes()
+ * @see PolicyAttributesDto
  */
 @Data
 public class AllowedKycDto {

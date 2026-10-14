@@ -1,25 +1,22 @@
-# Maven parent (`id-repository/`)
+# id-repository/ (Maven parent)
 
-JDK 21, Spring Boot 4.1.0, Spring Cloud 2025.1.2. One `pom.xml` per module; versions live in the **parent**.
+Spring Boot 4.1.0, Spring Cloud 2025.1.2. Versions only in the parent POM.
 
-| Module | Role |
-|--------|------|
-| `id-repository-core` | Library: `io.mosip.idrepository.core.*` only (IDA API) |
-| `id-repository-service` | HTTP deployable: identity, VID, credential, controllers, pipeline |
-| `id-repository-salt-generator` | One-shot Job: salt tables only |
+```text
+id-repository/
+├─ id-repository-core/            lib io.mosip.idrepository.core.*
+├─ id-repository-service/         HTTP: identity, vid, credential, pipeline, manager
+├─ id-repository-salt-generator/  one-shot salt Job
+└─ local-dev-setup/               Docker deps (own AGENTS.md)
+```
 
-**Build:** `mvn clean install` · service-only: `mvn -pl id-repository-service -am package -DskipTests -Dgpg.skip=true`
-
-Local how-to: [`local-dev-setup/README.md`](local-dev-setup/README.md).
+Build: `mvn clean install` · service: `mvn -pl id-repository-service -am package -DskipTests -Dgpg.skip=true` (PowerShell: quote `"-Dgpg.skip=true"`).
 
 ## Rules
 
-- Domain (`identity`, `vid`, `credential`, `pipeline`, `manager`) stays in **service**. Core stays `core.*`.
-- Salt package stays in salt-generator. Never run it inside the HTTP JVM.
-- One POM per module. Never commit `effective-*.xml` or `help:effective-pom` dumps beside `pom.xml`. Do not duplicate the same `<dependency>` in one POM.
+- Domain packages → service. Core = `core.*` only. Salt package → salt-generator only.
+- One POM per module, no duplicate `<dependency>`, never commit `effective-*.xml`.
 - `kernel-auth-adapter` once, from parent `dependencyManagement`.
-- `spring.main.allow-bean-definition-overriding=false`; use `@Primary` / `@Qualifier`.
-- Credential issuance is synchronous in-process (`InProcessCredentialClient` / `InProcessIdentityClient`).
+- Bean overriding is off → `@Primary` / `@Qualifier`. Never scan `io.mosip.*`.
+- Credential issuance is synchronous in-process (`InProcessCredentialClient` / `InProcessIdentityClient`). No Spring Batch credential job as a second deployment.
 - No class-level `@Transactional` on `CredentialStatusManager`.
-- Do not scan `io.mosip.*`.
-- Do not reintroduce Spring Batch credential jobs as a second HTTP deployment.

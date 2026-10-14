@@ -36,14 +36,28 @@ import io.mosip.testrig.apirig.utils.ReportUtil;
 import io.mosip.testrig.apirig.utils.SecurityXSSException;
 import io.restassured.response.Response;
 
+/**
+ * Variant of {@link GetWithParam} that also caches values from the response for later YAML cases.
+ * <p>
+ * The suite parameter {@code idKeyName} lists the response fields to capture (comma-separated).
+ * Each value is cached under {@code <testCaseName>_<field>} and can be read later as
+ * {@code $ID:<testCaseName>_<field>$}. Supports {@code _StatusCode} validation; it does not
+ * support the {@code UinNotAllocated} mode.
+ */
 public class GetWithParamForAutoGenId extends IdRepoUtil implements ITest {
 	private static final Logger logger = Logger.getLogger(GetWithParamForAutoGenId.class);
+	/** Name of the case currently running; becomes the TestNG method name in reports. */
 	protected String testCaseName = "";
+	/** Suite parameter {@code idKeyName}: response fields to cache. */
 	public String idKeyName = null;
+	/** Response of the last call. */
 	public Response response = null;
+	/** True when the suite {@code <test>} declares a {@code sendEsignetToken} parameter. */
 	public boolean sendEsignetToken = false;
+	/** YAML {@code auditLogCheck} flag of the current case, passed to the REST helper. */
 	public boolean auditLogCheck = false;
 
+	/** Sets the script logger to {@code ALL} in debug mode, {@code ERROR} otherwise. */
 	@BeforeClass
 	public static void setLogLevel() {
 		if (IdRepoConfigManager.IsDebugEnabled())
@@ -53,7 +67,7 @@ public class GetWithParamForAutoGenId extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * get current testcaseName
+	 * @return the current test case name (TestNG {@link ITest} contract)
 	 */
 	@Override
 	public String getTestName() {
@@ -61,9 +75,11 @@ public class GetWithParamForAutoGenId extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * Data provider class provides test case list
-	 * 
-	 * @return object of data provider
+	 * Supplies the YAML cases named by the suite parameter {@code ymlFile} and reads the
+	 * {@code idKeyName} and {@code sendEsignetToken} parameters.
+	 *
+	 * @param context TestNG context holding the {@code <test>} parameters
+	 * @return one {@link TestCaseDTO} per YAML entry
 	 */
 	@DataProvider(name = "testcaselist")
 	public Object[] getTestCaseList(ITestContext context) {
@@ -75,13 +91,17 @@ public class GetWithParamForAutoGenId extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * Test method for OTP Generation execution
-	 * 
-	 * @param objTestParameters
-	 * @param testScenario
-	 * @param testcaseName
-	 * @throws AuthenticationTestException
-	 * @throws AdminTestException
+	 * Runs one GET case and caches the {@link #idKeyName} fields from the response.
+	 * <p>
+	 * Uses the same skip rules as the other scripts (execution gate, health check, VID support).
+	 * With YAML {@code templateFields} the call runs once per configured language. Otherwise it
+	 * runs once, with registration-id placeholders resolved, and is validated in status-code mode
+	 * ({@code _StatusCode}) or output-template mode.
+	 *
+	 * @param testCaseDTO the YAML case
+	 * @throws AuthenticationTestException on token generation failure
+	 * @throws AdminTestException          when validation fails
+	 * @throws SecurityXSSException        when the XSS header check is enabled and fails
 	 */
 	@Test(dataProvider = "testcaselist")
 	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
@@ -145,9 +165,12 @@ public class GetWithParamForAutoGenId extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * The method ser current test name to result
-	 * 
-	 * @param result
+	 * Renames the TestNG method on {@code result} to the YAML case name, so each case gets its own
+	 * report row instead of {@code test}. Uses reflection on TestNG internals
+	 * ({@code TestResult.m_method}, {@code BaseTestMethod.m_methodName}); any failure is written to
+	 * the report and ignored.
+	 *
+	 * @param result result of the method that just ran
 	 */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {

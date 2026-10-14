@@ -3779,6 +3779,11 @@ paths:
                       type: string
                       description: UIN associated with the draft
                       example: "6231201539"
+                    verifiedAttributes:
+                      type: array
+                      description: Verification records for claims in identity (identity v2 object form)
+                      items:
+                        $ref: '#/components/schemas/VerificationMetadata'
             examples:
               example-1:
                 value:

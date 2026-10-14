@@ -33,22 +33,33 @@ info() { echo "$*"; }
 
 print_help() {
   cat <<EOF
-Usage: $0 [command]
 
-  run              Rebuild jar, then start http://localhost:8090  (default)
-  start            Start existing jar (no Maven)
-  rebuild          mvn clean package -DskipTests  (do not start)
+$0 [command]
+
+App (host JVM on http://localhost:8090):
+  run              Rebuild jar, then start  (default)
+  start            Start existing jar, no Maven
+  rebuild          mvn clean package, skip tests  (do not start)
   stop             Stop the host JVM
+
+Docker deps (Postgres, config-server, WireMock, MinIO, keymanager):
+  up               Start deps, keep DB volumes
+  wipe             Stop app, clear DB (compose down -v), start deps  - PKCS12 kept
+  wipe-run         wipe, then rebuild + start app
+
+Checks:
   smoke            GET health / UIN / RID / idschema
   test             mvn test on id-repository-service
   sonar            mvn verify -Psonar  (needs SONAR_TOKEN for SonarCloud)
-  up               Start Docker deps, keep volumes
-  wipe             Clear DB (compose down -v) then start deps — PKCS12 kept
-  wipe-run         wipe, then rebuild + start
-  help             This text
 
-Aliases: --no-build=start  --build=run  cleardb=wipe
-API tests:  ../../../api-test/run-local-smoke.sh
+  help             Show this list and exit
+
+Aliases: --build=run  --no-build=start  build=rebuild  cleardb / clear-db / reset=wipe  -h / --help=help
+
+Wipe and rerun api-test:
+  1) $0 wipe-run      (wait for the app to start)
+  2) ../../api-test/run-local-smoke.sh smokeAndRegression
+
 EOF
 }
 
@@ -161,16 +172,22 @@ See deps/additional_jars/README.md"
 
 CMD="${1:-run}"
 case "$CMD" in
-  -h|--help|help) print_help; exit 0 ;;
+  -h|--help) CMD=help ;;
   --build) CMD=run ;;
   --no-build) CMD=start ;;
+  build) CMD=rebuild ;;
   cleardb|clear-db|reset) CMD=wipe ;;
 esac
+
+print_help
+[[ "$CMD" == "help" ]] && exit 0
+echo "Selected: $CMD"
+echo
 
 case "$CMD" in
   run)        cmd_run 1 ;;
   start)      cmd_run 0 ;;
-  rebuild|build) cmd_rebuild ;;
+  rebuild)    cmd_rebuild ;;
   stop)       stop_app ;;
   smoke)      exec "$STACK" smoke ;;
   test)       cmd_test ;;
@@ -179,8 +196,7 @@ case "$CMD" in
   wipe)       stop_app; exec "$STACK" wipe ;;
   wipe-run)   stop_app; "$STACK" wipe; cmd_run 1 ;;
   *)
-    echo "ERROR: unknown command: $CMD" >&2
-    print_help
+    echo "ERROR: unknown command \"$CMD\". Use one of the commands above." >&2
     exit 1
     ;;
 esac

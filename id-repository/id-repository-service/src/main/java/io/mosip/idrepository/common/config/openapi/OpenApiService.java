@@ -7,9 +7,9 @@ import lombok.Data;
 /**
  * Container for a list of {@link OpenApiServer} entries under an {@code openapi.*} server key.
  * <p>
- * Reused for both credential modules ({@link OpenApiProperties#getService()}) and identity
- * ({@link OpenApiProperties#getIdRepoIdentityServiceServer()}). Legacy configs iterate
- * {@link #getServers()} and call {@code OpenAPI.addServersItem(...)} for each entry.
+ * Reused for both credential modules ({@code OpenApiProperties.service}) and identity
+ * ({@code OpenApiProperties.idRepoIdentityServiceServer}). Legacy configs iterate
+ * {@code servers} and call {@code OpenAPI.addServersItem(...)} for each entry.
  * </p>
  *
  * <h2>Config keys</h2>
