@@ -1,0 +1,28 @@
+{
+  "idp-claims-mapping": {
+    "name": {
+      "attributeName": "fullName"
+    },
+    "gender": {
+      "attributeName":  "gender"
+    },
+    "birthdate": {
+      "attributeName":  "dateOfBirth"
+    },
+    "email": {
+      "attributeName":  "email"
+    },
+    "phone_number": {
+      "attributeName":  "phone"
+    },
+    "picture": {
+      "attributeName":  "photo"
+    },
+    "individual_id" : {
+      "attributeName":  "individual_id"
+    },
+    "address": {
+      "attributeName":  "addressLine1,addressLine2,addressLine3,city,region,province,postalCode"
+    }
+  }
+}

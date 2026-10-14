@@ -62,8 +62,12 @@ function installing_apitestrig() {
     exit 1;
   fi
   ENABLE_INSECURE=''
-  if [ "$flag" = "n" ]; then
-    ENABLE_INSECURE='--set enable_insecure=true';
+  ENV_PROTOCOL='http'
+  if [ "$flag" = "n" ] || [ "$flag" = "N" ]; then
+    ENABLE_INSECURE='--set enable_insecure=true'
+    ENV_PROTOCOL='http'
+  elif [ "$flag" = "Y" ] || [ "$flag" = "y" ]; then
+    ENV_PROTOCOL='https'
   fi
 
   read -p "Please provide the retention days to remove old reports ( Default: 3 )" reportExpirationInDays
@@ -109,7 +113,8 @@ function installing_apitestrig() {
   --set apitestrig.configmaps.db.db-su-user="postgres" \
   --set apitestrig.configmaps.db.db-port="5432" \
   --set apitestrig.configmaps.apitestrig.ENV_USER="$ENV_USER" \
-  --set apitestrig.configmaps.apitestrig.ENV_ENDPOINT="https://$API_INTERNAL_HOST" \
+  --set apitestrig.configmaps.apitestrig.ENV_PROTOCOL="$ENV_PROTOCOL" \
+  --set apitestrig.configmaps.apitestrig.ENV_ENDPOINT="$ENV_PROTOCOL://$API_INTERNAL_HOST" \
   --set apitestrig.configmaps.apitestrig.ENV_TESTLEVEL="smokeAndRegression" \
   --set apitestrig.configmaps.apitestrig.reportExpirationInDays="$reportExpirationInDays" \
   --set apitestrig.configmaps.apitestrig.slack-webhook-url="$slackWebhookUrl" \

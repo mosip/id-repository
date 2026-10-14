@@ -20,7 +20,7 @@ import lombok.Data;
  * </pre>
  *
  * @see OpenApiService
- * @see OpenApiProperties#getService()
+ * @see OpenApiProperties
  */
 @Data
 public class OpenApiServer {

@@ -71,7 +71,7 @@ public class CredentialStoreConfig {
 	/**
 	 * SpringDoc API group limiting Swagger UI to credential-service REST paths.
 	 *
-	 * @return {@link GroupedOpenApi} scoped to paths from {@link OpenApiProperties#getGroup()}
+	 * @return {@link GroupedOpenApi} scoped to paths from {@code openapi.group} ({@link OpenApiProperties})
 	 */
 	@Bean
 	public GroupedOpenApi groupedOpenApi() {

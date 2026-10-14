@@ -244,7 +244,7 @@ public class VidController {
 	 * This method will accept uin as parameter, it will return 
 	 * all its associated vids.
 	 *
-	 * @param vid the vid
+	 * @param uin the uin
 	 * @return the response entity
 	 * @throws IdRepoAppException the id repo app exception
 	 */
@@ -257,11 +257,6 @@ public class VidController {
 			@ApiResponse(responseCode = "401", description = "Unauthorized" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "403", description = "Forbidden" ,content = @Content(schema = @Schema(hidden = true))),
 			@ApiResponse(responseCode = "404", description = "Not Found" ,content = @Content(schema = @Schema(hidden = true)))})
-	/**
-	 * Retrieve vids by uin.
-	 * @param uin uin
-	 * @return response entity<response wrapper<list<vid info dto>>>
-	 */
 	public ResponseEntity<ResponseWrapper<List<VidInfoDTO>>> retrieveVidsByUin(@PathVariable("UIN") String uin)
 			throws IdRepoAppException {
 		try {

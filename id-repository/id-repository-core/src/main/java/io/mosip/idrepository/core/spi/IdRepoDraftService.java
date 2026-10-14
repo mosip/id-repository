@@ -101,5 +101,124 @@ public interface IdRepoDraftService<REQUEST, RESPONSE> {
 	 * @return draft summary DTO
 	 * @throws IdRepoAppException if no draft exists for the UIN
 	 */
-    public DraftResponseDto getDraftUin(String uin) throws IdRepoAppException;
+	public DraftResponseDto getDraftUin(String uin) throws IdRepoAppException;
+
+	// ── V2 methods — enhanced/new behaviour introduced by MOSIP-082 ───────── //
+	//
+	// V2 drafts keep their object-store files under _draft/{ridHash}/Biometrics|Demographics/
+	// (ridHash = HMAC of the registration id) and move them to the live {uinHash}/ path only
+	// when the draft is published. V2 also supports LOST packets, whose UIN is only known
+	// after ABIS deduplication.
+
+	/**
+	 * Creates a V2 draft for a registration.
+	 * <ul>
+	 *   <li>{@code uin} given — UPDATE, ACTIVATED or DEACTIVATED packet: the draft is built
+	 *       from the live identity and its live files are copied to the draft path.</li>
+	 *   <li>{@code uin} {@code null}, registration id still the latest applied to a UIN —
+	 *       reprocessing: the draft is built from that identity.</li>
+	 *   <li>{@code uin} {@code null} and {@code generateUin=true} — NEW packet: a UIN is
+	 *       allocated and a minimal identity object is stored.</li>
+	 *   <li>{@code uin} {@code null} and {@code generateUin=false} — LOST packet: a draft with
+	 *       no UIN is created; the UIN is stamped later through {@link #updateDraftUinData}.</li>
+	 * </ul>
+	 *
+	 * @param registrationId registration id of the packet
+	 * @param uin            existing UIN for UPDATE packets; {@code null} for NEW and LOST packets
+	 * @param generateUin    {@code true} to allocate a UIN when {@code uin} is {@code null};
+	 *                       {@code false} for LOST packets
+	 * @return response with status {@code DRAFTED}
+	 * @throws IdRepoAppException {@code RECORD_EXISTS} when a draft already exists;
+	 *         {@code RID_OLDER_THAN_LATEST_PROCESSED} when a newer registration has already
+	 *         been applied; {@code NO_RECORD_FOUND} when {@code uin} does not exist;
+	 *         {@code DRAFT_OBJECT_COPY_FAILED} when live files cannot be copied;
+	 *         {@code DATABASE_ACCESS_ERROR} on persistence failure
+	 */
+	public RESPONSE createDraftV2(String registrationId, String uin, boolean generateUin) throws IdRepoAppException;
+
+	/**
+	 * Stamps a UIN on a LOST draft after ABIS matches the packet to an existing identity.
+	 * Missing demographic fields are back-filled from the live identity; values already in
+	 * the draft win. Biometrics and documents are not changed.
+	 *
+	 * @param registrationId registration id of the LOST draft
+	 * @param uin            UIN of the matched live identity
+	 * @return response with status {@code DRAFTED}
+	 * @throws IdRepoAppException {@code NO_RECORD_FOUND} when the draft does not exist;
+	 *         {@code UIN_NOT_FOUND} when the UIN has no live identity;
+	 *         {@code DRAFT_UIN_HASH_MISMATCH} when the draft already carries a different UIN;
+	 *         {@code RECORD_EXISTS} when another draft already holds this UIN;
+	 *         {@code DATABASE_ACCESS_ERROR} on persistence failure
+	 */
+	public RESPONSE updateDraftUinData(String registrationId, String uin) throws IdRepoAppException;
+
+	/**
+	 * Merges packet identity data, biometrics and documents into an existing V2 draft.
+	 * Files are written to the draft path, not the live path.
+	 *
+	 * @param registrationId registration id of the draft
+	 * @param request        identity update payload
+	 * @return response with status {@code DRAFTED}
+	 * @throws IdRepoAppException {@code NO_RECORD_FOUND} when the draft does not exist;
+	 *         {@code DRAFT_UIN_DETAILS_NOT_FOUND} when the data cannot be merged because the
+	 *         draft has no UIN yet; {@code DATABASE_ACCESS_ERROR} on persistence failure
+	 */
+	public RESPONSE updateDraftV2(String registrationId, REQUEST request) throws IdRepoAppException;
+
+	/**
+	 * Publishes a V2 draft as the live identity. Draft files are moved to the live path
+	 * first, then the identity is added or updated in its own transaction, then the draft
+	 * rows are deleted. A failed publish can be retried: files already moved are skipped.
+	 *
+	 * @param registrationId registration id of the draft
+	 * @return response with the live identity status and, for a new identity, the draft VID
+	 * @throws IdRepoAppException {@code NO_RECORD_FOUND} when the draft does not exist;
+	 *         {@code DRAFT_UIN_DETAILS_NOT_FOUND} when the draft has no UIN or identity data
+	 *         (a LOST draft that was never stamped); {@code DRAFT_OBJECT_MOVE_FAILED} when a
+	 *         file cannot be moved; {@code DATABASE_ACCESS_ERROR} on persistence failure
+	 */
+	public RESPONSE publishDraftV2(String registrationId) throws IdRepoAppException;
+
+	/**
+	 * Reads a V2 draft, optionally limited to one kind of content.
+	 *
+	 * @param registrationId    registration id of the draft
+	 * @param extractionFormats modality key to SDK format; when not empty, biometrics are
+	 *                          returned with templates in these formats
+	 * @param type              {@code demographics}, {@code biometrics},
+	 *                          {@code supportingdocuments} or {@code all}; {@code null} or
+	 *                          blank means {@code all}; case-insensitive
+	 * @return draft identity data and/or Base64URL-encoded files
+	 * @throws IdRepoAppException {@code NO_RECORD_FOUND} when the draft does not exist;
+	 *         {@code INVALID_INPUT_PARAMETER} when {@code type} is not recognised;
+	 *         {@code FILE_NOT_FOUND} or {@code FILE_STORAGE_ACCESS_ERROR} when a file cannot be read
+	 */
+	public RESPONSE getDraftV2(String registrationId, Map<String, String> extractionFormats, String type)
+			throws IdRepoAppException;
+
+	/**
+	 * Re-extracts biometric templates for a V2 draft. Previously extracted files for the
+	 * requested formats are deleted first, so the extraction runs again and the results
+	 * are stored on the draft path. Does nothing when {@code extractionFormats} is empty.
+	 *
+	 * @param registrationId    registration id of the draft
+	 * @param extractionFormats modality key to SDK format
+	 * @return response with status {@code DRAFTED}
+	 * @throws IdRepoAppException {@code NO_RECORD_FOUND} when the draft does not exist;
+	 *         {@code BIO_EXTRACTION_ERROR} when extraction fails
+	 */
+	public RESPONSE extractBiometricsV2(String registrationId, Map<String, String> extractionFormats) throws IdRepoAppException;
+
+	/**
+	 * Discards a V2 draft. Draft files are deleted first, so a failure keeps the draft rows
+	 * and the call can be retried; then the draft, biometric draft and document draft rows
+	 * are deleted.
+	 *
+	 * @param registrationId registration id of the draft
+	 * @return response with status {@code DISCARDED}
+	 * @throws IdRepoAppException {@code NO_RECORD_FOUND} when the draft does not exist;
+	 *         {@code DRAFT_OBJECT_DELETE_FAILED} when draft files cannot be deleted;
+	 *         {@code DATABASE_ACCESS_ERROR} on persistence failure
+	 */
+	public RESPONSE discardDraftV2(String registrationId) throws IdRepoAppException;
 }

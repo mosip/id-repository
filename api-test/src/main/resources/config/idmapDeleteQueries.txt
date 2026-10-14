@@ -1,0 +1,4 @@
+#####  DB queries to be executed to tear down the VIDs generated during the test rig run
+#####  ${testDataCreator} is replaced by IdRepoUtil.dbCleanUp(). Salt, vid_seed and vid_seq tables are not touched.
+
+delete from idmap.vid where cr_by = '${testDataCreator}';

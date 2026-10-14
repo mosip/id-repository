@@ -1,0 +1,170 @@
+{
+  "credential_issuer": "Sunbird",
+  "credential_endpoint": "https://${mosip.esignet.insurance.host}/v1/esignet/vci/credential",
+  "credentials_supported": [
+    {
+      "format": "ldp_vc",
+      "id": "InsuranceCredential",
+      "scope": "sunbird_rc_insurance_vc_ldp",
+      "cryptographic_binding_methods_supported": [
+        "did:jwk"
+      ],
+      "cryptographic_suites_supported": [
+        "RsaSignature2018"
+      ],
+      "proof_types_supported": [
+        "jwt"
+      ],
+      "credential_definition": {
+        "type": [
+          "VerifiableCredential",
+          "InsuranceCredential"
+        ],
+        "credentialSubject": {
+          "fullName": {
+            "display": [
+              {
+                "name": "Full Name",
+                "locale": "en"
+              }
+            ]
+          },
+          "policyName": {
+            "display": [
+              {
+                "name": "Policy Name",
+                "locale": "en"
+              }
+            ]
+          },
+          "policyNumber": {
+            "display": [
+              {
+                "name": "Policy Number",
+                "locale": "en"
+              }
+            ]
+          },
+          "gender": {
+            "display": [
+              {
+                "name": "Gender",
+                "locale": "en"
+              }
+            ]
+          },
+          "expiresOn": {
+            "display": [
+              {
+                "name": "Expiry Date",
+                "locale": "en"
+              }
+            ]
+          },
+          "dob": {
+            "display": [
+              {
+                "name": "Date Of Birth",
+                "locale": "en"
+              }
+            ]
+          }
+        }
+      },
+      "display": [
+        {
+          "name": "MOSIP Insurance",
+          "locale": "en",
+          "logo": {
+            "url": "https://${mosip.api.public.host}/inji/mosip-logo.png",
+            "alt_text": "insurance logo"
+          },
+          "background_color": "#fafcff",
+          "text_color": "#00284d"
+        }
+      ]
+    },
+    {
+      "format": "ldp_vc",
+      "id": "LifeInsuranceCredential_ldp",
+      "scope": "life_insurance_vc_ldp",
+      "cryptographic_binding_methods_supported": [
+        "did:jwk"
+      ],
+      "cryptographic_suites_supported": [
+        "RsaSignature2018"
+      ],
+      "proof_types_supported": [
+        "jwt"
+      ],
+      "credential_definition": {
+        "type": [
+          "VerifiableCredential",
+          "LifeInsuranceCredential"
+        ],
+        "credentialSubject": {
+          "fullName": {
+            "display": [
+              {
+                "name": "Full Name",
+                "locale": "en"
+              }
+            ]
+          },
+          "policyName": {
+            "display": [
+              {
+                "name": "Policy Name",
+                "locale": "en"
+              }
+            ]
+          },
+          "policyNumber": {
+            "display": [
+              {
+                "name": "Policy Number",
+                "locale": "en"
+              }
+            ]
+          },
+          "gender": {
+            "display": [
+              {
+                "name": "Gender",
+                "locale": "en"
+              }
+            ]
+          },
+          "policyExpiresOn": {
+            "display": [
+              {
+                "name": "Expiry Date",
+                "locale": "en"
+              }
+            ]
+          },
+          "dob": {
+            "display": [
+              {
+                "name": "Date Of Birth",
+                "locale": "en"
+              }
+            ]
+          }
+        }
+      },
+      "display": [
+        {
+          "name": "Sunbird Life Insurance",
+          "locale": "en",
+          "logo": {
+            "url": "https://sunbird.org/images/sunbird-logo-new.png",
+            "alt_text": "Sunbird life insurance logo"
+          },
+          "background_color": "#fefcfa",
+          "text_color": "#7C4616"
+        }
+      ]
+    }
+  ]
+}

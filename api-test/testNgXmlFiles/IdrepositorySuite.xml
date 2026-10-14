@@ -16,13 +16,6 @@
 			<class name="io.mosip.testrig.apirig.idrepo.testscripts.AddIdentity" />
 		</classes>
 	</test>
-	<test name="AddIdentityV2">
-		<parameter name="ymlFile"
-			value="idRepository/AddIdentityV2/AddIdentityV2.yml" />
-		<classes>
-			<class name="io.mosip.testrig.apirig.idrepo.testscripts.AddIdentity" />
-		</classes>
-	</test>
 	<test name="CreateVID">
 		<parameter name="ymlFile" value="idRepository/CreateVID/CreateVid.yml" />
 		<parameter name="idKeyName" value="VID" />
@@ -47,14 +40,6 @@
 			<class name="io.mosip.testrig.apirig.idrepo.testscripts.AddIdentity" />
 		</classes>
 	</test>
-	<test name="IdVidMetadataSearch">
-		<parameter name="ymlFile"
-			value="idRepository/IdVidMetadataSearch/IdVidMetadataSearch.yml" />
-		<classes>
-			<class
-				name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePost" />
-		</classes>
-	</test>
 
 	<test name="UpdateIdentityArrayHandle">
 		<parameter name="ymlFile"
@@ -65,17 +50,19 @@
 		</classes>
 	</test>
 
+	<!-- Reuses the email freed by TC_IDRepo_UpdateIdentityArrayHandle_36 in a new Add Identity call. -->
+	<test name="AddIdentityArrayHandlePostUpdate">
+		<parameter name="ymlFile"
+			value="idRepository/AddIdentity/AddIdentityArrayHandlePostUpdate.yml" />
+		<classes>
+			<class name="io.mosip.testrig.apirig.idrepo.testscripts.AddIdentity" />
+		</classes>
+	</test>
+
+
 	<test name="UpdateIdentity">
 		<parameter name="ymlFile"
 			value="idRepository/UpdateIdentity/UpdateIdentity.yml" />
-		<classes>
-			<class
-				name="io.mosip.testrig.apirig.idrepo.testscripts.UpdateIdentity" />
-		</classes>
-	</test>
-	<test name="UpdateIdentityV2">
-		<parameter name="ymlFile"
-			value="idRepository/UpdateIdentityV2/UpdateIdentityV2.yml" />
 		<classes>
 			<class
 				name="io.mosip.testrig.apirig.idrepo.testscripts.UpdateIdentity" />
@@ -131,14 +118,7 @@
 				name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePostForAutoGenId" />
 		</classes>
 	</test>
-	<test name="RetrieveIdentityPostV2">
-		<parameter name="ymlFile"
-			value="idRepository/RetrieveIdentityPostV2/RetrieveIdentityPostV2.yml" />
-		<classes>
-			<class
-				name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePostForAutoGenId" />
-		</classes>
-	</test>
+
 
 	<test name="RetrieveVIDByUIN">
 		<parameter name="ymlFile"
@@ -191,6 +171,25 @@
 		</classes>
 	</test>
 
+	<test name="CreateDraftV2">
+		<parameter name="ymlFile"
+			value="idRepository/CreateDraftV2/CreateDraftV2.yml" />
+		<parameter name="pathParams" value="registrationId" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.PostWithBodyAndPathParams" />
+		</classes>
+	</test>
+
+	<test name="GetDraftV2">
+		<parameter name="ymlFile"
+			value="idRepository/GetDraftV2/GetDraftV2.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
+		</classes>
+	</test>
+
 	<test name="GetDraft">
 		<parameter name="ymlFile" value="idRepository/GetDraft/GetDraft.yml" />
 		<parameter name="idKeyName" value="UIN" />
@@ -219,6 +218,33 @@
 		</classes>
 	</test>
 
+	<test name="UpdateDraftV2">
+		<parameter name="ymlFile"
+			value="idRepository/UpdateDraftV2/UpdateDraftV2.yml" />
+		<parameter name="pathParams" value="registrationId" />
+		<classes>
+			<class name="io.mosip.testrig.apirig.idrepo.testscripts.UpdateDraft" />
+		</classes>
+	</test>
+
+	<test name="UpdateDraftUinData">
+		<parameter name="ymlFile"
+			value="idRepository/UpdateDraftUinData/UpdateDraftUinData.yml" />
+		<parameter name="pathParams" value="registrationId" />
+		<classes>
+			<class name="io.mosip.testrig.apirig.idrepo.testscripts.PatchWithPathParamsAndBody" />
+		</classes>
+	</test>
+
+	<test name="PublishDraftV2">
+		<parameter name="ymlFile"
+			value="idRepository/PublishDraftV2/PublishDraftV2.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
+		</classes>
+	</test>
+
 	<test name="PublishDraft">
 		<parameter name="ymlFile"
 			value="idRepository/PublishDraft/PublishDraft.yml" />
@@ -232,6 +258,15 @@
 		<parameter name="ymlFile"
 			value="idRepository/ExtractBiometrics/ExtractBiometrics.yml" />
 		<parameter name="pathParams" value="registrationId" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.PutWithPathParam" />
+		</classes>
+	</test>
+
+	<test name="ExtractBiometricsV2">
+		<parameter name="ymlFile"
+			value="idRepository/ExtractBiometricsV2/ExtractBiometricsV2.yml" />
 		<classes>
 			<class
 				name="io.mosip.testrig.apirig.idrepo.testscripts.PutWithPathParam" />
@@ -269,6 +304,24 @@
 			value="idRepository/AuthInternalUnlock/AuthInternalUnlock.yml" />
 		<classes>
 			<class name="io.mosip.testrig.apirig.idrepo.testscripts.SimplePost" />
+		</classes>
+	</test>
+
+	<!-- BLOCKED is a one-way transition; runs last against its own throwaway identity to avoid affecting earlier tests. -->
+	<test name="AddIdentityForBlockedHandleCheck">
+		<parameter name="ymlFile"
+			value="idRepository/AddIdentity/AddIdentityForBlockedHandleCheck.yml" />
+		<classes>
+			<class name="io.mosip.testrig.apirig.idrepo.testscripts.AddIdentity" />
+		</classes>
+	</test>
+
+	<test name="UpdateIdentityBlockedHandleCheck">
+		<parameter name="ymlFile"
+			value="idRepository/UpdateIdentity/UpdateIdentityBlockedHandleCheck.yml" />
+		<classes>
+			<class
+				name="io.mosip.testrig.apirig.idrepo.testscripts.UpdateIdentity" />
 		</classes>
 	</test>
 

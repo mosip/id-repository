@@ -30,6 +30,7 @@ ENV work_dir=/home/${container_user}
 
 # Combine all necessary files into a single COPY command
 COPY ./api-test/target $work_dir/
+# Mock SBI assets ship inside the fat jar under mds/; MosipTestRunner materializes them to cwd at runtime.
 COPY entrypoint.sh $work_dir
 
 # install packages and create user

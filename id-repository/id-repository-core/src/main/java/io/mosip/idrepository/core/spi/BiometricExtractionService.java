@@ -45,4 +45,27 @@ public interface BiometricExtractionService {
  	CompletableFuture<List<BIR>> extractTemplate(String uinHash, String fileName,
 				String extractionType, String extractionFormat, List<BIR> birsForModality) throws IdRepoAppException;
 
+
+	/**
+	 * V2 draft variant of {@link #extractTemplate}. The extracted file
+	 * {@code {fileName without extension}.{modality}.{extractionFormat}} is read from and
+	 * written to the draft path {@code _draft/{ridHash}/Biometrics/} instead of the live
+	 * path, so it is moved to the live identity when the draft is published.
+	 * <p>
+	 * When a previously extracted file exists it is returned without calling the SDK;
+	 * otherwise the templates are extracted and a non-empty result is stored for later calls.
+	 * </p>
+	 *
+	 * @param ridHash          rid hash of the draft (the draft path segment)
+	 * @param fileName         file id of the source CBEFF in the draft
+	 * @param extractionType   modality key ({@code fingerExtractionFormat},
+	 *                         {@code irisExtractionFormat} or {@code faceExtractionFormat})
+	 * @param extractionFormat target template format identifier
+	 * @param birsForModality  BIR records of the modality from the draft CBEFF
+	 * @return future completing with the extracted BIR list
+	 * @throws IdRepoAppException {@code BIO_EXTRACTION_ERROR} when the SDK fails;
+	 *         {@code UNKNOWN_ERROR} for any other failure
+	 */
+	CompletableFuture<List<BIR>> extractTemplateDraft(String ridHash, String fileName,
+			String extractionType, String extractionFormat, List<BIR> birsForModality) throws IdRepoAppException;
 }

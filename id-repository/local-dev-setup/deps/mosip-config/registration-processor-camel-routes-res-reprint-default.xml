@@ -1,0 +1,94 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+   <!-- Packet-Reciever to securezone-notification Route -->
+   <route id="packet-reciever-->securezone-notification res_reprint route">
+      <from uri="eventbus://packet-receiver-res_reprint-bus-out" />
+      <log message="packet-reciever-->securezone-notification res_reprint ${bodyAs(String)}" />
+      <choice>
+         <when>
+            <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == true)]</jsonpath>
+            <to uri="workflow-cmd://complete-as-failed" />
+         </when>
+         <when>
+            <jsonpath>$.[?(@['isValid'] == true &amp;&amp; @['internalError'] == true)]</jsonpath>
+            <to uri="workflow-cmd://mark-as-reprocess" />
+         </when>
+         <when>
+            <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == false)]</jsonpath>
+            <to uri="workflow-cmd://complete-as-failed" />
+         </when>
+         <otherwise>
+            <to uri="eventbus://securezone-notification-bus-in" />
+         </otherwise>
+      </choice>
+   </route>
+   <!-- securezone-notification to packet-uploader Route -->
+   <route id="securezone-notification-->packet-uploader res_reprint route">
+      <from uri="eventbus://securezone-notification-res_reprint-bus-out" />
+      <log message="securezone-notification-->packet-uploader res_reprint route ${bodyAs(String)}" />
+      <choice>
+         <when>
+            <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == true)]</jsonpath>
+            <to uri="workflow-cmd://complete-as-failed" />
+         </when>
+         <when>
+            <jsonpath>$.[?(@['isValid'] == true &amp;&amp; @['internalError'] == true)]</jsonpath>
+            <to uri="workflow-cmd://mark-as-reprocess" />
+         </when>
+         <when>
+            <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == false)]</jsonpath>
+            <to uri="workflow-cmd://complete-as-failed" />
+         </when>
+         <otherwise>
+            <to uri="eventbus://packet-uploader-bus-in" />
+         </otherwise>
+      </choice>
+   </route>
+   <!-- packet-uploader to printing-stage Route -->
+   <route id="packet-uploader-->printing-stage res_reprint route">
+      <from uri="eventbus://packet-uploader-res_reprint-bus-out" />
+      <log message="packet-uploader-->printing-stage res_reprint route ${bodyAs(String)}" />
+      <choice>
+         <when>
+            <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == true)]</jsonpath>
+            <to uri="workflow-cmd://complete-as-failed" />
+            <to uri="workflow-cmd://anonymous-profile" />
+         </when>
+         <when>
+            <jsonpath>$.[?(@['isValid'] == true &amp;&amp; @['internalError'] == true)]</jsonpath>
+            <to uri="workflow-cmd://mark-as-reprocess" />
+         </when>
+         <when>
+            <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == false)]</jsonpath>
+            <to uri="workflow-cmd://complete-as-failed" />
+            <to uri="workflow-cmd://anonymous-profile" />
+         </when>
+         <otherwise>
+            <to uri="eventbus://printing-bus-in" />
+         </otherwise>
+      </choice>
+   </route>
+   <route id="printing-stage--> res_reprint route">
+      <from uri="eventbus://printing-res_reprint-bus-out" />
+      <log message="printing-stage--> route ${bodyAs(String)}" />
+      <choice>
+         <when>
+            <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == true)]</jsonpath>
+            <to uri="workflow-cmd://complete-as-failed" />
+            <to uri="workflow-cmd://anonymous-profile" />
+         </when>
+         <when>
+            <jsonpath>$.[?(@['isValid'] == true &amp;&amp; @['internalError'] == true)]</jsonpath>
+            <to uri="workflow-cmd://mark-as-reprocess" />
+         </when>
+         <when>
+            <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == false)]</jsonpath>
+            <to uri="workflow-cmd://complete-as-failed" />
+            <to uri="workflow-cmd://anonymous-profile" />
+         </when>
+         <otherwise>
+            <to uri="workflow-cmd://complete-as-processed" />
+            <to uri="workflow-cmd://anonymous-profile" />
+         </otherwise>
+      </choice>
+   </route>
+</routes>

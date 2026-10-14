@@ -9,7 +9,7 @@ import lombok.Data;
  * consuming the issued credential.
  * </p>
  *
- * @see PolicyAttributesDto#getAllowedAuthTypes()
+ * @see PolicyAttributesDto
  */
 @Data
 public class AuthPolicyDto {

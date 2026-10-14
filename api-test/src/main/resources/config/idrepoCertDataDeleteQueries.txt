@@ -1,0 +1,3 @@
+#####  DB queries to be executed to tear down the data used and generated during the test rig run
+
+delete from idrepo.handle WHERE cr_by ='service-account-mosip-testrig-client'

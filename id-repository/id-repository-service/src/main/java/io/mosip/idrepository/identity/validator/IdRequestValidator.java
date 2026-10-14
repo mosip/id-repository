@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -31,10 +32,12 @@ import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.AuthTypeStatusRequestDto;
 import io.mosip.idrepository.core.dto.AuthtypeStatus;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
+import io.mosip.idrepository.core.dto.VerificationMetadata;
 import io.mosip.idrepository.core.constant.IdRepoConstants;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
+import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.core.validator.BaseIdRepoValidator;
 import io.mosip.idrepository.core.validator.IdRepoValidationMessageHelper;
 import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
@@ -189,6 +192,20 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	 * @see org.springframework.validation.Validator#validate(java.lang.Object,
 	 * org.springframework.validation.Errors)
 	 */
+	/**
+	 * Accepts {@code v2} on identity create and update. Those requests use
+	 * {@code POST}/{@code PATCH} {@code /v2} and send {@code version=v2}, while the
+	 * configured exact version stays {@code v1} for the original endpoints.
+	 */
+	@Override
+	protected void validateVersion(String ver, Errors errors) {
+		String versionPattern = EnvUtil.getVersionPattern();
+		if ("v2".equals(ver) && versionPattern != null && Pattern.compile(versionPattern).matcher(ver).matches()) {
+			return;
+		}
+		super.validateVersion(ver, errors);
+	}
+
 	@Override
 	/**
 	 * Validate.
@@ -254,7 +271,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	/**
 	 * Validates identity request payload for create or update operations.
 	 *
-	 * @param request request body object (typically {@link RequestDTO})
+	 * @param request request body object (typically {@link io.mosip.idrepository.core.dto.RequestDTO})
 	 * @param errors  Spring validation errors binding result
 	 * @param method  operation name ({@code create} or {@code update})
 	 */
@@ -402,6 +419,36 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 		}
 	}
 
+	/**
+	 * Checks v2 {@code verifiedAttributes} objects: each entry needs a trust framework, a
+	 * verification process and at least one claim. Does nothing when the list is absent.
+	 *
+	 * @param verifiedAttributes verification objects from a v2 request
+	 * @throws IdRepoAppException {@code INVALID_INPUT_PARAMETER} naming the first bad field
+	 */
+	public void validateVerificationMetadata(List<VerificationMetadata> verifiedAttributes)
+			throws IdRepoAppException {
+		if (verifiedAttributes == null) {
+			return;
+		}
+		for (int i = 0; i < verifiedAttributes.size(); i++) {
+			VerificationMetadata metadata = verifiedAttributes.get(i);
+			if (metadata == null || org.apache.commons.lang3.StringUtils.isBlank(metadata.getTrustFramework())) {
+				throw invalidVerifiedAttribute(i, "trustFramework");
+			}
+			if (org.apache.commons.lang3.StringUtils.isBlank(metadata.getVerificationProcess())) {
+				throw invalidVerifiedAttribute(i, "verificationProcess");
+			}
+			if (metadata.getClaims() == null || metadata.getClaims().isEmpty()) {
+				throw invalidVerifiedAttribute(i, "claims");
+			}
+		}
+	}
+
+	private IdRepoAppException invalidVerifiedAttribute(int index, String field) {
+		return new IdRepoAppException(INVALID_INPUT_PARAMETER.getErrorCode(),
+				String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), "verifiedAttributes/" + index + "/" + field));
+	}
 
 	/**
 	 * Validate uin.

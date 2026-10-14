@@ -1,0 +1,104 @@
+{
+	"ida-mapping": {
+		"name": [
+			"firstName","middleName","lastName"
+		],
+		"dob": [
+			"dateOfBirth"
+		],
+        "birthdate": [
+            "dateOfBirth"
+        ],
+		"age": [
+			"dateOfBirth"
+		],
+		"gender": [
+			"gender"
+		],
+		"phoneNumber": [
+			"mobileno"
+		],
+        "phone_number": [
+            "mobileno"
+        ],
+		"emailId": [
+			"email"
+		],
+        "email": [
+            "email"
+        ],
+		"addressLine1": [
+			"presentAddressLine1"
+		],
+		"addressLine2": [
+			"presentAddressLine2"
+		],
+		"addressLine3": [
+			"presentAddressLine3"
+		],
+		"location1": [
+			"presentProvince"
+		],
+		"location2": [
+			"presentCity"
+		],
+		"location3": [
+			"presentBarangay"
+		],
+		"postalCode": [
+			"presentZipcode"
+		],
+		"fullAddress": [
+			"presentAddressLine1",
+			"presentAddressLine2",
+			"presentAddressLine3",
+                        "presentAddressLine4",
+			"presentCountry",
+			"presentProvince",
+                        "presentCity",
+			"presentBarangay",
+			"presentZipcode"
+		],
+        "address": [
+            "presentAddressLine1",
+            "presentAddressLine2",
+            "presentAddressLine3",
+            "presentCity",
+            "presentBarangay",
+            "presentProvince",
+            "presentZipcode"
+        ],
+        "street_address": [
+            "presentAddressLine1",
+            "presentAddressLine2",
+            "presentAddressLine3"
+        ],
+	    "locality": {
+	       "value":  "presentCity"
+	    },
+	    "region": {
+	       "value":  "presentBarangay"
+	    },
+	    "postal_code": {
+	       "value":  "presentZipcode"
+	    },
+	    "country": {
+	       "value":  "presentProvince"
+	    },
+		"iris": [
+			"CBEFF"
+		],
+		"fingerprint": [
+			"CBEFF"
+		],
+		"face": [
+			"CBEFF"
+		],
+        "individual_id": [
+            "individual_id"
+        ],
+        "picture": {
+           "value": "face"
+        }
+	}
+}

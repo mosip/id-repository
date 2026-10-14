@@ -37,6 +37,16 @@ public class SaltUtilTest {
 	public void testModulus_lesserLength() {
 		assertEquals(91, SaltUtil.getIdvidModulo("91", 3));
 	}
+
+	@Test
+	public void testModulus_nonNumericSuffix() {
+		try {
+			SaltUtil.getIdvidModulo("$123ds", 3);
+			org.junit.Assert.fail("Expected IdRepoAppUncheckedException");
+		} catch (IdRepoAppUncheckedException ex) {
+			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), ex.getErrorCode());
+		}
+	}
 	
 	/**
 	 * Test modulus negative divisor.

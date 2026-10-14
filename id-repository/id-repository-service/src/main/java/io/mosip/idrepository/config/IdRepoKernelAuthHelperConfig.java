@@ -10,17 +10,12 @@ import io.mosip.kernel.auth.defaultadapter.helper.TokenValidationHelper;
 import io.mosip.kernel.auth.defaultadapter.helper.ValidateTokenHelper;
 
 /**
- * Registers Spring Framework 7–compatible kernel-auth helper beans from {@code id-repository-service}.
+ * Registers kernel-auth helper beans used by self-token interceptors and {@code AuthFilter}.
  * <p>
- * The {@code kernel-auth-adapter} fat JAR ships helpers compiled against older Spring APIs and may be
- * loaded through {@code KernelAuthSpringFactoriesFilteringClassLoader}. Shadow implementations under
- * {@code io.mosip.kernel.auth.defaultadapter.helper} in this module override the JAR versions while
- * keeping package names identical for {@code AuthFilter} and {@code AuthHandler} wiring.
- * </p>
- * <p>
- * Explicit {@code @Bean} registration with {@code @Primary} avoids duplicate-type ambiguity when the
- * filtering class loader and Spring's component scan would otherwise resolve different
- * {@code Class} objects for the same FQCN.
+ * Helpers come from {@code kernel-auth-adapter} 1.4.1-SNAPSHOT. Explicit {@code @Bean}
+ * registration with {@code @Primary} avoids duplicate-type ambiguity when
+ * {@code KernelAuthSpringFactoriesFilteringClassLoader} and component scan would otherwise
+ * resolve different {@code Class} objects for the same FQCN.
  * </p>
  *
  * <h2>Beans registered</h2>
@@ -41,7 +36,7 @@ public class IdRepoKernelAuthHelperConfig {
 	 * Primary {@link ValidateTokenHelper} bean created through the Spring factory so
 	 * {@code @Autowired} fields inside the helper are populated.
 	 *
-	 * @param beanFactory Spring bean factory used to instantiate the shadow class
+	 * @param beanFactory Spring bean factory used to instantiate the helper
 	 * @return configured validate-token helper
 	 */
 	@Bean

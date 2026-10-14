@@ -299,5 +299,15 @@ public class IdRepoSecurityManagerTest {
 
 	}
 
+	@Test
+	public void testGetSaltKeyForIdNonNumeric() {
+		try {
+			securityManager.getSaltKeyForId("$123ds");
+			org.junit.Assert.fail("Expected IdRepoAppUncheckedException");
+		} catch (io.mosip.idrepository.core.exception.IdRepoAppUncheckedException e) {
+			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+		}
+	}
+
 }
 

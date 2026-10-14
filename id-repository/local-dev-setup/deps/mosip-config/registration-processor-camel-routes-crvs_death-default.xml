@@ -1,0 +1,228 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+    <!-- securezone-notification to packet-validator Route -->
+    <route id="securezone-notification-->packet-validator crvs_death route">
+        <from uri="eventbus://securezone-notification-crvs_death-bus-out" />
+        <log message="securezone-notification-->packet-validator crvs_death route ${bodyAs(String)}" />
+        <choice>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == true)]</jsonpath>
+                <to uri="workflow-cmd://complete-as-failed" />
+            </when>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == true &amp;&amp; @['internalError'] == true)]</jsonpath>
+                <to uri="workflow-cmd://mark-as-reprocess" />
+            </when>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == false)]</jsonpath>
+                <to uri="workflow-cmd://complete-as-failed" />
+            </when>
+            <otherwise>
+                <to uri="eventbus://packet-validator-bus-in" />
+            </otherwise>
+        </choice>
+    </route>
+    <!-- Packet Validator to Packet Classifier Route -->
+    <route id="packet-validator-->packet-classifier crvs_death route">
+        <from uri="eventbus://packet-validator-crvs_death-bus-out" />
+        <log message="packet-validator-->packet-classifier crvs_death route ${bodyAs(String)}" />
+        <choice>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == true)]</jsonpath>
+                <to uri="workflow-cmd://complete-as-failed" />
+                <to uri="workflow-cmd://anonymous-profile" />
+            </when>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == true &amp;&amp; @['internalError'] == true)]</jsonpath>
+                <to uri="workflow-cmd://mark-as-reprocess" />
+            </when>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == false)]</jsonpath>
+                <to uri="workflow-cmd://complete-as-failed" />
+                <to uri="workflow-cmd://anonymous-profile" />
+            </when>
+            <otherwise>
+                <to uri="eventbus://packet-classifier-bus-in" />
+            </otherwise>
+        </choice>
+    </route>
+    <route id="packet-classifier-->cmd-validator crvs_death route">
+        <from uri="eventbus://packet-classifier-crvs_death-bus-out" />
+        <log message="packet-classifier-->cmd-validator crvs_death route ${bodyAs(String)}" />
+        <choice>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == true)]</jsonpath>
+                <to uri="workflow-cmd://complete-as-failed" />
+                <to uri="workflow-cmd://anonymous-profile" />
+            </when>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == true &amp;&amp; @['internalError'] == true)]</jsonpath>
+                <to uri="workflow-cmd://mark-as-reprocess" />
+            </when>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == false)]</jsonpath>
+                <to uri="workflow-cmd://complete-as-failed" />
+                <to uri="workflow-cmd://anonymous-profile" />
+            </when>
+            <otherwise>
+                <to uri="eventbus://c-m-d-validator-bus-in" />
+            </otherwise>
+        </choice>
+    </route>
+    <route id="cmd-validator-->operator-validator crvs_death route">
+        <from uri="eventbus://c-m-d-validator-crvs_death-bus-out" />
+        <log message="cmd-validator-->operator-validator/supervisor-validator crvs_death route ${bodyAs(String)}" />
+        <choice>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == true)]</jsonpath>
+                <to uri="workflow-cmd://complete-as-failed" />
+                <to uri="workflow-cmd://anonymous-profile" />
+            </when>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == true &amp;&amp; @['internalError'] == true)]</jsonpath>
+                <to uri="workflow-cmd://mark-as-reprocess" />
+            </when>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == false)]</jsonpath>
+                <to uri="workflow-cmd://complete-as-failed" />
+                <to uri="workflow-cmd://anonymous-profile" />
+            </when>
+            <when>
+                <jsonpath suppressExceptions="true">$.[?(@['tags']['META_INFO-OPERATIONS_DATA-officerId'] != '' &amp;&amp; @['tags']['META_INFO-OPERATIONS_DATA-officerId'] != '--TAG_VALUE_NOT_AVAILABLE--')]</jsonpath>
+                <to uri="eventbus://operator-validator-bus-in" />
+            </when>
+            <when>
+                <jsonpath suppressExceptions="true">$.[?(@['tags']['META_INFO-OPERATIONS_DATA-supervisorId'] != '' &amp;&amp; @['tags']['META_INFO-OPERATIONS_DATA-supervisorId'] != '--TAG_VALUE_NOT_AVAILABLE--')]</jsonpath>
+                <to uri="eventbus://supervisor-validator-bus-in" />
+            </when>
+            <otherwise>
+                <to uri="workflow-cmd://complete-as-failed" />
+                <to uri="workflow-cmd://anonymous-profile" />
+            </otherwise>
+        </choice>
+    </route>
+    <route id="operator-validator-->supervisor-validator crvs_death route">
+        <from uri="eventbus://operator-validator-crvs_death-bus-out" />
+        <log message="operator-validator-->supervisor-validator/introducer-validator/create-draft crvs_death route ${bodyAs(String)}" />
+        <choice>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == true)]</jsonpath>
+                <to uri="workflow-cmd://complete-as-failed" />
+                <to uri="workflow-cmd://anonymous-profile" />
+            </when>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == true &amp;&amp; @['internalError'] == true)]</jsonpath>
+                <to uri="workflow-cmd://mark-as-reprocess" />
+            </when>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == false)]</jsonpath>
+                <to uri="workflow-cmd://complete-as-failed" />
+                <to uri="workflow-cmd://anonymous-profile" />
+            </when>
+            <when>
+                <jsonpath suppressExceptions="true">$.[?(@['tags']['META_INFO-OPERATIONS_DATA-supervisorId'] != '' &amp;&amp; @['tags']['META_INFO-OPERATIONS_DATA-supervisorId'] != '--TAG_VALUE_NOT_AVAILABLE--')]</jsonpath>
+                <to uri="eventbus://supervisor-validator-bus-in" />
+            </when>
+            <otherwise>
+                <!-- Introducer validation not implemented for CRVS -->
+                <!-- <to uri="eventbus://introducer-validator-bus-in" />  -->
+                <to uri="eventbus://create-draft-bus-in" />
+            </otherwise>
+        </choice>
+    </route>
+    <route id="supervisor-validator-->introducer-validator crvs_death route">
+        <from uri="eventbus://supervisor-validator-crvs_death-bus-out" />
+        <log message="supervisor-validator-->introducer-validator/create-draft-stage crvs_death route ${bodyAs(String)}" />
+        <choice>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == true)]</jsonpath>
+                <to uri="workflow-cmd://complete-as-failed" />
+                <to uri="workflow-cmd://anonymous-profile" />
+            </when>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == true &amp;&amp; @['internalError'] == true)]</jsonpath>
+                <to uri="workflow-cmd://mark-as-reprocess" />
+            </when>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == false)]</jsonpath>
+                <to uri="workflow-cmd://complete-as-failed" />
+                <to uri="workflow-cmd://anonymous-profile" />
+            </when>
+            <otherwise>
+                <!-- Introducer validation not implemented for CRVS -->
+                <!-- <to uri="eventbus://introducer-validator-bus-in" />  -->
+                <to uri="eventbus://create-draft-bus-in" />
+            </otherwise>
+        </choice>
+    </route>
+    <route id="introducer-validator-->create-draft crvs_death route">
+        <from uri="eventbus://introducer-validator-crvs_death-bus-out" />
+        <log message="introducer-validator-->create-draft crvs_death route ${bodyAs(String)}" />
+        <choice>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == true)]</jsonpath>
+                <to uri="workflow-cmd://complete-as-failed" />
+                <to uri="workflow-cmd://anonymous-profile" />
+            </when>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == true &amp;&amp; @['internalError'] == true)]</jsonpath>
+                <to uri="workflow-cmd://mark-as-reprocess" />
+            </when>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == false)]</jsonpath>
+                <to uri="workflow-cmd://complete-as-rejected" />
+                <to uri="workflow-cmd://anonymous-profile" />
+            </when>
+            <otherwise>
+                <to uri="eventbus://create-draft-bus-in" />
+            </otherwise>
+        </choice>
+    </route>
+    <!-- Create draft to finalization Route -->
+    <route id="create-draft-->finalization-stage crvs_death route">
+        <from uri="eventbus://create-draft-crvs_death-bus-out" />
+        <log message="create-draft-->finalization-stage crvs_death route ${bodyAs(String)}" />
+        <choice>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == true)]</jsonpath>
+                <to uri="workflow-cmd://complete-as-failed" />
+                <to uri="workflow-cmd://anonymous-profile" />
+            </when>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == true &amp;&amp; @['internalError'] == true)]</jsonpath>
+                <to uri="workflow-cmd://mark-as-reprocess" />
+            </when>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == false)]</jsonpath>
+                <to uri="workflow-cmd://complete-as-failed" />
+                <to uri="workflow-cmd://anonymous-profile" />
+            </when>
+            <otherwise>
+                <to uri="eventbus://finalization-bus-in" />
+            </otherwise>
+        </choice>
+    </route>
+    <route id="finalization route--> crvs_death route">
+        <from uri="eventbus://finalization-crvs_death-bus-out" />
+        <log message="finalization--> crvs_death route ${bodyAs(String)}" />
+        <choice>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == true)]</jsonpath>
+                <to uri="workflow-cmd://complete-as-failed" />
+                <to uri="workflow-cmd://anonymous-profile" />
+            </when>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == true &amp;&amp; @['internalError'] == true)]</jsonpath>
+                <to uri="workflow-cmd://mark-as-reprocess" />
+            </when>
+            <when>
+                <jsonpath>$.[?(@['isValid'] == false &amp;&amp; @['internalError'] == false)]</jsonpath>
+                <to uri="workflow-cmd://complete-as-failed" />
+                <to uri="workflow-cmd://anonymous-profile" />
+            </when>
+            <otherwise>
+                <to uri="workflow-cmd://complete-as-processed" />
+                <to uri="workflow-cmd://anonymous-profile" />
+            </otherwise>
+        </choice>
+    </route>
+</routes>

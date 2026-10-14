@@ -20,7 +20,7 @@ import lombok.Data;
  * </pre>
  *
  * @see OpenApiInfoProperty
- * @see OpenApiProperties#getInfo()
+ * @see OpenApiProperties
  */
 @Data
 public class OpenApiLicenseProperty {

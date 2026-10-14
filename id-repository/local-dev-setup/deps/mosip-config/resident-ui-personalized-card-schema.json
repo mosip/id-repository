@@ -1,0 +1,302 @@
+{
+	"identity": [
+		{
+			"attributeName": "fullName",
+			"maskRequired": false,			
+			"formatRequired": true,
+			"defaultFormat":"fullName",
+			"label": {
+				"eng": "Name",
+				"ara": "اسم",
+				"fra":"Nom",
+				"hin":"नाम",
+				"tam":"பெயர்",
+				"kan":"ಹೆಸರು",
+				"spa":"Nombre"
+			},
+			"formatOptionLabel":{
+				"eng": "Name Format",
+				"ara": "تنسيق الاسم",
+				"fra":"Format du nom",
+				"hin":"नाम प्रारूप",
+				"tam":"பெயர் வடிவம்",
+				"kan":"ಹೆಸರು ಸ್ವರೂಪ",
+				"spa":"Formato de nombre"
+			},
+			"formatOption":{
+				"eng": [{"label":"Full Name", "value":"fullName","checked":true}],
+				"ara": [{"label":"الاسم الكامل", "value":"fullName","checked":true}],
+				"fra": [{"label":"nom et prénom", "value":"fullName","checked":true}],
+				"hin": [{"label":"पूरा नाम", "value":"fullName","checked":true}],
+				"tam": [{"label":"முழு பெயர்", "value":"fullName","checked":true}],
+				"kan": [{"label":"ಪೂರ್ಣ ಹೆಸರು", "value":"fullName","checked":true}],
+				"spa": [{"label":"Nombre completo", "value":"fullName","checked":true}]
+			},
+			"displaykeyinsharewithpartner":true,
+			"displaykeyinpersonalisedcard":true,
+			"checked":false
+		},
+		{
+			"attributeName": "dateOfBirth",
+			"maskRequired": false,
+			"formatRequired": true,
+			"defaultFormat":"DD/MMM/YYYY",
+			"label": {
+				"eng": "Date of birth",
+                                "ara": "تاريخ الميلاد",
+                                "fra": "date de naissance",
+                                "hin": "जन्म की तारीख",
+                                "tam": "பிறந்த தேதி",
+                                "kan": "ಹುಟ್ತಿದ ದಿನ",
+                                "spa": "fecha de nacimiento"
+			},
+			"formatOptionLabel":{
+				"eng": "Date Format",
+				"ara": "صيغة التاريخ",
+				"fra":"Format de date",
+				"hin":"तारिख का प्रारूप",
+				"tam":"தேதி வடிவம்",
+				"kan":"ದಿನಾಂಕ ಸ್ವರೂಪ",
+				"spa":"Formato de fecha"
+			},
+			"formatOption":{
+				"eng": [{"label":"DD/MMM", "value":"DD/MMM","checked":false}, {"label":"DD/MMM/YYYY", "value":"DD/MMM/YYYY","checked":true}],
+				"ara": [{"label":"اليوم / الشهر ", "value":"DD/MMM","checked":false}, {"label":"اليوم / الشهر / السنة", "value":"DD/MMM/YYYY","checked":true}],
+				"fra":[{"label":"JJ/MMM", "value":"DD/MMM","checked":false}, {"label":"JJ/MMM/AAAA", "value":"DD/MMM/YYYY","checked":true}],
+				"hin":[{"label":"DD/MMM", "value":"DD/MMM","checked":false}, {"label":"DD/MMM/YYYY", "value":"DD/MMM/YYYY","checked":true}],
+				"tam":[{"label":"DD/MMM", "value":"DD/MMM","checked":false}, {"label":"DD/MMM/YYYY", "value":"DD/MMM/YYYY","checked":true}],
+				"kan":[{"label":"DD/MMM", "value":"DD/MMM","checked":false}, {"label":"DD/MMM/YYYY", "value":"DD/MMM/YYYY","checked":true}],
+				"spa":[{"label":"DD/MMM", "value":"DD/MMM","checked":false}, {"label":"DD/MMM/YYYY", "value":"DD/MMM/YYYY","checked":true}]
+			},
+			"displaykeyinsharewithpartner":true,
+			"displaykeyinpersonalisedcard":true,
+			"checked":false
+		},
+		{
+			"attributeName": "UIN",
+			"maskAttributeName":"masked_UIN",
+			"maskRequired": true,
+			"formatRequired": false,
+			"label": {
+				"eng": "UIN",
+				"ara": "UIN",
+				"fra":"UIN",
+				"hin":"UIN",
+				"tam":"UIN",
+				"kan":"UIN",
+				"spa":"UIN"
+			},
+			"maskRequiredLabel": {
+				"eng": "Mask UIN",
+				"ara": "قناع UIN",
+				"fra":"Masque UIN",
+				"hin":"मास्क UIN",
+				"tam":"UIN-ஐ மறைக்கவும்",
+				"kan":"ಮಾಸ್ಕ್ UIN",
+				"spa":"Máscara UIN"
+			},
+			"displaykeyinsharewithpartner":true,
+			"displaykeyinpersonalisedcard":false,
+			"checked":false
+		},
+		{
+			"attributeName": "perpetualVID",
+			"maskAttributeName":"masked_perpetualVID",
+			"maskRequired": true,
+			"formatRequired": false,
+			"label": {
+				"eng": "Perpetual VID",
+				"ara": "دائم VID",
+				"fra":"VID perpétuel",
+				"hin":"सतत VID",
+				"tam":"நிரந்தர VID",
+				"kan":"ಶಾಶ್ವತ VID",
+				"spa":"VID perpetuo"
+			},
+			"maskRequiredLabel": {
+				"eng": "Mask Perpetual VID",
+				"ara": "قناع VID الدائم",
+                                "fra":"Masque perpétuel VID",
+				"hin":"मास्क सदा VID",
+				"tam":"நிரந்தர VID-ஐ மறைக்கவும்",
+				"kan":"ಮಾಸ್ಕ್ ಶಾಶ್ವತ VID",
+				"spa":"Máscara Perpetuo VID"
+			},
+			"displaykeyinsharewithpartner":true,
+			"displaykeyinpersonalisedcard":false,
+			"checked":false
+		},
+		{
+			"attributeName": "phone",
+			"maskAttributeName":"masked_phone",
+			"maskRequired": true,
+			"formatRequired": false,
+			"label": {
+				"eng": "Phone Number",
+				"ara": "رقم التليفون",
+				"fra":"Numéro de téléphone",
+				"hin":"फ़ोन नंबर",
+				"tam":"தொலைபேசி எண்",
+				"kan":"ದೂರವಾಣಿ ಸಂಖ್ಯೆ",
+				"spa":"Número de teléfono"
+			},
+			"maskRequiredLabel": {
+				"eng": "Mask Phone Number",
+				"ara": "رقم هاتف القناع",
+				"fra":"Masquer le numéro de téléphone",
+				"hin":"मास्क फ़ोन नंबर",
+				"tam":"தொலைபேசி எண்ணை மறைக்கவும்",
+				"kan":"ಮಾಸ್ಕ್ ಫೋನ್ ಸಂಖ್ಯೆ",
+				"spa":"Máscara Número de teléfono"
+			},
+			"displaykeyinsharewithpartner":true,
+			"displaykeyinpersonalisedcard":true,
+			"checked":false
+		},
+		{
+			"attributeName": "email",
+			"maskAttributeName":"masked_email",
+			"maskRequired": true,
+			"formatRequired": false,
+			"label": {
+				"eng": "Email ID",
+				"ara": "عنوان الايميل",
+				"fra":"Identifiant de messagerie",
+				"hin":"ईमेल ID",
+				"tam":"மின்னஞ்சல் ID",
+				"kan":"ಇಮೇಲ್ ID",
+				"spa":"Identificación de correo"
+			},
+			"maskRequiredLabel": {
+				"eng": "Mask Email ID",
+				"ara": "قناع البريد الإلكتروني ID",
+				"fra":"Masquer ID de messagerie",
+				"hin":"मास्क ईमेल",
+				"tam":"மின்னஞ்சல் ID-ஐ மறைக்கவும்",
+				"kan":"ಮಾಸ್ಕ್ ಇಮೇಲ್ ID",
+				"spa":"Enmascarar ID de correo electrónico"
+			},
+			"displaykeyinsharewithpartner":true,
+			"displaykeyinpersonalisedcard":true,
+			"checked":false
+		},
+		{
+			"attributeName": "fullAddress",
+			"maskRequired": false,
+			"formatRequired": true,
+			"defaultFormat":"addressLine1,addressLine2,addressLine3,region,province,city,zone,postalCode",
+			"label": {
+				"eng": "Address",
+				"ara": "عنوان",
+				"fra":"Adresse",
+				"hin":"पता",
+				"tam":"முகவரி",
+				"kan":"ವಿಳಾಸ",
+				"spa":"DIRECCIÓN"
+			},
+			"formatOptionLabel":{
+				"eng": "Address Format",
+				"ara": "تنسيق العنوان",
+				"fra":"Format d'adresse",
+				"hin":"पता प्रारूप",
+				"tam":"முகவரி வடிவம்",
+				"kan":"ವಿಳಾಸ ಸ್ವರೂಪ",
+				"spa":"Formato de dirección"
+			},
+			"formatOption":{
+				"eng": [{"label":"Address line1", "value":"addressLine1","checked":true},
+				{"label":"Address line2", "value":"addressLine2","checked":true},
+				{"label":"Address line3", "value":"addressLine3","checked":true}, 
+				{"label":"Region", "value":"region","checked":true}, 
+				{"label":"Province", "value":"province","checked":true}, 
+				{"label":"City", "value":"city","checked":true}, 
+				{"label":"Zone", "value":"zone","checked":true},
+				{"label":"Postal code", "value":"postalCode","checked":true}, 
+				{"label":"Full Address", "value":"fullAddress","checked":true}],
+				"ara": [{"label":"العنوان سطر 1", "value":"addressLine1","checked":true},{"label":"سطر العنوان 2", "value":"addressLine2","checked":true},{"label":"سطر العنوان 3", "value":"addressLine3","checked":true}, {"label":"منطقة", "value":"region","checked":true}, {"label":"مقاطعة", "value":"province","checked":true}, {"label":"مدينة", "value":"city","checked":true}, {"label":"منطقة", "value":"zone","checked":true},{"label":"رمز بريدي", "value":"postalCode","checked":true}, {"label":"العنوان الكامل", "value":"fullAddress","checked":true}],
+				"fra":[{"label":"Adresse 1", "value":"addressLine1","checked":true},
+				{"label":"Adresse Ligne 2", "value":"addressLine2","checked":true},
+				{"label":"Ligne d'adresse3", "value":"addressLine3","checked":true}, 
+				{"label":"Région", "value":"region","checked":true}, 
+				{"label":"Province", "value":"province","checked":true}, 
+				{"label":"Ville", "value":"city","checked":true}, 
+				{"label":"Zone", "value":"zone","checked":true},
+				{"label":"Code Postal", "value":"postalCode","checked":true}, 
+				{"label":"Adresse complète", "value":"fullAddress","checked":true}],
+				"hin":[{"label":"पता पंक्ति 1", "value":"addressLine1","checked":true},
+				{"label":"पता पंक्ति नं। 2", "value":"addressLine2","checked":true},
+				{"label":"पता पंक्ति3", "value":"addressLine3","checked":true}, 
+				{"label":"क्षेत्र", "value":"region","checked":true}, 
+				{"label":"प्रांत", "value":"province","checked":true}, 
+				{"label":"शहर", "value":"city","checked":true}, 
+				{"label":"क्षेत्र", "value":"zone","checked":true},
+				{"label":"डाक कोड", "value":"postalCode","checked":true}, 
+				{"label":"पूरा पता", "value":"fullAddress","checked":true}],
+				"tam":[{"label":"முகவரி வரி 1", "value":"addressLine1","checked":true},
+				{"label":"முகவரி வரி 2", "value":"addressLine2","checked":true},
+				{"label":"முகவரி வரி 3", "value":"addressLine3","checked":true}, 
+				{"label":"பிராந்தியம்", "value":"region","checked":true}, 
+				{"label":"மாகாணம்", "value":"province","checked":true}, 
+				{"label":"நகரம்", "value":"city","checked":true}, 
+				{"label":"மண்டலம்", "value":"zone","checked":true},
+				{"label":"அஞ்சல் குறியீடு", "value":"postalCode","checked":true}, 
+				{"label":"முழு முகவரி", "value":"fullAddress","checked":true}],
+				"kan":[{"label":"ವಿಳಾಸ ಸಾಲು 1", "value":"addressLine1","checked":true},
+				{"label":"ವಿಳಾಸ ಸಾಲು 2", "value":"addressLine2","checked":true},
+				{"label":"ವಿಳಾಸ ಸಾಲು 3", "value":"addressLine3","checked":true}, 
+				{"label":"ಪ್ರದೇಶ", "value":"region","checked":true}, 
+				{"label":"ಪ್ರಾಂತ್ಯ", "value":"province","checked":true}, 
+				{"label":"ನಗರ", "value":"city","checked":true}, 
+				{"label":"ವಲಯ", "value":"zone","checked":true},
+				{"label":"ಅಂಚೆ ಕೋಡ್", "value":"postalCode","checked":true}, 
+				{"label":"ಪೂರ್ತಿ ವಿಳಾಸ", "value":"fullAddress","checked":true}],
+				"spa":[{"label":"Dirección Línea 1", "value":"addressLine1","checked":true},
+				{"label":"Línea de dirección2", "value":"addressLine2","checked":true},
+				{"label":"Línea de dirección3", "value":"addressLine3","checked":true}, 
+				{"label":"Región", "value":"region","checked":true}, 
+				{"label":"Provincia", "value":"province","checked":true}, 
+				{"label":"Ciudad", "value":"city","checked":true}, 
+				{"label":"Zona", "value":"zone","checked":true},
+				{"label":"Código Postal", "value":"postalCode","checked":true}, 
+				{"label":"Dirección completa", "value":"fullAddress","checked":true}]
+			},
+			"displaykeyinsharewithpartner":true,
+			"displaykeyinpersonalisedcard":true,
+			"checked":false
+		},
+		{
+			"attributeName": "gender",
+			"maskRequired": false,
+			"formatRequired": false,
+			"label": {
+				"eng": "Gender",
+				"ara": "جنس",
+				"fra":"Genre",
+				"hin":"लिंग",
+				"tam":"பாலினம்",
+				"kan":"ಲಿಂಗ",
+				"spa":"Género"
+			},
+			"displaykeyinsharewithpartner":true,
+			"displaykeyinpersonalisedcard":true,
+			"checked":false
+		},
+		{
+			"attributeName": "photo",
+			"maskRequired": false,
+			"formatRequired": false,
+			"label": {
+				"eng": "Image",
+				"ara": "صورة",
+				"fra":"Image",
+				"hin":"छवि",
+				"tam":"படம்",
+				"kan":"ಚಿತ್ರ",
+				"spa":"Imagen"
+			},
+			"displaykeyinsharewithpartner":true,
+			"displaykeyinpersonalisedcard":true,
+			"checked":false
+		}
+	]
+}

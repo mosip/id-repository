@@ -49,9 +49,7 @@ public class UinHistory implements UinInfo, Persistable<String> {
 	 * @param uinData the uin data
 	 * @param uinDataHash the uin data hash
 	 * @param regId the reg id
-	 * @param bioRefId the bio ref id
 	 * @param statusCode the status code
-	 * @param langCode the lang code
 	 * @param createdBy the created by
 	 * @param createdDateTime the created date time
 	 * @param updatedBy the updated by

@@ -1,0 +1,6 @@
+# Host-app file logs (run-idrepo-local.* writes logging.file.path=.local/logs)
+.local/
+logs/
+
+# Ephemeral WSL→Windows Maven launcher (created during `bash … build`, then removed)
+.wsl-mvn-build.cmd

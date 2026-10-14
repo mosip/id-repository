@@ -7,8 +7,8 @@ import lombok.Data;
 /**
  * SpringDoc API group definition bound from {@code openapi.group.*}.
  * <p>
- * Legacy credential configs use {@link #getName()} as the SpringDoc group id and
- * {@link #getPaths()} as {@code pathsToMatch} patterns so Swagger UI shows only
+ * Legacy credential configs use {@code name} as the SpringDoc group id and
+ * {@code paths} as {@code pathsToMatch} patterns so Swagger UI shows only
  * credential-service or credential-request endpoints in standalone deployments.
  * </p>
  *
@@ -26,7 +26,7 @@ import lombok.Data;
  * {@link io.mosip.idrepository.config.IdRepoOpenApiConfig} instead of path patterns from config.
  * </p>
  *
- * @see OpenApiProperties#getGroup()
+ * @see OpenApiProperties
  * @see org.springdoc.core.models.GroupedOpenApi
  */
 @Data

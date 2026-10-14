@@ -28,7 +28,6 @@ import io.mosip.idrepository.core.logger.IdRepoLogger;
 import io.mosip.kernel.biometrics.commons.CbeffValidator;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BIR;
-import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import lombok.Data;
@@ -172,7 +171,7 @@ public class IdentityIssuanceProfileBuilder {
 			profile.setNewProfile(newProfile);
 			return profile;
 		} catch (Exception e) {
-			mosipLogger.warn("EXCEPTION --->>> " + ExceptionUtils.getStackTrace(e));
+			mosipLogger.warn("Failed to build identity issuance profile");
 			return new IdentityIssuanceProfile();
 		}
 	}
@@ -230,7 +229,7 @@ public class IdentityIssuanceProfileBuilder {
 					.map(doc -> CbeffValidator.getBIRFromXML(CryptoUtil.decodeURLSafeBase64(doc.getValue())))
 					.stream().findAny();
 		} catch (Exception e) {
-			mosipLogger.warn("EXCEPTION --->>> " + ExceptionUtils.getStackTrace(e));
+			mosipLogger.warn("Failed to process biometric documents for identity issuance profile");
 			return Optional.empty();
 		}
 	}
@@ -508,7 +507,7 @@ public class IdentityIssuanceProfileBuilder {
 				this.oldIdentity = MAPPER.readTree(identity);
 		} catch (IOException e) {
 			// this block should never be executed
-			mosipLogger.warn("EXCEPTION --->>> " + ExceptionUtils.getStackTrace(e));			
+			mosipLogger.warn("Failed to parse old identity for identity issuance profile");
 		}
 		return this;
 	}
@@ -540,7 +539,7 @@ public class IdentityIssuanceProfileBuilder {
 				this.newIdentity = MAPPER.readTree(identity);
 		} catch (IOException e) {
 			// this block should never be executed
-			mosipLogger.warn("EXCEPTION --->>> " + ExceptionUtils.getStackTrace(e));
+			mosipLogger.warn("Failed to parse new identity for identity issuance profile");
 		}
 		return this;
 	}

@@ -1,0 +1,44 @@
+# Low-memory overlay — keep Docker deps under ~3 GB so Docker Desktop can run at 6 GB
+# (host id-repository-service heap is separate — budget another ~1–2 GB on the laptop).
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.low-mem.yml up -d
+#   # or:  LOW_MEM=1 ../run-local-stack.sh up
+#   # or:  ../run-local-stack.sh up-low-mem
+#   # wipe / restart while keeping caps:  ../run-local-stack.sh wipe-low-mem | restart-low-mem
+#
+# Also set Docker Desktop → Settings → Resources → Memory → 6 GB (Apply & Restart).
+# Stop unrelated containers (other compose projects) — they count against the same budget.
+#
+# Note: do not put -XX:+UseG1GC in JAVA_TOOL_OPTIONS — several services already pass -XX:+UseZGC.
+# BioSDK is static WireMock stubs in mappings/id-repository.json — no biosdk-service container.
+# WireMock mappings are large (~10+ MB inlined BioSDK bodies); keep mock heap ≥512m.
+
+services:
+  postgres:
+    mem_limit: 192m
+
+  config-server:
+    mem_limit: 384m
+    environment:
+      JAVA_TOOL_OPTIONS: -Xms64m -Xmx256m -XX:MaxMetaspaceSize=128m
+
+  # Large id-repository.json (extract/convert CTK bodies) needs headroom to load stubs.
+  mock-service:
+    mem_limit: 768m
+    environment:
+      JAVA_OPTS: -Xms128m -Xmx512m
+
+  websub-partner-ack:
+    mem_limit: 96m
+
+  keymanager-service:
+    mem_limit: 768m
+    environment:
+      JAVA_TOOL_OPTIONS: -Xms128m -Xmx512m -XX:MaxMetaspaceSize=192m
+
+  minio:
+    mem_limit: 160m
+
+  minio-init:
+    mem_limit: 64m

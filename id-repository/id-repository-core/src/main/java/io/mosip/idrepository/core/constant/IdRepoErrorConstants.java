@@ -109,6 +109,51 @@ public enum IdRepoErrorConstants {
 	/** Handle value already registered. Placeholder: handle value. */
 	HANDLE_RECORD_EXISTS("IDR-IDC-014", "%s : Handle record already exists in DB"),
 
+	/**
+	 * UIN details not found in draft. Thrown when a draft has no UIN, UIN hash or identity
+	 * data where one is required: publishing or merging into a LOST draft that was never
+	 * stamped through {@code /draft/uindata}.
+	 */
+	DRAFT_UIN_DETAILS_NOT_FOUND("IDR-IDC-015", "UIN details not found in draft"),
+
+	/**
+	 * The requested RID is older than the latest processed RID for this UIN. Thrown when a
+	 * V2 draft is created for a registration id that is in the UIN history but is no longer
+	 * the latest one applied to the identity.
+	 */
+	RID_OLDER_THAN_LATEST_PROCESSED("IDR-IDC-016", "The requested RID is older than the latest processed RID"),
+
+	/**
+	 * The requested UIN does not exist in the UIN table. Thrown when a LOST draft is stamped
+	 * with a UIN that has no live identity.
+	 */
+	UIN_NOT_FOUND("IDR-IDC-017", "UIN not found"),
+
+	/**
+	 * The UIN hash on the draft does not match the requested UIN. Thrown when a draft that
+	 * already carries a UIN is stamped with a different one.
+	 */
+	DRAFT_UIN_HASH_MISMATCH("IDR-IDC-018", "UIN hash does not match"),
+
+	/**
+	 * Failed to move draft object-store files to the live path during V2 publish. The
+	 * {@code %s} placeholder takes the rid hash or the source and destination keys.
+	 */
+	DRAFT_OBJECT_MOVE_FAILED("IDR-IDC-019", "Failed to move draft object(s) to live path - %s"),
+
+	/**
+	 * Failed to delete draft object-store files during V2 discard. The {@code %s}
+	 * placeholder takes the rid hash.
+	 */
+	DRAFT_OBJECT_DELETE_FAILED("IDR-IDC-020", "Failed to delete draft object(s) from object store - %s"),
+
+	/**
+	 * Failed to copy live object-store files into the draft path during V2 create, including
+	 * when the configured adapter does not support copying. The {@code %s} placeholder takes
+	 * the source and destination keys.
+	 */
+	DRAFT_OBJECT_COPY_FAILED("IDR-IDC-021", "Failed to copy live object(s) to draft path - %s"),
+
 	// ---- Identity Service (IDR-IDS) ----
 
 	/** Computed identity element hash does not match stored hash. */

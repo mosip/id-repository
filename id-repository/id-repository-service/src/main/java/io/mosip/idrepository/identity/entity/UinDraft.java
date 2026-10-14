@@ -27,6 +27,11 @@ import lombok.ToString;
  * <p>
  * Holds in-progress demographic/biometric/document changes until publish via draft APIs.
  * </p>
+ * <p>
+ * V1 drafts always carry a UIN. V2 drafts created for LOST packets start without a UIN,
+ * UIN hash or identity data; these are filled in by {@code updateDraftUinData}, and
+ * publishing is refused until then.
+ * </p>
  *
  * @see io.mosip.idrepository.identity.service.impl.IdRepoDraftServiceImpl
  */
@@ -64,15 +69,24 @@ public class UinDraft implements Persistable<String>, UinInfo, Serializable {
 	}
 
 	@Id
-	/** Registration ID (RID) from registration processor. */
-	@Column(name="reg_id", insertable = false, updatable = false, nullable = false)
+	/**
+	 * Registration ID (RID) from registration processor. Primary key; never changed after
+	 * insert, so a V2 draft's {@code _draft/{ridHash}} object path stays valid.
+	 */
+	@Column(name="reg_id", updatable = false, nullable = false)
 	private String regId;
 
-	/** Tokenized UIN stored for lookup (encrypted at rest). */
+	/**
+	 * Tokenized UIN stored for lookup (encrypted at rest). {@code null} for a V2 LOST draft
+	 * until the UIN is stamped after ABIS deduplication.
+	 */
 	@Column(name="uin")
 	private String uin;
 
-	/** SHA-256 hash of UIN used for indexed lookup without decryption. */
+	/**
+	 * SHA-256 hash of UIN used for indexed lookup without decryption. {@code null} for a
+	 * V2 LOST draft until the UIN is stamped.
+	 */
 	@Column(name="uin_hash")
 	private String uinHash;
 

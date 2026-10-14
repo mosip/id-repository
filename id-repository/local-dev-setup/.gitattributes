@@ -1,0 +1,3 @@
+# Keep shell scripts Unix (LF) so Git Bash / WSL do not hit $'\r' / pipefail errors on Windows.
+*.sh text eol=lf
+*.bash text eol=lf

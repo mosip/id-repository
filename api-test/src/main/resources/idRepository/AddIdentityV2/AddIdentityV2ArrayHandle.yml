@@ -1,7 +1,7 @@
 AddIdentityV2ArrayHandle:
   IdRepository_AddIdentityArrayHandleV2_WithSingleValidVerifiedAttributes_Smoke_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Add Identity V2 successfully creates identity with a single valid verifiedAttributes entry
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with a single valid verifiedAttributes entry
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_01
     role: testrig
     restMethod: post
@@ -33,20 +33,22 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_WithMultipleEmail_And_OneEmail_As_Handle_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that Add Identity V2 successfully creates an identity with multiple email entries where one email is tagged as handle.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with multiple email entries and one email tagged as handle
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_02
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -77,20 +79,22 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_WithMultipleEmailWithoutHandle:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate Add Identity V2 with multiple email entries and no email tagged as handle.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with multiple email entries and no email tagged as handle
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_03
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -121,19 +125,20 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_WithUniqueEmail_Pos:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate Add Identity V2 successfully creates an identity with a unique email entry tagged as handle.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with a unique email entry tagged as handle
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_04
     role: testrig
     restMethod: post
@@ -165,20 +170,22 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_WithMultipleEmailHandlesTagged:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify Add Identity V2 with multiple email entries tagged as handle.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with multiple email entries tagged as handle
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_05
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -209,20 +216,22 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_WithEmailHandleAndNotification:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate Add Identity V2 with email having both handle and notification tags.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with email having both handle and notification tags
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_06
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -253,20 +262,22 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_VerifySelectedHandlesMatchesTaggedEmail:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate that selectedHandles matches the tagged email in Add Identity V2 response.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called and selectedHandles matches the tagged email
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_07
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -297,20 +308,22 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_SelectedHandlesOrderVariation:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate Add Identity V2 with selectedHandles order variation.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with selectedHandles in a different order
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_08
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -341,20 +354,22 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_WithOneEmailInArray:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify Add Identity V2 successfully creates identity with one email in array.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with one email in the array
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_09
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -385,20 +400,22 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_OnlyNotificationTag:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate Add Identity V2 with email having only notification tag.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with email having only a notification tag
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_10
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -429,20 +446,22 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_WithLengthyEmailArray:
     endPoint: /idrepository/v1/identity/v2
-    description: Validate Add Identity V2 with a lengthy email array.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with a lengthy email array
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_11
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -473,20 +492,22 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_WithMultipleHandlesDifferentDomains:
     endPoint: /idrepository/v1/identity/v2
-    description: Verify Add Identity V2 with multiple email handles from different domains.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with multiple email handles from different domains
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_12
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -517,19 +538,20 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_WithMultipleSelectedHandlesArrays:
     endPoint: /idrepository/v1/identity/v2
-    description: Validates that Add Identity V2 API correctly handles multiple selected handle arrays.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with multiple selected handle arrays
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_13
     role: testrig
     restMethod: post
@@ -561,19 +583,20 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_withoutselectedhandles:
     endPoint: /idrepository/v1/identity/v2
-    description: Validates that Add Identity V2 API successfully creates an identity even when no selected handles are provided.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called without selected handles
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_14
     role: testrig
     restMethod: post
@@ -605,19 +628,20 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_withnullselectedhandles_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validates that Add Identity V2 API rejects requests when verifiedAttributes contains null selected handles.
+    description: Verify that the system rejects add identity with array handle values using Add Identity V2 when the API is called with null selected handles
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_15
     role: testrig
     restMethod: post
@@ -649,23 +673,24 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
       "errors": [
         {
-           "errorCode": "IDR-IDC-002"
+          "errorCode": "IDR-IDC-002"
         }
-    ]
-}'
+      ]
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_withemptyselecthandles:
     endPoint: /idrepository/v1/identity/v2
-    description: Validates that Add Identity V2 API successfully creates an identity when selected handles are empty.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with empty selected handles
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_16
     role: testrig
     restMethod: post
@@ -697,19 +722,20 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_withinvalidselectedhandletype_Neg:
     endPoint: /idrepository/v1/identity/v2
-    description: Validates that Add Identity V2 API rejects when request contains an invalid selected handle type.
+    description: Verify that the system rejects add identity with array handle values using Add Identity V2 when the API is called with an invalid selected handle type
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_17
     role: testrig
     restMethod: post
@@ -741,23 +767,24 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
       "errors": [
         {
-           "errorCode": "IDR-IDC-002"
+          "errorCode": "IDR-IDC-002"
         }
-    ]
-}'
+      ]
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_withNotApplicableSelectedHandles:
     endPoint: /idrepository/v1/identity/v2
-    description: Validates that Add Identity V2 API ignores not applicable handles with verifiedAttributes and successfully creates the identity without error.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with not applicable selected handles
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_18
     role: testrig
     restMethod: post
@@ -789,19 +816,20 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_withUnknownSelectedHandles:
     endPoint: /idrepository/v1/identity/v2
-    description: Validates that Add Identity V2 API ignores unknown selected handles with verifiedAttributes and successfully creates the identity without error.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with unknown selected handles
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_19
     role: testrig
     restMethod: post
@@ -833,20 +861,22 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_withDuplicateSelectedHandles:
     endPoint: /idrepository/v1/identity/v2
-    description: Validates that Add Identity V2 API accepts requests when duplicate selected handles are present and successfully creates the identity.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with duplicate selected handles
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_20
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -877,20 +907,22 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_withSelectedHandlesCaseMismatch:
     endPoint: /idrepository/v1/identity/v2
-    description: Validates that Add Identity V2 API ignores case mismatches in selected handles with verifiedAttributes.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with case-mismatched selected handles
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_21
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -921,20 +953,22 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_withSelectedHandlesSpace:
     endPoint: /idrepository/v1/identity/v2
-    description: Validates that Add Identity V2 API ignores selected handles with leading/trailing spaces with verifiedAttributes.
+    description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with selected handles containing leading or trailing spaces
     uniqueIdentifier: TC_IDRepo_AddIdentityArrayHandleV2_22
+    requiredHandleFields: [email]
     role: testrig
     restMethod: post
     inputTemplate: idRepository/AddIdentityV2/addIdentity_$LANGNUMBER$
@@ -965,13 +999,13 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'

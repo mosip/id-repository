@@ -12,7 +12,7 @@ chmod +x configure_biosdk.sh
 
 echo "Installating pre-requisites completed."
 
-echo "Downloading kernel ref-idobject validator (auth adapter is a Maven dependency)"
+echo "Downloading kernel ref-idobject validator into loader.path (not a Maven dependency)"
 wget -q --show-progress "${kernel_ref_idobjectvalidator_url}" -O "${loader_path_env}"/kernel-ref-idobjectvalidator.jar
 echo "Downloaded kernel ref-idobject validator"
 

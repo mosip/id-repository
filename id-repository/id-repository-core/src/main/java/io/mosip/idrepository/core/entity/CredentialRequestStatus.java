@@ -96,7 +96,7 @@ public class CredentialRequestStatus {
 	 * {@link #individualIdHash} instead.
 	 * </p>
 	 */
-	@Column(name = "individual_id")
+	@Column(name = "individual_id", length = 1024)
 	private String individualId;
 
 	/**

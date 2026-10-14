@@ -1,0 +1,46 @@
+
+def maskPhone(inputPhoneNum) {
+
+return inputPhoneNum.replaceAll(".(?=.{4})", "*");
+};
+
+def maskEmail(inputEmailAddr) {
+
+return inputEmailAddr.replaceAll("(^[^@]{3}|(?!^)\\G)[^@]", "$1*");
+};
+
+def convertToMaskDataFormat(maskData) {
+	int maskDataLength = 0;
+	char ch = '*';
+	if (maskData.indexOf("@") > 0){
+		maskDataLength = maskData.indexOf("@");
+	} else {
+		maskDataLength = maskData.length();
+	}
+	maskDataLength -= 2;
+	for (int i = 1; i < maskDataLength; ++i) {
+		maskData = maskData.substring(0, i) + ch + maskData.substring(i + 1);
+	}
+	return maskData;
+};
+
+def getPassword(attributeValues) {
+    String pdfPwd = "";
+    for(String attribute:attributeValues) {
+        attribute = getFormattedPasswordAttribute(attribute);
+        pdfPwd = pdfPwd.concat(attribute.substring(0, 4));
+    }
+     return pdfPwd.toUpperCase();
+};
+
+def getFormattedPasswordAttribute(password){
+    if(password.length()==3){
+        return password=password.concat(password.substring(0,1));
+    }else if(password.length()==2){
+        return password=password.repeat(2);
+    }else if(password.length()==1) {
+        return password=password.repeat(4);
+    }else {
+         return password.toUpperCase();
+    }
+};

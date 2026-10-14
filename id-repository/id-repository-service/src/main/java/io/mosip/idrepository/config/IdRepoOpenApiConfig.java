@@ -26,6 +26,8 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
@@ -71,6 +73,9 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 
 	/** Classpath location of versioned swagger-ui webjar assets (trailing slash). */
 	private static final String SWAGGER_UI_WEBJAR_LOCATION = resolveSwaggerUiWebJarLocation();
+
+	/** Scheme name shown by Swagger UI as Authorize. */
+	public static final String AUTHORIZATION_SCHEME = "Authorization";
 
 	/**
 	 * @param uiBasePath service public prefix (e.g. {@code /idrepository/v1/identity})
@@ -139,13 +144,15 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 	 */
 	@Bean
 	public OpenAPI idRepositoryOpenApi() {
-		return new OpenAPI()
-				.components(new Components())
+		OpenAPI api = new OpenAPI()
+				.components(new Components().addSecuritySchemes(AUTHORIZATION_SCHEME, authorizationApiKey()))
+				.addSecurityItem(new SecurityRequirement().addList(AUTHORIZATION_SCHEME))
 				.info(new Info()
 						.title("MOSIP ID-Repository")
 						.description("Use per-service Swagger UI under each API path prefix")
 						.version("1.2.1")
 						.license(new License().name("MPL 2.0").url("https://www.mozilla.org/en-US/MPL/2.0/")));
+		return api;
 	}
 
 	@Bean
@@ -155,7 +162,8 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 				.displayName("Id Repository Identity Service")
 				.packagesToScan("io.mosip.idrepository.identity.controller")
 				.pathsToMatch(IDENTITY_PATH_PREFIX + "/**")
-				.addOpenApiCustomizer(openApi -> openApi.info(serviceInfo("MOSIP ID-Repository Identity Service",
+				.addOpenApiCustomizer(openApi -> applyAuthorization(openApi)
+						.info(serviceInfo("MOSIP ID-Repository Identity Service",
 						"Identity and draft identity APIs")))
 				.build();
 	}
@@ -167,7 +175,8 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 				.displayName("Credential Store")
 				.packagesToScan("io.mosip.idrepository.credential.store.controller")
 				.pathsToMatch(CREDENTIAL_SERVICE_PATH_PREFIX + "/**")
-				.addOpenApiCustomizer(openApi -> openApi.info(serviceInfo("MOSIP Credential Store",
+				.addOpenApiCustomizer(openApi -> applyAuthorization(openApi)
+						.info(serviceInfo("MOSIP Credential Store",
 						"Credential issuance APIs")))
 				.build();
 	}
@@ -179,7 +188,8 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 				.displayName("Credential Request Generator")
 				.packagesToScan("io.mosip.idrepository.credential.request.controller")
 				.pathsToMatch(CREDENTIAL_REQUEST_PATH_PREFIX + "/**")
-				.addOpenApiCustomizer(openApi -> openApi.info(serviceInfo("MOSIP Credential Request Generator",
+				.addOpenApiCustomizer(openApi -> applyAuthorization(openApi)
+						.info(serviceInfo("MOSIP Credential Request Generator",
 						"Credential request queue APIs")))
 				.build();
 	}
@@ -191,9 +201,29 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 				.displayName("Id Repo VID Service")
 				.packagesToScan("io.mosip.idrepository.vid.controller")
 				.pathsToMatch(VID_PATH_PREFIX + "/vid", VID_PATH_PREFIX + "/vid/**")
-				.addOpenApiCustomizer(openApi -> openApi.info(serviceInfo("MOSIP ID-Repository VID Service",
+				.addOpenApiCustomizer(openApi -> applyAuthorization(openApi)
+						.info(serviceInfo("MOSIP ID-Repository VID Service",
 						"VID lifecycle APIs")))
 				.build();
+	}
+
+	/**
+	 * Header apiKey named {@code Authorization} so Swagger UI shows Authorize.
+	 *
+	 * @return the security scheme
+	 */
+	private static SecurityScheme authorizationApiKey() {
+		return new SecurityScheme().type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.HEADER)
+				.name(AUTHORIZATION_SCHEME);
+	}
+
+	private static OpenAPI applyAuthorization(OpenAPI api) {
+		if (api.getComponents() == null) {
+			api.setComponents(new Components());
+		}
+		api.getComponents().addSecuritySchemes(AUTHORIZATION_SCHEME, authorizationApiKey());
+		api.addSecurityItem(new SecurityRequirement().addList(AUTHORIZATION_SCHEME));
+		return api;
 	}
 
 	private static Info serviceInfo(String title, String description) {
@@ -293,6 +323,7 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 					        presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
 					        plugins: [SwaggerUIBundle.plugins.DownloadUrl],
 					        layout: 'StandaloneLayout',
+					        persistAuthorization: true,
 					        validatorUrl: ''
 					      });
 					    };

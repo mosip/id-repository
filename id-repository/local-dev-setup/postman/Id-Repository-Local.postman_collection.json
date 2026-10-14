@@ -1,0 +1,2667 @@
+{
+  "info": {
+    "name": "MOSIP ID-Repository (Local)",
+    "description": "Complete local-dev Postman collection for id-repository APIs.\n\nSources:\n- api-test TestNG full report (2026-08-20 19:59) — sample request/response bodies\n- JMeter IDRepo_Test_Script_v04_jannaLocal.jmx — endpoint inventory\n- api-docs OpenAPI (identity + credential)\n\nSetup:\n1. Import this collection + environment `Id-Repository-Local`.\n2. Start local stack (`run-local-stack.sh up`) and host app (`run-idrepo-local.*`).\n3. Run **Client token (idrepo)** (or admin useridPwd) and copy `Authorization` / body token into `accessToken`.\n4. Run **Generate UIN** and set `uin`. Use a unique `registrationId` for drafts.\n\nNotes:\n- `idrepoBaseUrl` = http://localhost:8090 (host JVM)\n- `wiremockBaseUrl` = http://localhost:8082 (IAM / idgenerator / idschema)\n- Auth filter may be disabled locally; Cookie/Authorization still used by api-test.\n",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "idrepoBaseUrl",
+      "value": "http://localhost:8090"
+    },
+    {
+      "key": "wiremockBaseUrl",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "uin",
+      "value": ""
+    },
+    {
+      "key": "vid",
+      "value": ""
+    },
+    {
+      "key": "registrationId",
+      "value": "27847100000000020260820120000"
+    },
+    {
+      "key": "rid",
+      "value": ""
+    },
+    {
+      "key": "requestId",
+      "value": ""
+    },
+    {
+      "key": "id",
+      "value": ""
+    },
+    {
+      "key": "individualId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Auth (WireMock)",
+      "item": [
+        {
+          "name": "Client token (idrepo)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wiremockBaseUrl}}/v1/authmanager/authenticate/clientidsecretkey",
+              "host": [
+                "{{wiremockBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "authmanager",
+                "authenticate",
+                "clientidsecretkey"
+              ]
+            },
+            "description": "WireMock local IAM — returns Authorization JWT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"id\": \"string\",\r\n  \"metadata\": {},\r\n  \"request\": {\r\n    \"clientId\": \"mosip-idrepo-client\",\r\n    \"secretKey\": \"${secretKey_idrepo}\",\r\n    \"appId\": \"idrepo\"\r\n  },\r\n  \"requesttime\": \"${__time(YYYY-MM-dd'T'HH:mm:ss.SSS,)}Z\",\r\n  \"version\": \"string\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "UseridPwd internal (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wiremockBaseUrl}}/v1/authmanager/authenticate/internal/useridPwd",
+              "host": [
+                "{{wiremockBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "authmanager",
+                "authenticate",
+                "internal",
+                "useridPwd"
+              ]
+            },
+            "description": "WireMock — api-test admin login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"string\",\n  \"version\": \"string\",\n  \"requesttime\": \"2026-08-20T00:00:00.000Z\",\n  \"metadata\": {},\n  \"request\": {\n    \"userName\": \"d0e_idrepo-220005\",\n    \"password\": \"Techno@123\",\n    \"appId\": \"admin\",\n    \"clientId\": \"mosip-admin-client\",\n    \"clientSecret\": \"local-secret\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "01 - Dependencies (WireMock)",
+      "item": [
+        {
+          "name": "Generate UIN",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wiremockBaseUrl}}/v1/idgenerator/uin",
+              "host": [
+                "{{wiremockBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "idgenerator",
+                "uin"
+              ]
+            },
+            "description": "WireMock Verhoeff UIN pool"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate VID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wiremockBaseUrl}}/v1/idgenerator/vid",
+              "host": [
+                "{{wiremockBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "idgenerator",
+                "vid"
+              ]
+            },
+            "description": "WireMock Verhoeff VID pool"
+          },
+          "response": []
+        },
+        {
+          "name": "Latest ID Schema",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wiremockBaseUrl}}/v1/masterdata/idschema/latest?schemaVersion=0",
+              "host": [
+                "{{wiremockBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "masterdata",
+                "idschema",
+                "latest"
+              ],
+              "query": [
+                {
+                  "key": "schemaVersion",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "WireMock idschema"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Identity",
+      "item": [
+        {
+          "name": "Add Identity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity"
+              ]
+            },
+            "description": "Create identity (UIN from idgenerator)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"request\": {\n    \"documents\": [\n      {\n        \"category\": \"individualBiometrics\",\n        \"value\": \"***** MASKED *****\"\n      }\n    ],\n    \"identity\": {\n      \"proofOfAddress\": {\n        \"format\": \"txt\",\n        \"type\": \"DOC001\",\n        \"value\": \"fileReferenceID\"\n      },\n      \"gender\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_gendereng\"\n        }\n      ],\n      \"city\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_cityeng\"\n        }\n      ],\n      \"postalCode\": \"14022\",\n      \"proofOfException-1\": {\n        \"format\": \"txt\",\n        \"type\": \"DOC001\",\n        \"value\": \"fileReferenceID\"\n      },\n      \"deceasedDeclarationDate\": \"1987/05/31\",\n      \"referenceIdentityNumber\": \"6789545678878\",\n      \"individualBiometrics\": {\n        \"format\": \"cbeff\",\n        \"version\": 1,\n        \"value\": \"fileReferenceID\"\n      },\n      \"introducerUIN\": \"212124324784879\",\n      \"introducerBiometrics\": {\n        \"format\": \"cbeff\",\n        \"version\": 1,\n        \"value\": \"fileReferenceID\"\n      },\n      \"province\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_provinceeng\"\n        }\n      ],\n      \"zone\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_zoneeng\"\n        }\n      ],\n      \"proofOfDateOfBirth\": {\n        \"format\": \"txt\",\n        \"type\": \"DOC001\",\n        \"value\": \"fileReferenceID\"\n      },\n      \"addressLine1\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_addressLine1eng\"\n        }\n      ],\n      \"addressLine2\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_addressLine2eng\"\n        }\n      ],\n      \"residenceStatus\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_residenceStatuseng\"\n        }\n      ],\n      \"addressLine3\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_addressLine3eng\"\n        }\n      ],\n      \"email\": \"mosipuser123@mailinator.com\",\n      \"declaredAsDeceased\": \"Y\",\n      \"typeOfDeath\": \"mosip2392600059\",\n      \"fullName\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_fullNameeng\"\n        }\n      ],\n      \"dateOfBirth\": \"1992/04/15\",\n      \"introducerRID\": \"212124324784879\",\n      \"deceasedInformer\": \"mosip8082679806\",\n      \"individualAuthBiometrics\": {\n        \"format\": \"cbeff\",\n        \"version\": 1,\n        \"value\": \"fileReferenceID\"\n      },\n      \"packetCreatedOn\": \"2026-08-20T14:29:45.442Z\",\n      \"proofOfIdentity\": {\n        \"format\": \"txt\",\n        \"type\": \"DOC001\",\n        \"value\": \"fileReferenceID\"\n      },\n      \"IDSchemaVersion\": 0.1,\n      \"proofOfException\": {\n        \"format\": \"txt\",\n        \"type\": \"DOC001\",\n        \"value\": \"fileReferenceID\"\n      },\n      \"phone\": \"8249742850\",\n      \"preferredLang\": \"eng\",\n      \"proofOfRelationship\": {\n        \"format\": \"txt\",\n        \"type\": \"DOC001\",\n        \"value\": \"fileReferenceID\"\n      },\n      \"UIN\": \"{{uin}}\",\n      \"introducerName\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_introducerNameeng\"\n        }\n      ],\n      \"region\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_regioneng\"\n        }\n      ],\n      \"introducerInfoToken\": \"mosip1063120376\"\n    },\n    \"registrationId\": \"{{registrationId}}\",\n    \"status\": \"ACTIVATED\"\n  },\n  \"requesttime\": \"2026-08-20T14:29:45.442Z\",\n  \"id\": \"mosip.id.create\",\n  \"version\": \"v1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Identity",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity"
+              ]
+            },
+            "description": "Update identity attributes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"mosip.id.update\",\n  \"request\": {\n    \"registrationId\": \"{{registrationId}}\",\n    \"status\": \"DEACTIVATED\",\n    \"identity\": {\n      \"IDSchemaVersion\": 0.1,\n      \"dateOfBirth\": \"1992/04/15\",\n      \"UIN\": \"{{uin}}\"\n    }\n  },\n  \"requesttime\": \"2026-08-20T14:30:07.640Z\",\n  \"version\": \"v1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve Identity (idvid)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/idvid/",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "idvid"
+              ]
+            },
+            "description": "Retrieve by UIN/VID/RID in body",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"9827053147\",\n  \"type\": \"all\",\n  \"idType\": \"\",\n  \"fingerExtractionFormat\": \"mock-1.1\",\n  \"irisExtractionFormat\": \"mock-1.1\",\n  \"faceExtractionFormat\": \"mock-1.1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve Identity by path id",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/idvid/{{id}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "idvid",
+                "{{id}}"
+              ]
+            },
+            "description": "Retrieve by path id",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"8036159271\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "ID/VID metadata search",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/idvid-metadata/search",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "idvid-metadata",
+                "search"
+              ]
+            },
+            "description": "Search ID/VID metadata"
+          },
+          "response": []
+        },
+        {
+          "name": "Get identity by RID path",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/rid/{{individualId}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "rid",
+                "{{individualId}}"
+              ]
+            },
+            "description": "Retrieve by RID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update counts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/{{individualId}}/update-counts?idType=UIN&attribute_list=fullName,dateOfBirth",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "{{individualId}}",
+                "update-counts"
+              ],
+              "query": [
+                {
+                  "key": "idType",
+                  "value": "UIN"
+                },
+                {
+                  "key": "attribute_list",
+                  "value": "fullName,dateOfBirth"
+                }
+              ]
+            },
+            "description": "Attribute update counts"
+          },
+          "response": []
+        },
+        {
+          "name": "Update auth type status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/authtypes/status",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "authtypes",
+                "status"
+              ]
+            },
+            "description": "Lock/unlock auth types",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"string\",\n  \"version\": \"string\",\n  \"requestTime\": \"2026-08-20T14:32:11.941Z\",\n  \"consentObtained\": true,\n  \"individualId\": \"8326536714\",\n  \"individualIdType\": \"UIN\",\n  \"request\": [\n    {\n      \"authType\": \"demo\",\n      \"authSubType\": \"\",\n      \"locked\": \"true\",\n      \"unlockForSeconds\": 0.0\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get auth type status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/authtypes/status/{{id}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "authtypes",
+                "status",
+                "{{id}}"
+              ]
+            },
+            "description": "Get auth type status for individual"
+          },
+          "response": []
+        },
+        {
+          "name": "Get auth type status (typed)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/authtypes/status/individualIdType/{{IDType}}/individualId/{{ID}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "authtypes",
+                "status",
+                "individualIdType",
+                "{{IDType}}",
+                "individualId",
+                "{{ID}}"
+              ]
+            },
+            "description": "Get auth type status with explicit id type"
+          },
+          "response": []
+        },
+        {
+          "name": "WebSub remove_id_status callback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/callback/remove_id_status",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "callback",
+                "remove_id_status"
+              ]
+            },
+            "description": "Remove-ID status callback"
+          },
+          "response": []
+        },
+        {
+          "name": "WebSub vid_credential_status_update",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/callback/vid_credential_status_update",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "callback",
+                "vid_credential_status_update"
+              ]
+            },
+            "description": "VID credential status callback"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Counts Endpoint",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/{{id}}/update-counts",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "{{id}}",
+                "update-counts"
+              ]
+            },
+            "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx"
+          },
+          "response": []
+        },
+        {
+          "name": "id vid v2 (uin) Endpoint",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/idvid/v2",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "idvid",
+                "v2"
+              ]
+            },
+            "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"id\": \"string\",\r\n    \"version\": \"string\",\r\n    \"requesttime\": \"${utcTime}\",\r\n    \"metadata\": {},\r\n    \"request\": {\r\n\t  \"id\": \"${uin}\",\r\n\t  \"type\": \"demo\",\r\n\t  \"idType\": \"UIN\"\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 - Identity Draft",
+      "item": [
+        {
+          "name": "Create Draft",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/draft/create/{{registrationId}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "draft",
+                "create",
+                "{{registrationId}}"
+              ]
+            },
+            "description": "Create identity draft by RID",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registrationId\": \"{{registrationId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Draft",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/draft/update/{{registrationId}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "draft",
+                "update",
+                "{{registrationId}}"
+              ]
+            },
+            "description": "Update draft identity",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"request\": {\n    \"documents\": [\n      {\n        \"category\": \"individualBiometrics\",\n        \"value\": \"***** MASKED *****\"\n      }\n    ],\n    \"identity\": {\n      \"gender\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"MLE\"\n        }\n      ],\n      \"city\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_CITY\"\n        }\n      ],\n      \"postalCode\": \"14022\",\n      \"fullName\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_FULLNAME\"\n        }\n      ],\n      \"dateOfBirth\": \"1992/04/15\",\n      \"proofOfIdentity\": {\n        \"format\": \"txt\",\n        \"type\": \"DOC001\",\n        \"value\": \"fileReferenceID\"\n      },\n      \"individualBiometrics\": {\n        \"format\": \"cbeff\",\n        \"version\": 1,\n        \"value\": \"fileReferenceID\"\n      },\n      \"IDSchemaVersion\": 0.1,\n      \"province\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_PROVINCE\"\n        }\n      ],\n      \"zone\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_ZONE\"\n        }\n      ],\n      \"phone\": \"8249742850\",\n      \"addressLine1\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_ADDRESSLINE1\"\n        }\n      ],\n      \"addressLine2\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_ADDRESSLINE2\"\n        }\n      ],\n      \"addressLine3\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_ADDRESSLINE3\"\n        }\n      ],\n      \"region\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"TEST_REGION\"\n        }\n      ],\n      \"email\": \"c73_idrepo_hNWpf@mosip.com\"\n    },\n    \"registrationId\": \"{{registrationId}}\",\n    \"status\": \"ACTIVATED\"\n  },\n  \"requesttime\": \"2026-08-20T14:30:40.908Z\",\n  \"id\": \"mosip.id.create\",\n  \"version\": \"v1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Extract Biometrics",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/draft/extractbiometrics/{{registrationId}}?faceExtractionFormat=mock-1.1",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "draft",
+                "extractbiometrics",
+                "{{registrationId}}"
+              ],
+              "query": [
+                {
+                  "key": "faceExtractionFormat",
+                  "value": "mock-1.1"
+                }
+              ]
+            },
+            "description": "Extract draft biometrics",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registrationId\": \"{{registrationId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Draft",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/draft/{{registrationId}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "draft",
+                "{{registrationId}}"
+              ]
+            },
+            "description": "Get draft by RID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Draft by UIN",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/draft/uin/{{uin}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "draft",
+                "uin",
+                "{{uin}}"
+              ]
+            },
+            "description": "Get draft by UIN"
+          },
+          "response": []
+        },
+        {
+          "name": "Has Draft",
+          "request": {
+            "method": "HEAD",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/draft/{{registrationId}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "draft",
+                "{{registrationId}}"
+              ]
+            },
+            "description": "Check draft exists"
+          },
+          "response": []
+        },
+        {
+          "name": "Publish Draft",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/draft/publish/{{registrationId}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "draft",
+                "publish",
+                "{{registrationId}}"
+              ]
+            },
+            "description": "Publish draft (creates VID)"
+          },
+          "response": []
+        },
+        {
+          "name": "Discard Draft",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/draft/discard/{{registrationId}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "draft",
+                "discard",
+                "{{registrationId}}"
+              ]
+            },
+            "description": "Discard draft"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Draft Endpoint",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/draft/create/{{id}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "draft",
+                "create",
+                "{{id}}"
+              ]
+            },
+            "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Draft Endpoint",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/draft/update/{{id}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "draft",
+                "update",
+                "{{id}}"
+              ]
+            },
+            "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"id\": \"mosip.id.update\",\r\n    \"version\": \"v1\",\r\n    \"requesttime\": \"${utcTime}\",\r\n    \"request\": {\r\n        \"identity\": {\r\n            \"IDSchemaVersion\": ${IDSchemaVersion},\r\n            \"fullName\": [\r\n                {\r\n                    \"language\": \"eng\",\r\n                    \"value\": \"Load Test User ${__threadNum}\"\r\n                }\r\n            ]\r\n        }\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Extract Biometrics Endpoint",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/draft/extractbiometrics/{{id}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "draft",
+                "extractbiometrics",
+                "{{id}}"
+              ]
+            },
+            "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Draft Endpoint",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/draft/{{id}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "draft",
+                "{{id}}"
+              ]
+            },
+            "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx"
+          },
+          "response": []
+        },
+        {
+          "name": "Has Draft Endpoint",
+          "request": {
+            "method": "HEAD",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/draft/{{id}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "draft",
+                "{{id}}"
+              ]
+            },
+            "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx"
+          },
+          "response": []
+        },
+        {
+          "name": "Publish Draft Endpoint",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/draft/publish/{{id}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "draft",
+                "publish",
+                "{{id}}"
+              ]
+            },
+            "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx"
+          },
+          "response": []
+        },
+        {
+          "name": "Discard Draft Endpoint",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/draft/discard/{{id}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "identity",
+                "draft",
+                "discard",
+                "{{id}}"
+              ]
+            },
+            "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 - VID",
+      "item": [
+        {
+          "name": "Create VID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/vid",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "vid"
+              ]
+            },
+            "description": "Create VID for UIN",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"mosip.vid.create\",\n  \"metadata\": {},\n  \"request\": {\n    \"UIN\": \"{{uin}}\",\n    \"vidType\": \"Perpetual\"\n  },\n  \"requesttime\": \"2026-08-20T14:30:06.986Z\",\n  \"version\": \"v1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Draft VID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/draft/vid",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "draft",
+                "vid"
+              ]
+            },
+            "description": "Create draft VID",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"mosip.vid.create\",\n  \"version\": \"v1\",\n  \"requesttime\": \"2026-08-20T14:30:35.237Z\",\n  \"metadata\": {},\n  \"request\": {\n    \"vidType\": \"Perpetual\",\n    \"UIN\": \"SNSHSH@U4U438\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve UIN by VID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/vid/{{vid}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "vid",
+                "{{vid}}"
+              ]
+            },
+            "description": "Get UIN for VID"
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve VIDs by UIN",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/vid/uin/{{uin}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "vid",
+                "uin",
+                "{{uin}}"
+              ]
+            },
+            "description": "List VIDs for UIN"
+          },
+          "response": []
+        },
+        {
+          "name": "Update VID status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/vid/{{vid}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "vid",
+                "{{vid}}"
+              ]
+            },
+            "description": "Update VID status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"request\": {\n    \"vidStatus\": \"ACTIVE\"\n  },\n  \"requesttime\": \"2026-08-20T14:30:14.646Z\",\n  \"id\": \"mosip.vid.update\",\n  \"version\": \"v1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Regenerate VID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/vid/{{vid}}/regenerate",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "vid",
+                "{{vid}}",
+                "regenerate"
+              ]
+            },
+            "description": "Regenerate VID",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"VID\": \" \"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate VIDs for UIN",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/vid/deactivate",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "vid",
+                "deactivate"
+              ]
+            },
+            "description": "Deactivate all VIDs for UIN",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"mosip.vid.deactivate\",\n  \"metadata\": {},\n  \"request\": {\n    \"UIN\": \"{{uin}}\"\n  },\n  \"requesttime\": \"\",\n  \"version\": \"v1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reactivate VIDs for UIN",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/vid/reactivate",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "vid",
+                "reactivate"
+              ]
+            },
+            "description": "Reactivate VIDs for UIN",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"mosip.vid.reactivate\",\n  \"version\": \"v1\",\n  \"requesttime\": \"2026-08-20T14:30:31.851Z\",\n  \"request\": {\n    \"UIN\": \"{{uin}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve UIN by VID Endpoint",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/vid/{{id}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "vid",
+                "{{id}}"
+              ]
+            },
+            "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx"
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve VIDs by UIN Endpoint",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/vid/uin/{{id}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "vid",
+                "uin",
+                "{{id}}"
+              ]
+            },
+            "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx"
+          },
+          "response": []
+        },
+        {
+          "name": "Update VID Status Endpoint",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/vid/{{id}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "vid",
+                "{{id}}"
+              ]
+            },
+            "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"id\": \"mosip.vid.update\",\r\n    \"version\": \"v1\",\r\n    \"requesttime\": \"${utcTime}Z\",\r\n    \"request\": {\r\n        \"vidStatus\": \"REVOKED\"\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Regenerate VID Endpoint",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/idrepository/v1/vid/{{id}}/regenerate",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "idrepository",
+                "v1",
+                "vid",
+                "{{id}}",
+                "regenerate"
+              ]
+            },
+            "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05 - Credential Request",
+      "item": [
+        {
+          "name": "Create credential request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/v1/credentialrequest/requestgenerator",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "credentialrequest",
+                "requestgenerator"
+              ]
+            },
+            "description": "Issue credential request",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"id\": \"mosip.credential.request\",\r\n    \"version\": \"v1\",\r\n    \"requesttime\": \"${utcTime}Z\",\r\n    \"request\": {\r\n        \"id\": \"${uin}\",\r\n        \"credentialType\": \"auth\",\r\n        \"issuer\": \"mpartner-default-auth\",\r\n        \"recepiant\": \"\",\r\n        \"user\": \"\",\r\n        \"encrypt\": false,\r\n        \"encryptionKey\": \"\",\r\n        \"sharableAttributes\": [\r\n            \"fullName\",\r\n            \"dateOfBirth\",\r\n            \"UIN\"\r\n        ],\r\n        \"additionalData\": {}\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create credential request by RID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/v1/credentialrequest/v2/requestgenerator/{{rid}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "credentialrequest",
+                "v2",
+                "requestgenerator",
+                "{{rid}}"
+              ]
+            },
+            "description": "Credential request v2 by RID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get credential request status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/v1/credentialrequest/get/{{requestId}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "credentialrequest",
+                "get",
+                "{{requestId}}"
+              ]
+            },
+            "description": "Status by requestId"
+          },
+          "response": []
+        },
+        {
+          "name": "Retrigger credential request",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/v1/credentialrequest/retrigger/{{requestId}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "credentialrequest",
+                "retrigger",
+                "{{requestId}}"
+              ]
+            },
+            "description": "Retrigger failed request"
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel credential request",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/v1/credentialrequest/cancel/{{requestId}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "credentialrequest",
+                "cancel",
+                "{{requestId}}"
+              ]
+            },
+            "description": "Cancel request"
+          },
+          "response": []
+        },
+        {
+          "name": "Get request IDs (paginated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/v1/credentialrequest/getRequestIds?pageNumber=0&pageSize=10",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "credentialrequest",
+                "getRequestIds"
+              ],
+              "query": [
+                {
+                  "key": "pageNumber",
+                  "value": "0"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Paginated request IDs"
+          },
+          "response": []
+        },
+        {
+          "name": "WebSub notifyStatus callback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/v1/credentialrequest/callback/notifyStatus",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "credentialrequest",
+                "callback",
+                "notifyStatus"
+              ]
+            },
+            "description": "Credential status WebSub callback",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"publisher\": \"CREDENTIAL_SERVICE\",\r\n    \"topic\": \"CREDENTIAL_STATUS_UPDATE\",\r\n    \"publishedOn\": \"${utcTime}Z\",\r\n    \"event\": {\r\n        \"id\": \"event-${identifier}\",\r\n        \"requestId\": \"${requestId}\",\r\n        \"timestamp\": \"${utcTime}Z\",\r\n        \"status\": \"ISSUED\",\r\n        \"url\": \"${protocol}://${serverIP}/v1/credentialservice/credentials/download\"\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Schedule WebSub subscription",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/v1/credentialrequest/scheduleWebsubSubscription",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "credentialrequest",
+                "scheduleWebsubSubscription"
+              ]
+            },
+            "description": "Schedule hub subscription"
+          },
+          "response": []
+        },
+        {
+          "name": "Schedule retry subscription",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/v1/credentialrequest/scheduleRetrySubscription",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "credentialrequest",
+                "scheduleRetrySubscription"
+              ]
+            },
+            "description": "Retry subscription schedule"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Credential Issuance Request by RID Endpoint",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/v1/credentialrequest/v2/requestgenerator/{{id}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "credentialrequest",
+                "v2",
+                "requestgenerator",
+                "{{id}}"
+              ]
+            },
+            "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"id\": \"mosip.credential.request\",\r\n    \"version\": \"v1\",\r\n    \"requesttime\": \"${utcTime}Z\",\r\n    \"request\": {\r\n        \"id\": \"${uin}\",\r\n        \"credentialType\": \"auth\",\r\n        \"issuer\": \"mpartner-default-auth\",\r\n        \"recepiant\": \"\",\r\n        \"user\": \"\",\r\n        \"encrypt\": false,\r\n        \"encryptionKey\": \"\",\r\n        \"sharableAttributes\": [\r\n            \"fullName\",\r\n            \"dateOfBirth\",\r\n            \"UIN\"\r\n        ],\r\n        \"additionalData\": {}\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Credential Request Status Endpoint",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/v1/credentialrequest/get/{{id}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "credentialrequest",
+                "get",
+                "{{id}}"
+              ]
+            },
+            "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx"
+          },
+          "response": []
+        },
+        {
+          "name": "Retrigger Credential Request Endpoint",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/v1/credentialrequest/retrigger/{{id}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "credentialrequest",
+                "retrigger",
+                "{{id}}"
+              ]
+            },
+            "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx"
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Credential Request Endpoint",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/v1/credentialrequest/cancel/{{id}}",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "credentialrequest",
+                "cancel",
+                "{{id}}"
+              ]
+            },
+            "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "06 - Credential Service",
+      "item": [
+        {
+          "name": "Get credential types",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/v1/credentialservice/types",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "credentialservice",
+                "types"
+              ]
+            },
+            "description": "Supported credential types"
+          },
+          "response": []
+        },
+        {
+          "name": "Issue credential",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/v1/credentialservice/issue",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "credentialservice",
+                "issue"
+              ]
+            },
+            "description": "Issue verifiable credential",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"id\": \"${identifier}\",\r\n    \"credentialType\": \"euin\",\r\n    \"requestId\": \"req-${identifier}\",\r\n    \"issuer\": \"mpartner-default-print\",\r\n    \"recepiant\": \"mpartner-default-print\",\r\n    \"user\": \"resident-user\",\r\n    \"encrypt\": true,\r\n    \"encryptionKey\": \"encryptionKey\",\r\n    \"sharableAttributes\": [\r\n        \"name\",\r\n        \"dob\",\r\n        \"gender\"\r\n    ],\r\n    \"additionalData\": {\r\n        \"key1\": \"value1\"\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "99 - Other",
+      "item": [
+        {
+          "name": "Id-repo actuator health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "Authorization={{accessToken}}",
+                "type": "text",
+                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{idrepoBaseUrl}}/actuator/health",
+              "host": [
+                "{{idrepoBaseUrl}}"
+              ],
+              "path": [
+                "actuator",
+                "health"
+              ]
+            },
+            "description": "Host app health"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
