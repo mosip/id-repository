@@ -1,4 +1,35 @@
 PublishDraftV2:
+  IdRepository_DraftV2Lifecycle_GetDraftUinEqualsStamped_LostPacket_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
+      description: Get the $RIDV2LOST$ LOST draft after UpdateDraftUinData stamped it - response.identity.UIN must equal the stamped LostScen UIN.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_15
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/GetDraft/getDraft
+      outputTemplate: idRepository/GetDraftV2/getDraftV2UinResult
+      input: '{
+      "registrationId":"$RIDV2LOST$"
+      }'
+      output: '{
+    "UIN": "$ID:AddIdentity_For_DraftV2LostScen_smoke_Pos_UIN$"
+}'
+
+  IdRepository_DraftV2Lifecycle_LiveUnchangedWhileUpdateDraftOpen_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/idvid/{id}?type={type}
+      description: U2 - the $RIDV2UPDATEA$ UPDATE draft was updated to postalCode 14555 but not yet published - the live NewScen identity must still show 14022.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_16
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/DraftV2Lifecycle/retrieveIdentityWithType
+      outputTemplate: idRepository/DraftV2Lifecycle/retrieveIdentityPostalCodeResult
+      input: '{
+      "id":"$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$",
+      "type": "demo"
+      }'
+      output: '{
+      "postalCode": "14022"
+}'
+
   IdRepository_PublishDraftV2_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
       description: Publish a fully drafted identity - expected status ACTIVATED
@@ -199,4 +230,52 @@ PublishDraftV2:
       }'
       output: '{
       "status": "ACTIVATED"
+}'
+
+  IdRepository_DraftV2Lifecycle_LiveUpdatedAfterPublish_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/idvid/{id}?type={type}
+      description: U3 - after PublishDraftV2 published the $RIDV2UPDATEA$ UPDATE draft, the live NewScen identity must show the drafted postalCode 14555.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_17
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/DraftV2Lifecycle/retrieveIdentityWithType
+      outputTemplate: idRepository/DraftV2Lifecycle/retrieveIdentityPostalCodeResult
+      input: '{
+      "id":"$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$",
+      "type": "demo"
+      }'
+      output: '{
+      "postalCode": "14555"
+}'
+
+  IdRepository_DraftV2Lifecycle_LiveBiometricsReadableAfterPublish_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/idvid/{id}?type={type}
+      description: U3 - after publish moved biometrics from _draft/{ridHash}/ to the live {uinHash}/ path, retrieving the NewScen identity with type=bio must succeed without errors.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_18
+      role: idrepo
+      restMethod: get
+      checkErrorsOnlyInResponse: true
+      inputTemplate: idRepository/DraftV2Lifecycle/retrieveIdentityWithType
+      outputTemplate: idRepository/error
+      input: '{
+      "id":"$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$",
+      "type": "bio"
+      }'
+      output: '{
+}'
+
+  IdRepository_DraftV2Lifecycle_LostUpdateAfterStampPublished_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/idvid/{id}?type={type}
+      description: L3 - after PublishDraftV2_10 published the $RIDV2LOST$ draft, the live LostScen identity must show postalCode 14999 from the post-stamp update, not the backfilled live 14022.
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_40
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/DraftV2Lifecycle/retrieveIdentityWithType
+      outputTemplate: idRepository/DraftV2Lifecycle/retrieveIdentityPostalCodeResult
+      input: '{
+      "id":"$ID:AddIdentity_For_DraftV2LostScen_smoke_Pos_UIN$",
+      "type": "demo"
+      }'
+      output: '{
+      "postalCode": "14999"
 }'

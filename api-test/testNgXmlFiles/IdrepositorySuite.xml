@@ -282,15 +282,6 @@
 		</classes>
 	</test>
 
-	<test name="DraftV2PrePublishChecks">
-		<parameter name="ymlFile"
-			value="idRepository/DraftV2Lifecycle/DraftV2PrePublishChecks.yml" />
-		<classes>
-			<class
-				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
-		</classes>
-	</test>
-
 	<test name="PublishDraftV2">
 		<parameter name="ymlFile"
 			value="idRepository/PublishDraftV2/PublishDraftV2.yml" />
@@ -301,15 +292,6 @@
 	</test>
 
 	<!-- Continues the $RIDV2NEW$ chain (CreateDraftV2 -> UpdateDraftV2 -> PublishDraftV2): re-create -> discard -> re-create -->
-	<test name="DraftV2PostPublishChecks">
-		<parameter name="ymlFile"
-			value="idRepository/DraftV2Lifecycle/DraftV2PostPublishChecks.yml" />
-		<classes>
-			<class
-				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
-		</classes>
-	</test>
-
 	<test name="CreateDraftV2AfterPublish">
 		<parameter name="ymlFile"
 			value="idRepository/DraftV2Lifecycle/CreateDraftV2AfterPublish.yml" />
@@ -347,15 +329,6 @@
 		</classes>
 	</test>
 
-	<test name="DraftV2PostDiscardChecks">
-		<parameter name="ymlFile"
-			value="idRepository/DraftV2Lifecycle/DraftV2PostDiscardChecks.yml" />
-		<classes>
-			<class
-				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />
-		</classes>
-	</test>
-
 	<test name="CreateDraftV2AfterDiscard">
 		<parameter name="ymlFile"
 			value="idRepository/DraftV2Lifecycle/CreateDraftV2AfterDiscard.yml" />
@@ -366,9 +339,9 @@
 		</classes>
 	</test>
 
-	<test name="DraftV2ReprocessChecks">
+	<test name="DraftV2PostDiscardChecks">
 		<parameter name="ymlFile"
-			value="idRepository/DraftV2Lifecycle/DraftV2ReprocessChecks.yml" />
+			value="idRepository/DraftV2Lifecycle/DraftV2PostDiscardChecks.yml" />
 		<classes>
 			<class
 				name="io.mosip.testrig.apirig.idrepo.testscripts.GetWithParam" />

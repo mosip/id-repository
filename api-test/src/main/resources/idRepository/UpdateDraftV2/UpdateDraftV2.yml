@@ -129,7 +129,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_UpdatePacketDraftWithUin_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: Update a draft created for an update packet (existing UIN) - postalCode 14555 differs from the live 14022 so the DraftV2PrePublishChecks/PostPublishChecks retrievals can tell draft and live apart - expected status DRAFTED
+      description: Update a draft created for an update packet (existing UIN) - postalCode 14555 differs from the live 14022 so the pre/post-publish retrievals in PublishDraftV2.yml can tell draft and live apart - expected status DRAFTED
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_05
       role: idrepo
       restMethod: patch

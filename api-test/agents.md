@@ -161,7 +161,9 @@ Give every UPDATE draft / LOST stamp its own `AddIdentity_For_DraftV2*Scen` iden
 
 ### Suite ordering
 Each `<test>` runs its whole YAML at one point, so multi-step chains are spread across entries in this order:
-`CreateDraftV2 → GetDraftV2 → UpdateDraftV2 → UpdateDraftUinData → UpdateDraftV2AfterUinStamp → DraftV2PrePublishChecks → PublishDraftV2 → DraftV2PostPublishChecks → CreateDraftV2AfterPublish → UpdateDraftV2LatestRid → PublishDraftV2LatestRid → DiscardDraftV2 → DraftV2PostDiscardChecks → CreateDraftV2AfterDiscard → DraftV2ReprocessChecks → UpdateDraftV2AfterDiscard → UpdateDraftUinDataAfterDiscard → PublishDraftV2AfterDiscard`
+`CreateDraftV2 → GetDraftV2 → UpdateDraftV2 → UpdateDraftUinData → UpdateDraftV2AfterUinStamp → PublishDraftV2 → CreateDraftV2AfterPublish → UpdateDraftV2LatestRid → PublishDraftV2LatestRid → DiscardDraftV2 → CreateDraftV2AfterDiscard → DraftV2PostDiscardChecks → UpdateDraftV2AfterDiscard → UpdateDraftUinDataAfterDiscard → PublishDraftV2AfterDiscard`
+
+`PublishDraftV2.yml` also holds the pre-publish checks (top) and post-publish checks (bottom) as `GetWithParam` cases; `DraftV2PostDiscardChecks.yml` holds the post-discard and re-create checks.
 
 Before adding a step, put it in the earliest existing entry of the right class that runs after its prerequisite; add a new entry only when none fits. Test descriptions name the chain and step they belong to.
 
