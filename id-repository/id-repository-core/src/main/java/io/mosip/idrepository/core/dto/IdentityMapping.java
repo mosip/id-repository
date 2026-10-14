@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
@@ -41,7 +42,9 @@ import lombok.NoArgsConstructor;
  * <p>
  * Jackson {@code @JsonProperty("IDSchemaVersion")} maps the schema-version key.
  * Do not change nested JSON property names without updating the mapping file and
- * builder path resolution together.
+ * builder path resolution together. Keys not declared here (for example
+ * {@code phoneNumber}) are ignored: the mapping file is deployment-owned and the
+ * injected {@code ObjectMapper} fails on unknown properties.
  * </p>
  *
  * @see IdentityIssuanceProfile
@@ -50,6 +53,7 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class IdentityMapping {
 
 	/** Mapping entries for core identity demographic and biometric fields. */
@@ -69,6 +73,7 @@ public class IdentityMapping {
 	 */
 	@Data
 	@NoArgsConstructor
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class Identity {
 
 		/** JSON path to the ID schema version field. */
@@ -233,6 +238,7 @@ public class IdentityMapping {
 	/** Container for all document category path mappings. */
 	@Data
 	@NoArgsConstructor
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class Documents {
 
 		/** Proof-of-address mapping. */
