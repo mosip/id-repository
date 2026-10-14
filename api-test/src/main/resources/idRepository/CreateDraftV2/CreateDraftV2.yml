@@ -1,7 +1,7 @@
 CreateDraftV2:
   IdRepository_CreateDraftV2_NewPacketDefault_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Create a draft for a NEW packet with no request body fields - UIN and generateUin both default, so a fresh UIN is auto-generated.
+      description: Verify that a draft is created for a NEW packet with an empty request body and a new UIN is generated automatically
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_01
       role: idrepo
       restMethod: post
@@ -18,7 +18,7 @@ CreateDraftV2:
 
   IdRepository_CreateDraftV2_NewPacketExplicitGenerateUinTrue_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Create a draft for a NEW packet with generateUin explicitly set to true and no uin - equivalent to the default, UIN is auto-generated
+      description: Verify that a draft is created for a NEW packet when generateUin is true and no UIN is passed - a new UIN is generated
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_02
       role: idrepo
       restMethod: post
@@ -35,7 +35,7 @@ CreateDraftV2:
 
   IdRepository_CreateDraftV2_UpdatePacketWithUin_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Create a draft for an UPDATE packet using an existing valid UIN, generateUin omitted so it defaults to true.
+      description: Verify that a draft is created for an UPDATE packet when an existing UIN is passed and generateUin is omitted
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_03
       role: idrepo
       restMethod: post
@@ -52,7 +52,7 @@ CreateDraftV2:
 
   IdRepository_CreateDraftV2_UpdatePacketWithUinAndGenerateUinTrue_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Create a draft for an UPDATE packet by passing an existing valid UIN with generateUin explicitly set to true
+      description: Verify that a draft is created for an UPDATE packet when an existing UIN is passed with generateUin set to true
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_04
       role: idrepo
       restMethod: post
@@ -69,7 +69,7 @@ CreateDraftV2:
 
   IdRepository_CreateDraftV2_LostPacketGenerateUinFalse_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Create a draft for a LOST packet with generateUin false and no uin - UIN allocation is deferred until updateDraftUinData runs after ABIS.
+      description: Verify that a draft is created for a LOST packet with generateUin false - no UIN is assigned until ABIS finds a match
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_05
       role: idrepo
       restMethod: post
@@ -86,7 +86,7 @@ CreateDraftV2:
 
   IdRepository_CreateDraftV2_DuplicateRid_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Re-create a draft for a registrationId that already has a draft - must be rejected as a duplicate record.
+      description: Verify that creating a draft is rejected as a duplicate when a draft already exists for the same RID
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_06
       role: idrepo
       restMethod: post
@@ -191,7 +191,7 @@ CreateDraftV2:
 
   IdRepository_CreateDraftV2_WithInvalidToken_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Create a draft using an invalid/unauthenticated auth token - must be rejected before the RID is looked up.
+      description: Verify that creating a draft is rejected when the request uses an invalid auth token
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_11
       role: invalid
       restMethod: post
@@ -209,7 +209,7 @@ CreateDraftV2:
 
   IdRepository_CreateDraftV2_WithUnauthorizedRole_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Create a draft using a valid token that lacks the registration-processor role - must be rejected before the RID is looked up.
+      description: Verify that creating a draft is rejected when the token does not have the registration-processor role
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_12
       role: resident
       restMethod: post
@@ -227,7 +227,7 @@ CreateDraftV2:
 
   IdRepository_CreateDraftV2_ForExtraction_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Create a draft dedicated to ExtractBiometricsV2.yml, kept isolated from the main $RIDV2NEW$ lifecycle chain.
+      description: Verify that a separate draft is created for the extract biometrics tests, so they do not disturb the main draft flow
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_13
       role: idrepo
       restMethod: post
@@ -244,7 +244,7 @@ CreateDraftV2:
 
   IdRepository_CreateDraftV2_LostPacketDuplicateRid_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Re-create a LOST draft (generateUin false, no uin) on $RIDV2LOST$ while its TC_05 draft exists - the LOST path has its own duplicate check and must reject it.
+      description: Verify that creating the LOST draft again is rejected as a duplicate while the earlier LOST draft still exists
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_14
       role: idrepo
       restMethod: post
@@ -265,7 +265,7 @@ CreateDraftV2:
 
   IdRepository_CreateDraftV2_LostPacketNeverStamped_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Create a LOST draft on $RIDV2LOSTNOUIN$ that is updated but never UIN-stamped - PublishDraftV2 later verifies publish is rejected.
+      description: Verify that a LOST draft is created which will be updated but never given a UIN - used later to check publish is rejected
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_15
       role: idrepo
       restMethod: post
@@ -282,7 +282,7 @@ CreateDraftV2:
 
   IdRepository_CreateDraftV2_OlderRidChainFirstRid_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Older-RID chain step 1 - create an UPDATE draft on $RIDV2OLD$ for the reserved OlderRidScen UIN; it is published next, then superseded by $RIDV2LATEST$.
+      description: Older-RID flow, step 1 - verify that an UPDATE draft is created on the older RID; it is published before a newer RID replaces it
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_16
       role: idrepo
       restMethod: post
@@ -299,7 +299,7 @@ CreateDraftV2:
 
   IdRepository_CreateDraftV2_LostPacketStampFirst_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Create a LOST draft on $RIDV2LOSTSTAMPFIRST$ that is never updated - UpdateDraftUinData stamps it while uinData is still null.
+      description: Verify that a LOST draft is created which gets its UIN stamped before any update - used to test identity backfill from live data
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_17
       role: idrepo
       restMethod: post
@@ -316,7 +316,7 @@ CreateDraftV2:
 
   IdRepository_CreateDraftV2_NewPacketReprocess_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: K1 step 1 - create a NEW draft on $RIDV2NEWREPROCESS$; it is updated, discarded before publish, then re-created (reprocess).
+      description: Reprocess flow for a NEW draft, step 1 - verify that a NEW draft is created; it is later updated, discarded and created again
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_18
       role: idrepo
       restMethod: post
@@ -333,7 +333,7 @@ CreateDraftV2:
 
   IdRepository_CreateDraftV2_LostPacketRestamp_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: K5 step 1 - create a LOST draft on $RIDV2LOSTRESTAMP$; it is updated, stamped, discarded, then re-created and stamped again (reprocess).
+      description: Reprocess flow for a LOST draft, step 1 - verify that a LOST draft is created; it is later stamped, discarded and created again
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_19
       role: idrepo
       restMethod: post
@@ -350,7 +350,7 @@ CreateDraftV2:
 
   IdRepository_CreateDraftV2_UinHeldByAnotherOpenDraft_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Create an UPDATE draft for the NewScen UIN on a fresh RID while the $RIDV2UPDATEA$ draft (TC_03) still holds that UIN - uin_draft.uin_hash is unique, and the violation surfaces as a DB access error.
+      description: Verify that creating an UPDATE draft is rejected when another open draft already holds the same UIN
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_20
       role: idrepo
       restMethod: post
@@ -371,7 +371,7 @@ CreateDraftV2:
 
   IdRepository_CreateDraftV2_LostPacketNullIdentityUpdate_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: N1b setup - create a LOST draft on $RIDV2LOSTNOIDENTITY$ whose first and only update carries no identity.
+      description: Empty-identity update setup - verify that a LOST draft is created whose only update will carry no identity data
       uniqueIdentifier: TC_IDRepo_CreateDraftV2_21
       role: idrepo
       restMethod: post

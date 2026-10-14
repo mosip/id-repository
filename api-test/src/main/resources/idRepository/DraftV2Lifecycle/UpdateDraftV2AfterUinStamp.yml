@@ -1,7 +1,7 @@
 UpdateDraftV2AfterUinStamp:
   IdRepository_DraftV2Lifecycle_UpdateLostDraftAfterStamp_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: L3 - update the $RIDV2LOST$ LOST draft after UpdateDraftUinData stamped it (postalCode 14999) - merge now runs with uinHash set; PublishDraftV2_10 then publishes it.
+      description: LOST draft flow - verify that the LOST draft can be updated with a new postal code after its UIN was stamped
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_39
       role: idrepo
       restMethod: patch

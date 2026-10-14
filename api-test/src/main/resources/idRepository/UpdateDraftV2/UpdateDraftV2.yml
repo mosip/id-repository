@@ -1,7 +1,7 @@
 UpdateDraftV2:
   IdRepository_UpdateDraftV2_FirstUpdate_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: First update on a freshly created NEW-packet V2 draft - sets the full identity for the first time.
+      description: Verify that the first update on a new NEW packet draft saves the full identity data
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_01
       role: idrepo
       restMethod: patch
@@ -24,7 +24,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_SubsequentUpdate_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: Second update on the same V2 draft - exercises the merge/patch path over previously stored draft data.
+      description: Verify that a second update on the same draft merges the new values with the data already saved
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_02
       role: idrepo
       restMethod: patch
@@ -83,7 +83,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_LostPacketDraft_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: Update a draft created as a LOST packet (generateUin false, no UIN yet) - identity/biometric data can still be recorded before the UIN is resolved.
+      description: Verify that a LOST packet draft can be updated with identity and biometric data before a UIN is stamped
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_04
       role: idrepo
       restMethod: patch
@@ -106,7 +106,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_LostPacketNeverStampedDraft_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: Update the $RIDV2LOSTNOUIN$ LOST draft with identity data - its UIN is never stamped, so PublishDraftV2 must reject it later.
+      description: Verify that a LOST draft is updated with identity data; it never gets a UIN, so publishing it must fail later
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_10
       role: idrepo
       restMethod: patch
@@ -129,7 +129,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_UpdatePacketDraftWithUin_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: Update a draft created for an update packet (existing UIN) - postalCode 14555 differs from the live 14022 so the pre/post-publish retrievals in PublishDraftV2.yml can tell draft and live apart - expected status DRAFTED
+      description: Verify that the UPDATE packet draft is updated with a new postal code that differs from the live identity
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_05
       role: idrepo
       restMethod: patch
@@ -179,7 +179,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_InvalidEmail_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: Update a draft passing an invalid email - validated before the draft-existence check, so no prior draft is required
+      description: Verify that updating a draft is rejected when the email is invalid
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_07
       role: idrepo
       restMethod: patch
@@ -205,7 +205,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_WithInvalidToken_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: Update a draft using an invalid/unauthenticated auth token - must be rejected before the draft is looked up.
+      description: Verify that updating a draft is rejected when the request uses an invalid auth token
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_08
       role: invalid
       restMethod: patch
@@ -228,7 +228,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_WithUnauthorizedRole_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: Update a draft using a valid token that lacks the registration-processor role - must be rejected before the draft is looked up.
+      description: Verify that updating a draft is rejected when the token does not have the registration-processor role
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_09
       role: resident
       restMethod: patch
@@ -274,7 +274,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_LostPacketRepeatedUpdateBeforeStamp_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: Second, identity-changing update on the $RIDV2LOSTNOUIN$ LOST draft (TC_10 did the first) while its uinHash is still null - the service deliberately rejects it as UIN details not found in draft (updateDemographicData guard) instead of NPE-ing in updateJsonObject.
+      description: Verify that a second identity update on a LOST draft without a UIN is rejected as UIN details not found
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_12
       role: idrepo
       restMethod: patch
@@ -301,7 +301,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_NewPacketReprocessFirstPass_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: K1 step 2 - update the $RIDV2NEWREPROCESS$ NEW draft with postalCode 14777; after discard + re-create this value must not survive.
+      description: Reprocess flow for a NEW draft, step 2 - verify that the NEW draft is updated with a postal code that must not survive discard
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_13
       role: idrepo
       restMethod: patch
@@ -347,7 +347,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_LostPacketNullIdentityAfterUpdate_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: N1a - update the $RIDV2LOST$ LOST draft (already updated by TC_04, not yet stamped) with no identity in the request - the merge returns early, so it must not fail even though uinHash is null.
+      description: Empty-identity update - verify that updating a LOST draft without any identity data succeeds before a UIN is stamped
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_15
       role: idrepo
       restMethod: patch
@@ -365,7 +365,7 @@ UpdateDraftV2:
 
   IdRepository_UpdateDraftV2_LostPacketNullIdentityFirstUpdate_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: N1b - first update on the $RIDV2LOSTNOIDENTITY$ LOST draft with no identity in the request - must not fail (service stores the identity as JSON null).
+      description: Empty-identity update - verify that the first update on a LOST draft without any identity data succeeds
       uniqueIdentifier: TC_IDRepo_UpdateDraftV2_16
       role: idrepo
       restMethod: patch

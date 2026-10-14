@@ -1,7 +1,7 @@
 GetDraftV2:
   IdRepository_GetDraftV2_VerifyUinAllocated_NewPacket_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
-      description: Get a draft to confirm the default NEW-packet draft (from CreateDraftV2) actually has a UIN allocated.
+      description: Verify that the draft created for a NEW packet has a UIN assigned
       uniqueIdentifier: TC_IDRepo_GetDraftV2_01
       role: idrepo
       restMethod: get
@@ -16,7 +16,7 @@ GetDraftV2:
 
   IdRepository_GetDraftV2_VerifyUinNotAllocated_LostPacket_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
-      description: Get a draft to confirm the LOST-packet draft (generateUin false) has NOT had a UIN allocated yet.
+      description: Verify that the draft created for a LOST packet does not have a UIN assigned yet
       uniqueIdentifier: TC_IDRepo_GetDraftV2_12
       role: idrepo
       restMethod: get
@@ -30,7 +30,7 @@ GetDraftV2:
 
   IdRepository_GetDraftV2_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
-      description: Get a draft by registrationId with no query params - type defaults to "all" per the swagger description.
+      description: Verify that a draft is returned when no query parameters are passed (type defaults to all)
       uniqueIdentifier: TC_IDRepo_GetDraftV2_02
       role: idrepo
       restMethod: get
@@ -45,7 +45,7 @@ GetDraftV2:
 
   IdRepository_GetDraftV2_TypeDemographics_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}?type={type}
-      description: Get a draft passing type=demographics - the one genuinely V2-specific query param addition on this endpoint.
+      description: Verify that a draft is returned with only demographic data when type is demographics
       uniqueIdentifier: TC_IDRepo_GetDraftV2_03
       role: idrepo
       restMethod: get
@@ -61,7 +61,7 @@ GetDraftV2:
 
   IdRepository_GetDraftV2_TypeBiometrics_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}?type={type}
-      description: Get a draft passing type=biometrics. Same assumption as TypeDemographics - inferred from swagger, not confirmed against v2 source
+      description: Verify that a draft is returned with only biometric data when type is biometrics
       uniqueIdentifier: TC_IDRepo_GetDraftV2_04
       role: idrepo
       restMethod: get
@@ -77,7 +77,7 @@ GetDraftV2:
 
   IdRepository_GetDraftV2_TypeAllExplicit_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}?type={type}
-      description: Get a draft passing type=all explicitly - same result as omitting it, just exercises the explicit value.
+      description: Verify that a draft is returned with all data when type is all
       uniqueIdentifier: TC_IDRepo_GetDraftV2_05
       role: idrepo
       restMethod: get
@@ -93,7 +93,7 @@ GetDraftV2:
 
   IdRepository_GetDraftV2_WithFingerExtractionFormat_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}?fingerExtractionFormat={fingerExtractionFormat}
-      description: Get a draft passing fingerExtractionFormat, representative of the three parallel extraction-format params (finger/iris/face).
+      description: Verify that a draft is returned when a finger extraction format is passed
       uniqueIdentifier: TC_IDRepo_GetDraftV2_06
       role: idrepo
       restMethod: get
@@ -168,7 +168,7 @@ GetDraftV2:
 
   IdRepository_GetDraftV2_WithInvalidToken_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
-      description: Get a draft using an invalid/unauthenticated auth token - must be rejected before the draft is looked up.
+      description: Verify that getting a draft is rejected when the request uses an invalid auth token
       uniqueIdentifier: TC_IDRepo_GetDraftV2_10
       role: invalid
       restMethod: get
@@ -184,7 +184,7 @@ GetDraftV2:
 
   IdRepository_GetDraftV2_WithUnauthorizedRole_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
-      description: Get a draft using a valid token that lacks the required role - must be rejected before the draft is looked up.
+      description: Verify that getting a draft is rejected when the token does not have the required role
       uniqueIdentifier: TC_IDRepo_GetDraftV2_11
       role: resident
       restMethod: get
@@ -200,7 +200,7 @@ GetDraftV2:
 
   IdRepository_GetDraftV2_UinEqualsLive_UpdatePacket_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
-      description: U1 - get the $RIDV2UPDATEA$ UPDATE draft right after createDraftV2, before any update - the identity copied from live must carry the NewScen UIN.
+      description: UPDATE draft flow - verify that a newly created UPDATE draft carries the UIN copied from the live identity
       uniqueIdentifier: TC_IDRepo_GetDraftV2_13
       role: idrepo
       restMethod: get

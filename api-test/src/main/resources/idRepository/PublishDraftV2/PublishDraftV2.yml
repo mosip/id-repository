@@ -1,7 +1,7 @@
 PublishDraftV2:
   IdRepository_DraftV2Lifecycle_GetDraftUinEqualsStamped_LostPacket_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
-      description: Get the $RIDV2LOST$ LOST draft after UpdateDraftUinData stamped it - response.identity.UIN must equal the stamped LostScen UIN.
+      description: Verify that the LOST draft returns the UIN that was stamped on it by the update UIN data API
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_15
       role: idrepo
       restMethod: get
@@ -16,7 +16,7 @@ PublishDraftV2:
 
   IdRepository_DraftV2Lifecycle_LiveUnchangedWhileUpdateDraftOpen_Smoke_Pos:
       endPoint: /idrepository/v1/identity/idvid/{id}?type={type}
-      description: U2 - the $RIDV2UPDATEA$ UPDATE draft was updated to postalCode 14555 but not yet published - the live NewScen identity must still show 14022.
+      description: UPDATE draft flow - verify that the live identity still has the old postal code while the updated draft is not yet published
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_16
       role: idrepo
       restMethod: get
@@ -47,7 +47,7 @@ PublishDraftV2:
 
   IdRepository_RePublishDraftV2_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
-      description: Publish the same registrationId a second time - the draft was deleted by the first publish, so this must be rejected as no record found.
+      description: Verify that publishing the same draft a second time is rejected because the first publish removed it
       uniqueIdentifier: TC_IDRepo_PublishDraftV2_02
       role: idrepo
       restMethod: get
@@ -66,7 +66,7 @@ PublishDraftV2:
 
   IdRepository_PublishDraftV2_NoDraftExists_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
-      description: Publish a registrationId that never had a draft at all - must be rejected as no record found.
+      description: Verify that publishing is rejected when the RID never had a draft
       uniqueIdentifier: TC_IDRepo_PublishDraftV2_03
       role: idrepo
       restMethod: get
@@ -85,7 +85,7 @@ PublishDraftV2:
 
   IdRepository_PublishDraftV2_InvalidRidFormat_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
-      description: Publish a registrationId containing special/URL-sensitive characters - expected to be rejected the same as any not-found RID (IDR-IDC-007).
+      description: Verify that publishing is rejected as not found when the RID contains special characters
       uniqueIdentifier: TC_IDRepo_PublishDraftV2_04
       role: idrepo
       restMethod: get
@@ -123,7 +123,7 @@ PublishDraftV2:
 
   IdRepository_PublishDraftV2_WithInvalidToken_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
-      description: Publish using an invalid/unauthenticated auth token - must be rejected before the draft is looked up.
+      description: Verify that publishing a draft is rejected when the request uses an invalid auth token
       uniqueIdentifier: TC_IDRepo_PublishDraftV2_06
       role: invalid
       restMethod: get
@@ -139,7 +139,7 @@ PublishDraftV2:
 
   IdRepository_PublishDraftV2_WithUnauthorizedRole_StatusCode_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
-      description: Publish using a valid token that lacks the required role - must be rejected before the draft is looked up.
+      description: Verify that publishing a draft is rejected when the token does not have the required role
       uniqueIdentifier: TC_IDRepo_PublishDraftV2_07
       role: resident
       restMethod: get
@@ -155,7 +155,7 @@ PublishDraftV2:
 
   IdRepository_PublishDraftV2_NewPacketDraft_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
-      description: Publish the NEW-packet draft created and updated earlier on $RIDV2NEW$ - expected status ACTIVATED; the RID is re-drafted afterwards in DraftV2Lifecycle.
+      description: Verify that the updated NEW packet draft is published and the identity becomes ACTIVATED
       uniqueIdentifier: TC_IDRepo_PublishDraftV2_08
       role: idrepo
       restMethod: get
@@ -170,7 +170,7 @@ PublishDraftV2:
 
   IdRepository_PublishDraftV2_LostPacketNotStamped_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
-      description: Publish the $RIDV2LOSTNOUIN$ LOST draft that was updated but never UIN-stamped via uindata - must be rejected as UIN details not found in draft.
+      description: Verify that publishing a LOST draft is rejected when no UIN was ever stamped on it
       uniqueIdentifier: TC_IDRepo_PublishDraftV2_09
       role: idrepo
       restMethod: get
@@ -189,7 +189,7 @@ PublishDraftV2:
 
   IdRepository_PublishDraftV2_LostPacketStamped_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
-      description: Publish the $RIDV2LOST$ LOST draft after UpdateDraftUinData stamped its matched UIN - completes the LOST flow, expected status ACTIVATED.
+      description: Verify that the LOST draft is published after its UIN was stamped and the identity becomes ACTIVATED
       uniqueIdentifier: TC_IDRepo_PublishDraftV2_10
       role: idrepo
       restMethod: get
@@ -204,7 +204,7 @@ PublishDraftV2:
 
   IdRepository_PublishDraftV2_OlderRidChainFirstRid_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
-      description: Older-RID chain step 3 - publish the $RIDV2OLD$ draft; the live UIN row now carries $RIDV2OLD$ until $RIDV2LATEST$ is published.
+      description: Older-RID flow, step 3 - verify that the draft on the older RID is published
       uniqueIdentifier: TC_IDRepo_PublishDraftV2_11
       role: idrepo
       restMethod: get
@@ -219,7 +219,7 @@ PublishDraftV2:
 
   IdRepository_PublishDraftV2_LostPacketStampedBeforeUpdate_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
-      description: Publish the $RIDV2LOSTSTAMPFIRST$ LOST draft whose identity came only from the uindata backfill - expects the intended ACTIVATED. Depends on the stamp-first NPE fix - until then UpdateDraftUinData_12 rolls back, the draft has no UIN and this returns IDR-IDC-015.
+      description: Verify that a LOST draft stamped before any update is published using identity data filled from the live UIN
       uniqueIdentifier: TC_IDRepo_PublishDraftV2_12
       role: idrepo
       restMethod: get
@@ -234,7 +234,7 @@ PublishDraftV2:
 
   IdRepository_DraftV2Lifecycle_LiveUpdatedAfterPublish_Smoke_Pos:
       endPoint: /idrepository/v1/identity/idvid/{id}?type={type}
-      description: U3 - after PublishDraftV2 published the $RIDV2UPDATEA$ UPDATE draft, the live NewScen identity must show the drafted postalCode 14555.
+      description: UPDATE draft flow - verify that the live identity has the new postal code from the draft after the draft is published
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_17
       role: idrepo
       restMethod: get
@@ -250,7 +250,7 @@ PublishDraftV2:
 
   IdRepository_DraftV2Lifecycle_LiveBiometricsReadableAfterPublish_Smoke_Pos:
       endPoint: /idrepository/v1/identity/idvid/{id}?type={type}
-      description: U3 - after publish moved biometrics from _draft/{ridHash}/ to the live {uinHash}/ path, retrieving the NewScen identity with type=bio must succeed without errors.
+      description: UPDATE draft flow - verify that the live biometrics can be retrieved after the draft is published
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_18
       role: idrepo
       restMethod: get
@@ -266,7 +266,7 @@ PublishDraftV2:
 
   IdRepository_DraftV2Lifecycle_LostUpdateAfterStampPublished_Smoke_Pos:
       endPoint: /idrepository/v1/identity/idvid/{id}?type={type}
-      description: L3 - after PublishDraftV2_10 published the $RIDV2LOST$ draft, the live LostScen identity must show postalCode 14999 from the post-stamp update, not the backfilled live 14022.
+      description: LOST draft flow - verify that after publish the live identity has the postal code from the draft update, not the old value
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_40
       role: idrepo
       restMethod: get

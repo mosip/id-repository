@@ -1,7 +1,7 @@
 DraftV2PostDiscardChecks:
   IdRepository_DraftV2Lifecycle_LiveDemographicsIntactAfterDiscard_Smoke_Pos:
       endPoint: /idrepository/v1/identity/idvid/{id}?type={type}
-      description: U4 - after the $RIDV2DISCARDUPDATE$ UPDATE draft was discarded, the live NewScen identity must still show the published postalCode 14555.
+      description: Discard flow - verify that the live identity still has its published postal code after the UPDATE draft is discarded
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_21
       role: idrepo
       restMethod: get
@@ -17,7 +17,7 @@ DraftV2PostDiscardChecks:
 
   IdRepository_DraftV2Lifecycle_LiveBiometricsIntactAfterDiscard_Smoke_Pos:
       endPoint: /idrepository/v1/identity/idvid/{id}?type={type}
-      description: U4 - after the UPDATE draft discard, retrieving the NewScen identity with type=bio must still succeed - discard must not delete live {uinHash}/ biometrics.
+      description: Discard flow - verify that the live biometrics can still be retrieved after the UPDATE draft is discarded
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_22
       role: idrepo
       restMethod: get
@@ -33,7 +33,7 @@ DraftV2PostDiscardChecks:
 
   IdRepository_DraftV2Lifecycle_RecreatedNewDraftFieldAbsent_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
-      description: K1 step 5 - get the re-created $RIDV2NEWREPROCESS$ draft - the postalCode 14777 from the discarded draft must not be carried over (no stale partial identity).
+      description: Reprocess flow for a NEW draft, step 5 - verify that the re-created draft does not keep the postal code from the discarded draft
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_29
       role: idrepo
       restMethod: get
@@ -48,7 +48,7 @@ DraftV2PostDiscardChecks:
 
   IdRepository_DraftV2Lifecycle_RecreatedLostDraftUinNotAllocated_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
-      description: K5 step 6 - get the re-created $RIDV2LOSTRESTAMP$ LOST draft - the UIN stamped before discard must not be carried over.
+      description: Reprocess flow for a LOST draft, step 6 - verify that the re-created draft does not keep the UIN stamped before discard
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_30
       role: idrepo
       restMethod: get

@@ -1214,7 +1214,7 @@ AddIdentity:
 
    IdRepository_AddIdentity_For_DraftV2UpdateScen_smoke_Pos:
       endPoint: /idrepository/v1/identity/
-      description: Add an identity reserved for the CreateDraftV2 UPDATE-packet draft - uin_draft.uin_hash is unique, so each open draft needs its own UIN.
+      description: Verify that an identity is added for the UPDATE draft tests - each open draft needs its own UIN, so this UIN is not shared
       uniqueIdentifier: TC_IDRepo_AddIdentity_45
       role: testrig
       restMethod: post
@@ -1244,7 +1244,7 @@ AddIdentity:
 
    IdRepository_AddIdentity_For_DraftV2LostScen_smoke_Pos:
       endPoint: /idrepository/v1/identity/
-      description: Add an identity reserved as the ABIS-matched UIN stamped onto the $RIDV2LOST$ draft - uin_draft.uin_hash is unique, so it must not be shared with another open draft.
+      description: Verify that an identity is added whose UIN is later stamped on the LOST draft as the ABIS-matched UIN
       uniqueIdentifier: TC_IDRepo_AddIdentity_46
       role: testrig
       restMethod: post
@@ -1274,7 +1274,7 @@ AddIdentity:
 
    IdRepository_AddIdentity_For_DraftV2OlderRidScen_smoke_Pos:
       endPoint: /idrepository/v1/identity/
-      description: Add an identity reserved for the older-RID draft chain ($RIDV2OLD$ then $RIDV2LATEST$ published on this UIN) - not shared with any other draft since uin_draft.uin_hash is unique.
+      description: Verify that an identity is added for the older-RID flow, where an older and then a newer RID are published on this UIN
       uniqueIdentifier: TC_IDRepo_AddIdentity_47
       role: testrig
       restMethod: post
@@ -1304,7 +1304,7 @@ AddIdentity:
 
    IdRepository_AddIdentity_For_DraftV2LostStampFirstScen_smoke_Pos:
       endPoint: /idrepository/v1/identity/
-      description: Add an identity reserved as the ABIS-matched UIN stamped onto the $RIDV2LOSTSTAMPFIRST$ LOST draft before any update - not shared with any other draft since uin_draft.uin_hash is unique.
+      description: Verify that an identity is added whose UIN is stamped on a LOST draft before that draft is ever updated
       uniqueIdentifier: TC_IDRepo_AddIdentity_48
       role: testrig
       restMethod: post
@@ -1334,7 +1334,7 @@ AddIdentity:
 
    IdRepository_AddIdentity_For_DraftV2LostRestampScen_smoke_Pos:
       endPoint: /idrepository/v1/identity/
-      description: Add an identity reserved as the ABIS-matched UIN stamped on $RIDV2LOSTRESTAMP$, released when that draft is discarded, then stamped again on the re-created draft - not shared with any other draft since uin_draft.uin_hash is unique.
+      description: Verify that an identity is added whose UIN is stamped on a LOST draft, released by discard and stamped again after re-create
       uniqueIdentifier: TC_IDRepo_AddIdentity_49
       role: testrig
       restMethod: post
@@ -1749,7 +1749,7 @@ AddIdentity:
 }'
    IdRepository_AddIdentity_extraNonSchemaField_Neg:
       endPoint: /idrepository/v1/identity/
-      description: Create identity including a field the schema does not define - strict schema must reject (skipped when schema allows additional properties)
+      description: Verify that adding an identity with a field not defined in the ID schema is rejected (skipped when the schema allows extra fields)
       uniqueIdentifier: TC_IDRepo_AddIdentity_44
       role: testrig
       restMethod: post

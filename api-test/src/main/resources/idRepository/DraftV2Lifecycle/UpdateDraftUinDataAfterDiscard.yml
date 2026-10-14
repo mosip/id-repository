@@ -1,7 +1,7 @@
 UpdateDraftUinDataAfterDiscard:
   IdRepository_DraftV2Lifecycle_RestampRecreatedLostDraft_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
-      description: K5 step 8 - stamp the re-created $RIDV2LOSTRESTAMP$ LOST draft with the same UIN it had before discard - the discard must have released the uin_hash.
+      description: Reprocess flow for a LOST draft, step 8 - verify that the same UIN can be stamped again, since discard released it
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_34
       role: idrepo
       restMethod: patch

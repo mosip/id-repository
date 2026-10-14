@@ -1,7 +1,7 @@
 PublishDraftV2LatestRid:
   IdRepository_DraftV2Lifecycle_OlderRidChainPublishLatestRid_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
-      description: Older-RID chain step 6 - publish $RIDV2LATEST$; the live UIN row now carries $RIDV2LATEST$ and $RIDV2OLD$ remains only in UIN history.
+      description: Older-RID flow, step 6 - verify that the newer RID draft is published; the older RID now exists only in the UIN history
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_10
       role: idrepo
       restMethod: get

@@ -1,7 +1,7 @@
 CreateDraftV2AfterDiscard:
   IdRepository_DraftV2Lifecycle_CreateDraftSameRidAfterDiscard_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Re-create a draft on $RIDV2NEW$ after its draft was discarded - allowed since no draft row exists.
+      description: Verify that a draft can be created again on a RID after its draft was discarded
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_03
       role: idrepo
       restMethod: post
@@ -18,7 +18,7 @@ CreateDraftV2AfterDiscard:
 
   IdRepository_DraftV2Lifecycle_OlderRidReprocess_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Older-RID chain step 7 - re-create a draft (no uin) on $RIDV2OLD$ after $RIDV2LATEST$ superseded it on the same UIN - reprocessing an older RID must be rejected.
+      description: Older-RID flow, step 7 - verify that creating a draft again on the older RID is rejected because a newer RID has replaced it
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_11
       role: idrepo
       restMethod: post
@@ -39,7 +39,7 @@ CreateDraftV2AfterDiscard:
 
   IdRepository_DraftV2Lifecycle_OlderRidReprocessAsLostPacket_Neg:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Older-RID chain step 8 - re-create $RIDV2OLD$ as a LOST draft (generateUin false) - the LOST path has its own older-RID check and must also reject it.
+      description: Older-RID flow, step 8 - verify that creating the older RID again as a LOST draft is also rejected
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_12
       role: idrepo
       restMethod: post
@@ -60,7 +60,7 @@ CreateDraftV2AfterDiscard:
 
   IdRepository_DraftV2Lifecycle_LatestRidReprocess_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: Older-RID chain counterpart - re-create a draft (no uin) on $RIDV2LATEST$, the latest processed RID for the same UIN that just rejected $RIDV2OLD$ - reprocessing the latest RID is allowed.
+      description: Older-RID flow - verify that creating a draft again on the newest RID is allowed (reprocessing the latest RID is valid)
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_14
       role: idrepo
       restMethod: post
@@ -77,7 +77,7 @@ CreateDraftV2AfterDiscard:
 
   IdRepository_DraftV2Lifecycle_RecreateNewDraftAfterDiscard_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: K1 step 4 - re-create the discarded, never-published $RIDV2NEWREPROCESS$ NEW draft (RID not in UIN history, so a fresh UIN is allocated).
+      description: Reprocess flow for a NEW draft, step 4 - verify that the discarded NEW draft can be created again on the same RID
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_25
       role: idrepo
       restMethod: post
@@ -94,7 +94,7 @@ CreateDraftV2AfterDiscard:
 
   IdRepository_DraftV2Lifecycle_RecreateUpdateDraftAfterDiscard_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: K3 step 1 - re-create the UPDATE draft on $RIDV2DISCARDUPDATE$ (discarded in U4) with the same NewScen UIN - live files are copied into the draft again.
+      description: Reprocess flow for an UPDATE draft, step 1 - verify that the discarded UPDATE draft can be created again with the same UIN
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_26
       role: idrepo
       restMethod: post
@@ -111,7 +111,7 @@ CreateDraftV2AfterDiscard:
 
   IdRepository_DraftV2Lifecycle_RecreateStampedLostDraftAfterDiscard_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
-      description: K5 step 5 - re-create the $RIDV2LOSTRESTAMP$ LOST draft that was stamped and then discarded.
+      description: Reprocess flow for a LOST draft, step 5 - verify that the discarded LOST draft can be created again on the same RID
       uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_28
       role: idrepo
       restMethod: post
