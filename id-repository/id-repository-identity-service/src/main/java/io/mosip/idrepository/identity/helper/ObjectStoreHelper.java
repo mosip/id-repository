@@ -109,10 +109,10 @@ public class ObjectStoreHelper {
 
 		try (InputStream encryptData = new ByteArrayInputStream(securityManager.encrypt(data, refId))) {
 			objectStore.putObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName, encryptData);
-			mosipLogger.debug("Uploaded object: {} ({} bytes)", objectName, data.length);
+			mosipLogger.debug("Uploaded {} object ({} bytes)", isBio ? BIOMETRICS : DEMOGRAPHICS, data.length);
 		} catch (IOException | ObjectStoreAdapterException e) {
 			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
-					"Failed to store object: " + e.getMessage(), e);
+					"Failed to store object", e);
 		}
 	}
 
@@ -127,7 +127,7 @@ public class ObjectStoreHelper {
 			rawStream = objectStore.getObject(objectStoreAccountName, objectStoreBucketName, null, null, objectName);
 		} catch (ObjectStoreAdapterException e) {
 			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
-					"Failed to fetch object: " + objectName, e);
+					"Failed to fetch object", e);
 		}
 
 		if (rawStream == null) {
@@ -140,14 +140,14 @@ public class ObjectStoreHelper {
 			byte[] encryptedData = IOUtils.toByteArray(s3Stream);
 			if (encryptedData.length > maxObjectSizeBytes) {
 				throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
-						"Object size exceeds allowed limit (" + maxObjectSizeBytes + " bytes): " + objectName);
+						"Object size exceeds allowed limit (" + maxObjectSizeBytes + " bytes)");
 			}
 			byte[] decryptedData = securityManager.decrypt(encryptedData, refId);
 			encryptedData = null; // release encrypted copy; decryptedData is the only live reference now
 			return decryptedData;
 		} catch (IOException | ObjectStoreAdapterException e) {
 			throw new IdRepoAppException(FILE_STORAGE_ACCESS_ERROR.getErrorCode(),
-					"Failed to retrieve object: " + e.getMessage(), e);
+					"Failed to retrieve object", e);
 		}
 	}
 
