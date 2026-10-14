@@ -14,7 +14,6 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -174,7 +173,7 @@ public class AnonymousProfileHelper {
 			updateChannelInfo(ctx.oldUinData, ctx.newUinData);
 		} catch (Exception e) {
 			mosipLogger.warn(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper",
-					"doBuildAndSaveProfile", ExceptionUtils.getStackTrace(e));
+					"doBuildAndSaveProfile", "Failed to build or save anonymous profile");
 		}
 	}
 
@@ -187,7 +186,7 @@ public class AnonymousProfileHelper {
 			return CryptoUtil.encodeToURLSafeBase64(bytes);
 		} catch (Exception e) {
 			mosipLogger.warn(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper",
-					"encodeCbeffIfAvailable", e.getMessage());
+					"encodeCbeffIfAvailable", "Failed to retrieve biometric object");
 			return null;
 		}
 	}
