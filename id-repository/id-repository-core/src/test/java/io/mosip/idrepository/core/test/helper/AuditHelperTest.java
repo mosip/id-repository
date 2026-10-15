@@ -131,33 +131,6 @@ public class AuditHelperTest {
 	}
 
 	@Test
-	public void testCredentialAuditHashesRandomRequestIdWithoutSaltRepo()
-			throws IdRepoDataValidationException {
-		ReflectionTestUtils.setField(auditHelper, "uinHashSaltRepo", null);
-		String requestId = "550e8400-e29b-41d4-a716-446655440000";
-		when(securityManager.hash(Mockito.any())).thenReturn("request-hash");
-
-		auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_SERVICE,
-				AuditEvents.CREATE_CREDENTIAL, requestId, IdType.ID, "desc");
-
-		verify(auditBuilder).buildRequest(Mockito.any(), Mockito.any(),
-				Mockito.eq("request-hash"), Mockito.any(), Mockito.any());
-	}
-
-	@Test
-	public void testCredentialAuditOmitsNumericIdWithoutSaltRepo()
-			throws IdRepoDataValidationException {
-		ReflectionTestUtils.setField(auditHelper, "uinHashSaltRepo", null);
-
-		auditHelper.audit(AuditModules.ID_REPO_CREDENTIAL_SERVICE,
-				AuditEvents.CREATE_CREDENTIAL, "1234567890", IdType.ID, "desc");
-
-		verify(auditBuilder).buildRequest(Mockito.any(), Mockito.any(),
-				Mockito.isNull(), Mockito.any(), Mockito.any());
-		verify(securityManager, never()).hash(Mockito.any());
-	}
-
-	@Test
 	public void testAuditAsyncOmitsSubjectWhenSaltedHashThrows() throws IdRepoDataValidationException {
 		when(securityManager.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any()))
 				.thenThrow(new RuntimeException("db down"));
