@@ -109,6 +109,28 @@ public class AuditHelperTest {
 	}
 
 	@Test
+	public void testHashAuditIdFallsBackToUnsaltedWhenRepoAbsent() throws Exception {
+		ReflectionTestUtils.setField(auditHelper, "uinHashSaltRepo", null);
+		when(securityManager.hash(Mockito.any())).thenReturn("unsalted-hash");
+
+		String result = (String) ReflectionTestUtils.invokeMethod(auditHelper, "hashAuditId", "1234567890");
+
+		assertEquals("unsalted-hash", result);
+		verify(securityManager, never()).getIdHashWithSaltModuloByPlainIdHash(Mockito.any(), Mockito.any());
+	}
+
+	@Test
+	public void testHashAuditIdFallsBackToUnsaltedWhenSaltedHashThrows() throws Exception {
+		when(securityManager.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any()))
+				.thenThrow(new RuntimeException("db down"));
+		when(securityManager.hash(Mockito.any())).thenReturn("unsalted-hash");
+
+		String result = (String) ReflectionTestUtils.invokeMethod(auditHelper, "hashAuditId", "1234567890");
+
+		assertEquals("unsalted-hash", result);
+	}
+
+	@Test
 	public void testAudit() throws IdRepoDataValidationException {
 		auditHelper.audit(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.CREATE_IDENTITY_REQUEST_RESPONSE, "id",
 				IdType.ID, "desc");
