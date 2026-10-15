@@ -166,7 +166,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			} else {
 				credentialIssueResponseWrapper.setResponse(credentialIssueResponse);
 			}
-			auditHelper.auditAsync(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID,"create credential request requested");
+			auditHelper.auditAsync(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, requestId, IdType.ID,"create credential request requested");
 		}
 		return credentialIssueResponseWrapper;
 	}
@@ -219,7 +219,7 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 			} else {
 				credentialIssueResponseWrapper.setResponse(credentialIssueResponse);
 			}
-			auditHelper.auditAsync(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, credentialIssueRequestDto.getId(), IdType.ID,"create credential request requested");
+			auditHelper.auditAsync(AuditModules.ID_REPO_CREDENTIAL_REQUEST_GENERATOR, AuditEvents.CREATING_CREDENTIAL_REQUEST, rid, IdType.ID,"create credential request requested");
 		}
 		return credentialIssueResponseWrapper;
 	}
