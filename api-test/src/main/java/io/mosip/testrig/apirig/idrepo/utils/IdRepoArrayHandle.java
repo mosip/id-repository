@@ -61,8 +61,9 @@ public class IdRepoArrayHandle {
 	}
 
 	/**
-	 * Replaces array-handle {@code value} fields with a unique schema-legal id.
+	 * Replaces array-handle {@code value} fields with a value from that field's IdSchema validator.
 	 * String handles (email/phone) are left to {@code $EMAILVALUE$} / {@code $PHONENUMBERFORIDENTITY$}.
+	 * Validators that live behind a schema {@code $ref} are resolved by apitest-commons.
 	 */
 	private static void uniquifyArrayHandleValues(JSONObject identity) {
 		if (identity == null || !identity.has("selectedHandles")
