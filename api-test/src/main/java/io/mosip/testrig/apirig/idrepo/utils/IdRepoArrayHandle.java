@@ -18,12 +18,42 @@ public class IdRepoArrayHandle {
 	public static String RANDOM_ID = "mosip" + BaseTestCase.generateRandomNumberString(2)
 			+ Calendar.getInstance().getTimeInMillis();
 
+	/**
+	 * Replaces array-handle {@code value} fields with a value from that field's IdSchema validator.
+	 * String handles (email/phone) are left to {@code $EMAILVALUE$} / {@code $PHONENUMBERFORIDENTITY$}.
+	 * Validators that live behind a schema {@code $ref} are resolved by apitest-commons.
+	 */
+	private static void uniquifyArrayHandleValues(JSONObject identity) {
+		if (identity == null || !identity.has("selectedHandles")
+				|| !(identity.get("selectedHandles") instanceof JSONArray)) {
+			return;
+		}
+		JSONArray selectedHandles = identity.getJSONArray("selectedHandles");
+		for (int i = 0; i < selectedHandles.length(); i++) {
+			String handle = selectedHandles.optString(i, null);
+			if (handle == null || !identity.has(handle) || !(identity.get(handle) instanceof JSONArray)) {
+				continue;
+			}
+			JSONArray handleArray = identity.getJSONArray(handle);
+			for (int j = 0; j < handleArray.length(); j++) {
+				if (!(handleArray.get(j) instanceof JSONObject)) {
+					continue;
+				}
+				JSONObject entry = handleArray.getJSONObject(j);
+				if (entry.has("value") && entry.get("value") instanceof String) {
+					entry.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+				}
+			}
+		}
+	}
+
 	// ===== Public Entry Points =====
 
 	public static String replaceArrayHandleValues(String inputJson, String testCaseName) {
 		JSONObject jsonObj = new JSONObject(inputJson);
 		JSONObject request = jsonObj.getJSONObject("request");
 		JSONObject identity = request.getJSONObject("identity");
+		uniquifyArrayHandleValues(identity);
 		String emailResult = resolveEmailFieldName();
 
 		// Handle cases that modify selectedHandles globally — resolved before per-handle loop.
