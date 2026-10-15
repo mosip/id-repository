@@ -18,6 +18,7 @@ import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.IdRepoExceptionHandler;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
@@ -50,10 +51,20 @@ public class AuditHelper {
 	/** The security manager. */
 	@Autowired
 	private IdRepoSecurityManager securityManager;
+
+	@Autowired
+	private UinHashSaltRepo uinHashSaltRepo;
 	
 	/** The mapper. */
 	@Autowired
 	private ObjectMapper mapper;
+
+	/** Returns a stable salted audit identifier for numeric and nonnumeric IDs. */
+	public String hashAuditId(String id) {
+		return id == null ? null
+				: securityManager.getIdHashWithSaltModuloByPlainIdHash(
+						id, uinHashSaltRepo::retrieveSaltById);
+	}
 
 	/**
 	 * Audit - method to call audit service and store audit details.
@@ -67,7 +78,7 @@ public class AuditHelper {
 	public void audit(AuditModules module, AuditEvents event, String id, IdType idType, String desc) {
 		String requestId = null;
 		if(id !=null) {
-			requestId = securityManager.hash(id.getBytes());
+			requestId = hashAuditId(id);
 		}
 		RequestWrapper<AuditRequestDTO> auditRequest = auditBuilder.buildRequest(module, event,
 				requestId, idType, desc);
