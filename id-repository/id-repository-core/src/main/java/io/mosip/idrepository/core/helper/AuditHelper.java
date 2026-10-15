@@ -18,6 +18,7 @@ import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.IdRepoExceptionHandler;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
@@ -51,6 +52,25 @@ public class AuditHelper {
 	@Autowired
 	private IdRepoSecurityManager securityManager;
 
+	// Credential services do not provide this repository. Omit the subject if it
+	// is unavailable so audit records never contain an unsalted identifier.
+	@Autowired(required = false)
+	private UinHashSaltRepo uinHashSaltRepo;
+
+	private String hashAuditId(String id) {
+		if (uinHashSaltRepo == null) {
+			return null;
+		}
+		try {
+			return securityManager.getIdHashWithSaltModuloByPlainIdHash(
+					id, uinHashSaltRepo::retrieveSaltById);
+		} catch (Exception e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), "AuditHelper", "hashAuditId",
+					"Unable to hash audit subject with salt");
+			return null;
+		}
+	}
+
 	/** The mapper. */
 	@Autowired
 	private ObjectMapper mapper;
@@ -67,7 +87,7 @@ public class AuditHelper {
 	public void audit(AuditModules module, AuditEvents event, String id, IdType idType, String desc) {
 		String requestId = null;
 		if(id !=null) {
-			requestId = securityManager.hash(id.getBytes());
+			requestId = hashAuditId(id);
 		}
 		RequestWrapper<AuditRequestDTO> auditRequest = auditBuilder.buildRequest(module, event,
 				requestId, idType, desc);
@@ -89,7 +109,7 @@ public class AuditHelper {
 	 * Audit - asynchronously calls audit service (fire-and-forget).
 	 */
 	public void auditAsync(AuditModules module, AuditEvents event, String id, IdType idType, String desc) {
-		String requestId = (id != null) ? securityManager.hash(id.getBytes()) : null;
+		String requestId = (id != null) ? hashAuditId(id) : null;
 
 		RequestWrapper<AuditRequestDTO> auditRequest = auditBuilder.buildRequest(
 				module, event, requestId, idType, desc);
