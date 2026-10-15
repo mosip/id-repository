@@ -96,10 +96,6 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 	@Autowired
 	private Utilities utilities;
 
-	/** Hashes IDs for audit payloads. */
-	@Autowired
-	private IdRepoSecurityManager securityManager;
-
 	/** Outbound REST client for kernel audit manager. */
 	@Autowired
 	private CredReqRestUtil restUtil;
@@ -664,13 +660,13 @@ public class CredentialRequestServiceImpl implements CredentialRequestService {
 	 *
 	 * @param module  audit module identifier
 	 * @param event   audit event type
-	 * @param id      subject identifier (hashed before transmission)
+	 * @param id      subject identifier (keyed hash via {@link AuditHelper#hashAuditId(String)})
 	 * @param idType  subject ID type
 	 * @param desc    human-readable audit description
 	 */
 	public void audit(AuditModules module, AuditEvents event, String id, IdType idType, String desc) {
 		RequestWrapper<AuditRequestDTO> auditRequest = auditBuilder.buildRequest(module, event,
-				securityManager.hash(id.getBytes()), idType, desc);
+				auditHelper.hashAuditId(id), idType, desc);
 		HttpEntity<RequestWrapper<AuditRequestDTO>> httpEntity = new HttpEntity<>(auditRequest);
 		try {
 			restUtil.postApi(ApiName.KERNELAUDITMANAGER, null, id, desc, MediaType.APPLICATION_JSON, httpEntity,

@@ -24,6 +24,7 @@ import io.mosip.idrepository.core.dto.RestRequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoDataValidationException;
 import io.mosip.idrepository.core.exception.IdRepoExceptionHandler;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
+import io.mosip.idrepository.core.repository.UinHashSaltRepo;
 import io.mosip.idrepository.core.security.IdRepoSecurityManager;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.http.RequestWrapper;
@@ -32,9 +33,10 @@ import io.mosip.kernel.core.logger.spi.Logger;
 /**
  * Best-effort helper for posting audit events to the MOSIP audit-manager service.
  * <p>
- * Builds {@link AuditRequestDTO} payloads via {@link AuditRequestBuilder}, hashes the subject
- * identifier with {@link IdRepoSecurityManager#hash(byte[])} so raw UIN/VID never leave the
- * service in audit payloads, and posts through {@link RestHelper} to
+ * Builds {@link AuditRequestDTO} payloads via {@link AuditRequestBuilder}, replaces the subject
+ * identifier with {@link #hashAuditId(String)} (per-id salted hash from {@code uin_hash_salt})
+ * so raw UIN/VID/RID never leave the service and the ~10-digit UIN space cannot be brute-forced
+ * from audit data alone, and posts through {@link RestHelper} to
  * {@link RestServicesConstants#AUDIT_MANAGER_SERVICE}. Failures are logged and never rethrown —
  * business flows must not fail because audit is unavailable.
  * </p>
@@ -68,9 +70,13 @@ public class AuditHelper {
 	@Autowired
 	private RestRequestBuilder restBuilder;
 
-	/** Provides HMAC hashing of subject IDs before audit submission. */
+	/** Salted hashing of subject IDs before audit submission. */
 	@Autowired
 	private IdRepoSecurityManager securityManager;
+
+	/** Per-ID hash salts ({@code uin_hash_salt}) used by {@link #hashAuditId(String)}. */
+	@Autowired
+	private UinHashSaltRepo uinHashSaltRepo;
 
 	/** JSON serializer for error detail payloads in {@link #auditError}. */
 	@Autowired
@@ -92,6 +98,19 @@ public class AuditHelper {
 	private Executor securityContextExecutor;
 
 	/**
+	 * Salted hash of a subject id for audit payloads, using the same {@code uin_hash_salt}
+	 * scheme as credential issuance (salt bucket from the id's hash modulo, so non-numeric
+	 * ids such as request ids are accepted). Stable per id, so events for one subject still
+	 * correlate.
+	 *
+	 * @param id UIN, VID, RID or request id
+	 * @return salted HMAC hash of {@code id}
+	 */
+	public String hashAuditId(String id) {
+		return securityManager.getIdHashWithSaltModuloByPlainIdHash(id, uinHashSaltRepo::retrieveSaltById);
+	}
+
+	/**
 	 * Sends an audit event to the audit-manager service.
 	 * <p>
 	 * The subject {@code id} is hashed on the calling thread before dispatch.
@@ -109,7 +128,7 @@ public class AuditHelper {
 	public void audit(AuditModules module, AuditEvents event, String id, IdType idType, String desc) {
 		String requestId = null;
 		if (id != null) {
-			requestId = securityManager.hash(id.getBytes());
+			requestId = hashAuditId(id);
 		}
 		RequestWrapper<AuditRequestDTO> auditRequest = auditBuilder.buildRequest(module, event,
 				requestId, idType, desc);

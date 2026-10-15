@@ -137,6 +137,7 @@ public class AnonymousProfileHelper {
 
 	/**
 	 * Builds and persists the profile from a request-thread snapshot (executor worker).
+	 * An empty profile (builder failure) is neither saved nor counted in channel info.
 	 *
 	 * @param ctx immutable-enough copy of request context; never read from ThreadLocal here
 	 */
@@ -165,6 +166,11 @@ public class AnonymousProfileHelper {
 					.setNewIdentity(ctx.newUinData)
 					.setNewDocuments(newDocs)
 					.build();
+			if (profile.getProcessName() == null) {
+				mosipLogger.warn(IdRepoSecurityManager.getUser(), "AnonymousProfileHelper",
+						"doBuildAndSaveProfile", "Anonymous profile not built; skipping save");
+				return;
+			}
 			AnonymousProfileEntity anonymousProfile = AnonymousProfileEntity.builder().id(id)
 					.profile(mapper.writeValueAsString(profile))
 					.createdBy(IdRepoSecurityManager.getUser())
