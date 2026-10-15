@@ -51,6 +51,15 @@ public class IdRepoArrayHandle {
 				+ (System.nanoTime() % 1_000_000_000L);
 	}
 
+	/** Value that matches the live IdSchema validator for this handle field. */
+	private static String schemaHandleValue(String handle) {
+		String generated = IdRepoUtil.generateSchemaFieldValue(handle);
+		if (generated == null || generated.isBlank()) {
+			return nextRandomId();
+		}
+		return generated;
+	}
+
 	/**
 	 * Replaces array-handle {@code value} fields with a unique schema-legal id.
 	 * String handles (email/phone) are left to {@code $EMAILVALUE$} / {@code $PHONENUMBERFORIDENTITY$}.
@@ -73,7 +82,7 @@ public class IdRepoArrayHandle {
 				}
 				JSONObject entry = handleArray.getJSONObject(j);
 				if (entry.has("value") && entry.get("value") instanceof String) {
-					entry.put("value", nextRandomId());
+					entry.put("value", schemaHandleValue(handle));
 				}
 			}
 		}
@@ -119,63 +128,63 @@ public class IdRepoArrayHandle {
 			return jsonObj.toString();
 		}
 		if (testCaseName.contains("_withinvalidselectedhandletype")) {
-		    identity.put("selectedHandles", "email");
-		    return jsonObj.toString();
+			identity.put("selectedHandles", "email");
+			return jsonObj.toString();
 		}
 		if (testCaseName.contains("_withnullselectedhandles")) {
-		    identity.put("selectedHandles", JSONObject.NULL);
-		    return jsonObj.toString();
+			identity.put("selectedHandles", JSONObject.NULL);
+			return jsonObj.toString();
 		}
 		if (testCaseName.contains("_withNotApplicableSelectedHandles")) {
-		    JSONArray selectedHandles = new JSONArray();
-		    selectedHandles.put(resolveNonHandleSchemaField());
-		    identity.put("selectedHandles", selectedHandles);
-		    return jsonObj.toString();
+			JSONArray selectedHandles = new JSONArray();
+			selectedHandles.put(resolveNonHandleSchemaField());
+			identity.put("selectedHandles", selectedHandles);
+			return jsonObj.toString();
 		}
 		if (testCaseName.contains("_withUnknownSelectedHandles")) {
-		    JSONArray selectedHandles = new JSONArray();
-		    selectedHandles.put(resolveFieldNotInSchema());
-		    identity.put("selectedHandles", selectedHandles);
-		    return jsonObj.toString();
+			JSONArray selectedHandles = new JSONArray();
+			selectedHandles.put(resolveFieldNotInSchema());
+			identity.put("selectedHandles", selectedHandles);
+			return jsonObj.toString();
 		}
 		if (testCaseName.contains("_withTaggedListTypeNotInSchema")) {
-		    String nonHandleField = "fullName";
-		    if (identity.has(nonHandleField)) {
-		        JSONObject entry = new JSONObject();
-		        entry.put("value", "InvalidTaggedValue_" + RANDOM_ID);
-		        entry.put("tags", new JSONArray().put("handle"));
-		        identity.put(nonHandleField, new JSONArray().put(entry));
-		    }
-		    return jsonObj.toString();
+			String nonHandleField = "fullName";
+			if (identity.has(nonHandleField)) {
+				JSONObject entry = new JSONObject();
+				entry.put("value", "InvalidTaggedValue_" + RANDOM_ID);
+				entry.put("tags", new JSONArray().put("handle"));
+				identity.put(nonHandleField, new JSONArray().put(entry));
+			}
+			return jsonObj.toString();
 		}
 		if (testCaseName.contains("_withArrayOfStringNotInSchema")) {
-		    String nonSimpleTypeField = "postalCode";
-		    if (identity.has(nonSimpleTypeField)) {
-		        JSONArray stringArray = new JSONArray();
-		        stringArray.put("140221");
-		        stringArray.put("140222");
-		        identity.put(nonSimpleTypeField, stringArray);
-		    }
-		    return jsonObj.toString();
+			String nonSimpleTypeField = "postalCode";
+			if (identity.has(nonSimpleTypeField)) {
+				JSONArray stringArray = new JSONArray();
+				stringArray.put("140221");
+				stringArray.put("140222");
+				identity.put(nonSimpleTypeField, stringArray);
+			}
+			return jsonObj.toString();
 		}
 		if (testCaseName.contains("_withSelectedHandlesCaseMismatch")) {
-		    JSONArray selectedHandles = new JSONArray();
-		    selectedHandles.put(resolveEmailFieldName().toUpperCase());
-		    identity.put("selectedHandles", selectedHandles);
-		    return jsonObj.toString();
+			JSONArray selectedHandles = new JSONArray();
+			selectedHandles.put(resolveEmailFieldName().toUpperCase());
+			identity.put("selectedHandles", selectedHandles);
+			return jsonObj.toString();
 		}
 		if (testCaseName.contains("_withSelectedHandlesSpace")) {
-		    JSONArray selectedHandles = new JSONArray();
-		    selectedHandles.put(" " + resolveEmailFieldName() + " ");
-		    identity.put("selectedHandles", selectedHandles);
-		    return jsonObj.toString();
+			JSONArray selectedHandles = new JSONArray();
+			selectedHandles.put(" " + resolveEmailFieldName() + " ");
+			identity.put("selectedHandles", selectedHandles);
+			return jsonObj.toString();
 		}
 		if (testCaseName.contains("_withDuplicateSelectedHandles")) {
-		    JSONArray selectedHandles = new JSONArray();
-		    selectedHandles.put(resolveEmailFieldName());
-		    selectedHandles.put(resolveEmailFieldName());
-		    identity.put("selectedHandles", selectedHandles);
-		    return jsonObj.toString();
+			JSONArray selectedHandles = new JSONArray();
+			selectedHandles.put(resolveEmailFieldName());
+			selectedHandles.put(resolveEmailFieldName());
+			identity.put("selectedHandles", selectedHandles);
+			return jsonObj.toString();
 		}
 		if (testCaseName.contains("_removealltagshandles")) {
 			removeTagsHandles(jsonObj);
