@@ -52,25 +52,22 @@ public class AuditHelper {
 	@Autowired
 	private IdRepoSecurityManager securityManager;
 
-	// ponytail: optional because AuditHelper is shared by services (credential-request-generator,
-	// credential-service) that have no JPA config for this repository; fall back to the unsalted
-	// hash there instead of failing bean wiring for every consumer.
+	// Credential services do not provide this repository. Omit the subject if it
+	// is unavailable so audit records never contain an unsalted identifier.
 	@Autowired(required = false)
 	private UinHashSaltRepo uinHashSaltRepo;
 
 	private String hashAuditId(String id) {
 		if (uinHashSaltRepo == null) {
-			return securityManager.hash(id.getBytes());
+			return null;
 		}
 		try {
 			return securityManager.getIdHashWithSaltModuloByPlainIdHash(
 					id, uinHashSaltRepo::retrieveSaltById);
 		} catch (Exception e) {
-			// ponytail: audit logging must never fail the calling request (see finally-block
-			// callers like IdRepoController#addIdentity); fall back rather than propagate.
 			mosipLogger.error(IdRepoSecurityManager.getUser(), "AuditHelper", "hashAuditId",
-					"Salted hash failed, falling back to unsalted: " + ExceptionUtils.getStackTrace(e));
-			return securityManager.hash(id.getBytes());
+					"Unable to hash audit subject with salt");
+			return null;
 		}
 	}
 
