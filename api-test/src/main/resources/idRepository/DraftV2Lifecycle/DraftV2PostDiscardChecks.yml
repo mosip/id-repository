@@ -1,0 +1,61 @@
+DraftV2PostDiscardChecks:
+  IdRepository_DraftV2Lifecycle_LiveDemographicsIntactAfterDiscard_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/idvid/{id}?type={type}
+      description: Discard flow - verify that the live identity still has its published postal code after the UPDATE draft is discarded
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_21
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/DraftV2Lifecycle/retrieveIdentityWithType
+      outputTemplate: idRepository/DraftV2Lifecycle/retrieveIdentityPostalCodeResult
+      input: '{
+      "id":"$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$",
+      "type": "demo"
+      }'
+      output: '{
+      "postalCode": "14555"
+}'
+
+  IdRepository_DraftV2Lifecycle_LiveBiometricsIntactAfterDiscard_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/idvid/{id}?type={type}
+      description: Discard flow - verify that the live biometrics can still be retrieved after the UPDATE draft is discarded
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_22
+      role: idrepo
+      restMethod: get
+      checkErrorsOnlyInResponse: true
+      inputTemplate: idRepository/DraftV2Lifecycle/retrieveIdentityWithType
+      outputTemplate: idRepository/error
+      input: '{
+      "id":"$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$",
+      "type": "bio"
+      }'
+      output: '{
+}'
+
+  IdRepository_DraftV2Lifecycle_RecreatedNewDraftFieldAbsent_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
+      description: Reprocess flow for a NEW draft, step 5 - verify that the re-created draft does not keep the postal code from the discarded draft
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_29
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/GetDraft/getDraft
+      outputTemplate: idRepository/GetDraft/getDraftResult
+      input: '{
+      "registrationId":"$RIDV2NEWREPROCESS$"
+      }'
+      output: '{
+      "absentField": "postalCode"
+}'
+
+  IdRepository_DraftV2Lifecycle_RecreatedLostDraftUinNotAllocated_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/{registrationId}
+      description: Reprocess flow for a LOST draft, step 6 - verify that the re-created draft does not keep the UIN stamped before discard
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_30
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/GetDraft/getDraft
+      outputTemplate: idRepository/GetDraftV2/getDraftV2UinResult
+      input: '{
+      "registrationId":"$RIDV2LOSTRESTAMP$"
+      }'
+      output: '{
+}'

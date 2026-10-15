@@ -1,0 +1,16 @@
+UpdateDraftUinDataAfterDiscard:
+  IdRepository_DraftV2Lifecycle_RestampRecreatedLostDraft_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/uindata/{registrationId}
+      description: Reprocess flow for a LOST draft, step 8 - verify that the same UIN can be stamped again, since discard released it
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_34
+      role: idrepo
+      restMethod: patch
+      inputTemplate: idRepository/UpdateDraftUinData/updateDraftUinData
+      outputTemplate: idRepository/GetDraft/getDraftResult
+      input: '{
+      "registrationId":"$RIDV2LOSTRESTAMP$",
+      "uin": "$ID:AddIdentity_For_DraftV2LostRestampScen_smoke_Pos_UIN$"
+      }'
+      output: '{
+      "status": "DRAFTED"
+}'

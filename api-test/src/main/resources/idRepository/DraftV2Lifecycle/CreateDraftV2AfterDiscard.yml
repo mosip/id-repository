@@ -1,0 +1,127 @@
+CreateDraftV2AfterDiscard:
+  IdRepository_DraftV2Lifecycle_CreateDraftSameRidAfterDiscard_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
+      description: Verify that a draft can be created again on a RID after its draft was discarded
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_03
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/CreateDraftV2/createDraftV2
+      outputTemplate: idRepository/CreateDraftV2/createDraftV2Result
+      input: '{
+      "registrationId":"$RIDV2NEW$",
+      "uin": "$REMOVE$",
+      "generateUin": "$REMOVE$"
+      }'
+      output: '{
+    "status": "DRAFTED"
+}'
+
+  IdRepository_DraftV2Lifecycle_OlderRidReprocess_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
+      description: Older-RID flow, step 7 - verify that creating a draft again on the older RID is rejected because a newer RID has replaced it
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_11
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/CreateDraftV2/createDraftV2
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RIDV2OLD$",
+      "uin": "$REMOVE$",
+      "generateUin": "$REMOVE$"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-016"
+    }
+  ]
+}'
+
+  IdRepository_DraftV2Lifecycle_OlderRidReprocessAsLostPacket_Neg:
+      endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
+      description: Older-RID flow, step 8 - verify that creating the older RID again as a LOST draft is also rejected
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_12
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/CreateDraftV2/createDraftV2
+      outputTemplate: idRepository/error
+      input: '{
+      "registrationId":"$RIDV2OLD$",
+      "uin": "$REMOVE$",
+      "generateUin": "false"
+      }'
+      output: '{
+  "errors": [
+    {
+      "errorCode": "IDR-IDC-016"
+    }
+  ]
+}'
+
+  IdRepository_DraftV2Lifecycle_LatestRidReprocess_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
+      description: Older-RID flow - verify that creating a draft again on the newest RID is allowed (reprocessing the latest RID is valid)
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_14
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/CreateDraftV2/createDraftV2
+      outputTemplate: idRepository/CreateDraftV2/createDraftV2Result
+      input: '{
+      "registrationId":"$RIDV2LATEST$",
+      "uin": "$REMOVE$",
+      "generateUin": "$REMOVE$"
+      }'
+      output: '{
+    "status": "DRAFTED"
+}'
+
+  IdRepository_DraftV2Lifecycle_RecreateNewDraftAfterDiscard_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
+      description: Reprocess flow for a NEW draft, step 4 - verify that the discarded NEW draft can be created again on the same RID
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_25
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/CreateDraftV2/createDraftV2
+      outputTemplate: idRepository/CreateDraftV2/createDraftV2Result
+      input: '{
+      "registrationId":"$RIDV2NEWREPROCESS$",
+      "uin": "$REMOVE$",
+      "generateUin": "$REMOVE$"
+      }'
+      output: '{
+    "status": "DRAFTED"
+}'
+
+  IdRepository_DraftV2Lifecycle_RecreateUpdateDraftAfterDiscard_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
+      description: Reprocess flow for an UPDATE draft, step 1 - verify that the discarded UPDATE draft can be created again with the same UIN
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_26
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/CreateDraftV2/createDraftV2
+      outputTemplate: idRepository/CreateDraftV2/createDraftV2Result
+      input: '{
+      "registrationId":"$RIDV2DISCARDUPDATE$",
+      "uin": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$",
+      "generateUin": "$REMOVE$"
+      }'
+      output: '{
+    "status": "DRAFTED"
+}'
+
+  IdRepository_DraftV2Lifecycle_RecreateStampedLostDraftAfterDiscard_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/create/{registrationId}
+      description: Reprocess flow for a LOST draft, step 5 - verify that the discarded LOST draft can be created again on the same RID
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_28
+      role: idrepo
+      restMethod: post
+      inputTemplate: idRepository/CreateDraftV2/createDraftV2
+      outputTemplate: idRepository/CreateDraftV2/createDraftV2Result
+      input: '{
+      "registrationId":"$RIDV2LOSTRESTAMP$",
+      "uin": "$REMOVE$",
+      "generateUin": "false"
+      }'
+      output: '{
+    "status": "DRAFTED"
+}'

@@ -5,6 +5,9 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.ws.rs.core.MediaType;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -14,9 +17,12 @@ import org.testng.SkipException;
 import io.mosip.testrig.apirig.dbaccess.DBManager;
 import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
+import io.mosip.testrig.apirig.testrunner.JsonPrecondtion;
 import io.mosip.testrig.apirig.utils.AdminTestUtil;
 import io.mosip.testrig.apirig.utils.ConfigManager;
 import io.mosip.testrig.apirig.utils.GlobalConstants;
+import io.mosip.testrig.apirig.utils.KernelAuthentication;
+import io.mosip.testrig.apirig.utils.RestClient;
 import io.mosip.testrig.apirig.utils.SkipTestCaseHandler;
 import io.restassured.response.Response;
 
@@ -31,12 +37,38 @@ public class IdRepoUtil extends AdminTestUtil {
 	public static String genRidV2UpdateA = "45673" + generateRandomNumberString(10);
 	public static String genRidV2Lost = "45675" + generateRandomNumberString(10);
 	public static String genRidV2Ext = "45680" + generateRandomNumberString(10);
+	public static String genRidV2LostNoUin = "45676" + generateRandomNumberString(10);
+	// Older/latest RIDs published in turn on one UIN, so the older one becomes history-only.
+	public static String genRidV2Old = "45677" + generateRandomNumberString(10);
+	public static String genRidV2Latest = "45678" + generateRandomNumberString(10);
+	// LOST draft stamped before any update, i.e. while uinData is still null.
+	public static String genRidV2LostStampFirst = "45679" + generateRandomNumberString(10);
+	// UPDATE draft that is only ever discarded, to prove discard leaves the live identity intact.
+	public static String genRidV2DiscardUpdate = "45681" + generateRandomNumberString(10);
+	// NEW and stamped-LOST drafts discarded before publish, then re-created (reprocess).
+	public static String genRidV2NewReprocess = "45682" + generateRandomNumberString(10);
+	public static String genRidV2LostRestamp = "45683" + generateRandomNumberString(10);
+	// LOST draft whose only update carries no identity.
+	public static String genRidV2LostNoIdentity = "45684" + generateRandomNumberString(10);
 
 	// Shared token for RIDs used once, never looked up elsewhere - resolved fresh per call, not cached.
 	public static final String RIDV2FRESH_TOKEN = "$RIDV2FRESH$";
 
 	private static String freshRidV2() {
 		return "45674" + generateRandomNumberString(10);
+	}
+
+	// Valid-format UIN from the UIN generator that no identity uses yet - resolved fresh per call.
+	public static final String UNUSED_UIN_TOKEN = "$UNUSEDUIN$";
+
+	private static String unusedUin() {
+		// Same call and role AddIdentity uses for $UIN$
+		return JsonPrecondtion.getValueFromJson(
+				RestClient.getRequestWithCookie(ApplnURI + "/v1/idgenerator/uin", MediaType.APPLICATION_JSON,
+						MediaType.APPLICATION_JSON, GlobalConstants.AUTHORIZATION,
+						new KernelAuthentication().getTokenByRole("testrig"))
+						.asString(),
+				"response.uin");
 	}
 
 	// Fixed-value token lookup; add an entry only if it's genuinely reused across test cases.
@@ -48,6 +80,14 @@ public class IdRepoUtil extends AdminTestUtil {
 		RID_TOKENS.put("$RIDV2UPDATEA$", genRidV2UpdateA);
 		RID_TOKENS.put("$RIDV2LOST$", genRidV2Lost);
 		RID_TOKENS.put("$RIDV2EXT$", genRidV2Ext);
+		RID_TOKENS.put("$RIDV2LOSTNOUIN$", genRidV2LostNoUin);
+		RID_TOKENS.put("$RIDV2OLD$", genRidV2Old);
+		RID_TOKENS.put("$RIDV2LATEST$", genRidV2Latest);
+		RID_TOKENS.put("$RIDV2LOSTSTAMPFIRST$", genRidV2LostStampFirst);
+		RID_TOKENS.put("$RIDV2DISCARDUPDATE$", genRidV2DiscardUpdate);
+		RID_TOKENS.put("$RIDV2NEWREPROCESS$", genRidV2NewReprocess);
+		RID_TOKENS.put("$RIDV2LOSTRESTAMP$", genRidV2LostRestamp);
+		RID_TOKENS.put("$RIDV2LOSTNOIDENTITY$", genRidV2LostNoIdentity);
 	}
 
 	public static List<String> testCasesInRunScope = new ArrayList<>();
@@ -213,26 +253,85 @@ public class IdRepoUtil extends AdminTestUtil {
 			return jsonString;
 		}
 
-		if (jsonString.contains("$RIDEXT$"))
-			jsonString = replaceKeywordWithValue(jsonString, "$RIDEXT$", genRidExt);
+		for (Map.Entry<String, String> ridToken : RID_TOKENS.entrySet()) {
+			if (jsonString.contains(ridToken.getKey()))
+				jsonString = replaceKeywordWithValue(jsonString, ridToken.getKey(), ridToken.getValue());
+		}
+		if (jsonString.contains(RIDV2FRESH_TOKEN))
+			jsonString = replaceKeywordWithValue(jsonString, RIDV2FRESH_TOKEN, freshRidV2());
+		if (jsonString.contains(UNUSED_UIN_TOKEN))
+			jsonString = replaceKeywordWithValue(jsonString, UNUSED_UIN_TOKEN, unusedUin());
 		return jsonString;
 	}
 
 	// Asserts a getDraft(V2) response has no allocated UIN yet - used by "_UinNotAllocated" test cases
 	public OutputValidationDto assertDraftUinNotAllocated(Response response) {
+		// An error response also has no UIN - it must fail, not pass as "not allocated"
+		boolean draftReturned = isSuccessfulDraftResponse(response.asString());
 		String actualUin = extractDraftUin(response.asString());
 		boolean uinAbsentOrBlank = actualUin == null || actualUin.isBlank();
 		OutputValidationDto result = new OutputValidationDto();
 		result.setFieldName("response.identity.UIN");
 		result.setFieldHierarchy("response.identity.UIN");
 		result.setExpValue("absent/blank (no UIN allocated yet)");
-		result.setActualValue(uinAbsentOrBlank ? "NOT ALLOCATED (as expected)" : actualUin);
-		result.setStatus(uinAbsentOrBlank ? "PASS" : GlobalConstants.FAIL_STRING);
+		result.setActualValue(!draftReturned ? "no draft in response (error response)"
+				: uinAbsentOrBlank ? "NOT ALLOCATED (as expected)" : actualUin);
+		result.setStatus(draftReturned && uinAbsentOrBlank ? "PASS" : GlobalConstants.FAIL_STRING);
+		return result;
+	}
+
+	// Asserts a getDraft(V2) response carries exactly the expected UIN - used by "UinEquals" test cases
+	public OutputValidationDto assertDraftUinEquals(Response response, String expectedUin) {
+		String actualUin = extractDraftUin(response.asString());
+		boolean matches = actualUin != null && !expectedUin.isBlank() && actualUin.equals(expectedUin);
+		OutputValidationDto result = new OutputValidationDto();
+		result.setFieldName("response.identity.UIN");
+		result.setFieldHierarchy("response.identity.UIN");
+		result.setExpValue(expectedUin);
+		result.setActualValue(actualUin);
+		result.setStatus(matches ? "PASS" : GlobalConstants.FAIL_STRING);
+		return result;
+	}
+
+	// Asserts a getDraft(V2) identity exists but lacks the field - used by "DraftFieldAbsent" test cases
+	public OutputValidationDto assertDraftIdentityFieldAbsent(Response response, String field) {
+		JSONObject identity = extractDraftIdentity(response.asString());
+		boolean absent = !field.isBlank() && identity != null && (!identity.has(field) || identity.isNull(field));
+		OutputValidationDto result = new OutputValidationDto();
+		result.setFieldName("response.identity." + field);
+		result.setFieldHierarchy("response.identity." + field);
+		result.setExpValue("absent (draft identity present)");
+		result.setActualValue(identity == null ? "no draft identity in response"
+				: absent ? "ABSENT (as expected)" : String.valueOf(identity.get(field)));
+		result.setStatus(absent ? "PASS" : GlobalConstants.FAIL_STRING);
 		return result;
 	}
 
 	// Pulls response.identity.UIN out of a getDraft response; null if absent/blank at any level.
 	private String extractDraftUin(String responseBody) {
+		JSONObject identity = extractDraftIdentity(responseBody);
+		if (identity == null || !identity.has("UIN") || identity.isNull("UIN")) {
+			return null;
+		}
+		String uin = identity.optString("UIN", "").trim();
+		return uin.isEmpty() ? null : uin;
+	}
+
+	// True when the body has a non-null "response" and no non-empty "errors" array.
+	private boolean isSuccessfulDraftResponse(String responseBody) {
+		try {
+			JSONObject responseJson = new JSONObject(responseBody);
+			JSONArray errors = responseJson.optJSONArray("errors");
+			boolean hasErrors = errors != null && errors.length() > 0;
+			return !hasErrors && responseJson.has(GlobalConstants.RESPONSE) && !responseJson.isNull(GlobalConstants.RESPONSE);
+		} catch (Exception e) {
+			logger.error("Could not parse getDraft response: " + e.getMessage());
+			return false;
+		}
+	}
+
+	// Pulls response.identity out of a getDraft response; null if absent or not an object.
+	private JSONObject extractDraftIdentity(String responseBody) {
 		try {
 			JSONObject responseJson = new JSONObject(responseBody);
 			if (!responseJson.has(GlobalConstants.RESPONSE) || responseJson.isNull(GlobalConstants.RESPONSE)) {
@@ -243,17 +342,9 @@ public class IdRepoUtil extends AdminTestUtil {
 				return null;
 			}
 			Object identityObj = respBody.get(GlobalConstants.IDENTITY);
-			if (!(identityObj instanceof JSONObject)) {
-				return null;
-			}
-			JSONObject identity = (JSONObject) identityObj;
-			if (!identity.has("UIN") || identity.isNull("UIN")) {
-				return null;
-			}
-			String uin = identity.optString("UIN", "").trim();
-			return uin.isEmpty() ? null : uin;
+			return identityObj instanceof JSONObject ? (JSONObject) identityObj : null;
 		} catch (Exception e) {
-			logger.error("Could not parse getDraft response while checking UIN allocation: " + e.getMessage());
+			logger.error("Could not parse getDraft response identity: " + e.getMessage());
 			return null;
 		}
 	}

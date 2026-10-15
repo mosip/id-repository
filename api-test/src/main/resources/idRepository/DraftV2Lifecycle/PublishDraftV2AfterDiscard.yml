@@ -1,0 +1,45 @@
+PublishDraftV2AfterDiscard:
+  IdRepository_DraftV2Lifecycle_PublishRecreatedNewDraft_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
+      description: Reprocess flow for a NEW draft, step 7 - verify that the re-created NEW draft is published
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_35
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/PublishDraft/publishDraft
+      outputTemplate: idRepository/PublishDraft/publishDraftResult
+      input: '{
+      "registrationId":"$RIDV2NEWREPROCESS$"
+      }'
+      output: '{
+      "status": "ACTIVATED"
+}'
+
+  IdRepository_DraftV2Lifecycle_PublishRecreatedUpdateDraft_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
+      description: Reprocess flow for an UPDATE draft, step 3 - verify that the re-created UPDATE draft is published
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_36
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/PublishDraft/publishDraft
+      outputTemplate: idRepository/PublishDraft/publishDraftResult
+      input: '{
+      "registrationId":"$RIDV2DISCARDUPDATE$"
+      }'
+      output: '{
+      "status": "ACTIVATED"
+}'
+
+  IdRepository_DraftV2Lifecycle_PublishRecreatedLostDraft_Smoke_Pos:
+      endPoint: /idrepository/v1/identity/draft/v2/publish/{registrationId}
+      description: Reprocess flow for a LOST draft, step 9 - verify that the re-created and re-stamped LOST draft is published
+      uniqueIdentifier: TC_IDRepo_DraftV2Lifecycle_37
+      role: idrepo
+      restMethod: get
+      inputTemplate: idRepository/PublishDraft/publishDraft
+      outputTemplate: idRepository/PublishDraft/publishDraftResult
+      input: '{
+      "registrationId":"$RIDV2LOSTRESTAMP$"
+      }'
+      output: '{
+      "status": "ACTIVATED"
+}'

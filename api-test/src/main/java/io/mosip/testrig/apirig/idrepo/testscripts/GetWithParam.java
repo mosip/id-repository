@@ -159,6 +159,23 @@ public class GetWithParam extends IdRepoUtil implements ITest {
 
 				ouputValid = new HashMap<>();
 				ouputValid.put(GlobalConstants.EXPECTED_VS_ACTUAL, List.of(customResponse));
+			} else if (testCaseName.contains("DraftFieldAbsent")) {
+
+				// Blank when the key is missing - the assertion then reports FAIL instead of throwing
+				String field = new JSONObject(testCaseDTO.getOutput()).optString("absentField", "");
+				OutputValidationDto customResponse = assertDraftIdentityFieldAbsent(response, field);
+
+				ouputValid = new HashMap<>();
+				ouputValid.put(GlobalConstants.EXPECTED_VS_ACTUAL, List.of(customResponse));
+			} else if (testCaseName.contains("UinEquals")) {
+
+				// Output validation doesn't resolve $ID: tokens, so resolve the expected UIN here
+				String expectedUin = new JSONObject(inputJsonKeyWordHandeler(testCaseDTO.getOutput(), testCaseName))
+						.optString("UIN", "");
+				OutputValidationDto customResponse = assertDraftUinEquals(response, expectedUin);
+
+				ouputValid = new HashMap<>();
+				ouputValid.put(GlobalConstants.EXPECTED_VS_ACTUAL, List.of(customResponse));
 			} else {
 				ouputValid = OutputValidationUtil.doJsonOutputValidation(response.asString(),
 						getJsonFromTemplate(testCaseDTO.getOutput(), testCaseDTO.getOutputTemplate()), testCaseDTO,

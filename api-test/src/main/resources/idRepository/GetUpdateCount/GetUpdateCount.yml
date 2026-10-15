@@ -48,14 +48,14 @@ GetUpdateCount:
       inputTemplate: idRepository/GetUpdateCount/GetUpdateCount
       outputTemplate: idRepository/error
       input: '{
-      "individualId": " ",
+      "individualId": "",
       "idType": "UIN",
        "attribute_list": "fullName"
 }'
       output: '{
   "errors": [
     {
-      "errorCode": "IDR-IDC-002"
+      "errorCode": "IDR-IDC-003"
     }
   ]
 }'
@@ -76,7 +76,7 @@ GetUpdateCount:
       output: '{
   "errors": [
     {
-      "errorCode": "IDR-IDC-002"
+      "errorCode": "IDR-IDC-004"
     }
   ]
 }'
