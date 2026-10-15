@@ -341,7 +341,6 @@ public class IdRepoConstants {
 	 * Default {@code true} for lower identity/credential API latency; set {@code false} for sync audits.
 	 */
 	public static final String AUDIT_ASYNC_ENABLED = "mosip.idrepo.audit.async-enabled";
-
 	/**
 	 * Config key: when {@code true}, non-critical WebSub publishes (credential issued, identity events)
 	 * run off the caller thread. Set {@code false} to publish synchronously (failures propagate).
