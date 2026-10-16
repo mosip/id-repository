@@ -66,11 +66,11 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 
 	/** Mount points: UI base path (no trailing slash), SpringDoc group id, page title. */
 	public static final List<SwaggerMount> SWAGGER_MOUNTS = List.of(
-			new SwaggerMount(IDENTITY_PATH_PREFIX, "identity", "Id Repository Identity Service"),
-			new SwaggerMount(VID_PATH_PREFIX, "vid", "Id Repo VID Service"),
-			new SwaggerMount(CREDENTIAL_SERVICE_PATH_PREFIX, "credential-service", "Credential Store"),
+			new SwaggerMount(IDENTITY_PATH_PREFIX, "identity", "MOSIP ID-Repository Identity"),
+			new SwaggerMount(VID_PATH_PREFIX, "vid", "MOSIP ID-Repository VID"),
+			new SwaggerMount(CREDENTIAL_SERVICE_PATH_PREFIX, "credential-service", "MOSIP Credential Store"),
 			new SwaggerMount(CREDENTIAL_REQUEST_PATH_PREFIX, "credential-request",
-					"Credential Request Generator"));
+					"MOSIP Credential Request Generator"));
 
 	/** Classpath location of versioned swagger-ui webjar assets (trailing slash). */
 	private static final String SWAGGER_UI_WEBJAR_LOCATION = resolveSwaggerUiWebJarLocation();
