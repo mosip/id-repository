@@ -34,7 +34,8 @@ import jakarta.servlet.http.HttpServletRequest;
  * OpenAPI 3 / SpringDoc for the consolidated ID-Repository deployable.
  * <p>
  * Each former microservice keeps its own Swagger UI under the legacy public path prefix
- * (same shape as pre-consolidation), instead of one grouped UI at {@code /swagger-ui/index.html}.
+ * (same shape as pre-consolidation). Every page lists all four definitions in the
+ * Swagger "Select a definition" dropdown, with the definition for that URL selected.
  * </p>
  * <p>
  * Swagger UI static assets are served under each service prefix (e.g.
@@ -65,11 +66,11 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 
 	/** Mount points: UI base path (no trailing slash), SpringDoc group id, page title. */
 	public static final List<SwaggerMount> SWAGGER_MOUNTS = List.of(
-			new SwaggerMount(IDENTITY_PATH_PREFIX, "identity", "MOSIP ID-Repository Identity"),
-			new SwaggerMount(VID_PATH_PREFIX, "vid", "MOSIP ID-Repository VID"),
-			new SwaggerMount(CREDENTIAL_SERVICE_PATH_PREFIX, "credential-service", "MOSIP Credential Store"),
+			new SwaggerMount(IDENTITY_PATH_PREFIX, "identity", "Id Repository Identity Service"),
+			new SwaggerMount(VID_PATH_PREFIX, "vid", "Id Repo VID Service"),
+			new SwaggerMount(CREDENTIAL_SERVICE_PATH_PREFIX, "credential-service", "Credential Store"),
 			new SwaggerMount(CREDENTIAL_REQUEST_PATH_PREFIX, "credential-request",
-					"MOSIP Credential Request Generator"));
+					"Credential Request Generator"));
 
 	/** Classpath location of versioned swagger-ui webjar assets (trailing slash). */
 	private static final String SWAGGER_UI_WEBJAR_LOCATION = resolveSwaggerUiWebJarLocation();
@@ -299,8 +300,10 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 
 		private static String renderSwaggerHtml(SwaggerMount mount) {
 			String title = escape(mount.title());
-			// Absolute path under the same gateway prefix as this UI (not /v3/api-docs/group)
-			String apiDocs = escape(mount.apiDocsPath());
+			// urls (not a single url) is what shows Swagger UI's "Select a definition" dropdown.
+			// primaryName is this page's group, so /identity/swagger-ui still opens Identity.
+			String urls = swaggerDefinitionUrls();
+			String primaryName = escape(mount.title());
 			return """
 					<!DOCTYPE html>
 					<html lang="en">
@@ -317,9 +320,11 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 					  <script>
 					    window.onload = function() {
 					      window.ui = SwaggerUIBundle({
-					        url: '%s',
+					        urls: %s,
+					        'urls.primaryName': '%s',
 					        dom_id: '#swagger-ui',
 					        deepLinking: true,
+					        queryConfigEnabled: true,
 					        presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
 					        plugins: [SwaggerUIBundle.plugins.DownloadUrl],
 					        layout: 'StandaloneLayout',
@@ -330,7 +335,22 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 					  </script>
 					</body>
 					</html>
-					""".formatted(title, apiDocs);
+					""".formatted(title, urls, primaryName);
+		}
+
+		/** Absolute api-docs paths so the dropdown works from any of the four Swagger pages. */
+		private static String swaggerDefinitionUrls() {
+			StringBuilder urls = new StringBuilder("[");
+			for (int i = 0; i < SWAGGER_MOUNTS.size(); i++) {
+				SwaggerMount mount = SWAGGER_MOUNTS.get(i);
+				if (i > 0) {
+					urls.append(',');
+				}
+				urls.append("{url:'").append(escape(mount.apiDocsPath()))
+						.append("',name:'").append(escape(mount.title())).append("'}");
+			}
+			urls.append(']');
+			return urls.toString();
 		}
 
 		private static String escape(String value) {
