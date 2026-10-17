@@ -78,6 +78,9 @@ public enum IdRepoErrorConstants {
 	/** Failed to copy live object-store files into the draft path. */
 	DRAFT_OBJECT_COPY_FAILED("IDR-IDC-021", "Failed to copy live object(s) to draft path - %s"),
 
+	/** Another registration already holds a draft for the same UIN. */
+	DRAFT_ALREADY_EXISTS_FOR_UIN("IDR-IDC-022", "A draft already exists for this UIN with another registration id"),
+
 	// Identity Service
 	
 	/** The identity mismatch. */
