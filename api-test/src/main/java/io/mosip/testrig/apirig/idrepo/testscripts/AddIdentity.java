@@ -156,14 +156,19 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 		}
 		inputJson = inputJson.replace("$RID$", genRid);
 		String phoneNumber = "";
-		String email = testCaseName + "_" + BaseTestCase.runContext + "@mosip.net";
+		String email = testCaseName + "_" + BaseTestCase.runContext + timestampValue + "@mosip.net";
 		if (inputJson.contains("$PHONENUMBERFORIDENTITY$") || inputJson.contains("$EMAILVALUE$")) {
-			if (!phoneSchemaRegex.isEmpty())
+			if (!phoneSchemaRegex.isEmpty()) {
 				try {
 					phoneNumber = genStringAsperRegex(phoneSchemaRegex);
 				} catch (Exception e) {
 					logger.error(e.getMessage());
 				}
+			}
+			if (phoneNumber.isEmpty()) {
+				phoneNumber = timestampValue.substring(timestampValue.length() - 6)
+						+ generateRandomNumberString(4);
+			}
 			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber);
 		}
 		if (inputJson.contains("$EMAILVALUE$")) {
@@ -249,7 +254,17 @@ public class AddIdentity extends IdRepoUtil implements ITest {
 	 */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {
-		result.setAttribute("TestCaseName", testCaseName);
+		try {
+			java.lang.reflect.Field method = org.testng.internal.TestResult.class.getDeclaredField("m_method");
+			method.setAccessible(true);
+			method.set(result, result.getMethod().clone());
+			org.testng.internal.BaseTestMethod baseTestMethod = (org.testng.internal.BaseTestMethod) result.getMethod();
+			java.lang.reflect.Field f = baseTestMethod.getClass().getSuperclass().getDeclaredField("m_methodName");
+			f.setAccessible(true);
+			f.set(baseTestMethod, testCaseName);
+		} catch (Exception e) {
+			Reporter.log("Exception : " + e.getMessage());
+		}
 	}
 
 	@AfterClass(alwaysRun = true)

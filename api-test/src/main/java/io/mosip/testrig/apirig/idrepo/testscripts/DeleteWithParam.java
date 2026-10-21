@@ -133,6 +133,16 @@ public class DeleteWithParam extends IdRepoUtil implements ITest {
 	 */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {
-		result.setAttribute("TestCaseName", testCaseName);
+		try {
+			java.lang.reflect.Field method = org.testng.internal.TestResult.class.getDeclaredField("m_method");
+			method.setAccessible(true);
+			method.set(result, result.getMethod().clone());
+			org.testng.internal.BaseTestMethod baseTestMethod = (org.testng.internal.BaseTestMethod) result.getMethod();
+			java.lang.reflect.Field f = baseTestMethod.getClass().getSuperclass().getDeclaredField("m_methodName");
+			f.setAccessible(true);
+			f.set(baseTestMethod, testCaseName);
+		} catch (Exception e) {
+			Reporter.log("Exception : " + e.getMessage());
+		}
 	}
 }

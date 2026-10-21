@@ -1,5 +1,8 @@
 package io.mosip.testrig.apirig.idrepo.testscripts;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
@@ -95,7 +98,7 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 		String jsonInput = testCaseDTO.getInput();
 		String inputJson;
 		String declaredTemplate = testCaseDTO.getInputTemplate();
-		if (declaredTemplate == null || declaredTemplate.isEmpty()) {
+		if (declaredTemplate == null || declaredTemplate.isEmpty() || declaredTemplate.contains("$LANGNUMBER$")) {
 			testCaseDTO.setInputTemplate(AdminTestUtil.generateHbsForUpdateDraft());
 			inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
 			// No verifiedAttributes placeholder in the generated template - inject it if supplied.
@@ -120,8 +123,10 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 		if (inputJson.contains("$SCHEMAVERSION$"))
 			inputJson = replaceKeywordWithValue(inputJson, "$SCHEMAVERSION$", generateLatestSchemaVersion());
 
+		DateFormat dateFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
+		String timestampValue = dateFormatter.format(Calendar.getInstance().getTime());
 		String phoneNumber = "";
-		String email = testCaseName + "_" + BaseTestCase.runContext + "@mosip.net";
+		String email = testCaseName + "_" + BaseTestCase.runContext + timestampValue + "@mosip.net";
 		if (inputJson.contains("$PHONENUMBERFORIDENTITY$") || inputJson.contains("$EMAILVALUE$")) {
 			if (!phoneSchemaRegex.isEmpty()) {
 				try {
@@ -129,6 +134,10 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 				} catch (Exception e) {
 					logger.error(e.getMessage());
 				}
+			}
+			if (phoneNumber.isEmpty()) {
+				phoneNumber = timestampValue.substring(timestampValue.length() - 6)
+						+ generateRandomNumberString(4);
 			}
 			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber);
 			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", email);
@@ -152,7 +161,17 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 	/** Sets current test name to result */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {
-		result.setAttribute("TestCaseName", testCaseName);
+		try {
+			java.lang.reflect.Field method = org.testng.internal.TestResult.class.getDeclaredField("m_method");
+			method.setAccessible(true);
+			method.set(result, result.getMethod().clone());
+			org.testng.internal.BaseTestMethod baseTestMethod = (org.testng.internal.BaseTestMethod) result.getMethod();
+			java.lang.reflect.Field f = baseTestMethod.getClass().getSuperclass().getDeclaredField("m_methodName");
+			f.setAccessible(true);
+			f.set(baseTestMethod, testCaseName);
+		} catch (Exception e) {
+			Reporter.log("Exception : " + e.getMessage());
+		}
 	}
 
 	@AfterClass(alwaysRun = true)

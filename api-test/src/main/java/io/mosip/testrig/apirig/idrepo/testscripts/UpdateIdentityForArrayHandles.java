@@ -125,16 +125,21 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 		JSONArray dobArray = new JSONArray(getValueFromAuthActuator("json-property", "dob"));
 		String dob = dobArray.getString(0);
 		String phoneNumber = "";
-		String email = testCaseName + "_" + BaseTestCase.runContext + "@mosip.net";
+		String email = testCaseName + "_" + BaseTestCase.runContext + timestampValue + "@mosip.net";
 		
 		
-		if (inputJson.contains("$PHONENUMBERFORIDENTITY$")) {
-			if (!phoneSchemaRegex.isEmpty())
+		if (inputJson.contains("$PHONENUMBERFORIDENTITY$") || inputJson.contains("$EMAILVALUE$")) {
+			if (!phoneSchemaRegex.isEmpty()) {
 				try {
 					phoneNumber = genStringAsperRegex(phoneSchemaRegex);
 				} catch (Exception e) {
 					logger.error(e.getMessage());
 				}
+			}
+			if (phoneNumber.isEmpty()) {
+				phoneNumber = timestampValue.substring(timestampValue.length() - 6)
+						+ generateRandomNumberString(4);
+			}
 			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber);
 			
 			
@@ -191,6 +196,16 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 	 */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {
-		result.setAttribute("TestCaseName", testCaseName);
+		try {
+			java.lang.reflect.Field method = org.testng.internal.TestResult.class.getDeclaredField("m_method");
+			method.setAccessible(true);
+			method.set(result, result.getMethod().clone());
+			org.testng.internal.BaseTestMethod baseTestMethod = (org.testng.internal.BaseTestMethod) result.getMethod();
+			java.lang.reflect.Field f = baseTestMethod.getClass().getSuperclass().getDeclaredField("m_methodName");
+			f.setAccessible(true);
+			f.set(baseTestMethod, testCaseName);
+		} catch (Exception e) {
+			Reporter.log("Exception : " + e.getMessage());
+		}
 	}
 }
