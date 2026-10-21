@@ -38,22 +38,11 @@ import io.mosip.testrig.apirig.utils.ReportUtil;
 import io.mosip.testrig.apirig.utils.SecurityXSSException;
 import io.restassured.response.Response;
 
-/**
- * TestNG script for the handle scenarios of the identity update APIs (v1 and v2), used by
- * {@code UpdateIdentityArrayHandle.yml} and {@code UpdateIdentityV2ArrayHandle.yml}.
- * <p>
- * Unlike {@link UpdateIdentity}, the request template is built from the live IdSchema
- * ({@code SchemaBasedIdentityTemplateBuilder}). The handle scenario named in the test case is then
- * applied by {@link IdRepoArrayHandle#replaceArrayHandleValuesForUpdateIdentity}.
- */
 public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 	private static final Logger logger = Logger.getLogger(UpdateIdentityForArrayHandles.class);
-	/** Name of the case currently running; becomes the TestNG method name in reports. */
 	protected String testCaseName = "";
-	/** Identity value shared with later verification steps; see the accessors below. */
 	private static String identity;
 
-	/** Sets the script logger to {@code ALL} in debug mode, {@code ERROR} otherwise. */
 	@BeforeClass
 	public static void setLogLevel() {
 		if (IdRepoConfigManager.IsDebugEnabled())
@@ -62,23 +51,16 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 			logger.setLevel(Level.ERROR);
 	}
 
-	/**
-	 * Stores an identity value (for example a UIN) for a later step to verify. Static, so the value
-	 * is visible across script instances in the same run.
-	 *
-	 * @param id value to remember
-	 */
 	public static void saveIdentityForUpdateIdentityVerification(String id) {
 		identity = id;
 	}
 
-	/** @return the value last stored by {@link #saveIdentityForUpdateIdentityVerification(String)}, or null */
 	public static String getIdentityForUpdateIdentityVerification() {
 		return identity;
 	}
 
 	/**
-	 * @return the current test case name (TestNG {@link ITest} contract)
+	 * get current testcaseName
 	 */
 	@Override
 	public String getTestName() {
@@ -86,10 +68,9 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * Supplies the YAML cases named by the suite parameter {@code ymlFile}.
-	 *
-	 * @param context TestNG context holding the {@code <test>} parameters
-	 * @return one {@link TestCaseDTO} per YAML entry
+	 * Data provider class provides test case list
+	 * 
+	 * @return object of data provider
 	 */
 	@DataProvider(name = "testcaselist")
 	public Object[] getTestCaseList(ITestContext context) {
@@ -99,25 +80,13 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * Runs one handle update case.
-	 * <ol>
-	 * <li>Applies {@link IdRepoUtil#isTestCaseValidForExecution}, then builds the v1 or v2
-	 * schema-based update template, chosen by the endpoint.</li>
-	 * <li>Skips when the environment failed its health check, or when a VID case runs where VID is
-	 * not supported.</li>
-	 * <li>Resolves {@code $PHONENUMBERFORIDENTITY$}, {@code $EMAILVALUE$}, {@code $RID$} and
-	 * {@code $FUNCTIONALID$}; for {@code IdRepository_} cases removes date of birth when the schema
-	 * does not require it.</li>
-	 * <li>For {@code _sid} cases, caches the phone as {@code $ID:<testCaseName>_phone$}.</li>
-	 * <li>Resolves {@code $HANDLEVALUE:<field>$} tokens, then applies the handle scenario.</li>
-	 * <li>PATCHes the request and asserts the output validation.</li>
-	 * </ol>
-	 *
-	 * @param testCaseDTO the YAML case
-	 * @throws AuthenticationTestException on token generation failure
-	 * @throws AdminTestException          declared by the shared helpers
-	 * @throws SecurityXSSException        when the XSS header check is enabled and fails
-	 * @throws AssertionError              when output validation fails
+	 * Test method for OTP Generation execution
+	 * 
+	 * @param objTestParameters
+	 * @param testScenario
+	 * @param testcaseName
+	 * @throws AuthenticationTestException
+	 * @throws AdminTestException
 	 */
 	@Test(dataProvider = "testcaselist")
 	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
@@ -156,23 +125,23 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 		JSONArray dobArray = new JSONArray(getValueFromAuthActuator("json-property", "dob"));
 		String dob = dobArray.getString(0);
 		String phoneNumber = "";
-		String email = testCaseName + "_" + BaseTestCase.runContext + timestampValue + "@mosip.net";
-		if (inputJson.contains("$PHONENUMBERFORIDENTITY$") || inputJson.contains("$EMAILVALUE$")) {
-			if (!phoneSchemaRegex.isEmpty()) {
+		String email = testCaseName + "_" + BaseTestCase.runContext + "@mosip.net";
+		
+		
+		if (inputJson.contains("$PHONENUMBERFORIDENTITY$")) {
+			if (!phoneSchemaRegex.isEmpty())
 				try {
 					phoneNumber = genStringAsperRegex(phoneSchemaRegex);
 				} catch (Exception e) {
 					logger.error(e.getMessage());
 				}
-			}
-			if (phoneNumber.isEmpty()) {
-				phoneNumber = timestampValue.substring(timestampValue.length() - 6)
-						+ generateRandomNumberString(4);
-			}
 			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber);
+			
+			
 		}
 		if (inputJson.contains("$EMAILVALUE$")) {
 			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", email);
+
 		}
 		
 		
@@ -201,6 +170,7 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 
 		// Resolve $HANDLEVALUE tokens before IdRepoArrayHandle runs so its mutations see real values.
 		inputJson = IdRepoUtil.resolveGenericHandleValueTokens(inputJson);
+		// Always call — replaceArrayHandleValuesForUpdateIdentity itself no-ops if selectedHandles is absent.
 		inputJson = IdRepoArrayHandle.replaceArrayHandleValuesForUpdateIdentity(inputJson, testCaseName);
 
 		Response response = patchWithBodyAndCookie(ApplnURI + testCaseDTO.getEndPoint(), inputJson, COOKIENAME,
@@ -215,10 +185,9 @@ public class UpdateIdentityForArrayHandles extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * Stores the case name as the {@code TestCaseName} result attribute, which the report uses as the
-	 * row label.
-	 *
-	 * @param result result of the method that just ran
+	 * The method ser current test name to result
+	 * 
+	 * @param result
 	 */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {

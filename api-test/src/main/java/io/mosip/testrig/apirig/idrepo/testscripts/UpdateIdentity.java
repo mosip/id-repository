@@ -35,23 +35,11 @@ import io.mosip.testrig.apirig.utils.ReportUtil;
 import io.mosip.testrig.apirig.utils.SecurityXSSException;
 import io.restassured.response.Response;
 
-/**
- * TestNG script for the identity update APIs: {@code PATCH /idrepository/v1/identity/} (v1) and the
- * v2 identity endpoint ({@code GlobalConstants.ADD_IDENTITY_V2_ENDPOINT}), used by
- * {@code UpdateIdentity.yml} and {@code UpdateIdentityBlockedHandleCheck.yml}.
- * <p>
- * Uses the static HBS template from the YAML, adjusted to the live schema and auth-actuator field
- * names. The update can be followed by an optional send-OTP call, defined by the YAML
- * {@code sendOtp} / {@code sendOtpResp} blocks.
- */
 public class UpdateIdentity extends IdRepoUtil implements ITest {
 	private static final Logger logger = Logger.getLogger(UpdateIdentity.class);
-	/** Name of the case currently running; becomes the TestNG method name in reports. */
 	protected String testCaseName = "";
-	/** Identity value shared with later verification steps; see the accessors below. */
 	private static String identity;
 
-	/** Sets the script logger to {@code ALL} in debug mode, {@code ERROR} otherwise. */
 	@BeforeClass
 	public static void setLogLevel() {
 		if (IdRepoConfigManager.IsDebugEnabled())
@@ -60,23 +48,16 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 			logger.setLevel(Level.ERROR);
 	}
 
-	/**
-	 * Stores an identity value (for example a UIN) for a later step to verify. Static, so the value
-	 * is visible across script instances in the same run.
-	 *
-	 * @param id value to remember
-	 */
 	public static void saveIdentityForUpdateIdentityVerification(String id) {
 		identity = id;
 	}
 
-	/** @return the value last stored by {@link #saveIdentityForUpdateIdentityVerification(String)}, or null */
 	public static String getIdentityForUpdateIdentityVerification() {
 		return identity;
 	}
 
 	/**
-	 * @return the current test case name (TestNG {@link ITest} contract)
+	 * get current testcaseName
 	 */
 	@Override
 	public String getTestName() {
@@ -84,10 +65,9 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * Supplies the YAML cases named by the suite parameter {@code ymlFile}.
-	 *
-	 * @param context TestNG context holding the {@code <test>} parameters
-	 * @return one {@link TestCaseDTO} per YAML entry
+	 * Data provider class provides test case list
+	 * 
+	 * @return object of data provider
 	 */
 	@DataProvider(name = "testcaselist")
 	public Object[] getTestCaseList(ITestContext context) {
@@ -97,13 +77,13 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * TestNG entry point: applies {@link IdRepoUtil#isTestCaseValidForExecution}, then delegates to
-	 * {@link #updateIdentity(TestCaseDTO)}.
-	 *
-	 * @param testCaseDTO the YAML case
-	 * @throws AuthenticationTestException on token generation failure
-	 * @throws AdminTestException          when validation fails
-	 * @throws SecurityXSSException        when the XSS header check is enabled and fails
+	 * Test method for OTP Generation execution
+	 * 
+	 * @param objTestParameters
+	 * @param testScenario
+	 * @param testcaseName
+	 * @throws AuthenticationTestException
+	 * @throws AdminTestException
 	 */
 	@Test(dataProvider = "testcaselist")
 	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
@@ -113,35 +93,6 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 
 	}
 
-	/**
-	 * Builds, sends and validates one update-identity request.
-	 * <ol>
-	 * <li>Skips when the environment failed its health check, or when a VID case runs where VID is
-	 * not supported.</li>
-	 * <li>Moves any {@code sendOtp} block out of the input and any {@code sendOtpResp} block out of
-	 * the output, for the optional OTP step at the end.</li>
-	 * <li>Renders the YAML template. For v2 it copies the YAML {@code verifiedAttributes},
-	 * {@code documents} and {@code fullName} into the request; for v1 it copies the YAML
-	 * {@code verifiedAttribute} array.</li>
-	 * <li>Renames {@code phone} and {@code email} keys to the actuator property names and resolves
-	 * {@code $RID$}, {@code $PHONENUMBERFORIDENTITY$}, {@code $EMAILVALUE$}, {@code $PRIMARYLANG$}
-	 * and {@code $OPTIONALSCHEMAFIELD$} (an optional, claimable schema field; skipped when none
-	 * exists).</li>
-	 * <li>For {@code IdRepository_} and {@code Auth_} cases, removes date of birth, email or phone
-	 * when the schema does not require them, and skips cases named after the removed field.</li>
-	 * <li>For {@code _sid} cases, caches the phone as {@code $ID:<testCaseName>_phone$}.</li>
-	 * <li>PATCHes the request and asserts the output validation.</li>
-	 * <li>If a {@code sendOtp} block was present, posts the OTP request (signed) and validates it
-	 * against {@code sendOtpResp}.</li>
-	 * </ol>
-	 *
-	 * @param testCaseDTO the YAML case; its input and output are changed in place when OTP blocks
-	 *                    are present
-	 * @throws AuthenticationTestException on token generation failure
-	 * @throws AdminTestException          when OTP output validation fails
-	 * @throws SecurityXSSException        when the XSS header check is enabled and fails
-	 * @throws AssertionError              when update output validation fails
-	 */
 	public void updateIdentity(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
 
 		testCaseName = testCaseDTO.getTestCaseName();
@@ -242,26 +193,6 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 
 		inputJson = inputJson.replace("$RID$", genRid);
 
-		String generatedEmail = testCaseName + "_" + BaseTestCase.runContext + timestampValue + "@mosip.net";
-		String phoneNumber = "";
-		if (inputJson.contains("$PHONENUMBERFORIDENTITY$") || inputJson.contains("$EMAILVALUE$")) {
-			if (!phoneSchemaRegex.isEmpty()) {
-				try {
-					phoneNumber = genStringAsperRegex(phoneSchemaRegex);
-				} catch (Exception e) {
-					logger.error(e.getMessage());
-				}
-			}
-			if (phoneNumber.isEmpty()) {
-				phoneNumber = timestampValue.substring(timestampValue.length() - 6)
-						+ generateRandomNumberString(4);
-			}
-			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber);
-		}
-		if (inputJson.contains("$EMAILVALUE$")) {
-			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", generatedEmail);
-		}
-
 		if (inputJson.contains("$OPTIONALSCHEMAFIELD$")) {
 			// Resolved from the live schema; isTestCaseValidForExecution already skips if none exists, so this is just a fallback.
 			String optionalField = resolveOptionalClaimableField();
@@ -333,10 +264,9 @@ public class UpdateIdentity extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * Stores the case name as the {@code TestCaseName} result attribute, which the report uses as the
-	 * row label.
-	 *
-	 * @param result result of the method that just ran
+	 * The method ser current test name to result
+	 * 
+	 * @param result
 	 */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {

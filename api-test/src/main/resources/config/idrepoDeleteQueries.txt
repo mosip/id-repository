@@ -1,17 +1,3 @@
 #####  DB queries to be executed to tear down the data used and generated during the test rig run
-#####  ${testDataCreator} is replaced by IdRepoUtil.dbCleanUp(); statements run in order, so rows looked up through idrepo.uin / idrepo.uin_draft go first.
-#####  Salt tables, uin_auth_lock (cr_by is always ID_REPO) and channel_info (aggregate counts) are not touched.
 
-delete from idrepo.identity_update_count_tracker where id in (select uin_hash from idrepo.uin where cr_by = '${testDataCreator}' union select uin_hash from idrepo.uin_draft where cr_by = '${testDataCreator}');
-delete from idrepo.uin_biometric where uin_ref_id in (select uin_ref_id from idrepo.uin where cr_by = '${testDataCreator}');
-delete from idrepo.uin_document where uin_ref_id in (select uin_ref_id from idrepo.uin where cr_by = '${testDataCreator}');
-delete from idrepo.uin_biometric_draft where reg_id in (select reg_id from idrepo.uin_draft where cr_by = '${testDataCreator}');
-delete from idrepo.uin_document_draft where reg_id in (select reg_id from idrepo.uin_draft where cr_by = '${testDataCreator}');
-delete from idrepo.uin_draft where cr_by = '${testDataCreator}';
-delete from idrepo.uin_biometric_h where cr_by = '${testDataCreator}';
-delete from idrepo.uin_document_h where cr_by = '${testDataCreator}';
-delete from idrepo.uin_h where cr_by = '${testDataCreator}';
-delete from idrepo.handle where cr_by = '${testDataCreator}';
-delete from idrepo.credential_request_status where cr_by = '${testDataCreator}';
-delete from idrepo.anonymous_profile where cr_by = '${testDataCreator}';
-delete from idrepo.uin where cr_by = '${testDataCreator}';
+delete from idrepo.handle WHERE cr_by ='service-account-mosip-testrig-client' AND cr_dtimes <= NOW() - INTERVAL '2 days';

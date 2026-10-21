@@ -1,9 +1,5 @@
 package io.mosip.testrig.apirig.idrepo.testscripts;
 
-import java.lang.reflect.Field;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
@@ -21,8 +17,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.internal.BaseTestMethod;
-import org.testng.internal.TestResult;
 
 import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
@@ -39,33 +33,13 @@ import io.mosip.testrig.apirig.utils.ReportUtil;
 import io.mosip.testrig.apirig.utils.SecurityXSSException;
 import io.restassured.response.Response;
 
-/**
- * TestNG script for the draft update APIs:
- * {@code PATCH /idrepository/v1/identity/draft/update/{registrationId}} ({@code UpdateDraft.yml}) and
- * {@code PATCH /idrepository/v1/identity/draft/v2/update/{registrationId}} ({@code UpdateDraftV2.yml}).
- * <p>
- * Two ways to build the request:
- * <ul>
- * <li>No input template, or one containing {@code $LANGNUMBER$}: the body is generated from the
- * live IdSchema ({@code AdminTestUtil.generateHbsForUpdateDraft()}). The YAML
- * {@code verifiedAttributes} value (a list of strings or of v2 verification-metadata objects) is
- * copied into {@code request} unchanged.</li>
- * <li>An explicit template: rendered as is, then the {@code phone} and {@code email} keys are
- * renamed to the property names published by the auth actuator.</li>
- * </ul>
- * The suite parameter {@code pathParams} (normally {@code registrationId}) moves that field into
- * the URL.
- */
+// Generic PATCH script shared by draft/update/{registrationId} and draft/v2/update/{registrationId}
 public class UpdateDraft extends IdRepoUtil implements ITest {
 	private static final Logger logger = Logger.getLogger(UpdateDraft.class);
-	/** Name of the case currently running; becomes the TestNG method name in reports. */
 	protected String testCaseName = "";
-	/** Suite parameter {@code pathParams}: input fields used as URL path parameters. */
 	String pathParams = null;
-	/** Response of the last call. */
 	public Response response = null;
 
-	/** Sets the script logger to {@code ALL} in debug mode, {@code ERROR} otherwise. */
 	@BeforeClass
 	public static void setLogLevel() {
 		if (IdRepoConfigManager.IsDebugEnabled())
@@ -75,7 +49,7 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * @return the current test case name (TestNG {@link ITest} contract)
+	 * get current testcaseName
 	 */
 	@Override
 	public String getTestName() {
@@ -83,11 +57,9 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * Supplies the YAML cases named by the suite parameter {@code ymlFile} and reads
-	 * {@code pathParams}.
+	 * Data provider class provides test case list
 	 *
-	 * @param context TestNG context holding the {@code <test>} parameters
-	 * @return one {@link TestCaseDTO} per YAML entry
+	 * @return object of data provider
 	 */
 	@DataProvider(name = "testcaselist")
 	public Object[] getTestCaseList(ITestContext context) {
@@ -98,18 +70,12 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * Runs one draft-update case.
-	 * <p>
-	 * Uses the same skip rules as the other scripts (execution gate, health check, VID support).
-	 * Builds the body (see the class description), then resolves {@code $SCHEMAVERSION$},
-	 * {@code $PHONENUMBERFORIDENTITY$}, {@code $EMAILVALUE$} and the registration-id placeholders.
-	 * Sends the PATCH with {@link #pathParams} and validates the response against the YAML output
-	 * template.
-	 *
-	 * @param testCaseDTO the YAML case
-	 * @throws AuthenticationTestException on token generation failure
-	 * @throws AdminTestException          when output validation fails
-	 * @throws SecurityXSSException        when the XSS header check is enabled and fails
+	 * 
+	 * @param objTestParameters
+	 * @param testScenario
+	 * @param testcaseName
+	 * @throws AuthenticationTestException
+	 * @throws AdminTestException
 	 */
 	@Test(dataProvider = "testcaselist")
 	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
@@ -129,9 +95,10 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 		String jsonInput = testCaseDTO.getInput();
 		String inputJson;
 		String declaredTemplate = testCaseDTO.getInputTemplate();
-		if (declaredTemplate == null || declaredTemplate.isEmpty() || declaredTemplate.contains("$LANGNUMBER$")) {
+		if (declaredTemplate == null || declaredTemplate.isEmpty()) {
 			testCaseDTO.setInputTemplate(AdminTestUtil.generateHbsForUpdateDraft());
 			inputJson = getJsonFromTemplate(jsonInput, testCaseDTO.getInputTemplate(), false);
+			// No verifiedAttributes placeholder in the generated template - inject it if supplied.
 			JSONObject originalInput = new JSONObject(jsonInput);
 			if (originalInput.has("verifiedAttributes")) {
 				JSONObject requestJson = new JSONObject(inputJson);
@@ -141,6 +108,7 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 			}
 		} else {
 			inputJson = getJsonFromTemplate(jsonInput, declaredTemplate);
+			// Retarget hardcoded "email"/"phone" keys onto the live schema's actual field names.
 			String actualPhoneField = getValueFromAuthActuator("json-property", "phone_number")
 					.replaceAll("\\[\"|\"]", "");
 			String actualEmailField = getValueFromAuthActuator("json-property", "emailId")
@@ -152,10 +120,8 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 		if (inputJson.contains("$SCHEMAVERSION$"))
 			inputJson = replaceKeywordWithValue(inputJson, "$SCHEMAVERSION$", generateLatestSchemaVersion());
 
-		DateFormat dateFormatter = new SimpleDateFormat("yyyyMMddHHmmss");
-		String timestampValue = dateFormatter.format(Calendar.getInstance().getTime());
 		String phoneNumber = "";
-		String email = testCaseName + "_" + BaseTestCase.runContext + timestampValue + "@mosip.net";
+		String email = testCaseName + "_" + BaseTestCase.runContext + "@mosip.net";
 		if (inputJson.contains("$PHONENUMBERFORIDENTITY$") || inputJson.contains("$EMAILVALUE$")) {
 			if (!phoneSchemaRegex.isEmpty()) {
 				try {
@@ -164,13 +130,7 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 					logger.error(e.getMessage());
 				}
 			}
-			if (phoneNumber.isEmpty()) {
-				phoneNumber = timestampValue.substring(timestampValue.length() - 6)
-						+ generateRandomNumberString(4);
-			}
 			inputJson = replaceKeywordWithValue(inputJson, "$PHONENUMBERFORIDENTITY$", phoneNumber);
-		}
-		if (inputJson.contains("$EMAILVALUE$")) {
 			inputJson = replaceKeywordWithValue(inputJson, "$EMAILVALUE$", email);
 		}
 
@@ -189,33 +149,12 @@ public class UpdateDraft extends IdRepoUtil implements ITest {
 
 	}
 
-	/**
-	 * Renames the TestNG method on {@code result} to the YAML case name, so each case gets its own
-	 * report row instead of {@code test}. Uses reflection on TestNG internals
-	 * ({@code TestResult.m_method}, {@code BaseTestMethod.m_methodName}); any failure is written to
-	 * the report and ignored.
-	 *
-	 * @param result result of the method that just ran
-	 */
+	/** Sets current test name to result */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {
-		try {
-			Field method = TestResult.class.getDeclaredField("m_method");
-			method.setAccessible(true);
-			method.set(result, result.getMethod().clone());
-			BaseTestMethod baseTestMethod = (BaseTestMethod) result.getMethod();
-			Field f = baseTestMethod.getClass().getSuperclass().getDeclaredField("m_methodName");
-			f.setAccessible(true);
-			f.set(baseTestMethod, testCaseName);
-		} catch (Exception e) {
-			Reporter.log("Exception : " + e.getMessage());
-		}
+		result.setAttribute("TestCaseName", testCaseName);
 	}
 
-	/**
-	 * Waits {@code Delaytime} ms after the class, whatever the module, so draft changes settle
-	 * before the publish suites run.
-	 */
 	@AfterClass(alwaysRun = true)
 	public void waittime() {
 
